@@ -1,0 +1,8 @@
+<resources>
+  <string name="time_ago_now">now</string>
+  <string name="time_ago_minutes">%d minutes ago</string>
+  <string name="time_ago_hours">%d hours ago</string>
+  <string name="time_ago_days">%d days ago</string>
+  <string name="time_ago_months">%d months ago</string>
+  <string name="time_ago_years">%d years ago</string>
+</resources>

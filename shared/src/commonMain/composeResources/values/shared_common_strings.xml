@@ -1,0 +1,4 @@
+<resources>
+  <string name="settings">Settings</string>
+  <string name="settings_content_description">App settings</string>
+</resources>
