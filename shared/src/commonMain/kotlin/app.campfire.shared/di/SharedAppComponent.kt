@@ -1,7 +1,7 @@
 package app.campfire.shared.di
 
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.core.time.FatherTime
 import app.campfire.core.time.GrandFatherTime
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +14,7 @@ interface SharedAppComponent : CoreComponent
 interface CoreComponent {
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideCoroutineDispatchers(): app.campfire.core.coroutines.DispatcherProvider =
     app.campfire.core.coroutines.DispatcherProvider(
@@ -25,7 +25,7 @@ interface CoreComponent {
       main = Dispatchers.Main,
     )
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideFatherTime(): FatherTime = GrandFatherTime
 }

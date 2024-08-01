@@ -7,34 +7,34 @@ import androidx.compose.ui.unit.Density
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.SharedAppComponent
 import com.r0adkll.kotlininject.merge.annotations.MergeComponent
 import java.util.prefs.Preferences
 import me.tatarka.inject.annotations.Provides
 
-@AppScope
-@MergeComponent(MergeAppScope::class)
+@SingleIn(AppScope::class)
+@MergeComponent(AppScope::class)
 abstract class DesktopApplicationComponent : SharedAppComponent {
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
-  fun provideApplicationId(): app.campfire.core.app.ApplicationInfo = app.campfire.core.app.ApplicationInfo(
-    packageName = "app.deckbox",
+  fun provideApplicationId(): ApplicationInfo = ApplicationInfo(
+    packageName = "app.campfire",
     debugBuild = true,
-    flavor = app.campfire.core.app.Flavor.Standard,
+    flavor = Flavor.Standard,
     versionName = "1.0.0",
     versionCode = 1,
   )
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
-  fun providePreferences(): Preferences = Preferences.userRoot().node("app.deckbox")
+  fun providePreferences(): Preferences = Preferences.userRoot().node("app.campfire")
 
   @Provides
   fun provideDensity(): Density = Density(density = 1f) // FIXME
 
-//    @AppScope
+//    @SingleIn(MergeAppScope::class)
 //    @Provides
 //    fun provideOkHttpClient(
 //        // interceptors: Set<Interceptor>,

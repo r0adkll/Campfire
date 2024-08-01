@@ -2,15 +2,15 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.SingleIn
 import com.r0adkll.kotlininject.merge.annotations.ContributesTo
 import me.tatarka.inject.annotations.Provides
 
 expect interface SqlDelightDatabasePlatformComponent
 
-@ContributesTo(MergeAppScope::class)
+@ContributesTo(AppScope::class)
 interface DatabaseComponent : SqlDelightDatabasePlatformComponent {
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideSqlDelightDatabase(
     factory: DatabaseFactory,

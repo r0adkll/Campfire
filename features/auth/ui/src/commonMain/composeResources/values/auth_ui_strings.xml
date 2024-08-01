@@ -1,3 +1,13 @@
 <resources>
+  <string name="welcome_title">Campfire</string>
+  <string name="welcome_add_campsite_title">Add a campsite</string>
+  <string name="welcome_add_campsite_subtitle">Connect your audiobookshelf server and begin listening to stories</string>
 
+  <string name="label_server_url">Server address</string>
+  <string name="invalid_server_url">Invalid address</string>
+  <string name="valid_server_url">Connected!</string>
+  <string name="loading_server_url">Testing…</string>
+  <string name="label_username">Username</string>
+  <string name="label_password">Password</string>
+  <string name="action_add_campsite">Add campsite</string>
 </resources>

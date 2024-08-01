@@ -2,13 +2,14 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import me.tatarka.inject.annotations.Provides
 
 actual interface SqlDelightDatabasePlatformComponent {
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideJvmSqlDriver(): SqlDriver {
     val driver: SqlDriver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)

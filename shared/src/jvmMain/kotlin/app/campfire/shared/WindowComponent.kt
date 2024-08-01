@@ -4,16 +4,16 @@
 package app.campfire.shared
 
 import app.campfire.core.di.ActivityScope
-import app.campfire.core.di.MergeActivityScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.UiComponent
 import app.campfire.shared.root.CampfireContentWithInsets
 import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
 
-@ActivityScope
+@SingleIn(ActivityScope::class)
 @ContributesSubcomponent(
-  scope = MergeActivityScope::class,
-  parentScope = MergeAppScope::class,
+  scope = ActivityScope::class,
+  parentScope = AppScope::class,
 )
 abstract class WindowComponent : UiComponent {
   abstract val campfireContent: CampfireContentWithInsets

@@ -14,10 +14,16 @@ import com.slack.circuit.runtime.screen.StaticScreen
 class RootScreen : BaseScreen(name = "Root")
 
 @Parcelize
-class WelcomeScreen : BaseScreen(name = "Welcome()"), StaticScreen
+class WelcomeScreen : BaseScreen(name = "Welcome()") {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true)
+}
 
 @Parcelize
-class LoginScreen : BaseScreen(name = "Login()")
+class LoginScreen : BaseScreen(name = "Login()") {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true)
+}
 
 @Parcelize
 class SettingsScreen : BaseScreen(name = "Settings()")

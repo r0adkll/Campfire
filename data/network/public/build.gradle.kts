@@ -1,5 +1,6 @@
 plugins {
   id("app.campfire.multiplatform")
+  alias(libs.plugins.kotlin.serialization)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -7,8 +8,9 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.core)
         implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.datetime)
+        implementation(libs.kotlinx.serialization.json)
       }
     }
   }

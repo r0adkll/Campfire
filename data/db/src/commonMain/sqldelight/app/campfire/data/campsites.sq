@@ -1,4 +1,0 @@
-CREATE TABLE campsites (
-  url TEXT NOT NULL PRIMARY KEY,
-  color TEXT NOT NULL
-);

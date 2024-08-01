@@ -11,10 +11,10 @@ import androidx.core.view.WindowCompat
 import app.campfire.android.di.ActivityComponent
 import app.campfire.android.di.AndroidAppComponent
 import app.campfire.android.di.from
-import app.campfire.common.screens.WelcomeScreen
+import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.ActivityScope
-import app.campfire.core.di.MergeActivityScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.UiComponent
 import app.campfire.shared.root.CampfireContent
 import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
-      val backstack = rememberSaveableBackStack(listOf(WelcomeScreen()))
+      val backstack = rememberSaveableBackStack(listOf(LoginScreen()))
       val navigator = rememberCircuitNavigator(backstack)
 
       component.campfireContent(
@@ -48,10 +48,10 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-@ActivityScope
+@SingleIn(ActivityScope::class)
 @ContributesSubcomponent(
-  scope = MergeActivityScope::class,
-  parentScope = MergeAppScope::class,
+  scope = ActivityScope::class,
+  parentScope = AppScope::class,
 )
 abstract class MainActivityComponent(
   @get:Provides override val activity: Activity,

@@ -2,6 +2,7 @@ package app.campfire.common.settings
 
 import app.campfire.common.settings.CampfireSettings.Theme
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
-@AppScope
+@SingleIn(AppScope::class)
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,

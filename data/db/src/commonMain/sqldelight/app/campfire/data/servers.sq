@@ -1,0 +1,77 @@
+import app.campfire.core.model.Tent;
+import kotlin.Boolean;
+import kotlin.Int;
+import kotlin.String;
+import kotlin.collections.List;
+
+CREATE TABLE server (
+  url TEXT NOT NULL PRIMARY KEY,
+  tent TEXT AS Tent NOT NULL,
+  scannerFindCovers INTEGER AS Boolean DEFAULT 0,
+  scannerCoverProvider TEXT NOT NULL,
+  scannerParseSubtitle INTEGER AS Boolean DEFAULT 0,
+  scannerPreferMatchedMetadata INTEGER AS Boolean DEFAULT 0,
+  scannerDisableWatcher INTEGER AS Boolean DEFAULT 0,
+  storeCoverWithItem INTEGER AS Boolean DEFAULT 0,
+  storeMetadataWithItem INTEGER AS Boolean DEFAULT 0,
+  metadataFileFormat TEXT NOT NULL,
+  rateLimitLoginRequests INTEGER AS Int DEFAULT 0,
+  rateLimitLoginWindow INTEGER AS Boolean DEFAULT 0,
+  backupSchedule INTEGER AS Boolean DEFAULT 0,
+  backupsToKeep INTEGER AS Int DEFAULT 0,
+  maxBackupSize INTEGER AS Boolean DEFAULT 0,
+  loggerDailyLogsToKeep INTEGER AS Int DEFAULT 0,
+  loggerScannerLogsToKeep INTEGER AS Int DEFAULT 0,
+  homeBookshelfView INTEGER AS Int DEFAULT 0,
+  bookshelfView INTEGER AS Int DEFAULT 0,
+  sortingIgnorePrefix INTEGER AS Boolean DEFAULT 0,
+  sortingPrefixes TEXT AS List<String> NOT NULL,
+  chromecastEnabled INTEGER AS Boolean DEFAULT 0,
+  dateFormat TEXT NOT NULL,
+  timeFormat TEXT NOT NULL,
+  language TEXT NOT NULL,
+  logLevel INTEGER AS Int DEFAULT 0,
+  version TEXT NOT NULL
+);
+
+selectAll:
+SELECT *
+FROM server;
+
+insert:
+INSERT OR REPLACE INTO server(
+  url,
+  tent,
+  scannerFindCovers,
+  scannerCoverProvider,
+  scannerParseSubtitle,
+  scannerPreferMatchedMetadata,
+  scannerDisableWatcher,
+  storeCoverWithItem,
+  storeMetadataWithItem,
+  metadataFileFormat,
+  rateLimitLoginRequests,
+  rateLimitLoginWindow,
+  backupSchedule,
+  backupsToKeep,
+  maxBackupSize,
+  loggerDailyLogsToKeep,
+  loggerScannerLogsToKeep,
+  homeBookshelfView,
+  bookshelfView,
+  sortingIgnorePrefix,
+  sortingPrefixes,
+  chromecastEnabled,
+  dateFormat,
+  timeFormat,
+  language,
+  logLevel,
+  version
+) VALUES ?;
+
+deleteByUrl:
+DELETE FROM server
+WHERE url = ?;
+
+deleteAll:
+DELETE FROM server;

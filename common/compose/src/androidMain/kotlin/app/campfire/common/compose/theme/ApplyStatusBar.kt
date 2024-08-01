@@ -10,12 +10,12 @@ import androidx.core.view.WindowCompat
 
 @Composable
 actual fun ApplyStatusBar(useDarkColors: Boolean, colorScheme: ColorScheme) {
-  val view = LocalView.current
-  if (!view.isInEditMode) {
-    SideEffect {
-      val window = (view.context as Activity).window
-      window.statusBarColor = colorScheme.primary.toArgb()
-      WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = useDarkColors
-    }
-  }
+//  val view = LocalView.current
+//  if (!view.isInEditMode) {
+//    SideEffect {
+//      val window = (view.context as Activity).window
+//      window.statusBarColor = colorScheme.primary.toArgb()
+//      WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = useDarkColors
+//    }
+//  }
 }

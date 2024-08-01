@@ -3,23 +3,21 @@
 
 package app.deckbox.shared.di
 
-import app.campfire.shared.di.SharedAppComponent
-import app.campfire.core.app.ApplicationInfo
-import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.SingleIn
+import app.campfire.shared.di.SharedAppComponent
 import com.r0adkll.kotlininject.merge.annotations.MergeComponent
 import kotlin.experimental.ExperimentalNativeApi
 import me.tatarka.inject.annotations.Provides
 import platform.Foundation.NSBundle
 import platform.Foundation.NSUserDefaults
 
-@AppScope
-@MergeComponent(MergeAppScope::class)
+@SingleIn(AppScope::class)
+@MergeComponent(AppScope::class)
 abstract class IosApplicationComponent() : SharedAppComponent {
 
   @OptIn(ExperimentalNativeApi::class)
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideApplicationId(): app.campfire.core.app.ApplicationInfo = app.campfire.core.app.ApplicationInfo(
     packageName = NSBundle.mainBundle.bundleIdentifier ?: "app.deckbox",

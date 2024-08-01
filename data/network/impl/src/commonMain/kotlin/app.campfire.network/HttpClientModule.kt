@@ -1,7 +1,7 @@
 package app.campfire.network
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.MergeAppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import com.r0adkll.kotlininject.merge.annotations.ContributesTo
@@ -15,10 +15,10 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Provides
 
-@ContributesTo(MergeAppScope::class)
+@ContributesTo(AppScope::class)
 interface HttpClientModule {
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideHttpClient(): HttpClient {
     return HttpClient {

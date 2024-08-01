@@ -1,0 +1,58 @@
+import app.campfire.core.model.User.Type;
+import kotlin.Boolean;
+import kotlin.String;
+import kotlin.collections.List;
+
+CREATE TABLE user (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT AS Type NOT NULL,
+  seriesHideFromContinueListening TEXT AS List<String> NOT NULL,
+  isActive INTEGER AS Boolean DEFAULT 0,
+  isLocked INTEGER AS Boolean DEFAULT 0,
+  lastSeen INTEGER,
+  createdAt INTEGER NOT NULL,
+  permission_download INTEGER AS Boolean DEFAULT 0,
+  permission_update INTEGER AS Boolean DEFAULT 0,
+  permission_delete INTEGER AS Boolean DEFAULT 0,
+  permission_upload INTEGER AS Boolean DEFAULT 0,
+  permission_accessAllLibraries INTEGER AS Boolean DEFAULT 0,
+  permission_accessAllTags INTEGER AS Boolean DEFAULT 0,
+  permission_accessExplicitContent INTEGER AS Boolean DEFAULT 0,
+  librariesAccessible TEXT AS List<String> NOT NULL,
+  itemTagsAccessible TEXT AS List<String> NOT NULL,
+
+  serverUrl TEXT NOT NULL,
+  FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
+);
+
+selectAll:
+SELECT * FROM user;
+
+selectForServer:
+SELECT * FROM user
+WHERE serverUrl = ?;
+
+insert:
+INSERT OR REPLACE INTO
+user(
+  serverUrl,
+  id,
+  name,
+  type,
+  seriesHideFromContinueListening,
+  isActive,
+  isLocked,
+  lastSeen,
+  createdAt,
+  permission_download,
+  permission_update,
+  permission_delete,
+  permission_upload,
+  permission_accessAllLibraries,
+  permission_accessAllTags,
+  permission_accessExplicitContent,
+  librariesAccessible,
+  itemTagsAccessible
+)
+VALUES ?;

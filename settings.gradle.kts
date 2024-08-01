@@ -35,6 +35,8 @@ include(
   ":common:settings",
 )
 include(
+  ":data:account:api",
+  ":data:account:impl",
   ":data:network:public",
   ":data:network:impl",
   ":data:db",

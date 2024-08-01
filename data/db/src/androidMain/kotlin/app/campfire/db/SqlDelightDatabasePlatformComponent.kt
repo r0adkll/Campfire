@@ -4,13 +4,14 @@ import android.app.Application
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
 import me.tatarka.inject.annotations.Provides
 
 actual interface SqlDelightDatabasePlatformComponent {
 
-  @AppScope
+  @SingleIn(AppScope::class)
   @Provides
   fun provideAndroidSqlDriver(
     application: Application,
