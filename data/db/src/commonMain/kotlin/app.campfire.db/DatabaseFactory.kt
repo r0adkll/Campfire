@@ -24,6 +24,7 @@ class DatabaseFactory(
       homeBookshelfViewAdapter = IntColumnAdapter,
       loggerDailyLogsToKeepAdapter = IntColumnAdapter,
       rateLimitLoginRequestsAdapter = IntColumnAdapter,
+      maxBackupSizeAdapter = IntColumnAdapter,
     ),
     userAdapter = User.Adapter(
       typeAdapter = EnumColumnAdapter(),

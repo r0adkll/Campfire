@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,18 +41,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import app.campfire.auth.ui.login.AuthError
 import app.campfire.auth.ui.login.ConnectionState
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.model.Tent
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.invalid_server_url
+import campfire.features.auth.ui.generated.resources.label_login_error_auth
+import campfire.features.auth.ui.generated.resources.label_login_error_network
 import campfire.features.auth.ui.generated.resources.loading_server_url
 import campfire.features.auth.ui.generated.resources.label_password
+import campfire.features.auth.ui.generated.resources.label_server_name_placeholder
 import campfire.features.auth.ui.generated.resources.label_server_url
 import campfire.features.auth.ui.generated.resources.label_username
 import campfire.features.auth.ui.generated.resources.valid_server_url
@@ -70,8 +78,18 @@ internal fun ServerCard(
   password: String,
   onPasswordChange: (String) -> Unit,
   connectionState: ConnectionState?,
+  authError: AuthError?,
+  isAuthenticating: Boolean,
   modifier: Modifier = Modifier,
 ) {
+  val focusRequester = remember { FocusRequester() }
+
+  LaunchedEffect(isAuthenticating) {
+    if (isAuthenticating) {
+      focusRequester.freeFocus()
+    }
+  }
+
   OutlinedCard(
     colors = CardDefaults.outlinedCardColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -122,7 +140,8 @@ internal fun ServerCard(
       } else null,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp),
+        .padding(16.dp)
+        .focusRequester(focusRequester),
     )
 
     AnimatedVisibility(
@@ -163,8 +182,25 @@ internal fun ServerCard(
           },
           visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
           keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-          modifier = Modifier.fillMaxWidth(),
+          modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester),
         )
+
+        if (authError != null) {
+          Spacer(Modifier.height(16.dp))
+
+          Text(
+            text = stringResource(
+              when (authError) {
+                AuthError.InvalidCredentials -> Res.string.label_login_error_auth
+                AuthError.NetworkError -> Res.string.label_login_error_network
+              }
+            ),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error,
+          )
+        }
       }
     }
   }
@@ -207,13 +243,25 @@ private fun ServerNameAndIcon(
       }
     }
     Spacer(Modifier.width(16.dp))
-    BasicTextField(
-      value = name,
-      onValueChange = onNameChange,
-      textStyle = MaterialTheme.typography.titleMedium.copy(
-        fontFamily = PaytoneOneFontFamily,
-      ),
-      singleLine = true,
-    )
+    Box {
+      BasicTextField(
+        value = name,
+        onValueChange = onNameChange,
+        textStyle = MaterialTheme.typography.titleMedium.copy(
+          fontFamily = PaytoneOneFontFamily,
+        ),
+        singleLine = true,
+      )
+      if (name.isEmpty()) {
+        Text(
+          text = stringResource(Res.string.label_server_name_placeholder),
+          style = MaterialTheme.typography.titleMedium.copy(
+            fontFamily = PaytoneOneFontFamily,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.typography.titleMedium.color.copy(0.5f),
+          ),
+        )
+      }
+    }
   }
 }

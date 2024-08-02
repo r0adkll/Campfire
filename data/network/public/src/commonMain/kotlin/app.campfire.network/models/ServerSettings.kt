@@ -14,7 +14,7 @@ data class ServerSettings(
   val storeMetadataWithItem: Boolean,
   val metadataFileFormat: String,
   val rateLimitLoginRequests: Int,
-  val rateLimitLoginWindow: Int,
+  val rateLimitLoginWindow: Long,
   val backupSchedule: String,
   val backupsToKeep: Int,
   val maxBackupSize: Int,

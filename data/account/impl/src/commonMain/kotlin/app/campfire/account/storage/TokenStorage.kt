@@ -5,6 +5,6 @@ package app.campfire.account.storage
  */
 interface TokenStorage {
 
-  suspend fun get(serverUrl: String): String
+  suspend fun get(serverUrl: String): String?
   suspend fun put(serverUrl: String, token: String)
 }

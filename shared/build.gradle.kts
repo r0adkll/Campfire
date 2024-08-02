@@ -19,6 +19,7 @@ kotlin {
         // Data Modules
         api(projects.data.db)
         api(projects.data.network.impl)
+        api(projects.data.account.impl)
 
         // Feature Modules
         api(projects.features.auth.impl)

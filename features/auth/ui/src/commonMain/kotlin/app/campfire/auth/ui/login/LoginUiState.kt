@@ -13,6 +13,8 @@ data class LoginUiState(
   val connectionState: ConnectionState?,
   val userName: String,
   val password: String,
+  val isAuthenticating: Boolean,
+  val authError: AuthError?,
   val eventSink: (LoginUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -23,6 +25,11 @@ sealed interface LoginUiEvent : CircuitUiEvent {
   data class UserName(val userName: String) : LoginUiEvent
   data class Password(val password: String) : LoginUiEvent
   data object AddCampsite : LoginUiEvent
+}
+
+sealed interface AuthError {
+  data object InvalidCredentials : AuthError
+  data object NetworkError : AuthError
 }
 
 enum class ConnectionState {

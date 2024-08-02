@@ -17,7 +17,7 @@ data class User(
   val createdAt: Long,
   val permissions: UserPermissions,
   val librariesAccessible: List<String>,
-  val itemTagsAccessible: List<String>,
+  val itemTagsAccessible: List<String>? = null,
 )
 
 @Serializable

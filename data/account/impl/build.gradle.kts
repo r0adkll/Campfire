@@ -29,6 +29,7 @@ kotlin {
     androidMain {
       dependencies {
         implementation(libs.androidx.preferences)
+        implementation(libs.androidx.security.crypto)
       }
     }
   }

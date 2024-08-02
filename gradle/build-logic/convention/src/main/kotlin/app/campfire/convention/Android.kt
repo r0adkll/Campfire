@@ -12,21 +12,18 @@ import org.gradle.kotlin.dsl.dependencies
 fun Project.configureAndroid(computeNamespace: Boolean = true) {
   android {
     if (computeNamespace) {
-      namespace = "app.deckbox.${path.substring(1).replace(':', '.').replace("-", "_")}"
+      namespace = "app.campfire.${path.substring(1).replace(':', '.').replace("-", "_")}"
     }
     compileSdkVersion(Versions.compileSdk)
 
     defaultConfig {
       minSdk = Versions.minSdk
       targetSdk = Versions.targetSdk
+
+      testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // Can remove this once https://issuetracker.google.com/issues/260059413 is fixed.
-    // See https://kotlinlang.org/docs/gradle-configure-project.html#gradle-java-toolchains-support
     compileOptions {
-      sourceCompatibility = JavaVersion.VERSION_11
-      targetCompatibility = JavaVersion.VERSION_11
-
       // https://developer.android.com/studio/write/java8-support
       isCoreLibraryDesugaringEnabled = true
     }

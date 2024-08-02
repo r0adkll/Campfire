@@ -9,16 +9,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
@@ -26,6 +30,7 @@ import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.ActivityScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
+import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import com.moriatsushi.insetsx.ExperimentalSoftwareKeyboardApi
 import com.moriatsushi.insetsx.imePadding
 import com.r0adkll.kotlininject.merge.annotations.CircuitInject
@@ -40,6 +45,8 @@ fun Login(
 ) {
   val eventSink = state.eventSink
 
+  var hasFocus by remember { mutableStateOf(false) }
+
   Box(
     modifier = modifier
       .systemBarsPadding()
@@ -49,7 +56,7 @@ fun Login(
       modifier = Modifier
         .padding(
           horizontal = 24.dp,
-          vertical = 24.dp,
+          vertical = 48.dp,
         ),
     )
 
@@ -71,6 +78,11 @@ fun Login(
         password = state.password,
         onPasswordChange = { eventSink(LoginUiEvent.Password(it)) },
         connectionState = state.connectionState,
+        authError = state.authError,
+        isAuthenticating = state.isAuthenticating,
+        modifier = Modifier.onFocusChanged {
+          hasFocus = it.hasFocus
+        }
       )
 
       Spacer(Modifier.height(16.dp))
@@ -78,20 +90,24 @@ fun Login(
       Button(
         enabled = state.serverUrl.isNotBlank() &&
           state.userName.isNotBlank() &&
-          state.password.isNotBlank(),
+          state.password.isNotBlank() &&
+          !state.isAuthenticating,
         onClick = {
           eventSink(LoginUiEvent.AddCampsite)
         },
         modifier = Modifier
           .fillMaxWidth(),
       ) {
-        Icon(
-          Icons.Rounded.Add,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.onPrimary,
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(stringResource(Res.string.action_add_campsite))
+        if (!state.isAuthenticating) {
+          Icon(
+            Icons.Rounded.Add,
+            contentDescription = null,
+          )
+          Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+          Text(stringResource(Res.string.action_add_campsite))
+        } else {
+          Text(stringResource(Res.string.label_authenticating_loading_message))
+        }
       }
 
       Spacer(

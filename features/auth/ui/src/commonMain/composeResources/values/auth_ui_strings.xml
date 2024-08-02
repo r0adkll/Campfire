@@ -4,10 +4,15 @@
   <string name="welcome_add_campsite_subtitle">Connect your audiobookshelf server and begin listening to stories</string>
 
   <string name="label_server_url">Server address</string>
+  <string name="label_server_name_placeholder">Enter a campsite name</string>
   <string name="invalid_server_url">Invalid address</string>
   <string name="valid_server_url">Connected!</string>
   <string name="loading_server_url">Testing…</string>
   <string name="label_username">Username</string>
   <string name="label_password">Password</string>
   <string name="action_add_campsite">Add campsite</string>
+
+  <string name="label_authenticating_loading_message">Logging in…</string>
+  <string name="label_login_error_network">A network error has occurred. Please try again.</string>
+  <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
 </resources>

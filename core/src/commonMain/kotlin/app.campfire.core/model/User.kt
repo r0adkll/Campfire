@@ -17,7 +17,19 @@ data class User(
     Root,
     Guest,
     User,
-    Admin,
+    Admin;
+
+    companion object {
+      fun from(value: String): Type {
+        return when(value.lowercase()) {
+          "root" -> Root
+          "guest" -> Guest
+          "user" -> User
+          "admin" -> Admin
+          else -> throw IllegalArgumentException("Unknown user type: $value")
+        }
+      }
+    }
   }
 
   data class Permissions(

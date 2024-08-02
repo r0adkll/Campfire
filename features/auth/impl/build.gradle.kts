@@ -15,6 +15,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.data.db)
         implementation(projects.data.network.public)
+        implementation(projects.data.account.api)
 
         api(projects.features.auth.api)
       }

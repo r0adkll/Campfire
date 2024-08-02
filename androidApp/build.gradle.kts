@@ -27,10 +27,6 @@ android {
     buildConfig = true
   }
 
-  composeOptions {
-    kotlinCompilerExtensionVersion = "1.5.14"
-  }
-
   packaging {
     resources.excludes += setOf(
       // Exclude AndroidX version files
@@ -58,7 +54,6 @@ android {
 dependencies {
   implementation(projects.shared)
   implementation(projects.common.screens)
-//  implementation(projects.features.sharing.impl)
 
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.browser)
