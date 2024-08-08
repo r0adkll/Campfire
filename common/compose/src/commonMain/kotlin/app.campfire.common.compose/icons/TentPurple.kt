@@ -155,4 +155,3 @@ val Icons.TentPurple: ImageVector
     }.build()
     return _TentPurple!!
   }
-

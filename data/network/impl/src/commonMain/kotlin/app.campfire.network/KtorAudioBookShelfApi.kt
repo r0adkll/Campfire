@@ -1,22 +1,33 @@
 package app.campfire.network
 
+import app.campfire.account.api.AccountManager
+import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
+import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
+import app.campfire.network.models.Library
 import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.HttpRequest
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
+import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -29,6 +40,8 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(AppScope::class)
 class KtorAudioBookShelfApi(
   private val httpClient: HttpClient,
+  private val settings: CampfireSettings,
+  private val accountManager: AccountManager,
   private val dispatcherProvider: DispatcherProvider,
 ) : AudioBookShelfApi {
 
@@ -46,35 +59,39 @@ class KtorAudioBookShelfApi(
 
   override suspend fun ping(
     serverUrl: String,
-  ): Boolean = withContext(dispatcherProvider.io){
-    try {
-      val response = client.get(Url("$serverUrl/ping"))
-      if (response.status.isSuccess()) {
-        response.body<PingResponse>().success
-      } else {
-        false
-      }
-    } catch (e: IOException) {
-      bark(throwable = e) { "Error pinging server: $serverUrl" }
-      false
-    }
-  }
+  ): Boolean = trySendRequest<PingResponse> { client.get(Url("$serverUrl/ping")) }
+    .map { it.success }
+    .getOrElse { false }
 
   override suspend fun login(
     serverUrl: String,
     username: String,
     password: String,
-  ): Result<LoginResponse> = withContext(dispatcherProvider.io) {
-    try {
-      val response = client.post {
-        url("${cleanServerUrl(serverUrl)}/login")
-        contentType(ContentType.Application.Json)
-        setBody(LoginRequest(username, password))
-      }
+  ): Result<LoginResponse> = trySendRequest {
+    client.post {
+      url("${cleanServerUrl(serverUrl)}/login")
+      contentType(ContentType.Application.Json)
+      setBody(LoginRequest(username, password))
+    }
+  }
 
+  override suspend fun authorize(): Result<LoginResponse> = trySendRequest {
+    hydratedClient("/authorize") {
+      method = HttpMethod.Post
+    }
+  }
+
+  override suspend fun getAllLibraries(): Result<List<Library>> = trySendRequest<AllLibrariesResponse> {
+    hydratedClient("/libraries")
+  }.map { it.libraries }
+
+  private suspend inline fun <reified T> trySendRequest(
+    crossinline request: suspend () -> HttpResponse,
+  ): Result<T> = withContext(dispatcherProvider.io) {
+    try {
+      val response = request()
       if (response.status.isSuccess()) {
-        val body = response.body<LoginResponse>()
-        Result.success(body)
+        Result.success(response.body<T>())
       } else {
         Result.failure(ApiException(response.status.value, response.bodyAsText()))
       }
@@ -83,20 +100,19 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  override suspend fun authorize(): Result<LoginResponse> = withContext(dispatcherProvider.io) {
-    try {
-      val response = client.post {
-        url("${cleanServerUrl("serverUrl")}/authorize")
-      }
-
-      if (response.status.isSuccess()) {
-        val body = response.body<LoginResponse>()
-        Result.success(body)
-      } else {
-        Result.failure(ApiException(response.status.value, response.bodyAsText()))
-      }
-    } catch (e: IOException) {
-      Result.failure(e)
+  private suspend fun hydratedClient(
+    endpoint: String,
+    builder: HttpRequestBuilder.() -> Unit = { },
+  ) : HttpResponse {
+    val currentServerUrl = settings.currentServerUrl
+      ?: throw IllegalStateException("You must be logged in to perform this request")
+    val token = accountManager.getToken(currentServerUrl)
+      ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
+    return client.request {
+      url("${cleanServerUrl(currentServerUrl)}${if (!endpoint.startsWith("/")) "/" else ""}$endpoint")
+      header(HttpHeaders.Authorization, "Bearer $token")
+      contentType(ContentType.Application.Json)
+      builder()
     }
   }
 

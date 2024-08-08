@@ -47,6 +47,11 @@ include(
   ":features:auth:ui",
 )
 include(
+  ":features:libraries:api",
+  ":features:libraries:impl",
+  ":features:libraries:ui",
+)
+include(
   ":di:kotlin-inject-merge",
   ":di:kotlin-inject-merge-annotations",
 )

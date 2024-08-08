@@ -1,0 +1,34 @@
+import kotlin.Int;
+
+CREATE TABLE library (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  displayOrder INTEGER AS Int,
+  icon TEXT NOT NULL,
+  mediaType TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  lastUpdate INTEGER NOT NULL,
+  coverAspectRatio INTEGER NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO library(
+  id,
+  name,
+  displayOrder,
+  icon,
+  mediaType,
+  provider,
+  createdAt,
+  lastUpdate,
+  coverAspectRatio
+)
+VALUES ?;
+
+selectAll:
+SELECT * FROM library;
+
+selectById:
+SELECT * FROM library
+WHERE id = ?;

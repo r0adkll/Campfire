@@ -12,13 +12,14 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(projects.features.libraries.api)
+
         implementation(projects.common.settings)
         implementation(projects.core)
         implementation(projects.data.db)
         implementation(projects.data.network.public)
         implementation(projects.data.account.api)
-
-        api(projects.features.auth.api)
+        implementation(libs.store)
       }
     }
   }

@@ -17,11 +17,12 @@ data class User(
     Root,
     Guest,
     User,
-    Admin;
+    Admin,
+    ;
 
     companion object {
       fun from(value: String): Type {
-        return when(value.lowercase()) {
+        return when (value.lowercase()) {
           "root" -> Root
           "guest" -> Guest
           "user" -> User

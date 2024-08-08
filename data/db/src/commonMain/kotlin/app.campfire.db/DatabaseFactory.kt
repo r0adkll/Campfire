@@ -1,6 +1,7 @@
 package app.campfire.db
 
 import app.campfire.CampfireDatabase
+import app.campfire.data.Library
 import app.campfire.data.Server
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
@@ -32,5 +33,8 @@ class DatabaseFactory(
       librariesAccessibleAdapter = StringListAdapter,
       seriesHideFromContinueListeningAdapter = StringListAdapter,
     ),
+    libraryAdapter = Library.Adapter(
+      displayOrderAdapter = IntColumnAdapter,
+    )
   )
 }

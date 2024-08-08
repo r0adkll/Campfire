@@ -3,11 +3,11 @@
 
 package app.deckbox.shared.di
 
-import app.campfire.shared.di.UiComponent
 import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.CampfireUiViewController
+import app.campfire.shared.di.UiComponent
 import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
 import me.tatarka.inject.annotations.Provides
 import platform.UIKit.UIViewController

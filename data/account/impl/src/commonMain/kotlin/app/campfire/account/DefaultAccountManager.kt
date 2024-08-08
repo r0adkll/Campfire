@@ -13,11 +13,11 @@ class DefaultAccountManager(
   private val tokenStorage: TokenStorage,
 ) : AccountManager {
 
-  override suspend fun setToken(server: Server, token: String) {
-    tokenStorage.put(server.url, token)
+  override suspend fun setToken(serverUrl: String, token: String) {
+    tokenStorage.put(serverUrl, token)
   }
 
-  override suspend fun getToken(server: Server): String? {
-    return tokenStorage.get(server.url)
+  override suspend fun getToken(serverUrl: String): String? {
+    return tokenStorage.get(serverUrl)
   }
 }

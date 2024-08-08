@@ -32,6 +32,20 @@ abstract class AppSettings {
     }
   }
 
+  fun stringOrNullSetting(key: String) = object : ReadWriteProperty<AppSettings, String?> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): String? {
+      return settings.getStringOrNull(key)
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: String?) {
+      if (value == null) {
+        settings.remove(key)
+      } else {
+        settings.putString(key, value)
+      }
+    }
+  }
+
   inline fun <reified T> enumSetting(
     key: String,
     provider: EnumSettingProvider<T>,

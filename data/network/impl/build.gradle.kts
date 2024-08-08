@@ -13,7 +13,9 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.data.network.public)
+        implementation(projects.common.settings)
         implementation(projects.core)
+        implementation(projects.data.account.api)
 
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.datetime)

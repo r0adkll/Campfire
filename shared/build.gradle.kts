@@ -25,6 +25,9 @@ kotlin {
         api(projects.features.auth.impl)
         api(projects.features.auth.ui)
 
+        api(projects.features.libraries.impl)
+        api(projects.features.libraries.ui)
+
         api(compose.runtime)
         api(compose.foundation)
         api(compose.material)

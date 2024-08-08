@@ -27,14 +27,18 @@ val LocalDateTime.timeAgo: String
     val elapsedMs = nowMs - thisMs
     val elapsedDuration = elapsedMs.milliseconds
 
-
-
     return when {
       elapsedDuration < 5.minutes -> stringResource(Res.string.time_ago_now)
-      elapsedDuration < 1.hours -> stringResource(Res.string.time_ago_minutes, (elapsedDuration.inWholeMinutes % 60).toInt())
+      elapsedDuration < 1.hours -> stringResource(
+        Res.string.time_ago_minutes,
+        (elapsedDuration.inWholeMinutes % 60).toInt(),
+      )
       elapsedDuration < 1.days -> stringResource(Res.string.time_ago_hours, (elapsedDuration.inWholeHours % 24).toInt())
       elapsedDuration < 30.days -> stringResource(Res.string.time_ago_days, elapsedDuration.inWholeDays.toInt())
-      elapsedDuration < 365.days -> stringResource(Res.string.time_ago_months, (elapsedDuration.inWholeDays / 30).toInt())
+      elapsedDuration < 365.days -> stringResource(
+        Res.string.time_ago_months,
+        (elapsedDuration.inWholeDays / 30).toInt(),
+      )
       else -> stringResource(Res.string.time_ago_years, (elapsedDuration.inWholeDays / 365).toInt())
     }
   }

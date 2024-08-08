@@ -1,5 +1,4 @@
 import app.campfire.convention.addKspDependencyForCommon
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 plugins {
   id("app.campfire.android.library")

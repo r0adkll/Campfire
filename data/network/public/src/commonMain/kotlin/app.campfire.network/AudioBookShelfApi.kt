@@ -1,6 +1,7 @@
 package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
+import app.campfire.network.models.Library
 
 interface AudioBookShelfApi {
 
@@ -28,4 +29,10 @@ interface AudioBookShelfApi {
    * @return Result containing updated user/server configuration.
    */
   suspend fun authorize(): Result<LoginResponse>
+
+  /**
+   * Fetch all the libraries accessible to the user
+   * @return a result with a list of library objects
+   */
+  suspend fun getAllLibraries(): Result<List<Library>>
 }

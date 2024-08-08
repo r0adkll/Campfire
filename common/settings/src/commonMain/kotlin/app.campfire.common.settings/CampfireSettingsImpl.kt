@@ -28,7 +28,12 @@ class CampfireSettingsImpl(
     return flowSettings.getBooleanFlow(KEY_USE_DYNAMIC_COLORS, false)
   }
 
+  override var currentServerUrl: String? by stringOrNullSetting(KEY_CURRENT_SERVER_URL)
+  override fun observeCurrentServerUrl(): Flow<String?> {
+    return flowSettings.getStringOrNullFlow(KEY_CURRENT_SERVER_URL)
+  }
 }
 
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"
+internal const val KEY_CURRENT_SERVER_URL = "pref_current_server_url"

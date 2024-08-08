@@ -12,6 +12,9 @@ interface CampfireSettings {
   var useDynamicColors: Boolean
   fun observeUseDynamicColors(): Flow<Boolean>
 
+  var currentServerUrl: String?
+  fun observeCurrentServerUrl(): Flow<String?>
+
   enum class Theme(override val storageKey: String) : EnumSetting {
     LIGHT("light"),
     DARK("dark"),

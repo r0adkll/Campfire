@@ -1,7 +1,6 @@
 package app.campfire.common.screens
 
 import com.slack.circuit.runtime.screen.Screen
-import com.slack.circuit.runtime.screen.StaticScreen
 
 //region App Screens
 

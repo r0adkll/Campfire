@@ -7,7 +7,7 @@ import app.campfire.core.model.Tent
 /**
  * Get the [ImageVector] for a given tent
  */
-val Tent.icon: ImageVector get() = when(this) {
+val Tent.icon: ImageVector get() = when (this) {
   Tent.Red -> Icons.TentRed
   Tent.Blue -> Icons.TentBlue
   Tent.Green -> Icons.TentGreen

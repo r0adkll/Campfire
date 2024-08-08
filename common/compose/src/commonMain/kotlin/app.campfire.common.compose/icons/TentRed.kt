@@ -145,4 +145,3 @@ val Icons.TentRed: ImageVector
     }.build()
     return _TentRed!!
   }
-
