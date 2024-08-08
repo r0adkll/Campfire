@@ -28,10 +28,10 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
       applyDefaultHierarchyTemplate()
 
       jvm()
+
       if (pluginManager.hasPlugin("com.android.library")) {
         androidTarget()
       }
-
 
       iosArm64()
       iosSimulatorArm64()
@@ -101,7 +101,7 @@ fun Project.addKspDependencyForCommon(dependencyNotation: Any) {
     add("kspCommonMainMetadata", dependencyNotation)
   }
 
-  tasks.withType<KotlinCompilationTask<*>>().all {
+  tasks.withType<KotlinCompilationTask<*>>().configureEach {
     if (name != "kspCommonMainKotlinMetadata") {
       dependsOn("kspCommonMainKotlinMetadata")
     }

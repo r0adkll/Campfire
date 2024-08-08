@@ -11,13 +11,13 @@ import org.gradle.kotlin.dsl.configure
 fun Project.configureLauncherTasks() {
   androidComponents {
     onVariants { variant ->
-      tasks.register("open${variant.name.capitalized()}") {
-        dependsOn(tasks.named("install${variant.name.capitalized()}"))
-
-        doLast {
-          exec {
-            commandLine =
-              "adb shell monkey -p ${variant.applicationId.get()} -c android.intent.category.LAUNCHER 1".split(" ")
+      tasks.findByPath("install${variant.name.capitalized()}")?.let {
+        tasks.register("open${variant.name.capitalized()}") {
+          doLast {
+            exec {
+              commandLine =
+                "adb shell monkey -p ${variant.applicationId.get()} -c android.intent.category.LAUNCHER 1".split(" ")
+            }
           }
         }
       }
