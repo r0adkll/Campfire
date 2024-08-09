@@ -37,6 +37,8 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
       iosSimulatorArm64()
 
       targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.framework { baseName = target.path.substring(1).replace(":", "_") }
+
         binaries.configureEach {
           // Add linker flag for SQLite. See:
           // https://github.com/touchlab/SQLiter/issues/77

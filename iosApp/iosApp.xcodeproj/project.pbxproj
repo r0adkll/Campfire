@@ -321,7 +321,7 @@
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Deckbox;
+				INFOPLIST_KEY_CFBundleDisplayName = Campfire;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -334,7 +334,7 @@
 					shared,
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.deckbox;
+				PRODUCT_BUNDLE_IDENTIFIER = app.campfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -355,7 +355,7 @@
 					"$(SRCROOT)/../shared/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)",
 				);
 				INFOPLIST_FILE = iosApp/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Deckbox;
+				INFOPLIST_KEY_CFBundleDisplayName = Campfire;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -368,7 +368,7 @@
 					shared,
 					"-lsqlite3",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = app.deckbox;
+				PRODUCT_BUNDLE_IDENTIFIER = app.campfire;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
