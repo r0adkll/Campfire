@@ -30,7 +30,7 @@ fun main() = application {
 //    }
 
   Window(
-    title = "DeckBox",
+    title = "Campfire",
     onCloseRequest = ::exitApplication,
   ) {
     val component: WindowComponent = remember(applicationComponent) {
