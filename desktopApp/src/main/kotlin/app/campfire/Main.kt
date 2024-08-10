@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.key
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -32,6 +35,10 @@ fun main() = application {
 //        applicationComponent.initializers.initialize()
 //    }
 
+
+  val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
+  val navigator = rememberCircuitNavigator(backstack) { /* no-op */ }
+
   val windowState = rememberWindowState(
     width = 1080.dp,
     height = 720.dp,
@@ -41,13 +48,18 @@ fun main() = application {
     title = "Campfire",
     onCloseRequest = ::exitApplication,
     state = windowState,
+    onKeyEvent = {
+      if ((it.isCtrlPressed && it.key == Key.D) || it.key == Key.Escape) {
+        navigator.pop()
+        true
+      } else  {
+        false
+      }
+    }
   ) {
     val component: WindowComponent = remember(applicationComponent) {
       applicationComponent.createWindowComponent() as WindowComponent
     }
-
-    val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
-    val navigator = rememberCircuitNavigator(backstack) { /* no-op */ }
 
     component.campfireContent(
       backstack,
