@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
@@ -65,6 +66,7 @@ fun Login(
         .align(Alignment.Center)
         .fillMaxWidth()
         .padding(horizontal = 16.dp),
+      horizontalAlignment = Alignment.CenterHorizontally,
     ) {
       ServerCard(
         tent = state.tent,
@@ -82,7 +84,7 @@ fun Login(
         isAuthenticating = state.isAuthenticating,
         modifier = Modifier.onFocusChanged {
           hasFocus = it.hasFocus
-        }
+        }.widthIn(max = 500.dp)
       )
 
       Spacer(Modifier.height(16.dp))
@@ -96,6 +98,7 @@ fun Login(
           eventSink(LoginUiEvent.AddCampsite)
         },
         modifier = Modifier
+          .widthIn(max = 500.dp)
           .fillMaxWidth(),
       ) {
         if (!state.isAuthenticating) {

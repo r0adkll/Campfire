@@ -20,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Lan
-import androidx.compose.material.icons.rounded.NetworkWifi
 import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
@@ -40,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -195,7 +195,7 @@ internal fun ServerCard(
               when (authError) {
                 AuthError.InvalidCredentials -> Res.string.label_login_error_auth
                 AuthError.NetworkError -> Res.string.label_login_error_network
-              }
+              },
             ),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.error,
@@ -249,6 +249,7 @@ private fun ServerNameAndIcon(
         onValueChange = onNameChange,
         textStyle = MaterialTheme.typography.titleMedium.copy(
           fontFamily = PaytoneOneFontFamily,
+          color = MaterialTheme.colorScheme.onSurface,
         ),
         singleLine = true,
       )
@@ -258,8 +259,8 @@ private fun ServerNameAndIcon(
           style = MaterialTheme.typography.titleMedium.copy(
             fontFamily = PaytoneOneFontFamily,
             fontStyle = FontStyle.Italic,
-            color = MaterialTheme.typography.titleMedium.color.copy(0.5f),
           ),
+          modifier = Modifier.alpha(0.5f),
         )
       }
     }

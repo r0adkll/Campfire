@@ -2,7 +2,9 @@ package app.campfire.shared.root
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -127,15 +129,21 @@ internal fun Home(
           },
       ) {
         if (navigationType == NavigationType.RAIL) {
-          HomeNavigationRail(
-            selectedNavigation = rootScreen,
-            navigationItems = navigationItems,
-            onNavigationSelected = { navigator.resetRoot(it) },
-            onCreateSelected = {
-              // TODO: Nav to deck builder screen
-            },
-            modifier = Modifier.fillMaxHeight(),
-          )
+          AnimatedVisibility(
+            visible = currentPresentation?.hideBottomNav == false,
+            enter = slideInHorizontally { it },
+            exit = slideOutHorizontally { it },
+          ) {
+            HomeNavigationRail(
+              selectedNavigation = rootScreen,
+              navigationItems = navigationItems,
+              onNavigationSelected = { navigator.resetRoot(it) },
+              onCreateSelected = {
+                // TODO: Nav to deck builder screen
+              },
+              modifier = Modifier.fillMaxHeight(),
+            )
+          }
         } else if (navigationType == NavigationType.PERMANENT_DRAWER) {
           HomeNavigationDrawer(
             selectedNavigation = rootScreen,
@@ -233,7 +241,7 @@ private fun HomeNavigationRail(
       },
       label = { Text(text = stringResource(Res.string.settings)) },
       selected = false,
-      onClick = { onNavigationSelected(SettingsScreen()) },
+      onClick = { onNavigationSelected(SettingsScreen) },
     )
   }
 }

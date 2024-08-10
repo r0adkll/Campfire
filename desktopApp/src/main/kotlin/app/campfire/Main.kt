@@ -5,10 +5,13 @@ package app.campfire
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.logging.bark
 import app.campfire.shared.DesktopApplicationComponent
@@ -29,15 +32,21 @@ fun main() = application {
 //        applicationComponent.initializers.initialize()
 //    }
 
+  val windowState = rememberWindowState(
+    width = 1080.dp,
+    height = 720.dp,
+    position = WindowPosition.Aligned(Alignment.Center)
+  )
   Window(
     title = "Campfire",
     onCloseRequest = ::exitApplication,
+    state = windowState,
   ) {
     val component: WindowComponent = remember(applicationComponent) {
       applicationComponent.createWindowComponent() as WindowComponent
     }
 
-    val backstack = rememberSaveableBackStack(listOf(WelcomeScreen()))
+    val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
     val navigator = rememberCircuitNavigator(backstack) { /* no-op */ }
 
     component.campfireContent(

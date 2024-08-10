@@ -9,13 +9,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import app.campfire.auth.ui.welcome.composables.AddCampsiteCard
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -66,6 +68,7 @@ fun Welcome(
       AddCampsiteCard(
         onClick = { eventSink(WelcomeUiEvent.AddCampsite) },
         modifier = Modifier
+          .widthIn(max = 500.dp)
           .fillMaxWidth()
           .padding(
             horizontal = 26.dp,

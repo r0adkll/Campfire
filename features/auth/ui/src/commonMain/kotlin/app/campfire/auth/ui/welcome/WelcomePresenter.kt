@@ -20,7 +20,7 @@ class WelcomePresenter(
   override fun present(): WelcomeUiState {
     return WelcomeUiState { event ->
       when (event) {
-        WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen())
+        WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen)
       }
     }
   }
