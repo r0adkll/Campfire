@@ -39,7 +39,7 @@ class LoginPresenter(
   override fun present(): LoginUiState {
     val coroutineScope = rememberCoroutineScope()
 
-    var tent by remember { mutableStateOf(Tent.Red) }
+    var tent by remember { mutableStateOf(Tent.Blue) }
     var serverName by remember { mutableStateOf("") }
     var serverUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }

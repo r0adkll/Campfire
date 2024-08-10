@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +65,7 @@ import campfire.features.auth.ui.generated.resources.label_server_name_placehold
 import campfire.features.auth.ui.generated.resources.label_server_url
 import campfire.features.auth.ui.generated.resources.label_username
 import campfire.features.auth.ui.generated.resources.valid_server_url
+import kotlin.math.exp
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -218,7 +221,15 @@ private fun ServerNameAndIcon(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Box {
+    var showTentPickerMenu by remember { mutableStateOf(false) }
+    Box(
+      modifier = Modifier
+        .clip(RoundedCornerShape(8.dp))
+        .clickable {
+          showTentPickerMenu = true
+        }
+    ) {
+
       Image(
         tent.icon,
         contentDescription = null,
@@ -231,15 +242,34 @@ private fun ServerNameAndIcon(
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = CircleShape,
           )
-          .clickable {
-            // TODO: Show tent picker
-          }
           .clip(CircleShape),
       ) {
         Icon(
           Icons.Rounded.KeyboardArrowDown,
           contentDescription = null,
         )
+      }
+
+      DropdownMenu(
+        expanded = showTentPickerMenu,
+        onDismissRequest = { showTentPickerMenu = false },
+        modifier = Modifier.padding(
+          horizontal = 8.dp,
+          vertical = 8.dp,
+        )
+      ) {
+        Tent.entries.forEach { tentOption ->
+          Image(
+            tentOption.icon,
+            contentDescription = null,
+            modifier = Modifier
+              .clip(RoundedCornerShape(8.dp))
+              .clickable {
+                onTentChange(tentOption)
+                showTentPickerMenu = false
+              }
+          )
+        }
       }
     }
     Spacer(Modifier.width(16.dp))
