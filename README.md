@@ -17,7 +17,7 @@
   * [Store5][store]
 * Dependency Injection
   * [kotlin-inject][kinject]
-  * [kotlin-inject-merge](di/README.md)
+  * [kimchi](kimchi)
 
 [kotlin-multiplatform]: https://kotlinlang.org/docs/multiplatform.html
 [compose-multiplatform]: https://www.jetbrains.com/lp/compose-multiplatform/
@@ -26,6 +26,7 @@
 [sql-delight]: https://cashapp.github.io/sqldelight/2.0.0/multiplatform_sqlite/
 [store]: https://github.com/MobileNativeFoundation/Store
 [kinject]: https://github.com/evant/kotlin-inject
+[kimchi]: https://github.com/r0adkll/kimchi
 
 ## Contributing
 
