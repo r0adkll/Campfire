@@ -8,7 +8,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.UiComponent
 import app.campfire.shared.root.CampfireContentWithInsets
-import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
+import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 
 @SingleIn(ActivityScope::class)
 @ContributesSubcomponent(

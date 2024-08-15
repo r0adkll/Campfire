@@ -8,7 +8,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.di.kotlinInjectMergeAnnotations)
+        api(libs.kimchi.annotations)
         api(libs.kotlinx.coroutines.core)
         api(libs.kotlininject.runtime)
         api(libs.kotlinx.datetime)

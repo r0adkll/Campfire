@@ -17,7 +17,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.UiComponent
 import app.campfire.shared.root.CampfireContent
-import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
+import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import me.tatarka.inject.annotations.Provides

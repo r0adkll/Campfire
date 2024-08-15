@@ -13,7 +13,7 @@ import app.campfire.libraries.mapping.asDbModels
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map

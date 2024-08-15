@@ -19,7 +19,7 @@ import app.campfire.core.di.ActivityScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.Tent
 import coil3.toUri
-import com.r0adkll.kotlininject.merge.annotations.CircuitInject
+import com.r0adkll.kimchi.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.delay

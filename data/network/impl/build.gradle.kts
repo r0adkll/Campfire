@@ -55,4 +55,4 @@ kotlin {
   }
 }
 
-addKspDependencyForCommon(projects.di.kotlinInjectMerge)
+addKspDependencyForCommon(libs.kimchi.compiler)

@@ -8,7 +8,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.CampfireUiViewController
 import app.campfire.shared.di.UiComponent
-import com.r0adkll.kotlininject.merge.annotations.ContributesSubcomponent
+import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import me.tatarka.inject.annotations.Provides
 import platform.UIKit.UIViewController
 

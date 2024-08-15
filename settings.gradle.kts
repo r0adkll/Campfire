@@ -1,6 +1,23 @@
 pluginManagement {
   includeBuild("gradle/build-logic")
+
+  fun hasProperty(key: String): Boolean {
+    return settings.providers.gradleProperty(key).get().toBoolean()
+  }
+
   repositories {
+
+    if (hasProperty("campfire.config.enableSnapshots")) {
+      maven("https://oss.sonatype.org/content/repositories/snapshots") {
+        name = "snapshots-maven-central"
+        mavenContent { snapshotsOnly() }
+      }
+    }
+
+    if (hasProperty("campfire.config.enableMavenLocal")) {
+      mavenLocal()
+    }
+
     google()
     gradlePluginPortal()
     mavenCentral()
@@ -8,18 +25,30 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+
+  fun hasProperty(key: String): Boolean {
+    return settings.providers.gradleProperty(key).get().toBoolean()
+  }
+
   repositories {
+    if (hasProperty("campfire.config.enableSnapshots")) {
+      maven("https://oss.sonatype.org/content/repositories/snapshots") {
+        name = "snapshots-maven-central"
+        mavenContent { snapshotsOnly() }
+      }
+    }
+
+    if (hasProperty("campfire.config.enableMavenLocal")) {
+      mavenLocal {
+        content { includeGroup("com.r0adkll.kimchi") }
+      }
+    }
+
     google()
     mavenCentral()
 
     // Prerelease versions of Compose Multiplatform
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
-
-    maven("https://oss.sonatype.org/content/repositories/snapshots") {
-      content {
-        includeGroup("com.r0adkll.kimchi")
-      }
-    }
   }
 }
 
@@ -56,10 +85,6 @@ include(
   ":features:libraries:api",
   ":features:libraries:impl",
   ":features:libraries:ui",
-)
-include(
-  ":di:kotlin-inject-merge",
-  ":di:kotlin-inject-merge-annotations",
 )
 include(
   ":thirdparty:shimmer",

@@ -4,7 +4,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.storage.TokenStorage
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Server
-import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)

@@ -34,7 +34,7 @@ import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import com.moriatsushi.insetsx.ExperimentalSoftwareKeyboardApi
 import com.moriatsushi.insetsx.imePadding
-import com.r0adkll.kotlininject.merge.annotations.CircuitInject
+import com.r0adkll.kimchi.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalSoftwareKeyboardApi::class)
