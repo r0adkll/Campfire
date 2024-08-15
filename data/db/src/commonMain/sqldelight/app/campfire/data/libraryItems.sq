@@ -1,0 +1,59 @@
+import app.campfire.core.model.MediaType;
+import kotlin.Boolean;
+import kotlin.Int;
+
+CREATE TABLE libraryItem (
+  id TEXT NOT NULL PRIMARY KEY,
+  ino TEXT NOT NULL,
+  libraryId TEXT NOT NULL,
+  oldLibraryItemId TEXT,
+  folderId TEXT NOT NULL,
+  path TEXT NOT NULL,
+  relPath TEXT NOT NULL,
+  isFile INTEGER AS Boolean NOT NULL DEFAULT 0,
+  mtimeMs INTEGER NOT NULL,
+  ctimeMs INTEGER NOT NULL,
+  birthtimeMs INTEGER NOT NULL,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  isMissing INTEGER AS Boolean NOT NULL DEFAULT 0,
+  isInvalid INTEGER AS Boolean NOT NULL DEFAULT 0,
+  mediaType TEXT AS MediaType NOT NULL,
+  numFiles INTEGER AS Int NOT NULL,
+  size INTEGER NOT NULL,
+
+  serverUrl TEXT NOT NULL,
+  FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO libraryItem (
+  id,
+  ino,
+  libraryId,
+  oldLibraryItemId,
+  folderId,
+  path,
+  relPath,
+  isFile,
+  mtimeMs,
+  ctimeMs,
+  birthtimeMs,
+  addedAt,
+  updatedAt,
+  isMissing,
+  isInvalid,
+  mediaType,
+  numFiles,
+  size,
+  serverUrl
+) VALUES ?;
+
+selectForLibrary:
+SELECT * FROM libraryItem
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE libraryItem.libraryId = ?;
+
+deleteForLibrary:
+DELETE FROM libraryItem
+WHERE libraryId = ?;

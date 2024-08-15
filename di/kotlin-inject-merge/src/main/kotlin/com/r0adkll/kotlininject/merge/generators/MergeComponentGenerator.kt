@@ -232,7 +232,7 @@ class MergeComponentGenerator : Generator {
         addType(
           generateComponent(
             context = context,
-            packageName = packageName,
+            packageName = "$packageName.$classSimpleName",
             element = subcomponent,
             parent = className,
           ),

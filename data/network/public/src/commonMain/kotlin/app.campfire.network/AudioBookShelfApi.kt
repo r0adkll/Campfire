@@ -1,7 +1,9 @@
 package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
+import app.campfire.network.envelopes.ApiResponse
 import app.campfire.network.models.Library
+import app.campfire.network.models.LibraryItemMinified
 
 interface AudioBookShelfApi {
 
@@ -23,16 +25,15 @@ interface AudioBookShelfApi {
   ) : Result<LoginResponse>
 
   /**
-   * This endpoint retrieves information about the authorized user and the server. Used for logging into a client if an
-   * API token was persisted. Returns the same payload as [login]
-   * A previous successful call to [login] must have been made for this to succeed
-   * @return Result containing updated user/server configuration.
-   */
-  suspend fun authorize(): Result<LoginResponse>
-
-  /**
    * Fetch all the libraries accessible to the user
    * @return a result with a list of library objects
    */
   suspend fun getAllLibraries(): Result<List<Library>>
+
+  /**
+   * Fetch a library's items
+   * @param libraryId the id of the library to fetch the items for
+   * @return as result with the list of library items
+   */
+  suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified>>
 }

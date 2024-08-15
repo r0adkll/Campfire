@@ -58,7 +58,7 @@ fun main() = application {
     }
   ) {
     val component: WindowComponent = remember(applicationComponent) {
-      applicationComponent.createWindowComponent() as WindowComponent
+      (applicationComponent.createWindowComponent() as WindowComponent)
     }
 
     component.campfireContent(

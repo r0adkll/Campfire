@@ -26,7 +26,7 @@ typealias CampfireUiViewController = () -> UIViewController
 fun CampfireUiViewController(
   campfireContent: CampfireContent,
 ): UIViewController = ComposeUIViewController {
-  val backstack = rememberSaveableBackStack(listOf(WelcomeScreen()))
+  val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
   val navigator = rememberCircuitNavigator(backstack, onRootPop = { /* no-op */ })
 
   val uiViewController = LocalUIViewController.current

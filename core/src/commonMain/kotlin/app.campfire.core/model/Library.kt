@@ -1,7 +1,9 @@
 package app.campfire.core.model
 
+typealias LibraryId = String
+
 data class Library(
-  val id: String,
+  val id: LibraryId,
   val name: String,
   val folders: List<Folder>,
   val displayOrder: Int,

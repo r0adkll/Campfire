@@ -2,6 +2,8 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.data.Library
+import app.campfire.data.LibraryItem
+import app.campfire.data.Media
 import app.campfire.data.Server
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
@@ -35,6 +37,20 @@ class DatabaseFactory(
     ),
     libraryAdapter = Library.Adapter(
       displayOrderAdapter = IntColumnAdapter,
+    ),
+    libraryItemAdapter = LibraryItem.Adapter(
+      mediaTypeAdapter = EnumColumnAdapter(),
+      numFilesAdapter = IntColumnAdapter,
+    ),
+    mediaAdapter = Media.Adapter(
+      tagsAdapter = StringListAdapter,
+      numTracksAdapter = IntColumnAdapter,
+      numChaptersAdapter = IntColumnAdapter,
+      numAudioFilesAdapter = IntColumnAdapter,
+      numMissingPartsAdapter = IntColumnAdapter,
+      numInvalidAudioFilesAdapter = IntColumnAdapter,
+       propertySizeAdapter = IntColumnAdapter,
+      metadata_genresAdapter = StringListAdapter,
     )
   )
 }

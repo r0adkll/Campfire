@@ -4,18 +4,19 @@ import app.campfire.account.api.AccountManager
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.logging.bark
 import app.campfire.network.envelopes.AllLibrariesResponse
+import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
+import app.campfire.network.envelopes.ApiResponse
 import app.campfire.network.models.Library
+import app.campfire.network.models.LibraryItemMinified
 import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -25,6 +26,7 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -75,23 +77,24 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  override suspend fun authorize(): Result<LoginResponse> = trySendRequest {
-    hydratedClient("/authorize") {
-      method = HttpMethod.Post
-    }
-  }
-
   override suspend fun getAllLibraries(): Result<List<Library>> = trySendRequest<AllLibrariesResponse> {
-    hydratedClient("/libraries")
+    hydratedClientRequest("/libraries")
   }.map { it.libraries }
 
+  override suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified>> {
+    return trySendRequest<LibraryItemsResponse> {
+      hydratedClientRequest("/libraries/${libraryId}/items")
+    }.map { it.results }
+  }
+
   private suspend inline fun <reified T> trySendRequest(
+    noinline responseMapper: suspend (HttpResponse) -> T = { it.body<T>() },
     crossinline request: suspend () -> HttpResponse,
   ): Result<T> = withContext(dispatcherProvider.io) {
     try {
       val response = request()
       if (response.status.isSuccess()) {
-        Result.success(response.body<T>())
+        Result.success(responseMapper(response))
       } else {
         Result.failure(ApiException(response.status.value, response.bodyAsText()))
       }
@@ -100,7 +103,7 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  private suspend fun hydratedClient(
+  private suspend fun hydratedClientRequest(
     endpoint: String,
     builder: HttpRequestBuilder.() -> Unit = { },
   ) : HttpResponse {

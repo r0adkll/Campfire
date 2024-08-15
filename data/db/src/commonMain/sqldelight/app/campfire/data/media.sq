@@ -1,0 +1,74 @@
+import kotlin.Boolean;
+import kotlin.Int;
+import kotlin.String;
+import kotlin.collections.List;
+
+CREATE TABLE media (
+  mediaId TEXT NOT NULL PRIMARY KEY,
+  coverPath TEXT,
+  tags TEXT AS List<String>,
+  numTracks INTEGER AS Int NOT NULL,
+  numAudioFiles INTEGER AS Int NOT NULL,
+  numChapters INTEGER AS Int NOT NULL,
+  numMissingParts INTEGER AS Int NOT NULL,
+  numInvalidAudioFiles INTEGER AS Int NOT NULL,
+  durationInMillis INTEGER NOT NULL,
+  sizeInBytes INTEGER NOT NULL,
+  propertySize INTEGER AS Int,
+  ebookFormat TEXT,
+
+  metadata_title TEXT,
+  metadata_subtitle TEXT,
+  metadata_genres TEXT AS List<String>,
+  metadata_publishedYear TEXT,
+  metadata_publishedDate TEXT,
+  metadata_publisher TEXT,
+  metadata_description TEXT,
+  metadata_isbn TEXT,
+  metadata_asin TEXT,
+  metadata_language TEXT,
+  metadata_explicit INTEGER AS Boolean NOT NULL DEFAULT 0,
+  metadata_abridged INTEGER AS Boolean NOT NULL DEFAULT 0,
+  metadata_titleIgnorePrefix TEXT,
+  metadata_authorName TEXT,
+  metadata_authorNameLF TEXT,
+  metadata_narratorName TEXT,
+  metadata_seriesName TEXT,
+
+  libraryItemId TEXT NOT NULL,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO media(
+  libraryItemId,
+  mediaId,
+  coverPath,
+  tags,
+  numTracks,
+  numAudioFiles,
+  numChapters,
+  numMissingParts,
+  numInvalidAudioFiles,
+  durationInMillis,
+  sizeInBytes,
+  propertySize,
+  ebookFormat,
+  metadata_title,
+  metadata_subtitle,
+  metadata_genres,
+  metadata_publishedYear,
+  metadata_publishedDate,
+  metadata_publisher,
+  metadata_description,
+  metadata_isbn,
+  metadata_asin,
+  metadata_language,
+  metadata_explicit,
+  metadata_abridged,
+  metadata_titleIgnorePrefix,
+  metadata_authorName,
+  metadata_authorNameLF,
+  metadata_narratorName,
+  metadata_seriesName
+) VALUES ?;

@@ -79,7 +79,6 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-networking-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-networking-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
-
 # Firebase
 google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.0.2"
 google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.0.3"

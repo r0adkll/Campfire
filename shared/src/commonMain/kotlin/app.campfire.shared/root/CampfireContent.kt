@@ -6,6 +6,8 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -13,6 +15,7 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
+import app.campfire.shared.di.SharedAppComponent
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.moriatsushi.insetsx.statusBars
 import com.moriatsushi.insetsx.systemBars
@@ -66,6 +69,18 @@ fun CampfireContentWithInsets(
         )
       }
     }
+  }
+}
+
+@Composable
+fun UserComponentHome(
+  campfireSettings: CampfireSettings,
+) {
+  val currentServerUrl by campfireSettings.observeCurrentServerUrl()
+    .collectAsState(null)
+
+  val userComponent = remember(currentServerUrl) {
+
   }
 }
 

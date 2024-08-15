@@ -1,3 +1,0 @@
-CREATE TABLE libraryitem (
-  id TEXT NOT NULL PRIMARY KEY
-);

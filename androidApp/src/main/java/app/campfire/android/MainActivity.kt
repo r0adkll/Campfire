@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
-      val backstack = rememberSaveableBackStack(listOf(LoginScreen()))
+      val backstack = rememberSaveableBackStack(listOf(LoginScreen))
       val navigator = rememberCircuitNavigator(backstack)
 
       component.campfireContent(
