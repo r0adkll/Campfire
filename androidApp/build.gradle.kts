@@ -61,6 +61,6 @@ dependencies {
   implementation(libs.circuit.runtime)
   implementation(libs.circuit.foundation)
 
-  ksp(projects.di.kotlinInjectMerge)
+  ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
 }

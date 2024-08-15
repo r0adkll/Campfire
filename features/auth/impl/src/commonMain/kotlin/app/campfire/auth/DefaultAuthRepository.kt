@@ -8,7 +8,7 @@ import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Tent
 import app.campfire.network.AudioBookShelfApi
-import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)

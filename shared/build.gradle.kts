@@ -66,4 +66,4 @@ android {
 }
 
 addKspDependencyForAllTargets(libs.kotlininject.ksp)
-addKspDependencyForAllTargets(projects.di.kotlinInjectMerge)
+addKspDependencyForAllTargets(libs.kimchi.compiler)

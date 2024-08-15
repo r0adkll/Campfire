@@ -40,6 +40,6 @@ class UiConventionPlugin : Plugin<Project> {
       }
     }
 
-    addKspDependencyForCommon(project(":di:kotlin-inject-merge"))
+    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
   }
 }

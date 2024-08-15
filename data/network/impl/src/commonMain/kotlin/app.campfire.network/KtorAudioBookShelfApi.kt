@@ -12,7 +12,7 @@ import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.ApiResponse
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
-import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

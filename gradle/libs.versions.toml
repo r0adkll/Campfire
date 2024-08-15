@@ -10,6 +10,7 @@ coroutines = "1.8.1"
 compose-multiplatform = "1.6.11"
 coil = "3.0.0-alpha08"
 circuit = "0.22.2"
+kimchi = "0.1.0-SNAPSHOT"
 kotlin = "2.0.0"
 kotlin-inject = "0.7.1"
 kotlinpoet = "1.18.1"
@@ -110,6 +111,8 @@ kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlin
 
 kotlininject-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
 kotlininject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
+kimchi-annotations = { module = "com.r0adkll.kimchi:kimchi-annotations", version.ref = "kimchi" }
+kimchi-compiler = { module = "com.r0adkll.kimchi:kimchi-compiler", version.ref = "kimchi" }
 
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 

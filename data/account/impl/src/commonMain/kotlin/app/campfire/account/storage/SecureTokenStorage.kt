@@ -4,7 +4,7 @@ import app.campfire.account.settings.TokenSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import com.r0adkll.kotlininject.merge.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.toSuspendSettings

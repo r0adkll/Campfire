@@ -9,7 +9,7 @@ import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.SharedAppComponent
-import com.r0adkll.kotlininject.merge.annotations.MergeComponent
+import com.r0adkll.kimchi.annotations.MergeComponent
 import kotlininject.merge.app.campfire.android.di.MergedAndroidAppComponent
 import me.tatarka.inject.annotations.Provides
 

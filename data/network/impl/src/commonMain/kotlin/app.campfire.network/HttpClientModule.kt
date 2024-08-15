@@ -4,7 +4,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import com.r0adkll.kotlininject.merge.annotations.ContributesTo
+import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation

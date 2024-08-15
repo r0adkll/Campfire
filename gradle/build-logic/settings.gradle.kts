@@ -1,5 +1,9 @@
 dependencyResolutionManagement {
   repositories {
+    maven("https://oss.sonatype.org/content/repositories/snapshots") {
+      name = "snapshots-maven-central"
+    }
+
     google()
     mavenCentral()
 
