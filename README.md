@@ -17,7 +17,7 @@
   * [Store5][store]
 * Dependency Injection
   * [kotlin-inject][kinject]
-  * [kimchi](kimchi)
+  * [kimchi][kimchi]
 
 [kotlin-multiplatform]: https://kotlinlang.org/docs/multiplatform.html
 [compose-multiplatform]: https://www.jetbrains.com/lp/compose-multiplatform/
