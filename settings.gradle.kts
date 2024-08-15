@@ -10,7 +10,7 @@ pluginManagement {
     if (hasProperty("campfire.config.enableSnapshots")) {
       maven("https://oss.sonatype.org/content/repositories/snapshots") {
         name = "snapshots-maven-central"
-//        mavenContent { snapshotsOnly() }
+        mavenContent { snapshotsOnly() }
       }
     }
 
@@ -34,7 +34,7 @@ dependencyResolutionManagement {
     if (hasProperty("campfire.config.enableSnapshots")) {
       maven("https://oss.sonatype.org/content/repositories/snapshots") {
         name = "snapshots-maven-central"
-//        mavenContent { snapshotsOnly() }
+        mavenContent { snapshotsOnly() }
       }
     }
 
