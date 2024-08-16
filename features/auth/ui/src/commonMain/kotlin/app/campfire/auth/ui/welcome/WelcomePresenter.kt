@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ActivityScope
-import com.r0adkll.kimchi.annotations.CircuitInject
+import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import me.tatarka.inject.annotations.Assisted

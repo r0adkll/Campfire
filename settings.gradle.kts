@@ -39,9 +39,7 @@ dependencyResolutionManagement {
     }
 
     if (hasProperty("campfire.config.enableMavenLocal")) {
-      mavenLocal {
-        content { includeGroup("com.r0adkll.kimchi") }
-      }
+      mavenLocal()
     }
 
     google()
@@ -85,9 +83,6 @@ include(
   ":features:libraries:api",
   ":features:libraries:impl",
   ":features:libraries:ui",
-)
-include(
-  ":thirdparty:shimmer",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

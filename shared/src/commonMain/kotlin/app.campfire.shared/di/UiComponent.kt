@@ -1,4 +1,4 @@
-// Copyright 2023, Drew Heavner and the Deckbox project contributors
+// Copyright 2023, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: Apache-2.0
 
 package app.campfire.shared.di

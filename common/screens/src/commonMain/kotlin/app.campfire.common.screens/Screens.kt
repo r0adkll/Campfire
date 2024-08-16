@@ -10,10 +10,10 @@ import com.slack.circuit.runtime.screen.Screen
  * show/hide the side detail content pain
  */
 @Parcelize
-data object  RootScreen : BaseScreen(name = "Root")
+data object RootScreen : BaseScreen(name = "Root")
 
 @Parcelize
-data object  WelcomeScreen : BaseScreen(name = "Welcome()") {
+data object WelcomeScreen : BaseScreen(name = "Welcome()") {
   override val presentation: Presentation
     get() = Presentation(hideBottomNav = true)
 }

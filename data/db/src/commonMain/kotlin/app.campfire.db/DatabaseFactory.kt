@@ -49,8 +49,8 @@ class DatabaseFactory(
       numAudioFilesAdapter = IntColumnAdapter,
       numMissingPartsAdapter = IntColumnAdapter,
       numInvalidAudioFilesAdapter = IntColumnAdapter,
-       propertySizeAdapter = IntColumnAdapter,
+      propertySizeAdapter = IntColumnAdapter,
       metadata_genresAdapter = StringListAdapter,
-    )
+    ),
   )
 }

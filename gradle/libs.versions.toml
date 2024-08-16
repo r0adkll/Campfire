@@ -1,7 +1,7 @@
 [versions]
-agp = "8.5.1"
+agp = "8.5.2"
 androidxlifecycle = "2.6.1"
-androidxactivity = "1.9.0"
+androidxactivity = "1.9.1"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-alpha06"
 core-ktx = "1.13.1"
@@ -9,13 +9,13 @@ coroutines = "1.8.1"
 # This is used in the build logic
 compose-multiplatform = "1.6.11"
 coil = "3.0.0-alpha08"
-circuit = "0.22.2"
+circuit = "0.23.1"
 kimchi = "0.1.0-SNAPSHOT"
-kotlin = "2.0.0"
+kotlin = "2.0.10"
 kotlin-inject = "0.7.1"
 kotlinpoet = "1.18.1"
 ksoup = "0.4.0"
-ksp = "2.0.0-1.0.21"
+ksp = "2.0.10-1.0.24"
 ktlint = "0.49.1"
 ktor = "3.0.0-beta-2"
 multiplatformsettings = "1.1.1"
@@ -111,6 +111,8 @@ kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlin
 
 kotlininject-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
 kotlininject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
+kimchi-circuit-annotations = { module = "com.r0adkll.kimchi:kimchi-circuit-annotations", version.ref = "kimchi" }
+kimchi-circuit-compiler = { module = "com.r0adkll.kimchi:kimchi-circuit-compiler", version.ref = "kimchi" }
 kimchi-annotations = { module = "com.r0adkll.kimchi:kimchi-annotations", version.ref = "kimchi" }
 kimchi-compiler = { module = "com.r0adkll.kimchi:kimchi-compiler", version.ref = "kimchi" }
 

@@ -33,13 +33,20 @@ class UiConventionPlugin : Plugin<Project> {
         implementation(compose.runtime)
         implementation(compose.ui)
 
+        // Add Circuit Dependencies
         libs.findLibrary("circuit-runtime").ifPresent { implementation(it) }
+
+        // Add DI / Kimchi Dependencies
+        libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }
+        libs.findLibrary("kimchi-circuit-annotations").ifPresent { implementation(it) }
       }
       sourceSets["commonTest"].dependencies {
         libs.findLibrary("kotlin-test").ifPresent { implementation(it) }
       }
     }
 
+    // Add DI / Kimchi KSP compilers
     libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
+    libs.findLibrary("kimchi-circuit-compiler").ifPresent { addKspDependencyForCommon(it) }
   }
 }

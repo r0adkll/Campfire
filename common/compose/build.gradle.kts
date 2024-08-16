@@ -15,15 +15,13 @@ kotlin {
         api(projects.common.screens)
         api(projects.common.settings)
 
-        api(projects.thirdparty.shimmer)
-
         api(libs.circuit.foundation)
         api(libs.circuit.overlay)
-        api(libs.compose.material3.windowsizeclass)
-        api(libs.insetsx)
         api(libs.coil)
         api(libs.coil.compose)
         api(libs.coil.svg)
+        api(libs.compose.material3.windowsizeclass)
+        api(libs.insetsx)
         api(libs.materialcolorsutilities)
 
         api(compose.foundation)

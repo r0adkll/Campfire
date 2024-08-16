@@ -25,7 +25,7 @@ import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ActivityScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_title
-import com.r0adkll.kimchi.annotations.CircuitInject
+import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(ActivityScope::class, WelcomeScreen::class)

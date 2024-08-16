@@ -15,7 +15,6 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
-import app.campfire.shared.di.SharedAppComponent
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.moriatsushi.insetsx.statusBars
 import com.moriatsushi.insetsx.systemBars
@@ -80,7 +79,6 @@ fun UserComponentHome(
     .collectAsState(null)
 
   val userComponent = remember(currentServerUrl) {
-
   }
 }
 

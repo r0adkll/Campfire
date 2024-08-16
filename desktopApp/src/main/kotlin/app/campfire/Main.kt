@@ -35,14 +35,13 @@ fun main() = application {
 //        applicationComponent.initializers.initialize()
 //    }
 
-
   val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
   val navigator = rememberCircuitNavigator(backstack) { /* no-op */ }
 
   val windowState = rememberWindowState(
     width = 1080.dp,
     height = 720.dp,
-    position = WindowPosition.Aligned(Alignment.Center)
+    position = WindowPosition.Aligned(Alignment.Center),
   )
   Window(
     title = "Campfire",
@@ -52,10 +51,10 @@ fun main() = application {
       if ((it.isCtrlPressed && it.key == Key.D) || it.key == Key.Escape) {
         navigator.pop()
         true
-      } else  {
+      } else {
         false
       }
-    }
+    },
   ) {
     val component: WindowComponent = remember(applicationComponent) {
       (applicationComponent.createWindowComponent() as WindowComponent)
