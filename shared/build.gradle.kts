@@ -53,10 +53,6 @@ kotlin {
   }
 }
 
-ksp {
-  arg("me.tatarka.inject.generateCompanionExtensions", "true")
-}
-
 android {
   sourceSets {
     named("main") {
