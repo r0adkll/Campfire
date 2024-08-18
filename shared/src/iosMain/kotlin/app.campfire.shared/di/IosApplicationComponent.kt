@@ -20,7 +20,7 @@ abstract class IosApplicationComponent() : SharedAppComponent {
   @SingleIn(AppScope::class)
   @Provides
   fun provideApplicationId(): app.campfire.core.app.ApplicationInfo = app.campfire.core.app.ApplicationInfo(
-    packageName = NSBundle.mainBundle.bundleIdentifier ?: "app.deckbox",
+    packageName = NSBundle.mainBundle.bundleIdentifier ?: "app.campfire",
     debugBuild = Platform.isDebugBinary,
     flavor = app.campfire.core.app.Flavor.Standard,
     versionName = NSBundle.mainBundle.infoDictionary

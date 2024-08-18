@@ -16,6 +16,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import app.campfire.common.screens.WelcomeScreen
+import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
 import app.campfire.shared.DesktopApplicationComponent
 import app.campfire.shared.WindowComponent
@@ -23,12 +24,14 @@ import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import java.awt.Desktop
 import java.net.URI
-import kotlininject.merge.app.campfire.shared.createMergedDesktopApplicationComponent
+import kimchi.merge.app.campfire.shared.createDesktopApplicationComponent
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
   val applicationComponent = remember {
-    DesktopApplicationComponent.createMergedDesktopApplicationComponent()
+    DesktopApplicationComponent.createDesktopApplicationComponent().also {
+      ComponentHolder.components += it
+    }
   }
 
 //    LaunchedEffect(applicationComponent) {
@@ -57,7 +60,7 @@ fun main() = application {
     },
   ) {
     val component: WindowComponent = remember(applicationComponent) {
-      (applicationComponent.createWindowComponent() as WindowComponent)
+      ComponentHolder.component<WindowComponent.Factory>().create()
     }
 
     component.campfireContent(

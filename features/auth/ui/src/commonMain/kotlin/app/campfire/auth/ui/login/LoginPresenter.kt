@@ -28,7 +28,7 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import okio.IOException
 
-@CircuitInject(ActivityScope::class, LoginScreen::class)
+@CircuitInject(LoginScreen::class, ActivityScope::class)
 @Inject
 class LoginPresenter(
   @Assisted private val navigator: Navigator,

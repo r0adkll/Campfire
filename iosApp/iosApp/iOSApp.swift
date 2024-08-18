@@ -35,7 +35,7 @@ struct iOSApp: App {
 private func createApplicationComponent(
     appDelegate: AppDelegate
 ) -> MergedIosApplicationComponent {
-    return IosApplicationComponent.companion.createMergedIosApplicationComponent()
+    return IosApplicationComponent.companion.createIosApplicationComponent()
 }
 
 private func createHomeUiControllerComponent(

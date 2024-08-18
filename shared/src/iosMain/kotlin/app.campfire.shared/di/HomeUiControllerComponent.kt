@@ -24,5 +24,8 @@ abstract class HomeUiControllerComponent : UiComponent {
   @SingleIn(ActivityScope::class)
   fun uiViewController(bind: CampfireUiViewController): UIViewController = bind()
 
-  companion object
+  @ContributesSubcomponent.Factory
+  interface Factory {
+    fun createHomeUiControllerComponent(): HomeUiControllerComponent
+  }
 }

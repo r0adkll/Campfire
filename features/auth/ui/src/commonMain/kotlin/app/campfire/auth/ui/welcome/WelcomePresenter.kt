@@ -10,7 +10,7 @@ import com.slack.circuit.runtime.presenter.Presenter
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(ActivityScope::class, WelcomeScreen::class)
+@CircuitInject(WelcomeScreen::class, ActivityScope::class)
 @Inject
 class WelcomePresenter(
   @Assisted private val navigator: Navigator,

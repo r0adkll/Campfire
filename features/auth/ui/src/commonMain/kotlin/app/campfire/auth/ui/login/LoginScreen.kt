@@ -38,7 +38,7 @@ import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalSoftwareKeyboardApi::class)
-@CircuitInject(ActivityScope::class, LoginScreen::class)
+@CircuitInject(LoginScreen::class, ActivityScope::class)
 @Composable
 fun Login(
   state: LoginUiState,

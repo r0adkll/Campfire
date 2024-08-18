@@ -41,6 +41,9 @@ kotlin {
         api(libs.circuit.overlay)
         api(libs.circuit.runtime)
         api(libs.circuitx.gesturenav)
+
+        implementation(libs.kotlininject.runtime)
+        implementation(libs.kimchi.annotations)
       }
     }
 

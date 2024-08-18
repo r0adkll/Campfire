@@ -9,30 +9,29 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import app.campfire.android.di.ActivityComponent
-import app.campfire.android.di.AndroidAppComponent
-import app.campfire.android.di.from
 import app.campfire.common.screens.LoginScreen
+import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.di.UiComponent
 import app.campfire.shared.root.CampfireContent
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.rememberCircuitNavigator
-import me.tatarka.inject.annotations.Provides
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
 
-    val component = AndroidAppComponent.from(this)
-      .createMainActivityComponent(this)
+    val component = ComponentHolder.component<MainActivityComponent.Factory>()
+      .create(this)
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
-      val backstack = rememberSaveableBackStack(listOf(LoginScreen))
+      val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
       val navigator = rememberCircuitNavigator(backstack)
 
       component.campfireContent(
@@ -53,8 +52,11 @@ class MainActivity : ComponentActivity() {
   scope = ActivityScope::class,
   parentScope = AppScope::class,
 )
-abstract class MainActivityComponent(
-  @get:Provides override val activity: Activity,
-) : ActivityComponent, UiComponent {
-  abstract val campfireContent: CampfireContent
+interface MainActivityComponent : ActivityComponent, UiComponent {
+  val campfireContent: CampfireContent
+
+  @ContributesSubcomponent.Factory
+  interface Factory {
+    fun create(activity: Activity): MainActivityComponent
+  }
 }

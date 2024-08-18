@@ -15,8 +15,11 @@ import com.r0adkll.kimchi.annotations.ContributesSubcomponent
   scope = ActivityScope::class,
   parentScope = AppScope::class,
 )
-abstract class WindowComponent : UiComponent {
-  abstract val campfireContent: CampfireContentWithInsets
+interface WindowComponent : UiComponent {
+  val campfireContent: CampfireContentWithInsets
 
-  companion object
+  @ContributesSubcomponent.Factory
+  interface Factory {
+    fun create(): WindowComponent
+  }
 }

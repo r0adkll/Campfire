@@ -28,7 +28,7 @@ import campfire.features.auth.ui.generated.resources.welcome_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
-@CircuitInject(ActivityScope::class, WelcomeScreen::class)
+@CircuitInject(WelcomeScreen::class, ActivityScope::class)
 @Composable
 fun Welcome(
   state: WelcomeUiState,
