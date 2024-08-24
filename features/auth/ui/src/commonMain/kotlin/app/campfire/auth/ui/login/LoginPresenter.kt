@@ -16,6 +16,7 @@ import app.campfire.auth.ui.login.LoginUiEvent.ServerUrl
 import app.campfire.auth.ui.login.LoginUiEvent.UserName
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.Tent
 import coil3.toUri
@@ -28,7 +29,7 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import okio.IOException
 
-@CircuitInject(LoginScreen::class, ActivityScope::class)
+@CircuitInject(LoginScreen::class, UserScope::class)
 @Inject
 class LoginPresenter(
   @Assisted private val navigator: Navigator,

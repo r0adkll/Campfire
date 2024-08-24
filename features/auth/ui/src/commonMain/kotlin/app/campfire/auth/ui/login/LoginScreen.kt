@@ -29,6 +29,7 @@ import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
@@ -38,7 +39,7 @@ import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalSoftwareKeyboardApi::class)
-@CircuitInject(LoginScreen::class, ActivityScope::class)
+@CircuitInject(LoginScreen::class, UserScope::class)
 @Composable
 fun Login(
   state: LoginUiState,

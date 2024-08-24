@@ -1,7 +1,7 @@
 // Copyright 2023, Google LLC, Christopher Banes and the Tivi project contributors
 // SPDX-License-Identifier: Apache-2.0
 
-package app.campfire.shared
+package app.campfire.di
 
 import androidx.compose.ui.unit.Density
 import app.campfire.core.app.ApplicationInfo

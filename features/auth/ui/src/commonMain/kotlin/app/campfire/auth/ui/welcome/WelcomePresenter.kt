@@ -4,13 +4,14 @@ import androidx.compose.runtime.Composable
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(WelcomeScreen::class, ActivityScope::class)
+@CircuitInject(WelcomeScreen::class, UserScope::class)
 @Inject
 class WelcomePresenter(
   @Assisted private val navigator: Navigator,

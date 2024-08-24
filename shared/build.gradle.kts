@@ -22,6 +22,8 @@ kotlin {
         api(projects.data.account.impl)
 
         // Feature Modules
+        api(projects.features.home.ui)
+
         api(projects.features.auth.impl)
         api(projects.features.auth.ui)
 

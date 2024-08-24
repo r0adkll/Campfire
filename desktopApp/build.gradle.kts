@@ -3,11 +3,18 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
   id("app.campfire.kotlin.jvm")
   id("app.campfire.compose")
+  alias(libs.plugins.ksp)
 }
 
 dependencies {
   implementation(projects.shared)
   implementation(compose.desktop.currentOs)
+
+  implementation(libs.kimchi.annotations)
+  implementation(libs.kotlininject.runtime)
+
+  ksp(libs.kotlininject.ksp)
+  ksp(libs.kimchi.compiler)
 }
 
 compose.desktop {

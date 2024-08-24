@@ -7,7 +7,6 @@ import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.CampfireUiViewController
-import app.campfire.shared.di.UiComponent
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import me.tatarka.inject.annotations.Provides
 import platform.UIKit.UIViewController
@@ -17,7 +16,7 @@ import platform.UIKit.UIViewController
   scope = ActivityScope::class,
   parentScope = AppScope::class,
 )
-abstract class HomeUiControllerComponent : UiComponent {
+abstract class HomeUiControllerComponent {
   abstract val uiViewControllerFactory: () -> UIViewController
 
   @Provides

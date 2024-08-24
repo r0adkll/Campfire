@@ -18,13 +18,13 @@ import androidx.compose.ui.window.rememberWindowState
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
-import app.campfire.shared.DesktopApplicationComponent
-import app.campfire.shared.WindowComponent
+import app.campfire.di.DesktopApplicationComponent
+import app.campfire.di.WindowComponent
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import java.awt.Desktop
 import java.net.URI
-import kimchi.merge.app.campfire.shared.createDesktopApplicationComponent
+import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
