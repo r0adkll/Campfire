@@ -11,6 +11,12 @@ ksp {
   arg("me.tatarka.inject.generateCompanionExtensions", "true")
 }
 
+kotlin {
+  compilerOptions {
+    freeCompilerArgs.add("-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+  }
+}
+
 android {
   namespace = "app.campfire.android"
 

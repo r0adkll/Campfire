@@ -1,7 +1,7 @@
 package app.campfire.auth.mapping
 
-import app.campfire.data.Server as DatabaseServer
 import app.campfire.core.model.Tent
+import app.campfire.data.Server as DatabaseServer
 import app.campfire.network.models.ServerSettings
 
 fun ServerSettings.asDatabaseModel(

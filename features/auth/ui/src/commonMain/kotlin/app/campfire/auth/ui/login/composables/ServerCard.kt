@@ -59,13 +59,12 @@ import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.invalid_server_url
 import campfire.features.auth.ui.generated.resources.label_login_error_auth
 import campfire.features.auth.ui.generated.resources.label_login_error_network
-import campfire.features.auth.ui.generated.resources.loading_server_url
 import campfire.features.auth.ui.generated.resources.label_password
 import campfire.features.auth.ui.generated.resources.label_server_name_placeholder
 import campfire.features.auth.ui.generated.resources.label_server_url
 import campfire.features.auth.ui.generated.resources.label_username
+import campfire.features.auth.ui.generated.resources.loading_server_url
 import campfire.features.auth.ui.generated.resources.valid_server_url
-import kotlin.math.exp
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -131,7 +130,9 @@ internal fun ServerCard(
             },
           )
         }
-      } else null,
+      } else {
+        null
+      },
       trailingIcon = if (serverUrl.isNotBlank()) {
         {
           IconButton(
@@ -140,7 +141,9 @@ internal fun ServerCard(
             Icon(Icons.Rounded.Cancel, contentDescription = null)
           }
         }
-      } else null,
+      } else {
+        null
+      },
       modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp)
@@ -227,9 +230,8 @@ private fun ServerNameAndIcon(
         .clip(RoundedCornerShape(8.dp))
         .clickable {
           showTentPickerMenu = true
-        }
+        },
     ) {
-
       Image(
         tent.icon,
         contentDescription = null,
@@ -256,7 +258,7 @@ private fun ServerNameAndIcon(
         modifier = Modifier.padding(
           horizontal = 8.dp,
           vertical = 8.dp,
-        )
+        ),
       ) {
         Tent.entries.forEach { tentOption ->
           Image(
@@ -267,7 +269,7 @@ private fun ServerNameAndIcon(
               .clickable {
                 onTentChange(tentOption)
                 showTentPickerMenu = false
-              }
+              },
           )
         }
       }

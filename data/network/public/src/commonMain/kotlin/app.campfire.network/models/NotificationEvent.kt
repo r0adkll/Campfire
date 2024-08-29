@@ -7,64 +7,56 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.NotificationEventDefaults
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param name The name of the notification event. The names and allowable values are defined at https://github.com/advplyr/audiobookshelf/blob/master/server/utils/notifications.js
  * @param requiresLibrary Whether the notification event depends on a library existing.
  * @param libraryMediaType The type of media of the library the notification depends on existing. Will not exist if requiresLibrary is false.
  * @param description The description of the notification event.
  * @param variables The variables of the notification event that can be used in the notification templates.
- * @param defaults 
+ * @param defaults
  * @param testData The keys of the testData object will match the list of variables. The values will be the data used when sending a test notification.
  */
 @Serializable
+data class NotificationEvent(
 
-data class NotificationEvent (
+  /* The name of the notification event. The names and allowable values are defined at https://github.com/advplyr/audiobookshelf/blob/master/server/utils/notifications.js */
+  @SerialName(value = "name")
+  val name: kotlin.String? = null,
 
-    /* The name of the notification event. The names and allowable values are defined at https://github.com/advplyr/audiobookshelf/blob/master/server/utils/notifications.js */
-    @SerialName(value = "name")
-    val name: kotlin.String? = null,
+  /* Whether the notification event depends on a library existing. */
+  @SerialName(value = "requiresLibrary")
+  val requiresLibrary: kotlin.Boolean? = null,
 
-    /* Whether the notification event depends on a library existing. */
-    @SerialName(value = "requiresLibrary")
-    val requiresLibrary: kotlin.Boolean? = null,
+  /* The type of media of the library the notification depends on existing. Will not exist if requiresLibrary is false. */
+  @SerialName(value = "libraryMediaType")
+  val libraryMediaType: kotlin.String? = null,
 
-    /* The type of media of the library the notification depends on existing. Will not exist if requiresLibrary is false. */
-    @SerialName(value = "libraryMediaType")
-    val libraryMediaType: kotlin.String? = null,
+  /* The description of the notification event. */
+  @SerialName(value = "description")
+  val description: kotlin.String? = null,
 
-    /* The description of the notification event. */
-    @SerialName(value = "description")
-    val description: kotlin.String? = null,
+  /* The variables of the notification event that can be used in the notification templates. */
+  @SerialName(value = "variables")
+  val variables: kotlin.collections.List<kotlin.String>? = null,
 
-    /* The variables of the notification event that can be used in the notification templates. */
-    @SerialName(value = "variables")
-    val variables: kotlin.collections.List<kotlin.String>? = null,
+  @SerialName(value = "defaults")
+  val defaults: NotificationEventDefaults? = null,
 
-    @SerialName(value = "defaults")
-    val defaults: NotificationEventDefaults? = null,
+  /* The keys of the testData object will match the list of variables. The values will be the data used when sending a test notification. */
+  @SerialName(value = "testData")
+  val testData: kotlin.collections.Map<kotlin.String, kotlin.String>? = null,
 
-    /* The keys of the testData object will match the list of variables. The values will be the data used when sending a test notification. */
-    @SerialName(value = "testData")
-    val testData: kotlin.collections.Map<kotlin.String, kotlin.String>? = null
-
-) {
-
-
-}
-
+)

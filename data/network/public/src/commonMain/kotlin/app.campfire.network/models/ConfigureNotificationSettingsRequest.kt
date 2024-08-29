@@ -7,44 +7,37 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param appriseApiUrl The full URL where the Apprise API to use is located.
  * @param maxFailedAttempts The maximum number of times a notification fails before being disabled.
  * @param maxNotificationQueue The maximum number of notifications in the notification queue before events are ignored.
  */
 @Serializable
+data class ConfigureNotificationSettingsRequest(
 
-data class ConfigureNotificationSettingsRequest (
+  /* The full URL where the Apprise API to use is located. */
+  @SerialName(value = "appriseApiUrl")
+  val appriseApiUrl: kotlin.String? = null,
 
-    /* The full URL where the Apprise API to use is located. */
-    @SerialName(value = "appriseApiUrl")
-    val appriseApiUrl: kotlin.String? = null,
+  /* The maximum number of times a notification fails before being disabled. */
+  @SerialName(value = "maxFailedAttempts")
+  val maxFailedAttempts: kotlin.Int? = 5,
 
-    /* The maximum number of times a notification fails before being disabled. */
-    @SerialName(value = "maxFailedAttempts")
-    val maxFailedAttempts: kotlin.Int? = 5,
+  /* The maximum number of notifications in the notification queue before events are ignored. */
+  @SerialName(value = "maxNotificationQueue")
+  val maxNotificationQueue: kotlin.Int? = null,
 
-    /* The maximum number of notifications in the notification queue before events are ignored. */
-    @SerialName(value = "maxNotificationQueue")
-    val maxNotificationQueue: kotlin.Int? = null
-
-) {
-
-
-}
-
+)

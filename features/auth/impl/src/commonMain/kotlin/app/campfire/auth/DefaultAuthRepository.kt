@@ -30,7 +30,7 @@ class DefaultAuthRepository(
     username: String,
     password: String,
     tent: Tent,
-  ) : Result<Unit> {
+  ): Result<Unit> {
     val result = api.login(serverUrl, username, password)
 
     if (result.isSuccess) {
@@ -43,12 +43,12 @@ class DefaultAuthRepository(
             url = serverUrl,
             name = serverName,
             tent = tent,
-          )
+          ),
         )
 
         // Insert User
         db.usersQueries.insert(
-          response.user.asDatabaseModel(serverUrl)
+          response.user.asDatabaseModel(serverUrl, response.userDefaultLibraryId),
         )
       }
 

@@ -7,20 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.PodcastEpisode
-import app.campfire.network.models.PodcastMetadata
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * A podcast containing multiple episodes.
@@ -44,78 +40,73 @@ import kotlinx.serialization.Contextual
  * @param latestEpisodePublished The timestamp of the most recently published episode.
  */
 @Serializable
-
-data class Podcast (
+data class Podcast(
 
   /* The ID of podcasts and podcast episodes after 2.3.0. */
-    @SerialName(value = "id")
-    val id: String,
+  @SerialName(value = "id")
+  val id: String,
 
   /* The ID of library items after 2.3.0. */
-    @SerialName(value = "libraryItemId")
-    val libraryItemId: String,
+  @SerialName(value = "libraryItemId")
+  val libraryItemId: String,
 
   @SerialName(value = "metadata")
-    val metadata: PodcastMetadata? = null,
+  val metadata: PodcastMetadata? = null,
 
   /* The file path to the podcast's cover image. */
-    @SerialName(value = "coverPath")
-    val coverPath: kotlin.String? = null,
+  @SerialName(value = "coverPath")
+  val coverPath: kotlin.String? = null,
 
   /* The tags associated with the podcast. */
-    @SerialName(value = "tags")
-    val tags: kotlin.collections.List<kotlin.String>? = null,
+  @SerialName(value = "tags")
+  val tags: kotlin.collections.List<kotlin.String>? = null,
 
   /* The episodes of the podcast. */
-    @SerialName(value = "episodes")
-    val episodes: kotlin.collections.List<app.campfire.network.models.PodcastEpisode>? = null,
+  @SerialName(value = "episodes")
+  val episodes: kotlin.collections.List<app.campfire.network.models.PodcastEpisode>? = null,
 
   /* Whether episodes are automatically downloaded. */
-    @SerialName(value = "autoDownloadEpisodes")
-    val autoDownloadEpisodes: kotlin.Boolean? = null,
+  @SerialName(value = "autoDownloadEpisodes")
+  val autoDownloadEpisodes: kotlin.Boolean? = null,
 
   /* The schedule for automatic episode downloads, in cron format. */
-    @SerialName(value = "autoDownloadSchedule")
-    val autoDownloadSchedule: kotlin.String? = null,
+  @SerialName(value = "autoDownloadSchedule")
+  val autoDownloadSchedule: kotlin.String? = null,
 
   /* The timestamp of the last episode check. */
-    @SerialName(value = "lastEpisodeCheck")
-    val lastEpisodeCheck: kotlin.Int? = null,
+  @SerialName(value = "lastEpisodeCheck")
+  val lastEpisodeCheck: kotlin.Int? = null,
 
   /* The maximum number of episodes to keep. */
-    @SerialName(value = "maxEpisodesToKeep")
-    val maxEpisodesToKeep: kotlin.Int? = null,
+  @SerialName(value = "maxEpisodesToKeep")
+  val maxEpisodesToKeep: kotlin.Int? = null,
 
   /* The maximum number of new episodes to download when automatically downloading epsiodes. */
-    @SerialName(value = "maxNewEpisodesToDownload")
-    val maxNewEpisodesToDownload: kotlin.Int? = null,
+  @SerialName(value = "maxNewEpisodesToDownload")
+  val maxNewEpisodesToDownload: kotlin.Int? = null,
 
   /* The timestamp of the last cover search. */
-    @SerialName(value = "lastCoverSearch")
-    val lastCoverSearch: kotlin.Int? = null,
+  @SerialName(value = "lastCoverSearch")
+  val lastCoverSearch: kotlin.Int? = null,
 
   /* The query used for the last cover search. */
-    @SerialName(value = "lastCoverSearchQuery")
-    val lastCoverSearchQuery: kotlin.String? = null,
+  @SerialName(value = "lastCoverSearchQuery")
+  val lastCoverSearchQuery: kotlin.String? = null,
 
   /* The total size of all episodes in bytes. */
-    @SerialName(value = "size")
-    val propertySize: kotlin.Int? = null,
+  @SerialName(value = "size")
+  val propertySize: kotlin.Int? = null,
 
   /* The total duration of all episodes in seconds. */
-    @SerialName(value = "duration")
-    val duration: kotlin.Int? = null,
+  @SerialName(value = "duration")
+  val duration: kotlin.Int? = null,
 
   /* The number of tracks (episodes) in the podcast. */
-    @SerialName(value = "numTracks")
-    val numTracks: kotlin.Int? = null,
+  @SerialName(value = "numTracks")
+  val numTracks: kotlin.Int? = null,
 
   /* The timestamp of the most recently published episode. */
-    @SerialName(value = "latestEpisodePublished")
-    val latestEpisodePublished: kotlin.Int? = null
+  @SerialName(value = "latestEpisodePublished")
+  val latestEpisodePublished: kotlin.Int? = null,
 
-) {
-
-
-}
-
+)

@@ -23,7 +23,7 @@ actual interface PlatformTokenSettingsComponent {
   fun provideTokenSettings(
     application: Application,
   ): Settings = SharedPreferencesSettings(
-    delegate = createEncryptedSharedPreferences(application)
+    delegate = createEncryptedSharedPreferences(application),
   )
 }
 

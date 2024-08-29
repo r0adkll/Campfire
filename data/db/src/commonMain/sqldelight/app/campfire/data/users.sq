@@ -22,6 +22,7 @@ CREATE TABLE user (
   librariesAccessible TEXT AS List<String> NOT NULL,
   itemTagsAccessible TEXT AS List<String> NOT NULL,
 
+  selectedLibraryId TEXT NOT NULL,
   serverUrl TEXT NOT NULL,
   FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
 );
@@ -53,6 +54,7 @@ user(
   permission_accessAllTags,
   permission_accessExplicitContent,
   librariesAccessible,
-  itemTagsAccessible
+  itemTagsAccessible,
+  selectedLibraryId
 )
 VALUES ?;

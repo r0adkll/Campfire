@@ -7,34 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Podcast
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param podcast 
+ *
+ * @param podcast
  */
 @Serializable
+data class GetPodcastFeed200Response(
 
-data class GetPodcastFeed200Response (
+  @SerialName(value = "podcast")
+  val podcast: Podcast? = null,
 
-    @SerialName(value = "podcast")
-    val podcast: Podcast? = null
-
-) {
-
-
-}
-
+)

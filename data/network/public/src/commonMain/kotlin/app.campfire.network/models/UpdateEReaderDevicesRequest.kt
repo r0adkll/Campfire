@@ -7,34 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.EreaderDeviceObject
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param ereaderDevices 
+ *
+ * @param ereaderDevices
  */
 @Serializable
+data class UpdateEReaderDevicesRequest(
 
-data class UpdateEReaderDevicesRequest (
+  @SerialName(value = "ereaderDevices")
+  val ereaderDevices: kotlin.collections.List<EreaderDeviceObject>? = null,
 
-    @SerialName(value = "ereaderDevices")
-    val ereaderDevices: kotlin.collections.List<EreaderDeviceObject>? = null
-
-) {
-
-
-}
-
+)

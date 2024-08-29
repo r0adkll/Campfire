@@ -7,21 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Series
-import app.campfire.network.models.SeriesProgress
-import app.campfire.network.models.SeriesWithProgressAndRSSOneOf
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * A series object which includes the name and progress of the series.
@@ -35,38 +30,33 @@ import kotlinx.serialization.Contextual
  * @param rssFeed The RSS feed for the series.
  */
 @Serializable
+data class SeriesWithProgressAndRSS(
 
-data class SeriesWithProgressAndRSS (
+  /* The ID of the series. */
+  @SerialName(value = "id")
+  val id: String,
 
-    /* The ID of the series. */
-    @SerialName(value = "id")
-    val id: String,
+  /* The name of the series. */
+  @SerialName(value = "name")
+  val name: kotlin.String? = null,
 
-    /* The name of the series. */
-    @SerialName(value = "name")
-    val name: kotlin.String? = null,
+  /* A description for the series. Will be null if there is none. */
+  @SerialName(value = "description")
+  val description: kotlin.String? = null,
 
-    /* A description for the series. Will be null if there is none. */
-    @SerialName(value = "description")
-    val description: kotlin.String? = null,
+  /* The time (in ms since POSIX epoch) when added to the server. */
+  @SerialName(value = "addedAt")
+  val addedAt: kotlin.Int? = null,
 
-    /* The time (in ms since POSIX epoch) when added to the server. */
-    @SerialName(value = "addedAt")
-    val addedAt: kotlin.Int? = null,
+  /* The time (in ms since POSIX epoch) when last updated. */
+  @SerialName(value = "updatedAt")
+  val updatedAt: kotlin.Int? = null,
 
-    /* The time (in ms since POSIX epoch) when last updated. */
-    @SerialName(value = "updatedAt")
-    val updatedAt: kotlin.Int? = null,
+  @SerialName(value = "progress")
+  val progress: SeriesProgress? = null,
 
-    @SerialName(value = "progress")
-    val progress: SeriesProgress? = null,
+  /* The RSS feed for the series. */
+  @SerialName(value = "rssFeed")
+  val rssFeed: kotlin.String? = null,
 
-    /* The RSS feed for the series. */
-    @SerialName(value = "rssFeed")
-    val rssFeed: kotlin.String? = null
-
-) {
-
-
-}
-
+)

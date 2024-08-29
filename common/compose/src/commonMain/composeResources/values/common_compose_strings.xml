@@ -5,4 +5,7 @@
   <string name="time_ago_days">%d days ago</string>
   <string name="time_ago_months">%d months ago</string>
   <string name="time_ago_years">%d years ago</string>
+
+  <string name="unknown_library_title">Unknown</string>
+  <string name="unknown_author_name">Unknown author</string>
 </resources>

@@ -4,8 +4,8 @@ import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
 import app.campfire.data.Media as DatabaseMedia
 import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
+import app.campfire.network.models.MediaType as NetworkMediaType
 import kotlin.time.Duration.Companion.seconds
 
 fun LibraryItemMinified.asDbModels(
@@ -33,6 +33,10 @@ fun LibraryItemMinified.asDbModels(
     },
     numFiles = numFiles,
     size = size,
+    weight = weight,
+    progressLastUpdate = progressLastUpdate,
+    finishedAt = finishedAt,
+    prevBookInProgressLastUpdate = prevBookInProgressLastUpdate,
     serverUrl = serverUrl,
   ) to media.asDbModel(id)
 }
@@ -73,5 +77,9 @@ fun NetworkMediaMinified.asDbModel(
     metadata_authorNameLF = metadata.authorNameLF,
     metadata_narratorName = metadata.narratorName,
     metadata_seriesName = metadata.seriesName,
+
+    metadata_series_id = metadata.series?.id,
+    metadata_series_name = metadata.series?.name,
+    metadata_series_sequence = metadata.series?.sequence,
   )
 }

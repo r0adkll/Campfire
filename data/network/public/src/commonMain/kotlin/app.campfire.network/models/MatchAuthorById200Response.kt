@@ -7,21 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Author
-import app.campfire.network.models.AuthorSeries
-import app.campfire.network.models.LibraryItemMinified
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  *
@@ -37,47 +32,42 @@ import kotlinx.serialization.Contextual
  * @param series The series associated with the author
  */
 @Serializable
+data class MatchAuthorById200Response(
 
-data class MatchAuthorById200Response (
+  /* The ID of the author. */
+  @SerialName(value = "id")
+  val id: String,
 
-    /* The ID of the author. */
-    @SerialName(value = "id")
-    val id: String,
+  /* The Audible identifier (ASIN) of the author. Will be null if unknown. Not the Amazon identifier. */
+  @SerialName(value = "asin")
+  val asin: kotlin.String? = null,
 
-    /* The Audible identifier (ASIN) of the author. Will be null if unknown. Not the Amazon identifier. */
-    @SerialName(value = "asin")
-    val asin: kotlin.String? = null,
+  /* The name of the author. */
+  @SerialName(value = "name")
+  val name: kotlin.String? = null,
 
-    /* The name of the author. */
-    @SerialName(value = "name")
-    val name: kotlin.String? = null,
+  /* The new description of the author. */
+  @SerialName(value = "description")
+  val description: kotlin.String? = null,
 
-    /* The new description of the author. */
-    @SerialName(value = "description")
-    val description: kotlin.String? = null,
+  /* The absolute path for the author image. This will be in the `metadata/` directory. Will be null if there is no image. */
+  @SerialName(value = "imagePath")
+  val imagePath: kotlin.String? = null,
 
-    /* The absolute path for the author image. This will be in the `metadata/` directory. Will be null if there is no image. */
-    @SerialName(value = "imagePath")
-    val imagePath: kotlin.String? = null,
+  /* The time (in ms since POSIX epoch) when added to the server. */
+  @SerialName(value = "addedAt")
+  val addedAt: kotlin.Int? = null,
 
-    /* The time (in ms since POSIX epoch) when added to the server. */
-    @SerialName(value = "addedAt")
-    val addedAt: kotlin.Int? = null,
+  /* The time (in ms since POSIX epoch) when last updated. */
+  @SerialName(value = "updatedAt")
+  val updatedAt: kotlin.Int? = null,
 
-    /* The time (in ms since POSIX epoch) when last updated. */
-    @SerialName(value = "updatedAt")
-    val updatedAt: kotlin.Int? = null,
+  /* The items associated with the author */
+  @SerialName(value = "libraryItems")
+  val libraryItems: kotlin.collections.List<LibraryItemMinified>? = null,
 
-    /* The items associated with the author */
-    @SerialName(value = "libraryItems")
-    val libraryItems: kotlin.collections.List<LibraryItemMinified>? = null,
+  /* The series associated with the author */
+  @SerialName(value = "series")
+  val series: kotlin.collections.List<AuthorSeries>? = null,
 
-    /* The series associated with the author */
-    @SerialName(value = "series")
-    val series: kotlin.collections.List<AuthorSeries>? = null
-
-) {
-
-
-}
-
+)

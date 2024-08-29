@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
 import app.campfire.common.screens.LoginScreen
-import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
@@ -85,7 +84,7 @@ fun Login(
         isAuthenticating = state.isAuthenticating,
         modifier = Modifier.onFocusChanged {
           hasFocus = it.hasFocus
-        }.widthIn(max = 500.dp)
+        }.widthIn(max = 500.dp),
       )
 
       Spacer(Modifier.height(16.dp))
@@ -115,7 +114,7 @@ fun Login(
       }
 
       Spacer(
-        Modifier.imePadding()
+        Modifier.imePadding(),
       )
     }
   }

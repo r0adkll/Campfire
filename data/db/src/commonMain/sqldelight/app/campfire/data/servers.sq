@@ -39,6 +39,10 @@ selectAll:
 SELECT *
 FROM server;
 
+selectByUrl:
+SELECT * FROM server
+WHERE url = ?;
+
 insert:
 INSERT OR REPLACE INTO server(
   url,

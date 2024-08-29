@@ -28,6 +28,18 @@ data object LoginScreen : BaseScreen(name = "Login()") {
 data object HomeScreen : BaseScreen(name = "Home()")
 
 @Parcelize
+data object LibraryScreen : BaseScreen(name = "Home()")
+
+@Parcelize
+data object SeriesScreen : BaseScreen(name = "Home()")
+
+@Parcelize
+data object CollectionsScreen : BaseScreen(name = "Home()")
+
+@Parcelize
+data object AuthorsScreen : BaseScreen(name = "Home()")
+
+@Parcelize
 data object SettingsScreen : BaseScreen(name = "Settings()")
 
 //endregion

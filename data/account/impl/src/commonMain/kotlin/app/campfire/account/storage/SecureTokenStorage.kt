@@ -40,6 +40,6 @@ class SecureTokenStorage(
   @OptIn(ExperimentalEncodingApi::class)
   private fun tokenStorageKey(serverUrl: String): String {
     val serverUrlBase64 = Base64.UrlSafe.encode(serverUrl.encodeToByteArray())
-    return "token_${serverUrlBase64}"
+    return "token_$serverUrlBase64"
   }
 }

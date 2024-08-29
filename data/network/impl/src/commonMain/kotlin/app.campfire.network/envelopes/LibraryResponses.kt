@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 class AllLibrariesResponse(
-  val libraries: List<Library>
+  val libraries: List<Library>,
 )
 
 @Serializable

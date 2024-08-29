@@ -7,18 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  *
@@ -29,26 +27,21 @@ import kotlinx.serialization.Contextual
  * @param autoDownloadEpisodes Whether episodes are automatically downloaded.
  */
 @Serializable
+data class BulkCreatePodcastsFromOpmlFeedUrlsRequest(
 
-data class BulkCreatePodcastsFromOpmlFeedUrlsRequest (
+  @SerialName(value = "feeds")
+  val feeds: kotlin.collections.List<kotlin.String>? = null,
 
-    @SerialName(value = "feeds")
-    val feeds: kotlin.collections.List<kotlin.String>? = null,
+  /* The ID of the library. */
+  @SerialName(value = "libraryId")
+  val libraryId: String,
 
-    /* The ID of the library. */
-    @SerialName(value = "libraryId")
-    val libraryId: String,
+  /* The ID of the folder. */
+  @SerialName(value = "folderId")
+  val folderId: String,
 
-    /* The ID of the folder. */
-    @SerialName(value = "folderId")
-    val folderId: String,
+  /* Whether episodes are automatically downloaded. */
+  @SerialName(value = "autoDownloadEpisodes")
+  val autoDownloadEpisodes: kotlin.Boolean? = null,
 
-    /* Whether episodes are automatically downloaded. */
-    @SerialName(value = "autoDownloadEpisodes")
-    val autoDownloadEpisodes: kotlin.Boolean? = null
-
-) {
-
-
-}
-
+)

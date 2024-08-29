@@ -1,6 +1,5 @@
 package app.campfire.network.models
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,7 +24,6 @@ import kotlinx.serialization.Serializable
  * @param sequence The position in the series the book is.
  */
 @Serializable
-
 data class LibraryItemSequence(
   val id: String,
   val oldLibraryItemId: String? = null,

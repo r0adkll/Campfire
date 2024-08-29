@@ -7,18 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  *
@@ -27,19 +25,14 @@ import kotlinx.serialization.Contextual
  * @param deviceName The name of the e-reader device.
  */
 @Serializable
+data class SendEBookToDeviceRequest(
 
-data class SendEBookToDeviceRequest (
+  /* The ID of library items after 2.3.0. */
+  @SerialName(value = "libraryItemId")
+  val libraryItemId: String,
 
-    /* The ID of library items after 2.3.0. */
-    @SerialName(value = "libraryItemId")
-    val libraryItemId: String,
+  /* The name of the e-reader device. */
+  @SerialName(value = "deviceName")
+  val deviceName: kotlin.String? = null,
 
-    /* The name of the e-reader device. */
-    @SerialName(value = "deviceName")
-    val deviceName: kotlin.String? = null
-
-) {
-
-
-}
-
+)

@@ -6,6 +6,10 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(projects.features.home.api)
+        api(projects.features.libraries.api)
+        api(projects.ui.appbar)
+
         implementation(compose.components.resources)
       }
     }

@@ -44,4 +44,43 @@ data class LibraryItemMinified(
   val media: MediaMinified,
   val numFiles: Int,
   val size: Long,
+
+  /**
+   * When returned from the personalized library endpoint, and its shelf has an id of
+   * `recommended` then this field will be non-null.
+   *
+   * The recommendation weight of the library item.
+   */
+  val weight: Double? = null,
+
+  /**
+   * When returned from the personalized library endpoint, and its shelf has an id of
+   * `continue-listening` then this field will be non-null.
+   *
+   * The time (in ms since POSIX epoch) when the book's or episode's progress was last updated.
+   */
+  val progressLastUpdate: Long? = null,
+
+  /**
+   * When returned from the personalized library endpoint, and its shelf has an id of `listen-again`
+   * then this field will be non-null.
+   *
+   * The time (in ms since POSIX epoch) when the book or episode was finished.
+   */
+  val finishedAt: Long? = null,
+
+  /**
+   * When returned from the personalized library endpoint, and its shelf has an id of `continue-series`
+   * then this field will be non-null.
+   *
+   * The time (in ms since POSIX epoch) of the most recent progress update of any book in the series
+   */
+  val prevBookInProgressLastUpdate: Long? = null,
+
+  /**
+   * When returned from the personalized library endpoint, and its shelf has an id of
+   * `continue-listening`, `listen-again`, or `episodes-recently-added`
+   * then this field will be non-null.
+   */
+  val recentEpisode: PodcastEpisode? = null,
 )

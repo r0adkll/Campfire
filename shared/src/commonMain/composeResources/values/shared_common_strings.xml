@@ -1,4 +1,15 @@
 <resources>
   <string name="settings">Settings</string>
   <string name="settings_content_description">App settings</string>
+
+  <string name="nav_home_label">Home</string>
+  <string name="nav_home_content_description">The home content for the current user/library</string>
+  <string name="nav_library_label">Library</string>
+  <string name="nav_library_content_description">The library content for the current user</string>
+  <string name="nav_series_label">Series</string>
+  <string name="nav_series_content_description">The series content for the current user/library</string>
+  <string name="nav_collections_label">Collections</string>
+  <string name="nav_collections_content_description">The collections content for the current user</string>
+  <string name="nav_authors_label">Authors</string>
+  <string name="nav_authors_content_description">The list of authros for the current user/library</string>
 </resources>

@@ -8,9 +8,11 @@ import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.get
 import org.jetbrains.compose.ComposePlugin
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 class UiConventionPlugin : Plugin<Project> {
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
   override fun apply(target: Project) = with(target) {
     // Apply other conventions
     with(pluginManager) {
@@ -21,6 +23,10 @@ class UiConventionPlugin : Plugin<Project> {
     }
 
     extensions.configure<KotlinMultiplatformExtension> {
+      compilerOptions {
+        freeCompilerArgs.add("-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+      }
+
       sourceSets["commonMain"].dependencies {
         /*
          * This brings in the necessary transitive dependencies for building screens

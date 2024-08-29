@@ -1,10 +1,13 @@
 package app.campfire.auth.mapping
 
-import app.campfire.network.models.User as NetworkUser
-import app.campfire.data.User as DatabaseUser
 import app.campfire.core.model.User
+import app.campfire.data.User as DatabaseUser
+import app.campfire.network.models.User as NetworkUser
 
-fun NetworkUser.asDatabaseModel(serverUrl: String): DatabaseUser {
+fun NetworkUser.asDatabaseModel(
+  serverUrl: String,
+  defaultLibraryId: String,
+): DatabaseUser {
   return DatabaseUser(
     id = id,
     name = username,
@@ -23,6 +26,7 @@ fun NetworkUser.asDatabaseModel(serverUrl: String): DatabaseUser {
     permission_accessExplicitContent = permissions.accessExplicitContent,
     librariesAccessible = librariesAccessible,
     itemTagsAccessible = itemTagsAccessible ?: emptyList(),
+    selectedLibraryId = defaultLibraryId,
     serverUrl = serverUrl,
   )
 }

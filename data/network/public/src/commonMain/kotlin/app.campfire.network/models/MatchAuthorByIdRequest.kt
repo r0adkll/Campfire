@@ -7,44 +7,37 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param q The name of the author to use for searching.
  * @param asin The Audible identifier (ASIN) of the author. Will be null if unknown. Not the Amazon identifier.
  * @param region The region used to search.
  */
 @Serializable
+data class MatchAuthorByIdRequest(
 
-data class MatchAuthorByIdRequest (
+  /* The name of the author to use for searching. */
+  @SerialName(value = "q")
+  val q: kotlin.String? = null,
 
-    /* The name of the author to use for searching. */
-    @SerialName(value = "q")
-    val q: kotlin.String? = null,
+  /* The Audible identifier (ASIN) of the author. Will be null if unknown. Not the Amazon identifier. */
+  @SerialName(value = "asin")
+  val asin: kotlin.String? = null,
 
-    /* The Audible identifier (ASIN) of the author. Will be null if unknown. Not the Amazon identifier. */
-    @SerialName(value = "asin")
-    val asin: kotlin.String? = null,
+  /* The region used to search. */
+  @SerialName(value = "region")
+  val region: kotlin.String? = "us",
 
-    /* The region used to search. */
-    @SerialName(value = "region")
-    val region: kotlin.String? = "us"
-
-) {
-
-
-}
-
+)

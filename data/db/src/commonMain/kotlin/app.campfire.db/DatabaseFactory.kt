@@ -37,6 +37,7 @@ class DatabaseFactory(
     ),
     libraryAdapter = Library.Adapter(
       displayOrderAdapter = IntColumnAdapter,
+      coverAspectRatioAdapter = IntColumnAdapter,
     ),
     libraryItemAdapter = LibraryItem.Adapter(
       mediaTypeAdapter = EnumColumnAdapter(),
@@ -51,6 +52,7 @@ class DatabaseFactory(
       numInvalidAudioFilesAdapter = IntColumnAdapter,
       propertySizeAdapter = IntColumnAdapter,
       metadata_genresAdapter = StringListAdapter,
+      metadata_series_sequenceAdapter = IntColumnAdapter,
     ),
   )
 }

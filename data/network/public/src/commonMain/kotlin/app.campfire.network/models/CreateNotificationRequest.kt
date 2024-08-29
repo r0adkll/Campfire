@@ -7,20 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.NotificationEventName
-import app.campfire.network.models.NotificationType
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  *
@@ -34,37 +30,32 @@ import kotlinx.serialization.Contextual
  * @param type
  */
 @Serializable
-
-data class CreateNotificationRequest (
+data class CreateNotificationRequest(
 
   @SerialName(value = "eventName")
-    val eventName: app.campfire.network.models.NotificationEventName,
+  val eventName: app.campfire.network.models.NotificationEventName,
 
   /* The Apprise URLs to use for the notification. */
-    @SerialName(value = "urls")
-    val urls: kotlin.collections.List<kotlin.String>,
+  @SerialName(value = "urls")
+  val urls: kotlin.collections.List<kotlin.String>,
 
   /* The template for the notification title. */
-    @SerialName(value = "titleTemplate")
-    val titleTemplate: kotlin.String,
+  @SerialName(value = "titleTemplate")
+  val titleTemplate: kotlin.String,
 
   /* The template for the notification body. */
-    @SerialName(value = "bodyTemplate")
-    val bodyTemplate: kotlin.String,
+  @SerialName(value = "bodyTemplate")
+  val bodyTemplate: kotlin.String,
 
   /* The ID of the library. Applies to all libraries if `null`. */
-    @SerialName(value = "libraryId")
-    val libraryId: String,
+  @SerialName(value = "libraryId")
+  val libraryId: String,
 
   /* Whether the notification is enabled. */
-    @SerialName(value = "enabled")
-    val enabled: kotlin.Boolean? = false,
+  @SerialName(value = "enabled")
+  val enabled: kotlin.Boolean? = false,
 
   @SerialName(value = "type")
-    val type: NotificationType? = NotificationType.Info
+  val type: NotificationType? = NotificationType.Info,
 
-) {
-
-
-}
-
+)

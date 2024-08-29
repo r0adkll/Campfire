@@ -11,23 +11,18 @@ import kotlinx.serialization.Serializable
  * @param isFinished Whether the series is finished.
  */
 @Serializable
+data class SeriesProgress(
 
-data class SeriesProgress (
+  /* The IDs of the library items in the series. */
+  @SerialName(value = "libraryItemIds")
+  val libraryItemIds: List<String>? = null,
 
-    /* The IDs of the library items in the series. */
-    @SerialName(value = "libraryItemIds")
-    val libraryItemIds: List<String>? = null,
+  /* The IDs of the library items in the series that are finished. */
+  @SerialName(value = "libraryItemIdsFinished")
+  val libraryItemIdsFinished: List<String>? = null,
 
-    /* The IDs of the library items in the series that are finished. */
-    @SerialName(value = "libraryItemIdsFinished")
-    val libraryItemIdsFinished: List<String>? = null,
+  /* Whether the series is finished. */
+  @SerialName(value = "isFinished")
+  val isFinished: Boolean? = null,
 
-    /* Whether the series is finished. */
-    @SerialName(value = "isFinished")
-    val isFinished: Boolean? = null
-
-) {
-
-
-}
-
+)

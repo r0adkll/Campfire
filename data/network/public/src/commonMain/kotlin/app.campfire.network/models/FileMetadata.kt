@@ -16,12 +16,12 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class FileMetadata(
-  val filename: String? = null,
-  val ext: String? = null,
-  val path: String? = null,
-  val relPath: String? = null,
-  val propertySize: Int? = null,
-  val mtimeMs: Int? = null,
-  val ctimeMs: Int? = null,
-  val birthtimeMs: Int? = null,
+  val filename: String,
+  val ext: String,
+  val path: String,
+  val relPath: String,
+  val size: Int,
+  val mtimeMs: Int,
+  val ctimeMs: Int,
+  val birthtimeMs: Int,
 )

@@ -7,33 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param numEpisodesUpdated 
+ *
+ * @param numEpisodesUpdated
  */
 @Serializable
+data class QuickMatchEpisodes200Response(
 
-data class QuickMatchEpisodes200Response (
+  @SerialName(value = "numEpisodesUpdated")
+  val numEpisodesUpdated: kotlin.Int? = null,
 
-    @SerialName(value = "numEpisodesUpdated")
-    val numEpisodesUpdated: kotlin.Int? = null
-
-) {
-
-
-}
-
+)

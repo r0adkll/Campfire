@@ -7,34 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.GetFeedsFromOPMLText200ResponseFeedsInner
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param feeds 
+ *
+ * @param feeds
  */
 @Serializable
+data class GetFeedsFromOPMLText200Response(
 
-data class GetFeedsFromOPMLText200Response (
+  @SerialName(value = "feeds")
+  val feeds: kotlin.collections.List<GetFeedsFromOPMLText200ResponseFeedsInner>? = null,
 
-    @SerialName(value = "feeds")
-    val feeds: kotlin.collections.List<GetFeedsFromOPMLText200ResponseFeedsInner>? = null
-
-) {
-
-
-}
-
+)

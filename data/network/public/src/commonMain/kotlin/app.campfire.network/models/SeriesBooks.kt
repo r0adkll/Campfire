@@ -7,19 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.LibraryItemSequence
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * A series object which includes the name and books in the series.
@@ -34,43 +31,38 @@ import kotlinx.serialization.Contextual
  * @param totalDuration The combined duration (in seconds) of all books in the series.
  */
 @Serializable
+data class SeriesBooks(
 
-data class SeriesBooks (
+  /* The ID of the series. */
+  @SerialName(value = "id")
+  val id: String,
 
-    /* The ID of the series. */
-    @SerialName(value = "id")
-    val id: String,
+  /* The name of the series. */
+  @SerialName(value = "name")
+  val name: kotlin.String? = null,
 
-    /* The name of the series. */
-    @SerialName(value = "name")
-    val name: kotlin.String? = null,
+  /* The time (in ms since POSIX epoch) when added to the server. */
+  @SerialName(value = "addedAt")
+  val addedAt: kotlin.Int? = null,
 
-    /* The time (in ms since POSIX epoch) when added to the server. */
-    @SerialName(value = "addedAt")
-    val addedAt: kotlin.Int? = null,
+  /* The name of the series with any prefix moved to the end. */
+  @SerialName(value = "nameIgnorePrefix")
+  val nameIgnorePrefix: kotlin.String? = null,
 
-    /* The name of the series with any prefix moved to the end. */
-    @SerialName(value = "nameIgnorePrefix")
-    val nameIgnorePrefix: kotlin.String? = null,
+  /* The name of the series with any prefix removed. */
+  @SerialName(value = "nameIgnorePrefixSort")
+  val nameIgnorePrefixSort: kotlin.String? = null,
 
-    /* The name of the series with any prefix removed. */
-    @SerialName(value = "nameIgnorePrefixSort")
-    val nameIgnorePrefixSort: kotlin.String? = null,
+  /* Will always be `series`. */
+  @SerialName(value = "type")
+  val type: kotlin.String? = null,
 
-    /* Will always be `series`. */
-    @SerialName(value = "type")
-    val type: kotlin.String? = null,
+  /* The library items that contain the books in the series. A sequence attribute that denotes the position in the series the book is in, is tacked on. */
+  @SerialName(value = "books")
+  val books: kotlin.collections.List<LibraryItemSequence>? = null,
 
-    /* The library items that contain the books in the series. A sequence attribute that denotes the position in the series the book is in, is tacked on. */
-    @SerialName(value = "books")
-    val books: kotlin.collections.List<LibraryItemSequence>? = null,
+  /* The combined duration (in seconds) of all books in the series. */
+  @SerialName(value = "totalDuration")
+  val totalDuration: Double,
 
-    /* The combined duration (in seconds) of all books in the series. */
-    @SerialName(value = "totalDuration")
-    val totalDuration: Double
-
-) {
-
-
-}
-
+)

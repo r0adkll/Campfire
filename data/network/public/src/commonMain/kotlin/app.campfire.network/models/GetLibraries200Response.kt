@@ -7,34 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Library
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param libraries 
+ *
+ * @param libraries
  */
 @Serializable
+data class GetLibraries200Response(
 
-data class GetLibraries200Response (
+  @SerialName(value = "libraries")
+  val libraries: kotlin.collections.List<Library>? = null,
 
-    @SerialName(value = "libraries")
-    val libraries: kotlin.collections.List<Library>? = null
-
-) {
-
-
-}
-
+)

@@ -7,23 +7,19 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Folder
-import app.campfire.network.models.LibrarySettings
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param name The name of the library.
  * @param folders The folders of the library. Only specify the fullPath.
@@ -31,41 +27,36 @@ import kotlinx.serialization.Contextual
  * @param icon The icon of the library. See Library Icons for a list of possible icons.
  * @param mediaType The type of media that the library contains. Must be `book` or `podcast`.
  * @param provider Preferred metadata provider for the library. See Metadata Providers for a list of possible providers.
- * @param settings 
+ * @param settings
  */
 @Serializable
+data class CreateLibraryRequest(
 
-data class CreateLibraryRequest (
+  /* The name of the library. */
+  @SerialName(value = "name")
+  val name: kotlin.String,
 
-    /* The name of the library. */
-    @SerialName(value = "name")
-    val name: kotlin.String,
+  /* The folders of the library. Only specify the fullPath. */
+  @SerialName(value = "folders")
+  val folders: kotlin.collections.List<Folder>,
 
-    /* The folders of the library. Only specify the fullPath. */
-    @SerialName(value = "folders")
-    val folders: kotlin.collections.List<Folder>,
+  /* The display order of the library. Must be >= 1. */
+  @SerialName(value = "displayOrder")
+  val displayOrder: kotlin.Int? = null,
 
-    /* The display order of the library. Must be >= 1. */
-    @SerialName(value = "displayOrder")
-    val displayOrder: kotlin.Int? = null,
+  /* The icon of the library. See Library Icons for a list of possible icons. */
+  @SerialName(value = "icon")
+  val icon: kotlin.String? = null,
 
-    /* The icon of the library. See Library Icons for a list of possible icons. */
-    @SerialName(value = "icon")
-    val icon: kotlin.String? = null,
+  /* The type of media that the library contains. Must be `book` or `podcast`. */
+  @SerialName(value = "mediaType")
+  val mediaType: kotlin.String? = null,
 
-    /* The type of media that the library contains. Must be `book` or `podcast`. */
-    @SerialName(value = "mediaType")
-    val mediaType: kotlin.String? = null,
+  /* Preferred metadata provider for the library. See Metadata Providers for a list of possible providers. */
+  @SerialName(value = "provider")
+  val provider: kotlin.String? = null,
 
-    /* Preferred metadata provider for the library. See Metadata Providers for a list of possible providers. */
-    @SerialName(value = "provider")
-    val provider: kotlin.String? = null,
+  @SerialName(value = "settings")
+  val settings: LibrarySettings? = null,
 
-    @SerialName(value = "settings")
-    val settings: LibrarySettings? = null
-
-) {
-
-
-}
-
+)

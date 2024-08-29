@@ -7,19 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.BookMetadataMinified
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * Minified book schema. Does not depend on `bookBase` because there's pretty much no overlap.
@@ -37,54 +34,49 @@ import kotlinx.serialization.Contextual
  * @param ebookFormat The format of ebook of the book. Will be null if the book is an audiobook.
  */
 @Serializable
+data class BookMinified(
 
-data class BookMinified (
+  @SerialName(value = "metadata")
+  val metadata: BookMetadataMinified? = null,
 
-    @SerialName(value = "metadata")
-    val metadata: BookMetadataMinified? = null,
+  /* The absolute path on the server of the cover file. Will be null if there is no cover. */
+  @SerialName(value = "coverPath")
+  val coverPath: kotlin.String? = null,
 
-    /* The absolute path on the server of the cover file. Will be null if there is no cover. */
-    @SerialName(value = "coverPath")
-    val coverPath: kotlin.String? = null,
+  /* Tags applied to items. */
+  @SerialName(value = "tags")
+  val tags: kotlin.collections.List<kotlin.String>? = null,
 
-    /* Tags applied to items. */
-    @SerialName(value = "tags")
-    val tags: kotlin.collections.List<kotlin.String>? = null,
+  /* The number of tracks the book's audio files have. */
+  @SerialName(value = "numTracks")
+  val numTracks: kotlin.Int? = null,
 
-    /* The number of tracks the book's audio files have. */
-    @SerialName(value = "numTracks")
-    val numTracks: kotlin.Int? = null,
+  /* The number of audio files the book has. */
+  @SerialName(value = "numAudioFiles")
+  val numAudioFiles: kotlin.Int? = null,
 
-    /* The number of audio files the book has. */
-    @SerialName(value = "numAudioFiles")
-    val numAudioFiles: kotlin.Int? = null,
+  /* The number of chapters the book has. */
+  @SerialName(value = "numChapters")
+  val numChapters: kotlin.Int? = null,
 
-    /* The number of chapters the book has. */
-    @SerialName(value = "numChapters")
-    val numChapters: kotlin.Int? = null,
+  /* The total number of missing parts the book has. */
+  @SerialName(value = "numMissingParts")
+  val numMissingParts: kotlin.Int? = null,
 
-    /* The total number of missing parts the book has. */
-    @SerialName(value = "numMissingParts")
-    val numMissingParts: kotlin.Int? = null,
+  /* The number of invalid audio files the book has. */
+  @SerialName(value = "numInvalidAudioFiles")
+  val numInvalidAudioFiles: kotlin.Int? = null,
 
-    /* The number of invalid audio files the book has. */
-    @SerialName(value = "numInvalidAudioFiles")
-    val numInvalidAudioFiles: kotlin.Int? = null,
+  /* The total length (in seconds) of the item or file. */
+  @SerialName(value = "duration")
+  val duration: Double,
 
-    /* The total length (in seconds) of the item or file. */
-    @SerialName(value = "duration")
-    val duration: Double,
+  /* The total size (in bytes) of the item or file. */
+  @SerialName(value = "size")
+  val propertySize: kotlin.Int? = null,
 
-    /* The total size (in bytes) of the item or file. */
-    @SerialName(value = "size")
-    val propertySize: kotlin.Int? = null,
+  /* The format of ebook of the book. Will be null if the book is an audiobook. */
+  @SerialName(value = "ebookFormat")
+  val ebookFormat: kotlin.String? = null,
 
-    /* The format of ebook of the book. Will be null if the book is an audiobook. */
-    @SerialName(value = "ebookFormat")
-    val ebookFormat: kotlin.String? = null
-
-) {
-
-
-}
-
+)

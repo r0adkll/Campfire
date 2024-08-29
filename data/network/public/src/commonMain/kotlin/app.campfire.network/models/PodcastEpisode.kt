@@ -1,6 +1,4 @@
 package app.campfire.network.models
-
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -30,97 +28,37 @@ import kotlinx.serialization.Serializable
  * @param propertySize The total size (in bytes) of the item or file.
  */
 @Serializable
+data class PodcastEpisode(
+  val libraryItemId: String,
+  val podcastId: String,
+  val id: String,
+  val oldEpisodeId: String,
+  val index: Int,
+  val season: String,
+  val episode: String,
+  val episodeType: String,
+  val title: String,
+  val subtitle: String,
+  val description: String,
+  val enclosure: Enclosure,
+  val guid: String,
+  val pubDate: String,
+  val chapters: List<String>,
+  val audioFile: AudioFile,
+  val publishedAt: Int,
+  val addedAt: Int,
+  val updatedAt: Int,
 
-data class PodcastEpisode (
-
-  /* The ID of library items after 2.3.0. */
-    @SerialName(value = "libraryItemId")
-    val libraryItemId: String,
-
-  /* The ID of podcasts and podcast episodes after 2.3.0. */
-    @SerialName(value = "podcastId")
-    val podcastId: String,
-
-  /* The ID of podcasts and podcast episodes after 2.3.0. */
-    @SerialName(value = "id")
-    val id: String,
-
-  /* The ID of podcasts on server version 2.2.23 and before. */
-    @SerialName(value = "oldEpisodeId")
-    val oldEpisodeId: String? = null,
-
-  /* The index of the episode within the podcast. */
-    @SerialName(value = "index")
-    val index: Int? = null,
-
-  /* The season number of the episode. */
-    @SerialName(value = "season")
-    val season: String? = null,
-
-  /* The episode number within the season. */
-    @SerialName(value = "episode")
-    val episode: String? = null,
-
-  /* The type of episode (e.g., full, trailer). */
-    @SerialName(value = "episodeType")
-    val episodeType: String? = null,
-
-  /* The title of the episode. */
-    @SerialName(value = "title")
-    val title: String? = null,
-
-  /* The subtitle of the episode. */
-    @SerialName(value = "subtitle")
-    val subtitle: String? = null,
-
-  /* The description of the episode. */
-    @SerialName(value = "description")
-    val description: String? = null,
-
-  /* The enclosure object containing additional episode data. */
-    @SerialName(value = "enclosure")
-    val enclosure: Map<String, String>? = null,
-
-  /* The globally unique identifier for the episode. */
-    @SerialName(value = "guid")
-    val guid: String? = null,
-
-  /* The publication date of the episode. */
-    @SerialName(value = "pubDate")
-    val pubDate: String? = null,
-
-  /* The chapters within the episode. */
-    @SerialName(value = "chapters")
-    val chapters: List<String>? = null,
-
-  @SerialName(value = "audioFile")
-    val audioFile: AudioFile? = null,
-
-  /* The time (in ms since POSIX epoch) when was created. */
-    @SerialName(value = "publishedAt")
-    val publishedAt: Int? = null,
-
-  /* The time (in ms since POSIX epoch) when added to the server. */
-    @SerialName(value = "addedAt")
-    val addedAt: Int? = null,
-
-  /* The time (in ms since POSIX epoch) when last updated. */
-    @SerialName(value = "updatedAt")
-    val updatedAt: Int? = null,
-
-  @SerialName(value = "audioTrack")
-    val audioTrack: AudioTrack? = null,
-
-  /* The total length (in seconds) of the item or file. */
-    @SerialName(value = "duration")
-    val duration: Double,
-
-  /* The total size (in bytes) of the item or file. */
-    @SerialName(value = "size")
-    val propertySize: Int? = null
-
+  // Expanded
+  val audioTrack: AudioTrack? = null,
+  val duration: Double? = null,
+  val propertySize: Int? = null,
 ) {
 
-
+  @Serializable
+  data class Enclosure(
+    val url: String,
+    val type: String,
+    val length: Long,
+  )
 }
-

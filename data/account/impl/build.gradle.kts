@@ -12,11 +12,15 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.data.account.api)
+        api(projects.common.settings)
+        api(projects.data.db)
+        api(projects.data.network.public)
 
         implementation(projects.core)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.multiplatformsettings.core)
         implementation(libs.multiplatformsettings.coroutines)
+        implementation(libs.store)
       }
     }
 

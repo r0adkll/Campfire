@@ -7,18 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  * Metadata for a podcast.
@@ -38,63 +36,58 @@ import kotlinx.serialization.Contextual
  * @param type The type of podcast (e.g., episodic, serial).
  */
 @Serializable
+data class PodcastMetadata(
 
-data class PodcastMetadata (
+  /* The title of the podcast. */
+  @SerialName(value = "title")
+  val title: kotlin.String? = null,
 
-    /* The title of the podcast. */
-    @SerialName(value = "title")
-    val title: kotlin.String? = null,
+  /* The author of the podcast. */
+  @SerialName(value = "author")
+  val author: kotlin.String? = null,
 
-    /* The author of the podcast. */
-    @SerialName(value = "author")
-    val author: kotlin.String? = null,
+  /* The description of the podcast. */
+  @SerialName(value = "description")
+  val description: kotlin.String? = null,
 
-    /* The description of the podcast. */
-    @SerialName(value = "description")
-    val description: kotlin.String? = null,
+  /* The release date of the podcast. */
+  @SerialName(value = "releaseDate")
+  val releaseDate: kotlinx.datetime.Instant? = null,
 
-    /* The release date of the podcast. */
-    @SerialName(value = "releaseDate")
-    val releaseDate: kotlinx.datetime.Instant? = null,
+  /* The genres of the podcast. */
+  @SerialName(value = "genres")
+  val genres: kotlin.collections.List<kotlin.String>? = null,
 
-    /* The genres of the podcast. */
-    @SerialName(value = "genres")
-    val genres: kotlin.collections.List<kotlin.String>? = null,
+  /* The URL of the podcast feed. */
+  @SerialName(value = "feedUrl")
+  val feedUrl: kotlin.String? = null,
 
-    /* The URL of the podcast feed. */
-    @SerialName(value = "feedUrl")
-    val feedUrl: kotlin.String? = null,
+  /* The URL of the podcast's image. */
+  @SerialName(value = "imageUrl")
+  val imageUrl: kotlin.String? = null,
 
-    /* The URL of the podcast's image. */
-    @SerialName(value = "imageUrl")
-    val imageUrl: kotlin.String? = null,
+  /* The URL of the podcast's iTunes page. */
+  @SerialName(value = "itunesPageUrl")
+  val itunesPageUrl: kotlin.String? = null,
 
-    /* The URL of the podcast's iTunes page. */
-    @SerialName(value = "itunesPageUrl")
-    val itunesPageUrl: kotlin.String? = null,
+  /* The iTunes ID of the podcast. */
+  @SerialName(value = "itunesId")
+  val itunesId: kotlin.String? = null,
 
-    /* The iTunes ID of the podcast. */
-    @SerialName(value = "itunesId")
-    val itunesId: kotlin.String? = null,
+  /* The iTunes artist ID of the podcast. */
+  @SerialName(value = "itunesArtistId")
+  val itunesArtistId: kotlin.String? = null,
 
-    /* The iTunes artist ID of the podcast. */
-    @SerialName(value = "itunesArtistId")
-    val itunesArtistId: kotlin.String? = null,
+  /* Whether the podcast contains explicit content. */
+  @SerialName(value = "explicit")
+  val explicit: kotlin.Boolean? = null,
 
-    /* Whether the podcast contains explicit content. */
-    @SerialName(value = "explicit")
-    val explicit: kotlin.Boolean? = null,
+  /* The language of the podcast. */
+  @SerialName(value = "language")
+  val language: kotlin.String? = null,
 
-    /* The language of the podcast. */
-    @SerialName(value = "language")
-    val language: kotlin.String? = null,
+  /* The type of podcast (e.g., episodic, serial). */
+  @SerialName(value = "type")
+  val type: kotlin.String? = null,
 
-    /* The type of podcast (e.g., episodic, serial). */
-    @SerialName(value = "type")
-    val type: kotlin.String? = null
-
-) {
-
-
-}
-
+)

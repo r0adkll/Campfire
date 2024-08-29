@@ -6,6 +6,12 @@ plugins {
   alias(libs.plugins.ksp)
 }
 
+kotlin {
+  compilerOptions {
+    freeCompilerArgs.add("-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+  }
+}
+
 dependencies {
   implementation(projects.shared)
   implementation(compose.desktop.currentOs)

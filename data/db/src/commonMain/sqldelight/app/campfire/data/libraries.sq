@@ -1,15 +1,17 @@
+import kotlin.Boolean;
 import kotlin.Int;
 
 CREATE TABLE library (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
-  displayOrder INTEGER AS Int,
+  displayOrder INTEGER AS Int NOT NULL,
   icon TEXT NOT NULL,
   mediaType TEXT NOT NULL,
   provider TEXT NOT NULL,
   createdAt INTEGER NOT NULL,
   lastUpdate INTEGER NOT NULL,
-  coverAspectRatio INTEGER NOT NULL
+  coverAspectRatio INTEGER AS Int NOT NULL,
+  audiobooksOnly INTEGER AS Boolean NOT NULL
 );
 
 insert:
@@ -22,7 +24,8 @@ INSERT OR REPLACE INTO library(
   provider,
   createdAt,
   lastUpdate,
-  coverAspectRatio
+  coverAspectRatio,
+  audiobooksOnly
 )
 VALUES ?;
 
@@ -31,4 +34,8 @@ SELECT * FROM library;
 
 selectById:
 SELECT * FROM library
+WHERE id = ?;
+
+deleteById:
+DELETE FROM library
 WHERE id = ?;

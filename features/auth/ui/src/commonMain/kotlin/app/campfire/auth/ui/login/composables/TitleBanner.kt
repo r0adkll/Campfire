@@ -27,7 +27,7 @@ internal fun TitleBanner(
   Row(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally)
+    horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
   ) {
     Image(
       Icons.Campfire,

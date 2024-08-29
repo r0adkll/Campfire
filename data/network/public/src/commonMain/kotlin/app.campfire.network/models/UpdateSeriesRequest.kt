@@ -7,39 +7,32 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param name The name of the series.
  * @param description A description for the series. Will be null if there is none.
  */
 @Serializable
+data class UpdateSeriesRequest(
 
-data class UpdateSeriesRequest (
+  /* The name of the series. */
+  @SerialName(value = "name")
+  val name: kotlin.String? = null,
 
-    /* The name of the series. */
-    @SerialName(value = "name")
-    val name: kotlin.String? = null,
+  /* A description for the series. Will be null if there is none. */
+  @SerialName(value = "description")
+  val description: kotlin.String? = null,
 
-    /* A description for the series. Will be null if there is none. */
-    @SerialName(value = "description")
-    val description: kotlin.String? = null
-
-) {
-
-
-}
-
+)

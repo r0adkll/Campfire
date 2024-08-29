@@ -3,7 +3,6 @@ package app.campfire.auth.ui.welcome
 import androidx.compose.runtime.Composable
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
-import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator

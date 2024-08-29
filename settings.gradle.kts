@@ -84,6 +84,13 @@ include(
   ":features:libraries:impl",
   ":features:libraries:ui",
 )
-include(":features:home:ui")
+include(
+  ":features:home:api",
+  ":features:home:impl",
+  ":features:home:ui",
+)
+include(
+  ":ui:appbar",
+)
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

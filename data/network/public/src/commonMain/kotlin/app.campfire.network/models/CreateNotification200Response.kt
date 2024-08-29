@@ -7,34 +7,26 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.NotificationSettings
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param settings 
+ *
+ * @param settings
  */
 @Serializable
+data class CreateNotification200Response(
 
-data class CreateNotification200Response (
+  @SerialName(value = "settings")
+  val settings: NotificationSettings? = null,
 
-    @SerialName(value = "settings")
-    val settings: NotificationSettings? = null
-
-) {
-
-
-}
-
+)

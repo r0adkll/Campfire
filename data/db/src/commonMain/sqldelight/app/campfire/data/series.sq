@@ -1,0 +1,33 @@
+import kotlin.Boolean;
+
+CREATE TABLE series (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+--   inProgress INTEGER AS Boolean NOT NULL,
+--   hasActiveBook INTEGER AS Boolean NOT NULL,
+--   hideFromContinueListening INTEGER AS Boolean NOT NULL,
+--   bookInProgressLastUpdate INTEGER NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO series(
+  id,
+  name,
+  description,
+  addedAt,
+  updatedAt
+--   inProgress,
+--   hasActiveBook,
+--   hideFromContinueListening,
+--   bookInProgressLastUpdate
+) VALUES ?;
+
+selectAll:
+SELECT * FROM series;
+
+selectById:
+SELECT * FROM series
+WHERE id = ?;

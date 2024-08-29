@@ -15,7 +15,6 @@ import app.campfire.auth.ui.login.LoginUiEvent.ServerName
 import app.campfire.auth.ui.login.LoginUiEvent.ServerUrl
 import app.campfire.auth.ui.login.LoginUiEvent.UserName
 import app.campfire.common.screens.LoginScreen
-import app.campfire.core.di.ActivityScope
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.Tent
@@ -67,7 +66,7 @@ class LoginPresenter(
       password = password,
       isAuthenticating = isAuthenticating,
       authError = authError,
-      connectionState = connectionState
+      connectionState = connectionState,
     ) { event ->
       when (event) {
         is ChangeTent -> tent = event.tent

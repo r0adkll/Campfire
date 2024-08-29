@@ -7,39 +7,31 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.SeriesProgress
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
  *
- * @param progress 
+ *
+ * @param progress
  * @param rssFeed The RSS feed for the series.
  */
 @Serializable
+data class SeriesWithProgressAndRSSOneOf(
 
-data class SeriesWithProgressAndRSSOneOf (
+  @SerialName(value = "progress")
+  val progress: SeriesProgress? = null,
 
-    @SerialName(value = "progress")
-    val progress: SeriesProgress? = null,
+  /* The RSS feed for the series. */
+  @SerialName(value = "rssFeed")
+  val rssFeed: kotlin.String? = null,
 
-    /* The RSS feed for the series. */
-    @SerialName(value = "rssFeed")
-    val rssFeed: kotlin.String? = null
-
-) {
-
-
-}
-
+)

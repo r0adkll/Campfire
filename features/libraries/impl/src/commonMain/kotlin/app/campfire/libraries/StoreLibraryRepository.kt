@@ -3,29 +3,37 @@ package app.campfire.libraries
 import app.campfire.CampfireDatabase
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.libraries.mapping.asDbModel
 import app.campfire.libraries.mapping.asDbModels
+import app.campfire.libraries.mapping.asDomainModel
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOne
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
+import org.mobilenativefoundation.store.store5.StoreReadRequest
 
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreLibraryRepository(
+  private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
   private val settings: CampfireSettings,
@@ -40,25 +48,68 @@ class StoreLibraryRepository(
       reader = { libraryId: LibraryId ->
         db.libraryItemsQueries.selectForLibrary(libraryId)
           .asFlow()
-          .mapToList(dispatcherProvider.io)
+          .mapToList(dispatcherProvider.databaseRead)
       },
       writer = { _, data ->
-        db.transaction {
-          data.forEach { item ->
-            val (libraryItem, media) = item.asDbModels("" /*TODO: Inject Server URL here*/)
-            db.libraryItemsQueries.insert(libraryItem)
-            db.mediaQueries.insert(media)
+        withContext(dispatcherProvider.databaseWrite) {
+          db.transaction {
+            data.forEach { item ->
+              val (libraryItem, media) = item.asDbModels(userSession.serverUrl!!)
+              db.libraryItemsQueries.insert(libraryItem)
+              db.mediaQueries.insert(media)
+            }
           }
         }
       },
       delete = { libraryId: LibraryId ->
-        db.libraryItemsQueries.deleteForLibrary(libraryId)
+        withContext(dispatcherProvider.databaseWrite) {
+          db.libraryItemsQueries.deleteForLibrary(libraryId)
+        }
       },
       deleteAll = {
         // Unsupported
       },
     ),
   ).build()
+
+  private val singleLibraryStore = StoreBuilder.from(
+    fetcher = Fetcher.ofResult { libraryId: LibraryId -> api.getLibrary(libraryId).asFetcherResult() },
+    sourceOfTruth = SourceOfTruth.of(
+      reader = { libraryId: LibraryId ->
+        db.librariesQueries.selectById(libraryId)
+          .asFlow()
+          .mapToOneOrNull(dispatcherProvider.databaseRead)
+      },
+      writer = { _, data ->
+        val libraryItem = data.asDbModel()
+        withContext(dispatcherProvider.databaseWrite) {
+          db.librariesQueries.insert(libraryItem)
+        }
+      },
+      delete = { libraryId: LibraryId ->
+        withContext(dispatcherProvider.databaseWrite) {
+          db.librariesQueries.deleteById(libraryId)
+        }
+      },
+    ),
+  ).build()
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeCurrentLibrary(): Flow<Library> {
+    val serverUrl = (userSession as UserSession.LoggedIn).serverUrl
+    return db.usersQueries.selectForServer(serverUrl)
+      .asFlow()
+      .mapToOne(dispatcherProvider.databaseRead)
+      .flatMapLatest { user ->
+        // Fetch the latest library based on the value in the User has selected in the database.
+        // If the user changes libraries an active subscription to this flow should update the current library
+        singleLibraryStore
+          .stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+          .mapNotNull {
+            it.dataOrNull()?.asDomainModel()
+          }
+      }
+  }
 
   override fun observeAllLibraries(): Flow<List<Library>> {
     TODO("Not yet implemented")

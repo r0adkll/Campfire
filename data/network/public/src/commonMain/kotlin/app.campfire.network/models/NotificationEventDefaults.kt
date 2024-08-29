@@ -7,39 +7,32 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param title The default title template for notifications using the notification event.
  * @param body The default body template for notifications using the notification event.
  */
 @Serializable
+data class NotificationEventDefaults(
 
-data class NotificationEventDefaults (
+  /* The default title template for notifications using the notification event. */
+  @SerialName(value = "title")
+  val title: kotlin.String? = null,
 
-    /* The default title template for notifications using the notification event. */
-    @SerialName(value = "title")
-    val title: kotlin.String? = null,
+  /* The default body template for notifications using the notification event. */
+  @SerialName(value = "body")
+  val body: kotlin.String? = null,
 
-    /* The default body template for notifications using the notification event. */
-    @SerialName(value = "body")
-    val body: kotlin.String? = null
-
-) {
-
-
-}
-
+)

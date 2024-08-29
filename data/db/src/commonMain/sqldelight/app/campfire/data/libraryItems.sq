@@ -22,6 +22,11 @@ CREATE TABLE libraryItem (
   numFiles INTEGER AS Int NOT NULL,
   size INTEGER NOT NULL,
 
+  weight REAL,
+  progressLastUpdate INTEGER,
+  finishedAt INTEGER,
+  prevBookInProgressLastUpdate INTEGER,
+
   serverUrl TEXT NOT NULL,
   FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
 );

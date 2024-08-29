@@ -12,5 +12,5 @@ interface AuthRepository {
     username: String,
     password: String,
     tent: Tent,
-  ) : Result<Unit>
+  ): Result<Unit>
 }

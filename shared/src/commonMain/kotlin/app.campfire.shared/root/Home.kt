@@ -42,10 +42,35 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
+import app.campfire.common.compose.icons.filled.Author
+import app.campfire.common.compose.icons.filled.Collections
+import app.campfire.common.compose.icons.filled.Home
+import app.campfire.common.compose.icons.filled.Library
+import app.campfire.common.compose.icons.filled.Series
+import app.campfire.common.compose.icons.outline.Author
+import app.campfire.common.compose.icons.outline.Collections
+import app.campfire.common.compose.icons.outline.Home
+import app.campfire.common.compose.icons.outline.Library
+import app.campfire.common.compose.icons.outline.Series
+import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
+import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.HomeScreen
+import app.campfire.common.screens.LibraryScreen
+import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.extensions.fluentIf
 import campfire.shared.generated.resources.Res
+import campfire.shared.generated.resources.nav_authors_content_description
+import campfire.shared.generated.resources.nav_authors_label
+import campfire.shared.generated.resources.nav_collections_content_description
+import campfire.shared.generated.resources.nav_collections_label
+import campfire.shared.generated.resources.nav_home_content_description
+import campfire.shared.generated.resources.nav_home_label
+import campfire.shared.generated.resources.nav_library_content_description
+import campfire.shared.generated.resources.nav_library_label
+import campfire.shared.generated.resources.nav_series_content_description
+import campfire.shared.generated.resources.nav_series_label
 import campfire.shared.generated.resources.settings
 import campfire.shared.generated.resources.settings_content_description
 import com.moriatsushi.insetsx.navigationBars
@@ -81,7 +106,7 @@ internal fun Home(
     }
   }
 
-  val navigationItems = remember { buildNavigationItems() }
+  val navigationItems = buildNavigationItems()
 
   val overlayHost = rememberOverlayHost()
   PlatformBackHandler(overlayHost.currentOverlayData != null) {
@@ -318,35 +343,43 @@ internal enum class NavigationType {
   }
 }
 
+@Composable
 private fun buildNavigationItems(): List<HomeNavigationItem> {
   return listOf(
-//    HomeNavigationItem(
-//      screen = DecksScreen(),
-//      label = strings.decks,
-//      contentDescription = strings.decksTabContentDescription,
-//      iconImageVector = DeckBoxIcons.Outline.Decks,
-//      selectedImageVector = DeckBoxIcons.Filled.Decks,
-//    ),
-//    HomeNavigationItem(
-//      screen = BoosterPackScreen(),
-//      label = strings.boosterPacks,
-//      contentDescription = strings.boosterPacksTabContentDescription,
-//      iconImageVector = Icons.Outlined.BoosterPack,
-//      selectedImageVector = Icons.Filled.BoosterPack,
-//    ),
-//    HomeNavigationItem(
-//      screen = ExpansionsScreen(),
-//      label = strings.expansions,
-//      contentDescription = strings.expansionsTabContentDescription,
-//      iconImageVector = DeckBoxIcons.Outline.Collection,
-//      selectedImageVector = DeckBoxIcons.Filled.Collection,
-//    ),
-//    HomeNavigationItem(
-//      screen = BrowseScreen(),
-//      label = strings.browse,
-//      contentDescription = strings.browseTabContentDescription,
-//      iconImageVector = DeckBoxIcons.Outline.Browse,
-//      selectedImageVector = DeckBoxIcons.Filled.Browse,
-//    ),
+    HomeNavigationItem(
+      screen = HomeScreen,
+      label = stringResource(Res.string.nav_home_label),
+      contentDescription = stringResource(Res.string.nav_home_content_description),
+      iconImageVector = Icons.Outlined.Home,
+      selectedImageVector = Icons.Filled.Home,
+    ),
+    HomeNavigationItem(
+      screen = LibraryScreen,
+      label = stringResource(Res.string.nav_library_label),
+      contentDescription = stringResource(Res.string.nav_library_content_description),
+      iconImageVector = Icons.Outlined.Library,
+      selectedImageVector = Icons.Filled.Library,
+    ),
+    HomeNavigationItem(
+      screen = SeriesScreen,
+      label = stringResource(Res.string.nav_series_label),
+      contentDescription = stringResource(Res.string.nav_series_content_description),
+      iconImageVector = Icons.Outlined.Series,
+      selectedImageVector = Icons.Filled.Series,
+    ),
+    HomeNavigationItem(
+      screen = CollectionsScreen,
+      label = stringResource(Res.string.nav_collections_label),
+      contentDescription = stringResource(Res.string.nav_collections_content_description),
+      iconImageVector = Icons.Outlined.Collections,
+      selectedImageVector = Icons.Filled.Collections,
+    ),
+    HomeNavigationItem(
+      screen = AuthorsScreen,
+      label = stringResource(Res.string.nav_authors_label),
+      contentDescription = stringResource(Res.string.nav_authors_content_description),
+      iconImageVector = Icons.Outlined.Author,
+      selectedImageVector = Icons.Filled.Author,
+    ),
   )
 }

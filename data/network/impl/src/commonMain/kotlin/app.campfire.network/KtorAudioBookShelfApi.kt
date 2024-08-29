@@ -9,9 +9,9 @@ import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
-import app.campfire.network.envelopes.ApiResponse
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.Shelf
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -29,7 +29,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -50,7 +49,6 @@ class KtorAudioBookShelfApi(
   private val client by lazy {
     httpClient.config {
       defaultRequest {
-
       }
 
       install(ContentNegotiation) {
@@ -78,13 +76,23 @@ class KtorAudioBookShelfApi(
   }
 
   override suspend fun getAllLibraries(): Result<List<Library>> = trySendRequest<AllLibrariesResponse> {
-    hydratedClientRequest("/libraries")
+    hydratedClientRequest("/api/libraries")
   }.map { it.libraries }
+
+  override suspend fun getLibrary(libraryId: String): Result<Library> = trySendRequest<Library> {
+    hydratedClientRequest("/api/libraries/$libraryId")
+  }
 
   override suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified>> {
     return trySendRequest<LibraryItemsResponse> {
-      hydratedClientRequest("/libraries/${libraryId}/items")
+      hydratedClientRequest("/api/libraries/$libraryId/items")
     }.map { it.results }
+  }
+
+  override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {
+    return trySendRequest<List<Shelf>> {
+      hydratedClientRequest("/api/libraries/$libraryId/personalized")
+    }
   }
 
   private suspend inline fun <reified T> trySendRequest(
@@ -106,7 +114,7 @@ class KtorAudioBookShelfApi(
   private suspend fun hydratedClientRequest(
     endpoint: String,
     builder: HttpRequestBuilder.() -> Unit = { },
-  ) : HttpResponse {
+  ): HttpResponse {
     val currentServerUrl = settings.currentServerUrl
       ?: throw IllegalStateException("You must be logged in to perform this request")
     val token = accountManager.getToken(currentServerUrl)

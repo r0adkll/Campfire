@@ -7,22 +7,19 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.Notification
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
- * 
+ *
  *
  * @param id The ID of the notification.
  * @param appriseType The type of Apprise that will be used. At the moment, only api is available.
@@ -33,39 +30,34 @@ import kotlinx.serialization.Contextual
  * @param notificationDelay The time (in ms) between notification pushes.
  */
 @Serializable
+data class NotificationSettings(
 
-data class NotificationSettings (
+  /* The ID of the notification. */
+  @SerialName(value = "id")
+  val id: kotlin.String? = null,
 
-    /* The ID of the notification. */
-    @SerialName(value = "id")
-    val id: kotlin.String? = null,
+  /* The type of Apprise that will be used. At the moment, only api is available. */
+  @SerialName(value = "appriseType")
+  val appriseType: kotlin.String? = null,
 
-    /* The type of Apprise that will be used. At the moment, only api is available. */
-    @SerialName(value = "appriseType")
-    val appriseType: kotlin.String? = null,
+  /* The full URL where the Apprise API to use is located. */
+  @SerialName(value = "appriseApiUrl")
+  val appriseApiUrl: kotlin.String? = null,
 
-    /* The full URL where the Apprise API to use is located. */
-    @SerialName(value = "appriseApiUrl")
-    val appriseApiUrl: kotlin.String? = null,
+  /* The set notifications. */
+  @SerialName(value = "notifications")
+  val notifications: kotlin.collections.List<Notification>? = null,
 
-    /* The set notifications. */
-    @SerialName(value = "notifications")
-    val notifications: kotlin.collections.List<Notification>? = null,
+  /* The maximum number of times a notification fails before being disabled. */
+  @SerialName(value = "maxFailedAttempts")
+  val maxFailedAttempts: kotlin.Int? = 5,
 
-    /* The maximum number of times a notification fails before being disabled. */
-    @SerialName(value = "maxFailedAttempts")
-    val maxFailedAttempts: kotlin.Int? = 5,
+  /* The maximum number of notifications in the notification queue before events are ignored. */
+  @SerialName(value = "maxNotificationQueue")
+  val maxNotificationQueue: kotlin.Int? = null,
 
-    /* The maximum number of notifications in the notification queue before events are ignored. */
-    @SerialName(value = "maxNotificationQueue")
-    val maxNotificationQueue: kotlin.Int? = null,
+  /* The time (in ms) between notification pushes. */
+  @SerialName(value = "notificationDelay")
+  val notificationDelay: kotlin.Int? = null,
 
-    /* The time (in ms) between notification pushes. */
-    @SerialName(value = "notificationDelay")
-    val notificationDelay: kotlin.Int? = null
-
-) {
-
-
-}
-
+)

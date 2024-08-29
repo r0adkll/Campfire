@@ -7,19 +7,16 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
 
-import app.campfire.network.models.NotificationEvent
-
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 
 /**
  *
@@ -27,14 +24,9 @@ import kotlinx.serialization.Contextual
  * @param events
  */
 @Serializable
+data class GetNotifications200ResponseData(
 
-data class GetNotifications200ResponseData (
+  @SerialName(value = "events")
+  val events: kotlin.collections.List<app.campfire.network.models.NotificationEvent>? = null,
 
-    @SerialName(value = "events")
-    val events: kotlin.collections.List<app.campfire.network.models.NotificationEvent>? = null
-
-) {
-
-
-}
-
+)

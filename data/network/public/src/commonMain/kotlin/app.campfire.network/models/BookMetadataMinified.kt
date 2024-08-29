@@ -41,5 +41,19 @@ data class BookMetadataMinified(
   val authorNameLF: String? = null,
   val narratorName: String? = null,
   val seriesName: String? = null,
+
+  /**
+   * When [LibraryItemMinified] is returned from the personalized library endpoint,
+   * and its shelf has an id of `continue-series` then this field will be non-null.
+   *
+   * The sequence in a series that this book is of
+   */
+  val series: SeriesSequence? = null,
 )
 
+@Serializable
+data class SeriesSequence(
+  val id: String,
+  val name: String,
+  val sequence: Int,
+)

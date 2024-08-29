@@ -8,6 +8,11 @@ import kotlinx.coroutines.flow.Flow
 interface LibraryRepository {
 
   /**
+   * Observe the current selected library
+   */
+  fun observeCurrentLibrary(): Flow<Library>
+
+  /**
    * Observe all libraries for the current server
    */
   fun observeAllLibraries(): Flow<List<Library>>

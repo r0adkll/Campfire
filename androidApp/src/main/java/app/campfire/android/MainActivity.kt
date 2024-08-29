@@ -3,15 +3,14 @@ package app.campfire.android
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import app.campfire.android.di.ActivityComponent
-import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ComponentHolder
-import com.slack.circuit.backstack.rememberSaveableBackStack
-import com.slack.circuit.foundation.rememberCircuitNavigator
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,12 +25,8 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     setContent {
-      val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
-      val navigator = rememberCircuitNavigator(backstack)
-
       component.campfireContent(
-        backstack,
-        navigator,
+        backDispatcherRootPop(),
         { url: String ->
           val intent = CustomTabsIntent.Builder().build()
           intent.launchUrl(this@MainActivity, Uri.parse(url))
@@ -42,3 +37,10 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+@Composable
+private fun backDispatcherRootPop(): () -> Unit {
+  val onBackPressedDispatcher =
+    LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+      ?: error("No OnBackPressedDispatcherOwner found, unable to handle root navigation pops.")
+  return { onBackPressedDispatcher.onBackPressed() }
+}

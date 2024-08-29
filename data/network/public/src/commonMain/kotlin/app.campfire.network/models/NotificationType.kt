@@ -7,14 +7,13 @@
  */
 
 @file:Suppress(
-    "ArrayInDataClass",
-    "EnumEntryName",
-    "RemoveRedundantQualifierName",
-    "UnusedImport"
+  "ArrayInDataClass",
+  "EnumEntryName",
+  "RemoveRedundantQualifierName",
+  "UnusedImport",
 )
 
 package app.campfire.network.models
-
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,42 +26,42 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class NotificationType(val value: kotlin.String) {
 
-    @SerialName(value = "info")
-    Info("info"),
+  @SerialName(value = "info")
+  Info("info"),
 
-    @SerialName(value = "success")
-    Success("success"),
+  @SerialName(value = "success")
+  Success("success"),
 
-    @SerialName(value = "warning")
-    Warning("warning"),
+  @SerialName(value = "warning")
+  Warning("warning"),
 
-    @SerialName(value = "failure")
-    Failure("failure");
+  @SerialName(value = "failure")
+  Failure("failure"),
+  ;
+
+  /**
+   * Override [toString()] to avoid using the enum variable name as the value, and instead use
+   * the actual value defined in the API spec file.
+   *
+   * This solves a problem when the variable name and its value are different, and ensures that
+   * the client sends the correct enum values to the server always.
+   */
+  override fun toString(): kotlin.String = value
+
+  companion object {
+    /**
+     * Converts the provided [data] to a [String] on success, null otherwise.
+     */
+    fun encode(data: kotlin.Any?): kotlin.String? = if (data is NotificationType) "$data" else null
 
     /**
-     * Override [toString()] to avoid using the enum variable name as the value, and instead use
-     * the actual value defined in the API spec file.
-     *
-     * This solves a problem when the variable name and its value are different, and ensures that
-     * the client sends the correct enum values to the server always.
+     * Returns a valid [NotificationType] for [data], null otherwise.
      */
-    override fun toString(): kotlin.String = value
-
-    companion object {
-        /**
-         * Converts the provided [data] to a [String] on success, null otherwise.
-         */
-        fun encode(data: kotlin.Any?): kotlin.String? = if (data is NotificationType) "$data" else null
-
-        /**
-         * Returns a valid [NotificationType] for [data], null otherwise.
-         */
-        fun decode(data: kotlin.Any?): NotificationType? = data?.let {
-          val normalizedData = "$it".lowercase()
-          values().firstOrNull { value ->
-            it == value || normalizedData == "$value".lowercase()
-          }
-        }
+    fun decode(data: kotlin.Any?): NotificationType? = data?.let {
+      val normalizedData = "$it".lowercase()
+      values().firstOrNull { value ->
+        it == value || normalizedData == "$value".lowercase()
+      }
     }
+  }
 }
-

@@ -4,7 +4,9 @@
 package app.campfire
 
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -15,16 +17,21 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
-import com.slack.circuit.backstack.rememberSaveableBackStack
-import com.slack.circuit.foundation.rememberCircuitNavigator
+import app.campfire.shared.root.LocalWindowBackEventDispatcher
+import app.campfire.shared.root.WindowBackEventDispatcher
 import java.awt.Desktop
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.launch
+
+class DesktopWindowBackEventDispatcher : WindowBackEventDispatcher {
+  override val events = MutableSharedFlow<Unit>()
+}
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
@@ -38,8 +45,10 @@ fun main() = application {
 //        applicationComponent.initializers.initialize()
 //    }
 
-  val backstack = rememberSaveableBackStack(listOf(WelcomeScreen))
-  val navigator = rememberCircuitNavigator(backstack) { /* no-op */ }
+  val coroutineScope = rememberCoroutineScope()
+  val windowBackEventDispatcher = remember {
+    DesktopWindowBackEventDispatcher()
+  }
 
   val windowState = rememberWindowState(
     width = 1080.dp,
@@ -52,7 +61,7 @@ fun main() = application {
     state = windowState,
     onKeyEvent = {
       if ((it.isCtrlPressed && it.key == Key.D) || it.key == Key.Escape) {
-        navigator.pop()
+        coroutineScope.launch { windowBackEventDispatcher.events.emit(Unit) }
         true
       } else {
         false
@@ -60,26 +69,31 @@ fun main() = application {
     },
   ) {
     val component: WindowComponent = remember(applicationComponent) {
-      ComponentHolder.component<WindowComponent.Factory>().create()
+      ComponentHolder.component<WindowComponent.Factory>().create().also {
+        ComponentHolder.components += it
+      }
     }
 
-    component.campfireContent(
-      backstack,
-      navigator,
-      { url ->
-        try {
-          val uri = URI(url)
-          val dt = Desktop.getDesktop()
-          dt.browse(uri)
-        } catch (ex: Exception) {
-          bark(throwable = ex) { "Unable to open URL" }
-        }
-      },
-      WindowInsets(
-        top = 24.dp,
-        bottom = 24.dp,
-      ),
-      Modifier,
-    )
+    CompositionLocalProvider(
+      LocalWindowBackEventDispatcher provides windowBackEventDispatcher,
+    ) {
+      component.campfireContent(
+        { exitApplication() },
+        { url ->
+          try {
+            val uri = URI(url)
+            val dt = Desktop.getDesktop()
+            dt.browse(uri)
+          } catch (ex: Exception) {
+            bark(throwable = ex) { "Unable to open URL" }
+          }
+        },
+        WindowInsets(
+          top = 24.dp,
+          bottom = 24.dp,
+        ),
+        Modifier,
+      )
+    }
   }
 }
