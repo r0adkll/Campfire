@@ -51,7 +51,7 @@ fun Library(
       )
       is LibraryContentState.Loaded -> LoadedState(
         items = state.contentState.items,
-        modifier = Modifier.padding(paddingValues)
+        modifier = Modifier.padding(paddingValues),
       )
     }
   }
@@ -70,8 +70,7 @@ private fun LoadedState(
     modifier = modifier,
     contentPadding = contentPadding,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    verticalArrangement = Arrangement.spacedBy(8.dp)
+    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-
   }
 }

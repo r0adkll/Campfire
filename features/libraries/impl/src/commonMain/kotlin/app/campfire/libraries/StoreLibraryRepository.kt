@@ -2,7 +2,6 @@ package app.campfire.libraries
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library

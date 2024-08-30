@@ -1,15 +1,15 @@
 package app.campfire.libraries.mapping
 
-import app.campfire.core.model.MediaType as DomainMediaType
-import app.campfire.data.LibraryItem as DatabaseLibraryItem
-import app.campfire.data.Media as DatabaseMedia
-import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MediaMinified as NetworkMediaMinified
-import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaMinified
+import app.campfire.core.model.MediaType as DomainMediaType
+import app.campfire.data.LibraryItem as DatabaseLibraryItem
+import app.campfire.data.Media as DatabaseMedia
 import app.campfire.data.SelectForLibrary
+import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MediaMinified as NetworkMediaMinified
+import app.campfire.network.models.MediaType as NetworkMediaType
 import kotlin.time.Duration.Companion.seconds
 
 fun LibraryItemMinified.asDbModels(

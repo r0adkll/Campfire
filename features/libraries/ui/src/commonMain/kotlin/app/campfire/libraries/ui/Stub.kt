@@ -1,4 +1,3 @@
 package app.campfire.libraries.ui
 
-class Stub {
-}
+class Stub
