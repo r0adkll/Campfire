@@ -1,4 +1,4 @@
-package app.campfire.auth.mapping
+package app.campfire.data.mapping
 
 import app.campfire.core.model.Tent
 import app.campfire.data.Server as DatabaseServer

@@ -8,10 +8,10 @@ import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.data.mapping.asDbModel
+import app.campfire.data.mapping.asDbModels
+import app.campfire.data.mapping.asDomainModel
 import app.campfire.libraries.api.LibraryRepository
-import app.campfire.libraries.mapping.asDbModel
-import app.campfire.libraries.mapping.asDbModels
-import app.campfire.libraries.mapping.asDomainModel
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -52,26 +53,14 @@ fun LibraryItemCard(
     modifier = modifier,
   ) {
     Box {
-      val painter = rememberAsyncImagePainter(item.media.coverImageUrl)
-
-      val imageState by painter.state.collectAsState()
-      when (val state = imageState) {
-        is AsyncImagePainter.State.Error -> ImageError(
-          errorMessage = "${state.result.throwable.message}",
-        )
-        is AsyncImagePainter.State.Loading -> ImageLoading()
-        // Do nothing in the other states
-        else -> Unit
-      }
-
-      Image(
-        painter,
+      ItemThumbnail(
+        imageUrl = item.media.coverImageUrl,
         contentDescription = item.media.metadata.title,
+        cornerRadius = ThumbnailCornerSize,
         modifier = Modifier
           .aspectRatio(1f)
           .fillMaxWidth()
-          .widthIn(max = CardMaxWidth)
-          .clip(RoundedCornerShape(ThumbnailCornerSize)),
+          .widthIn(max = CardMaxWidth),
       )
       // TODO: Progress Bar
     }
@@ -96,53 +85,5 @@ fun LibraryItemCard(
         modifier = Modifier.basicMarquee(),
       )
     }
-  }
-}
-
-@Composable
-private fun ImageError(
-  errorMessage: String,
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier = modifier
-      .background(MaterialTheme.colorScheme.errorContainer)
-      .aspectRatio(1f)
-      .fillMaxWidth()
-      .widthIn(max = CardMaxWidth)
-      .clip(RoundedCornerShape(ThumbnailCornerSize)),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    CompositionLocalProvider(
-      LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer,
-    ) {
-      Icon(
-        Icons.Rounded.ErrorOutline,
-        contentDescription = null,
-      )
-      Spacer(Modifier.height(16.dp))
-      Text(
-        text = errorMessage,
-        style = MaterialTheme.typography.labelMedium,
-      )
-    }
-  }
-}
-
-@Composable
-private fun ImageLoading(
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-      .aspectRatio(1f)
-      .fillMaxWidth()
-      .widthIn(max = CardMaxWidth)
-      .clip(RoundedCornerShape(ThumbnailCornerSize)),
-    contentAlignment = Alignment.Center,
-  ) {
-    CircularProgressIndicator()
   }
 }

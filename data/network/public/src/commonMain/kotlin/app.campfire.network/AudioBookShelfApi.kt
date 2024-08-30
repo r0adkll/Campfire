@@ -3,6 +3,7 @@ package app.campfire.network
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 
 interface AudioBookShelfApi {
@@ -48,4 +49,9 @@ interface AudioBookShelfApi {
    * This endpoint returns a library's personalized view for home page display.
    */
   suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>>
+
+  /**
+   * Get a Library's list of series
+   */
+  suspend fun getSeries(libraryId: String): Result<List<Series>>
 }

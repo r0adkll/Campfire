@@ -11,12 +11,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.LibraryItemCard
+import app.campfire.common.compose.widgets.SeriesCard
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.home.api.model.Shelf
 
 private val LibraryCardWidth = 180.dp
+private val SeriesCardWidth = 300.dp
 
 @Composable
 fun ShelfContent(
@@ -32,9 +34,15 @@ fun ShelfContent(
   ) {
     items(shelf.entities) { entity ->
       when (entity) {
-        is LibraryItem -> LibraryItemCard(entity, Modifier.width(LibraryCardWidth))
+        is LibraryItem -> LibraryItemCard(
+          item = entity,
+          modifier = Modifier.width(LibraryCardWidth),
+        )
         is Author -> Unit
-        is Series -> Unit
+        is Series -> SeriesCard(
+          series = entity,
+          modifier = Modifier.width(SeriesCardWidth)
+        )
       }
     }
   }

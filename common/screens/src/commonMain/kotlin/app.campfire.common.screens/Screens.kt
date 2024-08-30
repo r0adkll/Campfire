@@ -1,6 +1,7 @@
 package app.campfire.common.screens
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.SeriesId
 import com.slack.circuit.runtime.screen.Screen
 
 //region App Screens
@@ -38,6 +39,11 @@ data class LibraryItemScreen(
 
 @Parcelize
 data object SeriesScreen : BaseScreen(name = "Home()")
+
+@Parcelize
+data class SeriesDetailScreen(
+  val seriesId: SeriesId,
+) : BaseScreen(name = "SeriesDetail()")
 
 @Parcelize
 data object CollectionsScreen : BaseScreen(name = "Home()")

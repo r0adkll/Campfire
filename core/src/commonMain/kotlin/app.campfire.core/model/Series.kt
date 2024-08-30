@@ -1,7 +1,9 @@
 package app.campfire.core.model
 
+typealias SeriesId = String
+
 data class Series(
-  val id: String,
+  val id: SeriesId,
   val name: String,
   val description: String?,
   val addedAt: Long,

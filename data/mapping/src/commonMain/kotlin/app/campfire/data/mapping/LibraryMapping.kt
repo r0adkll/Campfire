@@ -1,4 +1,4 @@
-package app.campfire.libraries.mapping
+package app.campfire.data.mapping
 
 import app.campfire.core.model.Library
 import app.campfire.data.Library as DbLibrary

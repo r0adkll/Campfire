@@ -73,6 +73,7 @@ include(
   ":data:network:public",
   ":data:network:impl",
   ":data:db",
+  ":data:mapping",
 )
 include(
   ":features:auth:api",
@@ -88,6 +89,11 @@ include(
   ":features:home:api",
   ":features:home:impl",
   ":features:home:ui",
+)
+include(
+  ":features:series:api",
+  ":features:series:impl",
+  ":features:series:ui",
 )
 include(
   ":ui:appbar",

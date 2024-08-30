@@ -31,6 +31,9 @@ kotlin {
         api(projects.features.libraries.impl)
         api(projects.features.libraries.ui)
 
+        api(projects.features.series.impl)
+        api(projects.features.series.ui)
+
         api(compose.runtime)
         api(compose.foundation)
         api(compose.material)

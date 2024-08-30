@@ -5,11 +5,13 @@ CREATE TABLE series (
   name TEXT NOT NULL,
   description TEXT,
   addedAt INTEGER NOT NULL,
-  updatedAt INTEGER NOT NULL
+  updatedAt INTEGER NOT NULL,
 --   inProgress INTEGER AS Boolean NOT NULL,
 --   hasActiveBook INTEGER AS Boolean NOT NULL,
 --   hideFromContinueListening INTEGER AS Boolean NOT NULL,
---   bookInProgressLastUpdate INTEGER NOT NULL
+--   bookInProgressLastUpdate INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL
 );
 
 insert:
@@ -18,11 +20,12 @@ INSERT OR REPLACE INTO series(
   name,
   description,
   addedAt,
-  updatedAt
+  updatedAt,
 --   inProgress,
 --   hasActiveBook,
 --   hideFromContinueListening,
---   bookInProgressLastUpdate
+--   bookInProgressLastUpdate,
+  libraryId
 ) VALUES ?;
 
 selectAll:
@@ -31,3 +34,11 @@ SELECT * FROM series;
 selectById:
 SELECT * FROM series
 WHERE id = ?;
+
+selectByLibraryId:
+SELECT * FROM series
+WHERE libraryId = ?;
+
+deleteForLibraryId:
+DELETE FROM series
+WHERE libraryId = ?;

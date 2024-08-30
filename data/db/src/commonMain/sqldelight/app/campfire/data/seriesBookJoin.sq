@@ -1,0 +1,23 @@
+CREATE TABLE seriesBookJoin (
+  seriesId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+
+  PRIMARY KEY (seriesId, libraryItemId),
+  FOREIGN KEY (seriesId) REFERENCES series(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE INDEX IF NOT EXISTS index_series_book_join_libraryItemId ON seriesBookJoin(libraryItemId);
+
+insert:
+INSERT OR IGNORE INTO seriesBookJoin
+VALUES ?;
+
+deleteForSeries:
+DELETE FROM seriesBookJoin
+WHERE seriesId = :seriesId;
+
+deleteForSeriesItem:
+DELETE FROM seriesBookJoin
+WHERE seriesId = :seriesId
+AND libraryItemId = :libraryItemId;

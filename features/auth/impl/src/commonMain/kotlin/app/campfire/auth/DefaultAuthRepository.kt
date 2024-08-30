@@ -3,10 +3,10 @@ package app.campfire.auth
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
 import app.campfire.auth.api.AuthRepository
-import app.campfire.auth.mapping.asDatabaseModel
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Tent
+import app.campfire.data.mapping.asDatabaseModel
 import app.campfire.network.AudioBookShelfApi
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject

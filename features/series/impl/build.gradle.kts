@@ -12,7 +12,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.features.libraries.api)
+        api(projects.features.series.api)
 
         implementation(projects.common.settings)
         implementation(projects.core)

@@ -9,8 +9,10 @@ import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
+import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
@@ -93,6 +95,12 @@ class KtorAudioBookShelfApi(
     return trySendRequest<List<Shelf>> {
       hydratedClientRequest("/api/libraries/$libraryId/personalized")
     }
+  }
+
+  override suspend fun getSeries(libraryId: String): Result<List<Series>> {
+    return trySendRequest<SeriesResponse> {
+      hydratedClientRequest("/api/libraries/$libraryId/series?limit=1000")
+    }.map { it.results }
   }
 
   private suspend inline fun <reified T> trySendRequest(
