@@ -1,10 +1,12 @@
 <resources>
   <string name="time_ago_now">now</string>
-  <string name="time_ago_minutes">%d minutes ago</string>
-  <string name="time_ago_hours">%d hours ago</string>
-  <string name="time_ago_days">%d days ago</string>
-  <string name="time_ago_months">%d months ago</string>
-  <string name="time_ago_years">%d years ago</string>
+  <string name="time_ago_minutes">%1$d minutes ago</string>
+  <string name="time_ago_hours">%1$d hours ago</string>
+  <string name="time_ago_days">%1$d days ago</string>
+  <string name="time_ago_months">%1$d months ago</string>
+  <string name="time_ago_years">%1$d years ago</string>
+
+  <string name="added_time_ago">Added %1$s</string>
 
   <string name="unknown_library_title">Unknown</string>
   <string name="unknown_author_name">Unknown author</string>

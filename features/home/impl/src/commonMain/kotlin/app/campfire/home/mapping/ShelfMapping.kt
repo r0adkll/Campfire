@@ -46,6 +46,8 @@ suspend fun LibraryItemMinified.asDomainModel(
     },
     numFiles = numFiles,
     sizeInBytes = size,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
     media = MediaMinified(
       id = media.id,
       coverImageUrl = imageHydrator.hydrateLibraryItem(id),

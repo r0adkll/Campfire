@@ -1,11 +1,13 @@
 package app.campfire.libraries.ui.list
 
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.settings.ItemDisplayState
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class LibraryUiState(
   val contentState: LibraryContentState,
+  val itemDisplayState: ItemDisplayState,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -22,6 +24,8 @@ sealed interface LibraryContentState {
 }
 
 sealed interface LibraryUiEvent : CircuitUiEvent {
-  data object OpenDrawer : LibraryUiEvent
   data object OpenSearch : LibraryUiEvent
+  data object ToggleItemDisplayState : LibraryUiEvent
+  data object ToggleFilter : LibraryUiEvent
+  data class ItemClick(val libraryItem: LibraryItem) : LibraryUiEvent
 }

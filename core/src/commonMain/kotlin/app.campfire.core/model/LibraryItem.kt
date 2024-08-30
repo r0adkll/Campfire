@@ -10,5 +10,7 @@ data class LibraryItem(
   val mediaType: MediaType,
   val numFiles: Int,
   val sizeInBytes: Long,
+  val addedAtMillis: Long,
+  val updatedAtMillis: Long,
   val media: MediaMinified,
 )

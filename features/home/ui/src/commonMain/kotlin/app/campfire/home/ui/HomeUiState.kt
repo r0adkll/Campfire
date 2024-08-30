@@ -19,7 +19,6 @@ sealed interface HomeFeed {
 }
 
 sealed interface HomeUiEvent : CircuitUiEvent {
-  data object OpenDrawer : HomeUiEvent
   data object OpenSearch : HomeUiEvent
 
   data class OpenLibraryItem(val item: LibraryItem) : HomeUiEvent

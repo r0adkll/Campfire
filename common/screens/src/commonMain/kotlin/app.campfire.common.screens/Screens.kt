@@ -46,6 +46,12 @@ data object CollectionsScreen : BaseScreen(name = "Home()")
 data object AuthorsScreen : BaseScreen(name = "Home()")
 
 @Parcelize
+data object StatisticsScreen : BaseScreen(name = "Statistics()")
+
+@Parcelize
+data object StorageScreen : BaseScreen(name = "Storage()")
+
+@Parcelize
 data object SettingsScreen : BaseScreen(name = "Settings()")
 
 //endregion

@@ -13,6 +13,7 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -21,10 +22,14 @@ import org.jetbrains.compose.resources.stringResource
 
 val LocalDateTime.timeAgo: String
   @Composable get() {
-    val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-    val nowMs = now.toInstant(TimeZone.UTC).toEpochMilliseconds()
     val thisMs = toInstant(TimeZone.UTC).toEpochMilliseconds()
-    val elapsedMs = nowMs - thisMs
+    return thisMs.timeAgo
+  }
+
+val Long.timeAgo: String
+  @Composable get() {
+    val nowMs = Clock.System.now().toEpochMilliseconds()
+    val elapsedMs = nowMs - this
     val elapsedDuration = elapsedMs.milliseconds
 
     return when {

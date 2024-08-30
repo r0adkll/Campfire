@@ -34,7 +34,6 @@ class HomePresenter(
       homeFeed = feed,
     ) { event ->
       when (event) {
-        HomeUiEvent.OpenDrawer -> TODO()
         HomeUiEvent.OpenSearch -> TODO()
 
         is HomeUiEvent.OpenLibraryItem -> TODO()

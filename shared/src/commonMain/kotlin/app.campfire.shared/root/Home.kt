@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,11 +18,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.QueryStats
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Create
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.QueryStats
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.DrawerState
+import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationDrawerItem
@@ -29,10 +41,12 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -52,6 +66,7 @@ import app.campfire.common.compose.icons.outline.Collections
 import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
+import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
@@ -59,6 +74,8 @@ import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
+import app.campfire.common.screens.StatisticsScreen
+import app.campfire.common.screens.StorageScreen
 import app.campfire.core.extensions.fluentIf
 import campfire.shared.generated.resources.Res
 import campfire.shared.generated.resources.nav_authors_content_description
@@ -71,6 +88,12 @@ import campfire.shared.generated.resources.nav_library_content_description
 import campfire.shared.generated.resources.nav_library_label
 import campfire.shared.generated.resources.nav_series_content_description
 import campfire.shared.generated.resources.nav_series_label
+import campfire.shared.generated.resources.nav_settings_content_description
+import campfire.shared.generated.resources.nav_settings_label
+import campfire.shared.generated.resources.nav_statistics_content_description
+import campfire.shared.generated.resources.nav_statistics_label
+import campfire.shared.generated.resources.nav_storage_content_description
+import campfire.shared.generated.resources.nav_storage_label
 import campfire.shared.generated.resources.settings
 import campfire.shared.generated.resources.settings_content_description
 import com.moriatsushi.insetsx.navigationBars
@@ -178,19 +201,69 @@ internal fun Home(
           )
         }
 
-        NavigableCircuitContent(
+        MainContent(
+          navigationType = navigationType,
           navigator = navigator,
-          backStack = backstack,
-          decoration = GestureNavigationDecoration(
-            onBackInvoked = navigator::pop,
-          ),
+          backstack = backstack,
           modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight(),
+            .fillMaxHeight()
+            .weight(1f),
         )
       }
     }
   }
+}
+
+@Composable
+private fun MainContent(
+  navigationType: NavigationType,
+  navigator: Navigator,
+  backstack: SaveableBackStack,
+  modifier: Modifier = Modifier,
+  drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
+) {
+  if (navigationType == NavigationType.BOTTOM_NAVIGATION || navigationType == NavigationType.RAIL) {
+    ModalNavigationDrawer(
+      drawerState = drawerState,
+      drawerContent = {
+        ModalDrawerSheet {
+
+        }
+      },
+    ) {
+      CompositionLocalProvider(
+        LocalDrawerState provides drawerState,
+      ) {
+        MainContent(
+          navigator = navigator,
+          backstack = backstack,
+          modifier = Modifier.fillMaxHeight(),
+        )
+      }
+    }
+  } else {
+    MainContent(
+      navigator = navigator,
+      backstack = backstack,
+      modifier = modifier,
+    )
+  }
+}
+
+@Composable
+private fun MainContent(
+  navigator: Navigator,
+  backstack: SaveableBackStack,
+  modifier: Modifier = Modifier,
+) {
+  NavigableCircuitContent(
+    navigator = navigator,
+    backStack = backstack,
+    decoration = GestureNavigationDecoration(
+      onBackInvoked = navigator::pop,
+    ),
+    modifier = modifier,
+  )
 }
 
 @Composable
@@ -380,6 +453,40 @@ private fun buildNavigationItems(): List<HomeNavigationItem> {
       contentDescription = stringResource(Res.string.nav_authors_content_description),
       iconImageVector = Icons.Outlined.Author,
       selectedImageVector = Icons.Filled.Author,
+    ),
+  )
+}
+
+@Composable
+private fun buildDrawerItems(): List<HomeNavigationItem> {
+  return listOf(
+    HomeNavigationItem(
+      screen = HomeScreen,
+      label = stringResource(Res.string.nav_home_label),
+      contentDescription = stringResource(Res.string.nav_home_content_description),
+      iconImageVector = Icons.Rounded.Home,
+      selectedImageVector = Icons.Filled.Home,
+    ),
+    HomeNavigationItem(
+      screen = StatisticsScreen,
+      label = stringResource(Res.string.nav_statistics_label),
+      contentDescription = stringResource(Res.string.nav_statistics_content_description),
+      iconImageVector = Icons.Rounded.QueryStats,
+      selectedImageVector = Icons.Filled.QueryStats,
+    ),
+    HomeNavigationItem(
+      screen = StorageScreen,
+      label = stringResource(Res.string.nav_storage_label),
+      contentDescription = stringResource(Res.string.nav_storage_content_description),
+      iconImageVector = Icons.Rounded.Folder,
+      selectedImageVector = Icons.Filled.Folder,
+    ),
+    HomeNavigationItem(
+      screen = SettingsScreen,
+      label = stringResource(Res.string.nav_settings_label),
+      contentDescription = stringResource(Res.string.nav_settings_content_description),
+      iconImageVector = Icons.Rounded.Settings,
+      selectedImageVector = Icons.Filled.Settings,
     ),
   )
 }

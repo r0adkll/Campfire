@@ -99,6 +99,8 @@ suspend fun SelectForLibrary.asDomainModel(
     mediaType = mediaType,
     numFiles = numFiles,
     sizeInBytes = sizeInBytes,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
     media = MediaMinified(
       id = mediaId,
       metadata = MediaMinified.Metadata(

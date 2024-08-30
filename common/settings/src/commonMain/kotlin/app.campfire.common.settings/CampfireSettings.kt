@@ -2,6 +2,7 @@ package app.campfire.common.settings
 
 import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
+import app.campfire.core.settings.ItemDisplayState
 import kotlinx.coroutines.flow.Flow
 
 interface CampfireSettings {
@@ -11,6 +12,9 @@ interface CampfireSettings {
 
   var useDynamicColors: Boolean
   fun observeUseDynamicColors(): Flow<Boolean>
+
+  var libraryItemDisplayState: ItemDisplayState
+  fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
 
   var currentServerUrl: String?
   fun observeCurrentServerUrl(): Flow<String?>

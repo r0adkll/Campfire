@@ -41,7 +41,6 @@ fun HomeScreen(
       // Injected appbar that injects its own presenter to consistently load its state
       // across multiple services.
       campfireAppbar(
-        { state.eventSink(HomeUiEvent.OpenDrawer) },
         { state.eventSink(HomeUiEvent.OpenSearch) },
         Modifier,
         appBarBehavior,
