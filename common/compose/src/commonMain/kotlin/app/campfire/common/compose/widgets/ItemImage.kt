@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,20 +21,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 
-val DefaultThumbnailCornerRadius = 12.dp
-
 @Composable
-fun ItemThumbnail(
+fun ItemImage(
   imageUrl: String,
   contentDescription: String?,
   modifier: Modifier = Modifier,
-  cornerRadius: Dp = DefaultThumbnailCornerRadius,
 ) {
   Box(
     modifier = modifier
@@ -46,12 +39,9 @@ fun ItemThumbnail(
     val imageState by painter.state.collectAsState()
     when (val state = imageState) {
       is AsyncImagePainter.State.Error -> ImageError(
-        cornerRadius = cornerRadius,
         errorMessage = "${state.result.throwable.message}",
       )
-      is AsyncImagePainter.State.Loading -> ImageLoading(
-        cornerRadius = cornerRadius,
-      )
+      is AsyncImagePainter.State.Loading -> ImageLoading()
       // Do nothing in the other states
       else -> Unit
     }
@@ -60,8 +50,7 @@ fun ItemThumbnail(
       painter,
       contentDescription = contentDescription,
       modifier = Modifier
-        .fillMaxSize()
-        .clip(RoundedCornerShape(cornerRadius)),
+        .fillMaxSize(),
     )
   }
 }
@@ -69,14 +58,12 @@ fun ItemThumbnail(
 @Composable
 private fun ImageError(
   errorMessage: String,
-  cornerRadius: Dp,
   modifier: Modifier = Modifier,
 ) {
   Column(
     modifier = modifier
       .background(MaterialTheme.colorScheme.errorContainer)
-      .fillMaxSize()
-      .clip(RoundedCornerShape(cornerRadius)),
+      .fillMaxSize(),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
@@ -98,14 +85,12 @@ private fun ImageError(
 
 @Composable
 private fun ImageLoading(
-  cornerRadius: Dp,
   modifier: Modifier = Modifier,
 ) {
   Box(
     modifier = modifier
       .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-      .fillMaxSize()
-      .clip(RoundedCornerShape(cornerRadius)),
+      .fillMaxSize(),
     contentAlignment = Alignment.Center,
   ) {
     CircularProgressIndicator()

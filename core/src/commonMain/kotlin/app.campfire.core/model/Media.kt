@@ -24,6 +24,7 @@ data class MediaMinified(
     val authorNameLastFirst: String?,
     val narratorName: String?,
     val seriesName: String?,
+    val seriesSequence: SeriesSequence?,
     val genres: List<String>,
     val publishedYear: String?,
     val publishedDate: String?,
@@ -36,3 +37,4 @@ data class MediaMinified(
     val isAbridged: Boolean,
   )
 }
+

@@ -1,10 +1,12 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.core.model.LibraryItem
@@ -24,11 +26,12 @@ fun LibraryListItem(
 ) {
   ListItem(
     leadingContent = {
-      ItemThumbnail(
+      ItemImage(
         imageUrl = item.media.coverImageUrl,
         contentDescription = item.media.metadata.title,
-        cornerRadius = ThumbnailCornerSize,
-        modifier = Modifier.size(ThumbnailSize),
+        modifier = Modifier
+          .size(ThumbnailSize)
+          .clip(RoundedCornerShape(ThumbnailCornerSize)),
       )
     },
     overlineContent = {

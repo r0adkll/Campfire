@@ -10,6 +10,8 @@ import app.campfire.data.SelectForLibrary
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.core.model.SeriesSequence
+import app.campfire.core.util.createIfNotNull
 import app.campfire.data.SelectForSeries
 import kotlin.time.Duration.Companion.seconds
 
@@ -122,6 +124,17 @@ suspend fun SelectForLibrary.asDomainModel(
         language = metadata_language,
         isExplicit = metadata_explicit,
         isAbridged = metadata_abridged,
+        seriesSequence = createIfNotNull(
+          metadata_series_id,
+          metadata_series_name,
+          metadata_series_sequence,
+        ) {
+          SeriesSequence(
+            id = metadata_series_id!!,
+            name = metadata_series_name!!,
+            sequence = metadata_series_sequence!!,
+          )
+        }
       ),
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
       tags = tags ?: emptyList(),
@@ -170,6 +183,17 @@ suspend fun SelectForSeries.asDomainModel(
         language = metadata_language,
         isExplicit = metadata_explicit,
         isAbridged = metadata_abridged,
+        seriesSequence = createIfNotNull(
+          metadata_series_id,
+          metadata_series_name,
+          metadata_series_sequence,
+        ) {
+          SeriesSequence(
+            id = metadata_series_id!!,
+            name = metadata_series_name!!,
+            sequence = metadata_series_sequence!!,
+          )
+        }
       ),
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
       tags = tags ?: emptyList(),

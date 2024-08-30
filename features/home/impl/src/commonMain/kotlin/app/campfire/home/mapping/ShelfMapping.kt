@@ -13,6 +13,8 @@ import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.Shelf as NetworkShelf
+import app.campfire.core.model.SeriesSequence
+import app.campfire.core.util.createIfNotNull
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun NetworkShelf.asDomainModel(
@@ -78,6 +80,13 @@ suspend fun LibraryItemMinified.asDomainModel(
         language = media.metadata.language,
         isExplicit = media.metadata.explicit,
         isAbridged = media.metadata.abridged,
+        seriesSequence = media.metadata.series?.let {
+          SeriesSequence(
+            id = it.id,
+            name = it.name,
+            sequence = it.sequence,
+          )
+        }
       ),
     ),
   )
