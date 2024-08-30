@@ -10,7 +10,7 @@ import me.tatarka.inject.annotations.Inject
 
 // Injectable typealias
 @OptIn(ExperimentalMaterial3Api::class)
-typealias CampfireAppbar = @Composable (
+typealias CampfireAppBar = @Composable (
   onNavigationClick: () -> Unit,
   onSearchClick: () -> Unit,
   modifier: Modifier,
@@ -20,7 +20,7 @@ typealias CampfireAppbar = @Composable (
 @OptIn(ExperimentalMaterial3Api::class)
 @Inject
 @Composable
-fun CampfireAppbar(
+fun CampfireAppBar(
   presenter: CampfireAppbarPresenter,
   @Assisted onNavigationClick: () -> Unit,
   @Assisted onSearchClick: () -> Unit,

@@ -18,9 +18,8 @@ interface LibraryRepository {
   fun observeAllLibraries(): Flow<List<Library>>
 
   /**
-   * Observe the library items for a given [libraryId]
-   * @param libraryId the id of the library who's items to fetch
+   * Observe the library items for the current selected library
    * @return a [Flow] that will emit the list of [LibraryItem] for the given [LibraryId]
    */
-  fun observeLibraryItems(libraryId: LibraryId): Flow<List<LibraryItem>>
+  fun observeLibraryItems(): Flow<List<LibraryItem>>
 }

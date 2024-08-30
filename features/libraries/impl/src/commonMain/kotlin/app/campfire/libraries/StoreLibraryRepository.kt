@@ -1,6 +1,7 @@
 package app.campfire.libraries
 
 import app.campfire.CampfireDatabase
+import app.campfire.account.api.CoverImageHydrator
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
@@ -36,7 +37,7 @@ class StoreLibraryRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
-  private val settings: CampfireSettings,
+  private val coverImageHydrator: CoverImageHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
 
@@ -97,6 +98,8 @@ class StoreLibraryRepository(
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentLibrary(): Flow<Library> {
     val serverUrl = (userSession as UserSession.LoggedIn).serverUrl
+    // TODO: We should move this to a UserRepository where we can cache the current user for a given
+    //  server url without having to pull from the DB everytime
     return db.usersQueries.selectForServer(serverUrl)
       .asFlow()
       .mapToOne(dispatcherProvider.databaseRead)
@@ -115,11 +118,20 @@ class StoreLibraryRepository(
     TODO("Not yet implemented")
   }
 
-  override fun observeLibraryItems(libraryId: LibraryId): Flow<List<LibraryItem>> {
-    val currentServerUrl = settings.currentServerUrl
-      ?: throw IllegalStateException("You must be logged in to view library items")
-
-    TODO("Not yet implemented")
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeLibraryItems(): Flow<List<LibraryItem>> {
+    val currentServerUrl = userSession.serverUrl
+      ?: throw IllegalStateException("Only logged in users can request library items")
+    return db.usersQueries.selectForServer(currentServerUrl)
+      .asFlow()
+      .mapToOne(dispatcherProvider.databaseRead)
+      .flatMapLatest { user ->
+        libraryItemStore
+          .stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+          .mapNotNull {
+            it.dataOrNull()?.map { it.asDomainModel(coverImageHydrator) }
+          }
+      }
   }
 }
 

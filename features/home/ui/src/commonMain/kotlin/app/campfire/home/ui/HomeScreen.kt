@@ -27,11 +27,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.ui.composables.ShelfListItem
-import app.campfire.ui.appbar.CampfireAppbar
+import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.home_feed_load_error
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -42,7 +44,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeScreen(
   state: HomeUiState,
-  campfireAppbar: CampfireAppbar,
+  campfireAppbar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -61,45 +63,17 @@ fun HomeScreen(
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (state.homeFeed) {
-      HomeFeed.Loading -> LoadingState(Modifier.padding(paddingValues))
-      HomeFeed.Error -> ErrorState(Modifier.padding(paddingValues))
+      HomeFeed.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      HomeFeed.Error -> ErrorListState(
+        stringResource(Res.string.home_feed_load_error),
+        modifier = Modifier.padding(paddingValues),
+      )
+
       is HomeFeed.Loaded -> LoadedState(
         shelves = state.homeFeed.shelves,
         contentPadding = paddingValues,
       )
     }
-  }
-}
-
-@Composable
-private fun LoadingState(
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier.fillMaxSize(),
-    contentAlignment = Alignment.Center,
-  ) {
-    CircularProgressIndicator()
-  }
-}
-
-@Composable
-private fun ErrorState(
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 32.dp),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
-    Spacer(Modifier.height(16.dp))
-    Text(
-      stringResource(Res.string.home_feed_load_error),
-      style = MaterialTheme.typography.titleMedium,
-    )
   }
 }
 

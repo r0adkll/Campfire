@@ -6,6 +6,10 @@ import app.campfire.data.Media as DatabaseMedia
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.account.api.CoverImageHydrator
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.MediaMinified
+import app.campfire.data.SelectForLibrary
 import kotlin.time.Duration.Companion.seconds
 
 fun LibraryItemMinified.asDbModels(
@@ -81,5 +85,51 @@ fun NetworkMediaMinified.asDbModel(
     metadata_series_id = metadata.series?.id,
     metadata_series_name = metadata.series?.name,
     metadata_series_sequence = metadata.series?.sequence,
+  )
+}
+
+suspend fun SelectForLibrary.asDomainModel(
+  coverImageHydrator: CoverImageHydrator,
+): LibraryItem {
+  return LibraryItem(
+    id = id,
+    libraryId = libraryId,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = mediaType,
+    numFiles = numFiles,
+    sizeInBytes = sizeInBytes,
+    media = MediaMinified(
+      id = mediaId,
+      metadata = MediaMinified.Metadata(
+        title = metadata_title,
+        titleIgnorePrefix = metadata_titleIgnorePrefix,
+        subtitle = metadata_subtitle,
+        authorName = metadata_authorName,
+        authorNameLastFirst = metadata_authorNameLF,
+        narratorName = metadata_narratorName,
+        seriesName = metadata_seriesName,
+        genres = metadata_genres ?: emptyList(),
+        publishedYear = metadata_publishedYear,
+        publishedDate = metadata_publishedDate,
+        publisher = metadata_publisher,
+        description = metadata_description,
+        ISBN = metadata_isbn,
+        ASIN = metadata_asin,
+        language = metadata_language,
+        isExplicit = metadata_explicit,
+        isAbridged = metadata_abridged,
+      ),
+      coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
+      tags = tags ?: emptyList(),
+      numTracks = numTracks,
+      numAudioFiles = numAudioFiles,
+      numChapters = numChapters,
+      numMissingParts = numMissingParts,
+      numInvalidAudioFiles = numInvalidAudioFiles,
+      durationInMillis = durationInMillis,
+      sizeInBytes = sizeInBytes,
+      ebookFormat = ebookFormat,
+    ),
   )
 }

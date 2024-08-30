@@ -1,0 +1,3 @@
+<resources>
+  <string name="error_library_items_message">Something went wrong when trying to load this library</string>
+</resources>

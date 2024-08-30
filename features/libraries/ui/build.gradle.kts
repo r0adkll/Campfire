@@ -7,6 +7,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.libraries.api)
+        implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)
       }
