@@ -51,6 +51,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -105,6 +106,7 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecoration
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -139,131 +141,141 @@ internal fun Home(
   ContentWithOverlays(
     overlayHost = overlayHost,
   ) {
-    Scaffold(
-      bottomBar = {
-        if (navigationType == NavigationType.BOTTOM_NAVIGATION) {
-          AnimatedVisibility(
-            visible = currentPresentation?.hideBottomNav == false,
-            enter = slideInVertically { it },
-            exit = slideOutVertically { it },
-          ) {
-            HomeNavigationBar(
-              selectedNavigation = rootScreen,
-              navigationItems = navigationItems,
-              onNavigationSelected = { navigator.resetRoot(it) },
-              modifier = Modifier.fillMaxWidth(),
+    // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
+    // otherwise, this just pass the content() block through
+    DrawerWithContent(
+      selectedNavigation = rootScreen,
+      navigationType = navigationType,
+      onNavigationSelected = { navigator.resetRoot(it) },
+    ) {
+      Scaffold(
+        bottomBar = {
+          if (navigationType == NavigationType.BOTTOM_NAVIGATION) {
+            AnimatedVisibility(
+              visible = currentPresentation?.hideBottomNav == false,
+              enter = slideInVertically { it },
+              exit = slideOutVertically { it },
+            ) {
+              HomeNavigationBar(
+                selectedNavigation = rootScreen,
+                navigationItems = navigationItems,
+                onNavigationSelected = { navigator.resetRoot(it) },
+                modifier = Modifier.fillMaxWidth(),
+              )
+            }
+          } else {
+            Spacer(
+              Modifier
+                .windowInsetsBottomHeight(WindowInsets.navigationBars)
+                .fillMaxWidth(),
             )
           }
-        } else {
-          Spacer(
-            Modifier
-              .windowInsetsBottomHeight(WindowInsets.navigationBars)
-              .fillMaxWidth(),
-          )
-        }
-      },
-      // We let content handle the status bar
-      contentWindowInsets = windowInsets,
-      modifier = modifier,
-    ) { paddingValues ->
-      Row(
-        modifier = Modifier
-          .fillMaxSize()
-          .fluentIf(
-            navigationType == NavigationType.BOTTOM_NAVIGATION &&
-              currentPresentation?.hideBottomNav != true,
-          ) {
-            padding(paddingValues)
-          },
-      ) {
-        if (navigationType == NavigationType.RAIL) {
-          AnimatedVisibility(
-            visible = currentPresentation?.hideBottomNav == false,
-            enter = slideInHorizontally { it },
-            exit = slideOutHorizontally { it },
-          ) {
-            HomeNavigationRail(
+        },
+        // We let content handle the status bar
+        contentWindowInsets = windowInsets,
+        modifier = modifier,
+      ) { paddingValues ->
+
+        Row(
+          modifier = Modifier
+            .fillMaxSize()
+            .fluentIf(
+              navigationType == NavigationType.BOTTOM_NAVIGATION &&
+                currentPresentation?.hideBottomNav != true,
+            ) {
+              padding(paddingValues)
+            },
+        ) {
+          if (navigationType == NavigationType.RAIL) {
+            AnimatedVisibility(
+              visible = currentPresentation?.hideBottomNav == false,
+              enter = slideInHorizontally { it },
+              exit = slideOutHorizontally { it },
+            ) {
+              HomeNavigationRail(
+                selectedNavigation = rootScreen,
+                navigationItems = navigationItems,
+                onNavigationSelected = { navigator.resetRoot(it) },
+                onCreateSelected = {
+                  // TODO: Nav to deck builder screen
+                },
+                modifier = Modifier.fillMaxHeight(),
+              )
+            }
+          } else if (navigationType == NavigationType.PERMANENT_DRAWER) {
+            HomeNavigationDrawer(
               selectedNavigation = rootScreen,
               navigationItems = navigationItems,
               onNavigationSelected = { navigator.resetRoot(it) },
-              onCreateSelected = {
-                // TODO: Nav to deck builder screen
-              },
               modifier = Modifier.fillMaxHeight(),
             )
           }
-        } else if (navigationType == NavigationType.PERMANENT_DRAWER) {
-          HomeNavigationDrawer(
-            selectedNavigation = rootScreen,
-            navigationItems = navigationItems,
-            onNavigationSelected = { navigator.resetRoot(it) },
-            modifier = Modifier.fillMaxHeight(),
+
+          NavigableCircuitContent(
+            navigator = navigator,
+            backStack = backstack,
+            decoration = GestureNavigationDecoration(
+              onBackInvoked = navigator::pop,
+            ),
+            modifier = modifier,
           )
         }
-
-        MainContent(
-          navigationType = navigationType,
-          navigator = navigator,
-          backstack = backstack,
-          modifier = Modifier
-            .fillMaxHeight()
-            .weight(1f),
-        )
       }
     }
   }
 }
 
 @Composable
-private fun MainContent(
+private fun DrawerWithContent(
   navigationType: NavigationType,
-  navigator: Navigator,
-  backstack: SaveableBackStack,
+  selectedNavigation: Screen,
+  onNavigationSelected: (Screen) -> Unit,
   modifier: Modifier = Modifier,
   drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
+  content: @Composable () -> Unit,
 ) {
+  val coroutineScope = rememberCoroutineScope()
   if (navigationType == NavigationType.BOTTOM_NAVIGATION || navigationType == NavigationType.RAIL) {
     ModalNavigationDrawer(
       drawerState = drawerState,
       drawerContent = {
+        val drawerItems = buildDrawerItems()
         ModalDrawerSheet {
-
+          for (item in drawerItems) {
+            NavigationDrawerItem(
+              icon = {
+                Icon(
+                  imageVector = item.iconImageVector,
+                  contentDescription = item.contentDescription,
+                )
+              },
+              label = { Text(text = item.label) },
+              selected = selectedNavigation == item.screen,
+              onClick = {
+                onNavigationSelected(item.screen)
+                coroutineScope.launch {
+                  drawerState.close()
+                }
+              },
+              modifier = Modifier
+                .padding(
+                  horizontal = 16.dp
+                )
+            )
+          }
         }
       },
+      modifier = modifier,
     ) {
       CompositionLocalProvider(
         LocalDrawerState provides drawerState,
       ) {
-        MainContent(
-          navigator = navigator,
-          backstack = backstack,
-          modifier = Modifier.fillMaxHeight(),
-        )
+        content()
       }
     }
   } else {
-    MainContent(
-      navigator = navigator,
-      backstack = backstack,
-      modifier = modifier,
-    )
+    content()
   }
-}
-
-@Composable
-private fun MainContent(
-  navigator: Navigator,
-  backstack: SaveableBackStack,
-  modifier: Modifier = Modifier,
-) {
-  NavigableCircuitContent(
-    navigator = navigator,
-    backStack = backstack,
-    decoration = GestureNavigationDecoration(
-      onBackInvoked = navigator::pop,
-    ),
-    modifier = modifier,
-  )
 }
 
 @Composable
