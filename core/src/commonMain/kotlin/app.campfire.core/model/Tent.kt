@@ -9,5 +9,9 @@ enum class Tent {
   Green,
   Yellow,
   Orange,
-  Purple,
+  Purple;
+
+  companion object {
+    val Default = Red
+  }
 }

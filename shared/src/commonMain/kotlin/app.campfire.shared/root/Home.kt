@@ -8,7 +8,6 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -106,7 +105,6 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecoration
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -114,6 +112,7 @@ internal fun Home(
   backstack: SaveableBackStack,
   navigator: Navigator,
   windowInsets: WindowInsets,
+  drawerContent: DrawerContent,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass = LocalWindowSizeClass.current
@@ -143,10 +142,19 @@ internal fun Home(
   ) {
     // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
     // otherwise, this just pass the content() block through
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
     DrawerWithContent(
-      selectedNavigation = rootScreen,
       navigationType = navigationType,
-      onNavigationSelected = { navigator.resetRoot(it) },
+      drawerState = drawerState,
+      drawerContent = {
+        // Injected drawer content
+        drawerContent(
+          navigator,
+          rootScreen,
+          drawerState,
+          Modifier,
+        )
+      }
     ) {
       Scaffold(
         bottomBar = {
@@ -228,43 +236,15 @@ internal fun Home(
 @Composable
 private fun DrawerWithContent(
   navigationType: NavigationType,
-  selectedNavigation: Screen,
-  onNavigationSelected: (Screen) -> Unit,
   modifier: Modifier = Modifier,
   drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
+  drawerContent: @Composable () -> Unit,
   content: @Composable () -> Unit,
 ) {
-  val coroutineScope = rememberCoroutineScope()
   if (navigationType == NavigationType.BOTTOM_NAVIGATION || navigationType == NavigationType.RAIL) {
     ModalNavigationDrawer(
       drawerState = drawerState,
-      drawerContent = {
-        val drawerItems = buildDrawerItems()
-        ModalDrawerSheet {
-          for (item in drawerItems) {
-            NavigationDrawerItem(
-              icon = {
-                Icon(
-                  imageVector = item.iconImageVector,
-                  contentDescription = item.contentDescription,
-                )
-              },
-              label = { Text(text = item.label) },
-              selected = selectedNavigation == item.screen,
-              onClick = {
-                onNavigationSelected(item.screen)
-                coroutineScope.launch {
-                  drawerState.close()
-                }
-              },
-              modifier = Modifier
-                .padding(
-                  horizontal = 16.dp
-                )
-            )
-          }
-        }
-      },
+      drawerContent = drawerContent,
       modifier = modifier,
     ) {
       CompositionLocalProvider(
@@ -404,7 +384,7 @@ private fun HomeNavigationItemIcon(item: HomeNavigationItem, selected: Boolean) 
 }
 
 @Immutable
-private data class HomeNavigationItem(
+data class HomeNavigationItem(
   val screen: Screen,
   val label: String,
   val contentDescription: String,
@@ -465,40 +445,6 @@ private fun buildNavigationItems(): List<HomeNavigationItem> {
       contentDescription = stringResource(Res.string.nav_authors_content_description),
       iconImageVector = Icons.Outlined.Author,
       selectedImageVector = Icons.Filled.Author,
-    ),
-  )
-}
-
-@Composable
-private fun buildDrawerItems(): List<HomeNavigationItem> {
-  return listOf(
-    HomeNavigationItem(
-      screen = HomeScreen,
-      label = stringResource(Res.string.nav_home_label),
-      contentDescription = stringResource(Res.string.nav_home_content_description),
-      iconImageVector = Icons.Rounded.Home,
-      selectedImageVector = Icons.Filled.Home,
-    ),
-    HomeNavigationItem(
-      screen = StatisticsScreen,
-      label = stringResource(Res.string.nav_statistics_label),
-      contentDescription = stringResource(Res.string.nav_statistics_content_description),
-      iconImageVector = Icons.Rounded.QueryStats,
-      selectedImageVector = Icons.Filled.QueryStats,
-    ),
-    HomeNavigationItem(
-      screen = StorageScreen,
-      label = stringResource(Res.string.nav_storage_label),
-      contentDescription = stringResource(Res.string.nav_storage_content_description),
-      iconImageVector = Icons.Rounded.Folder,
-      selectedImageVector = Icons.Filled.Folder,
-    ),
-    HomeNavigationItem(
-      screen = SettingsScreen,
-      label = stringResource(Res.string.nav_settings_label),
-      contentDescription = stringResource(Res.string.nav_settings_content_description),
-      iconImageVector = Icons.Rounded.Settings,
-      selectedImageVector = Icons.Filled.Settings,
     ),
   )
 }

@@ -70,6 +70,9 @@ include(
 include(
   ":data:account:api",
   ":data:account:impl",
+  ":data:account:ui"
+)
+include(
   ":data:network:public",
   ":data:network:impl",
   ":data:db",

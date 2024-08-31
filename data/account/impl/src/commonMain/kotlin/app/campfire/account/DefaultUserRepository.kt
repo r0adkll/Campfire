@@ -1,0 +1,40 @@
+package app.campfire.account
+
+import app.campfire.CampfireDatabase
+import app.campfire.account.api.UserRepository
+import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.SingleIn
+import app.campfire.core.di.UserScope
+import app.campfire.core.model.User
+import app.campfire.core.session.UserSession
+import app.campfire.data.mapping.asDomainModel
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOne
+import com.r0adkll.kimchi.annotations.ContributesBinding
+import com.r0adkll.kimchi.annotations.ContributesTo
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.mapLatest
+import me.tatarka.inject.annotations.Inject
+
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class)
+@Inject
+class DefaultUserRepository(
+  private val userSession: UserSession,
+  private val db: CampfireDatabase,
+  private val dispatcherProvider: DispatcherProvider,
+) : UserRepository {
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeCurrentUser(): Flow<User> {
+    val serverUrl = userSession.serverUrl ?: return emptyFlow()
+    return db.usersQueries.selectForServer(serverUrl)
+      .asFlow()
+      .mapToOne(dispatcherProvider.databaseRead)
+      .mapLatest {
+        it.asDomainModel()
+      }
+  }
+}

@@ -1,0 +1,4 @@
+<resources>
+  <string name="server_name_loading">Loading…</string>
+  <string name="server_name_error">Error!</string>
+</resources>

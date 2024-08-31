@@ -20,6 +20,7 @@ kotlin {
         api(projects.data.db)
         api(projects.data.network.impl)
         api(projects.data.account.impl)
+        api(projects.data.account.ui)
 
         // Feature Modules
         api(projects.features.home.impl)

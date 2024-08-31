@@ -15,6 +15,7 @@ kotlin {
         api(projects.common.settings)
         api(projects.data.db)
         api(projects.data.network.public)
+        api(projects.data.mapping)
 
         implementation(projects.core)
         implementation(libs.kotlinx.coroutines.core)

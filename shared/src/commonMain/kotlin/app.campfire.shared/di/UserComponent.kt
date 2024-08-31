@@ -8,6 +8,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
+import app.campfire.shared.root.DrawerContent
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
 import me.tatarka.inject.annotations.Provides
@@ -24,6 +25,8 @@ interface UserComponent {
 
   @get:RootScreen
   val rootScreen: BaseScreen
+
+  val drawerContent: DrawerContent
 
   @Provides @RootScreen
   @SingleIn(UserScope::class)

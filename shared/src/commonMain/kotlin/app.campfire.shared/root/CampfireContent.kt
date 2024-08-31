@@ -103,6 +103,7 @@ fun CampfireContentWithInsets(
             backstack = backStack,
             navigator = urlNavigator,
             windowInsets = windowInsets,
+            drawerContent = userComponent.drawerContent,
             modifier = modifier,
           )
         }

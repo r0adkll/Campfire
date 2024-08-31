@@ -30,3 +30,24 @@ fun NetworkUser.asDatabaseModel(
     serverUrl = serverUrl,
   )
 }
+
+fun DatabaseUser.asDomainModel(): User {
+  return User(
+    id = id,
+    name = name,
+    type = type,
+    isActive = isActive == true,
+    isLocked = isLocked == true,
+    lastSeen = lastSeen ?: -1L,
+    createdAt = createdAt,
+    permissions = User.Permissions(
+      download = permission_download == true,
+      update = permission_update == true,
+      delete = permission_delete == true,
+      upload = permission_upload == true,
+      accessAllLibraries = permission_accessAllLibraries == true,
+      accessAllTags = permission_accessAllTags == true,
+      accessExplicitContent = permission_accessExplicitContent == true,
+    ),
+  )
+}
