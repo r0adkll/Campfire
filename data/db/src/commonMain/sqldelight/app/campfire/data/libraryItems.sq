@@ -65,6 +65,12 @@ INNER JOIN seriesBookJoin ON seriesBookJoin.libraryItemId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 WHERE seriesBookJoin.seriesId = ?;
 
+selectForCollection:
+SELECT libraryItem.*,media.* FROM libraryItem
+INNER JOIN collectionsBookJoin ON collectionsBookJoin.libraryItemId = libraryItem.id
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE collectionsBookJoin.collectionsId = ?;
+
 deleteForLibrary:
 DELETE FROM libraryItem
 WHERE libraryId = ?;

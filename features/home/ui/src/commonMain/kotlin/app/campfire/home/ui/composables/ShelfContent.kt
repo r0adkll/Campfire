@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.LibraryItemCard
-import app.campfire.common.compose.widgets.SeriesCard
+import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -51,8 +51,10 @@ fun ShelfContent(
             .animateItemPlacement(),
         )
 
-        is Series -> SeriesCard(
-          series = entity,
+        is Series -> ItemCollectionCard(
+          name = entity.name,
+          description = entity.description,
+          items = entity.books ?: emptyList(),
           modifier = Modifier
             .width(SeriesCardWidth)
             .animateItemPlacement(),

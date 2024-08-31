@@ -29,7 +29,10 @@ abstract class DesktopApplicationComponent : SharedAppComponent {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun providePreferences(): Preferences = Preferences.userRoot().node("app.campfire")
+  fun providePreferences(): Preferences {
+    return Preferences.userRoot()
+      .node("app.campfire.settings")
+  }
 
   @Provides
   fun provideDensity(): Density = Density(density = 1f) // FIXME

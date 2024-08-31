@@ -35,6 +35,7 @@ fun DatabaseUser.asDomainModel(): User {
   return User(
     id = id,
     name = name,
+    selectedLibraryId = selectedLibraryId,
     type = type,
     isActive = isActive == true,
     isLocked = isLocked == true,

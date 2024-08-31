@@ -3,7 +3,9 @@ package app.campfire.series.ui.list
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,17 +19,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
-import app.campfire.common.compose.widgets.SeriesCard
+import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Series
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.series.ui.generated.resources.Res
+import campfire.features.series.ui.generated.resources.empty_series_items_message
 import campfire.features.series.ui.generated.resources.error_series_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
-import kotlinx.datetime.format.Padding
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(SeriesScreen::class, UserScope::class)
@@ -76,22 +79,34 @@ private fun LoadedState(
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
 ) {
-  LazyColumn(
-    state = state,
-    contentPadding = contentPadding + PaddingValues(
-      horizontal = 16.dp
-    ),
-    modifier = modifier,
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+  Box(
+    modifier = modifier.fillMaxSize()
   ) {
-    items(items) { series ->
-      SeriesCard(
-        series = series,
-        modifier = Modifier
-          .fillMaxWidth()
-          .animateItemPlacement()
-          .clickable { onSeriesClick(series) },
+    LazyColumn(
+      state = state,
+      contentPadding = contentPadding + PaddingValues(ContentPadding),
+      modifier = Modifier.fillMaxSize(),
+      verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+      items(items) { series ->
+        ItemCollectionCard(
+          name = series.name,
+          description = series.description,
+          items = series.books ?: emptyList(),
+          modifier = Modifier
+            .fillMaxWidth()
+            .animateItemPlacement()
+            .clickable { onSeriesClick(series) },
+        )
+      }
+    }
+
+    if (items.isEmpty()) {
+      EmptyState(
+        message = stringResource(Res.string.empty_series_items_message),
       )
     }
   }
 }
+
+private val ContentPadding = 16.dp

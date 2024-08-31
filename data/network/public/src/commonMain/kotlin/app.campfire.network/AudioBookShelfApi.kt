@@ -2,8 +2,11 @@ package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.Author
+import app.campfire.network.models.BookMetadata
+import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 
@@ -43,7 +46,7 @@ interface AudioBookShelfApi {
    * @param libraryId the id of the library to fetch the items for
    * @return as result with the list of library items
    */
-  suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified>>
+  suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
 
   /**
    * Get a Library's Personalized View
@@ -60,4 +63,9 @@ interface AudioBookShelfApi {
    * Get a Library's list of authors
    */
   suspend fun getAuthors(libraryId: String): Result<List<Author>>
+
+  /**
+   * Get a Library's list of collections
+   */
+  suspend fun getCollections(libraryId: String): Result<List<Collection>>
 }

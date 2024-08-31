@@ -52,6 +52,9 @@ kotlin {
         api(libs.coil.networking.okhttp)
         api(libs.androidx.paging.common)
         implementation(libs.androidx.activity.compose)
+
+        implementation(compose.preview)
+        implementation(compose.uiTooling)
       }
     }
   }

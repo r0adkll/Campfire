@@ -5,6 +5,7 @@ typealias UserId = String
 data class User(
   val id: UserId,
   val name: String,
+  val selectedLibraryId: LibraryId,
   val type: Type,
   val isActive: Boolean,
   val isLocked: Boolean,

@@ -3,6 +3,7 @@ package app.campfire.libraries
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
@@ -30,6 +31,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 
+@SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreLibraryRepository(

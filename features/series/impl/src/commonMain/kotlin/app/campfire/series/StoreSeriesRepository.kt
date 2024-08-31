@@ -4,6 +4,7 @@ import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.Series
@@ -12,6 +13,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDbModels
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.series.api.SeriesRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -22,17 +24,16 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
-import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 
+@SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreSeriesRepository(
@@ -113,12 +114,5 @@ class StoreSeriesRepository(
             }
           }
       }
-  }
-}
-
-fun <T : Any> Result<T>.asFetcherResult(): FetcherResult<T> {
-  return when {
-    isSuccess -> FetcherResult.Data(getOrThrow(), "api")
-    else -> FetcherResult.Error.Exception(exceptionOrNull()!!)
   }
 }

@@ -39,7 +39,7 @@ class LoginPresenter(
   override fun present(): LoginUiState {
     val coroutineScope = rememberCoroutineScope()
 
-    var tent by remember { mutableStateOf(Tent.Blue) }
+    var tent by remember { mutableStateOf(Tent.Default) }
     var serverName by remember { mutableStateOf("") }
     var serverUrl by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -75,6 +75,13 @@ class LoginPresenter(
         is ServerName -> serverName = event.serverName
         is ServerUrl -> serverUrl = event.url
         is AddCampsite -> {
+          // Validate that we can actually add a campsite
+          if (
+            connectionState != ConnectionState.Success ||
+            username.isBlank() ||
+            password.isBlank()
+          ) return@LoginUiState
+
           isAuthenticating = true
           authError = null
           coroutineScope.launch {
@@ -124,4 +131,4 @@ class LoginPresenter(
   }
 }
 
-private const val PING_DELAY = 1500L
+private const val PING_DELAY = 500L

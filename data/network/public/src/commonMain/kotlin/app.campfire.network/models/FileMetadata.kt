@@ -21,7 +21,7 @@ data class FileMetadata(
   val path: String,
   val relPath: String,
   val size: Int,
-  val mtimeMs: Int,
-  val ctimeMs: Int,
-  val birthtimeMs: Int,
+  val mtimeMs: Long,
+  val ctimeMs: Long,
+  val birthtimeMs: Long,
 )

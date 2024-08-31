@@ -12,10 +12,12 @@ import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.util.createIfNotNull
+import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForSeries
+import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
-fun LibraryItemMinified.asDbModels(
+fun LibraryItemMinified<*>.asDbModels(
   serverUrl: String,
 ): Pair<DatabaseLibraryItem, DatabaseMedia> {
   return DatabaseLibraryItem(
@@ -38,7 +40,7 @@ fun LibraryItemMinified.asDbModels(
       NetworkMediaType.Book -> DomainMediaType.Book
       NetworkMediaType.Podcast -> DomainMediaType.Podcast
     },
-    numFiles = numFiles,
+    numFiles = numFiles ?: libraryFiles?.size ?: -1,
     size = size,
     weight = weight,
     progressLastUpdate = progressLastUpdate,
@@ -48,9 +50,10 @@ fun LibraryItemMinified.asDbModels(
   ) to media.asDbModel(id)
 }
 
-fun NetworkMediaMinified.asDbModel(
+fun NetworkMediaMinified<*>.asDbModel(
   libraryItemId: String,
 ): DatabaseMedia {
+  val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
   return DatabaseMedia(
     libraryItemId = libraryItemId,
 
@@ -85,9 +88,9 @@ fun NetworkMediaMinified.asDbModel(
     metadata_narratorName = metadata.narratorName,
     metadata_seriesName = metadata.seriesName,
 
-    metadata_series_id = metadata.series?.id,
-    metadata_series_name = metadata.series?.name,
-    metadata_series_sequence = metadata.series?.sequence,
+    metadata_series_id = metadataSeries?.id,
+    metadata_series_name = metadataSeries?.name,
+    metadata_series_sequence = metadataSeries?.sequence,
   )
 }
 
@@ -151,6 +154,65 @@ suspend fun SelectForLibrary.asDomainModel(
 }
 
 suspend fun SelectForSeries.asDomainModel(
+  coverImageHydrator: CoverImageHydrator,
+): LibraryItem {
+  return LibraryItem(
+    id = id,
+    libraryId = libraryId,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = mediaType,
+    numFiles = numFiles,
+    sizeInBytes = sizeInBytes,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
+    media = MediaMinified(
+      id = mediaId,
+      metadata = MediaMinified.Metadata(
+        title = metadata_title,
+        titleIgnorePrefix = metadata_titleIgnorePrefix,
+        subtitle = metadata_subtitle,
+        authorName = metadata_authorName,
+        authorNameLastFirst = metadata_authorNameLF,
+        narratorName = metadata_narratorName,
+        seriesName = metadata_seriesName,
+        genres = metadata_genres ?: emptyList(),
+        publishedYear = metadata_publishedYear,
+        publishedDate = metadata_publishedDate,
+        publisher = metadata_publisher,
+        description = metadata_description,
+        ISBN = metadata_isbn,
+        ASIN = metadata_asin,
+        language = metadata_language,
+        isExplicit = metadata_explicit,
+        isAbridged = metadata_abridged,
+        seriesSequence = createIfNotNull(
+          metadata_series_id,
+          metadata_series_name,
+          metadata_series_sequence,
+        ) {
+          SeriesSequence(
+            id = metadata_series_id!!,
+            name = metadata_series_name!!,
+            sequence = metadata_series_sequence!!,
+          )
+        }
+      ),
+      coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
+      tags = tags ?: emptyList(),
+      numTracks = numTracks,
+      numAudioFiles = numAudioFiles,
+      numChapters = numChapters,
+      numMissingParts = numMissingParts,
+      numInvalidAudioFiles = numInvalidAudioFiles,
+      durationInMillis = durationInMillis,
+      sizeInBytes = sizeInBytes,
+      ebookFormat = ebookFormat,
+    ),
+  )
+}
+
+suspend fun SelectForCollection.asDomainModel(
   coverImageHydrator: CoverImageHydrator,
 ): LibraryItem {
   return LibraryItem(

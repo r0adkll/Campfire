@@ -99,6 +99,11 @@ include(
   ":features:series:ui",
 )
 include(
+  ":features:collections:api",
+  ":features:collections:impl",
+  ":features:collections:ui",
+)
+include(
   ":features:author:api",
   ":features:author:impl",
   ":features:author:ui",

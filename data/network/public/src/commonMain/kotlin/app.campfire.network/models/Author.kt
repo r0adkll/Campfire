@@ -27,6 +27,6 @@ data class Author(
   val numBooks: Int? = null,
 
   // Attributes only included in /authors/:id endpoint
-  val libraryItems: List<LibraryItemMinified>? = null,
+  val libraryItems: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
   val series: List<AuthorSeries>? = null,
 )

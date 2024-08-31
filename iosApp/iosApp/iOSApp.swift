@@ -1,6 +1,7 @@
 import SwiftUI
 import shared
 
+
 class AppDelegate: UIResponder, UIApplicationDelegate {
     lazy var applicationComponent: MergedIosApplicationComponent = createApplicationComponent(
         appDelegate: self
@@ -35,7 +36,9 @@ struct iOSApp: App {
 private func createApplicationComponent(
     appDelegate: AppDelegate
 ) -> MergedIosApplicationComponent {
-    return IosApplicationComponent.companion.createIosApplicationComponent()
+    var component = IosApplicationComponent.companion.createIosApplicationComponent()
+    
+    return component
 }
 
 private func createHomeUiControllerComponent(

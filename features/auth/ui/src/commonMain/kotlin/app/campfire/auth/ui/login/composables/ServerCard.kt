@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cancel
@@ -46,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -79,6 +81,7 @@ internal fun ServerCard(
   onUsernameChange: (String) -> Unit,
   password: String,
   onPasswordChange: (String) -> Unit,
+  onGo: () -> Unit,
   connectionState: ConnectionState?,
   authError: AuthError?,
   isAuthenticating: Boolean,
@@ -144,6 +147,10 @@ internal fun ServerCard(
       } else {
         null
       },
+      keyboardOptions = KeyboardOptions(
+        keyboardType = KeyboardType.Uri,
+        imeAction = ImeAction.Next,
+      ),
       modifier = Modifier
         .fillMaxWidth()
         .padding(16.dp)
@@ -165,6 +172,10 @@ internal fun ServerCard(
           onValueChange = onUsernameChange,
           label = { Text(stringResource(Res.string.label_username)) },
           leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Next,
+          ),
           modifier = Modifier.fillMaxWidth(),
         )
 
@@ -187,7 +198,13 @@ internal fun ServerCard(
             }
           },
           visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-          keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Go,
+          ),
+          keyboardActions = KeyboardActions(
+            onGo = { onGo() }
+          ),
           modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focusRequester),

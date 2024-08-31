@@ -13,5 +13,5 @@ import kotlinx.serialization.Serializable
 data class AuthorSeries(
   val id: String,
   val name: String,
-  val items: List<LibraryItemMinified>? = null,
+  val items: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
 )

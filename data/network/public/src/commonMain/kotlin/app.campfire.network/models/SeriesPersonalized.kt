@@ -19,10 +19,10 @@ data class SeriesPersonalized(
   val addedAt: Long,
   val updatedAt: Long,
 
-  val books: List<LibraryItemMinified>? = null,
+  val books: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
   val inProgress: Boolean? = null,
   val hasActiveBook: Boolean? = null,
   val hideFromContinueListening: Boolean? = null,
   val bookInProgressLastUpdate: Long? = null,
-  val firstBookUnread: LibraryItemMinified? = null,
+  val firstBookUnread: LibraryItemMinified<MinifiedBookMetadata>? = null,
 )

@@ -23,24 +23,45 @@ import kotlinx.serialization.Serializable
  * @param seriesName The name of the book's series.
  */
 @Serializable
-data class BookMetadataMinified(
-  val title: String? = null,
-  val subtitle: String? = null,
-  val genres: List<String>? = null,
-  val publishedYear: String? = null,
-  val publishedDate: String? = null,
-  val publisher: String? = null,
-  val description: String? = null,
-  val isbn: String? = null,
-  val asin: String? = null,
-  val language: String? = null,
-  val explicit: Boolean = false,
-  val abridged: Boolean = false,
-  val titleIgnorePrefix: String? = null,
-  val authorName: String? = null,
-  val authorNameLF: String? = null,
-  val narratorName: String? = null,
-  val seriesName: String? = null,
+abstract class BookMetadata {
+  abstract val title: String?
+  abstract val subtitle: String?
+  abstract val genres: List<String>?
+  abstract val publishedYear: String?
+  abstract val publishedDate: String?
+  abstract val publisher: String?
+  abstract val description: String?
+  abstract val isbn: String?
+  abstract val asin: String?
+  abstract val language: String?
+  abstract val explicit: Boolean
+  abstract val abridged: Boolean
+  abstract val titleIgnorePrefix: String?
+  abstract val authorName: String?
+  abstract val authorNameLF: String?
+  abstract val narratorName: String?
+  abstract val seriesName: String?
+}
+
+@Serializable
+data class MinifiedBookMetadata(
+  override val title: String? = null,
+  override val subtitle: String? = null,
+  override val genres: List<String>? = null,
+  override val publishedYear: String? = null,
+  override val publishedDate: String? = null,
+  override val publisher: String? = null,
+  override val description: String? = null,
+  override val isbn: String? = null,
+  override val asin: String? = null,
+  override val language: String? = null,
+  override val explicit: Boolean = false,
+  override val abridged: Boolean = false,
+  override val titleIgnorePrefix: String? = null,
+  override val authorName: String? = null,
+  override val authorNameLF: String? = null,
+  override val narratorName: String? = null,
+  override val seriesName: String? = null,
 
   /**
    * When [LibraryItemMinified] is returned from the personalized library endpoint,
@@ -49,7 +70,34 @@ data class BookMetadataMinified(
    * The sequence in a series that this book is of
    */
   val series: SeriesSequence? = null,
-)
+) : BookMetadata()
+
+@Serializable
+data class ExpandedBookMetadata(
+  override val title: String? = null,
+  override val subtitle: String? = null,
+  override val genres: List<String>? = null,
+  override val publishedYear: String? = null,
+  override val publishedDate: String? = null,
+  override val publisher: String? = null,
+  override val description: String? = null,
+  override val isbn: String? = null,
+  override val asin: String? = null,
+  override val language: String? = null,
+  override val explicit: Boolean = false,
+  override val abridged: Boolean = false,
+  override val titleIgnorePrefix: String? = null,
+  override val authorName: String? = null,
+  override val authorNameLF: String? = null,
+  override val narratorName: String? = null,
+  override val seriesName: String? = null,
+
+  /**
+   * When [LibraryItemMinified] is returned from the collections endpoint, its metadata
+   * will contain this
+   */
+  val series: List<SeriesSequence>? = null,
+) : BookMetadata()
 
 @Serializable
 data class SeriesSequence(

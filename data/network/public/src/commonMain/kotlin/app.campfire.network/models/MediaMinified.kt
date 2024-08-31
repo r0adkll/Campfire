@@ -18,9 +18,9 @@ import kotlinx.serialization.Serializable
  * @param ebookFormat The format of ebook of the book. Will be null if the book is an audiobook.
  */
 @Serializable
-data class MediaMinified(
+data class MediaMinified<M : BookMetadata>(
   val id: String,
-  val metadata: BookMetadataMinified,
+  val metadata: M,
   val coverPath: String,
   val tags: List<String>? = null,
   val numTracks: Int = 0,

@@ -18,6 +18,9 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.logging.Extras
+import app.campfire.core.logging.Heartwood
+import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
@@ -35,6 +38,12 @@ class DesktopWindowBackEventDispatcher : WindowBackEventDispatcher {
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
+  Heartwood.grow(object : Heartwood.Bark {
+    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
+      println("[${priority.name}] ${tag?.let { " ($it) " } ?: ""} $message")
+    }
+  })
+
   val applicationComponent = remember {
     DesktopApplicationComponent.createDesktopApplicationComponent().also {
       ComponentHolder.components += it

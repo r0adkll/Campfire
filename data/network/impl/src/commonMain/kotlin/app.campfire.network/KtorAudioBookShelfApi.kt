@@ -6,14 +6,18 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
+import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.models.Author
+import app.campfire.network.models.BookMetadata
+import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -87,7 +91,7 @@ class KtorAudioBookShelfApi(
     hydratedClientRequest("/api/libraries/$libraryId")
   }
 
-  override suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified>> {
+  override suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
     return trySendRequest<LibraryItemsResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/items")
     }.map { it.results }
@@ -109,6 +113,12 @@ class KtorAudioBookShelfApi(
     return trySendRequest<AuthorResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/authors")
     }.map { it.authors }
+  }
+
+  override suspend fun getCollections(libraryId: String): Result<List<Collection>> {
+    return trySendRequest<CollectionsResponse> {
+      hydratedClientRequest("/api/libraries/$libraryId/collections")
+    }.map { it.results }
   }
 
   private suspend inline fun <reified T> trySendRequest(

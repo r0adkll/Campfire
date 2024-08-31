@@ -3,6 +3,7 @@ package app.campfire.home
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.home.api.HomeRepository
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Inject
 
+@SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreHomeRepository(

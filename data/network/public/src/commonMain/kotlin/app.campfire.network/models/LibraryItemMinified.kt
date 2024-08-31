@@ -24,7 +24,7 @@ import kotlinx.serialization.Serializable
  * @param media
  */
 @Serializable
-data class LibraryItemMinified(
+data class LibraryItemMinified<Metadata : BookMetadata>(
   val id: String,
   val ino: String,
   val libraryId: String,
@@ -41,8 +41,9 @@ data class LibraryItemMinified(
   val isMissing: Boolean,
   val isInvalid: Boolean,
   val mediaType: MediaType,
-  val media: MediaMinified,
-  val numFiles: Int,
+  val media: MediaMinified<Metadata>,
+  val numFiles: Int? = null,
+  val libraryFiles: List<LibraryFile>? = null,
   val size: Long,
 
   /**

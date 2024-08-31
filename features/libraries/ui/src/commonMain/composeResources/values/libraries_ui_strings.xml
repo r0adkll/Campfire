@@ -1,3 +1,4 @@
 <resources>
   <string name="error_library_items_message">Something went wrong when trying to load this library</string>
+  <string name="empty_library_items_message">No items in this library</string>
 </resources>

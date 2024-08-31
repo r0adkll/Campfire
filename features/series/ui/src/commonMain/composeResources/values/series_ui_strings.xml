@@ -1,3 +1,4 @@
 <resources>
   <string name="error_series_items_message">Something went wrong when trying to load this library's list of series</string>
+  <string name="empty_series_items_message">No series found in this library</string>
 </resources>

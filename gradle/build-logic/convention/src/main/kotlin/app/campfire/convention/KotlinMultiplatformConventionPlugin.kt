@@ -55,6 +55,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
               freeCompilerArgs.addAll(
                 "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
                 "-opt-in=kotlinx.cinterop.BetaInteropApi",
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
               )
             }
           }

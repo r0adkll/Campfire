@@ -17,7 +17,7 @@ sealed class Shelf {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified>,
+    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
   ) : Shelf()
 
   @Serializable
@@ -27,7 +27,7 @@ sealed class Shelf {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified>,
+    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
   ) : Shelf()
 
   @Serializable
@@ -37,7 +37,7 @@ sealed class Shelf {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified>,
+    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
   ) : Shelf()
 
   @Serializable

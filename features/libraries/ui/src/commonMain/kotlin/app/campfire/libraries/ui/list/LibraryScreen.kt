@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
@@ -33,6 +34,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.error_library_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
@@ -109,6 +111,12 @@ private fun LoadedContent(
       contentPadding = contentPadding + PaddingValues(
         horizontal = 16.dp,
       ),
+    )
+  }
+
+  if (items.isEmpty()) {
+    EmptyState(
+      message = stringResource(Res.string.empty_library_items_message),
     )
   }
 }

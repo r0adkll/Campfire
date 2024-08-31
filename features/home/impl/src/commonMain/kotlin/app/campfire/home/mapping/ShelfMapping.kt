@@ -14,7 +14,7 @@ import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.Shelf as NetworkShelf
 import app.campfire.core.model.SeriesSequence
-import app.campfire.core.util.createIfNotNull
+import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun NetworkShelf.asDomainModel(
@@ -34,7 +34,7 @@ suspend fun NetworkShelf.asDomainModel(
   )
 }
 
-suspend fun LibraryItemMinified.asDomainModel(
+suspend fun LibraryItemMinified<*>.asDomainModel(
   imageHydrator: CoverImageHydrator,
 ): LibraryItem {
   return LibraryItem(
@@ -46,7 +46,7 @@ suspend fun LibraryItemMinified.asDomainModel(
       NetworkMediaType.Book -> MediaType.Book
       NetworkMediaType.Podcast -> MediaType.Podcast
     },
-    numFiles = numFiles,
+    numFiles = numFiles ?: libraryFiles?.size ?: -1,
     sizeInBytes = size,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
@@ -80,7 +80,7 @@ suspend fun LibraryItemMinified.asDomainModel(
         language = media.metadata.language,
         isExplicit = media.metadata.explicit,
         isAbridged = media.metadata.abridged,
-        seriesSequence = media.metadata.series?.let {
+        seriesSequence = (media.metadata as? MinifiedBookMetadata)?.series?.let {
           SeriesSequence(
             id = it.id,
             name = it.name,

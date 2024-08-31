@@ -1,0 +1,30 @@
+CREATE TABLE collections (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  cover TEXT,
+  coverFullPath TEXT,
+  updatedAt INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO collections
+VALUES ?;
+
+selectAll:
+SELECT * FROM collections;
+
+selectById:
+SELECT * FROM collections
+WHERE id = ?;
+
+selectByLibraryId:
+SELECT * FROM collections
+WHERE libraryId = ?;
+
+deleteForLibraryId:
+DELETE FROM collections
+WHERE libraryId = ?;

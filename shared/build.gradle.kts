@@ -35,6 +35,9 @@ kotlin {
         api(projects.features.series.impl)
         api(projects.features.series.ui)
 
+        api(projects.features.collections.impl)
+        api(projects.features.collections.ui)
+
         api(projects.features.author.impl)
         api(projects.features.author.ui)
 

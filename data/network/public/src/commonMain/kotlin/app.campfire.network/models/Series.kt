@@ -18,5 +18,5 @@ data class Series(
   val description: String? = null,
   val addedAt: Long,
   val updatedAt: Long,
-  val books: List<LibraryItemMinified>? = null,
+  val books: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
 )
