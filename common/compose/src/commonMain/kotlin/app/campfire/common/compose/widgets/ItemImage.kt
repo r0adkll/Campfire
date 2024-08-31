@@ -32,7 +32,7 @@ fun ItemImage(
   modifier: Modifier = Modifier,
 ) {
   Box(
-    modifier = modifier
+    modifier = modifier,
   ) {
     val painter = rememberAsyncImagePainter(imageUrl)
 

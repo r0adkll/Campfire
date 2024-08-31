@@ -37,4 +37,3 @@ data class MediaMinified(
     val isAbridged: Boolean,
   )
 }
-

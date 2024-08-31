@@ -6,15 +6,15 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaMinified
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.Series
+import app.campfire.core.model.SeriesSequence
 import app.campfire.home.api.model.Shelf as DomainShelf
 import app.campfire.network.models.Author as NetworkAuthor
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.Shelf as NetworkShelf
-import app.campfire.core.model.SeriesSequence
-import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun NetworkShelf.asDomainModel(
@@ -86,7 +86,7 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
             name = it.name,
             sequence = it.sequence,
           )
-        }
+        },
       ),
     ),
   )

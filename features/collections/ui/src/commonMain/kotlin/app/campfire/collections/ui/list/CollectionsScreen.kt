@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,8 +34,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
-import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.ItemCollectionCard
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection

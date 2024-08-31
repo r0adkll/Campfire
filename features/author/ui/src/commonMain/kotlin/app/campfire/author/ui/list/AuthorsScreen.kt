@@ -79,7 +79,7 @@ private fun LoadedState(
     state = state,
     modifier = modifier,
     contentPadding = contentPadding + PaddingValues(
-      horizontal = 16.dp
+      horizontal = 16.dp,
     ),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -89,7 +89,7 @@ private fun LoadedState(
         author = author,
         modifier = Modifier.clickable {
           onAuthorClick(author)
-        }
+        },
       )
     }
   }

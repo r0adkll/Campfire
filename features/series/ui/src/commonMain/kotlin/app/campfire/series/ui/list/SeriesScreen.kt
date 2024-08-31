@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
-import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.ItemCollectionCard
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Series
@@ -80,7 +80,7 @@ private fun LoadedState(
   state: LazyListState = rememberLazyListState(),
 ) {
   Box(
-    modifier = modifier.fillMaxSize()
+    modifier = modifier.fillMaxSize(),
   ) {
     LazyColumn(
       state = state,

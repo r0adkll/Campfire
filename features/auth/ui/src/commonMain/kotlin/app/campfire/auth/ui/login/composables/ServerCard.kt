@@ -203,7 +203,7 @@ internal fun ServerCard(
             imeAction = ImeAction.Go,
           ),
           keyboardActions = KeyboardActions(
-            onGo = { onGo() }
+            onGo = { onGo() },
           ),
           modifier = Modifier
             .fillMaxWidth()

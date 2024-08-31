@@ -2,7 +2,6 @@ package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.Author
-import app.campfire.network.models.BookMetadata
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified

@@ -70,7 +70,7 @@ include(
 include(
   ":data:account:api",
   ":data:account:impl",
-  ":data:account:ui"
+  ":data:account:ui",
 )
 include(
   ":data:network:public",

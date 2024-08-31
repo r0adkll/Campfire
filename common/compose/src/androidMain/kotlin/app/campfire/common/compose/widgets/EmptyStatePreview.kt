@@ -11,7 +11,7 @@ fun EmptyStatePreview() {
   CampfireTheme {
     Surface {
       EmptyState(
-        message = "This is a preview of an empty state. Here messages about missing content will show."
+        message = "This is a preview of an empty state. Here messages about missing content will show.",
       )
     }
   }

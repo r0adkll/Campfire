@@ -21,9 +21,6 @@ class ComposeConventionPlugin : Plugin<Project> {
 
 fun Project.configureCompose() {
   composeCompiler {
-    // Enable 'strong skipping'
-    // https://medium.com/androiddevelopers/jetpack-compose-strong-skipping-mode-explained-cbdb2aa4b900
-    featureFlags.add(ComposeFeatureFlag.StrongSkipping)
 
     // Needed for Layout Inspector to be able to see all of the nodes in the component tree:
     //https://issuetracker.google.com/issues/338842143

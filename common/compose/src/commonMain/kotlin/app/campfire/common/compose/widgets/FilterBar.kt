@@ -39,7 +39,7 @@ fun FilterBar(
   modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
-    LocalContentColor provides MaterialTheme.colorScheme.onSurface
+    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
   ) {
     Row(
       modifier = modifier
@@ -72,7 +72,7 @@ fun FilterBar(
 
       IconButton(
         onClick = onFilterClick,
-        modifier = Modifier.offset(x = 12.dp)
+        modifier = Modifier.offset(x = 12.dp),
       ) {
         Icon(
           if (isFiltered) Icons.Rounded.FilterAltOff else Icons.Rounded.FilterAlt,

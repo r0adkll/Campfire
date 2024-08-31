@@ -80,7 +80,9 @@ class LoginPresenter(
             connectionState != ConnectionState.Success ||
             username.isBlank() ||
             password.isBlank()
-          ) return@LoginUiState
+          ) {
+            return@LoginUiState
+          }
 
           isAuthenticating = true
           authError = null

@@ -24,7 +24,7 @@ class UiConventionPlugin : Plugin<Project> {
 
     extensions.configure<KotlinMultiplatformExtension> {
       compilerOptions {
-        freeCompilerArgs.add("-Xopt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+        freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
       }
 
       sourceSets["commonMain"].dependencies {

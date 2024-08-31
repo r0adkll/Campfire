@@ -11,7 +11,6 @@ import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import kotlin.contracts.contract
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted

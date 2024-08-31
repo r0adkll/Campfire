@@ -1,6 +1,5 @@
 package app.campfire.series
 
-import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
@@ -15,6 +14,7 @@ import app.campfire.data.mapping.asDbModels
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.series.api.SeriesRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
@@ -83,10 +83,9 @@ class StoreSeriesRepository(
                   SeriesBookJoin(
                     seriesId = series.id,
                     libraryItemId = book.id,
-                  )
+                  ),
                 )
               }
-
             }
           }
         }
@@ -96,7 +95,7 @@ class StoreSeriesRepository(
           db.seriesQueries.deleteForLibraryId(libraryId)
         }
       },
-    )
+    ),
   ).build()
 
   @OptIn(ExperimentalCoroutinesApi::class)

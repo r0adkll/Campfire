@@ -20,7 +20,6 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMaxBy
 import androidx.compose.ui.util.fastSumBy
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 
 private val BookImageSize = 180.dp
@@ -83,7 +82,7 @@ private fun MultiBookLayout(
           ItemImage(
             imageUrl = item.media.coverImageUrl,
             contentDescription = item.media.metadata.title,
-            modifier = Modifier.size(BookImageSize)
+            modifier = Modifier.size(BookImageSize),
           )
         }
     },
@@ -99,8 +98,6 @@ private fun MultiBookLayout(
 
     // Compute the item offset amount
     val smallOffset = (constraints.maxWidth - totalItemWidth) / 2
-
-    bark { "Measure(count=${measurables.size}) totalItemWidth=$totalItemWidth, maxItemWidth=$maxItemWidth, constraintWidth=${constraints.maxWidth}" }
 
     layout(constraints.maxWidth, maxItemHeight) {
       if (totalItemWidth < constraints.maxWidth) {

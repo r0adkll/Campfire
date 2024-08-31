@@ -12,7 +12,7 @@ data class CollectionsUiState(
 sealed interface CollectionContentState {
   data object Loading : CollectionContentState
   data class Loaded(
-    val collections: List<Collection>
+    val collections: List<Collection>,
   ) : CollectionContentState
   data object Error : CollectionContentState
 }

@@ -1,6 +1,5 @@
 package app.campfire.network.envelopes
 
-import app.campfire.network.models.BookMetadata
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaType

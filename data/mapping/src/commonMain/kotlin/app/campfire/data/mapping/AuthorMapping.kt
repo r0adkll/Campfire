@@ -1,10 +1,10 @@
 package app.campfire.data.mapping
 
 import app.campfire.account.api.CoverImageHydrator
-import app.campfire.data.Authors as DbAuthor
-import app.campfire.network.models.Author as NetworkAuthor
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryId
+import app.campfire.data.Authors as DbAuthor
+import app.campfire.network.models.Author as NetworkAuthor
 
 suspend fun NetworkAuthor.asDbModel(
   libraryId: LibraryId,

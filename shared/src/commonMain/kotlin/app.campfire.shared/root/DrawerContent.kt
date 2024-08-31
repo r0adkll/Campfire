@@ -87,8 +87,8 @@ fun DrawerContent(
         },
         modifier = Modifier
           .padding(
-            horizontal = 16.dp
-          )
+            horizontal = 16.dp,
+          ),
       )
     }
   }

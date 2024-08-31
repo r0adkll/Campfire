@@ -11,7 +11,6 @@ import app.campfire.data.mapping.asDomainModel
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow

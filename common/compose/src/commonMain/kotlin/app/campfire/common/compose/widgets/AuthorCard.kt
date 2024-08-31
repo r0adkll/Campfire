@@ -21,21 +21,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
-import app.campfire.core.model.LibraryItem
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.placeholder_man
 import campfire.common.compose.generated.resources.placeholder_woman
-import campfire.common.compose.generated.resources.unknown_author_name
-import campfire.common.compose.generated.resources.unknown_library_title
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 private val CardMaxWidth = 400.dp
 private val ThumbnailCornerSize = 12.dp
@@ -60,7 +55,7 @@ fun AuthorCard(
         model = author.imagePath,
         onError = {
           bark(throwable = it.result.throwable) { "Author image loading error: ${it.result.request.data}" }
-        }
+        },
       )
 
       val imageState by painter.state.collectAsState()

@@ -98,7 +98,7 @@ private fun LoadedContent(
       onDisplayStateClick = onDisplayStateClick,
       onFilterClick = onFilterClick,
       modifier = modifier,
-      contentPadding = contentPadding
+      contentPadding = contentPadding,
     )
     ItemDisplayState.Grid -> LibraryGrid(
       items = items,
@@ -191,7 +191,7 @@ fun LibraryList(
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = false,
         onFilterClick = onFilterClick,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp)
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp),
       )
     }
     items(

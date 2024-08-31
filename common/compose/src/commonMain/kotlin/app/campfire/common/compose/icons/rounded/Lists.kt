@@ -105,4 +105,3 @@ val Icons.Rounded.Lists: ImageVector
     }.build()
     return _Lists!!
   }
-

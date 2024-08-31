@@ -1,9 +1,9 @@
 package app.campfire.data.mapping
 
-import app.campfire.network.models.Collection as NetworkCollection
-import app.campfire.data.Collections as DbCollection
 import app.campfire.core.model.Collection
 import app.campfire.core.model.LibraryItem
+import app.campfire.data.Collections as DbCollection
+import app.campfire.network.models.Collection as NetworkCollection
 
 fun NetworkCollection.asDbModel(): DbCollection {
   return DbCollection(

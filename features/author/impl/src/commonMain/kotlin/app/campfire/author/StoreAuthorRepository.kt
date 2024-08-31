@@ -59,8 +59,8 @@ class StoreAuthorRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.authorsQueries.deleteForLibrary(libraryId)
         }
-      }
-    )
+      },
+    ),
   ).build()
 
   @OptIn(ExperimentalCoroutinesApi::class)

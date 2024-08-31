@@ -153,4 +153,3 @@ val Icons.Rounded.AccountSwitch: ImageVector
     }.build()
     return _Accountswitch!!
   }
-

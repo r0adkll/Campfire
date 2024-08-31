@@ -38,7 +38,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 typealias AccountSwitcher = @Composable (
   onClick: () -> Unit,
-  modifier: Modifier
+  modifier: Modifier,
 ) -> Unit
 
 @Inject
@@ -52,7 +52,7 @@ fun AccountSwitcher(
   AccountSwitcher(
     state = state,
     onClick = onClick,
-    modifier = modifier
+    modifier = modifier,
   )
 }
 
@@ -121,7 +121,7 @@ private fun AccountSwitcher(
       tent.icon,
       contentDescription = null,
       modifier = Modifier
-        .size(TentIconSize)
+        .size(TentIconSize),
     )
 
     Spacer(Modifier.width(16.dp))
@@ -133,7 +133,7 @@ private fun AccountSwitcher(
       ProvideTextStyle(
         MaterialTheme.typography.headlineSmall.copy(
           fontFamily = PaytoneOneFontFamily,
-        )
+        ),
       ) {
         serverName()
       }
@@ -145,7 +145,7 @@ private fun AccountSwitcher(
     Spacer(Modifier.width(16.dp))
 
     IconButton(
-      onClick = onClick
+      onClick = onClick,
     ) {
       Icon(
         Icons.Rounded.AccountSwitch,

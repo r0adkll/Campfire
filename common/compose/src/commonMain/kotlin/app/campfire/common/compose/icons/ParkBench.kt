@@ -287,4 +287,3 @@ val Icons.ParkBench: ImageVector
     }.build()
     return _ParkBench!!
   }
-

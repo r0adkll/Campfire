@@ -4,16 +4,16 @@ import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaMinified
 import app.campfire.core.model.MediaType as DomainMediaType
+import app.campfire.core.model.SeriesSequence
+import app.campfire.core.util.createIfNotNull
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
 import app.campfire.data.Media as DatabaseMedia
+import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForLibrary
+import app.campfire.data.SelectForSeries
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
-import app.campfire.core.model.SeriesSequence
-import app.campfire.core.util.createIfNotNull
-import app.campfire.data.SelectForCollection
-import app.campfire.data.SelectForSeries
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
@@ -137,7 +137,7 @@ suspend fun SelectForLibrary.asDomainModel(
             name = metadata_series_name!!,
             sequence = metadata_series_sequence!!,
           )
-        }
+        },
       ),
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
       tags = tags ?: emptyList(),
@@ -196,7 +196,7 @@ suspend fun SelectForSeries.asDomainModel(
             name = metadata_series_name!!,
             sequence = metadata_series_sequence!!,
           )
-        }
+        },
       ),
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
       tags = tags ?: emptyList(),
@@ -255,7 +255,7 @@ suspend fun SelectForCollection.asDomainModel(
             name = metadata_series_name!!,
             sequence = metadata_series_sequence!!,
           )
-        }
+        },
       ),
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
       tags = tags ?: emptyList(),
