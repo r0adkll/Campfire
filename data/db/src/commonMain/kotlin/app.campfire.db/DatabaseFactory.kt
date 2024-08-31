@@ -1,6 +1,7 @@
 package app.campfire.db
 
 import app.campfire.CampfireDatabase
+import app.campfire.data.Authors
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
 import app.campfire.data.Media
@@ -53,6 +54,9 @@ class DatabaseFactory(
       propertySizeAdapter = IntColumnAdapter,
       metadata_genresAdapter = StringListAdapter,
       metadata_series_sequenceAdapter = IntColumnAdapter,
+    ),
+    authorsAdapter = Authors.Adapter(
+      numBooksAdapter = IntColumnAdapter,
     ),
   )
 }

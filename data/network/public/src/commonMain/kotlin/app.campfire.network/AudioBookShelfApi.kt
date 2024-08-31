@@ -1,6 +1,7 @@
 package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
+import app.campfire.network.models.Author
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.Series
@@ -54,4 +55,9 @@ interface AudioBookShelfApi {
    * Get a Library's list of series
    */
   suspend fun getSeries(libraryId: String): Result<List<Series>>
+
+  /**
+   * Get a Library's list of authors
+   */
+  suspend fun getAuthors(libraryId: String): Result<List<Author>>
 }

@@ -1,5 +1,6 @@
 package app.campfire.home.ui.composables
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.width
@@ -10,6 +11,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.SeriesCard
 import app.campfire.core.model.Author
@@ -20,6 +22,7 @@ import app.campfire.home.api.model.Shelf
 private val LibraryCardWidth = 180.dp
 private val SeriesCardWidth = 300.dp
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShelfContent(
   shelf: Shelf<*>,
@@ -36,12 +39,23 @@ fun ShelfContent(
       when (entity) {
         is LibraryItem -> LibraryItemCard(
           item = entity,
-          modifier = Modifier.width(LibraryCardWidth),
+          modifier = Modifier
+            .width(LibraryCardWidth)
+            .animateItemPlacement(),
         )
-        is Author -> Unit
+
+        is Author -> AuthorCard(
+          author = entity,
+          modifier = Modifier
+            .width(LibraryCardWidth)
+            .animateItemPlacement(),
+        )
+
         is Series -> SeriesCard(
           series = entity,
-          modifier = Modifier.width(SeriesCardWidth)
+          modifier = Modifier
+            .width(SeriesCardWidth)
+            .animateItemPlacement(),
         )
       }
     }

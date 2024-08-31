@@ -1,5 +1,6 @@
 package app.campfire.common.screens
 
+import app.campfire.core.model.AuthorId
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.SeriesId
 import com.slack.circuit.runtime.screen.Screen
@@ -50,6 +51,11 @@ data object CollectionsScreen : BaseScreen(name = "Home()")
 
 @Parcelize
 data object AuthorsScreen : BaseScreen(name = "Home()")
+
+@Parcelize
+data class AuthorDetailScreen(
+  val authorId: AuthorId,
+) : BaseScreen(name = "AuthorDetailScreen()")
 
 @Parcelize
 data object StatisticsScreen : BaseScreen(name = "Statistics()")

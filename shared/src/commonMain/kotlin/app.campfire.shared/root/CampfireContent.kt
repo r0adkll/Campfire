@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -62,8 +63,8 @@ fun CampfireContentWithInsets(
       campfireSettings = settings,
     ) { userComponent ->
 
-      val backStack = rememberSaveableBackStack(userComponent.rootScreen)
-      val navigator = rememberCircuitNavigator(backStack) { onRootPop() }
+      val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
+      val navigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
 
       // Listen to desktop window key back events
       val windowBackEvents by rememberUpdatedState(LocalWindowBackEventDispatcher.current)

@@ -1,0 +1,26 @@
+import kotlin.Int;
+
+CREATE TABLE authors (
+  id TEXT NOT NULL PRIMARY KEY,
+  asin TEXT,
+  name TEXT NOT NULL,
+  description TEXT,
+  imagePath TEXT,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  numBooks INTEGER AS Int,
+
+  libraryId TEXT NOT NULL
+);
+
+insert:
+INSERT OR REPLACE INTO authors
+VALUES ?;
+
+selectForLibrary:
+SELECT * FROM authors
+WHERE libraryId = ?;
+
+deleteForLibrary:
+DELETE FROM authors
+WHERE libraryId = ?;

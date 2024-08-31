@@ -5,11 +5,13 @@ import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.network.envelopes.AllLibrariesResponse
+import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
+import app.campfire.network.models.Author
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.Series
@@ -101,6 +103,12 @@ class KtorAudioBookShelfApi(
     return trySendRequest<SeriesResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/series?limit=1000")
     }.map { it.results }
+  }
+
+  override suspend fun getAuthors(libraryId: String): Result<List<Author>> {
+    return trySendRequest<AuthorResponse> {
+      hydratedClientRequest("/api/libraries/$libraryId/authors")
+    }.map { it.authors }
   }
 
   private suspend inline fun <reified T> trySendRequest(

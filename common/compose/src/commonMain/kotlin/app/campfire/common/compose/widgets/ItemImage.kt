@@ -56,7 +56,7 @@ fun ItemImage(
 }
 
 @Composable
-private fun ImageError(
+internal fun ImageError(
   errorMessage: String,
   modifier: Modifier = Modifier,
 ) {
@@ -84,7 +84,7 @@ private fun ImageError(
 }
 
 @Composable
-private fun ImageLoading(
+internal fun ImageLoading(
   modifier: Modifier = Modifier,
 ) {
   Box(

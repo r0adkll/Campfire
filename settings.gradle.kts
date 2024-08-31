@@ -96,6 +96,11 @@ include(
   ":features:series:ui",
 )
 include(
+  ":features:author:api",
+  ":features:author:impl",
+  ":features:author:ui",
+)
+include(
   ":ui:appbar",
 )
 
