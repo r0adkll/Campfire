@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.account.ui.switcher.AccountSwitcher
 import app.campfire.common.compose.icons.filled.Home
 import app.campfire.common.compose.navigation.LocalDrawerState
+import app.campfire.common.compose.navigation.LocalRootScreen
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SettingsScreen
@@ -53,6 +54,7 @@ fun Drawer(
   val coroutineScope = rememberCoroutineScope()
   val drawerItems = buildDrawerItems()
   val drawerState by rememberUpdatedState(LocalDrawerState.current)
+  val rootScreen by rememberUpdatedState(LocalRootScreen.current)
   ModalDrawerSheet(
     modifier = modifier,
   ) {
@@ -71,7 +73,7 @@ fun Drawer(
           )
         },
         label = { Text(text = item.label) },
-        selected = false,
+        selected = rootScreen == item.screen,
         onClick = {
           state.eventSink(DrawerUiEvent.ItemClick(item))
           coroutineScope.launch {

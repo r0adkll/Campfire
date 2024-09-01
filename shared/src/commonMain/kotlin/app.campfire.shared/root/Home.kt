@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -61,6 +62,7 @@ import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
 import app.campfire.common.compose.navigation.LocalDrawerState
+import app.campfire.common.compose.navigation.LocalRootScreen
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
@@ -134,16 +136,14 @@ internal fun Home(
       navigationType = navigationType,
       drawerState = drawerState,
       drawerContent = {
-        CircuitContent(
-          screen = DrawerScreen,
-          navigator = navigator,
-        )
-//        drawerContent(
-//          navigator,
-//          rootScreen,
-//          drawerState,
-//          Modifier,
-//        )
+        CompositionLocalProvider(
+          LocalRootScreen provides rootScreen,
+        ) {
+          CircuitContent(
+            screen = DrawerScreen,
+            navigator = navigator,
+          )
+        }
       },
     ) {
       Scaffold(
