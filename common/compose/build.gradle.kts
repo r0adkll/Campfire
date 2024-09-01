@@ -57,6 +57,13 @@ kotlin {
         implementation(compose.uiTooling)
       }
     }
+
+    appleMain {
+      dependencies {
+        api(libs.coil.networking.ktor3)
+        api(libs.ktor.client.darwin)
+      }
+    }
   }
 }
 
