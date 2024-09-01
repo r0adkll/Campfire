@@ -18,6 +18,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -32,11 +35,17 @@ import app.campfire.common.screens.LibraryScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
+import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortMode
+import app.campfire.libraries.ui.sort.SortModeResult
+import app.campfire.libraries.ui.sort.showSortModeBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.error_library_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.overlay.LocalOverlayHost
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(LibraryScreen::class, UserScope::class)
@@ -46,6 +55,9 @@ fun Library(
   campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
+  val coroutineScope = rememberCoroutineScope()
+  val overlayHost by rememberUpdatedState(LocalOverlayHost.current)
+
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   Scaffold(
@@ -72,7 +84,20 @@ fun Library(
         onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
         itemDisplayState = state.itemDisplayState,
         onDisplayStateClick = { state.eventSink(LibraryUiEvent.ToggleItemDisplayState) },
-        onFilterClick = { state.eventSink(LibraryUiEvent.ToggleFilter) },
+        onFilterClick = { state.eventSink(LibraryUiEvent.FilterClick) },
+        sortMode = state.sort.mode,
+        sortDirection = state.sort.direction,
+        onSortClick = {
+          coroutineScope.launch {
+            val result = overlayHost.showSortModeBottomSheet(
+              currentMode = state.sort.mode,
+              currentDirection = state.sort.direction,
+            )
+            if (result is SortModeResult.Selected) {
+              state.eventSink(LibraryUiEvent.SortModeSelected(result.mode))
+            }
+          }
+        },
         contentPadding = paddingValues,
       )
     }
@@ -86,6 +111,9 @@ private fun LoadedContent(
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
   onFilterClick: () -> Unit,
+  sortMode: SortMode,
+  sortDirection: SortDirection,
+  onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
   columns: Int = 3,
   contentPadding: PaddingValues = PaddingValues(),
@@ -97,6 +125,9 @@ private fun LoadedContent(
       itemDisplayState = itemDisplayState,
       onDisplayStateClick = onDisplayStateClick,
       onFilterClick = onFilterClick,
+      sortMode = sortMode,
+      sortDirection = sortDirection,
+      onSortClick = onSortClick,
       modifier = modifier,
       contentPadding = contentPadding,
     )
@@ -106,6 +137,9 @@ private fun LoadedContent(
       itemDisplayState = itemDisplayState,
       onDisplayStateClick = onDisplayStateClick,
       onFilterClick = onFilterClick,
+      sortMode = sortMode,
+      sortDirection = sortDirection,
+      onSortClick = onSortClick,
       modifier = modifier,
       columns = columns,
       contentPadding = contentPadding + PaddingValues(
@@ -129,6 +163,9 @@ private fun LibraryGrid(
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
   onFilterClick: () -> Unit,
+  sortMode: SortMode,
+  sortDirection: SortDirection,
+  onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
   columns: Int = 3,
   contentPadding: PaddingValues = PaddingValues(),
@@ -151,6 +188,9 @@ private fun LibraryGrid(
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = false,
         onFilterClick = onFilterClick,
+        sortMode = sortMode,
+        sortDirection = sortDirection,
+        onSortClick = onSortClick,
       )
     }
     items(
@@ -175,6 +215,9 @@ fun LibraryList(
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
   onFilterClick: () -> Unit,
+  sortMode: SortMode,
+  sortDirection: SortDirection,
+  onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -191,6 +234,9 @@ fun LibraryList(
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = false,
         onFilterClick = onFilterClick,
+        sortMode = sortMode,
+        sortDirection = sortDirection,
+        onSortClick = onSortClick,
         modifier = Modifier.padding(start = 16.dp, end = 16.dp),
       )
     }

@@ -4,6 +4,8 @@ import app.campfire.common.settings.CampfireSettings.Theme
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.settings.ItemDisplayState
+import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortMode
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
@@ -35,6 +37,16 @@ class CampfireSettingsImpl(
     return flowSettings.getEnumFlow(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
   }
 
+  override var sortMode: SortMode by enumSetting(KEY_SORT_MODE, SortMode)
+  override fun observeSortMode(): Flow<SortMode> {
+    return flowSettings.getEnumFlow(KEY_SORT_MODE, SortMode)
+  }
+
+  override var sortDirection: SortDirection by enumSetting(KEY_SORT_DIRECTION, SortDirection)
+  override fun observeSortDirection(): Flow<SortDirection> {
+    return flowSettings.getEnumFlow(KEY_SORT_DIRECTION, SortDirection)
+  }
+
   override var currentServerUrl: String? by stringOrNullSetting(KEY_CURRENT_SERVER_URL)
   override fun observeCurrentServerUrl(): Flow<String?> {
     return flowSettings.getStringOrNullFlow(KEY_CURRENT_SERVER_URL)
@@ -44,4 +56,6 @@ class CampfireSettingsImpl(
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
+internal const val KEY_SORT_MODE = "pref_sort_mode"
+internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
 internal const val KEY_CURRENT_SERVER_URL = "pref_current_server_url"

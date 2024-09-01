@@ -3,6 +3,8 @@ package app.campfire.common.settings
 import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
 import app.campfire.core.settings.ItemDisplayState
+import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortMode
 import kotlinx.coroutines.flow.Flow
 
 interface CampfireSettings {
@@ -15,6 +17,12 @@ interface CampfireSettings {
 
   var libraryItemDisplayState: ItemDisplayState
   fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
+
+  var sortMode: SortMode
+  fun observeSortMode(): Flow<SortMode>
+
+  var sortDirection: SortDirection
+  fun observeSortDirection(): Flow<SortDirection>
 
   var currentServerUrl: String?
   fun observeCurrentServerUrl(): Flow<String?>

@@ -10,4 +10,9 @@
 
   <string name="unknown_library_title">Unknown</string>
   <string name="unknown_author_name">Unknown author</string>
+
+  <plurals name="filter_bar_book_count">
+    <item quantity="one">%1$d Book</item>
+    <item quantity="other">%1$d Books</item>
+  </plurals>
 </resources>
