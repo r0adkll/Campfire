@@ -1,0 +1,10 @@
+<resources>
+  <string name="nav_home_label">Home</string>
+  <string name="nav_home_content_description">The home content for the current user/library</string>
+  <string name="nav_statistics_label">Statistics</string>
+  <string name="nav_statistics_content_description">The statistics for the current user/library</string>
+  <string name="nav_storage_label">Storage</string>
+  <string name="nav_storage_content_description">The storage for the current user/library</string>
+  <string name="nav_settings_label">Settings</string>
+  <string name="nav_settings_content_description">The settings for the current user/library</string>
+</resources>

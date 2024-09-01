@@ -41,6 +41,8 @@ kotlin {
         api(projects.features.author.impl)
         api(projects.features.author.ui)
 
+        api(projects.ui.drawer)
+
         api(compose.runtime)
         api(compose.foundation)
         api(compose.material)

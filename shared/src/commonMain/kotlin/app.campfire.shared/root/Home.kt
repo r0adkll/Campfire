@@ -64,6 +64,7 @@ import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
@@ -85,6 +86,7 @@ import campfire.shared.generated.resources.settings_content_description
 import com.moriatsushi.insetsx.navigationBars
 import com.moriatsushi.insetsx.safeContentPadding
 import com.slack.circuit.backstack.SaveableBackStack
+import com.slack.circuit.foundation.CircuitContent
 import com.slack.circuit.foundation.NavigableCircuitContent
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -98,7 +100,6 @@ internal fun Home(
   backstack: SaveableBackStack,
   navigator: Navigator,
   windowInsets: WindowInsets,
-  drawerContent: DrawerContent,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass = LocalWindowSizeClass.current
@@ -133,13 +134,16 @@ internal fun Home(
       navigationType = navigationType,
       drawerState = drawerState,
       drawerContent = {
-        // Injected drawer content
-        drawerContent(
-          navigator,
-          rootScreen,
-          drawerState,
-          Modifier,
+        CircuitContent(
+          screen = DrawerScreen,
+          navigator = navigator,
         )
+//        drawerContent(
+//          navigator,
+//          rootScreen,
+//          drawerState,
+//          Modifier,
+//        )
       },
     ) {
       Scaffold(
@@ -228,13 +232,13 @@ private fun DrawerWithContent(
   content: @Composable () -> Unit,
 ) {
   if (navigationType == NavigationType.BOTTOM_NAVIGATION || navigationType == NavigationType.RAIL) {
-    ModalNavigationDrawer(
-      drawerState = drawerState,
-      drawerContent = drawerContent,
-      modifier = modifier,
+    CompositionLocalProvider(
+      LocalDrawerState provides drawerState,
     ) {
-      CompositionLocalProvider(
-        LocalDrawerState provides drawerState,
+      ModalNavigationDrawer(
+        drawerState = drawerState,
+        drawerContent = drawerContent,
+        modifier = modifier,
       ) {
         content()
       }
