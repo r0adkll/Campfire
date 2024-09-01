@@ -286,14 +286,14 @@ private fun HomeNavigationRail(
   NavigationRail(
     modifier = modifier,
     header = {
-      FloatingActionButton(
-        onClick = onCreateSelected,
-      ) {
-        Icon(
-          Icons.Rounded.Create,
-          contentDescription = null,
-        )
-      }
+//      FloatingActionButton(
+//        onClick = onCreateSelected,
+//      ) {
+//        Icon(
+//          Icons.Rounded.Create,
+//          contentDescription = null,
+//        )
+//      }
     },
   ) {
     for (item in navigationItems) {
@@ -304,7 +304,7 @@ private fun HomeNavigationRail(
             selected = selectedNavigation == item.screen,
           )
         },
-//        alwaysShowLabel = false,
+        alwaysShowLabel = false,
         label = { Text(text = item.label) },
         selected = selectedNavigation == item.screen,
         onClick = { onNavigationSelected(item.screen) },

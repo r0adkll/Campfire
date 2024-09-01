@@ -32,6 +32,7 @@ abstract class DesktopApplicationComponent : SharedAppComponent {
   fun providePreferences(): Preferences {
     return Preferences.userRoot()
       .node("app.campfire.settings")
+      .apply { clear() }
   }
 
   @Provides
