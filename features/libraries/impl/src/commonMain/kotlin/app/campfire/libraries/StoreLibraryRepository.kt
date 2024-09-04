@@ -10,8 +10,8 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.asDbModel
-import app.campfire.data.mapping.asDbModels
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.asFetcherResult
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
-import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -56,7 +55,9 @@ class StoreLibraryRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             data.forEach { item ->
-              val (libraryItem, media) = item.asDbModels(userSession.serverUrl!!)
+              val libraryItem = item.asDbModel(userSession.serverUrl!!)
+              val media = item.media.asDbModel(item.id)
+
               db.libraryItemsQueries.insert(libraryItem)
               db.mediaQueries.insert(media)
             }
@@ -133,12 +134,5 @@ class StoreLibraryRepository(
             it.dataOrNull()?.map { it.asDomainModel(coverImageHydrator) }
           }
       }
-  }
-}
-
-fun <T : Any> Result<T>.asFetcherResult(): FetcherResult<T> {
-  return when {
-    isSuccess -> FetcherResult.Data(getOrThrow(), "api")
-    else -> FetcherResult.Error.Exception(exceptionOrNull()!!)
   }
 }

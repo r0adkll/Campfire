@@ -15,19 +15,17 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.rounded.Create
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -46,6 +44,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -63,16 +62,24 @@ import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalRootScreen
+import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.common.screens.DrawerScreen
+import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.logging.bark
+import app.campfire.shared.navigator.HomeNavigator
+import app.campfire.shared.navigator.NavigationType
+import app.campfire.shared.navigator.isSupportingPaneEnabled
+import app.campfire.shared.navigator.navigationType
 import campfire.shared.generated.resources.Res
+import campfire.shared.generated.resources.empty_supporting_pane_message
 import campfire.shared.generated.resources.nav_authors_content_description
 import campfire.shared.generated.resources.nav_authors_label
 import campfire.shared.generated.resources.nav_collections_content_description
@@ -88,13 +95,16 @@ import campfire.shared.generated.resources.settings_content_description
 import com.moriatsushi.insetsx.navigationBars
 import com.moriatsushi.insetsx.safeContentPadding
 import com.slack.circuit.backstack.SaveableBackStack
+import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitContent
 import com.slack.circuit.foundation.NavigableCircuitContent
+import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecoration
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -104,9 +114,14 @@ internal fun Home(
   windowInsets: WindowInsets,
   modifier: Modifier = Modifier,
 ) {
+  val coroutineScope = rememberCoroutineScope()
+
   val windowSizeClass = LocalWindowSizeClass.current
   val navigationType = remember(windowSizeClass) {
-    NavigationType.forWindowSizeSize(windowSizeClass)
+    windowSizeClass.navigationType
+  }
+  val isSupportingPaneEnabled = remember(windowSizeClass) {
+    windowSizeClass.isSupportingPaneEnabled
   }
 
   val rootScreen by remember(backstack) {
@@ -126,9 +141,25 @@ internal fun Home(
     overlayHost.currentOverlayData?.finish(Unit)
   }
 
+  /*
+   * Detail navigation setup
+   */
+
+  val detailBackStack = rememberSaveableBackStack(EmptyScreen(stringResource(Res.string.empty_supporting_pane_message)))
+  val detailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
+
+  val homeNavigator = remember(windowSizeClass) {
+    HomeNavigator(
+      windowSizeClass = windowSizeClass,
+      rootNavigator = navigator,
+      detailNavigator = detailNavigator,
+    )
+  }
+
   ContentWithOverlays(
     overlayHost = overlayHost,
   ) {
+
     // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
     // otherwise, this just pass the content() block through
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -141,7 +172,7 @@ internal fun Home(
         ) {
           CircuitContent(
             screen = DrawerScreen,
-            navigator = navigator,
+            navigator = homeNavigator,
           )
         }
       },
@@ -157,7 +188,7 @@ internal fun Home(
               HomeNavigationBar(
                 selectedNavigation = rootScreen,
                 navigationItems = navigationItems,
-                onNavigationSelected = { navigator.resetRoot(it) },
+                onNavigationSelected = { homeNavigator.resetRoot(it) },
                 modifier = Modifier.fillMaxWidth(),
               )
             }
@@ -185,38 +216,38 @@ internal fun Home(
             },
         ) {
           if (navigationType == NavigationType.RAIL) {
-            AnimatedVisibility(
-              visible = currentPresentation?.hideBottomNav == false,
-              enter = slideInHorizontally { it },
-              exit = slideOutHorizontally { it },
-            ) {
-              HomeNavigationRail(
-                selectedNavigation = rootScreen,
-                navigationItems = navigationItems,
-                onNavigationSelected = { navigator.resetRoot(it) },
-                onCreateSelected = {
-                  // TODO: Nav to deck builder screen
-                },
-                modifier = Modifier.fillMaxHeight(),
-              )
-            }
-          } else if (navigationType == NavigationType.PERMANENT_DRAWER) {
-            HomeNavigationDrawer(
+            HomeNavigationRail(
               selectedNavigation = rootScreen,
               navigationItems = navigationItems,
-              onNavigationSelected = { navigator.resetRoot(it) },
+              onNavigationSelected = { homeNavigator.resetRoot(it) },
+              onMenuSelected = {
+                coroutineScope.launch {
+                  drawerState.open()
+                }
+              },
               modifier = Modifier.fillMaxHeight(),
             )
           }
 
           NavigableCircuitContent(
-            navigator = navigator,
+            navigator = homeNavigator,
             backStack = backstack,
             decoration = GestureNavigationDecoration(
               onBackInvoked = navigator::pop,
             ),
-            modifier = modifier,
+            modifier = modifier.weight(1f),
           )
+
+          if (isSupportingPaneEnabled) {
+            Box(
+              Modifier.width(360.dp)
+            ) {
+              NavigableCircuitContent(
+                navigator = detailNavigator,
+                backStack = detailBackStack,
+              )
+            }
+          }
         }
       }
     }
@@ -231,6 +262,8 @@ private fun DrawerWithContent(
   drawerContent: @Composable () -> Unit,
   content: @Composable () -> Unit,
 ) {
+  // TODO: These are the only states now so this is effectively always true. We should evaluate whether
+  //  or not this is still needed and if this should be the default
   if (navigationType == NavigationType.BOTTOM_NAVIGATION || navigationType == NavigationType.RAIL) {
     CompositionLocalProvider(
       LocalDrawerState provides drawerState,
@@ -280,12 +313,17 @@ private fun HomeNavigationRail(
   selectedNavigation: Screen,
   navigationItems: List<HomeNavigationItem>,
   onNavigationSelected: (Screen) -> Unit,
-  onCreateSelected: () -> Unit,
+  onMenuSelected: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   NavigationRail(
     modifier = modifier,
     header = {
+      IconButton(
+        onClick = onMenuSelected
+      ) {
+        Icon(Icons.Rounded.Menu, contentDescription = null)
+      }
 //      FloatingActionButton(
 //        onClick = onCreateSelected,
 //      ) {
@@ -381,22 +419,6 @@ data class HomeNavigationItem(
   val iconImageVector: ImageVector,
   val selectedImageVector: ImageVector? = null,
 )
-
-internal enum class NavigationType {
-  BOTTOM_NAVIGATION,
-  RAIL,
-  PERMANENT_DRAWER,
-  ;
-
-  companion object {
-    fun forWindowSizeSize(windowSizeClass: WindowSizeClass): NavigationType = when {
-      windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact -> BOTTOM_NAVIGATION
-      windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact -> BOTTOM_NAVIGATION
-      windowSizeClass.widthSizeClass == WindowWidthSizeClass.Medium -> RAIL
-      else -> RAIL
-    }
-  }
-}
 
 @Composable
 private fun buildNavigationItems(): List<HomeNavigationItem> {

@@ -5,6 +5,9 @@ import app.campfire.data.Authors
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
 import app.campfire.data.Media
+import app.campfire.data.MediaAudioFiles
+import app.campfire.data.MediaAudioTracks
+import app.campfire.data.MediaChapters
 import app.campfire.data.Server
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
@@ -57,6 +60,20 @@ class DatabaseFactory(
     ),
     authorsAdapter = Authors.Adapter(
       numBooksAdapter = IntColumnAdapter,
+    ),
+    mediaAudioFilesAdapter = MediaAudioFiles.Adapter(
+      mediaIndexAdapter = IntColumnAdapter,
+      bitRateAdapter = IntColumnAdapter,
+      channelsAdapter = IntColumnAdapter,
+      discNumFromMetaAdapter = IntColumnAdapter,
+      trackNumFromMetaAdapter = IntColumnAdapter,
+      discNumFromFilenameAdapter = IntColumnAdapter,
+      trackNumFromFilenameAdapter = IntColumnAdapter,
+    ),
+    mediaChaptersAdapter = MediaChapters.Adapter(IntColumnAdapter),
+    mediaAudioTracksAdapter = MediaAudioTracks.Adapter(
+      mediaIndexAdapter = IntColumnAdapter,
+      metadata_sizeAdapter = IntColumnAdapter,
     ),
   )
 }

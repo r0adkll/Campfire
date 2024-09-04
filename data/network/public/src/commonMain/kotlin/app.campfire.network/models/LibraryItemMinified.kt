@@ -25,26 +25,26 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LibraryItemMinified<Metadata : BookMetadata>(
-  val id: String,
-  val ino: String,
-  val libraryId: String,
-  val oldLibraryItemId: String? = null,
-  val folderId: String,
-  val path: String,
-  val relPath: String,
-  val isFile: Boolean,
-  val mtimeMs: Long,
-  val ctimeMs: Long,
-  val birthtimeMs: Long,
-  val addedAt: Long,
-  val updatedAt: Long,
-  val isMissing: Boolean,
-  val isInvalid: Boolean,
-  val mediaType: MediaType,
+  override val id: String,
+  override val ino: String,
+  override val libraryId: String,
+  override val oldLibraryItemId: String? = null,
+  override val folderId: String,
+  override val path: String,
+  override val relPath: String,
+  override val isFile: Boolean,
+  override val mtimeMs: Long,
+  override val ctimeMs: Long,
+  override val birthtimeMs: Long,
+  override val addedAt: Long,
+  override val updatedAt: Long,
+  override val isMissing: Boolean,
+  override val isInvalid: Boolean,
+  override val mediaType: MediaType,
+  override val numFiles: Int? = null,
+  override val size: Long,
   val media: MediaMinified<Metadata>,
-  val numFiles: Int? = null,
   val libraryFiles: List<LibraryFile>? = null,
-  val size: Long,
 
   /**
    * When returned from the personalized library endpoint, and its shelf has an id of
@@ -84,4 +84,4 @@ data class LibraryItemMinified<Metadata : BookMetadata>(
    * then this field will be non-null.
    */
   val recentEpisode: PodcastEpisode? = null,
-)
+) : LibraryItemBase()

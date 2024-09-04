@@ -12,7 +12,6 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.session.UserSession
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
-import app.campfire.data.mapping.asDbModels
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
@@ -69,7 +68,9 @@ class StoreCollectionsRepository(
 
               // Insert the collection books
               collection.books.forEach { book ->
-                val (libraryItem, media) = book.asDbModels(userSession.serverUrl!!)
+                val libraryItem = book.asDbModel(userSession.serverUrl!!)
+                val media = book.media.asDbModel(book.id)
+
                 db.libraryItemsQueries.insert(libraryItem)
                 db.mediaQueries.insert(media)
 

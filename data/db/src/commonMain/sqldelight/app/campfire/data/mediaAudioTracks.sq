@@ -1,0 +1,29 @@
+import kotlin.Int;
+
+CREATE TABLE mediaAudioTracks (
+  mediaId TEXT NOT NULL,
+  mediaIndex INTEGER AS Int NOT NULL,
+
+  startOffset REAL NOT NULL,
+  duration REAL NOT NULL,
+  title TEXT NOT NULL,
+  contentUrl TEXT NOT NULL,
+  mimeType TEXT NOT NULL,
+  codec TEXT NOT NULL,
+
+  metadata_filename TEXT NOT NULL,
+  metadata_ext TEXT NOT NULL,
+  metadata_path TEXT NOT NULL,
+  metadata_relPath TEXT NOT NULL,
+  metadata_size INTEGER AS Int NOT NULL,
+  metadata_mtimeMs INTEGER NOT NULL,
+  metadata_ctimeMs INTEGER NOT NULL,
+  metadata_birthtimeMs INTEGER NOT NULL,
+
+  PRIMARY KEY (mediaId, mediaIndex),
+  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO mediaAudioTracks
+VALUES ?;

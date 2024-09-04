@@ -15,6 +15,7 @@ import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
+import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.Series
@@ -94,6 +95,12 @@ class KtorAudioBookShelfApi(
     return trySendRequest<LibraryItemsResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/items")
     }.map { it.results }
+  }
+
+  override suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded> {
+    return trySendRequest<LibraryItemExpanded> {
+      hydratedClientRequest("/api/items/$itemId?expanded=1&include=progress,authors,downloads")
+    }
   }
 
   override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {

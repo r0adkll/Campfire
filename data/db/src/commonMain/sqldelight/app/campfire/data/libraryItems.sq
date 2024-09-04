@@ -22,37 +22,13 @@ CREATE TABLE libraryItem (
   numFiles INTEGER AS Int NOT NULL,
   size INTEGER NOT NULL,
 
-  weight REAL,
-  progressLastUpdate INTEGER,
-  finishedAt INTEGER,
-  prevBookInProgressLastUpdate INTEGER,
-
   serverUrl TEXT NOT NULL,
   FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
 );
 
 insert:
-INSERT OR REPLACE INTO libraryItem (
-  id,
-  ino,
-  libraryId,
-  oldLibraryItemId,
-  folderId,
-  path,
-  relPath,
-  isFile,
-  mtimeMs,
-  ctimeMs,
-  birthtimeMs,
-  addedAt,
-  updatedAt,
-  isMissing,
-  isInvalid,
-  mediaType,
-  numFiles,
-  size,
-  serverUrl
-) VALUES ?;
+INSERT OR REPLACE INTO libraryItem
+VALUES ?;
 
 selectForLibrary:
 SELECT * FROM libraryItem
@@ -74,3 +50,7 @@ WHERE collectionsBookJoin.collectionsId = ?;
 deleteForLibrary:
 DELETE FROM libraryItem
 WHERE libraryId = ?;
+
+deleteForId:
+DELETE FROM libraryItem
+WHERE id = ?;

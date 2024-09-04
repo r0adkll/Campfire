@@ -10,7 +10,6 @@ import app.campfire.core.model.Series
 import app.campfire.core.session.UserSession
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
-import app.campfire.data.mapping.asDbModels
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
@@ -74,7 +73,7 @@ class StoreSeriesRepository(
 
               // Insert the series books
               series.books?.forEach { book ->
-                val (libraryItem, media) = book.asDbModels(serverUrl)
+                val (libraryItem, media) = book.asDbModel(serverUrl)
                 db.libraryItemsQueries.insert(libraryItem)
                 db.mediaQueries.insert(media)
 

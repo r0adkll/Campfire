@@ -4,6 +4,7 @@ import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
+import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.Series
@@ -46,6 +47,14 @@ interface AudioBookShelfApi {
    * @return as result with the list of library items
    */
   suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
+
+  /**
+   * Fetch a single library item
+   *
+   * @param itemId the id of the item to fetch
+   * @return as result with the library item with expanded details
+   */
+  suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded>
 
   /**
    * Get a Library's Personalized View

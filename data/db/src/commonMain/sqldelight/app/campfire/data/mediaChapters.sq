@@ -1,0 +1,17 @@
+import kotlin.Int;
+
+CREATE TABLE mediaChapters (
+  mediaId TEXT NOT NULL,
+
+  id INTEGER AS Int NOT NULL,
+  start REAL NOT NULL,
+  end REAL NOT NULL,
+  title TEXT NOT NULL,
+
+  PRIMARY KEY (mediaId, id),
+  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO mediaChapters
+VALUES ?;

@@ -1,0 +1,36 @@
+import kotlin.Boolean;
+import kotlin.Int;
+
+CREATE TABLE mediaAudioFiles (
+  mediaId TEXT NOT NULL,
+  mediaIndex INTEGER AS Int NOT NULL,
+
+  ino TEXT NOT NULL,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  trackNumFromMeta INTEGER AS Int,
+  discNumFromMeta INTEGER AS Int,
+  trackNumFromFilename INTEGER AS Int,
+  discNumFromFilename INTEGER AS Int,
+  manuallyVerified INTEGER AS Boolean NOT NULL,
+  invalid INTEGER AS Boolean,
+  exclude INTEGER AS Boolean NOT NULL,
+  error TEXT,
+  format TEXT,
+  duration REAL NOT NULL,
+  bitRate INTEGER AS Int NOT NULL,
+  language TEXT,
+  codec TEXT NOT NULL,
+  timeBase TEXT NOT NULL,
+  channels INTEGER AS Int NOT NULL,
+  channelLayout TEXT NOT NULL,
+  embeddedCoverArt TEXT,
+  mimeType TEXT,
+
+  PRIMARY KEY (mediaId, mediaIndex),
+  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO mediaAudioFiles
+VALUES ?;

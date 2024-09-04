@@ -11,15 +11,17 @@ import app.campfire.data.Media as DatabaseMedia
 import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForLibrary
 import app.campfire.data.SelectForSeries
-import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.network.models.LibraryItemBase
+import app.campfire.network.models.Media
+import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
-fun LibraryItemMinified<*>.asDbModels(
+fun LibraryItemBase.asDbModel(
   serverUrl: String,
-): Pair<DatabaseLibraryItem, DatabaseMedia> {
+): DatabaseLibraryItem {
   return DatabaseLibraryItem(
     id = id,
     ino = ino,
@@ -40,19 +42,20 @@ fun LibraryItemMinified<*>.asDbModels(
       NetworkMediaType.Book -> DomainMediaType.Book
       NetworkMediaType.Podcast -> DomainMediaType.Podcast
     },
-    numFiles = numFiles ?: libraryFiles?.size ?: -1,
+    numFiles = numFiles ?: -1,
     size = size,
-    weight = weight,
-    progressLastUpdate = progressLastUpdate,
-    finishedAt = finishedAt,
-    prevBookInProgressLastUpdate = prevBookInProgressLastUpdate,
     serverUrl = serverUrl,
-  ) to media.asDbModel(id)
+  )
 }
 
-fun NetworkMediaMinified<*>.asDbModel(
+fun <T : Media> T.asDbModel(
   libraryItemId: String,
 ): DatabaseMedia {
+  val metadata = when (this) {
+    is NetworkMediaMinified<*> -> metadata
+    is MediaExpanded -> metadata
+    else -> error("Unknown media metadata")
+  }
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
   return DatabaseMedia(
     libraryItemId = libraryItemId,

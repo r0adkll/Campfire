@@ -59,6 +59,7 @@ kotlin {
 
         implementation(libs.kotlininject.runtime)
         implementation(libs.kimchi.annotations)
+        implementation(libs.kimchi.circuit.annotations)
       }
     }
 
@@ -85,3 +86,4 @@ android {
 
 addKspDependencyForAllTargets(libs.kotlininject.ksp)
 addKspDependencyForAllTargets(libs.kimchi.compiler)
+addKspDependencyForAllTargets(libs.kimchi.circuit.compiler)

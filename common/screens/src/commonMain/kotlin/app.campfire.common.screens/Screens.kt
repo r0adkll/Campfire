@@ -18,6 +18,11 @@ import com.slack.circuit.runtime.screen.StaticScreen
 data object RootScreen : BaseScreen(name = "Root")
 
 @Parcelize
+data class EmptyScreen(
+  val message: String,
+) : StaticScreen
+
+@Parcelize
 data object WelcomeScreen : BaseScreen(name = "Welcome()") {
   override val presentation: Presentation
     get() = Presentation(hideBottomNav = true)
@@ -41,7 +46,7 @@ data object LibraryScreen : BaseScreen(name = "Library()")
 @Parcelize
 data class LibraryItemScreen(
   val libraryItemId: LibraryItemId,
-) : BaseScreen(name = "LibraryItem()")
+) : DetailScreen(name = "LibraryItem()")
 
 @Parcelize
 data object SeriesScreen : BaseScreen(name = "Series()")
@@ -49,7 +54,7 @@ data object SeriesScreen : BaseScreen(name = "Series()")
 @Parcelize
 data class SeriesDetailScreen(
   val seriesId: SeriesId,
-) : BaseScreen(name = "SeriesDetail()")
+) : DetailScreen(name = "SeriesDetail()")
 
 @Parcelize
 data object CollectionsScreen : BaseScreen(name = "Collections()")
@@ -57,7 +62,7 @@ data object CollectionsScreen : BaseScreen(name = "Collections()")
 @Parcelize
 data class CollectionDetailScreen(
   val collectionId: CollectionId,
-) : BaseScreen(name = "CollectionDetail()")
+) : DetailScreen(name = "CollectionDetail()")
 
 @Parcelize
 data object AuthorsScreen : BaseScreen(name = "Authors()")
@@ -65,7 +70,7 @@ data object AuthorsScreen : BaseScreen(name = "Authors()")
 @Parcelize
 data class AuthorDetailScreen(
   val authorId: AuthorId,
-) : BaseScreen(name = "AuthorDetailScreen()")
+) : DetailScreen(name = "AuthorDetailScreen()")
 
 @Parcelize
 data object StatisticsScreen : BaseScreen(name = "Statistics()")
@@ -86,6 +91,15 @@ data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen()") {
 }
 
 //endregion
+
+/**
+ * Screens that implement this will display in full screen on phones,
+ * or in the supporting pane on larger devices like desktop, tablets and foldables
+ */
+abstract class DetailScreen(name: String) : BaseScreen(name) {
+  override val presentation: Presentation
+    get() = Presentation.Fullscreen
+}
 
 /**
  * The Root screen class that all other screen definitions will use as the underlying screen

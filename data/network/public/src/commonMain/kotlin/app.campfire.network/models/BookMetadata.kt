@@ -93,6 +93,16 @@ data class ExpandedBookMetadata(
   override val seriesName: String? = null,
 
   /**
+   * List of authors in the meta
+   */
+  val authors: List<AuthorSeries>? = null,
+
+  /**
+   * List of narrators in the meta
+   */
+  val narrators: List<String>? = null,
+
+  /**
    * When [LibraryItemMinified] is returned from the collections endpoint, its metadata
    * will contain this
    */
