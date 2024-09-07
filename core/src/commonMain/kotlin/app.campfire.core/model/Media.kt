@@ -2,7 +2,7 @@ package app.campfire.core.model
 
 typealias MediaId = String
 
-data class MediaMinified(
+data class Media(
   val id: MediaId,
   val metadata: Metadata,
   val coverImageUrl: String,
@@ -15,6 +15,9 @@ data class MediaMinified(
   val durationInMillis: Long,
   val sizeInBytes: Long,
   val ebookFormat: String? = null,
+  val audioFiles: List<AudioFile> = emptyList(),
+  val chapters: List<Chapter> = emptyList(),
+  val tracks: List<AudioTrack> = emptyList(),
 ) {
   data class Metadata(
     val title: String?,

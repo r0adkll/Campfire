@@ -15,3 +15,7 @@ CREATE TABLE mediaChapters (
 insert:
 INSERT OR REPLACE INTO mediaChapters
 VALUES ?;
+
+selectForMediaId:
+SELECT * FROM mediaChapters
+WHERE mediaId = ?;

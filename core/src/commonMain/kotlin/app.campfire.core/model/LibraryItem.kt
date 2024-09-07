@@ -12,5 +12,8 @@ data class LibraryItem(
   val sizeInBytes: Long,
   val addedAtMillis: Long,
   val updatedAtMillis: Long,
-  val media: MediaMinified,
+  val media: Media,
+
+  val libraryFiles: List<LibraryFile> = emptyList(),
+  val userMediaProgress: MediaProgress? = null,
 )

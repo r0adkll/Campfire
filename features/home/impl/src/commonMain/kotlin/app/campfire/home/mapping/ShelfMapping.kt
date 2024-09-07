@@ -3,7 +3,7 @@ package app.campfire.home.mapping
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.model.Author as DomainAuthor
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.MediaMinified
+import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesSequence
@@ -50,7 +50,7 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
     sizeInBytes = size,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = MediaMinified(
+    media = Media(
       id = media.id,
       coverImageUrl = imageHydrator.hydrateLibraryItem(id),
       tags = media.tags ?: emptyList(),
@@ -62,7 +62,7 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
       durationInMillis = media.duration.seconds.inWholeMilliseconds,
       sizeInBytes = media.size,
       ebookFormat = media.ebookFormat,
-      metadata = MediaMinified.Metadata(
+      metadata = Media.Metadata(
         title = media.metadata.title,
         titleIgnorePrefix = media.metadata.titleIgnorePrefix,
         subtitle = media.metadata.subtitle,

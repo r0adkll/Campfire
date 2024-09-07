@@ -8,6 +8,7 @@ import app.campfire.data.Media
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
+import app.campfire.data.MediaProgress
 import app.campfire.data.Server
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
@@ -75,5 +76,8 @@ class DatabaseFactory(
       mediaIndexAdapter = IntColumnAdapter,
       metadata_sizeAdapter = IntColumnAdapter,
     ),
+    mediaProgressAdapter = MediaProgress.Adapter(
+      mediaItemTypeAdapter = EnumColumnAdapter(),
+    )
   )
 }

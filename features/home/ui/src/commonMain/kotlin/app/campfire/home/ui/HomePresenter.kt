@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
+import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.di.UserScope
 import app.campfire.home.api.HomeRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -34,11 +37,12 @@ class HomePresenter(
       homeFeed = feed,
     ) { event ->
       when (event) {
-        HomeUiEvent.OpenSearch -> TODO()
+        HomeUiEvent.OpenSearch -> {
+        }
 
-        is HomeUiEvent.OpenLibraryItem -> TODO()
-        is HomeUiEvent.OpenSeries -> TODO()
-        is HomeUiEvent.OpenAuthor -> TODO()
+        is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id))
+        is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id))
+        is HomeUiEvent.OpenSeries -> navigator.goTo(SeriesDetailScreen(event.series.id))
       }
     }
   }

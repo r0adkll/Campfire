@@ -18,6 +18,9 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.Author
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Series
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
@@ -58,6 +61,14 @@ fun HomeScreen(
       is HomeFeed.Loaded -> LoadedState(
         shelves = state.homeFeed.shelves,
         contentPadding = paddingValues,
+        onItemClick = { item ->
+          when (item) {
+            is LibraryItem -> state.eventSink(HomeUiEvent.OpenLibraryItem(item))
+            is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
+            is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+            else -> Unit
+          }
+        }
       )
     }
   }
@@ -66,6 +77,7 @@ fun HomeScreen(
 @Composable
 private fun LoadedState(
   shelves: List<Shelf<*>>,
+  onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -79,6 +91,7 @@ private fun LoadedState(
     items(shelves) { shelf ->
       ShelfListItem(
         shelf = shelf,
+        onItemClick = onItemClick,
       )
     }
   }

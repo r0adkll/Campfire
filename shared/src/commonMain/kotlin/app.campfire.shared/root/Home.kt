@@ -18,9 +18,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +35,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
@@ -239,8 +242,14 @@ internal fun Home(
           )
 
           if (isSupportingPaneEnabled) {
-            Box(
-              Modifier.width(360.dp)
+            Surface(
+              modifier = Modifier.width(360.dp),
+              shadowElevation = 6.dp,
+              tonalElevation = 6.dp,
+              shape = RoundedCornerShape(
+                topStart = 32.dp,
+                bottomStart = 32.dp,
+              )
             ) {
               NavigableCircuitContent(
                 navigator = detailNavigator,

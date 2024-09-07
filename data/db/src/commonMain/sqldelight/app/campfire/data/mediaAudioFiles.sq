@@ -25,7 +25,7 @@ CREATE TABLE mediaAudioFiles (
   channels INTEGER AS Int NOT NULL,
   channelLayout TEXT NOT NULL,
   embeddedCoverArt TEXT,
-  mimeType TEXT,
+  mimeType TEXT NOT NULL,
 
   PRIMARY KEY (mediaId, mediaIndex),
   FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
@@ -34,3 +34,7 @@ CREATE TABLE mediaAudioFiles (
 insert:
 INSERT OR REPLACE INTO mediaAudioFiles
 VALUES ?;
+
+selectForMediaId:
+SELECT * FROM mediaAudioFiles
+WHERE mediaId = ?;

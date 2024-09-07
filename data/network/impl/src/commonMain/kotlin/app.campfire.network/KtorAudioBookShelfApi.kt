@@ -71,6 +71,7 @@ class KtorAudioBookShelfApi(
     .map { it.success }
     .getOrElse { false }
 
+
   override suspend fun login(
     serverUrl: String,
     username: String,
@@ -139,6 +140,7 @@ class KtorAudioBookShelfApi(
         Result.failure(ApiException(response.status.value, response.bodyAsText()))
       }
     } catch (e: IOException) {
+      e.printStackTrace()
       Result.failure(e)
     }
   }

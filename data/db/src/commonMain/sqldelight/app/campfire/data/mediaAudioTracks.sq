@@ -27,3 +27,7 @@ CREATE TABLE mediaAudioTracks (
 insert:
 INSERT OR REPLACE INTO mediaAudioTracks
 VALUES ?;
+
+selectForMediaId:
+SELECT * FROM mediaAudioTracks
+WHERE mediaId = ?;

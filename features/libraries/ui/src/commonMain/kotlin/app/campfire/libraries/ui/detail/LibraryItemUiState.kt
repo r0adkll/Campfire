@@ -15,4 +15,6 @@ sealed interface LibraryItemContentState {
   data object Error : LibraryItemContentState
 }
 
-sealed interface LibraryItemUiEvent : CircuitUiEvent
+sealed interface LibraryItemUiEvent : CircuitUiEvent {
+  data object OnBack : LibraryItemUiEvent
+}

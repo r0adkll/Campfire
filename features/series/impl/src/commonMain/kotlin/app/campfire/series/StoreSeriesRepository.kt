@@ -73,7 +73,8 @@ class StoreSeriesRepository(
 
               // Insert the series books
               series.books?.forEach { book ->
-                val (libraryItem, media) = book.asDbModel(serverUrl)
+                val libraryItem = book.asDbModel(serverUrl)
+                val media = book.media.asDbModel(book.id)
                 db.libraryItemsQueries.insert(libraryItem)
                 db.mediaQueries.insert(media)
 

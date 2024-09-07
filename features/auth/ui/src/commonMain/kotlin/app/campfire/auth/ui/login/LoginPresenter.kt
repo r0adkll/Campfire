@@ -122,7 +122,12 @@ class LoginPresenter(
         return@LaunchedEffect
       }
 
-      connectionState = if (authRepository.ping(serverUrl)) {
+      val result = try {
+        authRepository.ping(serverUrl)
+      } catch (e: Exception) {
+        false
+      }
+      connectionState = if (result) {
         ConnectionState.Success
       } else {
         ConnectionState.Error

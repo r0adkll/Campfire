@@ -8,12 +8,13 @@ import app.campfire.home.api.model.Shelf
 @Composable
 fun ShelfListItem(
   shelf: Shelf<*>,
+  onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(
     modifier = modifier,
   ) {
     ShelfHeader(shelf)
-    ShelfContent(shelf)
+    ShelfContent(shelf, onItemClick)
   }
 }

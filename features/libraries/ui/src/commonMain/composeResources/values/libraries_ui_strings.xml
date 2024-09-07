@@ -1,6 +1,10 @@
 <resources>
   <string name="error_library_items_message">Something went wrong when trying to load this library</string>
   <string name="empty_library_items_message">No items in this library</string>
+  <string name="error_library_item_message">Something went wrong when trying to load this library item</string>
+  <string name="error_item_image_message">Uh-oh! Unable to load image.</string>
+
+  <string name="unknown_title">Unknown</string>
 
   <string name="sort_mode_sheet_title">Sort library by</string>
   <string name="sort_mode_title">Title</string>
@@ -10,4 +14,16 @@
   <string name="sort_mode_addedat">Added at</string>
   <string name="sort_mode_size">Size</string>
   <string name="sort_mode_duration">Duration</string>
+
+  <string name="action_resume_listening">Continue listening</string>
+  <string name="action_play">Play</string>
+  <string name="action_show_less">Show less</string>
+  <string name="action_show_more">Show more</string>
+
+  <string name="menu_item_mark_finished">Mark as finished</string>
+  <string name="menu_item_discard_progress">Discard progress</string>
+  <string name="menu_item_add_playlist">Add to playlist</string>
+  <string name="menu_item_add_collection">Add to collection</string>
+
+  <string name="header_chapters">Chapters</string>
 </resources>
