@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -24,10 +25,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.util.Palette
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.LibraryItemScreen
@@ -56,6 +63,8 @@ fun LibraryItem(
   state: LibraryItemUiState,
   modifier: Modifier = Modifier,
 ) {
+  var palette by remember { mutableStateOf<Palette?>(null) }
+
   Scaffold(
     topBar = {
       TopAppBar(
@@ -103,6 +112,9 @@ fun LibraryItem(
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
 
+        },
+        onColorPalette = { p ->
+          palette = p
         }
       )
     }
@@ -113,6 +125,7 @@ fun LibraryItem(
 fun LoadedState(
   item: LibraryItem,
   onChapterClick: (Chapter) -> Unit,
+  onColorPalette: (Palette) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   scrollState: ScrollState = rememberScrollState(),

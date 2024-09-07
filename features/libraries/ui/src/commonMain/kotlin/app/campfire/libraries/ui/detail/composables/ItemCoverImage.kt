@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.error_item_image_message
@@ -75,6 +76,7 @@ private fun PlaceholderCover(
   Image(
     painterResource(Res.drawable.placeholder_book),
     contentDescription = null,
+    contentScale = ContentScale.Crop,
     modifier = modifier
       .size(CoverImageSize)
       .clip(RoundedCornerShape(CoverImageCornerRadius)),

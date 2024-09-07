@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
-import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.core.model.MediaProgress
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong

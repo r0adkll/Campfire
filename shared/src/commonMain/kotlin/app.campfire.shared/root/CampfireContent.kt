@@ -19,6 +19,7 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
+import app.campfire.core.logging.bark
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.moriatsushi.insetsx.statusBars
 import com.moriatsushi.insetsx.systemBars
@@ -86,12 +87,6 @@ fun CampfireContentWithInsets(
 
       val urlNavigator: Navigator = remember(navigator) {
         OpenUrlNavigator(navigator, onOpenUrl)
-      }
-
-      // Everytime the user session changes reset the backstack to the root screen for a given user
-      // session type
-      LaunchedEffect(userComponent.currentUserSession) {
-        navigator.resetRoot(userComponent.rootScreen)
       }
 
       CircuitCompositionLocals(userComponent.circuit) {
