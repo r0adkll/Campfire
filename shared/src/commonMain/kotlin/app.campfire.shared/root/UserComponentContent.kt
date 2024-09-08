@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -50,7 +49,7 @@ fun UserComponentContent(
       }
 
       CompositionLocalProvider(
-        LocalUserSession provides userComponent.currentUserSession
+        LocalUserSession provides userComponent.currentUserSession,
       ) {
         content(userComponent)
       }

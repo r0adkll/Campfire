@@ -26,14 +26,12 @@ import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -174,7 +172,7 @@ internal fun ServerCard(
       ) {
         Autofill(
           autofillTypes = listOf(AutofillType.Username),
-          onFill = { onUsernameChange(it) }
+          onFill = { onUsernameChange(it) },
         ) {
           OutlinedTextField(
             value = username,
@@ -193,7 +191,7 @@ internal fun ServerCard(
 
         Autofill(
           autofillTypes = listOf(AutofillType.Password),
-          onFill = { onPasswordChange(it) }
+          onFill = { onPasswordChange(it) },
         ) {
           var showPassword by remember { mutableStateOf(false) }
           OutlinedTextField(

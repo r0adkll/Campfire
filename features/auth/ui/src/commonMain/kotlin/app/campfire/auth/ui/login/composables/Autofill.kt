@@ -30,16 +30,16 @@ internal fun Autofill(
     }
 
   Box(
-      modifier =
-      Modifier.onFocusChanged {
-          if (it.isFocused) {
-              autofill?.requestAutofillForNode(autofillNode)
-          } else {
-              autofill?.cancelAutofillForNode(autofillNode)
-          }
+    modifier =
+    Modifier.onFocusChanged {
+      if (it.isFocused) {
+        autofill?.requestAutofillForNode(autofillNode)
+      } else {
+        autofill?.cancelAutofillForNode(autofillNode)
       }
-          .onGloballyPositioned { autofillNode.boundingBox = it.boundsInWindow() },
-      content = content,
+    }
+      .onGloballyPositioned { autofillNode.boundingBox = it.boundsInWindow() },
+    content = content,
   )
 
   DisposableEffect(autofillNode) {
