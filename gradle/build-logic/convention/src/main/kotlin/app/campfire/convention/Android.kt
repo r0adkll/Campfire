@@ -1,10 +1,9 @@
-// Copyright 2023, Drew Heavner and the Deckbox project contributors
+// Copyright 2023, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: Apache-2.0
 
 package app.campfire.convention
 
 import com.android.build.gradle.BaseExtension
-import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies

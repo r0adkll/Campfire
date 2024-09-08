@@ -1,4 +1,4 @@
-// Copyright 2023, Drew Heavner and the Deckbox project contributors
+// Copyright 2023, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: Apache-2.0
 
 package app.campfire.convention
@@ -55,7 +55,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
               freeCompilerArgs.addAll(
                 "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
                 "-opt-in=kotlinx.cinterop.BetaInteropApi",
-                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+                "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
               )
             }
           }
