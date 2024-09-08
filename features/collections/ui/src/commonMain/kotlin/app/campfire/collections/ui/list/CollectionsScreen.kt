@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -28,16 +27,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.contentWindowInsets
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Collection
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.collections.ui.generated.resources.Res
@@ -54,18 +58,21 @@ fun Collections(
   campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
+  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val listState = rememberLazyListState()
 
   Scaffold(
     topBar = {
-      // Injected appbar that injects its own presenter to consistently load its state
-      // across multiple services.
-      campfireAppBar(
-        { },
-        Modifier,
-        appBarBehavior,
-      )
+      if (!windowSizeClass.isSupportingPaneEnabled) {
+        // Injected appbar that injects its own presenter to consistently load its state
+        // across multiple services.
+        campfireAppBar(
+          { },
+          Modifier,
+          appBarBehavior,
+        )
+      }
     },
     floatingActionButton = {
       val isExpanded by remember {
@@ -85,8 +92,10 @@ fun Collections(
       )
     },
     floatingActionButtonPosition = FabPosition.Center,
-    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
-    contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars),
+    modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
+      nestedScroll(appBarBehavior.nestedScrollConnection)
+    },
+    contentWindowInsets = windowSizeClass.contentWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.collectionContentState) {
       CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))

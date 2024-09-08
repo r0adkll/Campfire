@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
@@ -33,6 +34,7 @@ class StoreHomeRepository(
 ) : HomeRepository {
 
   // TODO: Implement a store with api/db, for now just load directly from API
+  private val shelfCache = mutableMapOf<String, List<Shelf<*>>>()
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeHomeFeed(): Flow<List<Shelf<*>>> {
@@ -47,12 +49,17 @@ class StoreHomeRepository(
           if (result.isSuccess) {
             val data = result.getOrThrow()
               .map { it.asDomainModel(imageHydrator) }
+            shelfCache[serverUrl] = data
             emit(data)
           } else {
             throw result.exceptionOrNull()
               ?: Exception("Unable to fetch home feed")
           }
         }.flowOn(dispatcherProvider.io)
+      }
+      .onStart {
+        // If we have shelf data in the cache, emit it for faster UI experience
+        shelfCache[serverUrl]?.let { emit(it) }
       }
   }
 }

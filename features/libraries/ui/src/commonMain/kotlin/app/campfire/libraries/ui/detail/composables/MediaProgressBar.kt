@@ -5,13 +5,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.widgets.FancyLinearProgressIndicator
 import app.campfire.core.model.MediaProgress
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
@@ -24,11 +26,12 @@ internal fun MediaProgressBar(
 ) {
   Column(
     modifier = modifier
-      .fillMaxWidth()
+      .fillMaxWidth(),
   ) {
-    LinearProgressIndicator(
+    FancyLinearProgressIndicator(
       progress = { progress.progress },
       modifier = Modifier.fillMaxWidth(),
+      strokeCap = StrokeCap.Round,
     )
 
     Spacer(Modifier.height(4.dp))
@@ -39,6 +42,7 @@ internal fun MediaProgressBar(
       Text(
         text = remainingDuration,
         style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.SemiBold,
       )
 
       Spacer(Modifier.weight(1f))
@@ -46,6 +50,7 @@ internal fun MediaProgressBar(
       Text(
         text = "${progress.progress.times(100f).roundToInt()}%",
         style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.SemiBold,
       )
     }
   }

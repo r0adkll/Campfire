@@ -17,7 +17,6 @@ class DrawerPresenter(
 
   @Composable
   override fun present(): DrawerUiState {
-
     return DrawerUiState { event ->
       when (event) {
         is DrawerUiEvent.ItemClick -> navigator.goTo(event.item.screen)

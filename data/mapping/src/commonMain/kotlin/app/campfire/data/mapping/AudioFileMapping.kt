@@ -1,7 +1,7 @@
 package app.campfire.data.mapping
 
-import app.campfire.network.models.AudioFile as NetworkAudioFile
 import app.campfire.data.MediaAudioFiles
+import app.campfire.network.models.AudioFile as NetworkAudioFile
 
 fun NetworkAudioFile.asDbModel(mediaId: String): MediaAudioFiles {
   return MediaAudioFiles(

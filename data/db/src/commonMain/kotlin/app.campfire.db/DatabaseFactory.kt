@@ -78,6 +78,6 @@ class DatabaseFactory(
     ),
     mediaProgressAdapter = MediaProgress.Adapter(
       mediaItemTypeAdapter = EnumColumnAdapter(),
-    )
+    ),
   )
 }

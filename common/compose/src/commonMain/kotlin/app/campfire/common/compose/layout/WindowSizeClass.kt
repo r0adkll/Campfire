@@ -1,10 +1,14 @@
-package app.campfire.shared.navigator
+package app.campfire.common.compose.layout
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import app.campfire.shared.navigator.NavigationType.BOTTOM_NAVIGATION
-import app.campfire.shared.navigator.NavigationType.RAIL
+import androidx.compose.runtime.Composable
 
 /**
  * Return if the supporting pane layout is enabled for this size class
@@ -18,9 +22,16 @@ val WindowSizeClass.isSupportingPaneEnabled: Boolean
  */
 val WindowSizeClass.navigationType: NavigationType
   get() = when {
-    widthSizeClass == WindowWidthSizeClass.Compact -> BOTTOM_NAVIGATION
+    widthSizeClass == WindowWidthSizeClass.Compact -> NavigationType.BOTTOM_NAVIGATION
     // TODO: This is essentially a phone portrait mode, What would be the optimal setup for this
 //      windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact -> BOTTOM_NAVIGATION
-    widthSizeClass == WindowWidthSizeClass.Medium -> RAIL
-    else -> RAIL
+    widthSizeClass == WindowWidthSizeClass.Medium -> NavigationType.RAIL
+    else -> NavigationType.RAIL
+  }
+
+val WindowSizeClass.contentWindowInsets: WindowInsets
+  @Composable get() = if (isSupportingPaneEnabled) {
+    WindowInsets.systemBars.exclude(WindowInsets.statusBars)
+  } else {
+    ScaffoldDefaults.contentWindowInsets
   }

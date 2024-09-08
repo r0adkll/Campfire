@@ -12,15 +12,21 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.contentWindowInsets
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.author.ui.generated.resources.Res
@@ -35,19 +41,25 @@ fun Authors(
   campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
+  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   Scaffold(
     topBar = {
-      // Injected appbar that injects its own presenter to consistently load its state
-      // across multiple services.
-      campfireAppBar(
-        { },
-        Modifier,
-        appBarBehavior,
-      )
+      if (!windowSizeClass.isSupportingPaneEnabled) {
+        // Injected appbar that injects its own presenter to consistently load its state
+        // across multiple services.
+        campfireAppBar(
+          { },
+          Modifier,
+          appBarBehavior,
+        )
+      }
     },
-    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
+    modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
+      nestedScroll(appBarBehavior.nestedScrollConnection)
+    },
+    contentWindowInsets = windowSizeClass.contentWindowInsets,
   ) { paddingValues ->
     when (state.authorContentState) {
       AuthorsContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -75,7 +87,7 @@ private fun LoadedState(
   columns: Int = DefaultColumns,
 ) {
   LazyVerticalGrid(
-    columns = GridCells.Fixed(columns),
+    columns = GridCells.Adaptive(100.dp),
     state = state,
     modifier = modifier,
     contentPadding = contentPadding + PaddingValues(16.dp),

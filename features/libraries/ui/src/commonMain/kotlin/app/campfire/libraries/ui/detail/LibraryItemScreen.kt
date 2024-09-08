@@ -1,6 +1,5 @@
 package app.campfire.libraries.ui.detail
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -30,7 +29,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,8 +39,8 @@ import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
-import app.campfire.libraries.ui.detail.composables.DurationListItem
 import app.campfire.libraries.ui.detail.composables.ControlBar
+import app.campfire.libraries.ui.detail.composables.DurationListItem
 import app.campfire.libraries.ui.detail.composables.ItemCoverImage
 import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.ItemMetadata
@@ -111,11 +109,10 @@ fun LibraryItem(
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
-
         },
         onColorPalette = { p ->
           palette = p
-        }
+        },
       )
     }
   }
@@ -150,7 +147,7 @@ fun LoadedState(
       textAlign = TextAlign.Center,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 16.dp)
+        .padding(horizontal = 16.dp),
     )
 
     Spacer(Modifier.height(16.dp))
@@ -174,7 +171,7 @@ fun LoadedState(
       onAddToPlaylist = {},
       onAddToCollection = {},
       modifier = Modifier
-        .padding(horizontal = 16.dp)
+        .padding(horizontal = 16.dp),
     )
 
     ItemMetadata(

@@ -97,8 +97,8 @@ data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen()") {
  * or in the supporting pane on larger devices like desktop, tablets and foldables
  */
 abstract class DetailScreen(name: String) : BaseScreen(name) {
-  override val presentation: Presentation
-    get() = Presentation.Fullscreen
+//  override val presentation: Presentation
+//    get() = Presentation.Fullscreen
 }
 
 /**

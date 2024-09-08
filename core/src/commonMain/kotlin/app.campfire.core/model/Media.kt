@@ -38,5 +38,12 @@ data class Media(
     val language: String?,
     val isExplicit: Boolean,
     val isAbridged: Boolean,
+
+    val authors: List<AuthorMetadata> = emptyList(),
+  )
+
+  data class AuthorMetadata(
+    val id: AuthorId,
+    val name: String,
   )
 }

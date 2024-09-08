@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.libraries.api.LibraryRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter

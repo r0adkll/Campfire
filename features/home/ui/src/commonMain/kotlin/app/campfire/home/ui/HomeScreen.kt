@@ -11,13 +11,19 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.contentWindowInsets
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -37,19 +43,26 @@ fun HomeScreen(
   campfireAppbar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
+  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   Scaffold(
     topBar = {
-      // Injected appbar that injects its own presenter to consistently load its state
-      // across multiple services.
-      campfireAppbar(
-        { state.eventSink(HomeUiEvent.OpenSearch) },
-        Modifier,
-        appBarBehavior,
-      )
+      if (!windowSizeClass.isSupportingPaneEnabled) {
+        // Injected appbar that injects its own presenter to consistently load its state
+        // across multiple services.
+        campfireAppbar(
+          { state.eventSink(HomeUiEvent.OpenSearch) },
+          Modifier,
+          appBarBehavior,
+        )
+      }
     },
-    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
+    modifier = modifier
+      .fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
+        nestedScroll(appBarBehavior.nestedScrollConnection)
+      },
+    contentWindowInsets = windowSizeClass.contentWindowInsets,
   ) { paddingValues ->
     when (state.homeFeed) {
       HomeFeed.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -68,7 +81,7 @@ fun HomeScreen(
             is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
             else -> Unit
           }
-        }
+        },
       )
     }
   }

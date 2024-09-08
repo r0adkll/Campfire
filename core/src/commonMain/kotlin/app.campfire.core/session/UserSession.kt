@@ -12,3 +12,6 @@ sealed class UserSession {
     override val serverUrl: String? = null
   }
 }
+
+val UserSession.isLoggedIn: Boolean
+  get() = this is UserSession.LoggedIn

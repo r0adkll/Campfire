@@ -7,7 +7,8 @@ enum class SortMode(override val storageKey: String) : EnumSetting {
   PublishYear("publish-year"),
   AddedAt("added-at"),
   Size("size"),
-  Duration("duration");
+  Duration("duration"),
+  ;
 
   companion object : EnumSettingProvider<SortMode> {
     val Default = AuthorFL

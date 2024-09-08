@@ -19,7 +19,6 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
-import app.campfire.core.logging.bark
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.moriatsushi.insetsx.statusBars
 import com.moriatsushi.insetsx.systemBars
@@ -32,12 +31,6 @@ import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
-
-interface WindowBackEventDispatcher {
-  val events: Flow<Unit>
-}
-
-val LocalWindowBackEventDispatcher = staticCompositionLocalOf<WindowBackEventDispatcher?> { null }
 
 typealias CampfireContentWithInsets = @Composable (
   onRootPop: () -> Unit,
@@ -66,14 +59,6 @@ fun CampfireContentWithInsets(
 
       val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
       val navigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
-
-      // Listen to desktop window key back events
-      val windowBackEvents by rememberUpdatedState(LocalWindowBackEventDispatcher.current)
-      LaunchedEffect(windowBackEvents) {
-        windowBackEvents?.events?.collect {
-          navigator.pop()
-        }
-      }
 
       PlatformBackHandler(
         enabled = backStack.size > 1,

@@ -106,4 +106,3 @@ val Icons.Rounded.SortNumericAsc: ImageVector
     }.build()
     return _SortNumericAsc!!
   }
-

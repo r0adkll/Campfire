@@ -71,7 +71,6 @@ class KtorAudioBookShelfApi(
     .map { it.success }
     .getOrElse { false }
 
-
   override suspend fun login(
     serverUrl: String,
     username: String,

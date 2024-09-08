@@ -1,9 +1,9 @@
 package app.campfire.data.mapping
 
-import app.campfire.network.models.MediaProgress as NetworkMediaProgress
-import app.campfire.data.MediaProgress as DatabaseMediaProgress
-import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.core.model.MediaType
+import app.campfire.data.MediaProgress as DatabaseMediaProgress
+import app.campfire.network.models.MediaProgress as NetworkMediaProgress
+import app.campfire.network.models.MediaType as NetworkMediaType
 
 fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
   return DatabaseMediaProgress(

@@ -9,7 +9,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.ImageBitmapConfig
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.PointMode
@@ -122,7 +121,7 @@ class ImageBitmapStealingDrawScope(
     style: DrawStyle,
     colorFilter: ColorFilter?,
     blendMode: BlendMode,
-    filterQuality: FilterQuality
+    filterQuality: FilterQuality,
   ) {
     onImageBitmap(image)
   }

@@ -56,7 +56,7 @@ internal fun ItemCoverImage(
       contentDescription = contentDescription,
       modifier = Modifier
         .size(CoverImageSize)
-        .clip(RoundedCornerShape(CoverImageCornerRadius))
+        .clip(RoundedCornerShape(CoverImageCornerRadius)),
     )
 
     val painterState by painter.state.collectAsState()

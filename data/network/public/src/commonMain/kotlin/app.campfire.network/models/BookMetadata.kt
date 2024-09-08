@@ -86,6 +86,10 @@ data class ExpandedBookMetadata(
   override val language: String? = null,
   override val explicit: Boolean = false,
   override val abridged: Boolean = false,
+
+  /**
+   * Minified Fields
+   */
   override val titleIgnorePrefix: String? = null,
   override val authorName: String? = null,
   override val authorNameLF: String? = null,

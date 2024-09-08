@@ -26,8 +26,10 @@ import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +43,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.autofill.AutofillType
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
@@ -69,6 +73,7 @@ import campfire.features.auth.ui.generated.resources.loading_server_url
 import campfire.features.auth.ui.generated.resources.valid_server_url
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun ServerCard(
   tent: Tent,
@@ -95,8 +100,8 @@ internal fun ServerCard(
     }
   }
 
-  OutlinedCard(
-    colors = CardDefaults.outlinedCardColors(
+  ElevatedCard(
+    colors = CardDefaults.elevatedCardColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ),
     modifier = modifier,
@@ -167,48 +172,58 @@ internal fun ServerCard(
           bottom = 16.dp,
         ),
       ) {
-        OutlinedTextField(
-          value = username,
-          onValueChange = onUsernameChange,
-          label = { Text(stringResource(Res.string.label_username)) },
-          leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
-          keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next,
-          ),
-          modifier = Modifier.fillMaxWidth(),
-        )
+        Autofill(
+          autofillTypes = listOf(AutofillType.Username),
+          onFill = { onUsernameChange(it) }
+        ) {
+          OutlinedTextField(
+            value = username,
+            onValueChange = onUsernameChange,
+            label = { Text(stringResource(Res.string.label_username)) },
+            leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+            keyboardOptions = KeyboardOptions(
+              keyboardType = KeyboardType.Email,
+              imeAction = ImeAction.Next,
+            ),
+            modifier = Modifier.fillMaxWidth(),
+          )
+        }
 
         Spacer(Modifier.height(8.dp))
 
-        var showPassword by remember { mutableStateOf(false) }
-        OutlinedTextField(
-          value = password,
-          onValueChange = onPasswordChange,
-          label = { Text(stringResource(Res.string.label_password)) },
-          leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
-          trailingIcon = {
-            IconButton(
-              onClick = { showPassword = !showPassword },
-            ) {
-              Icon(
-                if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                contentDescription = null,
-              )
-            }
-          },
-          visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-          keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Go,
-          ),
-          keyboardActions = KeyboardActions(
-            onGo = { onGo() },
-          ),
-          modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
-        )
+        Autofill(
+          autofillTypes = listOf(AutofillType.Password),
+          onFill = { onPasswordChange(it) }
+        ) {
+          var showPassword by remember { mutableStateOf(false) }
+          OutlinedTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            label = { Text(stringResource(Res.string.label_password)) },
+            leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
+            trailingIcon = {
+              IconButton(
+                onClick = { showPassword = !showPassword },
+              ) {
+                Icon(
+                  if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                  contentDescription = null,
+                )
+              }
+            },
+            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(
+              keyboardType = KeyboardType.Password,
+              imeAction = ImeAction.Go,
+            ),
+            keyboardActions = KeyboardActions(
+              onGo = { onGo() },
+            ),
+            modifier = Modifier
+              .fillMaxWidth()
+              .focusRequester(focusRequester),
+          )
+        }
 
         if (authError != null) {
           Spacer(Modifier.height(16.dp))

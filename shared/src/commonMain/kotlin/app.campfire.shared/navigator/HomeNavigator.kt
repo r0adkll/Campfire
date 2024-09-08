@@ -1,11 +1,11 @@
 package app.campfire.shared.navigator
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.popUntil
-import com.slack.circuit.runtime.resetRoot
 import com.slack.circuit.runtime.screen.PopResult
 import com.slack.circuit.runtime.screen.Screen
 import kotlinx.collections.immutable.ImmutableList

@@ -141,7 +141,8 @@ enum class SortIcon(
   Alphabetical(
     Icons.Rounded.SortAlphaAsc,
     Icons.Rounded.SortAlphaDesc,
-  );
+  ),
+  ;
 
   fun forDirection(direction: SortDirection): ImageVector = when (direction) {
     SortDirection.Ascending -> asc

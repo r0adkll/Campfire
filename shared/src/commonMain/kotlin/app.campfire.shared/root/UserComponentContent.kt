@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocal
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -13,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.Campfire
+import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.session.UserSession
@@ -46,7 +49,11 @@ fun UserComponentContent(
           )
       }
 
-      content(userComponent)
+      CompositionLocalProvider(
+        LocalUserSession provides userComponent.currentUserSession
+      ) {
+        content(userComponent)
+      }
     }
 
     ServerUrlState.Loading -> SplashScreen()

@@ -18,8 +18,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -72,7 +70,7 @@ internal fun ControlBar(
           stringResource(Res.string.action_resume_listening)
         } else {
           stringResource(Res.string.action_play)
-        }
+        },
       )
     }
 

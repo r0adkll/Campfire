@@ -20,7 +20,7 @@ internal fun MetadataHeader(
     modifier = modifier
       .padding(
         horizontal = 16.dp,
-        vertical = 16.dp
-      )
+        vertical = 16.dp,
+      ),
   )
 }

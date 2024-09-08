@@ -6,9 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.InterpreterMode
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.RealEstateAgent
 import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.TheaterComedy
 import androidx.compose.material.icons.rounded.ViewColumn
 import androidx.compose.runtime.Composable
@@ -36,6 +37,12 @@ internal fun ItemMetadata(
           text = author,
           modifier = Modifier.weight(1f),
         )
+      } ?: item.media.metadata.authors.takeIf { it.isNotEmpty() }?.let { authors ->
+        ItemDetailItem(
+          icon = Icons.Rounded.Person,
+          text = authors.joinToString { it.name },
+          modifier = Modifier.weight(1f),
+        )
       }
 
       item.media.metadata.seriesName
@@ -50,7 +57,7 @@ internal fun ItemMetadata(
     }
 
     Row(
-      modifier = Modifier.fillMaxWidth()
+      modifier = Modifier.fillMaxWidth(),
     ) {
       ItemDetailItem(
         icon = Icons.Rounded.Schedule,
@@ -67,11 +74,20 @@ internal fun ItemMetadata(
       }
     }
 
+    item.media.metadata.publisher
+      ?.takeIf { it.isNotBlank() }
+      ?.let { publisher ->
+        ItemDetailItem(
+          icon = Icons.Rounded.RealEstateAgent,
+          text = publisher,
+        )
+      }
+
     item.media.metadata.narratorName
       ?.takeIf { it.isNotBlank() }
       ?.let { narrator ->
         ItemDetailItem(
-          icon = Icons.Rounded.Speaker,
+          icon = Icons.Rounded.InterpreterMode,
           text = narrator,
         )
       }

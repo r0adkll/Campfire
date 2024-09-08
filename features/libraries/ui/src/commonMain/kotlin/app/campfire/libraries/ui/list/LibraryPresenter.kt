@@ -12,16 +12,21 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortDirection.*
-import app.campfire.core.settings.SortMode
-import app.campfire.core.settings.SortMode.*
+import app.campfire.core.settings.SortDirection.Ascending
+import app.campfire.core.settings.SortDirection.Descending
+import app.campfire.core.settings.SortMode.AddedAt
+import app.campfire.core.settings.SortMode.AuthorFL
+import app.campfire.core.settings.SortMode.AuthorLF
+import app.campfire.core.settings.SortMode.Duration
+import app.campfire.core.settings.SortMode.PublishYear
+import app.campfire.core.settings.SortMode.Size
+import app.campfire.core.settings.SortMode.Title
 import app.campfire.libraries.api.LibraryRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.zip
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -37,11 +42,11 @@ class LibraryPresenter(
   override fun present(): LibraryUiState {
     val sortMode by remember {
       settings.observeSortMode()
-    }.collectAsState(SortMode.Default)
+    }.collectAsState(settings.sortMode)
 
     val sortDirection by remember {
       settings.observeSortDirection()
-    }.collectAsState(SortDirection.Default)
+    }.collectAsState(settings.sortDirection)
 
     val contentState by remember {
       repository.observeLibraryItems()

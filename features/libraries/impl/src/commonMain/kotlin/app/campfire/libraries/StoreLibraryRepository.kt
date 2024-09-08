@@ -9,6 +9,7 @@ import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.data.SelectForLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
@@ -19,6 +20,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -26,6 +28,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
+import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -41,39 +44,44 @@ class StoreLibraryRepository(
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
 
-  private val libraryItemStore = StoreBuilder.from(
-    fetcher = Fetcher.ofResult { libraryId: LibraryId ->
-      api.getLibraryItems(libraryId).asFetcherResult()
-    },
-    sourceOfTruth = SourceOfTruth.of(
-      reader = { libraryId: LibraryId ->
-        db.libraryItemsQueries.selectForLibrary(libraryId)
-          .asFlow()
-          .mapToList(dispatcherProvider.databaseRead)
+  private val libraryItemStore = StoreBuilder
+    .from(
+      fetcher = Fetcher.ofResult { libraryId: LibraryId ->
+        api.getLibraryItems(libraryId).asFetcherResult()
       },
-      writer = { _, data ->
-        withContext(dispatcherProvider.databaseWrite) {
-          db.transaction {
-            data.forEach { item ->
-              val libraryItem = item.asDbModel(userSession.serverUrl!!)
-              val media = item.media.asDbModel(item.id)
+      sourceOfTruth = SourceOfTruth.of(
+        reader = { libraryId: LibraryId ->
+          db.libraryItemsQueries.selectForLibrary(libraryId)
+            .asFlow()
+            .mapToList(dispatcherProvider.databaseRead)
+        },
+        writer = { _, data ->
+          withContext(dispatcherProvider.databaseWrite) {
+            db.transaction {
+              data.forEach { item ->
+                val libraryItem = item.asDbModel(userSession.serverUrl!!)
+                val media = item.media.asDbModel(item.id)
 
-              db.libraryItemsQueries.insert(libraryItem)
-              db.mediaQueries.insert(media)
+                db.libraryItemsQueries.insert(libraryItem)
+                db.mediaQueries.insert(media)
+              }
             }
           }
-        }
-      },
-      delete = { libraryId: LibraryId ->
-        withContext(dispatcherProvider.databaseWrite) {
-          db.libraryItemsQueries.deleteForLibrary(libraryId)
-        }
-      },
-      deleteAll = {
-        // Unsupported
-      },
-    ),
-  ).build()
+        },
+        delete = { libraryId: LibraryId ->
+          withContext(dispatcherProvider.databaseWrite) {
+            db.libraryItemsQueries.deleteForLibrary(libraryId)
+          }
+        },
+      ),
+    )
+    .cachePolicy(
+      MemoryPolicy.builder<LibraryId, List<SelectForLibrary>>()
+        .setMaxSize(10)
+        .setExpireAfterAccess(15.minutes)
+        .build(),
+    )
+    .build()
 
   private val singleLibraryStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { libraryId: LibraryId -> api.getLibrary(libraryId).asFetcherResult() },

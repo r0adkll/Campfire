@@ -40,7 +40,7 @@ internal fun ItemDescription(
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier
         .clickable { isExpanded = !isExpanded }
-        .padding(horizontal = 16.dp)
+        .padding(horizontal = 16.dp),
     )
 
     TextButton(

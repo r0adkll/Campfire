@@ -13,15 +13,14 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
+import app.campfire.data.MetadataAuthor
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemExpanded
-import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOne
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -47,6 +46,8 @@ class StoreLibraryItemRepository(
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryItemRepository {
 
+  // TODO: Break store builders into separate components/factory
+  //  assignees: r0adkll
   @OptIn(ExperimentalCoroutinesApi::class)
   private val itemStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { itemId: LibraryItemId -> api.getLibraryItem(itemId).asFetcherResult() },
@@ -59,7 +60,7 @@ class StoreLibraryItemRepository(
           .filterNotNull()
           .mapLatest { item ->
             withContext(dispatcherProvider.databaseRead) {
-              val (audioFiles, audioTracks, chapters, progress) = db.transactionWithResult {
+              val (audioFiles, audioTracks, chapters, progress, authors) = db.transactionWithResult {
                 val audioFiles = db.mediaAudioFilesQueries
                   .selectForMediaId(item.mediaId)
                   .executeAsList()
@@ -76,7 +77,11 @@ class StoreLibraryItemRepository(
                   .selectForLibraryItem(item.id)
                   .executeAsOneOrNull()
 
-                LibraryItemDbData(audioFiles, audioTracks, chapters, progress)
+                val authors = db.metadataAuthorQueries
+                  .selectForMediaId(item.mediaId)
+                  .executeAsList()
+
+                LibraryItemDbData(audioFiles, audioTracks, chapters, progress, authors)
               }
 
               item.asDomainModel(
@@ -84,7 +89,8 @@ class StoreLibraryItemRepository(
                 audioFiles,
                 audioTracks,
                 chapters,
-                progress
+                progress,
+                authors,
               )
             }
           }
@@ -118,6 +124,10 @@ class StoreLibraryItemRepository(
             itemExpanded.media.tracks.forEach { track ->
               db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId))
             }
+
+            itemExpanded.media.metadata.authors?.forEach { authorMeta ->
+              db.metadataAuthorQueries.insert(authorMeta.asDbModel(media.mediaId))
+            }
           }
         }
       },
@@ -125,8 +135,8 @@ class StoreLibraryItemRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.libraryItemsQueries.deleteForId(itemId)
         }
-      }
-    )
+      },
+    ),
   ).build()
 
   override fun observeLibraryItem(itemId: LibraryItemId): Flow<LibraryItem> {
@@ -143,4 +153,5 @@ data class LibraryItemDbData(
   val audioTracks: List<MediaAudioTracks>,
   val chapters: List<MediaChapters>,
   val progress: MediaProgress?,
+  val metadataAuthors: List<MetadataAuthor>,
 )

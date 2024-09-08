@@ -1,31 +1,32 @@
 package app.campfire.data.mapping
 
 import app.campfire.account.api.CoverImageHydrator
+import app.campfire.core.model.AudioFile
+import app.campfire.core.model.AudioTrack
+import app.campfire.core.model.Chapter
+import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media as DomainMedia
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.util.createIfNotNull
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
 import app.campfire.data.Media as DatabaseMedia
-import app.campfire.data.MediaProgress as DbMediaProgress
-import app.campfire.data.SelectForCollection
-import app.campfire.data.SelectForLibrary
-import app.campfire.data.SelectForSeries
-import app.campfire.network.models.MediaMinified as NetworkMediaMinified
-import app.campfire.network.models.MediaType as NetworkMediaType
-import app.campfire.core.model.AudioFile
-import app.campfire.core.model.AudioTrack
-import app.campfire.core.model.Chapter
-import app.campfire.core.model.FileMetadata
-import app.campfire.core.model.MediaProgress
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
+import app.campfire.data.MediaProgress as DbMediaProgress
+import app.campfire.data.MetadataAuthor
+import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForId
+import app.campfire.data.SelectForLibrary
+import app.campfire.data.SelectForSeries
 import app.campfire.network.models.LibraryItemBase
 import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
+import app.campfire.network.models.MediaMinified as NetworkMediaMinified
+import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
@@ -290,6 +291,7 @@ suspend fun SelectForId.asDomainModel(
   mediaAudioTracks: List<MediaAudioTracks>,
   mediaChapters: List<MediaChapters>,
   mediaProgress: DbMediaProgress?,
+  metadataAuthors: List<MetadataAuthor>,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -330,6 +332,12 @@ suspend fun SelectForId.asDomainModel(
             id = metadata_series_id!!,
             name = metadata_series_name!!,
             sequence = metadata_series_sequence!!,
+          )
+        },
+        authors = metadataAuthors.map {
+          DomainMedia.AuthorMetadata(
+            id = it.id,
+            name = it.name,
           )
         },
       ),
@@ -385,7 +393,7 @@ suspend fun SelectForId.asDomainModel(
             mtimeMs = it.metadata_mtimeMs,
             ctimeMs = it.metadata_ctimeMs,
             birthtimeMs = it.metadata_birthtimeMs,
-          )
+          ),
         )
       },
       coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
@@ -417,6 +425,6 @@ suspend fun SelectForId.asDomainModel(
         lastUpdate = progress.lastUpdate,
         startedAt = progress.startedAt,
       )
-    }
+    },
   )
 }

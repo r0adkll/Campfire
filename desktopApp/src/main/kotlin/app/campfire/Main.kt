@@ -17,6 +17,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import app.campfire.common.compose.LocalWindowBackEventDispatcher
+import app.campfire.common.compose.WindowBackEventDispatcher
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
@@ -24,8 +26,6 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
-import app.campfire.shared.root.LocalWindowBackEventDispatcher
-import app.campfire.shared.root.WindowBackEventDispatcher
 import java.awt.Desktop
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
