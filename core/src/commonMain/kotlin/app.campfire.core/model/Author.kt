@@ -12,6 +12,6 @@ data class Author(
   val updatedAt: Long,
   val numBooks: Int?,
 
-  val libraryItems: List<Library>? = null,
-  val series: List<Series>? = null,
+  val libraryItems: List<LibraryItem> = emptyList(),
+  val series: List<Series> = emptyList(),
 )

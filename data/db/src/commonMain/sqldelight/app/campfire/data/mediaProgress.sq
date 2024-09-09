@@ -19,7 +19,7 @@ CREATE TABLE mediaProgress (
   startedAt INTEGER NOT NULL,
   finishedAt INTEGER,
 
-  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 insert:

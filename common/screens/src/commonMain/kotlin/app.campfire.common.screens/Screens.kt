@@ -70,6 +70,7 @@ data object AuthorsScreen : BaseScreen(name = "Authors()")
 @Parcelize
 data class AuthorDetailScreen(
   val authorId: AuthorId,
+  val authorName: String,
 ) : DetailScreen(name = "AuthorDetailScreen()")
 
 @Parcelize

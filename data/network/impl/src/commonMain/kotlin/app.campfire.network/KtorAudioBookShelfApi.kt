@@ -121,6 +121,12 @@ class KtorAudioBookShelfApi(
     }.map { it.authors }
   }
 
+  override suspend fun getAuthor(authorId: String): Result<Author> {
+    return trySendRequest<Author> {
+      hydratedClientRequest("/api/authors/$authorId?include=items")
+    }
+  }
+
   override suspend fun getCollections(libraryId: String): Result<List<Collection>> {
     return trySendRequest<CollectionsResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/collections")

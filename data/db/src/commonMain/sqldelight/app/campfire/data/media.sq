@@ -40,7 +40,7 @@ CREATE TABLE media (
   metadata_series_sequence INTEGER AS Int,
 
   libraryItemId TEXT NOT NULL,
-  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 insert:

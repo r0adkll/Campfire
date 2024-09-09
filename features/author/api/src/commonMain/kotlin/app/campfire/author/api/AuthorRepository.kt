@@ -6,4 +6,6 @@ import kotlinx.coroutines.flow.Flow
 interface AuthorRepository {
 
   fun observeAuthors(): Flow<List<Author>>
+
+  fun observeAuthor(authorId: String): Flow<Author>
 }

@@ -99,17 +99,6 @@ internal fun Home(
     }
   }
 
-  val navigationItems = buildNavigationItems()
-
-  val overlayHost = rememberOverlayHost()
-  PlatformBackHandler(overlayHost.currentOverlayData != null) {
-    overlayHost.currentOverlayData?.finish(Unit)
-  }
-
-  /*
-   * Detail navigation setup
-   */
-
   val detailBackStack = rememberSaveableBackStack(EmptyScreen(stringResource(Res.string.empty_supporting_pane_message)))
   val detailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
 
@@ -117,8 +106,9 @@ internal fun Home(
     derivedStateOf { detailBackStack.topRecord?.screen }
   }
 
-  LaunchedEffect(detailRootScreen) {
-    bark { "Detail Root Screen is $detailRootScreen" }
+  val overlayHost = rememberOverlayHost()
+  PlatformBackHandler(overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen) {
+    overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
   }
 
   val homeNavigator = remember(windowSizeClass) {
@@ -129,6 +119,7 @@ internal fun Home(
     )
   }
 
+  val navigationItems = buildNavigationItems()
   val drawerState = rememberDrawerState(DrawerValue.Closed)
   AdaptiveCampfireLayout(
     overlayHost = overlayHost,

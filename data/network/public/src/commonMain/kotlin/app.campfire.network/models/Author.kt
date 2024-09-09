@@ -20,6 +20,7 @@ data class Author(
   val id: String,
   val asin: String? = null,
   val name: String,
+  val libraryId: String,
   val description: String? = null,
   val imagePath: String? = null,
   val addedAt: Long,

@@ -27,6 +27,7 @@ import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.data.SelectForAuthorName
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
@@ -227,6 +228,65 @@ suspend fun SelectForSeries.asDomainModel(
 }
 
 suspend fun SelectForCollection.asDomainModel(
+  coverImageHydrator: CoverImageHydrator,
+): LibraryItem {
+  return LibraryItem(
+    id = id,
+    libraryId = libraryId,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = mediaType,
+    numFiles = numFiles,
+    sizeInBytes = sizeInBytes,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
+    media = DomainMedia(
+      id = mediaId,
+      metadata = DomainMedia.Metadata(
+        title = metadata_title,
+        titleIgnorePrefix = metadata_titleIgnorePrefix,
+        subtitle = metadata_subtitle,
+        authorName = metadata_authorName,
+        authorNameLastFirst = metadata_authorNameLF,
+        narratorName = metadata_narratorName,
+        seriesName = metadata_seriesName,
+        genres = metadata_genres ?: emptyList(),
+        publishedYear = metadata_publishedYear,
+        publishedDate = metadata_publishedDate,
+        publisher = metadata_publisher,
+        description = metadata_description,
+        ISBN = metadata_isbn,
+        ASIN = metadata_asin,
+        language = metadata_language,
+        isExplicit = metadata_explicit,
+        isAbridged = metadata_abridged,
+        seriesSequence = createIfNotNull(
+          metadata_series_id,
+          metadata_series_name,
+          metadata_series_sequence,
+        ) {
+          SeriesSequence(
+            id = metadata_series_id!!,
+            name = metadata_series_name!!,
+            sequence = metadata_series_sequence!!,
+          )
+        },
+      ),
+      coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
+      tags = tags ?: emptyList(),
+      numTracks = numTracks,
+      numAudioFiles = numAudioFiles,
+      numChapters = numChapters,
+      numMissingParts = numMissingParts,
+      numInvalidAudioFiles = numInvalidAudioFiles,
+      durationInMillis = durationInMillis,
+      sizeInBytes = sizeInBytes,
+      ebookFormat = ebookFormat,
+    ),
+  )
+}
+
+suspend fun SelectForAuthorName.asDomainModel(
   coverImageHydrator: CoverImageHydrator,
 ): LibraryItem {
   return LibraryItem(

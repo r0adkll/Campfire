@@ -21,7 +21,7 @@ CREATE TABLE mediaAudioTracks (
   metadata_birthtimeMs INTEGER NOT NULL,
 
   PRIMARY KEY (mediaId, mediaIndex),
-  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
+  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 insert:

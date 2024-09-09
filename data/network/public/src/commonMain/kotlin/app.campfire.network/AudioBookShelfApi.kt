@@ -73,6 +73,11 @@ interface AudioBookShelfApi {
   suspend fun getAuthors(libraryId: String): Result<List<Author>>
 
   /**
+   * Get a specific author
+   */
+  suspend fun getAuthor(authorId: String): Result<Author>
+
+  /**
    * Get a Library's list of collections
    */
   suspend fun getCollections(libraryId: String): Result<List<Collection>>

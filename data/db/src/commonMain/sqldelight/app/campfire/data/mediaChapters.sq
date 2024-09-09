@@ -9,7 +9,7 @@ CREATE TABLE mediaChapters (
   title TEXT NOT NULL,
 
   PRIMARY KEY (mediaId, id),
-  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE
+  FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 insert:

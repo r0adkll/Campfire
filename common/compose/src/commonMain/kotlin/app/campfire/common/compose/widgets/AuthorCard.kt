@@ -1,8 +1,6 @@
 package app.campfire.common.compose.widgets
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -35,7 +33,6 @@ import org.jetbrains.compose.resources.painterResource
 private val CardMaxWidth = 400.dp
 private val ThumbnailCornerSize = 12.dp
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AuthorCard(
   author: Author,
@@ -51,8 +48,18 @@ fun AuthorCard(
         .widthIn(max = CardMaxWidth)
         .clip(RoundedCornerShape(ThumbnailCornerSize)),
     ) {
+      val placeHolderResource = remember {
+        if (Random.nextBoolean()) {
+          Res.drawable.placeholder_man
+        } else {
+          Res.drawable.placeholder_woman
+        }
+      }
+
       val painter = rememberAsyncImagePainter(
         model = author.imagePath,
+        placeholder = painterResource(placeHolderResource),
+        error = painterResource(placeHolderResource),
         onError = {
           bark(throwable = it.result.throwable) { "Author image loading error: ${it.result.request.data}" }
         },
@@ -60,7 +67,6 @@ fun AuthorCard(
 
       val imageState by painter.state.collectAsState()
       when (imageState) {
-        is AsyncImagePainter.State.Error -> PlaceholderImage()
         is AsyncImagePainter.State.Loading -> ImageLoading()
         // Do nothing in the other states
         else -> Unit
@@ -84,14 +90,14 @@ fun AuthorCard(
         text = author.name,
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
-        modifier = Modifier.basicMarquee(),
+//        modifier = Modifier.basicMarquee(),
       )
       author.description?.let {
         Text(
           text = it,
           style = MaterialTheme.typography.bodySmall,
           maxLines = 1,
-          modifier = Modifier.basicMarquee(),
+//          modifier = Modifier.basicMarquee(),
         )
       }
     }

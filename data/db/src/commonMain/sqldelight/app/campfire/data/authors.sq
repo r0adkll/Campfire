@@ -21,6 +21,14 @@ selectForLibrary:
 SELECT * FROM authors
 WHERE libraryId = ?;
 
+selectForId:
+SELECT * FROM authors
+WHERE id = ?;
+
 deleteForLibrary:
 DELETE FROM authors
 WHERE libraryId = ?;
+
+deleteForId:
+DELETE FROM authors
+WHERE id = ?;

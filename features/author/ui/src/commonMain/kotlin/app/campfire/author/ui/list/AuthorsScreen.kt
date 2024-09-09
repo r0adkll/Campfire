@@ -94,7 +94,10 @@ private fun LoadedState(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    items(items) { author ->
+    items(
+      items = items,
+      key = { it.id },
+    ) { author ->
       AuthorCard(
         author = author,
         modifier = Modifier.clickable {

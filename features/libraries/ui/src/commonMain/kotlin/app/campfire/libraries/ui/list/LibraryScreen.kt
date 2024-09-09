@@ -191,6 +191,7 @@ private fun LibraryGrid(
   ) {
     item(
       span = { GridItemSpan(this.maxLineSpan) },
+      key = "filter-bar"
     ) {
       FilterBar(
         itemCount = items.size,
@@ -237,7 +238,7 @@ fun LibraryList(
     contentPadding = contentPadding,
     modifier = modifier,
   ) {
-    stickyHeader {
+    stickyHeader(key = "filter-bar") {
       FilterBar(
         itemCount = items.size,
         itemDisplayState = itemDisplayState,

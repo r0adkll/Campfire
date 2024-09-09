@@ -5,9 +5,9 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryId
 import app.campfire.data.Authors as DbAuthor
 import app.campfire.network.models.Author as NetworkAuthor
+import app.campfire.core.model.LibraryItem
 
 suspend fun NetworkAuthor.asDbModel(
-  libraryId: LibraryId,
   imageHydrator: CoverImageHydrator,
 ): DbAuthor {
   return DbAuthor(
@@ -23,7 +23,9 @@ suspend fun NetworkAuthor.asDbModel(
   )
 }
 
-fun DbAuthor.asDomainModel(): Author {
+fun DbAuthor.asDomainModel(
+  items: List<LibraryItem> = emptyList(),
+): Author {
   return Author(
     id = id,
     asin = asin,
@@ -33,5 +35,6 @@ fun DbAuthor.asDomainModel(): Author {
     addedAt = addedAt,
     updatedAt = updatedAt,
     numBooks = numBooks,
+    libraryItems = items,
   )
 }

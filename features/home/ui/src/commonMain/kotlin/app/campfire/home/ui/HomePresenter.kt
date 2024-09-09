@@ -41,7 +41,7 @@ class HomePresenter(
         }
 
         is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id))
-        is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id))
+        is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
         is HomeUiEvent.OpenSeries -> navigator.goTo(SeriesDetailScreen(event.series.id))
       }
     }
