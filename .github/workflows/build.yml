@@ -181,8 +181,8 @@ jobs:
         with:
           cache-disabled: true
 
-      - name: iosArm64Test
-        run: ./gradlew iosArm64Test
+      - name: iosSimulatorArm64Test
+        run: ./gradlew iosSimulatorArm64Test
 
       - name: Upload reports
         if: always()
@@ -199,55 +199,3 @@ jobs:
           name: ios-test-results
           path: |
             **/build/test-results/*
-
-#  publish:
-#    if: github.ref == 'refs/heads/main'
-#    needs: [android, ios-app, ios-test, desktop]
-#    runs-on: macos-latest
-#    timeout-minutes: 20
-#
-#    steps:
-#      - uses: actions/checkout@v3
-#
-#      - name: Decrypt secrets
-#        run: ./release/decrypt-secrets.sh
-#        env:
-#          ENCRYPT_KEY: ${{ secrets.ENCRYPT_KEY }}
-#
-#      - uses: actions/download-artifact@v3
-#        with:
-#          name: android-build-outputs
-#          path: androidApp/app/build/outputs
-#
-#      - name: Publish QA build to internal track
-#        uses: r0adkll/upload-google-play@v1.1.1
-#        with:
-#          serviceAccountJson: release/play-account.json
-#          packageName: app.tivi
-#          track: internal
-#          releaseFiles: androidApp/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-#          mappingFile: androidApp/app/build/outputs/mapping/qaRelease/mapping.txt
-#
-#      - name: Publish build to alpha track
-#        uses: r0adkll/upload-google-play@v1.1.1
-#        with:
-#          serviceAccountJson: release/play-account.json
-#          packageName: app.tivi
-#          track: alpha
-#          releaseFiles: androidApp/app/build/outputs/bundle/standardRelease/app-standard-release.aab
-#          mappingFile: androidApp/app/build/outputs/mapping/standardRelease/mapping.txt
-#
-#      - uses: actions/download-artifact@v3
-#        with:
-#          name: ios-build-outputs
-#          path: ios-app/Tivi
-#
-#      - name: Publish to TestFlight
-#        run: fastlane ios uploadtestflight
-#        working-directory: ios-app/Tivi
-#        env:
-#          API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-#          API_KEY_CONTENTS: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENTS }}
-#          ISSUER_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
-#          MATCH_PASSWORD: ${{ secrets.FASTLANE_MATCH_PASSWORD }}
-#          MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.FASTLANE_MATCH_GH_PAT }}
