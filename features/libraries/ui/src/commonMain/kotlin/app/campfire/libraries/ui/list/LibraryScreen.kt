@@ -191,7 +191,7 @@ private fun LibraryGrid(
   ) {
     item(
       span = { GridItemSpan(this.maxLineSpan) },
-      key = "filter-bar"
+      key = "filter-bar",
     ) {
       FilterBar(
         itemCount = items.size,

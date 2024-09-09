@@ -42,7 +42,7 @@ interface AuthorDetailStoreModule {
     db: CampfireDatabase,
     coverImageHydrator: CoverImageHydrator,
     dispatcherProvider: DispatcherProvider,
-  ) : AuthorDetailStore {
+  ): AuthorDetailStore {
     return StoreBuilder
       .from(
         fetcher = Fetcher.ofResult { authorId: AuthorId -> api.getAuthor(authorId).asFetcherResult() },
@@ -81,8 +81,8 @@ interface AuthorDetailStoreModule {
             withContext(dispatcherProvider.databaseWrite) {
               db.authorsQueries.deleteForId(authorId)
             }
-          }
-        )
+          },
+        ),
       )
       .build()
       .let { AuthorDetailStore(it) }

@@ -37,7 +37,6 @@ import app.campfire.core.model.LibraryItem
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.author_books_header
 import campfire.features.author.ui.generated.resources.error_author_message
-import campfire.features.author.ui.generated.resources.error_authors_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
@@ -54,7 +53,7 @@ fun AuthorDetail(
         title = { Text(screen.authorName) },
         navigationIcon = {
           IconButton(
-            onClick = { state.eventSink(AuthorDetailUiEvent.Back) }
+            onClick = { state.eventSink(AuthorDetailUiEvent.Back) },
           ) {
             Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
           }

@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.LibraryItemScreen
@@ -36,7 +37,6 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.composables.ControlBar
 import app.campfire.libraries.ui.detail.composables.DurationListItem
-import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.ItemMetadata
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar

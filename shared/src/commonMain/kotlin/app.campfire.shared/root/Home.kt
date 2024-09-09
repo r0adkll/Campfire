@@ -20,7 +20,6 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -50,7 +49,6 @@ import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
-import app.campfire.core.logging.bark
 import app.campfire.shared.navigator.HomeNavigator
 import campfire.shared.generated.resources.Res
 import campfire.shared.generated.resources.empty_supporting_pane_message

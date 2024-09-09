@@ -37,7 +37,7 @@ fun CoverImage(
   imageUrl: String,
   contentDescription: String?,
   modifier: Modifier = Modifier,
-  placeholder: Painter? = null
+  placeholder: Painter? = null,
 ) {
   Box(
     modifier = modifier

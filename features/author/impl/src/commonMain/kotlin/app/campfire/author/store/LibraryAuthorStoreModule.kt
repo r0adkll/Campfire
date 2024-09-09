@@ -23,7 +23,7 @@ import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder
 
 class LibraryAuthorStore(
-  val store: Store<LibraryId, List<Authors>>
+  val store: Store<LibraryId, List<Authors>>,
 )
 
 @ContributesTo(UserScope::class)
@@ -65,7 +65,7 @@ interface LibraryAuthorStoreModule {
         MemoryPolicy.builder<LibraryId, List<Authors>>()
           .setMaxSize(50)
           .setExpireAfterAccess(10.minutes)
-          .build()
+          .build(),
       )
       .build()
       .let { LibraryAuthorStore(it) }
