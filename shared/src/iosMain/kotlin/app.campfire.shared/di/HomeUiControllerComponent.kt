@@ -16,8 +16,8 @@ import platform.UIKit.UIViewController
   scope = ActivityScope::class,
   parentScope = AppScope::class,
 )
-abstract class HomeUiControllerComponent {
-  abstract val uiViewControllerFactory: () -> UIViewController
+interface HomeUiControllerComponent {
+  val uiViewControllerFactory: () -> UIViewController
 
   @Provides
   @SingleIn(ActivityScope::class)
