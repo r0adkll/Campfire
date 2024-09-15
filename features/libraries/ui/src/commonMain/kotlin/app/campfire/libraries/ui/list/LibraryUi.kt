@@ -185,8 +185,8 @@ private fun LibraryGrid(
   LazyCampfireGrid(
     gridCells = {
       when(it) {
-        LazyContentSize.Small -> GridCells.Fixed(3)
-        LazyContentSize.Large -> GridCells.Fixed(5)
+        LazyContentSize.Small -> GridCells.Fixed(2)
+        LazyContentSize.Large -> GridCells.Fixed(4)
       }
     },
     state = state,

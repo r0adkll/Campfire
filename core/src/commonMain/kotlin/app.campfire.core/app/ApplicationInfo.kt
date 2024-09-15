@@ -6,7 +6,7 @@ package app.campfire.core.app
 data class ApplicationInfo(
   val packageName: String,
   val debugBuild: Boolean,
-  val flavor: app.campfire.core.app.Flavor,
+  val flavor: Flavor,
   val versionName: String,
   val versionCode: Int,
 )

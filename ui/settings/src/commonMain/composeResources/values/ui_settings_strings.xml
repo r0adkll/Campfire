@@ -1,0 +1,11 @@
+<resources>
+  <string name="settings_title">Settings</string>
+
+  <string name="setting_theme_title">Theme</string>
+  <string name="setting_theme_description">Change the application theme</string>
+
+  <string name="setting_dynamic_colors_title">Use Dynamic Colors</string>
+  <string name="setting_dynamic_colors_description">Enable dynamic colors on Android 12+ devices</string>
+
+  <string name="setting_version_title">Version</string>
+</resources>
