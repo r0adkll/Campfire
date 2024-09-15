@@ -10,6 +10,9 @@ kotlin {
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)
+
+        // Need encodeUrlParameter() ext function
+        implementation(libs.ktor.http)
       }
     }
 

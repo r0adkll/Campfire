@@ -26,6 +26,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.layout.LazyContentSize
+import app.campfire.common.compose.layout.LocalSupportingContentState
+import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
@@ -125,7 +129,6 @@ private fun LoadedContent(
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
-  columns: Int = 3,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
   when (itemDisplayState) {
@@ -151,7 +154,6 @@ private fun LoadedContent(
       sortDirection = sortDirection,
       onSortClick = onSortClick,
       modifier = modifier,
-      columns = columns,
       contentPadding = contentPadding + PaddingValues(
         horizontal = 16.dp,
       ),
@@ -177,12 +179,16 @@ private fun LibraryGrid(
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
-  columns: Int = 3,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyGridState = rememberLazyGridState(),
 ) {
-  LazyVerticalGrid(
-    columns = GridCells.Adaptive(100.dp),
+  LazyCampfireGrid(
+    gridCells = {
+      when(it) {
+        LazyContentSize.Small -> GridCells.Fixed(3)
+        LazyContentSize.Large -> GridCells.Fixed(5)
+      }
+    },
     state = state,
     modifier = modifier,
     contentPadding = contentPadding,

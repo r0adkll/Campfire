@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
@@ -22,6 +27,10 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.layout.LazyContentSize
+import app.campfire.common.compose.layout.LocalSupportingContentState
+import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
@@ -89,18 +98,28 @@ private fun LoadedState(
   onSeriesClick: (Series) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
-  state: LazyListState = rememberLazyListState(),
+  state: LazyGridState = rememberLazyGridState(),
 ) {
   Box(
     modifier = modifier.fillMaxSize(),
   ) {
-    LazyColumn(
+    LazyCampfireGrid(
+      gridCells = {
+        when (it) {
+          LazyContentSize.Small -> GridCells.Fixed(1)
+          LazyContentSize.Large -> GridCells.Fixed(2)
+        }
+      },
       state = state,
       contentPadding = contentPadding + PaddingValues(ContentPadding),
       modifier = Modifier.fillMaxSize(),
-      verticalArrangement = Arrangement.spacedBy(16.dp),
+      verticalArrangement = Arrangement.spacedBy(8.dp),
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      items(items) { series ->
+      items(
+        items = items,
+        key = { it.id },
+      ) { series ->
         ItemCollectionCard(
           name = series.name,
           description = series.description,

@@ -35,7 +35,10 @@ class CollectionsPresenter(
       collectionContentState = collectionContentState,
     ) { event ->
       when (event) {
-        is CollectionsUiEvent.CollectionClick -> navigator.goTo(CollectionDetailScreen(event.collection.id))
+        is CollectionsUiEvent.CollectionClick -> navigator.goTo(CollectionDetailScreen(
+          event.collection.id,
+          event.collection.name,
+        ))
       }
     }
   }

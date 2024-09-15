@@ -74,6 +74,8 @@ internal fun ControlBar(
       )
     }
 
+    Spacer(Modifier.width(4.dp))
+
     FilledIconButton(
       onClick = onDownloadClick,
     ) {

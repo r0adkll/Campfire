@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.layout.cardElevation
 import app.campfire.core.model.LibraryItem
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.unknown_author_name
@@ -32,8 +34,11 @@ fun LibraryItemCard(
   item: LibraryItem,
   modifier: Modifier = Modifier,
 ) {
+  val contentLayout = LocalContentLayout.current
+
   ElevatedCard(
     modifier = modifier,
+    elevation = contentLayout.cardElevation,
   ) {
     Box {
       ItemImage(
@@ -49,7 +54,6 @@ fun LibraryItemCard(
     }
     Column(
       Modifier.padding(
-        horizontal = 16.dp,
         vertical = 16.dp,
       ),
     ) {
@@ -58,15 +62,25 @@ fun LibraryItemCard(
         style = MaterialTheme.typography.titleSmall,
         fontStyle = if (item.media.metadata.title == null) FontStyle.Italic else null,
         maxLines = 1,
-        modifier = Modifier.basicMarquee(),
+        modifier = Modifier
+          .basicMarquee(
+            velocity = LibraryItemMarqueeVelocity,
+          )
+          .padding(horizontal = 16.dp)
       )
       Text(
         text = item.media.metadata.authorName ?: stringResource(Res.string.unknown_author_name),
         style = MaterialTheme.typography.bodySmall,
         fontStyle = if (item.media.metadata.authorName == null) FontStyle.Italic else null,
         maxLines = 1,
-        modifier = Modifier.basicMarquee(),
+        modifier = Modifier
+          .basicMarquee(
+            velocity = LibraryItemMarqueeVelocity,
+          )
+          .padding(horizontal = 16.dp),
       )
     }
   }
 }
+
+private val LibraryItemMarqueeVelocity = 40.dp

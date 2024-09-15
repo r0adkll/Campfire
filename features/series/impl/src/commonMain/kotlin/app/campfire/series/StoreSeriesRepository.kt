@@ -14,15 +14,22 @@ import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.Series as NetworkSeries
+import app.campfire.account.api.UserRepository
+import app.campfire.core.logging.bark
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.SeriesId
 import app.campfire.series.api.SeriesRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -39,6 +46,7 @@ class StoreSeriesRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
+  private val userRepository: UserRepository,
   private val coverImageHydrator: CoverImageHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) : SeriesRepository {
@@ -98,11 +106,55 @@ class StoreSeriesRepository(
     ),
   ).build()
 
+  data class SeriesItems(
+    val libraryId: LibraryId,
+    val seriesId: SeriesId,
+  )
+
+  @OptIn(ExperimentalEncodingApi::class)
+  private val libraryItemStore = StoreBuilder.from(
+    fetcher = Fetcher.ofResult { s: SeriesItems ->
+      val encodedSeriesId = Base64.encode(s.seriesId.encodeToByteArray())
+      api.getLibraryItems(s.libraryId, "series.${encodedSeriesId}").asFetcherResult()
+    },
+    sourceOfTruth = SourceOfTruth.of(
+      reader = { s: SeriesItems ->
+        db.libraryItemsQueries
+          .selectForSeries(s.seriesId)
+          .asFlow()
+          .mapToList(dispatcherProvider.databaseRead)
+          .mapNotNull { selectForSeries ->
+            selectForSeries
+              .map { it.asDomainModel(coverImageHydrator) }
+              .takeIf { it.isNotEmpty() }
+          }
+      },
+      writer = { s, items ->
+        withContext(dispatcherProvider.databaseWrite) {
+          db.transaction {
+            items.forEach { item ->
+              val libraryItem = item.asDbModel(serverUrl)
+              val media = item.media.asDbModel(item.id)
+              db.libraryItemsQueries.insert(libraryItem)
+              db.mediaQueries.insert(media)
+
+              // Insert junction entry
+              db.seriesBookJoinQueries.insert(
+                SeriesBookJoin(
+                  seriesId = s.seriesId,
+                  libraryItemId = item.id,
+                ),
+              )
+            }
+          }
+        }
+      },
+    )
+  ).build()
+
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeAllSeries(): Flow<List<Series>> {
-    return db.usersQueries.selectForServer(serverUrl)
-      .asFlow()
-      .mapToOne(dispatcherProvider.databaseRead)
+    return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         seriesStore.stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
           .mapNotNull { response ->
@@ -112,6 +164,22 @@ class StoreSeriesRepository(
               }
             }
           }
+      }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeSeriesLibraryItems(seriesId: String): Flow<List<LibraryItem>> {
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        libraryItemStore.stream(
+          StoreReadRequest.cached(
+            SeriesItems(user.selectedLibraryId, seriesId),
+            refresh = true,
+          ),
+        ).mapNotNull { response ->
+          bark { "Series Library Item Response: $response" }
+          response.dataOrNull()
+        }
       }
   }
 }

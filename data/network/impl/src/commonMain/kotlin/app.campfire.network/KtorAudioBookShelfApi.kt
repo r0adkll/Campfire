@@ -37,9 +37,12 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLBuilder
 import io.ktor.http.Url
+import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -91,9 +94,15 @@ class KtorAudioBookShelfApi(
     hydratedClientRequest("/api/libraries/$libraryId")
   }
 
-  override suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
+  override suspend fun getLibraryItems(
+    libraryId: String,
+    filter: String?,
+  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
     return trySendRequest<LibraryItemsResponse> {
-      hydratedClientRequest("/api/libraries/$libraryId/items")
+      hydratedClientRequest({
+        appendPathSegments("api", "libraries", libraryId, "items")
+        filter?.let { f -> parameters.append("filter", f) }
+      })
     }.map { it.results }
   }
 
@@ -160,6 +169,25 @@ class KtorAudioBookShelfApi(
       ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
     return client.request {
       url("${cleanServerUrl(currentServerUrl)}${if (!endpoint.startsWith("/")) "/" else ""}$endpoint")
+      header(HttpHeaders.Authorization, "Bearer $token")
+      contentType(ContentType.Application.Json)
+      builder()
+    }
+  }
+
+  private suspend fun hydratedClientRequest(
+    urlBuilder: URLBuilder.() -> Unit,
+    builder: HttpRequestBuilder.() -> Unit = { },
+  ): HttpResponse {
+    val currentServerUrl = settings.currentServerUrl
+      ?: throw IllegalStateException("You must be logged in to perform this request")
+    val token = accountManager.getToken(currentServerUrl)
+      ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
+    return client.request {
+      url {
+        takeFrom(cleanServerUrl(currentServerUrl))
+        urlBuilder()
+      }
       header(HttpHeaders.Authorization, "Bearer $token")
       contentType(ContentType.Application.Json)
       builder()

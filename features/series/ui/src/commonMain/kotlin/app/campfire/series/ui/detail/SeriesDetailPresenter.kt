@@ -1,11 +1,11 @@
-package app.campfire.series.ui.list
+package app.campfire.series.ui.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
-import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -16,26 +16,28 @@ import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(SeriesScreen::class, UserScope::class)
+@CircuitInject(SeriesDetailScreen::class, UserScope::class)
 @Inject
-class SeriesPresenter(
+class SeriesDetailPresenter(
+  @Assisted private val screen: SeriesDetailScreen,
   @Assisted private val navigator: Navigator,
-  private val seriesRepository: SeriesRepository,
-) : Presenter<SeriesUiState> {
+  private val repository: SeriesRepository,
+) : Presenter<SeriesDetailUiState> {
 
   @Composable
-  override fun present(): SeriesUiState {
+  override fun present(): SeriesDetailUiState {
     val seriesContentState by remember {
-      seriesRepository.observeAllSeries()
+      repository.observeSeriesLibraryItems(seriesId = screen.seriesId)
         .map { SeriesContentState.Loaded(it) }
         .catch { SeriesContentState.Error }
     }.collectAsState(SeriesContentState.Loading)
 
-    return SeriesUiState(
+    return SeriesDetailUiState(
       seriesContentState = seriesContentState,
     ) { event ->
       when (event) {
-        is SeriesUiEvent.SeriesClicked -> navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
+        SeriesDetailUiEvent.Back -> navigator.pop()
+        is SeriesDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
       }
     }
   }

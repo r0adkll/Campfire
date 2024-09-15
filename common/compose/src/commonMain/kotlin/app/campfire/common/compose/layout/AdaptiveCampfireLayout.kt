@@ -87,6 +87,11 @@ fun AdaptiveCampfireLayout(
   val isSupportingPaneEnabled = remember(windowSizeClass) {
     windowSizeClass.isSupportingPaneEnabled
   }
+  val supportingContentState = if (showSupportingContent && isSupportingPaneEnabled) {
+    SupportingContentState.Open
+  } else {
+    SupportingContentState.Closed
+  }
 
   val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
 
@@ -205,6 +210,7 @@ fun AdaptiveCampfireLayout(
               }
               CompositionLocalProvider(
                 LocalContentLayout provides ContentLayout.Root,
+                LocalSupportingContentState provides supportingContentState,
               ) {
                 content()
               }
@@ -225,6 +231,7 @@ fun AdaptiveCampfireLayout(
               ) {
                 CompositionLocalProvider(
                   LocalContentLayout provides ContentLayout.Supporting,
+                  LocalSupportingContentState provides supportingContentState,
                 ) {
                   supportingContent()
                 }

@@ -46,7 +46,10 @@ interface AudioBookShelfApi {
    * @param libraryId the id of the library to fetch the items for
    * @return as result with the list of library items
    */
-  suspend fun getLibraryItems(libraryId: String): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
+  suspend fun getLibraryItems(
+    libraryId: String,
+    filter: String? = null,
+  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
 
   /**
    * Fetch a single library item
@@ -81,4 +84,5 @@ interface AudioBookShelfApi {
    * Get a Library's list of collections
    */
   suspend fun getCollections(libraryId: String): Result<List<Collection>>
+
 }

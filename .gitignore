@@ -24,6 +24,7 @@ gradle.xml
 ios-app/Tivi/.idea/*
 .fleet
 .kotlin
+.campfire
 
 # General
 .DS_Store

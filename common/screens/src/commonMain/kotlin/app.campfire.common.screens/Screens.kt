@@ -54,6 +54,7 @@ data object SeriesScreen : BaseScreen(name = "Series()")
 @Parcelize
 data class SeriesDetailScreen(
   val seriesId: SeriesId,
+  val seriesName: String,
 ) : DetailScreen(name = "SeriesDetail()")
 
 @Parcelize
@@ -62,6 +63,7 @@ data object CollectionsScreen : BaseScreen(name = "Collections()")
 @Parcelize
 data class CollectionDetailScreen(
   val collectionId: CollectionId,
+  val collectionName: String,
 ) : DetailScreen(name = "CollectionDetail()")
 
 @Parcelize

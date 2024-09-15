@@ -17,7 +17,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import app.campfire.auth.ui.welcome.composables.AddCampsiteCard
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.theme.PaytoneOneFontFamily

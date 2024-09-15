@@ -8,9 +8,12 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
+import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.data.CollectionsBookJoin
+import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
@@ -106,6 +109,18 @@ class StoreCollectionsRepository(
               }
             }
           }
+      }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeCollectionItems(collectionId: CollectionId): Flow<List<LibraryItem>> {
+    return db.libraryItemsQueries
+      .selectForCollection(collectionId)
+      .asFlow()
+      .mapToList(dispatcherProvider.databaseRead)
+      .mapLatest { selectForCollection ->
+        selectForCollection
+          .map { it.asDomainModel(coverImageHydrator) }
       }
   }
 }

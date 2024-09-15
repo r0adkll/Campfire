@@ -10,9 +10,9 @@ coroutines = "1.9.0-RC.2"
 compose-multiplatform = "1.6.11"
 coil = "3.0.0-alpha10"
 circuit = "0.23.1"
-kimchi = "0.3.0"
+kimchi = "0.4.0"
 kotlin = "2.0.20"
-kotlin-inject = "0.7.1"
+kotlin-inject = "0.7.2"
 kotlinpoet = "1.18.1"
 ksoup = "0.4.0"
 ksp = "2.0.20-1.0.25"
@@ -122,6 +122,7 @@ ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksou
 #Networking
 okhttp-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 okhttp-loggingInterceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "okhttp" }
+ktor-http = { module = "io.ktor:ktor-http", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
