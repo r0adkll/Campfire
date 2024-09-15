@@ -92,7 +92,7 @@ private fun LoadedState(
         item = item,
         modifier = Modifier.clickable {
           onLibraryItemClick(item)
-        }
+        },
       )
     }
   }

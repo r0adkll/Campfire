@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
@@ -28,8 +27,6 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.layout.LazyContentSize
-import app.campfire.common.compose.layout.LocalSupportingContentState
-import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
@@ -184,7 +181,7 @@ private fun LibraryGrid(
 ) {
   LazyCampfireGrid(
     gridCells = {
-      when(it) {
+      when (it) {
         LazyContentSize.Small -> GridCells.Fixed(2)
         LazyContentSize.Large -> GridCells.Fixed(4)
       }

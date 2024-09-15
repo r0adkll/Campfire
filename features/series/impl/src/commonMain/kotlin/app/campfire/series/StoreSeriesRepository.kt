@@ -2,11 +2,15 @@ package app.campfire.series
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
+import app.campfire.account.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
+import app.campfire.core.model.SeriesId
 import app.campfire.core.session.UserSession
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
@@ -14,15 +18,10 @@ import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.Series as NetworkSeries
-import app.campfire.account.api.UserRepository
-import app.campfire.core.logging.bark
-import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.SeriesId
 import app.campfire.series.api.SeriesRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -115,7 +114,7 @@ class StoreSeriesRepository(
   private val libraryItemStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { s: SeriesItems ->
       val encodedSeriesId = Base64.encode(s.seriesId.encodeToByteArray())
-      api.getLibraryItems(s.libraryId, "series.${encodedSeriesId}").asFetcherResult()
+      api.getLibraryItems(s.libraryId, "series.$encodedSeriesId").asFetcherResult()
     },
     sourceOfTruth = SourceOfTruth.of(
       reader = { s: SeriesItems ->
@@ -149,7 +148,7 @@ class StoreSeriesRepository(
           }
         }
       },
-    )
+    ),
   ).build()
 
   @OptIn(ExperimentalCoroutinesApi::class)

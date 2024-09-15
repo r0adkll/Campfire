@@ -3,7 +3,6 @@ package app.campfire.ui.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.app.ApplicationInfo

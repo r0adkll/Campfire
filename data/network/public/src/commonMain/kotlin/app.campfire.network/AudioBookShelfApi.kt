@@ -84,5 +84,4 @@ interface AudioBookShelfApi {
    * Get a Library's list of collections
    */
   suspend fun getCollections(libraryId: String): Result<List<Collection>>
-
 }

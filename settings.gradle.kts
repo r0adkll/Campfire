@@ -111,7 +111,7 @@ include(
 include(
   ":ui:appbar",
   ":ui:drawer",
-  ":ui:settings"
+  ":ui:settings",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

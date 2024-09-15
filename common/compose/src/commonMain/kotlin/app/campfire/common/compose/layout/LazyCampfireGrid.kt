@@ -36,7 +36,7 @@ fun LazyCampfireGrid(
   verticalArrangement: Arrangement.Vertical =
     if (!reverseLayout) Arrangement.Top else Arrangement.Bottom,
   horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
-  content: LazyGridScope.() -> Unit
+  content: LazyGridScope.() -> Unit,
 ) {
   val supportingPaneEnabled by rememberUpdatedState(LocalSupportingContentState.current)
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -61,6 +61,6 @@ fun LazyCampfireGrid(
     verticalArrangement = verticalArrangement,
     horizontalArrangement = horizontalArrangement,
     modifier = modifier.fillMaxSize(),
-    content = content
+    content = content,
   )
 }

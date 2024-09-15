@@ -3,7 +3,6 @@ package app.campfire.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,21 +18,16 @@ import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Brightness6
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.SettingsBrightness
-import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -51,7 +45,9 @@ import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.settings.CampfireSettings
-import app.campfire.common.settings.CampfireSettings.Theme.*
+import app.campfire.common.settings.CampfireSettings.Theme.DARK
+import app.campfire.common.settings.CampfireSettings.Theme.LIGHT
+import app.campfire.common.settings.CampfireSettings.Theme.SYSTEM
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import campfire.ui.settings.generated.resources.Res
@@ -79,14 +75,14 @@ fun Settings(
           title = { Text(stringResource(Res.string.settings_title)) },
           navigationIcon = {
             IconButton(
-              onClick = { state.eventSink(SettingsUiEvent.Back) }
+              onClick = { state.eventSink(SettingsUiEvent.Back) },
             ) {
               Icon(
                 imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                 contentDescription = null,
               )
             }
-          }
+          },
         )
       }
     },
@@ -124,7 +120,7 @@ fun Settings(
               verticalAlignment = Alignment.CenterVertically,
             ) {
               CompositionLocalProvider(
-                LocalContentColor provides MaterialTheme.colorScheme.primary
+                LocalContentColor provides MaterialTheme.colorScheme.primary,
               ) {
                 Icon(
                   when (state.theme) {
@@ -167,12 +163,12 @@ fun Settings(
                   onClick = {
                     state.eventSink(SettingsUiEvent.Theme(t))
                     isExpanded = false
-                  }
+                  },
                 )
               }
             }
           }
-        }
+        },
       )
 
       ListItem(
@@ -181,9 +177,9 @@ fun Settings(
         trailingContent = {
           Switch(
             checked = state.useDynamicColors,
-            onCheckedChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) }
+            onCheckedChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
           )
-        }
+        },
       )
 
       ListItem(

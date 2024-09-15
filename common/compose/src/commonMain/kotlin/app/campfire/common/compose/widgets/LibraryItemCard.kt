@@ -66,7 +66,7 @@ fun LibraryItemCard(
           .basicMarquee(
             velocity = LibraryItemMarqueeVelocity,
           )
-          .padding(horizontal = 16.dp)
+          .padding(horizontal = 16.dp),
       )
       Text(
         text = item.media.metadata.authorName ?: stringResource(Res.string.unknown_author_name),
