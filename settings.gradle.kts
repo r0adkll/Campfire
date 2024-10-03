@@ -109,6 +109,11 @@ include(
   ":features:author:ui",
 )
 include(
+  ":features:sessions:api",
+  ":features:sessions:impl",
+  ":features:sessions:ui",
+)
+include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:settings",

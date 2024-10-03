@@ -67,6 +67,7 @@ import com.slack.circuit.overlay.OverlayHost
 fun AdaptiveCampfireLayout(
   overlayHost: OverlayHost,
   drawerState: DrawerState,
+  drawerEnabled: Boolean,
 
   drawerContent: @Composable () -> Unit,
   bottomBarNavigation: @Composable () -> Unit,
@@ -104,7 +105,7 @@ fun AdaptiveCampfireLayout(
       navigationType = navigationType,
       drawerState = drawerState,
       drawerContent = drawerContent,
-      gesturesEnabled = isLoggedIn,
+      gesturesEnabled = isLoggedIn && drawerEnabled,
     ) {
       Scaffold(
         bottomBar = {

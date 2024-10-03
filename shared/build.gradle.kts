@@ -41,6 +41,9 @@ kotlin {
         api(projects.features.author.impl)
         api(projects.features.author.ui)
 
+        api(projects.features.sessions.impl)
+        api(projects.features.sessions.ui)
+
         api(projects.ui.drawer)
         api(projects.ui.settings)
 

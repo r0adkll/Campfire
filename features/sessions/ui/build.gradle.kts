@@ -6,13 +6,9 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation(projects.features.libraries.api)
         implementation(projects.features.sessions.api)
-        implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)
-
-        implementation(libs.circuitx.overlays)
       }
     }
 

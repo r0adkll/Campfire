@@ -105,6 +105,19 @@ fun LibraryItem(
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
         },
+        onPlayClick = {
+          state.eventSink(LibraryItemUiEvent.PlayClick(contentState.item))
+        },
+        onDownloadClick = {
+        },
+        onAddToPlaylist = {
+        },
+        onAddToCollection = {
+        },
+        onMarkFinished = {
+        },
+        onDiscardProgress = {
+        },
       )
     }
   }
@@ -114,6 +127,12 @@ fun LibraryItem(
 fun LoadedState(
   item: LibraryItem,
   onChapterClick: (Chapter) -> Unit,
+  onPlayClick: () -> Unit,
+  onDownloadClick: () -> Unit,
+  onMarkFinished: () -> Unit,
+  onDiscardProgress: () -> Unit,
+  onAddToPlaylist: () -> Unit,
+  onAddToCollection: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   scrollState: ScrollState = rememberScrollState(),
@@ -156,12 +175,12 @@ fun LoadedState(
     ControlBar(
       hasProgress = item.userMediaProgress != null,
       isCurrentListening = false,
-      onPlayClick = {},
-      onDownloadClick = {},
-      onMarkFinished = {},
-      onDiscardProgress = {},
-      onAddToPlaylist = {},
-      onAddToCollection = {},
+      onPlayClick = onPlayClick,
+      onDownloadClick = onDownloadClick,
+      onMarkFinished = onMarkFinished,
+      onDiscardProgress = onDiscardProgress,
+      onAddToPlaylist = onAddToPlaylist,
+      onAddToCollection = onAddToCollection,
       modifier = Modifier
         .padding(horizontal = 16.dp),
     )

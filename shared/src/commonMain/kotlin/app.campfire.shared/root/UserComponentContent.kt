@@ -46,6 +46,9 @@ fun UserComponentContent(
               ?.let { UserSession.LoggedIn(it) }
               ?: UserSession.LoggedOut,
           )
+          .also { component ->
+            ComponentHolder.updateComponent(component)
+          }
       }
 
       CompositionLocalProvider(

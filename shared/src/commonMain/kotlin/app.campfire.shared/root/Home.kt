@@ -1,10 +1,13 @@
 package app.campfire.shared.root
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Menu
@@ -22,10 +25,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.icons.filled.Author
@@ -39,6 +46,7 @@ import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.navigation.LocalRootScreen
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
@@ -49,6 +57,8 @@ import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
+import app.campfire.core.extensions.fluentIf
+import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.shared.navigator.HomeNavigator
 import campfire.shared.generated.resources.Res
 import campfire.shared.generated.resources.empty_supporting_pane_message
@@ -119,11 +129,15 @@ internal fun Home(
 
   val navigationItems = buildNavigationItems()
   val drawerState = rememberDrawerState(DrawerValue.Closed)
+  var playbackBarExpanded by remember { mutableStateOf(false) }
+  PlatformBackHandler(playbackBarExpanded) { playbackBarExpanded = false }
+
   AdaptiveCampfireLayout(
     overlayHost = overlayHost,
     drawerState = drawerState,
+    drawerEnabled = !playbackBarExpanded,
     windowInsets = windowInsets,
-    hideBottomNav = currentPresentation?.hideBottomNav == true,
+    hideBottomNav = currentPresentation?.hideBottomNav == true || playbackBarExpanded,
     drawerContent = {
       CompositionLocalProvider(
         LocalRootScreen provides rootScreen,
@@ -156,13 +170,27 @@ internal fun Home(
       )
     },
     content = {
-      NavigableCircuitContent(
-        navigator = homeNavigator,
-        backStack = backstack,
-        decoration = GestureNavigationDecoration(
-          onBackInvoked = navigator::pop,
-        ),
-      )
+      Box {
+        NavigableCircuitContent(
+          navigator = homeNavigator,
+          backStack = backstack,
+          decoration = GestureNavigationDecoration(
+            onBackInvoked = navigator::pop,
+          ),
+        )
+
+        PlaybackBar(
+          expanded = playbackBarExpanded,
+          onExpansionChange = { playbackBarExpanded = it },
+          modifier = Modifier
+            .align(Alignment.BottomStart)
+            .widthIn(max = 500.dp)
+            .fillMaxWidth()
+            .fluentIf(windowSizeClass.isSupportingPaneEnabled) {
+              navigationBarsPadding()
+            },
+        )
+      }
     },
     showSupportingContent = detailRootScreen !is EmptyScreen,
     supportingContent = {

@@ -77,7 +77,7 @@ private fun LoadedState(
   gridState: LazyGridState = rememberLazyGridState(),
 ) {
   LazyVerticalGrid(
-    columns = GridCells.Fixed(3),
+    columns = GridCells.Fixed(2),
     state = gridState,
     modifier = modifier,
     contentPadding = contentPadding + PaddingValues(16.dp),

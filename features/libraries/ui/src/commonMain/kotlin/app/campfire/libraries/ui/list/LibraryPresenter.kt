@@ -9,18 +9,8 @@ import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
-import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortDirection.Ascending
-import app.campfire.core.settings.SortDirection.Descending
-import app.campfire.core.settings.SortMode.AddedAt
-import app.campfire.core.settings.SortMode.AuthorFL
-import app.campfire.core.settings.SortMode.AuthorLF
-import app.campfire.core.settings.SortMode.Duration
-import app.campfire.core.settings.SortMode.PublishYear
-import app.campfire.core.settings.SortMode.Size
-import app.campfire.core.settings.SortMode.Title
+import app.campfire.core.util.LibraryItemComparator
 import app.campfire.libraries.api.LibraryRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -61,15 +51,7 @@ class LibraryPresenter(
     val filteredContentState by remember {
       derivedStateOf {
         contentState.map { items ->
-          when (sortMode) {
-            Title -> items.sortedBy(sortDirection) { it.media.metadata.titleIgnorePrefix }
-            AuthorFL -> items.sortedBy(sortDirection) { it.media.metadata.authorName }
-            AuthorLF -> items.sortedBy(sortDirection) { it.media.metadata.authorNameLastFirst }
-            PublishYear -> items.sortedBy(sortDirection) { it.media.metadata.publishedYear }
-            AddedAt -> items.sortedBy(sortDirection) { it.addedAtMillis }
-            Size -> items.sortedBy(sortDirection) { it.sizeInBytes }
-            Duration -> items.sortedBy(sortDirection) { it.media.durationInMillis }
-          }
+          items.sortedWith(LibraryItemComparator(sortMode, sortDirection))
         }
       }
     }
@@ -106,12 +88,4 @@ class LibraryPresenter(
       }
     }
   }
-}
-
-private inline fun <R : Comparable<R>> List<LibraryItem>.sortedBy(
-  direction: SortDirection,
-  crossinline selector: (LibraryItem) -> R?,
-): List<LibraryItem> = when (direction) {
-  Ascending -> sortedBy(selector)
-  Descending -> sortedByDescending(selector)
 }

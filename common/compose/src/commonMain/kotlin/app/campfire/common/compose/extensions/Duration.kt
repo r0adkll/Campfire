@@ -7,7 +7,12 @@ fun Duration.readoutFormat(): String {
   val minutes = inWholeMinutes % 60
   val seconds = inWholeSeconds % 60
 
-  return "${hours}h ${minutes}min ${seconds}s"
+  return buildString {
+    if (hours > 0) append("$hours hours ")
+    if (minutes > 0) append("$minutes minutes ")
+    if (seconds > 0) append("$seconds seconds")
+    if (hours == 0L && minutes == 0L && seconds == 0L) append("nothing")
+  }
 }
 
 fun Duration.clockFormat(): String {

@@ -16,5 +16,6 @@ sealed interface LibraryItemContentState {
 }
 
 sealed interface LibraryItemUiEvent : CircuitUiEvent {
+  data class PlayClick(val item: LibraryItem) : LibraryItemUiEvent
   data object OnBack : LibraryItemUiEvent
 }

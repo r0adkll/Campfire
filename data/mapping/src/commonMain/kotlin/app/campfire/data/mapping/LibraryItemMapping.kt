@@ -68,6 +68,7 @@ fun <T : Media> T.asDbModel(
     is MediaExpanded -> metadata
     else -> error("Unknown media metadata")
   }
+
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
   return DatabaseMedia(
     libraryItemId = libraryItemId,

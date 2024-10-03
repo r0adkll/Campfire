@@ -1,5 +1,5 @@
 [versions]
-agp = "8.6.0"
+agp = "8.6.1"
 androidxlifecycle = "2.6.1"
 androidxactivity = "1.9.2"
 androidx-test-ext-junit = "1.2.1"
@@ -7,7 +7,7 @@ androidxsecuritycrypto = "1.1.0-alpha06"
 core-ktx = "1.13.1"
 coroutines = "1.9.0-RC.2"
 # This is used in the build logic
-compose-multiplatform = "1.6.11"
+compose-multiplatform = "1.7.0-beta02"
 coil = "3.0.0-alpha10"
 circuit = "0.23.1"
 kimchi = "0.4.0"

@@ -34,4 +34,12 @@ object ComponentHolder {
       .firstOrNull()
       ?: throw NoSuchElementException("No component found for '${T::class.qualifiedName}'")
   }
+
+  /**
+   * Update a component of the given type, [T], in the component holder
+   */
+  fun <T : Any> updateComponent(component: T) {
+    components.removeAll { it::class.isInstance(component) }
+    components += component
+  }
 }
