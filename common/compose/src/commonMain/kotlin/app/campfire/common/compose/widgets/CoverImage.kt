@@ -3,8 +3,6 @@ package app.campfire.common.compose.widgets
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -18,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
@@ -28,9 +27,8 @@ import coil3.compose.rememberAsyncImagePainter
 import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
 
-private val CoverImageSize = 256.dp
+val CoverImageSize = 256.dp
 private val CoverImageCornerRadius = 32.dp
-private val CoverImageVerticalSpacing = 16.dp
 
 @Composable
 fun CoverImage(
@@ -38,13 +36,10 @@ fun CoverImage(
   contentDescription: String?,
   modifier: Modifier = Modifier,
   placeholder: Painter? = null,
+  size: Dp = CoverImageSize,
 ) {
   Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(
-        vertical = CoverImageVerticalSpacing,
-      ),
+    modifier = modifier,
     contentAlignment = Alignment.Center,
   ) {
     val painter = rememberAsyncImagePainter(
@@ -57,7 +52,7 @@ fun CoverImage(
       contentDescription = contentDescription,
       contentScale = ContentScale.Crop,
       modifier = Modifier
-        .size(CoverImageSize)
+        .size(size)
         .clip(RoundedCornerShape(CoverImageCornerRadius)),
     )
 

@@ -147,6 +147,11 @@ fun LoadedState(
       imageUrl = item.media.coverImageUrl,
       contentDescription = item.media.metadata.title,
       placeholder = painterResource(Res.drawable.placeholder_book),
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(
+          vertical = 16.dp,
+        ),
     )
 
     Spacer(Modifier.height(16.dp))
