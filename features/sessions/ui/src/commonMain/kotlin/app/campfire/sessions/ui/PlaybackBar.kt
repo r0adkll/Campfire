@@ -79,7 +79,7 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
-import app.campfire.sessions.api.models.Session
+import app.campfire.core.model.Session
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden

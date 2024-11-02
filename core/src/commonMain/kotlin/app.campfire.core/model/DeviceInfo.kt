@@ -1,4 +1,4 @@
-package app.campfire.sessions.api.models
+package app.campfire.core.model
 
 data class DeviceInfo(
   val id: String,

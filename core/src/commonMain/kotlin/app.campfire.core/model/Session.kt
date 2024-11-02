@@ -1,8 +1,7 @@
-package app.campfire.sessions.api.models
+package app.campfire.core.model
 
-import app.campfire.core.model.LibraryItem
-import kotlin.time.Duration
 import kotlinx.datetime.LocalDateTime
+import kotlin.time.Duration
 
 typealias SessionId = String
 

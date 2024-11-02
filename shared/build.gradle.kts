@@ -12,6 +12,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(projects.audioplayer)
         api(projects.core)
         api(projects.common.screens)
         api(projects.common.compose)

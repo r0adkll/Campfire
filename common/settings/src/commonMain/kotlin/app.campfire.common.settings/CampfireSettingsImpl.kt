@@ -6,6 +6,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
@@ -14,6 +15,7 @@ import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,

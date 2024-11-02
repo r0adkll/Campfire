@@ -62,6 +62,7 @@ include(":androidApp")
 include(":desktopApp")
 include(":shared")
 include(":core")
+include(":audioplayer")
 include(
   ":common:screens",
   ":common:compose",

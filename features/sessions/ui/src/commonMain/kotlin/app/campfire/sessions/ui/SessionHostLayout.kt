@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.sessions.api.models.Session
+import app.campfire.core.model.Session
 import com.r0adkll.kimchi.annotations.ContributesTo
 
 @ContributesTo(UserScope::class)
@@ -22,8 +22,8 @@ private fun rememberSessionHostComponent(): SessionHostComponent {
 
 @Composable
 fun SessionHostLayout(
-  component: SessionHostComponent = rememberSessionHostComponent(),
-  content: @Composable (Session?) -> Unit,
+    component: SessionHostComponent = rememberSessionHostComponent(),
+    content: @Composable (Session?) -> Unit,
 ) {
   val currentSession by remember {
     component.sessionsRepository.observeCurrentSession()

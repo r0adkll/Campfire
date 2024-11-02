@@ -1,8 +1,8 @@
 package app.campfire.sessions.api
 
 import app.campfire.core.model.LibraryItem
-import app.campfire.sessions.api.models.Session
-import app.campfire.sessions.api.models.SessionId
+import app.campfire.core.model.Session
+import app.campfire.core.model.SessionId
 import kotlinx.coroutines.flow.Flow
 
 interface SessionsRepository {

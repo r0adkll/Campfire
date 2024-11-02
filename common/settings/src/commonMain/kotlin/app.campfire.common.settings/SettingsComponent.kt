@@ -7,8 +7,4 @@ import me.tatarka.inject.annotations.Provides
 expect interface PreferencesPlatformComponent
 
 @ContributesTo(AppScope::class)
-interface SettingsComponent : PreferencesPlatformComponent {
-
-  val CampfireSettingsImpl.bind: CampfireSettings
-    @Provides get() = this
-}
+interface SettingsComponent : PreferencesPlatformComponent

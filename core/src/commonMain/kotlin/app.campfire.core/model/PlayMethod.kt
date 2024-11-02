@@ -1,4 +1,4 @@
-package app.campfire.sessions.api.models
+package app.campfire.core.model
 
 enum class PlayMethod {
   DirectPlay,
