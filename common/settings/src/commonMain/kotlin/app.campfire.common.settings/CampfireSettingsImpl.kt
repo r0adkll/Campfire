@@ -15,7 +15,7 @@ import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
+@ContributesBinding(AppScope::class, boundType = CampfireSettings::class)
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,

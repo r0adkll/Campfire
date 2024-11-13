@@ -17,7 +17,11 @@ class ServerCoverImageHydrator(
   private val tokenStorage: TokenStorage,
 ) : CoverImageHydrator {
 
-  override suspend fun hydrateUrl(absolutePath: String): String {
+  override fun hydrateUrl(absolutePath: String): String {
+    return "${userSession.serverUrl}$absolutePath"
+  }
+
+  override suspend fun hydrateUrlWithToken(absolutePath: String): String {
     return "${userSession.serverUrl}$absolutePath?token=${getCurrentToken()}"
   }
 

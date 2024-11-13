@@ -1,8 +1,8 @@
 package app.campfire.sessions.api
 
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
-import app.campfire.core.model.SessionId
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 interface SessionsRepository {
@@ -12,13 +12,31 @@ interface SessionsRepository {
    * @param item The item to begin listening to
    * @return The newly created session
    */
-  suspend fun createSession(item: LibraryItem): Session
+  suspend fun createSession(libraryItemId: LibraryItemId): Session
 
   /**
    * Delete a listening session
-   * @param sessionId The id of the session to delete
+   * @param libraryItemId The id of the session to delete
    */
-  suspend fun deleteSession(sessionId: SessionId)
+  suspend fun deleteSession(libraryItemId: LibraryItemId)
+
+  /**
+   * Update a current listening session
+   * @param libraryItemId the id of the item to update
+   * @param currentTime the current time to update
+   */
+  suspend fun updateSession(
+    libraryItemId: LibraryItemId,
+    currentTime: Duration,
+  )
+
+  /**
+   * Stop the current active session, if one exists
+   * @param libraryItemId the id of the session to stop
+   */
+  suspend fun stopSession(
+    libraryItemId: LibraryItemId,
+  )
 
   /**
    * Observe the current listening session if one exists

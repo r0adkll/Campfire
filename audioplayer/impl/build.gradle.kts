@@ -1,4 +1,4 @@
-import app.campfire.convention.addKspDependencyForCommon
+import app.campfire.convention.addKspDependencyForAllTargets
 
 plugins {
   id("app.campfire.android.library")
@@ -11,17 +11,23 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(projects.audioplayer.api)
+
         implementation(projects.core)
         implementation(projects.common.settings)
+        implementation(projects.data.account.api)
+        implementation(projects.features.libraries.api)
+        implementation(projects.features.sessions.api)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(libs.media3.exoplayer)
+        api(libs.media3.exoplayer)
         implementation(libs.media3.exoplayer.hls)
         implementation(libs.media3.session)
         implementation(libs.media3.cast)
+        implementation(libs.androidx.lifecycle.runtime)
       }
     }
 
@@ -39,4 +45,4 @@ kotlin {
   }
 }
 
-addKspDependencyForCommon(libs.kimchi.compiler)
+addKspDependencyForAllTargets(libs.kimchi.compiler)

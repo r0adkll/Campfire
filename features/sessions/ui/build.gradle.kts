@@ -7,6 +7,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.sessions.api)
+        implementation(projects.audioplayer.api)
 
         implementation(compose.components.resources)
       }

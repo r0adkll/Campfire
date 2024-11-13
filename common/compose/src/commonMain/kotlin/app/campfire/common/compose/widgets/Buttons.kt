@@ -43,7 +43,7 @@ fun OutlinedIconButton(
   label: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   colors: ButtonColors = ButtonDefaults.outlinedButtonColors(),
-  border: BorderStroke? = ButtonDefaults.outlinedButtonBorder,
+  border: BorderStroke? = ButtonDefaults.outlinedButtonBorder(),
   enabled: Boolean = true,
 ) {
   OutlinedButton(

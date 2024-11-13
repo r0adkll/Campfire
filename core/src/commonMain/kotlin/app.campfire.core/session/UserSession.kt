@@ -15,3 +15,6 @@ sealed class UserSession {
 
 val UserSession.isLoggedIn: Boolean
   get() = this is UserSession.LoggedIn
+
+val UserSession.requiredServerUrl: String
+  get() = serverUrl!!

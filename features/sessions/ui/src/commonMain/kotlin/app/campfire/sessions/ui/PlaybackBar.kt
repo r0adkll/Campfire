@@ -6,7 +6,9 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
@@ -22,6 +24,9 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,12 +48,16 @@ import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -60,6 +69,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,10 +80,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
+import app.campfire.audioplayer.AudioPlayer
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -84,9 +103,14 @@ import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.buffering
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import coil3.compose.rememberAsyncImagePainter
 import kotlin.math.abs
+import kotlin.math.roundToInt
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.emptyFlow
 import org.jetbrains.compose.resources.stringResource
 
 enum class PlaybackBarState {
@@ -108,7 +132,20 @@ fun PlaybackBar(
   onExpansionChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  SessionHostLayout { currentSession ->
+  SessionHostLayout { currentSession, audioPlayer, clearSession ->
+
+    val currentDuration by remember(audioPlayer) {
+      audioPlayer?.currentDuration ?: emptyFlow()
+    }.collectAsState(0.seconds)
+
+    val playerState by remember(audioPlayer) {
+      audioPlayer?.state ?: emptyFlow()
+    }.collectAsState(AudioPlayer.State.Disabled)
+
+    val playbackSpeed by remember(audioPlayer) {
+      audioPlayer?.playbackSpeed ?: emptyFlow()
+    }.collectAsState(1f)
+
     SharedTransitionLayout(
       modifier = modifier,
     ) {
@@ -122,7 +159,7 @@ fun PlaybackBar(
           when {
             (initialState == Hidden && targetState == Collapsed) ||
               (initialState == Collapsed && targetState == Hidden)
-            -> slideInVertically { it } togetherWith slideOutVertically { it }
+              -> slideInVertically { it } togetherWith slideOutVertically { it }
 
             else -> scaleIn() togetherWith scaleOut()
           }
@@ -131,9 +168,18 @@ fun PlaybackBar(
         when (state) {
           Hidden -> Unit
           Collapsed -> {
+            if (currentSession == null) return@AnimatedContent
             PlaybackBar(
-              session = currentSession!!,
+              session = currentSession,
+              state = playerState,
               onClick = { onExpansionChange(!expanded) },
+              onPlayPauseClick = {
+                audioPlayer?.playPause()
+              },
+              onRewindClick = {
+                audioPlayer?.seekBackward()
+              },
+              onClearSession = clearSession,
               sharedTransitionScope = this@SharedTransitionLayout,
               animatedVisibilityScope = this,
               modifier = Modifier.padding(8.dp),
@@ -142,10 +188,24 @@ fun PlaybackBar(
 
           Expanded -> {
             ExpandedPlaybackBar(
-              session = currentSession!!,
-              sharedTransitionScope = this@SharedTransitionLayout,
-              animatedVisibilityScope = this,
-              onClose = { onExpansionChange(false) },
+                session = currentSession!!,
+                state = playerState,
+                playbackSpeed = playbackSpeed,
+                durationOverride = currentDuration,
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this,
+                onPlayPauseClick = { audioPlayer?.playPause() },
+                onRewindClick = { audioPlayer?.seekBackward() },
+                onForwardClick = { audioPlayer?.seekForward() },
+                onSkipPreviousClick = { audioPlayer?.skipToPrevious() },
+                onSkipNextClick = { audioPlayer?.skipToNext() },
+                onClose = { onExpansionChange(false) },
+                onSeek = { progress ->
+                    audioPlayer?.seekTo(progress)
+                },
+                onSpeedChange = { speed ->
+                    audioPlayer?.setPlaybackSpeed(speed)
+                },
             )
           }
         }
@@ -161,11 +221,21 @@ private val ExpandedCornerRadiusFactor = 24.dp
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun ExpandedPlaybackBar(
+  state: AudioPlayer.State,
+  playbackSpeed: Float,
   session: Session,
+  onPlayPauseClick: () -> Unit,
+  onRewindClick: () -> Unit,
+  onForwardClick: () -> Unit,
+  onSkipNextClick: () -> Unit,
+  onSkipPreviousClick: () -> Unit,
+  onSeek: (Float) -> Unit,
+  onSpeedChange: (Float) -> Unit,
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
+  durationOverride: Duration? = null,
 ) = with(sharedTransitionScope) {
   val windowSizeClass = LocalWindowSizeClass.current
 
@@ -267,24 +337,45 @@ private fun ExpandedPlaybackBar(
 
           Spacer(Modifier.height(16.dp))
 
-          // TODO: Dynamically compute the chapter and localized playback information based on the
-          //  current session info.
           Text(
-            text = session.libraryItem.media.metadata.title ?: "Unknown",
+            text = session.title,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier
               .align(Alignment.CenterHorizontally)
               .padding(horizontal = 24.dp),
           )
+
+          Text(
+            text = session.libraryItem.media.metadata.title ?: "",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier
+              .align(Alignment.CenterHorizontally)
+              .padding(horizontal = 24.dp)
+              .alpha(50f),
+          )
         }
 
-        var sliderValue by remember { mutableStateOf(0f) }
+        val interactionSource = remember { MutableInteractionSource() }
+        val isPressed by interactionSource.collectIsPressedAsState()
+        val isDragged by interactionSource.collectIsDraggedAsState()
+        val isInteracting = isPressed || isDragged
+
+        var sliderValue by remember { mutableStateOf(session.chapterProgress) }
+        LaunchedEffect(session, isInteracting) {
+          if (!isInteracting && state == AudioPlayer.State.Playing) {
+            sliderValue = session.chapterProgress
+          }
+        }
+
         Slider(
           value = sliderValue,
           onValueChange = { sliderValue = it },
           onValueChangeFinished = {
+            onSeek(sliderValue)
           },
+          interactionSource = interactionSource,
           colors = SliderDefaults.colors(
             inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
           ),
@@ -295,17 +386,25 @@ private fun ExpandedPlaybackBar(
         Row(
           Modifier
             .fillMaxWidth()
-            .padding(horizontal = 48.dp),
+            .padding(horizontal = 32.dp),
         ) {
+          val currentTimeLabel = if (isInteracting) {
+            durationOverride?.times(sliderValue.toDouble())?.readoutFormat()
+          } else if (state == AudioPlayer.State.Buffering) {
+            stringResource(Res.string.buffering)
+          } else {
+            null
+          }
+
           Text(
-            text = "00:00",
+            text = currentTimeLabel ?: session.currentTime.readoutFormat(),
             style = MaterialTheme.typography.labelSmall,
           )
 
           Spacer(Modifier.weight(1f))
 
           Text(
-            text = session.duration.readoutFormat(),
+            text = (durationOverride ?: session.duration).readoutFormat(),
             style = MaterialTheme.typography.labelSmall,
           )
         }
@@ -318,7 +417,7 @@ private fun ExpandedPlaybackBar(
           horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
         ) {
           IconButton(
-            onClick = {},
+            onClick = onSkipPreviousClick,
           ) {
             Icon(
               Icons.Rounded.SkipPrevious,
@@ -328,7 +427,7 @@ private fun ExpandedPlaybackBar(
           }
 
           IconButton(
-            onClick = {},
+            onClick = onRewindClick,
           ) {
             Icon(
               Icons.Rounded.Replay10,
@@ -341,23 +440,34 @@ private fun ExpandedPlaybackBar(
             shape = CircleShape,
             modifier = Modifier.size(90.dp),
             shadowElevation = 4.dp,
-            onClick = {
-            },
+            onClick = onPlayPauseClick,
+            enabled = state != AudioPlayer.State.Disabled && state != AudioPlayer.State.Buffering,
           ) {
             Box(
               modifier = Modifier.fillMaxSize(),
               contentAlignment = Alignment.Center,
             ) {
-              Icon(
-                Icons.Rounded.PlayArrow,
-                modifier = Modifier.size(48.dp),
-                contentDescription = null,
-              )
+              if (state != AudioPlayer.State.Buffering) {
+                Icon(
+                  if (state == AudioPlayer.State.Playing) {
+                    Icons.Rounded.Pause
+                  } else {
+                    Icons.Rounded.PlayArrow
+                  },
+                  modifier = Modifier.size(48.dp),
+                  contentDescription = null,
+                )
+              } else {
+                CircularProgressIndicator(
+                  modifier = Modifier.size(48.dp),
+                  strokeWidth = 4.dp,
+                )
+              }
             }
           }
 
           IconButton(
-            onClick = {},
+            onClick = onForwardClick,
           ) {
             Icon(
               Icons.Rounded.Forward10,
@@ -367,7 +477,7 @@ private fun ExpandedPlaybackBar(
           }
 
           IconButton(
-            onClick = {},
+            onClick = onSkipNextClick,
           ) {
             Icon(
               Icons.Rounded.SkipNext,
@@ -392,11 +502,12 @@ private fun ExpandedPlaybackBar(
         ) {
           Icon(Icons.Rounded.BookmarkAdd, contentDescription = null)
         }
-        IconButton(
-          onClick = {},
-        ) {
-          Icon(Icons.Rounded.Speed, contentDescription = null)
-        }
+
+        SpeedPickerButton(
+          speed = playbackSpeed,
+          onSpeedPicked = onSpeedChange,
+        )
+
         IconButton(
           onClick = {},
         ) {
@@ -414,6 +525,81 @@ private fun ExpandedPlaybackBar(
   }
 }
 
+@Composable
+private fun SpeedPickerButton(
+  speed: (Float),
+  onSpeedPicked: (Float) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Box(modifier) {
+    var isExpanded by remember { mutableStateOf(false) }
+    IconButton(
+      onClick = { isExpanded = true },
+    ) {
+      Icon(Icons.Rounded.Speed, contentDescription = null)
+    }
+
+    DropdownMenu(
+      expanded = isExpanded,
+      onDismissRequest = { isExpanded = false },
+      offset = DpOffset((-4).dp, 64.dp)
+    ) {
+      SpeedMenuItem(
+        speed = 2f,
+        isSelected = speed == 2f,
+        onClick = {
+          isExpanded = false
+          onSpeedPicked(2f)
+        },
+      )
+      SpeedMenuItem(
+        speed = 1.5f,
+        isSelected = speed == 1.5f,
+        onClick = {
+          isExpanded = false
+          onSpeedPicked(1.5f)
+        },
+      )
+      SpeedMenuItem(
+        speed = 1f,
+        isSelected = speed == 1f,
+        onClick = {
+          isExpanded = false
+          onSpeedPicked(1f)
+        },
+      )
+      SpeedMenuItem(
+        speed = 0.5f,
+        isSelected = speed == 0.5f,
+        onClick = {
+          isExpanded = false
+          onSpeedPicked(0.5f)
+        },
+      )
+    }
+  }
+}
+
+@Composable
+private fun SpeedMenuItem(
+  speed: Float,
+  isSelected: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  DropdownMenuItem(
+    text = {
+      Text(
+          text = "${speed}x",
+          style = MaterialTheme.typography.titleSmall,
+          fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium,
+      )
+    },
+    onClick = onClick,
+    modifier = modifier,
+  )
+}
+
 private val VerticalOffsetFactor = 24.dp
 private val HorizontalOffsetFactor = 8.dp
 private val VerticalPaddingFactor = 12.dp
@@ -424,15 +610,41 @@ private val HorizontalOffsetPaddingFactor = 8.dp
 @Composable
 private fun PlaybackBar(
   session: Session,
+  state: AudioPlayer.State,
   onClick: () -> Unit,
+  onPlayPauseClick: () -> Unit,
+  onRewindClick: () -> Unit,
+  onClearSession: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
 ) = with(sharedTransitionScope) {
+  val interactionSource = remember { MutableInteractionSource() }
+  var size by remember { mutableStateOf(IntSize.Zero) }
+
   var dragOffsetX by remember { mutableStateOf(0f) }
   val smoothedOffsetX by animateFloatAsState(dragOffsetX)
   var dragOffsetY by remember { mutableStateOf(0f) }
   val smoothedOffsetY by animateFloatAsState(dragOffsetY)
+
+  val disposingThreshold = with(LocalDensity.current) {
+    HorizontalOffsetFactor.roundToPx() * 10
+  }
+  val isDisposing by remember {
+    derivedStateOf {
+      if (size == IntSize.Zero) {
+        false
+      } else {
+        abs(dragOffsetX.roundToInt()) > disposingThreshold
+      }
+    }
+  }
+  var isDisposed by remember { mutableStateOf(false) }
+  LaunchedEffect(isDisposed, smoothedOffsetX) {
+    if (isDisposed && (abs(smoothedOffsetX) == size.width.toFloat())) {
+      onClearSession()
+    }
+  }
 
   val easedOffsetY by remember {
     derivedStateOf {
@@ -444,6 +656,7 @@ private fun PlaybackBar(
 
   val easedOffsetX by remember {
     derivedStateOf {
+      if (isDisposing) return@derivedStateOf 0f
       val sign = if (smoothedOffsetX >= 0) 1 else -1
       val normalized = (abs(smoothedOffsetX) / 400f).coerceIn(0f, 1f)
       EaseOutCubic.transform(normalized) * sign
@@ -452,6 +665,14 @@ private fun PlaybackBar(
 
   val actualOffsetY = VerticalOffsetFactor * easedOffsetY
   val actualOffsetX = HorizontalOffsetFactor * easedOffsetX
+  val actualWithDisposingOffsetX = if (isDisposing) {
+    smoothedOffsetX.roundToInt()
+  } else {
+    with(LocalDensity.current) {
+      actualOffsetX.roundToPx()
+    }
+  }
+  val animatedActualOffsetX by animateIntAsState(actualWithDisposingOffsetX)
 
   val actualVerticalPadding = VerticalPaddingFactor * abs(easedOffsetY)
   val actualHorizontalPadding = HorizontalPaddingFactor * abs(easedOffsetY)
@@ -477,21 +698,37 @@ private fun PlaybackBar(
           dragOffsetY += delta.y
         },
         onDragStopped = { velocity ->
-          if (easedOffsetY < -TranslationThreshold || velocity.y < -FlingThreshold) onClick()
-          dragOffsetX = 0f
-          dragOffsetY = 0f
+          if (
+            isDisposing &&
+            (abs(dragOffsetX) > (size.width / 3) ||
+              abs(velocity.x) > FlingThreshold)
+          ) {
+            isDisposed = true
+            dragOffsetY = 0f
+            dragOffsetX = if (dragOffsetX > 0) {
+              size.width.toFloat()
+            } else {
+              -size.width.toFloat()
+            }
+          } else if (easedOffsetY < -TranslationThreshold || velocity.y < -FlingThreshold) {
+            onClick()
+            dragOffsetX = 0f
+            dragOffsetY = 0f
+          }
           isDragging = false
         },
         onDragStarted = {
           isDragging = true
         },
+        interactionSource = interactionSource,
       )
       .offset {
         IntOffset(
-          x = actualOffsetX.roundToPx(),
+          x = animatedActualOffsetX,
           y = actualOffsetY.roundToPx(),
         )
       }
+      .onSizeChanged { size = it }
       .padding(horizontal = actualHorizontalPadding),
   ) {
     Box(
@@ -525,7 +762,7 @@ private fun PlaybackBar(
           modifier = Modifier.weight(1f),
         ) {
           Text(
-            text = session.libraryItem.media.metadata.title ?: "",
+            text = session.title,
             style = MaterialTheme.typography.titleMedium,
             maxLines = 1,
             modifier = Modifier.basicMarquee(),
@@ -541,7 +778,7 @@ private fun PlaybackBar(
         Spacer(Modifier.width(16.dp))
 
         IconButton(
-          onClick = {},
+          onClick = onRewindClick,
         ) {
           Icon(
             Icons.Rounded.Replay10,
@@ -549,13 +786,29 @@ private fun PlaybackBar(
           )
         }
 
-        IconButton(
-          onClick = {},
-        ) {
-          Icon(
-            Icons.Rounded.PlayArrow,
-            contentDescription = null,
-          )
+        Box {
+          IconButton(
+            enabled = state != AudioPlayer.State.Disabled,
+            onClick = onPlayPauseClick,
+          ) {
+            Icon(
+              if (state == AudioPlayer.State.Playing) {
+                Icons.Rounded.Pause
+              } else {
+                Icons.Rounded.PlayArrow
+              },
+              contentDescription = null,
+            )
+          }
+
+          if (state == AudioPlayer.State.Buffering) {
+            CircularProgressIndicator(
+              modifier = Modifier
+                .size(32.dp)
+                .align(Alignment.Center),
+              strokeWidth = 2.dp,
+            )
+          }
         }
 
         Spacer(Modifier.width(16.dp))
@@ -563,8 +816,7 @@ private fun PlaybackBar(
 
       LinearProgressIndicator(
         progress = {
-          session.currentTime.inWholeMilliseconds.toFloat() /
-            session.duration.inWholeMilliseconds.toFloat()
+          session.chapterProgress
         },
         modifier = Modifier
           .align(Alignment.BottomStart)

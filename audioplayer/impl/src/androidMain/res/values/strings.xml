@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="notification_content_title">Playback cannot be resumed</string>
+  <string name="notification_content_text">Press on the play button on the media notification if it
+    is still present, otherwise please open the app to start the playback and re-connect the session
+    to the controller</string>
+  <string name="notification_channel_name">Audio Playback Notifications</string>
+</resources>

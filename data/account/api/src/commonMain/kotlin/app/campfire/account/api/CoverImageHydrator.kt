@@ -5,7 +5,8 @@ import app.campfire.core.model.LibraryItemId
 
 interface CoverImageHydrator {
 
-  suspend fun hydrateUrl(absolutePath: String): String
+  fun hydrateUrl(absolutePath: String): String
+  suspend fun hydrateUrlWithToken(absolutePath: String): String
   suspend fun hydrateLibraryItem(libraryItemId: LibraryItemId): String
   suspend fun hydrateAuthor(authorId: AuthorId): String
 }

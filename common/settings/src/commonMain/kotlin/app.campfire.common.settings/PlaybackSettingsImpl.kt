@@ -16,7 +16,7 @@ import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
+@ContributesBinding(AppScope::class, boundType = PlaybackSettings::class)
 @Inject
 class PlaybackSettingsImpl(
   override val settings: ObservableSettings,
@@ -49,5 +49,5 @@ internal const val PREF_MP3_SEEKING = "pref_playback_mp3_seeking"
 internal const val PREF_FORWARD_TIME_MS = "pref_playback_forward_time_ms"
 internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
 
-internal const val DEFAULT_FORWARD_TIME_MS = 30L * 1000L // 30s
-internal const val DEFAULT_BACKWARD_TIME_MS = 15L * 1000L // 15s
+internal const val DEFAULT_FORWARD_TIME_MS = 15L * 1000L // 30s
+internal const val DEFAULT_BACKWARD_TIME_MS = 10L * 1000L // 15s

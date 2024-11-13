@@ -1,0 +1,51 @@
+import app.campfire.core.model.PlayMethod;
+import kotlin.Boolean;
+import kotlin.time.Duration;
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE session (
+  libraryItemId TEXT NOT NULL PRIMARY KEY ,
+  isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
+
+  playMethod TEXT AS PlayMethod NOT NULL,
+  mediaPlayer TEXT NOT NULL,
+
+  duration INTEGER AS Duration NOT NULL DEFAULT 0,
+  timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
+  startTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
+
+  startedAt TEXT AS LocalDateTime NOT NULL,
+  updatedAt TEXT AS LocalDateTime NOT NULL
+);
+
+getActive:
+SELECT * FROM session
+WHERE isActive = 1;
+
+getForId:
+SELECT * FROM session
+WHERE libraryItemId = ?;
+
+insert:
+INSERT OR IGNORE INTO session
+VALUES ?;
+
+delete:
+DELETE FROM session
+WHERE libraryItemId = ?;
+
+updatePlayback:
+UPDATE session
+SET currentTime = ?
+WHERE libraryItemId = ?;
+
+disable:
+UPDATE session
+SET isActive = 0
+WHERE libraryItemId = ?;
+
+enable:
+UPDATE session
+SET isActive = 1
+WHERE libraryItemId = ?;

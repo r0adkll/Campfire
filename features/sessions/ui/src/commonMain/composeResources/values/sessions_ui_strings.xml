@@ -1,3 +1,4 @@
 <resources>
   <string name="time_remaining">%1$s left</string>
+  <string name="buffering">Buffering…</string>
 </resources>

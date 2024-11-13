@@ -25,7 +25,11 @@ import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -34,6 +38,8 @@ import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
+import org.mobilenativefoundation.store.store5.StoreReadResponse
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -145,6 +151,19 @@ class StoreLibraryItemRepository(
         bark { "Library Item Store Response ($resp)" }
         resp.dataOrNull()
       }
+  }
+
+  override suspend fun getLibraryItem(itemId: LibraryItemId): LibraryItem {
+    val cached = itemStore.stream(StoreReadRequest.cached(itemId, false))
+      .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
+      .firstOrNull()
+      ?.dataOrNull()
+
+    return if (cached != null && cached.media.tracks.isNotEmpty()) {
+      cached
+    } else {
+      itemStore.fresh(itemId)
+    }
   }
 }
 

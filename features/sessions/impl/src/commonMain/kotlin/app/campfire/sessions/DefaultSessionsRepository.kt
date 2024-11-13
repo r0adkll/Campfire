@@ -1,67 +1,59 @@
 package app.campfire.sessions
 
-import app.campfire.account.api.UserRepository
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
-import app.campfire.core.time.FatherTime
-import app.campfire.sessions.api.SessionsRepository
-import app.campfire.core.model.DeviceInfo
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
-import app.campfire.core.model.SessionId
+import app.campfire.core.time.FatherTime
+import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.sessions.api.SessionsRepository
+import app.campfire.sessions.db.SessionDataSource
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultSessionsRepository(
-  private val userRepository: UserRepository,
   private val fatherTime: FatherTime,
-  private val dispatcherProvider: DispatcherProvider,
+  private val libraryItemRepository: LibraryItemRepository,
+  private val dataSource: SessionDataSource,
 ) : SessionsRepository {
 
-  private val sessionFlow = MutableStateFlow<Session?>(null)
-
-  @OptIn(ExperimentalUuidApi::class)
-  override suspend fun createSession(item: LibraryItem): Session {
-    return Session(
-      id = Uuid.random().toString(),
-      libraryItem = item,
-      playMethod = PlayMethod.Local,
-      mediaPlayer = "exo-player",
-      deviceInfo = DeviceInfo(
-        id = Uuid.random().toString(),
-        userId = "",
-        deviceId = "",
-        clientName = "Campfire",
-        clientVersion = "0.0.1",
-      ),
-      duration = 15.hours,
-      timeListening = 1.hours,
-      startTime = 0.seconds,
-      currentTime = 2.hours,
-      startedAt = fatherTime.now(),
-      updatedAt = fatherTime.now(),
-    ).also {
-      sessionFlow.value = it
-    }
-  }
-
-  override suspend fun deleteSession(sessionId: SessionId) {
-    sessionFlow.value = null
-  }
-
   override fun observeCurrentSession(): Flow<Session?> {
-    return sessionFlow.asStateFlow()
+    return dataSource.observeCurrentSession()
+  }
+
+  override suspend fun createSession(libraryItemId: LibraryItemId): Session {
+    val startedAt = fatherTime.now()
+    val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
+
+    return dataSource.createOrStartSession(
+      libraryItemId = libraryItemId,
+      playMethod = PlayMethod.DirectPlay,
+      mediaPlayer = "campfire",
+      duration = libraryItem.media.durationInMillis.milliseconds,
+      startedAt = startedAt,
+    )
+  }
+
+  override suspend fun deleteSession(libraryItemId: LibraryItemId) {
+    dataSource.deleteSession(libraryItemId)
+  }
+
+  override suspend fun updateSession(libraryItemId: LibraryItemId, currentTime: Duration) {
+    dataSource.updateSession(
+      libraryItemId = libraryItemId,
+      currentTime = currentTime,
+    )
+  }
+
+  override suspend fun stopSession(libraryItemId: LibraryItemId) {
+    dataSource.stopSession(libraryItemId)
   }
 }
