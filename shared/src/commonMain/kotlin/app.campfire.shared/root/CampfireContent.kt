@@ -6,6 +6,7 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
+import app.campfire.core.logging.bark
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.moriatsushi.insetsx.statusBars
 import com.moriatsushi.insetsx.systemBars
@@ -55,6 +57,17 @@ fun CampfireContentWithInsets(
 
       val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
       val navigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
+
+      LaunchedEffect(backStack, navigator) {
+        bark {
+          """
+            UserComponentContent(session=${userComponent.currentUserSession})
+              backStack = $backStack,
+              navigator = $navigator,
+            )
+          """.trimIndent()
+        }
+      }
 
       PlatformBackHandler(
         enabled = backStack.size > 1,

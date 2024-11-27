@@ -1,4 +1,6 @@
 <resources>
   <string name="time_remaining">%1$s left</string>
   <string name="buffering">Buffering…</string>
+
+  <string name="chapters_bottomsheet_title">Chapters</string>
 </resources>

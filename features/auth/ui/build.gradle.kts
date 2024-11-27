@@ -1,5 +1,12 @@
 plugins {
   id("app.campfire.ui")
+  alias(libs.plugins.buildConfig)
+}
+
+buildConfig {
+  buildConfigField("String?", "TEST_SERVER_URL", providers.gradleProperty("campfire_server_url").orNull)
+  buildConfigField("String?", "TEST_USERNAME", providers.gradleProperty("campfire_username").orNull)
+  buildConfigField("String?", "TEST_PASSWORD", providers.gradleProperty("campfire_password").orNull)
 }
 
 kotlin {

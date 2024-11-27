@@ -45,6 +45,11 @@ UPDATE session
 SET isActive = 0
 WHERE libraryItemId = ?;
 
+disableAll:
+UPDATE session
+SET isActive = 0
+WHERE isActive = 1;
+
 enable:
 UPDATE session
 SET isActive = 1

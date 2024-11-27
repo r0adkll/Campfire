@@ -17,6 +17,7 @@ actual interface SqlDelightDatabasePlatformComponent {
     val userDir = File(System.getProperty("user.dir"))
     val appDir = File(userDir, ".campfire").apply { mkdirs() }
     val databaseFile = File(appDir, "campfire.db")
+
     bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
 
     val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")

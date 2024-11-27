@@ -10,6 +10,8 @@ kotlin {
         implementation(projects.audioplayer.api)
 
         implementation(compose.components.resources)
+
+        implementation(libs.circuitx.overlays)
       }
     }
 

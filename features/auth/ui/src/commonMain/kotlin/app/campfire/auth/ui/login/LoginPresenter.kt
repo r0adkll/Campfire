@@ -1,5 +1,6 @@
 package app.campfire.auth.ui.login
 
+import Campfire.features.auth.ui.BuildConfig
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,9 +42,9 @@ class LoginPresenter(
 
     var tent by remember { mutableStateOf(Tent.Default) }
     var serverName by remember { mutableStateOf("") }
-    var serverUrl by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var serverUrl by remember { mutableStateOf(BuildConfig.TEST_SERVER_URL ?: "") }
+    var username by remember { mutableStateOf(BuildConfig.TEST_USERNAME ?: "") }
+    var password by remember { mutableStateOf(BuildConfig.TEST_PASSWORD ?: "") }
 
     var isAuthenticating by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<AuthError?>(null) }

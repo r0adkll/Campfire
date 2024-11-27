@@ -119,7 +119,7 @@ internal fun Home(
     overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
   }
 
-  val homeNavigator = remember(windowSizeClass) {
+  val homeNavigator = remember(navigator, windowSizeClass) {
     HomeNavigator(
       windowSizeClass = windowSizeClass,
       rootNavigator = navigator,

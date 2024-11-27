@@ -1,5 +1,6 @@
 package app.campfire.audioplayer
 
+import app.campfire.audioplayer.model.Metadata
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.StateFlow
 
@@ -11,12 +12,13 @@ interface AudioPlayer {
   val state: StateFlow<State>
   val currentTime: StateFlow<Duration>
   val currentDuration: StateFlow<Duration>
+  val currentMetadata: StateFlow<Metadata>
   val playbackSpeed: StateFlow<Float>
 
   fun pause()
   fun playPause()
   fun stop()
-  fun seekTo(positionInMs: Long)
+  fun seekTo(itemIndex: Int)
   fun seekTo(progress: Float)
 
   fun skipToNext()

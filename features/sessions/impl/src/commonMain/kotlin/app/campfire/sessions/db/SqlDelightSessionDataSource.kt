@@ -52,24 +52,32 @@ class SqlDelightSessionDataSource(
     return withContext(dispatcherProvider.databaseRead) {
       val existingSession = db.sessionQueries.getForId(libraryItemId).executeAsOneOrNull()
       if (existingSession != null) {
-        db.sessionQueries.enable(libraryItemId)
+        withContext(dispatcherProvider.databaseWrite) {
+          db.transaction {
+            db.sessionQueries.disableAll()
+            db.sessionQueries.enable(libraryItemId)
+          }
+        }
         hydrateSession(existingSession)
       } else {
         withContext(dispatcherProvider.databaseWrite) {
-          db.sessionQueries.insert(
-            DbSession(
-              libraryItemId = libraryItemId,
-              isActive = true,
-              playMethod = PlayMethod.DirectPlay,
-              mediaPlayer = "campfire",
-              duration = duration,
-              timeListening = 0.seconds,
-              startTime = 0.seconds,
-              currentTime = 0.seconds,
-              startedAt = fatherTime.now(),
-              updatedAt = fatherTime.now(),
-            ),
-          )
+          db.transaction {
+            db.sessionQueries.disableAll()
+            db.sessionQueries.insert(
+              DbSession(
+                libraryItemId = libraryItemId,
+                isActive = true,
+                playMethod = PlayMethod.DirectPlay,
+                mediaPlayer = "campfire",
+                duration = duration,
+                timeListening = 0.seconds,
+                startTime = 0.seconds,
+                currentTime = 0.seconds,
+                startedAt = fatherTime.now(),
+                updatedAt = fatherTime.now(),
+              ),
+            )
+          }
         }
         db.sessionQueries.getForId(libraryItemId)
           .executeAsOne()

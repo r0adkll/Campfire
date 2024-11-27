@@ -26,7 +26,7 @@ abstract class AndroidAppComponent(
       packageName = application.packageName,
       debugBuild = BuildConfig.DEBUG,
       flavor = Flavor.Standard,
-      versionName = packageInfo.versionName,
+      versionName = packageInfo.versionName ?: "unknown",
       versionCode = packageInfo.versionCode,
     )
   }

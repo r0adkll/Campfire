@@ -20,7 +20,7 @@ fun Duration.readoutFormat(style: ReadoutStyle = ReadoutStyle.Short): String {
     if (hours > 0) append("$hours${formatForStyle("h", "hours")} ")
     if (minutes > 0) append("$minutes${formatForStyle("m", "minutes")} ")
     if (seconds > 0) append("$seconds${formatForStyle("s", "seconds")}")
-    if (hours == 0L && minutes == 0L && seconds == 0L) append("nothing")
+    if (hours == 0L && minutes == 0L && seconds == 0L) append("--")
   }
 }
 

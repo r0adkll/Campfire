@@ -9,7 +9,6 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.audioplayer.impl.model.Track
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -41,12 +40,12 @@ class AndroidPlaybackController(
   private val activityScope: CoroutineScope get() =
     (activity as ComponentActivity).lifecycleScope
 
-  private val sessionToken = SessionToken(activity, ComponentName(activity, AudioPlayerService::class.java))
   private var mediaController: MediaController? = null
 
   override fun startSession(itemId: LibraryItemId) {
     if (mediaController == null) {
       // Create new token and build new controller
+      val sessionToken = SessionToken(activity, ComponentName(activity, AudioPlayerService::class.java))
       val controllerFuture = MediaController.Builder(activity, sessionToken).buildAsync()
       controllerFuture.addListener(
         {
@@ -84,17 +83,11 @@ class AndroidPlaybackController(
   private fun prepareSession(itemId: LibraryItemId) {
     applicationScope.launch {
       val session = sessionRepository.createSession(itemId)
+
       bark { "Preparing playback session: $session" }
 
-      val mediaItems = with(session.libraryItem) {
-        media.tracks.map { track ->
-          Track(
-            id = "${id}_track${track.index}",
-            track = track,
-            media = media,
-          ).asMediaItem
-        }
-      }
+      val mediaItems = MediaItemBuilder.build(session)
+
       withContext(dispatcherProvider.main) {
         mediaController?.run {
           addMediaItems(mediaItems)
