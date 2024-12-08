@@ -30,8 +30,14 @@ fun Duration.clockFormat(): String {
   val seconds = inWholeSeconds % 60
 
   return buildString {
-    if (hours > 0) append("$hours").append(":")
-    append("$minutes".padStart(2, '0'))
+    if (hours > 0) {
+      append("$hours")
+        .append(":")
+        .append("$minutes".padStart(2, '0'))
+    }
+    else {
+      append("$minutes")
+    }
       .append(":")
       .append("$seconds".padStart(2, '0'))
   }

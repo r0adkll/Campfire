@@ -11,32 +11,50 @@ import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Media
 import app.campfire.core.model.Session
+import kotlin.math.abs
 
 object MediaItemBuilder {
 
-  fun build(session: Session): List<MediaItem> = with (session.libraryItem) {
+  fun build(session: Session): List<MediaItem> = with(session.libraryItem) {
     val chapters = media.chapters
     val audioTracks = media.tracks
+
+    // Its probably a safe assumption that if the # of chapters matches the # of audio tracks/files
+    // then this item is file segmented by chapter and we can assume a 1:1 relationship
+    val likelyTrackPerChapter = chapters.size != audioTracks.size
 
     return chapters.map { chapter ->
       // Chapters may not sync with audio tracks, so we should attempt to find the track
       // that contains this chapter
       val track = audioTracks.find {
-        val trackStart = it.startOffset
-        val trackEnd = trackStart + it.duration
-        chapter.start in trackStart.rangeUntil(trackEnd)
+        val trackStart = it.startOffset.seconds.inWholeSeconds
+        val trackEnd = (it.startOffset + it.duration).seconds.inWholeSeconds
+        chapter.start.seconds.inWholeSeconds in trackStart.rangeUntil(trackEnd)
       } ?: error("Unable to find track for chapter ${chapter.title}")
 
-      bark { "MediaItem(chapter=$chapter, track=$track)" }
+      // Determine now if the audio track needs to be clipped for this item\
+      val diff = computerChapterTrackDiffInSeconds(chapter, track)
 
-      createMediaItem(chapter, track, media)
+      bark { "MediaItem[~${diff}s](chapter=$chapter, track=$track)" }
+
+      createMediaItem(chapter, track, likelyTrackPerChapter || diff < 0f, media)
     }
+  }
+
+  private fun computerChapterTrackDiffInSeconds(
+    chapter: Chapter,
+    track: AudioTrack,
+  ): Float {
+    val startDiff = abs(chapter.start - track.startOffset)
+    val durationDiff = abs((chapter.end - chapter.start) - track.duration)
+    return startDiff + durationDiff
   }
 
   private fun createMediaItem(
     chapter: Chapter,
     track: AudioTrack,
-    media: Media
+    clipAudio: Boolean,
+    media: Media,
   ): MediaItem {
     return MediaItem.Builder()
       .setMediaId("${media.id}_${chapter.id}")
@@ -45,15 +63,17 @@ object MediaItemBuilder {
       .apply {
         // If the item audio tracks and chapters line up (i.e. it has multiple audio files for the entire media)
         // then we don't need to add a clipping configuration
-        if (
-          chapter.start != track.startOffset ||
-          chapter.end != (track.startOffset + track.duration)
-        ) {
+        if (clipAudio) {
+          val startPositionMs = chapter.start.seconds.inWholeMilliseconds
+          val endPositionMs = chapter.end.seconds.inWholeMilliseconds
+          bark { "ClippingConfiguration (chapter=[${chapter.start} -> ${chapter.end}], track=[${track.startOffset} -> ${track.startOffset + track.duration}])" }
+          bark { "ClippingConfiguration (chapter=[${chapter.start.seconds.inWholeSeconds} -> ${chapter.end.seconds.inWholeSeconds}], " +
+            "track=[${track.startOffset.seconds.inWholeSeconds} -> ${(track.startOffset + track.duration).seconds.inWholeSeconds}])" }
           setClippingConfiguration(
             ClippingConfiguration.Builder()
-              .setStartPositionMs(chapter.start.seconds.inWholeMilliseconds)
-              .setEndPositionMs(chapter.end.seconds.inWholeMilliseconds)
-              .build()
+              .setStartPositionMs(startPositionMs)
+              .setEndPositionMs(endPositionMs)
+              .build(),
           )
         }
       }

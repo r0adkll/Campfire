@@ -14,6 +14,7 @@ import androidx.media3.extractor.mp3.Mp3Extractor
 import app.campfire.account.api.AccountManager
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredServerUrl
 import com.r0adkll.kimchi.annotations.ContributesTo

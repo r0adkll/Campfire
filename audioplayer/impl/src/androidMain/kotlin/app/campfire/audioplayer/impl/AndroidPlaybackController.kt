@@ -1,60 +1,47 @@
 package app.campfire.audioplayer.impl
 
-import android.app.Activity
+import android.app.Application
 import android.content.ComponentName
-import androidx.activity.ComponentActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
-import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
-@SingleIn(UserScope::class)
-@ContributesBinding(UserScope::class)
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class AndroidPlaybackController(
-  private val activity: Activity,
-  private val sessionRepository: SessionsRepository,
-  private val dispatcherProvider: DispatcherProvider,
+  private val application: Application,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : PlaybackController {
 
   override val currentPlayer = MutableStateFlow<AudioPlayer?>(null)
 
-  private val activityScope: CoroutineScope get() =
-    (activity as ComponentActivity).lifecycleScope
-
   private var mediaController: MediaController? = null
 
   override fun startSession(itemId: LibraryItemId) {
-    if (mediaController == null) {
+    if (mediaController?.isConnected != true) {
       // Create new token and build new controller
-      val sessionToken = SessionToken(activity, ComponentName(activity, AudioPlayerService::class.java))
-      val controllerFuture = MediaController.Builder(activity, sessionToken).buildAsync()
+      val sessionToken = SessionToken(application, ComponentName(application, AudioPlayerService::class.java))
+      val controllerFuture = MediaController.Builder(application, sessionToken).buildAsync()
       controllerFuture.addListener(
         {
           // MediaController is available here with controllerFuture.get()
           mediaController = controllerFuture.get()
-          prepareSession(itemId)
 
           // Listen for the activity lifecycle to die, then release any saved media controller
-          activityScope.launch {
+          applicationScope.launch {
             try {
               awaitCancellation()
             } finally {
@@ -62,40 +49,17 @@ class AndroidPlaybackController(
             }
           }
         },
-        ContextCompat.getMainExecutor(activity)
+        ContextCompat.getMainExecutor(application)
       )
-    } else {
-      prepareSession(itemId)
     }
 
-    AudioPlayerService.start(activity)
+    AudioPlayerService.start(application, itemId)
   }
 
   override fun stopSession(itemId: LibraryItemId) {
-    applicationScope.launch {
-      sessionRepository.stopSession(itemId)
-    }
-    AudioPlayerService.stop(activity)
+    // This service will manage stopping the internal session tracking objects
+    AudioPlayerService.stop(application)
     mediaController?.release()
     mediaController = null
-  }
-
-  private fun prepareSession(itemId: LibraryItemId) {
-    applicationScope.launch {
-      val session = sessionRepository.createSession(itemId)
-
-      bark { "Preparing playback session: $session" }
-
-      val mediaItems = MediaItemBuilder.build(session)
-
-      withContext(dispatcherProvider.main) {
-        mediaController?.run {
-          addMediaItems(mediaItems)
-          seekTo(session.currentTime.inWholeMilliseconds)
-          playWhenReady = true
-          prepare()
-        }
-      }
-    }
   }
 }

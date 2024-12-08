@@ -1,9 +1,12 @@
-package app.campfire.sessions.ui.chapters
+package app.campfire.sessions.ui.sheets.chapters
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -13,7 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
+import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.chapters_bottomsheet_title
 import com.slack.circuit.overlay.OverlayHost
@@ -30,6 +36,10 @@ suspend fun OverlayHost.showChapterBottomSheet(chapters: List<Chapter>): Chapter
     BottomSheetOverlay<List<Chapter>, ChapterResult>(
       model = chapters,
       onDismiss = { ChapterResult.None },
+      sheetShape = RoundedCornerShape(
+        topStart = 32.dp,
+        topEnd = 32.dp,
+      ),
     ) { models, overlayNavigator ->
       ChapterListBottomSheet(
         chapters = models,
@@ -38,7 +48,7 @@ suspend fun OverlayHost.showChapterBottomSheet(chapters: List<Chapter>): Chapter
         },
         modifier = Modifier.navigationBarsPadding(),
       )
-    }
+    },
   )
 }
 
@@ -48,26 +58,26 @@ private fun ChapterListBottomSheet(
   onChapterClicked: (Chapter) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Column(
+  SessionSheetLayout(
     modifier = modifier,
+    title = { Text(stringResource(Res.string.chapters_bottomsheet_title)) },
   ) {
-    Text(
-      text = stringResource(Res.string.chapters_bottomsheet_title),
-      style = MaterialTheme.typography.titleLarge,
-      modifier = Modifier
-        .padding(16.dp)
-        .align(Alignment.CenterHorizontally),
-    )
-    chapters.forEach { chapter ->
-      ListItem(
-        headlineContent = { Text(chapter.title) },
-        modifier = Modifier.clickable {
-          onChapterClicked(chapter)
-        },
-        colors = ListItemDefaults.colors(
-          containerColor = Color.Transparent,
+    LazyColumn {
+      items(
+        items = chapters,
+        key = { it.id },
+      ) { chapter ->
+        ListItem(
+          headlineContent = { Text(chapter.title) },
+          trailingContent = { Text(chapter.start.seconds.readoutFormat()) },
+          modifier = Modifier.clickable {
+            onChapterClicked(chapter)
+          },
+          colors = ListItemDefaults.colors(
+            containerColor = Color.Transparent,
+          ),
         )
-      )
+      }
     }
   }
 }

@@ -29,11 +29,11 @@ data class Session(
   val timeRemaining: Duration
     get() = duration - currentTime
 
+  val chapter: Chapter
+    get() = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
+
   val title: String
-    get() {
-      val chapter = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
-      return chapter.title
-    }
+    get() = chapter.title
 
   val chapterProgress: Float
     get() {

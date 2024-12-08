@@ -67,6 +67,10 @@ fun PlaybackBar(
       audioPlayer?.playbackSpeed ?: emptyFlow()
     }.collectAsState(1f)
 
+    val runningTimer = remember(audioPlayer) {
+      audioPlayer?.runningTimer ?: emptyFlow()
+    }.collectAsState(null)
+
     SharedTransitionLayout(
       modifier = modifier,
     ) {
@@ -118,6 +122,7 @@ fun PlaybackBar(
               currentTime = currentTime.value,
               currentDuration = currentDuration.value,
               currentMetadata = currentMetadata.value,
+              runningTimer = runningTimer.value,
               sharedTransitionScope = this@SharedTransitionLayout,
               animatedVisibilityScope = this,
               onPlayPauseClick = { audioPlayer?.playPause() },
@@ -129,8 +134,11 @@ fun PlaybackBar(
               onSeek = { progress ->
                 audioPlayer?.seekTo(progress)
               },
-              onSpeedChange = { speed ->
-                audioPlayer?.setPlaybackSpeed(speed)
+              onTimerCleared = {
+                audioPlayer?.clearTimer()
+              },
+              onTimerSelected = { timer ->
+                audioPlayer?.setTimer(timer)
               },
               onChapterSelected = { chapter ->
                 audioPlayer?.seekTo(chapter.id)

@@ -7,11 +7,13 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.sessions.api)
+        implementation(projects.features.libraries.api)
         implementation(projects.audioplayer.api)
 
         implementation(compose.components.resources)
 
         implementation(libs.circuitx.overlays)
+        implementation(libs.wavy.slider)
       }
     }
 

@@ -19,6 +19,8 @@ import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.session.UserSession
 import app.campfire.shared.di.UserComponent
+import app.campfire.shared.di.UserComponentManager
+import app.campfire.shared.di.rememberUserComponentManager
 import kotlinx.coroutines.flow.map
 
 sealed interface ServerUrlState {
@@ -29,6 +31,7 @@ sealed interface ServerUrlState {
 @Composable
 fun UserComponentContent(
   campfireSettings: CampfireSettings,
+  userComponentManager: UserComponentManager = rememberUserComponentManager(),
   content: @Composable (UserComponent) -> Unit,
 ) {
   val serverUrlState by campfireSettings.observeCurrentServerUrl()
@@ -40,13 +43,14 @@ fun UserComponentContent(
       val currentServerUrl = state.serverUrl
 
       val userComponent = remember(currentServerUrl) {
-        ComponentHolder.component<UserComponent.Factory>()
-          .create(
-            currentServerUrl
-              ?.let { UserSession.LoggedIn(it) }
-              ?: UserSession.LoggedOut,
-          )
+        val userSession = currentServerUrl
+          ?.let { UserSession.LoggedIn(it) }
+          ?: UserSession.LoggedOut
+
+        // Fetch a cached graph object, or create a new one for the current session
+        userComponentManager.getOrCreateUserComponent(userSession)
           .also { component ->
+            // Be sure to update the current instance of [UserComponent] in the holder
             ComponentHolder.updateComponent(component)
           }
       }

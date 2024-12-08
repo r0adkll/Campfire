@@ -8,13 +8,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media3.common.Player
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
+import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
@@ -26,12 +31,14 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)
 interface AudioPlayerComponent {
   val audioPlaybackController: AndroidPlaybackController
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory
   val sessionsRepository: SessionsRepository
+  val playbackSessionManager: PlaybackSessionManager
 }
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -46,30 +53,39 @@ class AudioPlayerService : MediaSessionService() {
     ComponentHolder.component<AudioPlayerComponent>()
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   override fun onCreate() {
     super.onCreate()
+    // Create ExoPlayer instance and MediaSession instance that encapsulates the background
+    // playback on Android.
     player = component.exoPlayerFactory.create(this)
     session = MediaSession.Builder(this, player.exoPlayer)
       .setCallback(MediaSessionCallback())
       .build()
 
+    // Attach the Android playback implementation to the controller used by other parts of the
+    // to access and control playback / session.
     component.audioPlaybackController.currentPlayer.value = player
 
-    // Observe the current time from the player and update the local session with its time
-    component.sessionsRepository.observeCurrentSession()
-      .flatMapLatest { session ->
-        session?.let {
-          player.currentTime
-            .onEach { currentTime ->
-              component.sessionsRepository.updateSession(it.libraryItem.id, currentTime)
-            }
-        } ?: emptyFlow()
-      }
-      .launchIn(serviceScope)
-
+    // Setup notification management and checks
     ensureNotificationChannel(NotificationManagerCompat.from(this))
     setListener(MediaSessionServiceListener())
+  }
+
+  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    val libraryItemId = intent?.getStringExtra(EXTRA_LIBRARY_ITEM_ID)
+    if (libraryItemId != null) {
+      // Apply the metadata to this current session
+      session?.sessionExtras = Bundle().apply {
+        putString(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
+      }
+
+      // Launch the manager to pull/create/prepare the session for the given element
+      serviceScope.launch {
+        component.playbackSessionManager.startSession(libraryItemId)
+      }
+    }
+
+    return super.onStartCommand(intent, flags, startId)
   }
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
@@ -88,6 +104,7 @@ class AudioPlayerService : MediaSessionService() {
   }
 
   override fun onDestroy() {
+    stopCurrentPlaybackSession()
     serviceScope.cancel()
     player.release()
     session?.run {
@@ -98,6 +115,19 @@ class AudioPlayerService : MediaSessionService() {
     clearListener()
     component.audioPlaybackController.currentPlayer.value = null
     super.onDestroy()
+  }
+
+  private fun stopCurrentPlaybackSession() {
+    val libraryItemId = session?.sessionExtras?.getString(EXTRA_LIBRARY_ITEM_ID)
+    if (libraryItemId != null) {
+      serviceScope.launch {
+        component.playbackSessionManager.stopSession(libraryItemId)
+      }
+    } else {
+      bark(LogPriority.ERROR) {
+        "Stopping AudioPlayerService, but no active session was found"
+      }
+    }
   }
 
   private inner class MediaSessionServiceListener : Listener {
@@ -158,17 +188,27 @@ class AudioPlayerService : MediaSessionService() {
   }
 
   companion object {
+    private const val EXTRA_LIBRARY_ITEM_ID = "libraryItemId"
     private const val CHANNEL_ID = "app.campfire.notifications.playback"
     private const val NOTIFICATION_ID = 100
 
-    fun start(context: Context) {
-      context.startForegroundService(context.serviceIntent())
+    fun start(
+      context: Context,
+      libraryItemId: LibraryItemId,
+    ) {
+      context.startForegroundService(context.serviceIntent(libraryItemId))
     }
 
     fun stop(context: Context) {
       context.stopService(context.serviceIntent())
     }
 
-    private fun Context.serviceIntent(): Intent = Intent(this, AudioPlayerService::class.java)
+    private fun Context.serviceIntent(libraryItemId: LibraryItemId? = null): Intent {
+      return Intent(this, AudioPlayerService::class.java).apply {
+        if (libraryItemId != null) {
+          putExtra(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
+        }
+      }
+    }
   }
 }
