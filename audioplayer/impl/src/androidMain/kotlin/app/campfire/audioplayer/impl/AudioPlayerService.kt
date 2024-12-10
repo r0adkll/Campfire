@@ -24,13 +24,8 @@ import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)
@@ -74,6 +69,8 @@ class AudioPlayerService : MediaSessionService() {
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
     val libraryItemId = intent?.getStringExtra(EXTRA_LIBRARY_ITEM_ID)
     if (libraryItemId != null) {
+      val playImmediately = intent.getBooleanExtra(EXTRA_PLAY_IMMEDIATELY, true)
+
       // Apply the metadata to this current session
       session?.sessionExtras = Bundle().apply {
         putString(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
@@ -81,7 +78,7 @@ class AudioPlayerService : MediaSessionService() {
 
       // Launch the manager to pull/create/prepare the session for the given element
       serviceScope.launch {
-        component.playbackSessionManager.startSession(libraryItemId)
+        component.playbackSessionManager.startSession(libraryItemId, playImmediately)
       }
     }
 
@@ -189,25 +186,36 @@ class AudioPlayerService : MediaSessionService() {
 
   companion object {
     private const val EXTRA_LIBRARY_ITEM_ID = "libraryItemId"
+    private const val EXTRA_PLAY_IMMEDIATELY = "playWhenPrepared"
     private const val CHANNEL_ID = "app.campfire.notifications.playback"
     private const val NOTIFICATION_ID = 100
 
     fun start(
       context: Context,
       libraryItemId: LibraryItemId,
+      playImmediately: Boolean = true,
     ) {
-      context.startForegroundService(context.serviceIntent(libraryItemId))
+      context.startForegroundService(
+        context.serviceIntent(
+          libraryItemId = libraryItemId,
+          playImmediately = playImmediately,
+        )
+      )
     }
 
     fun stop(context: Context) {
       context.stopService(context.serviceIntent())
     }
 
-    private fun Context.serviceIntent(libraryItemId: LibraryItemId? = null): Intent {
+    private fun Context.serviceIntent(
+      libraryItemId: LibraryItemId? = null,
+      playImmediately: Boolean = true,
+    ): Intent {
       return Intent(this, AudioPlayerService::class.java).apply {
         if (libraryItemId != null) {
           putExtra(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
         }
+        putExtra(EXTRA_PLAY_IMMEDIATELY, playImmediately)
       }
     }
   }

@@ -46,6 +46,7 @@ import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_clear_timer
 import campfire.features.sessions.ui.generated.resources.action_set_timer
+import campfire.features.sessions.ui.generated.resources.label_current_timer
 import campfire.features.sessions.ui.generated.resources.timer_bottomsheet_title
 import campfire.features.sessions.ui.generated.resources.timer_custom
 import campfire.features.sessions.ui.generated.resources.timer_end_of_chapter
@@ -215,7 +216,7 @@ private fun RunningTimerCard(
         )
         Spacer(Modifier.width(8.dp))
         Text(
-          text = "Current timer", // TODO: Res string
+          text = stringResource(Res.string.label_current_timer),
           style = MaterialTheme.typography.labelLarge,
           fontWeight = FontWeight.SemiBold,
         )

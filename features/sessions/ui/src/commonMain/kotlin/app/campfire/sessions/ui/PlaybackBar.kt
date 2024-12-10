@@ -10,16 +10,12 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
-import app.campfire.core.extensions.seconds
-import app.campfire.core.logging.bark
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden

@@ -8,6 +8,10 @@ import app.campfire.core.model.LibraryItemId
  */
 interface PlaybackSessionManager {
 
-  suspend fun startSession(libraryItemId: LibraryItemId)
+  suspend fun startSession(
+    libraryItemId: LibraryItemId,
+    playImmediately: Boolean = true,
+  )
+
   suspend fun stopSession(libraryItemId: LibraryItemId)
 }

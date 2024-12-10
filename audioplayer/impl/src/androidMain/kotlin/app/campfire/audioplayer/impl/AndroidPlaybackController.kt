@@ -30,7 +30,10 @@ class AndroidPlaybackController(
 
   private var mediaController: MediaController? = null
 
-  override fun startSession(itemId: LibraryItemId) {
+  override fun startSession(
+    itemId: LibraryItemId,
+    playImmediately: Boolean,
+  ) {
     if (mediaController?.isConnected != true) {
       // Create new token and build new controller
       val sessionToken = SessionToken(application, ComponentName(application, AudioPlayerService::class.java))
@@ -53,7 +56,11 @@ class AndroidPlaybackController(
       )
     }
 
-    AudioPlayerService.start(application, itemId)
+    AudioPlayerService.start(
+      context = application,
+      libraryItemId = itemId,
+      playImmediately = playImmediately,
+    )
   }
 
   override fun stopSession(itemId: LibraryItemId) {

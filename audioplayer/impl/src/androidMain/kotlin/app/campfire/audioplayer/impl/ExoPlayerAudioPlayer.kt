@@ -16,10 +16,14 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.settings.PlaybackSettings
+import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import kotlin.time.Duration.Companion.milliseconds
@@ -34,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(UnstableApi::class)
@@ -104,20 +109,46 @@ class ExoPlayerAudioPlayer(
     scope.cancel()
   }
 
-  override fun prepare(session: Session) {
-    scope.launch {
-      val mediaItems = MediaItemBuilder.build(session)
+  override suspend fun prepare(
+    session: Session,
+    playImmediately: Boolean,
+  ) = withContext(Dispatchers.Main) {
+    val mediaItems = MediaItemBuilder.build(session)
 
-      exoPlayer.run {
-        setMediaItems(mediaItems, true)
+    bark(AUDIO_TAG, LogPriority.INFO) {
+      """
+        Prepare Session(
+          itemId = ${session.libraryItem.id},
+          title = ${session.libraryItem.media.metadata.title},
+          playMethod = ${session.playMethod},
+          mediaPlayer = ${session.mediaPlayer},
+          duration = ${session.duration},
+          currentTime = ${session.currentTime},
+        )
+      """.trimIndent()
+    }
 
-        // TODO: Prepare the session according to the current session
-//        session.chapterProgress
-//        seekTo(session.currentTime.inWholeMilliseconds)
+    exoPlayer.run {
+      // Set the media list
+      setMediaItems(mediaItems, true)
 
-        playWhenReady = true
-        prepare()
+      // Seek the media player
+      if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
+        val chapter = session.chapter
+        val progressInChapterMs = (session.currentTime - chapter.start.seconds)
+          .inWholeMilliseconds.coerceAtLeast(0L)
+        seekTo(chapter.id, progressInChapterMs)
+
+        // Hydrate the current states so the UI reflects appropriately
+        currentTime.value = progressInChapterMs.milliseconds
+        currentDuration.value = chapter.duration
+        currentMetadata.value = Metadata(chapter.title)
+        overallTime.value = session.currentTime
       }
+
+      // Set when to play, and prepare
+      playWhenReady = playImmediately
+      prepare()
     }
   }
 
@@ -180,15 +211,6 @@ class ExoPlayerAudioPlayer(
     if (timer is PlaybackTimer.Epoch) {
       playbackTimerJob = scope.async {
         delay(timer.epochMillis)
-        val sleepStartAtMs = fatherTime.nowInEpochMillis()
-        val startVolume = exoPlayer.volume
-        while (isActive && exoPlayer.volume > 0) {
-          val elapsed = fatherTime.nowInEpochMillis() - sleepStartAtMs
-          val progress = 1f - (elapsed.toFloat() / WhisperTime.toFloat()).coerceIn(0f..1f)
-
-          exoPlayer.volume = (startVolume * progress).coerceAtLeast(0f)
-          delay(150L)
-        }
         exoPlayer.pause()
         clearTimer()
       }
@@ -201,7 +223,6 @@ class ExoPlayerAudioPlayer(
     playbackTimer = null
     runningTimer.value = null
   }
-
 
   /*
    * Player Listener Callbacks
@@ -223,7 +244,8 @@ class ExoPlayerAudioPlayer(
         EVENT_PLAYBACK_STATE_CHANGED,
         EVENT_PLAY_WHEN_READY_CHANGED,
         EVENT_IS_PLAYING_CHANGED,
-    )) {
+      )
+    ) {
       state.value = when (player.playbackState) {
         Player.STATE_BUFFERING -> AudioPlayer.State.Buffering
         Player.STATE_READY -> when (player.isPlaying) {
@@ -254,10 +276,14 @@ class ExoPlayerAudioPlayer(
   private fun observeProgress(player: Player) {
     progressJob?.cancel()
     progressJob = scope.launch {
+      bark(AUDIO_TAG) { "Starting Progress Observer" }
       while (isActive) {
         updateProgress(player)
         delay(500L)
       }
+    }
+    progressJob?.invokeOnCompletion {
+      bark(AUDIO_TAG) { "Finished Progress Observer" }
     }
   }
 
@@ -266,20 +292,14 @@ class ExoPlayerAudioPlayer(
     currentDuration.value = player.duration.milliseconds
 
     var timelineOffsetMs = 0L
-    val timeline = player.currentTimeline
-    if (!timeline.isEmpty) {
-      val currentIndex = player.currentMediaItemIndex
-      if (currentIndex > 0 && currentIndex < timeline.windowCount) {
-        (0 until currentIndex).forEach { index ->
-          val window = Timeline.Window()
-          timeline.getWindow(index, window)
-          timelineOffsetMs += window.durationMs
-        }
-      }
+    val currentIndex = player.currentMediaItemIndex
+    (0 until currentIndex).forEach { index ->
+      timelineOffsetMs += player.getMediaItemAt(index)
+        .mediaMetadata
+        .durationMs
+        ?: 0L
     }
 
     overallTime.value = (timelineOffsetMs + player.currentPosition).milliseconds
   }
 }
-
-private const val WhisperTime = 5//s

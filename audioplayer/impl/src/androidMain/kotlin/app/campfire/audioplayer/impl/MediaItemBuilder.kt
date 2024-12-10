@@ -1,10 +1,12 @@
 package app.campfire.audioplayer.impl
 
+import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.ClippingConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER
+import androidx.media3.common.util.UnstableApi
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.AudioTrack
@@ -50,7 +52,7 @@ object MediaItemBuilder {
     return startDiff + durationDiff
   }
 
-  private fun createMediaItem(
+  @OptIn(UnstableApi::class) private fun createMediaItem(
     chapter: Chapter,
     track: AudioTrack,
     clipAudio: Boolean,
@@ -86,6 +88,7 @@ object MediaItemBuilder {
           .setSubtitle(media.metadata.subtitle)
           .setAlbumTitle(media.metadata.seriesName)
           .setArtworkUri(media.coverImageUrl.toUri())
+          .setDurationMs(chapter.duration.inWholeMilliseconds)
           .build(),
       )
       .build()

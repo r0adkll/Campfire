@@ -1,6 +1,7 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -9,6 +10,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.core.model.Session
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -39,6 +42,17 @@ fun SessionHostLayout(
   val audioPlayer by remember {
     component.playbackController.currentPlayer
   }.collectAsState()
+
+  LaunchedEffect(currentSession) {
+    if (currentSession != null && audioPlayer == null) {
+      // If the current session exists but the audio player is not initialized yet, initialize it
+      bark(LogPriority.WARN) { "Session found, but media player not initialized, starting…" }
+      component.playbackController.startSession(
+        itemId = currentSession!!.libraryItem.id,
+        playImmediately = false,
+      )
+    }
+  }
 
   val clearSession: () -> Unit = remember {
     {
