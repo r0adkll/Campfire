@@ -64,8 +64,8 @@ class StoreLibraryItemRepository(
           .selectForId(itemId)
           .asFlow()
           .mapToOneOrNull(dispatcherProvider.databaseRead)
-          .filterNotNull()
           .mapLatest { item ->
+            if (item == null) return@mapLatest null
             withContext(dispatcherProvider.databaseRead) {
               val (audioFiles, audioTracks, chapters, progress, authors) = db.transactionWithResult {
                 val audioFiles = db.mediaAudioFilesQueries

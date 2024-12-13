@@ -67,6 +67,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -84,6 +86,7 @@ import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
+import app.campfire.sessions.ui.ActionState.None
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
@@ -205,12 +208,22 @@ internal fun ExpandedPlaybackBar(
       EaseOutCubic.transform(normalized)
     }
   }
+
   val actualVerticalOffset = ExpandedVerticalOffsetFactor * easedOffset
   val actualHorizontalOffset = ExpandedHorizontalOffsetFactor * easedOffset
   val actualCornerRadius = if (windowSizeClass.isSupportingPaneEnabled) {
     ExpandedCornerRadiusFactor
   } else {
     ExpandedCornerRadiusFactor * easedOffset
+  }
+
+  val isDisposing by remember {
+    derivedStateOf { easedOffset > TranslationThreshold }
+  }
+
+  val hapticFeedback = LocalHapticFeedback.current
+  LaunchedEffect(isDisposing) {
+    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
   }
 
   Surface(

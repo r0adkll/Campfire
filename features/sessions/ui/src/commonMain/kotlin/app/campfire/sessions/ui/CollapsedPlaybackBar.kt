@@ -1,12 +1,18 @@
 package app.campfire.sessions.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable2D
@@ -14,6 +20,7 @@ import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,8 +29,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay10
@@ -36,6 +45,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,30 +54,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.progressOver
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
+import app.campfire.sessions.ui.ActionState.Dispose
+import app.campfire.sessions.ui.ActionState.None
+import app.campfire.sessions.ui.ActionState.Open
 import app.campfire.sessions.ui.composables.Thumbnail
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
-import kotlin.math.roundToInt
+import kotlin.math.exp
 import kotlin.time.Duration
 import org.jetbrains.compose.resources.stringResource
-
-private val VerticalOffsetFactor = 24.dp
-private val HorizontalOffsetFactor = 8.dp
-private val VerticalPaddingFactor = 12.dp
-private val HorizontalPaddingFactor = 6.dp
-private val HorizontalOffsetPaddingFactor = 8.dp
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -85,131 +100,90 @@ internal fun CollapsedPlaybackBar(
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
 ) = with(sharedTransitionScope) {
-  val interactionSource = remember { MutableInteractionSource() }
-  var size by remember { mutableStateOf(IntSize.Zero) }
-
-  var dragOffsetX by remember { mutableStateOf(0f) }
-  val smoothedOffsetX by animateFloatAsState(dragOffsetX)
-  var dragOffsetY by remember { mutableStateOf(0f) }
-  val smoothedOffsetY by animateFloatAsState(dragOffsetY)
-
-  val disposingThreshold = with(LocalDensity.current) {
-    HorizontalOffsetFactor.roundToPx() * 10
-  }
-  val isDisposing by remember {
-    derivedStateOf {
-      if (size == IntSize.Zero) {
-        false
-      } else {
-        abs(dragOffsetX.roundToInt()) > disposingThreshold
-      }
-    }
-  }
-  var isDisposed by remember { mutableStateOf(false) }
-  LaunchedEffect(isDisposed, smoothedOffsetX) {
-    if (isDisposed && (abs(smoothedOffsetX) == size.width.toFloat())) {
-      onClearSession()
-    }
+  val dragState = remember {
+    PlaybackBarDragState(
+      onOpen = onClick,
+      onDispose = onClearSession,
+    )
   }
 
-  val easedOffsetY by remember {
-    derivedStateOf {
-      val sign = if (smoothedOffsetY >= 0) 1 else -1
-      val normalized = (abs(smoothedOffsetY) / 1000f).coerceIn(0f, 1f)
-      EaseOutCubic.transform(normalized) * sign
-    }
-  }
+  val shadowElevation = ShadowElevation * abs(dragState.easedOffsetY)
+  val tonalElevation = TonalElevation * abs(dragState.easedOffsetY)
 
-  val easedOffsetX by remember {
-    derivedStateOf {
-      if (isDisposing) return@derivedStateOf 0f
-      val sign = if (smoothedOffsetX >= 0) 1 else -1
-      val normalized = (abs(smoothedOffsetX) / 400f).coerceIn(0f, 1f)
-      EaseOutCubic.transform(normalized) * sign
-    }
-  }
-
-  val actualOffsetY = VerticalOffsetFactor * easedOffsetY
-  val actualOffsetX = HorizontalOffsetFactor * easedOffsetX
-  val actualWithDisposingOffsetX = if (isDisposing) {
-    smoothedOffsetX.roundToInt()
-  } else {
-    with(LocalDensity.current) {
-      actualOffsetX.roundToPx()
-    }
-  }
-  val animatedActualOffsetX by animateIntAsState(actualWithDisposingOffsetX)
-
-  val actualVerticalPadding = VerticalPaddingFactor * abs(easedOffsetY)
-  val actualHorizontalPadding = HorizontalPaddingFactor * abs(easedOffsetY)
-  val horizontalOffsetPadding = HorizontalOffsetPaddingFactor * easedOffsetX
-
-  var isDragging by remember { mutableStateOf(false) }
-  val shadowElevation = ShadowElevation * abs(easedOffsetY)
-  val tonalElevation = TonalElevation * abs(easedOffsetY)
+  val surfaceColor by animateColorAsState(
+    when (dragState.actionState) {
+      Dispose -> MaterialTheme.colorScheme.errorContainer
+      Open,
+      None,
+        -> MaterialTheme.colorScheme.secondaryContainer
+    },
+  )
 
   Surface(
-    color = MaterialTheme.colorScheme.secondaryContainer,
+    color = surfaceColor,
     shape = RoundedCornerShape(12.dp),
     shadowElevation = shadowElevation,
     tonalElevation = tonalElevation,
     modifier = modifier
+      .wrapContentWidth()
       .sharedBounds(
         rememberSharedContentState(SharedBounds),
         animatedVisibilityScope = animatedVisibilityScope,
       )
-      .draggable2D(
-        state = rememberDraggable2DState { delta ->
-          dragOffsetX += delta.x
-          dragOffsetY += delta.y
-        },
-        onDragStopped = { velocity ->
-          if (
-            isDisposing &&
-            (abs(dragOffsetX) > (size.width / 3) ||
-              abs(velocity.x) > FlingThreshold)
-          ) {
-            isDisposed = true
-            dragOffsetY = 0f
-            dragOffsetX = if (dragOffsetX > 0) {
-              size.width.toFloat()
-            } else {
-              -size.width.toFloat()
-            }
-          } else if (easedOffsetY < -TranslationThreshold || velocity.y < -FlingThreshold) {
-            onClick()
-            dragOffsetX = 0f
-            dragOffsetY = 0f
-          }
-          isDragging = false
-        },
-        onDragStarted = {
-          isDragging = true
-        },
-        interactionSource = interactionSource,
-      )
-      .offset {
-        IntOffset(
-          x = animatedActualOffsetX,
-          y = actualOffsetY.roundToPx(),
-        )
-      }
-      .onSizeChanged { size = it }
-      .padding(horizontal = actualHorizontalPadding),
+      .draggablePlaybackBar(dragState),
+    border = when (dragState.actionState) {
+      None -> null
+      Open -> BorderStroke(1.dp, MaterialTheme.colorScheme.secondary)
+      Dispose -> BorderStroke(2.dp, MaterialTheme.colorScheme.error)
+    },
   ) {
-    Box(
-      modifier = Modifier
-        .clickable(
-          onClick = onClick,
-        )
-        .padding(
-          vertical = actualVerticalPadding,
-          horizontal = (actualHorizontalPadding + horizontalOffsetPadding).coerceAtLeast(0.dp),
-        ),
+    CollapsedPlaybackBarContent(
+      dragState = dragState,
+      session = session,
+      state = state,
+      currentTime = currentTime,
+      currentDuration = currentDuration,
+      currentMetadata = currentMetadata,
+      onClick = onClick,
+      onPlayPauseClick = onPlayPauseClick,
+      onRewindClick = onRewindClick,
+      sharedTransitionScope = sharedTransitionScope,
+      animatedVisibilityScope = animatedVisibilityScope,
+    )
+  }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun CollapsedPlaybackBarContent(
+  dragState: PlaybackBarDragState,
+  session: Session,
+  state: AudioPlayer.State,
+  currentTime: Duration,
+  currentDuration: Duration,
+  currentMetadata: Metadata,
+  onClick: () -> Unit,
+  onPlayPauseClick: () -> Unit,
+  onRewindClick: () -> Unit,
+  sharedTransitionScope: SharedTransitionScope,
+  animatedVisibilityScope: AnimatedVisibilityScope,
+  modifier: Modifier = Modifier,
+) = with(sharedTransitionScope) {
+  Box(
+    modifier = modifier
+      .clickable(
+        onClick = onClick,
+      )
+      .fillMaxWidth()
+      .padding(dragState.contentPadding),
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+      modifier = Modifier.fillMaxWidth(),
     ) {
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth(),
+      Box(
+        modifier = Modifier.padding(4.dp),
+        contentAlignment = Alignment.Center,
       ) {
         Thumbnail(
           imageUrl = session.libraryItem.media.coverImageUrl,
@@ -218,31 +192,65 @@ internal fun CollapsedPlaybackBar(
             .sharedElement(
               rememberSharedContentState(SharedImage),
               animatedVisibilityScope = animatedVisibilityScope,
-            )
-            .padding(4.dp),
+            ),
         )
 
-        Spacer(Modifier.width(16.dp))
-
-        Column(
-          modifier = Modifier.weight(1f),
+        androidx.compose.animation.AnimatedVisibility(
+          visible = dragState.actionState == Dispose,
+          enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
         ) {
-          Text(
-            text = currentMetadata.title ?: "--",
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            modifier = Modifier.basicMarquee(),
-          )
+          Box(
+            modifier = Modifier
+              .size(56.dp)
+              .background(
+                color = MaterialTheme.colorScheme.error.copy(0.6f),
+                shape = RoundedCornerShape(8.dp),
+              ),
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              Icons.Rounded.DeleteSweep,
+              contentDescription = null,
+              tint = Color.White,
+            )
+          }
+        }
+      }
 
-          Text(
-            text = stringResource(Res.string.time_remaining, session.timeRemaining.readoutFormat()),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.typography.labelSmall.color.copy(0.7f),
-          )
+      Spacer(Modifier.width(16.dp))
+
+      Column(
+        modifier = Modifier.weight(1f),
+      ) {
+        val title = when (dragState.actionState) {
+          Dispose -> "Clear session"
+          else -> currentMetadata.title ?: "--"
         }
 
-        Spacer(Modifier.width(16.dp))
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          maxLines = 1,
+          modifier = Modifier.basicMarquee(),
+        )
 
+        val subtitle = when (dragState.actionState) {
+          Dispose -> "Stop playback?"
+          else -> stringResource(Res.string.time_remaining, session.timeRemaining.readoutFormat())
+        }
+
+        Text(
+          text = subtitle,
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.typography.labelSmall.color.copy(0.7f),
+        )
+      }
+
+      Spacer(Modifier.width(16.dp))
+
+      androidx.compose.animation.AnimatedVisibility(
+        visible = dragState.actionState != Dispose,
+      ) {
         IconButton(
           onClick = onRewindClick,
         ) {
@@ -251,7 +259,11 @@ internal fun CollapsedPlaybackBar(
             contentDescription = null,
           )
         }
+      }
 
+      androidx.compose.animation.AnimatedVisibility(
+        visible = dragState.actionState != Dispose,
+      ) {
         Box {
           IconButton(
             enabled = state != AudioPlayer.State.Disabled,
@@ -276,25 +288,206 @@ internal fun CollapsedPlaybackBar(
             )
           }
         }
-
-        Spacer(Modifier.width(16.dp))
       }
 
-      LinearProgressIndicator(
-        progress = {
-          currentTime progressOver currentDuration
-        },
-        modifier = Modifier
-          .align(Alignment.BottomStart)
-          .padding(
-            horizontal = 12.dp,
-          )
-          .height(2.dp)
-          .fillMaxWidth()
-          .alpha(1f - abs(easedOffsetY)),
-      )
+      Spacer(Modifier.width(16.dp))
     }
+
+    LinearProgressIndicator(
+      progress = {
+        currentTime progressOver currentDuration
+      },
+      modifier = Modifier
+        .align(Alignment.BottomStart)
+        .padding(
+          horizontal = 12.dp,
+        )
+        .height(2.dp)
+        .fillMaxWidth()
+        .alpha(1f - abs(dragState.easedOffsetY)),
+    )
   }
 }
 
+private val VerticalOffsetFactor = 24.dp
+private val HorizontalOffsetFactor = 8.dp
+private val VerticalPaddingFactor = 12.dp
+private val HorizontalPaddingFactor = 6.dp
+private val HorizontalOffsetPaddingFactor = 8.dp
+private const val ActionStateThresholdIncrement = 1f / 10f
+private const val OpenVelocityThreshold = -3900 // px/s
 
+internal enum class ActionState {
+  None,
+  Open,
+  Dispose,
+}
+
+@Stable
+internal class PlaybackBarDragState(
+  private val onOpen: () -> Unit,
+  private val onDispose: () -> Unit,
+) {
+  val interactionSource = MutableInteractionSource()
+  var isDragging by mutableStateOf(false)
+
+  var parentSize by mutableStateOf(IntSize.Zero)
+
+  var rawOffsetX by mutableStateOf(0f)
+  var rawOffsetY by mutableStateOf(0f)
+
+  val easedOffsetX by derivedStateOf {
+    val sign = if (rawOffsetX >= 0) 1 else -1
+    val normalized = (abs(rawOffsetX) / 400f).coerceIn(0f, 1f)
+    EaseOutCubic.transform(normalized) * sign
+  }
+
+  val easedOffsetY by derivedStateOf {
+    val sign = if (rawOffsetY >= 0) 1 else -1
+    val normalized = (abs(rawOffsetY) / 1000f).coerceIn(0f, 1f)
+    EaseOutCubic.transform(normalized) * sign
+  }
+
+  // FIXME: There is probably a better way to organize this logic to be easier to grok
+  val actionState by derivedStateOf {
+    val y = abs(rawOffsetY)
+    when {
+      // Enter 'Dispose' mode when drag-y is > 3/10th of the parent height
+      y > (parentSize.height * (ActionStateThresholdIncrement * 3f)) -> Dispose
+      // Enter 'Open' mode when drag-y is > 1/10th of the parent height
+      y > (parentSize.height * (ActionStateThresholdIncrement)) -> Open
+      else -> None
+    }
+  }
+
+  val actualOffsetX by derivedStateOf {
+    HorizontalOffsetFactor * easedOffsetX
+  }
+
+  val actualOffsetY by derivedStateOf {
+    VerticalOffsetFactor * easedOffsetY
+  }
+
+  val contentPadding: PaddingValues
+    get() {
+      val actualVerticalPadding = VerticalPaddingFactor * abs(easedOffsetY)
+      val actualHorizontalPadding = HorizontalPaddingFactor * abs(easedOffsetY)
+      val horizontalOffsetPadding = HorizontalOffsetPaddingFactor * easedOffsetX
+      return PaddingValues(
+        vertical = actualVerticalPadding,
+        horizontal = (actualHorizontalPadding + horizontalOffsetPadding).coerceAtLeast(0.dp),
+      )
+    }
+
+  internal fun onDragStarted(startedPosition: Offset) {
+    isDragging = true
+  }
+
+  internal fun onDragStopped(velocity: Velocity) {
+    bark {
+      """
+        onDragStopped(
+          rawX = $rawOffsetX,
+          rawY = $rawOffsetY,
+          easedOffsetX = $easedOffsetX,
+          easedOffsetY = $easedOffsetY,
+          velocity = $velocity,
+        )
+      """.trimIndent()
+    }
+
+    // Check if the velocity is over the opening threshold. If so then
+    // we can ignore the positional action state and just call the open
+    if (velocity.y <= OpenVelocityThreshold) {
+      onOpen()
+      return
+    }
+
+    // Check the positional action state to determine which action to take
+    when (actionState) {
+      Open -> onOpen()
+      Dispose -> onDispose()
+      None -> Unit
+    }
+
+    // Reset the state
+    isDragging = false
+    rawOffsetX = 0f
+    rawOffsetY = 0f
+  }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun Modifier.draggablePlaybackBar(
+  state: PlaybackBarDragState,
+): Modifier = with(LocalDensity.current) {
+  val hapticFeedback = LocalHapticFeedback.current
+  LaunchedEffect(state.actionState) {
+    if (state.actionState != None) {
+      hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+    }
+  }
+
+  val additionalStateHorizontalPadding by animateDpAsState(
+    when (state.actionState) {
+      None -> 0.dp
+      Open -> 8.dp
+      Dispose -> 16.dp
+    },
+  )
+
+  val additionalStateVerticalPadding by animateDpAsState(
+    when (state.actionState) {
+      None -> 0.dp
+      Open -> 4.dp
+      Dispose -> 48.dp
+    },
+  )
+
+  val actualHorizontalPadding = HorizontalPaddingFactor * abs(state.easedOffsetY)
+
+  val animatedOffsetX by animateFloatAsState(state.easedOffsetX)
+  val animatedOffsetY by animateFloatAsState(state.easedOffsetY)
+
+  val actualX by derivedStateOf {
+    if (!state.isDragging) {
+      animatedOffsetX.fastRoundToInt()
+    } else {
+      state.actualOffsetX.roundToPx()
+    }
+  }
+
+  val actualY by derivedStateOf {
+    if (!state.isDragging) {
+      animatedOffsetY.fastRoundToInt()
+    } else {
+      state.actualOffsetY.roundToPx()
+    }
+  }
+
+  return this@draggablePlaybackBar
+    .draggable2D(
+      state = rememberDraggable2DState { delta ->
+        state.rawOffsetX += delta.x
+        state.rawOffsetY += delta.y
+      },
+      onDragStopped = state::onDragStopped,
+      onDragStarted = state::onDragStarted,
+      interactionSource = state.interactionSource,
+    )
+    .onGloballyPositioned {
+      val rootCoordinates = it.findRootCoordinates()
+      state.parentSize = rootCoordinates.size
+    }
+    .offset {
+      IntOffset(
+        x = actualX,
+        y = actualY,
+      )
+    }
+    .padding(
+      horizontal = actualHorizontalPadding + additionalStateHorizontalPadding,
+      vertical = additionalStateVerticalPadding,
+    )
+}

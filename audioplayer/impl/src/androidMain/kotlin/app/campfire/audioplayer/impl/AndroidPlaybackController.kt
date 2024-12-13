@@ -10,6 +10,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
@@ -43,29 +44,30 @@ class AndroidPlaybackController(
           // MediaController is available here with controllerFuture.get()
           mediaController = controllerFuture.get()
 
+          // Start the session for this call
+          AudioPlayerService.start(mediaController!!, itemId, playImmediately)
+
           // Listen for the activity lifecycle to die, then release any saved media controller
           applicationScope.launch {
             try {
               awaitCancellation()
             } finally {
+              bark { "Releasing Media Controller!" }
               mediaController?.release()
             }
           }
         },
         ContextCompat.getMainExecutor(application)
       )
+    } else {
+      AudioPlayerService.start(mediaController!!, itemId, playImmediately)
     }
-
-    AudioPlayerService.start(
-      context = application,
-      libraryItemId = itemId,
-      playImmediately = playImmediately,
-    )
   }
 
   override fun stopSession(itemId: LibraryItemId) {
-    // This service will manage stopping the internal session tracking objects
-    AudioPlayerService.stop(application)
+    mediaController?.let {
+      AudioPlayerService.stopSession(it, itemId)
+    }
     mediaController?.release()
     mediaController = null
   }

@@ -11,9 +11,16 @@ import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.os.bundleOf
 import androidx.media3.common.Player
+import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSession.ConnectionResult
+import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
@@ -21,6 +28,8 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.api.SessionsRepository
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +59,8 @@ class AudioPlayerService : MediaSessionService() {
 
   override fun onCreate() {
     super.onCreate()
+    bark(LogPriority.INFO) { "AudioPlayerService::onCreate()" }
+
     // Create ExoPlayer instance and MediaSession instance that encapsulates the background
     // playback on Android.
     player = component.exoPlayerFactory.create(this)
@@ -66,28 +77,10 @@ class AudioPlayerService : MediaSessionService() {
     setListener(MediaSessionServiceListener())
   }
 
-  override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    val libraryItemId = intent?.getStringExtra(EXTRA_LIBRARY_ITEM_ID)
-    if (libraryItemId != null) {
-      val playImmediately = intent.getBooleanExtra(EXTRA_PLAY_IMMEDIATELY, true)
-
-      // Apply the metadata to this current session
-      session?.sessionExtras = Bundle().apply {
-        putString(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
-      }
-
-      // Launch the manager to pull/create/prepare the session for the given element
-      serviceScope.launch {
-        component.playbackSessionManager.startSession(libraryItemId, playImmediately)
-      }
-    }
-
-    return super.onStartCommand(intent, flags, startId)
-  }
-
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = session
 
   override fun onTaskRemoved(rootIntent: Intent?) {
+    bark(LogPriority.INFO) { "AudioPlayerService::onTaskRemoved($rootIntent)" }
     val player = session?.player!!
     if (
       !player.playWhenReady
@@ -101,7 +94,7 @@ class AudioPlayerService : MediaSessionService() {
   }
 
   override fun onDestroy() {
-    stopCurrentPlaybackSession()
+    bark(LogPriority.INFO) { "AudioPlayerService::onDestroy()" }
     serviceScope.cancel()
     player.release()
     session?.run {
@@ -114,19 +107,6 @@ class AudioPlayerService : MediaSessionService() {
     super.onDestroy()
   }
 
-  private fun stopCurrentPlaybackSession() {
-    val libraryItemId = session?.sessionExtras?.getString(EXTRA_LIBRARY_ITEM_ID)
-    if (libraryItemId != null) {
-      serviceScope.launch {
-        component.playbackSessionManager.stopSession(libraryItemId)
-      }
-    } else {
-      bark(LogPriority.ERROR) {
-        "Stopping AudioPlayerService, but no active session was found"
-      }
-    }
-  }
-
   private inner class MediaSessionServiceListener : Listener {
     override fun onForegroundServiceStartNotAllowedException() {
       if (
@@ -137,6 +117,7 @@ class AudioPlayerService : MediaSessionService() {
         // Notification permission is required but not granted
         return
       }
+
       val notificationManagerCompat = NotificationManagerCompat.from(this@AudioPlayerService)
       ensureNotificationChannel(notificationManagerCompat)
       val builder =
@@ -144,7 +125,7 @@ class AudioPlayerService : MediaSessionService() {
           .setSmallIcon(R.drawable.notification_book_icon)
           .setContentTitle(getString(R.string.notification_content_title))
           .setStyle(
-            NotificationCompat.BigTextStyle().bigText(getString(R.string.notification_content_text))
+            NotificationCompat.BigTextStyle().bigText(getString(R.string.notification_content_text)),
           )
           .setPriority(NotificationCompat.PRIORITY_DEFAULT)
           .setAutoCancel(true)
@@ -157,14 +138,58 @@ class AudioPlayerService : MediaSessionService() {
     override fun onConnect(
       session: MediaSession,
       controller: MediaSession.ControllerInfo,
-    ): MediaSession.ConnectionResult {
-      return MediaSession.ConnectionResult.AcceptedResultBuilder(session)
-        .setAvailablePlayerCommands(
-          MediaSession.ConnectionResult.DEFAULT_PLAYER_COMMANDS
-            .buildUpon()
-            .build()
-        )
+    ): ConnectionResult {
+      val sessionCommands = ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+        .add(SessionCommand(ACTION_PREPARE_SESSION, Bundle.EMPTY))
+        .add(SessionCommand(ACTION_CLEAR_SESSION, Bundle.EMPTY))
         .build()
+
+      return AcceptedResultBuilder(session)
+        .setAvailableSessionCommands(sessionCommands)
+        .build()
+    }
+
+    override fun onCustomCommand(
+      session: MediaSession,
+      controller: MediaSession.ControllerInfo,
+      customCommand: SessionCommand,
+      args: Bundle,
+    ): ListenableFuture<SessionResult> {
+      if (customCommand.customAction == ACTION_PREPARE_SESSION) {
+        val libraryItemId = args.getString(EXTRA_LIBRARY_ITEM_ID) ?: return sessionResult(SessionError.ERROR_BAD_VALUE)
+        val playImmediately = args.getBoolean(EXTRA_PLAY_IMMEDIATELY)
+
+        bark(TAG) { "onCustomCommand(action=${customCommand.customAction}, libraryItemId=$libraryItemId, playImmediately=$playImmediately)" }
+
+        // Attach the meta data to the action
+        session.sessionExtras = Bundle().apply {
+          putString(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
+        }
+
+        // Launch the manager to pull/create/prepare the session for the given element
+        serviceScope.launch {
+          component.playbackSessionManager
+            .startSession(libraryItemId, playImmediately)
+        }
+
+        return sessionResult(SessionResult.RESULT_SUCCESS)
+      } else if (customCommand.customAction == ACTION_CLEAR_SESSION) {
+        val libraryItemId = args.getString(EXTRA_LIBRARY_ITEM_ID) ?: return sessionResult(SessionError.ERROR_BAD_VALUE)
+        bark(TAG) { "onCustomCommand(action=${customCommand.customAction}, libraryItemId=$libraryItemId)" }
+
+        serviceScope.launch {
+          component.playbackSessionManager.stopSession(libraryItemId)
+          stopSelf()
+        }
+
+        return sessionResult(SessionResult.RESULT_SUCCESS)
+      }
+
+      return super.onCustomCommand(session, controller, customCommand, args)
+    }
+
+    private fun sessionResult(resultCode: Int): ListenableFuture<SessionResult> {
+      return Futures.immediateFuture(SessionResult(resultCode))
     }
   }
 
@@ -185,21 +210,37 @@ class AudioPlayerService : MediaSessionService() {
   }
 
   companion object {
+    private const val TAG = "AudioPlayerService"
+    private const val ACTION_PREPARE_SESSION = "prepareLibraryItem"
+    private const val ACTION_CLEAR_SESSION = "clearSession"
     private const val EXTRA_LIBRARY_ITEM_ID = "libraryItemId"
     private const val EXTRA_PLAY_IMMEDIATELY = "playWhenPrepared"
     private const val CHANNEL_ID = "app.campfire.notifications.playback"
     private const val NOTIFICATION_ID = 100
 
     fun start(
-      context: Context,
+      mediaController: MediaController,
       libraryItemId: LibraryItemId,
-      playImmediately: Boolean = true,
+      playImmediately: Boolean,
     ) {
-      context.startForegroundService(
-        context.serviceIntent(
-          libraryItemId = libraryItemId,
-          playImmediately = playImmediately,
-        )
+      mediaController.sendCustomCommand(
+        SessionCommand(ACTION_PREPARE_SESSION, Bundle.EMPTY),
+        bundleOf(
+          EXTRA_LIBRARY_ITEM_ID to libraryItemId,
+          EXTRA_PLAY_IMMEDIATELY to playImmediately,
+        ),
+      )
+    }
+
+    fun stopSession(
+      mediaController: MediaController,
+      libraryItemId: LibraryItemId,
+    ) {
+      mediaController.sendCustomCommand(
+        SessionCommand(ACTION_CLEAR_SESSION, Bundle.EMPTY),
+        bundleOf(
+          EXTRA_LIBRARY_ITEM_ID to libraryItemId,
+        ),
       )
     }
 
