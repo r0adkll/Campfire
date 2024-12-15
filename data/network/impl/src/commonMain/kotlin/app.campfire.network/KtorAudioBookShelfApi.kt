@@ -10,14 +10,17 @@ import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
+import app.campfire.network.envelopes.MediaProgressUpdate
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
+import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MinifiedBookMetadata
+import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -34,9 +37,9 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
@@ -140,6 +143,37 @@ class KtorAudioBookShelfApi(
     return trySendRequest<CollectionsResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/collections")
     }.map { it.results }
+  }
+
+  override suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdate): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/me/progress/$libraryItemId") {
+        method = HttpMethod.Patch
+        setBody(update)
+      }
+    }
+  }
+
+  override suspend fun syncLocalSessions(
+    sessions: List<PlaybackSession>
+  ): Result<SyncLocalSessionsResult> {
+    return trySendRequest<SyncLocalSessionsResult> {
+      hydratedClientRequest("/api/session/local-all") {
+        method = HttpMethod.Post
+        setBody(sessions)
+      }
+    }
+  }
+
+  override suspend fun syncLocalSession(session: PlaybackSession): Result<Unit> {
+    return trySendRequest(
+      responseMapper = {}
+    ) {
+      hydratedClientRequest("/api/session/local") {
+        method = HttpMethod.Post
+        setBody(session)
+      }
+    }
   }
 
   private suspend inline fun <reified T> trySendRequest(

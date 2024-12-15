@@ -117,7 +117,11 @@ class StoreLibraryItemRepository(
             // 3) Insert relations
 
             itemExpanded.userMediaProgress?.let { progress ->
-              db.mediaProgressQueries.insert(progress.asDbModel())
+              // Only insert the media progress if the one we have locally isn't newer
+              val existing = db.mediaProgressQueries.selectForLibraryItem(itemId).executeAsOneOrNull()
+              if (existing == null || existing.lastUpdate < progress.lastUpdate) {
+                db.mediaProgressQueries.insert(progress.asDbModel())
+              }
             }
 
             itemExpanded.media.audioFiles.forEach { audioFile ->

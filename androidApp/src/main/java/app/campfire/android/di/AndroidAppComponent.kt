@@ -1,6 +1,7 @@
 package app.campfire.android.di
 
 import android.app.Application
+import android.os.Build
 import app.campfire.android.BuildConfig
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
@@ -28,6 +29,11 @@ abstract class AndroidAppComponent(
       flavor = Flavor.Standard,
       versionName = packageInfo.versionName ?: "unknown",
       versionCode = packageInfo.versionCode,
+      osName = "Android",
+      osVersion = Build.VERSION.SDK_INT.toString(),
+      manufacturer = Build.MANUFACTURER,
+      model = Build.MODEL,
+      sdkVersion = Build.VERSION.SDK_INT,
     )
   }
 

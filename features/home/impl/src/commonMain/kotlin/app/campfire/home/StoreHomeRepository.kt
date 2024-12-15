@@ -2,6 +2,7 @@ package app.campfire.home
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
+import app.campfire.account.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -9,6 +10,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel
+import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOne
@@ -28,8 +30,9 @@ import me.tatarka.inject.annotations.Inject
 class StoreHomeRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
-  private val db: CampfireDatabase,
+  private val userRepository: UserRepository,
   private val imageHydrator: CoverImageHydrator,
+  private val mediaProgressDataSource: MediaProgressDataSource,
   private val dispatcherProvider: DispatcherProvider,
 ) : HomeRepository {
 
@@ -39,16 +42,14 @@ class StoreHomeRepository(
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeHomeFeed(): Flow<List<Shelf<*>>> {
     // TODO: This pattern is less than ideal. Should probably find a more graceful way to cast this
-    val serverUrl = (userSession as UserSession.LoggedIn).serverUrl
-    return db.usersQueries.selectForServer(serverUrl)
-      .asFlow()
-      .mapToOne(dispatcherProvider.databaseRead)
+    val serverUrl = userSession.serverUrl ?: error("User is not logged in")
+    return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         flow {
           val result = api.getPersonalizedHome(user.selectedLibraryId)
           if (result.isSuccess) {
             val data = result.getOrThrow()
-              .map { it.asDomainModel(imageHydrator) }
+              .map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
             shelfCache[serverUrl] = data
             emit(data)
           } else {

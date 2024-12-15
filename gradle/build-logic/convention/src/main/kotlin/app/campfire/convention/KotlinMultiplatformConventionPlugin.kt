@@ -11,6 +11,7 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
@@ -19,12 +20,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileCommon
 
 class KotlinMultiplatformConventionPlugin : Plugin<Project> {
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
   override fun apply(target: Project) = with(target) {
     with(pluginManager) {
       apply("org.jetbrains.kotlin.multiplatform")
     }
 
     extensions.configure<KotlinMultiplatformExtension> {
+      compilerOptions {
+        freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+      }
+
       applyDefaultHierarchyTemplate()
 
       jvm()

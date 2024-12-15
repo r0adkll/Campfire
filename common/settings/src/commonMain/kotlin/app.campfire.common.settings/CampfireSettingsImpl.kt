@@ -10,6 +10,8 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 
@@ -22,6 +24,9 @@ class CampfireSettingsImpl(
   private val dispatchers: app.campfire.core.coroutines.DispatcherProvider,
 ) : CampfireSettings, AppSettings() {
   private val flowSettings by lazy { settings.toFlowSettings(dispatchers.io) }
+
+  @OptIn(ExperimentalUuidApi::class)
+  override var deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString()}
 
   override var theme: Theme by enumSetting(KEY_THEME, Theme)
   override fun observeTheme(): Flow<Theme> {
@@ -55,6 +60,7 @@ class CampfireSettingsImpl(
   }
 }
 
+internal const val KEY_DEVICE_ID = "pref_device_id"
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"

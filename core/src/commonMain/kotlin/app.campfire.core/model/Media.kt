@@ -6,6 +6,7 @@ data class Media(
   val id: MediaId,
   val metadata: Metadata,
   val coverImageUrl: String,
+  val coverPath: String?,
   val tags: List<String>,
   val numTracks: Int,
   val numAudioFiles: Int,

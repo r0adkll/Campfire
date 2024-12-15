@@ -17,14 +17,18 @@ CREATE TABLE mediaProgress (
   ebookProgress REAL,
   lastUpdate INTEGER NOT NULL,
   startedAt INTEGER NOT NULL,
-  finishedAt INTEGER,
-
-  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
+  finishedAt INTEGER
 );
 
 insert:
 INSERT OR REPLACE INTO mediaProgress
 VALUES ?;
+
+updateCurrentTime:
+UPDATE OR IGNORE mediaProgress
+SET currentTime = ?,
+    lastUpdate = ?
+WHERE libraryItemId = ?;
 
 selectForLibraryItem:
 SELECT * FROM mediaProgress

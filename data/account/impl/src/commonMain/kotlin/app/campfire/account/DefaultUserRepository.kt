@@ -26,6 +26,8 @@ class DefaultUserRepository(
   private val dispatcherProvider: DispatcherProvider,
 ) : UserRepository {
 
+  private var cachedUser: User? = null
+
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentUser(): Flow<User> {
     val serverUrl = userSession.serverUrl ?: return emptyFlow()
@@ -33,7 +35,18 @@ class DefaultUserRepository(
       .asFlow()
       .mapToOne(dispatcherProvider.databaseRead)
       .mapLatest {
-        it.asDomainModel()
+        it.asDomainModel().also { domainUser ->
+          cachedUser = domainUser
+        }
       }
+  }
+
+  override suspend fun getCurrentUser(): User {
+    if (cachedUser != null) return cachedUser!!
+    val serverUrl = userSession.serverUrl ?: throw IllegalStateException("No server found")
+    return db.usersQueries.selectForServer(serverUrl)
+      .executeAsOne()
+      .asDomainModel()
+      .also { cachedUser = it }
   }
 }

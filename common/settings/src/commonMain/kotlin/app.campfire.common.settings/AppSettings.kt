@@ -42,6 +42,20 @@ abstract class AppSettings {
     }
   }
 
+  fun stringSetting(key: String, initializer: () -> String) = object : ReadWriteProperty<AppSettings, String> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): String {
+      if (!settings.hasKey(key)) {
+        settings.putString(key, initializer())
+      }
+      return settings.getStringOrNull(key)
+        ?: throw IllegalStateException("This value should have been initialized")
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: String) {
+      settings.putString(key, value)
+    }
+  }
+
   fun stringOrNullSetting(key: String) = object : ReadWriteProperty<AppSettings, String?> {
     override fun getValue(thisRef: AppSettings, property: KProperty<*>): String? {
       return settings.getStringOrNull(key)

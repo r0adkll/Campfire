@@ -29,7 +29,7 @@ internal fun MediaProgressBar(
       .fillMaxWidth(),
   ) {
     FancyLinearProgressIndicator(
-      progress = { progress.progress },
+      progress = { progress.actualProgress },
       modifier = Modifier.fillMaxWidth(),
       strokeCap = StrokeCap.Round,
     )
@@ -37,7 +37,7 @@ internal fun MediaProgressBar(
     Spacer(Modifier.height(4.dp))
 
     Row {
-      val remainingDurationMillis = (progress.duration - (progress.duration * progress.progress)) * 1000f
+      val remainingDurationMillis = (progress.duration - (progress.duration * progress.actualProgress)) * 1000f
       val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
       Text(
         text = remainingDuration,
@@ -48,7 +48,7 @@ internal fun MediaProgressBar(
       Spacer(Modifier.weight(1f))
 
       Text(
-        text = "${progress.progress.times(100f).roundToInt()}%",
+        text = "${progress.actualProgress.times(100f).roundToInt()}%",
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.SemiBold,
       )

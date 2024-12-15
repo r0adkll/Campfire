@@ -384,18 +384,6 @@ internal class PlaybackBarDragState(
   }
 
   internal fun onDragStopped(velocity: Velocity) {
-    bark {
-      """
-        onDragStopped(
-          rawX = $rawOffsetX,
-          rawY = $rawOffsetY,
-          easedOffsetX = $easedOffsetX,
-          easedOffsetY = $easedOffsetY,
-          velocity = $velocity,
-        )
-      """.trimIndent()
-    }
-
     // Check if the velocity is over the opening threshold. If so then
     // we can ignore the positional action state and just call the open
     if (velocity.y <= OpenVelocityThreshold) {

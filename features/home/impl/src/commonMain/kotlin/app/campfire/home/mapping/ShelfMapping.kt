@@ -15,20 +15,22 @@ import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.Shelf as NetworkShelf
+import app.campfire.home.progress.MediaProgressDataSource
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun NetworkShelf.asDomainModel(
   imageHydrator: CoverImageHydrator,
+  mediaProgressDataSource: MediaProgressDataSource,
 ): DomainShelf<*> {
   return DomainShelf(
     id = id,
     label = label,
     total = total,
     entities = when (this) {
-      is Shelf.BookShelf -> entities.map { it.asDomainModel(imageHydrator) }
-      is Shelf.EpisodeShelf -> entities.map { it.asDomainModel(imageHydrator) }
-      is Shelf.PodcastShelf -> entities.map { it.asDomainModel(imageHydrator) }
-      is Shelf.SeriesShelf -> entities.map { it.asDomainModel(imageHydrator) }
+      is Shelf.BookShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
+      is Shelf.EpisodeShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
+      is Shelf.PodcastShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
+      is Shelf.SeriesShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
       is Shelf.AuthorShelf -> entities.map { it.asDomainModel(imageHydrator) }
     },
   )
@@ -36,6 +38,7 @@ suspend fun NetworkShelf.asDomainModel(
 
 suspend fun LibraryItemMinified<*>.asDomainModel(
   imageHydrator: CoverImageHydrator,
+  mediaProgressDataSource: MediaProgressDataSource,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -50,9 +53,11 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
     sizeInBytes = size,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
+    userMediaProgress = mediaProgressDataSource.getMediaProgress(id),
     media = Media(
       id = media.id,
       coverImageUrl = imageHydrator.hydrateLibraryItem(id),
+      coverPath = media.coverPath,
       tags = media.tags ?: emptyList(),
       numTracks = media.numTracks,
       numChapters = media.numChapters,
@@ -94,6 +99,7 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
 
 suspend fun SeriesPersonalized.asDomainModel(
   imageHydrator: CoverImageHydrator,
+  mediaProgressDataSource: MediaProgressDataSource,
 ): Series {
   return Series(
     id = id,
@@ -101,12 +107,12 @@ suspend fun SeriesPersonalized.asDomainModel(
     description = description,
     addedAt = addedAt,
     updatedAt = updatedAt,
-    books = books?.map { it.asDomainModel(imageHydrator) },
+    books = books?.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) },
     inProgress = inProgress == true,
     hasActiveBook = hasActiveBook == true,
     hideFromContinueListening = hideFromContinueListening == true,
     bookInProgressLastUpdate = bookInProgressLastUpdate,
-    firstBookUnread = firstBookUnread?.asDomainModel(imageHydrator),
+    firstBookUnread = firstBookUnread?.asDomainModel(imageHydrator, mediaProgressDataSource),
   )
 }
 

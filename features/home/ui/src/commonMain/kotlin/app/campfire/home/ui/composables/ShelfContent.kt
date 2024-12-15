@@ -1,6 +1,5 @@
 package app.campfire.home.ui.composables
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,7 +22,6 @@ import app.campfire.home.api.model.Shelf
 private val LibraryCardWidth = 180.dp
 private val SeriesCardWidth = 300.dp
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShelfContent(
   shelf: Shelf<*>,
@@ -44,7 +42,7 @@ fun ShelfContent(
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)
-            .animateItemPlacement(),
+            .animateItem(),
         )
 
         is Author -> AuthorCard(
@@ -52,7 +50,7 @@ fun ShelfContent(
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)
-            .animateItemPlacement(),
+            .animateItem(),
         )
 
         is Series -> ItemCollectionCard(
@@ -62,7 +60,7 @@ fun ShelfContent(
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(SeriesCardWidth)
-            .animateItemPlacement(),
+            .animateItem(),
         )
       }
     }

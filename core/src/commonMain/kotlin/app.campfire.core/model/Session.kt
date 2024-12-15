@@ -1,17 +1,19 @@
 package app.campfire.core.model
 
+import app.campfire.core.extensions.progressOver
 import kotlinx.datetime.LocalDateTime
 import kotlin.time.Duration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 data class Session(
+  val id: Uuid,
   val libraryItem: LibraryItem,
 
   // Playback / Device Info
   val playMethod: PlayMethod,
   val mediaPlayer: String,
-
-  // TODO: Not sure this is really needed?
-//  val deviceInfo: DeviceInfo,
 
   // Current Playback State
   val duration: Duration,
@@ -27,6 +29,12 @@ data class Session(
 
   val timeRemaining: Duration
     get() = duration - currentTime
+
+  val progress: Float
+    get() = currentTime.progressOver(duration)
+
+  val isFinished: Boolean
+    get() = currentTime >= duration
 
   val chapter: Chapter
     get() = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)

@@ -3,6 +3,7 @@ package app.campfire.db
 import app.cash.sqldelight.ColumnAdapter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 
@@ -55,4 +56,9 @@ object LocalDateTimeAdapter : ColumnAdapter<LocalDateTime, String> {
 object DurationAdapter : ColumnAdapter<Duration, Long> {
   override fun decode(databaseValue: Long): Duration = databaseValue.milliseconds
   override fun encode(value: Duration): Long = value.inWholeMilliseconds
+}
+
+object UuidAdapter : ColumnAdapter<Uuid, String> {
+  override fun decode(databaseValue: String): Uuid = Uuid.parse(databaseValue)
+  override fun encode(value: Uuid): String = value.toString()
 }

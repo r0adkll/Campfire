@@ -3,6 +3,7 @@ package app.campfire.core.extensions
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 val LocalDateTime.readableFormat: String
@@ -16,5 +17,8 @@ val LocalDateTime.readableFormat: String
       "${month.name.capitalized()} $dayOfMonth, $year $hourAdjusted:${minute.withSignificantZero()} $amPM"
     }
   }
+
+val LocalDateTime.epochMilliseconds: Long
+  get() = toInstant(TimeZone.UTC).toEpochMilliseconds()
 
 private fun Int.withSignificantZero(): String = if (this < 10) "0$this" else "$this"

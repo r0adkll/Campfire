@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface CampfireSettings {
 
+  var deviceId: String
+
   var theme: Theme
   fun observeTheme(): Flow<Theme>
 

@@ -1,10 +1,12 @@
 import app.campfire.core.model.PlayMethod;
 import kotlin.Boolean;
 import kotlin.time.Duration;
+import kotlin.uuid.Uuid;
 import kotlinx.datetime.LocalDateTime;
 
 CREATE TABLE session (
-  libraryItemId TEXT NOT NULL PRIMARY KEY ,
+  id TEXT AS Uuid NOT NULL UNIQUE,
+  libraryItemId TEXT NOT NULL PRIMARY KEY,
   isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
 
   playMethod TEXT AS PlayMethod NOT NULL,
@@ -22,6 +24,9 @@ CREATE TABLE session (
 getActive:
 SELECT * FROM session
 WHERE isActive = 1;
+
+getAll:
+SELECT * FROM session;
 
 getForId:
 SELECT * FROM session

@@ -6,9 +6,12 @@ plugins {
   alias(libs.plugins.sqldelight)
   alias(libs.plugins.ksp)
 }
-
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+  compilerOptions {
+    freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+  }
+
   sqldelight {
     databases {
       create("CampfireDatabase") {

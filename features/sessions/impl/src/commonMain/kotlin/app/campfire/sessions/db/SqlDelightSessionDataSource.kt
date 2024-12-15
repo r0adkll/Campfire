@@ -15,6 +15,8 @@ import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -39,7 +41,14 @@ class SqlDelightSessionDataSource(
       .map {
         it?.let { model -> hydrateSession(model) }
       }
+  }
 
+  override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
+    return withContext(dispatcherProvider.databaseRead) {
+      db.sessionQueries.getForId(libraryItemId)
+        .executeAsOneOrNull()
+        ?.let { hydrateSession(it) }
+    }
   }
 
   override suspend fun createOrStartSession(
@@ -65,6 +74,7 @@ class SqlDelightSessionDataSource(
             db.sessionQueries.disableAll()
             db.sessionQueries.insert(
               DbSession(
+                id = Uuid.random(),
                 libraryItemId = libraryItemId,
                 isActive = true,
                 playMethod = PlayMethod.DirectPlay,
@@ -89,10 +99,20 @@ class SqlDelightSessionDataSource(
 
   override suspend fun updateSession(libraryItemId: LibraryItemId, currentTime: Duration) {
     withContext(dispatcherProvider.databaseWrite) {
-      db.sessionQueries.updatePlayback(
-        libraryItemId = libraryItemId,
-        currentTime = currentTime,
-      )
+      db.transaction {
+        // Update the playback session information with the new time
+        db.sessionQueries.updatePlayback(
+          libraryItemId = libraryItemId,
+          currentTime = currentTime,
+        )
+
+        // Update the UserMediaProgress with the new time
+        db.mediaProgressQueries.updateCurrentTime(
+          currentTime = currentTime.toDouble(DurationUnit.SECONDS),
+          lastUpdate = fatherTime.nowInEpochMillis(),
+          libraryItemId = libraryItemId,
+        )
+      }
     }
   }
 
@@ -111,6 +131,7 @@ class SqlDelightSessionDataSource(
   private suspend fun hydrateSession(session: DbSession): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(session.libraryItemId)
     return Session(
+      id = session.id,
       libraryItem = libraryItem,
       playMethod = session.playMethod,
       mediaPlayer = session.mediaPlayer,

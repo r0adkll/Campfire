@@ -9,6 +9,13 @@ data class ApplicationInfo(
   val flavor: Flavor,
   val versionName: String,
   val versionCode: Int,
+  val osName: String,
+  val osVersion: String,
+
+  // Android Related fields
+  val manufacturer: String? = null,
+  val model: String? = null,
+  val sdkVersion: Int? = null,
 )
 
 enum class Flavor {

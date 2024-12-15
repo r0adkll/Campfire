@@ -81,6 +81,7 @@ class DatabaseFactory(
       mediaItemTypeAdapter = EnumColumnAdapter(),
     ),
     sessionAdapter = Session.Adapter(
+      idAdapter = UuidAdapter,
       playMethodAdapter = EnumColumnAdapter(),
       durationAdapter = DurationAdapter,
       timeListeningAdapter = DurationAdapter,
