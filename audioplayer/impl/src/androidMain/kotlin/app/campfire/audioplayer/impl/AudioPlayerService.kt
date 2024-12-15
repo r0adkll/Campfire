@@ -83,9 +83,9 @@ class AudioPlayerService : MediaSessionService() {
     bark(LogPriority.INFO) { "AudioPlayerService::onTaskRemoved($rootIntent)" }
     val player = session?.player!!
     if (
-      !player.playWhenReady
-      || player.mediaItemCount == 0
-      || player.playbackState == Player.STATE_ENDED
+      !player.playWhenReady ||
+      player.mediaItemCount == 0 ||
+      player.playbackState == Player.STATE_ENDED
     ) {
       // Stop the service if not playing, continue playing in the background
       // otherwise.
@@ -159,8 +159,6 @@ class AudioPlayerService : MediaSessionService() {
         val libraryItemId = args.getString(EXTRA_LIBRARY_ITEM_ID) ?: return sessionResult(SessionError.ERROR_BAD_VALUE)
         val playImmediately = args.getBoolean(EXTRA_PLAY_IMMEDIATELY)
 
-        bark(TAG) { "onCustomCommand(action=${customCommand.customAction}, libraryItemId=$libraryItemId, playImmediately=$playImmediately)" }
-
         // Attach the meta data to the action
         session.sessionExtras = Bundle().apply {
           putString(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
@@ -175,7 +173,6 @@ class AudioPlayerService : MediaSessionService() {
         return sessionResult(SessionResult.RESULT_SUCCESS)
       } else if (customCommand.customAction == ACTION_CLEAR_SESSION) {
         val libraryItemId = args.getString(EXTRA_LIBRARY_ITEM_ID) ?: return sessionResult(SessionError.ERROR_BAD_VALUE)
-        bark(TAG) { "onCustomCommand(action=${customCommand.customAction}, libraryItemId=$libraryItemId)" }
 
         serviceScope.launch {
           component.playbackSessionManager.stopSession(libraryItemId)

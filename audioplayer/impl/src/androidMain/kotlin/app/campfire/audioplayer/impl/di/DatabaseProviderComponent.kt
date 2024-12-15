@@ -20,7 +20,7 @@ interface DatabaseProviderComponent {
   @SingleIn(AppScope::class)
   @Provides
   fun provideDatabaseProvider(
-    application: Application
+    application: Application,
   ): DatabaseProvider = StandaloneDatabaseProvider(application)
 
   @OptIn(UnstableApi::class)
@@ -34,7 +34,7 @@ interface DatabaseProviderComponent {
     return SimpleCache(
       downloadDirectory,
       NoOpCacheEvictor(),
-      databaseProvider
+      databaseProvider,
     )
   }
 }

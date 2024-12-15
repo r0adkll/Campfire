@@ -1,7 +1,5 @@
 package app.campfire.sessions.ui.composables
 
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +15,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.clockFormat
@@ -63,6 +60,6 @@ internal fun RunningTimerText(
     fontFamily = FontFamily.Monospace,
     fontWeight = FontWeight.ExtraBold,
     color = color,
-    modifier = modifier
+    modifier = modifier,
   )
 }

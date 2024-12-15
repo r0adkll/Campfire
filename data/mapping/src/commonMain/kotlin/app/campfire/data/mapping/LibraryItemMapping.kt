@@ -7,7 +7,6 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media as DomainMedia
-import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.util.createIfNotNull

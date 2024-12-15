@@ -26,7 +26,7 @@ class CampfireSettingsImpl(
   private val flowSettings by lazy { settings.toFlowSettings(dispatchers.io) }
 
   @OptIn(ExperimentalUuidApi::class)
-  override var deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString()}
+  override var deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString() }
 
   override var theme: Theme by enumSetting(KEY_THEME, Theme)
   override fun observeTheme(): Flow<Theme> {

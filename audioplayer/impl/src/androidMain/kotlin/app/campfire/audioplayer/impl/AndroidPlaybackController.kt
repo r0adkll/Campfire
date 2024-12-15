@@ -57,7 +57,7 @@ class AndroidPlaybackController(
             }
           }
         },
-        ContextCompat.getMainExecutor(application)
+        ContextCompat.getMainExecutor(application),
       )
     } else {
       AudioPlayerService.start(mediaController!!, itemId, playImmediately)

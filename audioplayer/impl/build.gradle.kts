@@ -33,13 +33,11 @@ kotlin {
 
     iosMain {
       dependencies {
-
       }
     }
 
     jvmMain {
       dependencies {
-
       }
     }
   }

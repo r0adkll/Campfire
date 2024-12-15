@@ -10,7 +10,7 @@ import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
-import app.campfire.network.envelopes.MediaProgressUpdate
+import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
@@ -145,7 +145,7 @@ class KtorAudioBookShelfApi(
     }.map { it.results }
   }
 
-  override suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdate): Result<Unit> {
+  override suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit> {
     return trySendRequest({}) {
       hydratedClientRequest("/api/me/progress/$libraryItemId") {
         method = HttpMethod.Patch
@@ -155,7 +155,7 @@ class KtorAudioBookShelfApi(
   }
 
   override suspend fun syncLocalSessions(
-    sessions: List<PlaybackSession>
+    sessions: List<PlaybackSession>,
   ): Result<SyncLocalSessionsResult> {
     return trySendRequest<SyncLocalSessionsResult> {
       hydratedClientRequest("/api/session/local-all") {
@@ -167,7 +167,7 @@ class KtorAudioBookShelfApi(
 
   override suspend fun syncLocalSession(session: PlaybackSession): Result<Unit> {
     return trySendRequest(
-      responseMapper = {}
+      responseMapper = {},
     ) {
       hydratedClientRequest("/api/session/local") {
         method = HttpMethod.Post

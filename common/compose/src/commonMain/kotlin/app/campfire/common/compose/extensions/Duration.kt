@@ -34,8 +34,7 @@ fun Duration.clockFormat(): String {
       append("$hours")
         .append(":")
         .append("$minutes".padStart(2, '0'))
-    }
-    else {
+    } else {
       append("$minutes")
     }
       .append(":")

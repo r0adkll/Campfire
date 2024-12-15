@@ -19,7 +19,7 @@ interface SessionDataSource {
     mediaPlayer: String,
     duration: Duration,
     startedAt: LocalDateTime,
-  ) : Session
+  ): Session
 
   suspend fun updateSession(
     libraryItemId: LibraryItemId,

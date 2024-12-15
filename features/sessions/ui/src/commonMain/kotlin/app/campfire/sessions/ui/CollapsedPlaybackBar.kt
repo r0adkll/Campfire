@@ -71,7 +71,6 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.progressOver
-import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.ActionState.Dispose
 import app.campfire.sessions.ui.ActionState.None
@@ -80,7 +79,6 @@ import app.campfire.sessions.ui.composables.Thumbnail
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
-import kotlin.math.exp
 import kotlin.time.Duration
 import org.jetbrains.compose.resources.stringResource
 
@@ -115,7 +113,7 @@ internal fun CollapsedPlaybackBar(
       Dispose -> MaterialTheme.colorScheme.errorContainer
       Open,
       None,
-        -> MaterialTheme.colorScheme.secondaryContainer
+      -> MaterialTheme.colorScheme.secondaryContainer
     },
   )
 

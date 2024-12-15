@@ -38,4 +38,3 @@ internal fun Thumbnail(
 private val ThumbnailSize = 56.dp
 private val CornerRadius = 8.dp
 private val BorderWidth = 1.dp
-

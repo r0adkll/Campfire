@@ -52,7 +52,8 @@ object MediaItemBuilder {
     return startDiff + durationDiff
   }
 
-  @OptIn(UnstableApi::class) private fun createMediaItem(
+  @OptIn(UnstableApi::class)
+  private fun createMediaItem(
     chapter: Chapter,
     track: AudioTrack,
     clipAudio: Boolean,
@@ -68,9 +69,6 @@ object MediaItemBuilder {
         if (clipAudio) {
           val startPositionMs = chapter.start.seconds.inWholeMilliseconds
           val endPositionMs = chapter.end.seconds.inWholeMilliseconds
-          bark { "ClippingConfiguration (chapter=[${chapter.start} -> ${chapter.end}], track=[${track.startOffset} -> ${track.startOffset + track.duration}])" }
-          bark { "ClippingConfiguration (chapter=[${chapter.start.seconds.inWholeSeconds} -> ${chapter.end.seconds.inWholeSeconds}], " +
-            "track=[${track.startOffset.seconds.inWholeSeconds} -> ${(track.startOffset + track.duration).seconds.inWholeSeconds}])" }
           setClippingConfiguration(
             ClippingConfiguration.Builder()
               .setStartPositionMs(startPositionMs)

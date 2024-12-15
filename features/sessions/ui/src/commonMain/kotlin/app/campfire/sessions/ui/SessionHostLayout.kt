@@ -12,8 +12,8 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.sessions.api.SessionsRepository
 import app.campfire.core.model.Session
+import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.launch
 
@@ -30,8 +30,8 @@ private fun rememberSessionHostComponent(): SessionHostComponent {
 
 @Composable
 fun SessionHostLayout(
-    component: SessionHostComponent = rememberSessionHostComponent(),
-    content: @Composable (session: Session?, player: AudioPlayer?, clearSession: () -> Unit) -> Unit,
+  component: SessionHostComponent = rememberSessionHostComponent(),
+  content: @Composable (session: Session?, player: AudioPlayer?, clearSession: () -> Unit) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 

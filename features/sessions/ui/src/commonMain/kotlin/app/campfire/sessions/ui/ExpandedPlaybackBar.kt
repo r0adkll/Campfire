@@ -48,13 +48,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -69,7 +67,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
@@ -77,7 +74,6 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -86,27 +82,19 @@ import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
-import app.campfire.sessions.ui.ActionState.None
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.timer.TimerResult
 import app.campfire.sessions.ui.sheets.timer.showTimerBottomSheet
-import campfire.features.sessions.ui.generated.resources.Res
-import campfire.features.sessions.ui.generated.resources.timer_end_of_chapter
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
-import org.jetbrains.compose.resources.stringResource
 
 private val ExpandedVerticalOffsetFactor = 56.dp
 private val ExpandedHorizontalOffsetFactor = 4.dp
@@ -313,7 +301,7 @@ internal fun ExpandedPlaybackBar(
             androidx.compose.animation.AnimatedVisibility(
               visible = runningTimer != null,
               enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-              modifier = Modifier.size(imageSize)
+              modifier = Modifier.size(imageSize),
             ) {
               Box(
                 contentAlignment = Alignment.Center,
@@ -327,7 +315,7 @@ internal fun ExpandedPlaybackBar(
                     color = Color.White,
                     modifier = Modifier
                       .fillMaxWidth()
-                      .padding(16.dp)
+                      .padding(16.dp),
                   )
                 }
               }

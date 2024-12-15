@@ -24,12 +24,12 @@ internal fun SessionSheetLayout(
     Box(
       Modifier
         .padding(16.dp)
-        .align(Alignment.CenterHorizontally)
+        .align(Alignment.CenterHorizontally),
     ) {
       ProvideTextStyle(
         MaterialTheme.typography.titleLarge.copy(
           fontWeight = FontWeight.SemiBold,
-        )
+        ),
       ) {
         title()
       }

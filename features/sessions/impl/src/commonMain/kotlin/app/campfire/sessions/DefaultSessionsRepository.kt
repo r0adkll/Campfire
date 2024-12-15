@@ -12,7 +12,6 @@ import app.campfire.sessions.db.SessionDataSource
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 

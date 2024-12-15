@@ -1,8 +1,7 @@
 package app.campfire.network
 
 import app.campfire.network.envelopes.LoginResponse
-import app.campfire.network.envelopes.MediaProgressUpdate
-import app.campfire.network.envelopes.SessionSyncResult
+import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -92,7 +91,7 @@ interface AudioBookShelfApi {
   /**
    * Create/Update the media progress for a specific item
    */
-  suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdate): Result<Unit>
+  suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit>
 
   /**
    * This endpoint creates/updates multiple local listening sessions on the server. Used for syncing offline listening

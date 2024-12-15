@@ -1,10 +1,10 @@
 package app.campfire.core.model
 
 import app.campfire.core.extensions.progressOver
-import kotlinx.datetime.LocalDateTime
 import kotlin.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import kotlinx.datetime.LocalDateTime
 
 @OptIn(ExperimentalUuidApi::class)
 data class Session(

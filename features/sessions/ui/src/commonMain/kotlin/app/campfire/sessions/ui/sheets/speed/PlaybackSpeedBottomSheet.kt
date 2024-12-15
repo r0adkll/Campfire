@@ -1,7 +1,5 @@
 package app.campfire.sessions.ui.sheets.speed
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,7 +48,7 @@ suspend fun OverlayHost.showPlaybackSpeedBottomSheet(speed: Float) {
   show(
     BottomSheetOverlay(
       model = speed,
-      onDismiss = {  },
+      onDismiss = { },
       sheetShape = RoundedCornerShape(
         topStart = 32.dp,
         topEnd = 32.dp,

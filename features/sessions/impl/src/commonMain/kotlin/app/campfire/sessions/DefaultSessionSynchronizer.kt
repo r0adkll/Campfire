@@ -9,14 +9,12 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.network.envelopes.MediaProgressUpdate
+import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.sessions.api.SessionSynchronizer
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
@@ -54,7 +52,7 @@ class DefaultSessionSynchronizer(
 
   private suspend fun syncMediaProgress(libraryItemId: LibraryItemId, session: Session) {
     withContext(dispatcherProvider.io) {
-      val mediaProgressUpdate = MediaProgressUpdate(
+      val mediaProgressUpdate = MediaProgressUpdatePayload(
         duration = session.duration.asSeconds(),
         progress = session.progress,
         currentTime = session.currentTime.asSeconds(),
@@ -62,7 +60,9 @@ class DefaultSessionSynchronizer(
         hideFromContinueListening = false,
         finishedAt = if (session.isFinished) {
           session.updatedAt.epochMilliseconds
-        } else null,
+        } else {
+          null
+        },
         startedAt = session.startedAt.epochMilliseconds,
       )
 

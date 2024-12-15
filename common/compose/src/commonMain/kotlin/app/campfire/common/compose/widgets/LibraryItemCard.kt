@@ -47,7 +47,7 @@ fun LibraryItemCard(
   ) {
     val shape = RoundedCornerShape(ThumbnailCornerSize)
     Box(
-      modifier = Modifier.clip(shape)
+      modifier = Modifier.clip(shape),
     ) {
       ItemImage(
         imageUrl = item.media.coverImageUrl,
@@ -108,7 +108,7 @@ private fun MediaProgressBar(
 ) {
   Canvas(
     modifier = modifier
-      .height(ProgressBarHeight)
+      .height(ProgressBarHeight),
   ) {
     // Draw Track
     drawRect(
@@ -125,7 +125,7 @@ private fun MediaProgressBar(
       color = progressColor,
       topLeft = Offset(x = -cornerRadiusPx, y = 0f),
       size = progressSize,
-      cornerRadius = CornerRadius(cornerRadiusPx)
+      cornerRadius = CornerRadius(cornerRadiusPx),
     )
   }
 }

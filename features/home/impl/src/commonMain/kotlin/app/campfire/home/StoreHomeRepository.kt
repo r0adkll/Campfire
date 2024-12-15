@@ -1,6 +1,5 @@
 package app.campfire.home
 
-import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.account.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
@@ -12,8 +11,6 @@ import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.network.AudioBookShelfApi
-import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

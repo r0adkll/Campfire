@@ -3,7 +3,7 @@ package app.campfire.network.envelopes
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MediaProgressUpdate(
+data class MediaProgressUpdatePayload(
   val duration: Float,
   val progress: Float,
   val currentTime: Float,
