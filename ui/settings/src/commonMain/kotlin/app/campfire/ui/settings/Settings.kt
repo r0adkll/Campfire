@@ -99,12 +99,12 @@ fun Settings(
       Header(
         title = {
           Text("Theme & Style")
-        }
+        },
       )
 
       TentSetting(
         tent = state.tent,
-        onTentChange = { state.eventSink(SettingsUiEvent.ChangeTent(it)) }
+        onTentChange = { state.eventSink(SettingsUiEvent.ChangeTent(it)) },
       )
 
       ListItem(
@@ -198,7 +198,7 @@ fun Settings(
       Header(
         title = {
           Text("About")
-        }
+        },
       )
 
       ListItem(
