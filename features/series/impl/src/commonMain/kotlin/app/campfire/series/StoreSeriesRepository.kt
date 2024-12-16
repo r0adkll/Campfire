@@ -6,7 +6,6 @@ import app.campfire.account.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -31,7 +30,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher

@@ -34,7 +34,6 @@ import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
-import com.moriatsushi.insetsx.ExperimentalSoftwareKeyboardApi
 import com.moriatsushi.insetsx.imePadding
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource

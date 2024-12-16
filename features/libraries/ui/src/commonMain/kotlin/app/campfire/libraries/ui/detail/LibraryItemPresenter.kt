@@ -2,7 +2,6 @@ package app.campfire.libraries.ui.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -12,8 +11,6 @@ import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.bark
-import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository

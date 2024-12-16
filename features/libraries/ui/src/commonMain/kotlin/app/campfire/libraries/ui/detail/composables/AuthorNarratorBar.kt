@@ -67,7 +67,7 @@ internal fun AuthorNarratorBar(
             indication = null,
           ) {
             maxLines = if (maxLines == DefaultMaxLines) Int.MAX_VALUE else DefaultMaxLines
-          }
+          },
         )
       },
       modifier = Modifier

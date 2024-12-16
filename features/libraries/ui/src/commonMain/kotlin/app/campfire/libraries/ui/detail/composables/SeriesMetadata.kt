@@ -40,7 +40,7 @@ internal fun SeriesMetadata(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     SeriesIcon(
-      books = seriesBooks
+      books = seriesBooks,
     )
     Spacer(Modifier.width(16.dp))
     Text(
@@ -100,12 +100,12 @@ private fun SeriesBookImage(
       .fillMaxSize()
       .background(
         MaterialTheme.colorScheme.primaryContainer,
-      )
+      ),
   ) {
     val imageUrl = book?.media?.coverImageUrl
     if (imageUrl != null) {
       CompositionLocalProvider(
-        LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer
+        LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer,
       ) {
         BookImage(
           imageUrl = imageUrl,

@@ -2,7 +2,6 @@ package app.campfire.libraries.ui.detail
 
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.Series
 import app.campfire.core.model.Session
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState

@@ -22,12 +22,12 @@ import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForId
 import app.campfire.data.SelectForLibrary
 import app.campfire.data.SelectForSeries
+import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.LibraryItemBase
 import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
-import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 

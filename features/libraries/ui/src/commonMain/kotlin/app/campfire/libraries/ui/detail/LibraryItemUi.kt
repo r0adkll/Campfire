@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -30,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,14 +48,12 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Chapter
-import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import app.campfire.libraries.ui.detail.composables.ControlBar
 import app.campfire.libraries.ui.detail.composables.DurationListItem
 import app.campfire.libraries.ui.detail.composables.GenreChips
 import app.campfire.libraries.ui.detail.composables.ItemDescription
-import app.campfire.libraries.ui.detail.composables.ItemMetadata
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.MetadataHeader
 import app.campfire.libraries.ui.detail.composables.SeriesMetadata
@@ -277,8 +272,8 @@ fun LoadedState(
           .fillMaxWidth()
           .padding(
             horizontal = 16.dp,
-            vertical = 16.dp
-          )
+            vertical = 16.dp,
+          ),
       )
     }
 
@@ -287,7 +282,7 @@ fun LoadedState(
 
     seriesContentState.onLoaded { seriesBooks ->
       MetadataHeader(
-        title = "Series"
+        title = "Series",
       )
       SeriesMetadata(
         seriesName = item.media.metadata.seriesSequence?.name
@@ -320,7 +315,7 @@ fun LoadedState(
       HorizontalDivider(Modifier.fillMaxWidth())
       MetadataHeader(
         title = stringResource(Res.string.header_chapters),
-        modifier = Modifier.padding(vertical = 16.dp)
+        modifier = Modifier.padding(vertical = 16.dp),
       )
 
       item.media.chapters.forEach { chapter ->
