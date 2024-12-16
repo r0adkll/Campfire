@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
@@ -176,8 +177,9 @@ class StoreSeriesRepository(
             refresh = true,
           ),
         ).mapNotNull { response ->
-          bark { "Series Library Item Response: $response" }
           response.dataOrNull()
+        }.mapLatest { items ->
+          items.sortedBy { it.media.metadata.seriesSequence?.sequence }
         }
       }
   }

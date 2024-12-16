@@ -8,6 +8,7 @@ kotlin {
       dependencies {
         implementation(projects.audioplayer.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.features.series.api)
         implementation(projects.features.sessions.api)
         implementation(projects.ui.appbar)
 

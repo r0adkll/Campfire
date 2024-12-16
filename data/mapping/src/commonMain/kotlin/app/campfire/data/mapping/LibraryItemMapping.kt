@@ -27,6 +27,7 @@ import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
@@ -69,6 +70,7 @@ fun <T : Media> T.asDbModel(
   }
 
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
+    ?: (metadata as? ExpandedBookMetadata)?.series?.firstOrNull()
   return DatabaseMedia(
     libraryItemId = libraryItemId,
 

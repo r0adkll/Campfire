@@ -17,6 +17,13 @@ inline fun <Data, Result> LoadState<Data>.map(mapper: (Data) -> Result): LoadSta
   }
 }
 
+inline fun <Data> LoadState<Data>.onLoaded(action: (Data) -> Unit): LoadState<Data> {
+  if (this is LoadState.Loaded<Data>) {
+    action(data)
+  }
+  return this
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <Data, Result> LoadState<Data>.mapResult(mapper: (Data) -> kotlin.Result<Result>): LoadState<Result> {
   return when (this) {

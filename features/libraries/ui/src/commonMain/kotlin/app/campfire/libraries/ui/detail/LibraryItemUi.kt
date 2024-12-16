@@ -2,17 +2,24 @@ package app.campfire.libraries.ui.detail
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.QueuePlayNext
@@ -23,24 +30,38 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.core.coroutines.LoadState
+import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Chapter
+import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryItem
+import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import app.campfire.libraries.ui.detail.composables.ControlBar
 import app.campfire.libraries.ui.detail.composables.DurationListItem
+import app.campfire.libraries.ui.detail.composables.GenreChips
 import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.ItemMetadata
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.MetadataHeader
+import app.campfire.libraries.ui.detail.composables.SeriesMetadata
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.header_chapters
@@ -93,22 +114,26 @@ fun LibraryItem(
     modifier = modifier,
   ) { paddingValues ->
     when (val contentState = state.libraryItemContentState) {
-      LibraryItemContentState.Error -> ErrorListState(
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_library_item_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      LibraryItemContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      is LibraryItemContentState.Loaded -> LoadedState(
-        item = contentState.item,
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      is LoadState.Loaded<out LibraryItem> -> LoadedState(
+        item = contentState.data,
+        seriesContentState = state.seriesContentState,
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
         },
         onPlayClick = {
-          state.eventSink(LibraryItemUiEvent.PlayClick(contentState.item))
+          state.eventSink(LibraryItemUiEvent.PlayClick(contentState.data))
         },
         onDownloadClick = {
+        },
+        onSeriesClick = {
+          state.eventSink(LibraryItemUiEvent.SeriesClick(contentState.data))
         },
         onAddToPlaylist = {
         },
@@ -126,6 +151,7 @@ fun LibraryItem(
 @Composable
 fun LoadedState(
   item: LibraryItem,
+  seriesContentState: LoadState<out List<LibraryItem>>,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
@@ -133,6 +159,7 @@ fun LoadedState(
   onDiscardProgress: () -> Unit,
   onAddToPlaylist: () -> Unit,
   onAddToCollection: () -> Unit,
+  onSeriesClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   scrollState: ScrollState = rememberScrollState(),
@@ -158,7 +185,8 @@ fun LoadedState(
 
     Text(
       text = item.media.metadata.title ?: stringResource(Res.string.unknown_title),
-      style = MaterialTheme.typography.headlineMedium,
+      style = MaterialTheme.typography.headlineLarge,
+      fontWeight = FontWeight.SemiBold,
       fontStyle = if (item.media.metadata.title == null) FontStyle.Italic else null,
       textAlign = TextAlign.Center,
       modifier = Modifier
@@ -166,13 +194,55 @@ fun LoadedState(
         .padding(horizontal = 16.dp),
     )
 
-    Spacer(Modifier.height(16.dp))
+    item.media.metadata.subtitle?.let { subtitle ->
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.titleLarge,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp),
+      )
+    }
+
+    Spacer(Modifier.height(4.dp))
+
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 16.dp)
+        .alpha(0.65f),
+      horizontalArrangement = Arrangement.Center,
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Icon(
+        Icons.Outlined.Schedule,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp),
+      )
+      Spacer(Modifier.width(8.dp))
+      Text(
+        text = item.media.durationInMillis.milliseconds.readoutFormat(),
+        style = MaterialTheme.typography.titleSmall,
+      )
+      Spacer(Modifier.width(26.dp))
+    }
+
+    Spacer(Modifier.height(24.dp))
+
+    AuthorNarratorBar(
+      metadata = item.media.metadata,
+    )
+
+    Spacer(Modifier.height(24.dp))
 
     item.userMediaProgress?.let { progress ->
+      Spacer(Modifier.height(16.dp))
       MediaProgressBar(
         progress = progress,
         modifier = Modifier
-          .padding(horizontal = 16.dp),
+          .padding(horizontal = 20.dp),
       )
       Spacer(Modifier.height(16.dp))
     }
@@ -190,14 +260,55 @@ fun LoadedState(
         .padding(horizontal = 16.dp),
     )
 
-    ItemMetadata(
-      item = item,
-      modifier = Modifier
-        .padding(16.dp),
-    )
+    if (item.media.metadata.publisher != null && item.media.metadata.publishedYear != null) {
+      Text(
+        text = buildAnnotatedString {
+          append("Published by ")
+          withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+            append(item.media.metadata.publisher)
+          }
+          append(" in ")
+          withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+            append(item.media.metadata.publishedYear)
+          }
+        },
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(
+            horizontal = 16.dp,
+            vertical = 16.dp
+          )
+      )
+    }
+
+    GenreChips(item.media.metadata.genres)
+    Spacer(Modifier.height(16.dp))
+
+    seriesContentState.onLoaded { seriesBooks ->
+      MetadataHeader(
+        title = "Series"
+      )
+      SeriesMetadata(
+        seriesName = item.media.metadata.seriesSequence?.name
+          ?: item.media.metadata.seriesName
+          ?: "--",
+        seriesBooks = seriesBooks,
+        modifier = Modifier
+          .clickable(onClick = onSeriesClick)
+          .padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+          ),
+      )
+    }
 
     item.media.metadata.description?.let { desc ->
       Spacer(Modifier.height(16.dp))
+      MetadataHeader(
+        title = "Summary",
+      )
+      Spacer(Modifier.height(8.dp))
       ItemDescription(
         description = desc,
       )
@@ -209,6 +320,7 @@ fun LoadedState(
       HorizontalDivider(Modifier.fillMaxWidth())
       MetadataHeader(
         title = stringResource(Res.string.header_chapters),
+        modifier = Modifier.padding(vertical = 16.dp)
       )
 
       item.media.chapters.forEach { chapter ->

@@ -15,9 +15,12 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.widgets.FancyLinearProgressIndicator
 import app.campfire.core.model.MediaProgress
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.remaining_duration_format
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.milliseconds
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun MediaProgressBar(
@@ -40,7 +43,7 @@ internal fun MediaProgressBar(
       val remainingDurationMillis = (progress.duration - (progress.duration * progress.actualProgress)) * 1000f
       val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
       Text(
-        text = remainingDuration,
+        text = stringResource(Res.string.remaining_duration_format, remainingDuration),
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.SemiBold,
       )

@@ -28,6 +28,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
@@ -38,15 +39,25 @@ import com.moriatsushi.insetsx.imePadding
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalSoftwareKeyboardApi::class)
 @CircuitInject(LoginScreen::class, UserScope::class)
 @Composable
 fun Login(
   state: LoginUiState,
   modifier: Modifier = Modifier,
 ) {
-  val eventSink = state.eventSink
+  CampfireTheme(
+    tent = state.tent,
+  ) {
+    LoginContent(state, modifier)
+  }
+}
 
+@Composable
+private fun LoginContent(
+  state: LoginUiState,
+  modifier: Modifier = Modifier,
+) {
+  val eventSink = state.eventSink
   var hasFocus by remember { mutableStateOf(false) }
 
   Surface(

@@ -25,5 +25,14 @@
   <string name="menu_item_add_playlist">Add to playlist</string>
   <string name="menu_item_add_collection">Add to collection</string>
 
+  <string name="remaining_duration_format">%1$s left</string>
+  <string name="by_author_line">By</string>
+  <string name="by_narrator_line">Narrated By</string>
+
+  <plurals name="genres_title">
+    <item quantity="one">Genre</item>
+    <item quantity="other">Genres</item>
+  </plurals>
+
   <string name="header_chapters">Chapters</string>
 </resources>

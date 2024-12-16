@@ -44,35 +44,5 @@ CREATE TABLE media (
 );
 
 insert:
-INSERT OR REPLACE INTO media(
-  libraryItemId,
-  mediaId,
-  coverPath,
-  tags,
-  numTracks,
-  numAudioFiles,
-  numChapters,
-  numMissingParts,
-  numInvalidAudioFiles,
-  durationInMillis,
-  sizeInBytes,
-  propertySize,
-  ebookFormat,
-  metadata_title,
-  metadata_subtitle,
-  metadata_genres,
-  metadata_publishedYear,
-  metadata_publishedDate,
-  metadata_publisher,
-  metadata_description,
-  metadata_isbn,
-  metadata_asin,
-  metadata_language,
-  metadata_explicit,
-  metadata_abridged,
-  metadata_titleIgnorePrefix,
-  metadata_authorName,
-  metadata_authorNameLF,
-  metadata_narratorName,
-  metadata_seriesName
-) VALUES ?;
+INSERT OR REPLACE INTO media
+VALUES ?;
