@@ -6,7 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.UserRepository
+import app.campfire.core.logging.bark
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.zip
 import me.tatarka.inject.annotations.Inject
 
@@ -19,11 +21,12 @@ class AccountSwitcherPresenter(
   @Composable
   fun present(): AccountSwitcherState {
     val state by remember {
-      serverRepository.observeCurrentServer()
-        .zip(userRepository.observeCurrentUser()) { server, user ->
-          AccountSwitcherState.Loaded(server, user)
-        }
-        .catch { AccountSwitcherState.Error }
+      combine(
+        serverRepository.observeCurrentServer(),
+        userRepository.observeCurrentUser(),
+      ) { server, user ->
+        AccountSwitcherState.Loaded(server, user)
+      }.catch { AccountSwitcherState.Error }
     }.collectAsState(AccountSwitcherState.Loading)
 
     return state

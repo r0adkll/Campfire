@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 
 @Composable
 internal actual fun colorScheme(
+  colorPalette: ColorPalette,
   useDarkColors: Boolean,
   useDynamicColors: Boolean,
 ): ColorScheme = when {
@@ -21,6 +22,6 @@ internal actual fun colorScheme(
   Build.VERSION.SDK_INT >= 31 && useDynamicColors && !useDarkColors -> {
     dynamicLightColorScheme(LocalContext.current)
   }
-  useDarkColors -> darkScheme
-  else -> lightScheme
+  useDarkColors -> colorPalette.darkColorScheme
+  else -> colorPalette.lightColorScheme
 }

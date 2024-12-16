@@ -8,9 +8,10 @@ import androidx.compose.runtime.Composable
 
 @Composable
 internal actual fun colorScheme(
+  colorPalette: ColorPalette,
   useDarkColors: Boolean,
   useDynamicColors: Boolean,
 ): ColorScheme = when {
-  useDarkColors -> darkScheme
-  else -> lightScheme
+  useDarkColors -> colorPalette.darkColorScheme
+  else -> colorPalette.lightColorScheme
 }

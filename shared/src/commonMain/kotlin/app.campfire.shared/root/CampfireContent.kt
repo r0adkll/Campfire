@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import app.campfire.account.ui.rememberCurrentTent
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
@@ -85,6 +86,7 @@ fun CampfireContentWithInsets(
 
       CircuitCompositionLocals(userComponent.circuit) {
         CampfireTheme(
+          tent = rememberCurrentTent(userComponent.currentUserSession),
           useDarkColors = settings.shouldUseDarkColors(),
           useDynamicColors = settings.shouldUseDynamicColors(),
         ) {

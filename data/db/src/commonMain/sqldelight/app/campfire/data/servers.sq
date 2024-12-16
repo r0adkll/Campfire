@@ -75,6 +75,11 @@ INSERT OR REPLACE INTO server(
   version
 ) VALUES ?;
 
+updateTent:
+UPDATE server
+SET tent = ?
+WHERE url = ?;
+
 deleteByUrl:
 DELETE FROM server
 WHERE url = ?;
