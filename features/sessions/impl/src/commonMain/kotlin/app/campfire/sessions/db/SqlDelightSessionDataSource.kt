@@ -56,6 +56,7 @@ class SqlDelightSessionDataSource(
     playMethod: PlayMethod,
     mediaPlayer: String,
     duration: Duration,
+    currentTime: Duration,
     startedAt: LocalDateTime,
   ): Session {
     return withContext(dispatcherProvider.databaseRead) {
@@ -82,7 +83,7 @@ class SqlDelightSessionDataSource(
                 duration = duration,
                 timeListening = 0.seconds,
                 startTime = 0.seconds,
-                currentTime = 0.seconds,
+                currentTime = currentTime,
                 startedAt = fatherTime.now(),
                 updatedAt = fatherTime.now(),
               ),

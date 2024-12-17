@@ -18,6 +18,7 @@ interface SessionDataSource {
     playMethod: PlayMethod,
     mediaPlayer: String,
     duration: Duration,
+    currentTime: Duration,
     startedAt: LocalDateTime,
   ): Session
 

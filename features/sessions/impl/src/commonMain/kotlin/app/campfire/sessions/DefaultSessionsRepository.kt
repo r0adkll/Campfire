@@ -2,6 +2,7 @@ package app.campfire.sessions
 
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
@@ -12,6 +13,7 @@ import app.campfire.sessions.db.SessionDataSource
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 
@@ -32,11 +34,14 @@ class DefaultSessionsRepository(
     val startedAt = fatherTime.now()
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
 
+    val progress = libraryItem.userMediaProgress
+
     return dataSource.createOrStartSession(
       libraryItemId = libraryItemId,
       playMethod = PlayMethod.DirectPlay,
       mediaPlayer = "campfire",
       duration = libraryItem.media.durationInMillis.milliseconds,
+      currentTime = progress?.currentTime?.seconds ?: 0.seconds,
       startedAt = startedAt,
     )
   }
