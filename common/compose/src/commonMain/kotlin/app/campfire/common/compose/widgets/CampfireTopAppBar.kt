@@ -32,7 +32,7 @@ fun CampfireTopAppBar(
   actions: @Composable RowScope.() -> Unit = {},
   expandedHeight: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
   windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
-  scrollBehavior: TopAppBarScrollBehavior? = null
+  scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   val currentContentLayout = LocalContentLayout.current
   val colors = TopAppBarDefaults.topAppBarColors(
@@ -41,7 +41,7 @@ fun CampfireTopAppBar(
       MaterialTheme.colorScheme.surfaceColorAtElevation(SupportingContentElevation)
     } else {
       Color.Unspecified
-    }
+    },
   )
 
   TopAppBar(

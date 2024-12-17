@@ -8,9 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.author.ui.detail.AuthorDetail
 import app.campfire.common.compose.widgets.AuthorCoverImage
-import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.core.model.Author
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.author_description_header
@@ -33,7 +31,7 @@ internal fun AuthorHeader(
     Spacer(Modifier.height(16.dp))
 
     AuthorDetailHeader(
-      title = stringResource(Res.string.author_description_header)
+      title = stringResource(Res.string.author_description_header),
     )
 
     author.description?.let { description ->

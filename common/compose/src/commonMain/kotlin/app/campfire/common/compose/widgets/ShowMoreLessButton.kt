@@ -5,7 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -30,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.action_show_less
 import campfire.common.compose.generated.resources.action_show_more
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -46,7 +44,7 @@ fun ShowMoreLessButton(
       .border(
         width = 2.dp,
         color = color,
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
       )
       .clip(RoundedCornerShape(8.dp))
       .clickable {
@@ -62,7 +60,7 @@ fun ShowMoreLessButton(
       targetState = expanded,
       transitionSpec = {
         fadeIn(tween(90)) togetherWith fadeOut(tween(90))
-      }
+      },
     ) { isExpanded ->
       Icon(
         if (isExpanded) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore,
