@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.detail.composables
+package app.campfire.common.compose.widgets
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -10,7 +10,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun MetadataHeader(
+fun MetadataHeader(
   title: String,
   modifier: Modifier = Modifier,
 ) {
@@ -20,9 +20,6 @@ internal fun MetadataHeader(
     style = MaterialTheme.typography.titleMedium,
     fontWeight = FontWeight.SemiBold,
     color = MaterialTheme.colorScheme.primary,
-    modifier = modifier
-      .padding(
-        horizontal = 16.dp,
-      ),
+    modifier = modifier,
   )
 }

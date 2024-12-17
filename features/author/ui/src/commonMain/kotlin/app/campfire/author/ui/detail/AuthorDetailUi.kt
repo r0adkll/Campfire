@@ -20,16 +20,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.author.ui.detail.composables.AuthorDetailHeader
 import app.campfire.author.ui.detail.composables.AuthorHeader
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
@@ -47,10 +53,12 @@ fun AuthorDetail(
   state: AuthorDetailUiState,
   modifier: Modifier = Modifier,
 ) {
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     topBar = {
-      TopAppBar(
+      CampfireTopAppBar(
         title = { Text(screen.authorName) },
+        scrollBehavior = scrollBehavior,
         navigationIcon = {
           IconButton(
             onClick = { state.eventSink(AuthorDetailUiEvent.Back) },
@@ -60,7 +68,7 @@ fun AuthorDetail(
         },
       )
     },
-    modifier = modifier,
+    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (state.authorContentState) {
       AuthorContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -68,6 +76,7 @@ fun AuthorDetail(
         message = stringResource(Res.string.error_author_message),
         modifier = Modifier.padding(paddingValues),
       )
+
       is AuthorContentState.Loaded -> LoadedState(
         author = state.authorContentState.author,
         contentPadding = paddingValues,
@@ -86,7 +95,7 @@ private fun LoadedState(
   gridState: LazyGridState = rememberLazyGridState(),
 ) {
   LazyVerticalGrid(
-    columns = GridCells.Fixed(3),
+    columns = GridCells.Fixed(2),
     state = gridState,
     contentPadding = contentPadding + PaddingValues(16.dp),
     modifier = modifier,
@@ -104,16 +113,9 @@ private fun LoadedState(
       key = "library_items_header",
       span = { GridItemSpan(maxLineSpan) },
     ) {
-      Box(
-        modifier = Modifier.height(48.dp),
-        contentAlignment = Alignment.CenterStart,
-      ) {
-        Text(
-          text = stringResource(Res.string.author_books_header),
-          style = MaterialTheme.typography.labelMedium,
-          fontWeight = FontWeight.SemiBold,
-        )
-      }
+      AuthorDetailHeader(
+        title = stringResource(Res.string.author_books_header),
+      )
     }
 
     items(

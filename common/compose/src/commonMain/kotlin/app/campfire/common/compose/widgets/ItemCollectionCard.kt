@@ -40,7 +40,7 @@ fun ItemCollectionCard(
     MultiBookLayout(
       items = items,
       modifier = Modifier
-        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+        .background(MaterialTheme.colorScheme.primaryContainer)
         .fillMaxWidth()
         .clip(RoundedCornerShape(BookCornerSize)),
     )
@@ -76,7 +76,7 @@ private fun MultiBookLayout(
   Layout(
     content = {
       items
-        .sortedBy { it.media.metadata.seriesSequence?.sequence ?: 0 }
+        .sortedBy { it.media.metadata.seriesSequence?.sequence }
         .take(MaxBookDisplay)
         .forEach { item ->
           ItemImage(

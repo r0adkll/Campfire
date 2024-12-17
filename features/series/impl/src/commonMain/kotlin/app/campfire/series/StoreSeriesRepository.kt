@@ -158,7 +158,10 @@ class StoreSeriesRepository(
           .mapNotNull { response ->
             response.dataOrNull()?.let { series ->
               series.entries.map { (s, books) ->
-                s.asDomainModel(books.map { it.asDomainModel(coverImageHydrator) })
+                val sortedBooks = books
+                  .map { it.asDomainModel(coverImageHydrator) }
+                  .sortedBy { it.media.metadata.seriesSequence?.sequence }
+                s.asDomainModel(sortedBooks)
               }
             }
           }

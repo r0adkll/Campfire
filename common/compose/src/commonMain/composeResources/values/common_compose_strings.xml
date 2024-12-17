@@ -15,4 +15,7 @@
     <item quantity="one">%1$d Book</item>
     <item quantity="other">%1$d Books</item>
   </plurals>
+
+  <string name="action_show_less">Show less</string>
+  <string name="action_show_more">Show more</string>
 </resources>

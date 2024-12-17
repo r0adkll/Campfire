@@ -16,10 +16,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
@@ -38,10 +42,12 @@ fun CollectionDetail(
   state: CollectionDetailUiState,
   modifier: Modifier = Modifier,
 ) {
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     topBar = {
-      TopAppBar(
+      CampfireTopAppBar(
         title = { Text(screen.collectionName) },
+        scrollBehavior = scrollBehavior,
         navigationIcon = {
           IconButton(
             onClick = { state.eventSink(CollectionDetailUiEvent.Back) },
@@ -51,7 +57,7 @@ fun CollectionDetail(
         },
       )
     },
-    modifier = modifier,
+    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (state.collectionContentState) {
       CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -59,6 +65,7 @@ fun CollectionDetail(
         message = stringResource(Res.string.error_collection_detail_message),
         modifier = Modifier.padding(paddingValues),
       )
+
       is CollectionContentState.Loaded -> LoadedState(
         items = state.collectionContentState.items,
         onLibraryItemClick = { state.eventSink(CollectionDetailUiEvent.LibraryItemClick(it)) },

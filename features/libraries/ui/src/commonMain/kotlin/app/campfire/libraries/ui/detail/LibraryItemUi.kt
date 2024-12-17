@@ -28,10 +28,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -40,6 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.navigation.LocalDetailNavigation
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
@@ -55,7 +64,7 @@ import app.campfire.libraries.ui.detail.composables.DurationListItem
 import app.campfire.libraries.ui.detail.composables.GenreChips
 import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
-import app.campfire.libraries.ui.detail.composables.MetadataHeader
+import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.composables.SeriesMetadata
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
@@ -74,10 +83,12 @@ fun LibraryItem(
   state: LibraryItemUiState,
   modifier: Modifier = Modifier,
 ) {
+  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   Scaffold(
     topBar = {
-      TopAppBar(
+      CampfireTopAppBar(
         title = {},
+        scrollBehavior = scrollBehavior,
         navigationIcon = {
           IconButton(
             onClick = {
@@ -106,7 +117,7 @@ fun LibraryItem(
         },
       )
     },
-    modifier = modifier,
+    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (val contentState = state.libraryItemContentState) {
       LoadState.Error -> ErrorListState(
@@ -183,6 +194,7 @@ fun LoadedState(
       style = MaterialTheme.typography.headlineLarge,
       fontWeight = FontWeight.SemiBold,
       fontStyle = if (item.media.metadata.title == null) FontStyle.Italic else null,
+      fontFamily = PaytoneOneFontFamily,
       textAlign = TextAlign.Center,
       modifier = Modifier
         .fillMaxWidth()
@@ -283,6 +295,9 @@ fun LoadedState(
     seriesContentState.onLoaded { seriesBooks ->
       MetadataHeader(
         title = "Series",
+        modifier = Modifier.padding(
+          horizontal = 16.dp,
+        ),
       )
       SeriesMetadata(
         seriesName = item.media.metadata.seriesSequence?.name
@@ -302,6 +317,9 @@ fun LoadedState(
       Spacer(Modifier.height(16.dp))
       MetadataHeader(
         title = "Summary",
+        modifier = Modifier.padding(
+          horizontal = 16.dp,
+        ),
       )
       Spacer(Modifier.height(8.dp))
       ItemDescription(
@@ -315,7 +333,10 @@ fun LoadedState(
       HorizontalDivider(Modifier.fillMaxWidth())
       MetadataHeader(
         title = stringResource(Res.string.header_chapters),
-        modifier = Modifier.padding(vertical = 16.dp),
+        modifier = Modifier.padding(
+          horizontal = 16.dp,
+          vertical = 16.dp,
+        ),
       )
 
       item.media.chapters.forEach { chapter ->

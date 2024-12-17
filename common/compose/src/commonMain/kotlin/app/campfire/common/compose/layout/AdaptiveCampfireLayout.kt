@@ -221,13 +221,13 @@ fun AdaptiveCampfireLayout(
               Surface(
                 modifier = Modifier
                   .align(Alignment.CenterEnd)
-                  .width(360.dp)
-                  .offset { IntOffset((360.dp - supportingContentWidth).roundToPx(), 0) },
-                shadowElevation = 6.dp,
-                tonalElevation = 6.dp,
+                  .width(SupportingContentWidth)
+                  .offset { IntOffset((SupportingContentWidth - supportingContentWidth).roundToPx(), 0) },
+                shadowElevation = SupportingContentElevation,
+                tonalElevation = SupportingContentElevation,
                 shape = RoundedCornerShape(
-                  topStart = 32.dp,
-                  bottomStart = 32.dp,
+                  topStart = SupportingContentCornerRadius,
+                  bottomStart = SupportingContentCornerRadius,
                 ),
               ) {
                 CompositionLocalProvider(
@@ -273,3 +273,7 @@ private fun DrawerWithContent(
     content()
   }
 }
+
+val SupportingContentElevation = 6.dp
+val SupportingContentWidth = 360.dp
+val SupportingContentCornerRadius = 32.dp

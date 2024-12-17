@@ -2,7 +2,9 @@ package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.UnfoldLess
@@ -19,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.ShowMoreLessButton
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_show_less
 import campfire.features.libraries.ui.generated.resources.action_show_more
@@ -43,20 +46,12 @@ internal fun ItemDescription(
         .padding(horizontal = 16.dp),
     )
 
-    TextButton(
-      onClick = { isExpanded = !isExpanded },
-    ) {
-      Icon(
-        if (isExpanded) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore,
-        contentDescription = null,
-      )
-      Text(
-        text = if (isExpanded) {
-          stringResource(Res.string.action_show_less)
-        } else {
-          stringResource(Res.string.action_show_more)
-        },
-      )
-    }
+    Spacer(Modifier.height(8.dp))
+
+    ShowMoreLessButton(
+      expanded = isExpanded,
+      onExpandedChange = { isExpanded = it },
+      modifier = Modifier.padding(horizontal = 16.dp),
+    )
   }
 }

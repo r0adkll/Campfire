@@ -3,6 +3,7 @@
   <string name="error_author_message">Something went wrong trying to load this author's information</string>
 
   <string name="author_books_header">Books</string>
+  <string name="author_description_header">Summary</string>
 
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
