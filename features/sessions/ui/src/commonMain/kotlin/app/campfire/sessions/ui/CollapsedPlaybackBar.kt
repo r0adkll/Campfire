@@ -240,7 +240,7 @@ private fun CollapsedPlaybackBarContent(
         Text(
           text = subtitle,
           style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.typography.labelSmall.color.copy(0.7f),
+          modifier = Modifier.alpha(0.7f)
         )
       }
 
