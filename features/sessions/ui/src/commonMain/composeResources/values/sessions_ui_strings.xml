@@ -10,6 +10,7 @@
   <string name="timer_end_of_chapter">End of chapter</string>
   <string name="timer_custom">Custom</string>
   <string name="label_current_timer">Current timer</string>
+  <string name="label_end_of_chapter_short">EoC</string>
 
   <string name="action_set_timer">Set timer</string>
   <string name="action_clear_timer">Clear</string>

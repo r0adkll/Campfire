@@ -16,7 +16,7 @@ kotlin {
     databases {
       create("CampfireDatabase") {
         packageName.set("app.campfire")
-        schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+        schemaOutputDirectory.set(file("src/commonMain/sqldelight/app/campfire/databases"))
       }
     }
     linkSqlite.set(true)

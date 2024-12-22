@@ -448,6 +448,7 @@ suspend fun SelectForId.asDomainModel(
           duration = it.duration.toFloat(),
           title = it.title,
           contentUrl = coverImageHydrator.hydrateUrl(it.contentUrl),
+          contentUrlWithToken = coverImageHydrator.hydrateUrlWithToken(it.contentUrl),
           mimeType = it.mimeType,
           codec = it.codec,
           metadata = FileMetadata(

@@ -7,4 +7,14 @@
   <string name="nav_storage_content_description">The storage for the current user/library</string>
   <string name="nav_settings_label">Settings</string>
   <string name="nav_settings_content_description">The settings for the current user/library</string>
+
+
+  <string name="nav_library_label">Library</string>
+  <string name="nav_library_content_description">The library content for the current user</string>
+  <string name="nav_series_label">Series</string>
+  <string name="nav_series_content_description">The series content for the current user/library</string>
+  <string name="nav_collections_label">Collections</string>
+  <string name="nav_collections_content_description">The collections content for the current user</string>
+  <string name="nav_authors_label">Authors</string>
+  <string name="nav_authors_content_description">The list of authors for the current user/library</string>
 </resources>

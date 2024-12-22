@@ -2,7 +2,7 @@ import app.campfire.core.model.MediaType;
 import kotlin.Boolean;
 import kotlin.Int;
 
-CREATE TABLE libraryItem (
+CREATE TABLE IF NOT EXISTS libraryItem (
   id TEXT NOT NULL PRIMARY KEY,
   ino TEXT NOT NULL,
   libraryId TEXT NOT NULL,

@@ -11,7 +11,7 @@
   <string name="nav_collections_label">Collections</string>
   <string name="nav_collections_content_description">The collections content for the current user</string>
   <string name="nav_authors_label">Authors</string>
-  <string name="nav_authors_content_description">The list of authros for the current user/library</string>
+  <string name="nav_authors_content_description">The list of authors for the current user/library</string>
 
   <string name="empty_supporting_pane_message">Nothing to see here. Click an item to the left to start exploring!</string>
 </resources>

@@ -14,14 +14,18 @@ actual interface SqlDelightDatabasePlatformComponent {
   @SingleIn(AppScope::class)
   @Provides
   fun provideJvmSqlDriver(): SqlDriver {
-    val userDir = File(System.getProperty("user.dir"))
-    val appDir = File(userDir, ".campfire").apply { mkdirs() }
+    val userRoot = System.getProperty(
+      "java.util.prefs.userRoot",
+      System.getProperty("user.home"),
+    )
+    val userDir = File(userRoot)
+    val appDir = File(userDir, ".config/Campfire").apply { mkdirs() }
     val databaseFile = File(appDir, "campfire.db")
 
     bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
 
     val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
-    DestructiveMigrationSchema.perform(driver)
+//    DestructiveMigrationSchema.perform(driver)
     CampfireDatabase.Schema.create(driver)
     return driver
   }

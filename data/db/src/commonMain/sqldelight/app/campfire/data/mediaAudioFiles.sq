@@ -1,7 +1,7 @@
 import kotlin.Boolean;
 import kotlin.Int;
 
-CREATE TABLE mediaAudioFiles (
+CREATE TABLE IF NOT EXISTS mediaAudioFiles (
   mediaId TEXT NOT NULL,
   mediaIndex INTEGER AS Int NOT NULL,
 

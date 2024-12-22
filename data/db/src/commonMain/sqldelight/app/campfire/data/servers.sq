@@ -4,7 +4,7 @@ import kotlin.Int;
 import kotlin.String;
 import kotlin.collections.List;
 
-CREATE TABLE server (
+CREATE TABLE IF NOT EXISTS server (
   url TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   tent TEXT AS Tent NOT NULL,

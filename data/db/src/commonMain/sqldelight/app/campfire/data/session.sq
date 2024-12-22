@@ -4,7 +4,7 @@ import kotlin.time.Duration;
 import kotlin.uuid.Uuid;
 import kotlinx.datetime.LocalDateTime;
 
-CREATE TABLE session (
+CREATE TABLE IF NOT EXISTS session (
   id TEXT AS Uuid NOT NULL UNIQUE,
   libraryItemId TEXT NOT NULL PRIMARY KEY,
   isActive INTEGER AS Boolean NOT NULL DEFAULT 0,

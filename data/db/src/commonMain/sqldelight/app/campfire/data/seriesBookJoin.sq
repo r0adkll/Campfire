@@ -1,4 +1,4 @@
-CREATE TABLE seriesBookJoin (
+CREATE TABLE IF NOT EXISTS seriesBookJoin (
   seriesId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
 

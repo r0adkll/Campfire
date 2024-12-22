@@ -37,6 +37,7 @@ internal fun RunningTimerText(
     }
   },
   color: Color = LocalContentColor.current,
+  endOfChapterText: String = stringResource(Res.string.timer_end_of_chapter),
 ) {
   var timeLeft by remember { mutableStateOf("") }
   LaunchedEffect(runningTimer) {
@@ -52,7 +53,7 @@ internal fun RunningTimerText(
   Text(
     text = when (runningTimer.timer) {
       is PlaybackTimer.Epoch -> timeLeft
-      PlaybackTimer.EndOfChapter -> stringResource(Res.string.timer_end_of_chapter)
+      PlaybackTimer.EndOfChapter -> endOfChapterText
       else -> ""
     },
     textAlign = TextAlign.Center,

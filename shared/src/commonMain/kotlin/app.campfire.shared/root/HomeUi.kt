@@ -1,7 +1,6 @@
 package app.campfire.shared.root
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +19,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
@@ -59,6 +59,7 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.extensions.fluentIf
 import app.campfire.sessions.ui.PlaybackBar
+import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.shared.navigator.HomeNavigator
 import campfire.shared.generated.resources.Res
 import campfire.shared.generated.resources.empty_supporting_pane_message
@@ -88,7 +89,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun Home(
+internal fun HomeUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
   windowInsets: WindowInsets,
@@ -170,15 +171,16 @@ internal fun Home(
       )
     },
     content = {
-      Box {
-        NavigableCircuitContent(
-          navigator = homeNavigator,
-          backStack = backstack,
-          decoration = GestureNavigationDecoration(
-            onBackInvoked = navigator::pop,
-          ),
-        )
-
+      NavigableCircuitContent(
+        navigator = homeNavigator,
+        backStack = backstack,
+        decoration = GestureNavigationDecoration(
+          onBackInvoked = navigator::pop,
+        ),
+      )
+    },
+    playbackBarContent = {
+      if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.ExtraLarge) {
         PlaybackBar(
           expanded = playbackBarExpanded,
           onExpansionChange = { playbackBarExpanded = it },
@@ -189,6 +191,10 @@ internal fun Home(
             .fluentIf(windowSizeClass.isSupportingPaneEnabled) {
               navigationBarsPadding()
             },
+        )
+      } else {
+        PlaybackBottomBar(
+          modifier = Modifier.fillMaxWidth(),
         )
       }
     },
@@ -312,6 +318,8 @@ data class HomeNavigationItem(
   val selectedImageVector: ImageVector? = null,
 )
 
+// TODO: The central navigation items and such split between here (:shared) and other places (:ui:drawer) should
+//  be unified and made consistent
 @Composable
 private fun buildNavigationItems(): List<HomeNavigationItem> {
   return listOf(

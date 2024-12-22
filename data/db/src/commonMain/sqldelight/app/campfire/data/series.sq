@@ -1,6 +1,6 @@
 import kotlin.Boolean;
 
-CREATE TABLE series (
+CREATE TABLE IF NOT EXISTS series (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,

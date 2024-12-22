@@ -3,7 +3,7 @@ import kotlin.Int;
 import kotlin.String;
 import kotlin.collections.List;
 
-CREATE TABLE media (
+CREATE TABLE IF NOT EXISTS media (
   mediaId TEXT NOT NULL PRIMARY KEY,
   coverPath TEXT,
   tags TEXT AS List<String>,

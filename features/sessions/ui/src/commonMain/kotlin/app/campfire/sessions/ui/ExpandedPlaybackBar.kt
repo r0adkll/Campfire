@@ -99,7 +99,7 @@ import kotlinx.coroutines.launch
 private val ExpandedVerticalOffsetFactor = 56.dp
 private val ExpandedHorizontalOffsetFactor = 4.dp
 private val ExpandedCornerRadiusFactor = 24.dp
-private val LargeCoverImageSize = 188.dp
+internal val LargeCoverImageSize = 188.dp
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -287,8 +287,10 @@ internal fun ExpandedPlaybackBar(
               CoverImageSize
             }
 
+            val mediaUrl = currentMetadata.artworkUri
+              ?: session.libraryItem.media.coverImageUrl
             CoverImage(
-              imageUrl = session.libraryItem.media.coverImageUrl,
+              imageUrl = mediaUrl,
               contentDescription = session.libraryItem.media.metadata.title,
               size = imageSize,
               modifier = Modifier
@@ -411,6 +413,7 @@ private fun PlaybackSeekBar(
   currentTime: Duration,
   currentDuration: Duration,
   onSeek: (Float) -> Unit,
+  // FIXME: This is an error to not be attached to something, Also that this composable emits multiple items
   modifier: Modifier = Modifier,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {

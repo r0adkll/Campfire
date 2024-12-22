@@ -1,4 +1,4 @@
-CREATE TABLE collections (
+CREATE TABLE IF NOT EXISTS collections (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,

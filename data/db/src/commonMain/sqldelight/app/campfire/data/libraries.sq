@@ -1,7 +1,7 @@
 import kotlin.Boolean;
 import kotlin.Int;
 
-CREATE TABLE library (
+CREATE TABLE IF NOT EXISTS library (
   id TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   displayOrder INTEGER AS Int NOT NULL,

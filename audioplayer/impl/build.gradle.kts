@@ -38,6 +38,8 @@ kotlin {
 
     jvmMain {
       dependencies {
+        implementation(libs.vlcj)
+        implementation(libs.kotlinx.coroutines.swing)
       }
     }
   }

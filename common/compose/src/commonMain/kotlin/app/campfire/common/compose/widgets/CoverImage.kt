@@ -10,10 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
@@ -37,15 +39,18 @@ fun CoverImage(
   modifier: Modifier = Modifier,
   placeholder: Painter? = null,
   size: Dp = CoverImageSize,
+  shape: Shape = RoundedCornerShape(CoverImageCornerRadius),
 ) {
   Box(
     modifier = modifier,
     contentAlignment = Alignment.Center,
   ) {
-    val painter = rememberAsyncImagePainter(
-      model = imageUrl,
-      error = placeholder,
-    )
+    val painter = key(imageUrl) {
+      rememberAsyncImagePainter(
+        model = imageUrl,
+        error = placeholder,
+      )
+    }
 
     Image(
       painter = painter,
@@ -53,12 +58,15 @@ fun CoverImage(
       contentScale = ContentScale.Crop,
       modifier = Modifier
         .size(size)
-        .clip(RoundedCornerShape(CoverImageCornerRadius)),
+        .clip(shape),
     )
 
     val painterState by painter.state.collectAsState()
     when (painterState) {
-      is AsyncImagePainter.State.Loading -> LoadingCover()
+      is AsyncImagePainter.State.Loading -> LoadingCover(
+        shape = shape,
+        size = size,
+      )
       else -> Unit
     }
   }
@@ -86,15 +94,17 @@ fun AuthorCoverImage(
 
 @Composable
 private fun LoadingCover(
+  shape: Shape,
+  size: Dp,
   modifier: Modifier = Modifier,
 ) {
   Box(
     modifier = modifier
       .background(
         color = MaterialTheme.colorScheme.primaryContainer,
-        shape = RoundedCornerShape(CoverImageCornerRadius),
+        shape = shape,
       )
-      .size(CoverImageSize),
+      .size(size),
     contentAlignment = Alignment.Center,
   ) {
     CircularProgressIndicator(

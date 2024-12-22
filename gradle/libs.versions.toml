@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.2"
+agp = "8.7.3"
 androidxlifecycle = "2.8.7"
 androidxactivity = "1.9.3"
 androidx-test-ext-junit = "1.2.1"
@@ -7,21 +7,21 @@ androidxsecuritycrypto = "1.1.0-alpha06"
 core-ktx = "1.15.0"
 coroutines = "1.9.0"
 # This is used in the build logic
-compose-multiplatform = "1.7.0"
+compose-multiplatform = "1.7.1"
 coil = "3.0.0"
 circuit = "0.25.0"
-media3 = "1.5.0"
+media3 = "1.5.1"
 kimchi = "0.4.0"
-kotlin = "2.0.21"
+kotlin = "2.1.0"
 kotlin-inject = "0.7.2"
 kotlinpoet = "2.0.0"
 ksoup = "0.4.0"
-ksp = "2.0.21-1.0.27"
+ksp = "2.1.0-1.0.29"
 ktlint = "0.49.1"
 ktor = "3.0.0"
 multiplatformsettings = "1.1.1"
 okhttp = "4.12.0"
-paging = "3.3.4"
+paging = "3.3.5"
 junit = "4.13.2"
 espresso-core = "3.6.1"
 appcompat = "1.7.0"
@@ -31,6 +31,7 @@ serialization = "1.7.3"
 material3 = "1.3.1"
 firebase-crashlytics-buildtools = "3.0.2"
 core = "1.15.0"
+vlcj = "4.8.3"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -84,15 +85,15 @@ coil-networking-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", vers
 coil-networking-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 # Firebase
-google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.0.2"
-google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.0.3"
-google-firebase-perf = "com.google.firebase:firebase-perf-ktx:21.0.1"
+google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.1.2"
+google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.3.0"
+google-firebase-perf = "com.google.firebase:firebase-perf-ktx:21.0.3"
 
 # Settings
 multiplatformsettings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformsettings" }
 multiplatformsettings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformsettings" }
 
-compose-material3-windowsizeclass = "dev.chrisbanes.material3:material3-window-size-class-multiplatform:0.5.0"
+compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
 insetsx = "com.moriatsushi.insetsx:insetsx:0.1.0-alpha10"
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.0.0"
@@ -101,13 +102,14 @@ wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.0.0"
 kotlin-ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlin-extensions = { module = "org.jetbrains.kotlin:kotlin-android-extensions", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlinx-atomicfu = "org.jetbrains.kotlinx:atomicfu:0.25.0"
-kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.6.0"
+kotlinx-atomicfu = "org.jetbrains.kotlinx:atomicfu:0.26.0"
+kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.6.1"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 kotlinx-coroutines-playservices = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.7"
+kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8"
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
@@ -153,6 +155,8 @@ media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = 
 media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
 media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
+
+vlcj = { module = "uk.co.caprica:vlcj", version.ref="vlcj" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

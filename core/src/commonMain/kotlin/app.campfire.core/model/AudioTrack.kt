@@ -6,6 +6,7 @@ data class AudioTrack(
   val duration: Float,
   val title: String,
   val contentUrl: String,
+  val contentUrlWithToken: String,
   val mimeType: String,
   val codec: String,
   val metadata: FileMetadata,

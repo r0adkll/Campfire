@@ -183,8 +183,10 @@ private fun CollapsedPlaybackBarContent(
         modifier = Modifier.padding(4.dp),
         contentAlignment = Alignment.Center,
       ) {
+        val mediaUrl = currentMetadata.artworkUri
+          ?: session.libraryItem.media.coverImageUrl
         Thumbnail(
-          imageUrl = session.libraryItem.media.coverImageUrl,
+          imageUrl = mediaUrl,
           contentDescription = session.libraryItem.media.metadata.title,
           modifier = Modifier
             .sharedElement(

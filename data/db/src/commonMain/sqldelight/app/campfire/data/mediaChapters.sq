@@ -1,6 +1,6 @@
 import kotlin.Int;
 
-CREATE TABLE mediaChapters (
+CREATE TABLE IF NOT EXISTS mediaChapters (
   mediaId TEXT NOT NULL,
 
   id INTEGER AS Int NOT NULL,

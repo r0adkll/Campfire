@@ -7,7 +7,6 @@ import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -90,7 +89,7 @@ fun CampfireContentWithInsets(
           useDarkColors = settings.shouldUseDarkColors(),
           useDynamicColors = settings.shouldUseDynamicColors(),
         ) {
-          Home(
+          HomeUi(
             backstack = backStack,
             navigator = urlNavigator,
             windowInsets = windowInsets,

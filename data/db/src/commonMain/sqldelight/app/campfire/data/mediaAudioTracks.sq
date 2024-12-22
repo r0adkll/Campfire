@@ -1,6 +1,6 @@
 import kotlin.Int;
 
-CREATE TABLE mediaAudioTracks (
+CREATE TABLE IF NOT EXISTS mediaAudioTracks (
   mediaId TEXT NOT NULL,
   mediaIndex INTEGER AS Int NOT NULL,
 

@@ -41,6 +41,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.Platform
+import app.campfire.common.compose.currentPlatform
 import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.SettingsScreen
@@ -184,16 +186,18 @@ fun Settings(
         },
       )
 
-      ListItem(
-        headlineContent = { Text(stringResource(Res.string.setting_dynamic_colors_title)) },
-        supportingContent = { Text(stringResource(Res.string.setting_dynamic_colors_description)) },
-        trailingContent = {
-          Switch(
-            checked = state.useDynamicColors,
-            onCheckedChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
-          )
-        },
-      )
+      if (currentPlatform == Platform.ANDROID) {
+        ListItem(
+          headlineContent = { Text(stringResource(Res.string.setting_dynamic_colors_title)) },
+          supportingContent = { Text(stringResource(Res.string.setting_dynamic_colors_description)) },
+          trailingContent = {
+            Switch(
+              checked = state.useDynamicColors,
+              onCheckedChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
+            )
+          },
+        )
+      }
 
       Header(
         title = {

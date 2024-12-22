@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
@@ -19,6 +20,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import app.campfire.common.compose.LocalWindowBackEventDispatcher
 import app.campfire.common.compose.WindowBackEventDispatcher
+import app.campfire.common.compose.extensions.area
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
@@ -27,6 +29,7 @@ import app.campfire.core.logging.bark
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
 import java.awt.Desktop
+import java.awt.GraphicsEnvironment
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -50,18 +53,24 @@ fun main() = application {
     }
   }
 
-//    LaunchedEffect(applicationComponent) {
-//        applicationComponent.initializers.initialize()
-//    }
-
   val coroutineScope = rememberCoroutineScope()
   val windowBackEventDispatcher = remember {
     DesktopWindowBackEventDispatcher()
   }
 
+  val maximumScreenSize = remember {
+    GraphicsEnvironment.getLocalGraphicsEnvironment()
+      .maximumWindowBounds
+      .let { IntSize(it.width, it.height) }
+  }
+
+  val windowSize = remember {
+    WindowSize.from(maximumScreenSize)
+  }
+
   val windowState = rememberWindowState(
-    width = 1080.dp,
-    height = 720.dp,
+    width = windowSize.width.dp,
+    height = windowSize.height.dp,
     position = WindowPosition.Aligned(Alignment.Center),
   )
   Window(
@@ -103,6 +112,32 @@ fun main() = application {
         ),
         Modifier,
       )
+    }
+  }
+}
+
+sealed class WindowSize private constructor(
+  val width: Int,
+  val height: Int,
+) {
+  val area = width * height
+
+  data object Small : WindowSize(1080, 720)
+  data object Medium : WindowSize(1440, 960)
+  data object Large : WindowSize(1920, 1080)
+
+  companion object {
+    fun from(maximumScreenSize: IntSize): WindowSize {
+      val screenArea = maximumScreenSize.area
+      val largeRatio = screenArea.toFloat() / Large.area.toFloat()
+      val mediumRatio = screenArea.toFloat() / Medium.area.toFloat()
+      val smallRatio = screenArea.toFloat() / Small.area.toFloat()
+
+      return when {
+        largeRatio > 2f -> Large
+        mediumRatio > 2f -> Medium
+        else -> Small
+      }
     }
   }
 }
