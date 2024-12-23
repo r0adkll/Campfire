@@ -102,22 +102,24 @@ internal fun ControlBar(
         expanded = expanded,
         onDismissRequest = { expanded = false },
       ) {
-        DropdownMenuItem(
-          leadingIcon = { Icon(Icons.Rounded.BookmarkAdded, contentDescription = null) },
-          text = { Text(stringResource(Res.string.menu_item_mark_finished)) },
-          onClick = {
-            onMarkFinished()
-            expanded = false
-          },
-        )
-        DropdownMenuItem(
-          leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = null) },
-          text = { Text(stringResource(Res.string.menu_item_discard_progress)) },
-          onClick = {
-            onDiscardProgress()
-            expanded = false
-          },
-        )
+        if (hasProgress) {
+          DropdownMenuItem(
+            leadingIcon = { Icon(Icons.Rounded.BookmarkAdded, contentDescription = null) },
+            text = { Text(stringResource(Res.string.menu_item_mark_finished)) },
+            onClick = {
+              onMarkFinished()
+              expanded = false
+            },
+          )
+          DropdownMenuItem(
+            leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = null) },
+            text = { Text(stringResource(Res.string.menu_item_discard_progress)) },
+            onClick = {
+              onDiscardProgress()
+              expanded = false
+            },
+          )
+        }
         DropdownMenuItem(
           leadingIcon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) },
           text = { Text(stringResource(Res.string.menu_item_add_playlist)) },

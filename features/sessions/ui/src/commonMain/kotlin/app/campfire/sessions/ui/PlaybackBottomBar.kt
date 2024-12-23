@@ -70,6 +70,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.RunningTimerText
@@ -86,6 +87,7 @@ import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -416,14 +418,13 @@ private fun PlaybackSeekBar(
   fun calculateProgress(): Float = if (currentDuration.inWholeMilliseconds == 0L) {
     0f
   } else {
-    currentTime.inWholeMilliseconds.toFloat() /
-      currentDuration.inWholeMilliseconds.toFloat()
+    (currentTime / currentDuration).toFloat()
   }
 
   var sliderValue by remember { mutableStateOf(calculateProgress()) }
   val softSliderValue by animateFloatAsState(sliderValue)
   LaunchedEffect(isInteracting, state, currentTime, currentDuration) {
-    if (!isInteracting && state == AudioPlayer.State.Playing) {
+    if (!isInteracting) {
       sliderValue = calculateProgress()
     }
   }

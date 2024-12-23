@@ -2,6 +2,7 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.impl.player.MediaItem
+import app.campfire.audioplayer.impl.player.VlcOption
 import app.campfire.audioplayer.impl.player.VlcPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -9,6 +10,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import kotlin.time.Duration.Companion.milliseconds
@@ -50,12 +52,23 @@ class VlcAudioPlayer(
     mediaPlayer.setMediaItems(mediaItems)
 
     // Seek the media player
-    val options = mutableListOf<String>()
+    val options = mutableListOf<VlcOption>()
     if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
       val chapter = session.chapter
       val progressInChapter = (session.currentTime - chapter.start.seconds)
       mediaPlayer.setCurrentItem(chapter.id)
-      options += ":start-time=${progressInChapter.asSeconds()}"
+      options += VlcOption.StartTime(progressInChapter.inWholeSeconds)
+
+      bark {
+        """
+          Preparing VLC media player(
+            chapter = $chapter,
+            progressInChapter = $progressInChapter,
+            options = $options,
+            session-currentTime = ${session.currentTime.inWholeMilliseconds}
+          )
+        """.trimIndent()
+      }
 
       // Hydrate the current states so the UI reflects appropriately
       currentTime.value = progressInChapter
@@ -144,7 +157,22 @@ class VlcAudioPlayer(
     }
 
     override fun onPositionChanged(positionInMillis: Long) {
-      currentTime.value = positionInMillis.milliseconds
+      updateProgress(positionInMillis)
+    }
+
+    private fun updateProgress(currentPositionInMillis: Long) {
+      currentTime.value = currentPositionInMillis.milliseconds
+
+      var timelineOffsetMs = 0L
+      val currentIndex = mediaPlayer.currentItemIndex
+      (0 until currentIndex).forEach { index ->
+        timelineOffsetMs += mediaPlayer.getMediaItemAt(index)
+          .metadata
+          ?.durationMs
+          ?: 0L
+      }
+
+      overallTime.value = (timelineOffsetMs + currentPositionInMillis).milliseconds
     }
 
     override fun onMediaItemChanged(mediaItem: MediaItem): Boolean {

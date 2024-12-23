@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.common.screens.LibraryItemScreen
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -40,6 +42,8 @@ class LibraryItemPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): LibraryItemUiState {
+    val scope = rememberCoroutineScope()
+
     val currentSession by remember {
       sessionsRepository.observeCurrentSession()
         .filterNotNull()
@@ -79,6 +83,12 @@ class LibraryItemPresenter(
         is LibraryItemUiEvent.SeriesClick -> {
           val series = event.item.media.metadata.seriesSequence ?: return@LibraryItemUiState
           navigator.goTo(SeriesDetailScreen(series.id, series.name))
+        }
+        is LibraryItemUiEvent.DiscardProgress -> {
+          playbackController.stopSession(event.item.id)
+          scope.launch {
+            sessionsRepository.deleteSession(event.item.id)
+          }
         }
       }
     }

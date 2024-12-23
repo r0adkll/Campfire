@@ -2,6 +2,7 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -20,7 +21,7 @@ import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
 interface SessionComponent {
-  val sessionsRepository: SessionsRepository
+  val playbackSessionManager: PlaybackSessionManager
 }
 
 @SingleIn(AppScope::class)
@@ -35,22 +36,22 @@ class DesktopPlaybackController(
 
   override fun startSession(itemId: LibraryItemId, playImmediately: Boolean) {
     applicationScope.launch {
-      val player = VlcAudioPlayer(playbackSettings, fatherTime)
+      currentPlayer.value = VlcAudioPlayer(playbackSettings, fatherTime)
 
-      val session = ComponentHolder.component<SessionComponent>()
-        .sessionsRepository
-        .createSession(itemId)
-
-      player.prepare(session, playImmediately)
-
-      currentPlayer.value = player
+      ComponentHolder.component<SessionComponent>()
+        .playbackSessionManager
+        .startSession(itemId, playImmediately)
     }
   }
 
   override fun stopSession(itemId: LibraryItemId) {
-    // TODO: We need to some how kill the actual session object, or detach it from this action
-    //  give the inverse dependency nature of AppScope -> UserScope access
-    currentPlayer.value?.stop()
-    currentPlayer.value = null
+    applicationScope.launch {
+      ComponentHolder.component<SessionComponent>()
+        .playbackSessionManager
+        .stopSession(itemId)
+
+      currentPlayer.value?.stop()
+      currentPlayer.value = null
+    }
   }
 }

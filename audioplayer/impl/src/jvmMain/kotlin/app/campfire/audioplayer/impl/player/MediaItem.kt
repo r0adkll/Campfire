@@ -12,7 +12,9 @@ data class MediaItem(
   data class Clipping(
     val startMs: Long,
     val endMs: Long,
-  )
+  ) {
+    val durationMs: Long get() = endMs - startMs
+  }
 
   data class Metadata(
     val title: String?,

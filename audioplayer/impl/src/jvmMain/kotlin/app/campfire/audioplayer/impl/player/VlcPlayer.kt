@@ -9,6 +9,7 @@ import app.campfire.audioplayer.impl.vlcj.seekBackward
 import app.campfire.audioplayer.impl.vlcj.seekForward
 import app.campfire.audioplayer.impl.vlcj.stop
 import app.campfire.core.logging.bark
+import kotlin.math.roundToLong
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.media.MediaRef
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -25,7 +26,12 @@ import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 class VlcPlayer {
 
   private val mediaItems = ArrayDeque<MediaItem>(20)
-  private var currentItem = 0
+
+  var currentItemIndex = 0
+    private set
+
+  val currentMediaItem: MediaItem
+    get() = mediaItems[currentItemIndex]
 
   private var listener: Listener? = null
 
@@ -48,17 +54,21 @@ class VlcPlayer {
 
     mediaItems.clear()
     mediaItems.addAll(items)
-    currentItem = 0
+    currentItemIndex = 0
+  }
+
+  fun getMediaItemAt(index: Int): MediaItem {
+    return mediaItems[index]
   }
 
   fun setCurrentItem(index: Int) {
     if (index in mediaItems.indices) {
-      currentItem = index
+      currentItemIndex = index
     }
   }
 
-  fun prepare(playImmediately: Boolean, options: Array<out String>) {
-    if (mediaItems.isNotEmpty() && currentItem in mediaItems.indices) {
+  fun prepare(playImmediately: Boolean, options: Array<out VlcOption>) {
+    if (mediaItems.isNotEmpty() && currentItemIndex in mediaItems.indices) {
       if (playImmediately) {
         startCurrentItem(*options)
       } else {
@@ -86,26 +96,33 @@ class VlcPlayer {
   }
 
   fun seekTo(progress: Float) {
-    mediaPlayer.controls().setPosition(progress)
+    currentMediaItem.clipping?.let { clipping ->
+      // If the current media item is configured for clipping then we need to jump
+      // to the appropriately clipped time in the item without running into other parts of the file
+      val seekTimeMs = (clipping.durationMs.toFloat() * progress).roundToLong() + clipping.startMs
+      mediaPlayer.controls().setTime(seekTimeMs)
+    } ?: run {
+      mediaPlayer.controls().setPosition(progress)
+    }
   }
 
   fun seekTo(index: Int) {
     if (index in mediaItems.indices) {
-      currentItem = index
+      currentItemIndex = index
       startCurrentItem()
     }
   }
 
   fun skipToNext() {
-    if (currentItem < mediaItems.size - 1) {
-      currentItem += 1
+    if (currentItemIndex < mediaItems.size - 1) {
+      currentItemIndex += 1
       startCurrentItem()
     }
   }
 
   fun skipToPrevious() {
-    if (currentItem > 0) {
-      currentItem -= 1
+    if (currentItemIndex > 0) {
+      currentItemIndex -= 1
       startCurrentItem()
     }
   }
@@ -126,41 +143,76 @@ class VlcPlayer {
     mediaPlayer.release()
   }
 
-  private fun startCurrentItem(vararg options: String) {
-    mediaItems.getOrNull(currentItem)?.also { item ->
+  @Deprecated("Migrate this to prepareCurrentItem")
+  private fun startCurrentItem(vararg options: VlcOption) {
+    mediaItems.getOrNull(currentItemIndex)?.also { item ->
       val wasHandled = listener?.onMediaItemChanged(item) == true
 
       if (mediaPlayer.isPlaying) {
         mediaPlayer.stop()
       }
 
-      val result = if (wasHandled) {
-        mediaPlayer.media().startPaused(item.uri, *options)
+      val opts = if (wasHandled) {
+        arrayOf(*options, VlcOption.StartPaused)
       } else {
-        mediaPlayer.media().play(item.uri, *options)
-      }
+        options
+      }.let {
+        amendOptionsWithClipping(it.toList(), item)
+      }.toOptionArray()
+
+      val result = mediaPlayer.media().start(item.uri, *opts)
       if (!result) {
         bark(TAG) { "Unable to start playback for ${item.uri}" }
       } else {
-        bark(TAG) { "Starting ${item.uri}" }
+        bark(TAG) { "Starting ${item.uri}, with ${opts.joinToString()}" }
       }
     }
   }
 
-  private fun prepareCurrentItem(vararg options: String) {
-    mediaItems.getOrNull(currentItem)?.also { item ->
+  private fun prepareCurrentItem(vararg options: VlcOption) {
+    mediaItems.getOrNull(currentItemIndex)?.also { item ->
       listener?.onMediaItemChanged(item)
 
       if (mediaPlayer.isPlaying) {
         mediaPlayer.stop()
       }
 
-      val result = mediaPlayer.media().startPaused(item.uri, *options)
+      val opts = options
+        .none { it is VlcOption.StartPaused }
+        .let {
+          if (it) arrayOf(*options, VlcOption.StartPaused)
+          else options
+        }.let {
+          amendOptionsWithClipping(it.toList(), item)
+        }.toOptionArray()
+
+      val result = mediaPlayer.media().start(item.uri, *opts)
       if (!result) {
         bark(TAG) { "Unable to start playback for ${item.uri}" }
       } else {
-        bark(TAG) { "Starting ${item.uri}" }
+        bark(TAG) { "Starting Paused ${item.uri}, with ${opts.joinToString()}" }
       }
+    }
+  }
+
+  private fun amendOptionsWithClipping(
+    options: List<VlcOption>,
+    item: MediaItem,
+  ): List<VlcOption> {
+    return if (item.clipping != null) {
+      val newOpts = options.toMutableList()
+      // check if we have an existing start time
+      val existingStartTime = options.firstOrNull { it is VlcOption.StartTime } as? VlcOption.StartTime
+      if (existingStartTime == null || existingStartTime.milliseconds < item.clipping.startMs) {
+        newOpts.removeIf { it is VlcOption.StartTime }
+        newOpts += VlcOption.StartTime(item.clipping.startMs / 1000)
+      }
+
+      newOpts += VlcOption.EndTime(item.clipping.endMs / 1000)
+
+      newOpts
+    } else {
+      options
     }
   }
 
@@ -237,12 +289,30 @@ class VlcPlayer {
 
     override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
       bark(TAG) { "lengthChanged(newLength=$newLength)" }
-      listener?.onDurationChanged(newLength)
+
+      // If the current media item has a clipping configuration set then
+      // we'll just want to report its duration since the underlying
+      // VLC player will just report the entire duration of the media item that
+      // likely spans the entire book
+      val adjustedDuration = currentMediaItem.clipping?.let { clipping ->
+        clipping.endMs - clipping.startMs
+      } ?: newLength
+
+      listener?.onDurationChanged(adjustedDuration)
     }
 
     override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
       bark(TAG) { "timeChanged(newTime=$newTime)" }
-      listener?.onPositionChanged(newTime)
+
+      // If the current media item has a clipping configuration set then
+      // we'll want to adjust the current time here to be within the clip
+      // since the underlying VLC player will report based on the entire
+      // media item, i.e the one audio file for the entire book
+      val adjustedTime = currentMediaItem.clipping?.let { clipping ->
+        newTime - clipping.startMs
+      } ?: newTime
+
+      listener?.onPositionChanged(adjustedTime)
       mediaPlayer?.syncStateToListener()
     }
 
@@ -288,4 +358,18 @@ class VlcPlayer {
   }
 }
 
+sealed class VlcOption(val option: String) {
+  data object StartPaused : VlcOption("start-paused")
+  data class StartTime(val seconds: Long) : VlcOption("start-time=${seconds}"){
+    val milliseconds: Long get() = seconds * 1000
+  }
+  data class EndTime(val seconds: Long) : VlcOption("end-time=${seconds}")
+}
+
+private fun List<VlcOption>.toOptionArray(): Array<String> {
+  return map { it.option }.toTypedArray()
+}
+
 private const val TAG = "VlcPlayer"
+
+private const val OPTION_START_PAUSED = "start-paused"

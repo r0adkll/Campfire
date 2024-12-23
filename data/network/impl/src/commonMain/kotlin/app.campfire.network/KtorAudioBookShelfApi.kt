@@ -154,6 +154,14 @@ class KtorAudioBookShelfApi(
     }
   }
 
+  override suspend fun deleteMediaProgress(libraryItemId: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/me/progress/$libraryItemId") {
+        method = HttpMethod.Delete
+      }
+    }
+  }
+
   override suspend fun syncLocalSessions(
     sessions: List<PlaybackSession>,
   ): Result<SyncLocalSessionsResult> {

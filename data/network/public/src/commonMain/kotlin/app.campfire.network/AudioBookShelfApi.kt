@@ -94,6 +94,11 @@ interface AudioBookShelfApi {
   suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit>
 
   /**
+   * Remove the media progress for a given [libraryItemId]
+   */
+  suspend fun deleteMediaProgress(libraryItemId: String): Result<Unit>
+
+  /**
    * This endpoint creates/updates multiple local listening sessions on the server. Used for syncing offline listening
    * sessions. The client must use UUIDv4 as the id for the local listening sessions because this will be used as the
    * identifier on the server as well.

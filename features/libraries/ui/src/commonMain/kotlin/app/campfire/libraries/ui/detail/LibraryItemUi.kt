@@ -142,6 +142,7 @@ fun LibraryItem(
         onMarkFinished = {
         },
         onDiscardProgress = {
+          state.eventSink(LibraryItemUiEvent.DiscardProgress(contentState.data))
         },
       )
     }
