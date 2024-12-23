@@ -70,7 +70,6 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.widgets.CoverImage
-import app.campfire.core.logging.bark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.RunningTimerText
@@ -87,7 +86,6 @@ import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

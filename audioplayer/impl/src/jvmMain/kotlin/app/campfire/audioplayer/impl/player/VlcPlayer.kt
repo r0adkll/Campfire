@@ -180,8 +180,11 @@ class VlcPlayer {
       val opts = options
         .none { it is VlcOption.StartPaused }
         .let {
-          if (it) arrayOf(*options, VlcOption.StartPaused)
-          else options
+          if (it) {
+            arrayOf(*options, VlcOption.StartPaused)
+          } else {
+            options
+          }
         }.let {
           amendOptionsWithClipping(it.toList(), item)
         }.toOptionArray()
@@ -360,10 +363,10 @@ class VlcPlayer {
 
 sealed class VlcOption(val option: String) {
   data object StartPaused : VlcOption("start-paused")
-  data class StartTime(val seconds: Long) : VlcOption("start-time=${seconds}"){
+  data class StartTime(val seconds: Long) : VlcOption("start-time=$seconds") {
     val milliseconds: Long get() = seconds * 1000
   }
-  data class EndTime(val seconds: Long) : VlcOption("end-time=${seconds}")
+  data class EndTime(val seconds: Long) : VlcOption("end-time=$seconds")
 }
 
 private fun List<VlcOption>.toOptionArray(): Array<String> {
