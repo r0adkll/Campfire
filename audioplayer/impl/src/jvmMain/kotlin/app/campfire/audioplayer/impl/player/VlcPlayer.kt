@@ -8,7 +8,9 @@ import app.campfire.audioplayer.impl.vlcj.play
 import app.campfire.audioplayer.impl.vlcj.seekBackward
 import app.campfire.audioplayer.impl.vlcj.seekForward
 import app.campfire.audioplayer.impl.vlcj.stop
+import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.util.runIf
 import kotlin.math.roundToLong
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.media.MediaRef
@@ -67,13 +69,14 @@ class VlcPlayer {
     }
   }
 
-  fun prepare(playImmediately: Boolean, options: Array<out VlcOption>) {
+  fun prepare(
+    playImmediately: Boolean,
+    startTimeInItemMillis: Long = 0L,
+  ) {
     if (mediaItems.isNotEmpty() && currentItemIndex in mediaItems.indices) {
-      if (playImmediately) {
-        startCurrentItem(*options)
-      } else {
-        prepareCurrentItem(*options)
-      }
+      prepareCurrentItem(playImmediately, startTimeInItemMillis)
+    } else {
+      throw IllegalStateException("No media items have been set, or the current item is out of index")
     }
   }
 
@@ -109,21 +112,21 @@ class VlcPlayer {
   fun seekTo(index: Int) {
     if (index in mediaItems.indices) {
       currentItemIndex = index
-      startCurrentItem()
+      prepareCurrentItem()
     }
   }
 
   fun skipToNext() {
     if (currentItemIndex < mediaItems.size - 1) {
       currentItemIndex += 1
-      startCurrentItem()
+      prepareCurrentItem()
     }
   }
 
   fun skipToPrevious() {
     if (currentItemIndex > 0) {
       currentItemIndex -= 1
-      startCurrentItem()
+      prepareCurrentItem()
     }
   }
 
@@ -143,8 +146,16 @@ class VlcPlayer {
     mediaPlayer.release()
   }
 
-  @Deprecated("Migrate this to prepareCurrentItem")
-  private fun startCurrentItem(vararg options: VlcOption) {
+  /**
+   * Prepare the current [MediaItem] for the [currentItemIndex] with playback options
+   * as playing immediately and the start offset
+   * @param playImmediately whether or not playback should start immediately after the item is prepared
+   * @param startTimeInItemMillis the start time offset relative to the media item
+   */
+  private fun prepareCurrentItem(
+    playImmediately: Boolean = true,
+    startTimeInItemMillis: Long = 0L,
+  ) {
     mediaItems.getOrNull(currentItemIndex)?.also { item ->
       val wasHandled = listener?.onMediaItemChanged(item) == true
 
@@ -152,71 +163,37 @@ class VlcPlayer {
         mediaPlayer.stop()
       }
 
-      val opts = if (wasHandled) {
-        arrayOf(*options, VlcOption.StartPaused)
-      } else {
-        options
-      }.let {
-        amendOptionsWithClipping(it.toList(), item)
-      }.toOptionArray()
+      val options = buildOptions(
+        item = item,
+        playImmediately = playImmediately && !wasHandled,
+        startTimeInItemMillis = startTimeInItemMillis,
+      )
 
-      val result = mediaPlayer.media().start(item.uri, *opts)
-      if (!result) {
-        bark(TAG) { "Unable to start playback for ${item.uri}" }
+      val result = mediaPlayer.media().start(item.uri, *options)
+      if (result) {
+        bark(LogPriority.DEBUG, TAG) { "Starting '${item.metadata?.title}', with ${options.joinToString()}" }
       } else {
-        bark(TAG) { "Starting ${item.uri}, with ${opts.joinToString()}" }
+        bark(LogPriority.ERROR, TAG) { "Unable to start playback for '${item.metadata?.title}'" }
       }
     }
   }
 
-  private fun prepareCurrentItem(vararg options: VlcOption) {
-    mediaItems.getOrNull(currentItemIndex)?.also { item ->
-      listener?.onMediaItemChanged(item)
-
-      if (mediaPlayer.isPlaying) {
-        mediaPlayer.stop()
-      }
-
-      val opts = options
-        .none { it is VlcOption.StartPaused }
-        .let {
-          if (it) {
-            arrayOf(*options, VlcOption.StartPaused)
-          } else {
-            options
-          }
-        }.let {
-          amendOptionsWithClipping(it.toList(), item)
-        }.toOptionArray()
-
-      val result = mediaPlayer.media().start(item.uri, *opts)
-      if (!result) {
-        bark(TAG) { "Unable to start playback for ${item.uri}" }
-      } else {
-        bark(TAG) { "Starting Paused ${item.uri}, with ${opts.joinToString()}" }
-      }
-    }
-  }
-
-  private fun amendOptionsWithClipping(
-    options: List<VlcOption>,
+  private fun buildOptions(
     item: MediaItem,
-  ): List<VlcOption> {
-    return if (item.clipping != null) {
-      val newOpts = options.toMutableList()
-      // check if we have an existing start time
-      val existingStartTime = options.firstOrNull { it is VlcOption.StartTime } as? VlcOption.StartTime
-      if (existingStartTime == null || existingStartTime.milliseconds < item.clipping.startMs) {
-        newOpts.removeIf { it is VlcOption.StartTime }
-        newOpts += VlcOption.StartTime(item.clipping.startMs / 1000)
+    playImmediately: Boolean,
+    startTimeInItemMillis: Long,
+  ): Array<out String> {
+    return buildList {
+      if (!playImmediately) add(VlcOption.StartPaused)
+
+      item.clipping?.let { clipping ->
+        val startTimeMs = clipping.startMs + startTimeInItemMillis
+        add(VlcOption.StartTime(startTimeMs / 1000L))
+        add(VlcOption.StopTime(clipping.endMs / 1000L))
+      } ?: runIf(startTimeInItemMillis > 0L) {
+        add(VlcOption.StartTime(startTimeInItemMillis / 1000L))
       }
-
-      newOpts += VlcOption.EndTime(item.clipping.endMs / 1000)
-
-      newOpts
-    } else {
-      options
-    }
+    }.toOptionArray()
   }
 
   interface Listener {
@@ -348,13 +325,13 @@ class VlcPlayer {
 
         State.OPENING,
         State.BUFFERING,
-        -> AudioPlayer.State.Buffering
+          -> AudioPlayer.State.Buffering
 
         State.STOPPED,
         State.ERROR,
         State.ENDED,
         State.NOTHING_SPECIAL,
-        -> AudioPlayer.State.Disabled
+          -> AudioPlayer.State.Disabled
       }
       listener?.onStateChanged(playerState)
     }
@@ -362,11 +339,9 @@ class VlcPlayer {
 }
 
 sealed class VlcOption(val option: String) {
-  data object StartPaused : VlcOption("start-paused")
-  data class StartTime(val seconds: Long) : VlcOption("start-time=$seconds") {
-    val milliseconds: Long get() = seconds * 1000
-  }
-  data class EndTime(val seconds: Long) : VlcOption("end-time=$seconds")
+  data object StartPaused : VlcOption(":start-paused")
+  data class StartTime(val seconds: Long) : VlcOption(":start-time=$seconds")
+  data class StopTime(val seconds: Long) : VlcOption(":stop-time=$seconds")
 }
 
 private fun List<VlcOption>.toOptionArray(): Array<String> {
@@ -374,5 +349,3 @@ private fun List<VlcOption>.toOptionArray(): Array<String> {
 }
 
 private const val TAG = "VlcPlayer"
-
-private const val OPTION_START_PAUSED = "start-paused"

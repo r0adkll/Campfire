@@ -51,19 +51,18 @@ class VlcAudioPlayer(
     mediaPlayer.setMediaItems(mediaItems)
 
     // Seek the media player
-    val options = mutableListOf<VlcOption>()
+    var startTimeInChapterMs = 0L
     if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
       val chapter = session.chapter
       val progressInChapter = (session.currentTime - chapter.start.seconds)
       mediaPlayer.setCurrentItem(chapter.id)
-      options += VlcOption.StartTime(progressInChapter.inWholeSeconds)
+      startTimeInChapterMs = progressInChapter.inWholeMilliseconds
 
       bark {
         """
           Preparing VLC media player(
             chapter = $chapter,
             progressInChapter = $progressInChapter,
-            options = $options,
             session-currentTime = ${session.currentTime.inWholeMilliseconds}
           )
         """.trimIndent()
@@ -76,7 +75,7 @@ class VlcAudioPlayer(
       overallTime.value = session.currentTime
     }
 
-    mediaPlayer.prepare(playImmediately, options.toTypedArray())
+    mediaPlayer.prepare(playImmediately, startTimeInChapterMs)
   }
 
   override fun pause() {
