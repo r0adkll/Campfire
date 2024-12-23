@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -69,6 +70,7 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.EditAudio
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -196,6 +198,8 @@ private fun PlaybackBottomBar(
           Text(
             text = currentMetadata.title ?: "--",
             style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = PaytoneOneFontFamily,
             modifier = Modifier,
           )
 
