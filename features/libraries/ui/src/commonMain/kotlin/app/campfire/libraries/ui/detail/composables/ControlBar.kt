@@ -18,7 +18,6 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -54,7 +53,7 @@ internal fun ControlBar(
   modifier: Modifier = Modifier,
 ) {
   Column(
-    modifier = modifier.fillMaxWidth()
+    modifier = modifier.fillMaxWidth(),
   ) {
     Row(
       modifier = Modifier.fillMaxWidth(),
@@ -117,7 +116,7 @@ private fun ControlsDropdownButton(
   onDownloadClick: () -> Unit,
   onAddToPlaylist: () -> Unit,
   onAddToCollection: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   Box(modifier) {
     var expanded by remember { mutableStateOf(false) }

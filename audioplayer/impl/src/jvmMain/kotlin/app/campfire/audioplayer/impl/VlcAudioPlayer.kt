@@ -2,7 +2,6 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.impl.player.MediaItem
-import app.campfire.audioplayer.impl.player.VlcOption
 import app.campfire.audioplayer.impl.player.VlcPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer

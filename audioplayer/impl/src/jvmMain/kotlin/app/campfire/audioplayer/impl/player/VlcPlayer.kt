@@ -325,13 +325,13 @@ class VlcPlayer {
 
         State.OPENING,
         State.BUFFERING,
-          -> AudioPlayer.State.Buffering
+        -> AudioPlayer.State.Buffering
 
         State.STOPPED,
         State.ERROR,
         State.ENDED,
         State.NOTHING_SPECIAL,
-          -> AudioPlayer.State.Disabled
+        -> AudioPlayer.State.Disabled
       }
       listener?.onStateChanged(playerState)
     }
