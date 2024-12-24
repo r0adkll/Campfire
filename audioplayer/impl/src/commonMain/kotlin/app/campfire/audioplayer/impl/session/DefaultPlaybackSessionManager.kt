@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
@@ -22,10 +23,10 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class DefaultPlaybackSessionManager(
   private val sessionsRepository: SessionsRepository,
-  private val playbackController: PlaybackController,
-  private val dispatcherProvider: DispatcherProvider,
+  private val audioPlayerHolder: AudioPlayerHolder,
   private val synchronizer: SessionSynchronizer,
   private val fatherTime: FatherTime,
+  private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
 
   private var updateJob: Job? = null
@@ -40,7 +41,7 @@ class DefaultPlaybackSessionManager(
 
       bark("AudioPlayer") { "Preparing playback session: $session" }
 
-      val player = playbackController.currentPlayer.value
+      val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
       player.prepare(session, playImmediately)
 

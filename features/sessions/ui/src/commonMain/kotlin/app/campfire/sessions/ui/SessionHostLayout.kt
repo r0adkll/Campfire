@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
@@ -21,6 +22,7 @@ import kotlinx.coroutines.launch
 interface SessionHostComponent {
   val sessionsRepository: SessionsRepository
   val playbackController: PlaybackController
+  val audioPlayerHolder: AudioPlayerHolder
 }
 
 @Composable
@@ -40,7 +42,7 @@ fun SessionHostLayout(
   }.collectAsState(null)
 
   val audioPlayer by remember {
-    component.playbackController.currentPlayer
+    component.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
   LaunchedEffect(currentSession) {

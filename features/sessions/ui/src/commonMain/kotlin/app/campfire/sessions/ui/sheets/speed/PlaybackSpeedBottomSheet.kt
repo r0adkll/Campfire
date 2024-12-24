@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -65,14 +66,14 @@ suspend fun OverlayHost.showPlaybackSpeedBottomSheet(speed: Float) {
 
 @ContributesTo(AppScope::class)
 interface PlaybackSpeedBottomSheetComponent {
-  val playbackController: PlaybackController
+  val audioPlayerHolder: AudioPlayerHolder
 }
 
 @Composable
-private fun rememberPlaybackController(): PlaybackController {
+private fun rememberAudioPlayerHolder(): AudioPlayerHolder {
   return remember {
     ComponentHolder.component<PlaybackSpeedBottomSheetComponent>()
-      .playbackController
+      .audioPlayerHolder
   }
 }
 
@@ -81,10 +82,10 @@ private fun rememberPlaybackController(): PlaybackController {
 private fun PlaybackSpeedBottomSheet(
   speed: Float,
   modifier: Modifier = Modifier,
-  playbackController: PlaybackController = rememberPlaybackController(),
+  audioPlayerHolder: AudioPlayerHolder = rememberAudioPlayerHolder(),
 ) {
   val currentSpeed by remember {
-    playbackController.currentPlayer
+    audioPlayerHolder.currentPlayer
       .flatMapLatest {
         it?.playbackSpeed ?: emptyFlow()
       }
@@ -106,7 +107,7 @@ private fun PlaybackSpeedBottomSheet(
           selected = isCurrentSpeed,
           label = { Text("${defaultSpeed.readable}x") },
           onClick = {
-            playbackController.currentPlayer.value
+            audioPlayerHolder.currentPlayer.value
               ?.setPlaybackSpeed(defaultSpeed)
           },
         )
@@ -141,7 +142,7 @@ private fun PlaybackSpeedBottomSheet(
         valueRange = DefaultSpeedOptions.asRange,
         onValueChange = {
           sliderValue = it
-          playbackController.currentPlayer.value?.setPlaybackSpeed(it)
+          audioPlayerHolder.currentPlayer.value?.setPlaybackSpeed(it)
         },
         waveLength = waveLength,
         waveHeight = waveHeight,

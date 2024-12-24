@@ -73,6 +73,7 @@ fun main() = application {
     height = windowSize.height.dp,
     position = WindowPosition.Aligned(Alignment.Center),
   )
+
   Window(
     title = "Campfire",
     onCloseRequest = ::exitApplication,
@@ -85,6 +86,7 @@ fun main() = application {
         false
       }
     },
+
   ) {
     val component: WindowComponent = remember(applicationComponent) {
       ComponentHolder.component<WindowComponent.Factory>().create().also {
@@ -125,6 +127,7 @@ sealed class WindowSize private constructor(
   data object Small : WindowSize(1080, 720)
   data object Medium : WindowSize(1440, 960)
   data object Large : WindowSize(1920, 1080)
+  class Custom internal constructor(width: Int, height: Int) : WindowSize(width, height)
 
   companion object {
     fun from(maximumScreenSize: IntSize): WindowSize {

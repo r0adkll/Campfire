@@ -1,6 +1,7 @@
 package app.campfire.common.settings
 
 import app.campfire.common.settings.CampfireSettings.Theme
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.settings.ItemDisplayState
@@ -21,7 +22,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,
-  private val dispatchers: app.campfire.core.coroutines.DispatcherProvider,
+  private val dispatchers: DispatcherProvider,
 ) : CampfireSettings, AppSettings() {
   private val flowSettings by lazy { settings.toFlowSettings(dispatchers.io) }
 

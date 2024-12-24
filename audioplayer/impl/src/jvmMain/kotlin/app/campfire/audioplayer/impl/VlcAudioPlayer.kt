@@ -77,6 +77,11 @@ class VlcAudioPlayer(
     mediaPlayer.prepare(playImmediately, startTimeInChapterMs)
   }
 
+  override fun release() {
+    mediaPlayer.stop()
+    mediaPlayer.release()
+  }
+
   override fun pause() {
     mediaPlayer.pause()
   }

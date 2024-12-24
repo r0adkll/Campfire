@@ -51,6 +51,7 @@ import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
@@ -337,9 +338,7 @@ fun LoadedState(
       item.media.chapters.forEach { chapter ->
         DurationListItem(
           title = chapter.title,
-          duration = chapter.start.times(100f)
-            .roundToLong()
-            .milliseconds,
+          duration = chapter.start.seconds,
           modifier = Modifier
             .clickable {
               onChapterClick(chapter)

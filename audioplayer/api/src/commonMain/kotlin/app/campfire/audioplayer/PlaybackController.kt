@@ -10,11 +10,6 @@ import kotlinx.coroutines.flow.StateFlow
 interface PlaybackController {
 
   /**
-   * Access the current audio player
-   */
-  val currentPlayer: StateFlow<AudioPlayer?>
-
-  /**
    * Start a new playback session for a given library item
    */
   fun startSession(itemId: LibraryItemId, playImmediately: Boolean = true)

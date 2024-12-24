@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
@@ -37,6 +38,7 @@ class LibraryItemPresenter(
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
   private val playbackController: PlaybackController,
+  private val audioPlayerHolder: AudioPlayerHolder,
 ) : Presenter<LibraryItemUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -88,6 +90,18 @@ class LibraryItemPresenter(
           playbackController.stopSession(event.item.id)
           scope.launch {
             sessionsRepository.deleteSession(event.item.id)
+          }
+        }
+        is LibraryItemUiEvent.ChapterClick -> {
+          val session = (currentSession as? SessionUiState.Current)?.session
+          val currentPlayer = audioPlayerHolder.currentPlayer.value
+          if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
+            // Just seek to the chapter id
+            audioPlayerHolder.currentPlayer.value?.seekTo(event.chapter.id)
+              ?: throw IllegalStateException("Current session doesn't have a player")
+          } else {
+            // Start a new session for the item at the given chapter
+            playbackController.startSession(event.item.id, true, )
           }
         }
       }

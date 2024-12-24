@@ -105,10 +105,6 @@ class ExoPlayerAudioPlayer(
   override val playbackSpeed = MutableStateFlow(1f)
   override val runningTimer = MutableStateFlow<RunningTimer?>(null)
 
-  fun release() {
-    scope.cancel()
-  }
-
   override suspend fun prepare(
     session: Session,
     playImmediately: Boolean,
@@ -150,6 +146,10 @@ class ExoPlayerAudioPlayer(
       playWhenReady = playImmediately
       prepare()
     }
+  }
+
+  override fun release() {
+    scope.cancel()
   }
 
   override fun pause() {

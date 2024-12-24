@@ -48,6 +48,7 @@ interface AudioPlayer {
   val runningTimer: StateFlow<RunningTimer?>
 
   suspend fun prepare(session: Session, playImmediately: Boolean = true)
+  fun release()
 
   fun pause()
   fun playPause()

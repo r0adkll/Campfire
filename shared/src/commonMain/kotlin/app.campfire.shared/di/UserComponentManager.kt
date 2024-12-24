@@ -27,6 +27,8 @@ class UserComponentManager {
    */
   private val componentCache = mutableMapOf<UserSessionKey, UserComponent>()
 
+  private var lastUserSession: UserSession? = null
+
   // TODO: Update Kimchi to support injecting subcomponent factories
   private val userComponentFactory: UserComponent.Factory
     get() = ComponentHolder.component<UserComponent.Factory>()
@@ -38,6 +40,8 @@ class UserComponentManager {
    * @return the generated or cached [UserComponent] object graph
    */
   fun getOrCreateUserComponent(userSession: UserSession): UserComponent {
+    cancelCurrentScope()
+    lastUserSession = userSession
     val cached = componentCache[userSession.key]
     if (cached != null) {
       bark(LogPriority.INFO) { "Cached UserComponent for $userSession found" }
@@ -47,6 +51,13 @@ class UserComponentManager {
       val newUserComponent = userComponentFactory.create(userSession)
       componentCache[userSession.key] = newUserComponent
       return newUserComponent
+    }
+  }
+
+  private fun cancelCurrentScope() {
+    lastUserSession?.let { session ->
+      bark { "Cancelling UserComponent scope for $session" }
+      componentCache[session.key]?.coroutineScopeHolder?.cancel()
     }
   }
 

@@ -21,6 +21,7 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
+import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
@@ -39,7 +40,7 @@ import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)
 interface AudioPlayerComponent {
-  val audioPlaybackController: AndroidPlaybackController
+  val audioPlayerHolder: AudioPlayerHolder
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory
   val sessionsRepository: SessionsRepository
   val playbackSessionManager: PlaybackSessionManager
@@ -70,7 +71,7 @@ class AudioPlayerService : MediaSessionService() {
 
     // Attach the Android playback implementation to the controller used by other parts of the
     // to access and control playback / session.
-    component.audioPlaybackController.currentPlayer.value = player
+    component.audioPlayerHolder.setCurrentPlayer(player)
 
     // Setup notification management and checks
     ensureNotificationChannel(NotificationManagerCompat.from(this))
@@ -103,7 +104,7 @@ class AudioPlayerService : MediaSessionService() {
       session = null
     }
     clearListener()
-    component.audioPlaybackController.currentPlayer.value = null
+    component.audioPlayerHolder.release()
     super.onDestroy()
   }
 
@@ -239,22 +240,6 @@ class AudioPlayerService : MediaSessionService() {
           EXTRA_LIBRARY_ITEM_ID to libraryItemId,
         ),
       )
-    }
-
-    fun stop(context: Context) {
-      context.stopService(context.serviceIntent())
-    }
-
-    private fun Context.serviceIntent(
-      libraryItemId: LibraryItemId? = null,
-      playImmediately: Boolean = true,
-    ): Intent {
-      return Intent(this, AudioPlayerService::class.java).apply {
-        if (libraryItemId != null) {
-          putExtra(EXTRA_LIBRARY_ITEM_ID, libraryItemId)
-        }
-        putExtra(EXTRA_PLAY_IMMEDIATELY, playImmediately)
-      }
     }
   }
 }

@@ -1,6 +1,5 @@
 package app.campfire.sessions.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -61,6 +60,7 @@ import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
@@ -70,6 +70,7 @@ import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.ActionState.Dispose
@@ -82,7 +83,7 @@ import kotlin.math.abs
 import kotlin.time.Duration
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun CollapsedPlaybackBar(
   session: Session,
@@ -230,6 +231,8 @@ private fun CollapsedPlaybackBarContent(
         Text(
           text = title,
           style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Medium,
+          fontFamily = PaytoneOneFontFamily,
           maxLines = 1,
           modifier = Modifier.basicMarquee(),
         )

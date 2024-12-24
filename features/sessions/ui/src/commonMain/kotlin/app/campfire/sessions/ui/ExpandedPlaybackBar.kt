@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -67,6 +68,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
@@ -77,6 +79,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
@@ -88,6 +91,7 @@ import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.timer.TimerResult
 import app.campfire.sessions.ui.sheets.timer.showTimerBottomSheet
+import campfire.features.sessions.ui.generated.resources.Res
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -269,8 +273,6 @@ internal fun ExpandedPlaybackBar(
       Column(
         Modifier.weight(1f),
       ) {
-        Spacer(Modifier.height(16.dp))
-
         Column(
           modifier = Modifier
             .fillMaxWidth()
@@ -281,11 +283,12 @@ internal fun ExpandedPlaybackBar(
           Box(
             contentAlignment = Alignment.Center,
           ) {
-            val imageSize = if (windowSizeClass.isSupportingPaneEnabled) {
-              LargeCoverImageSize
-            } else {
-              CoverImageSize
-            }
+            val imageSize = 300.dp //CoverImageSize
+//              if (windowSizeClass.isSupportingPaneEnabled) {
+//              LargeCoverImageSize
+//            } else {
+//              CoverImageSize
+//            }
 
             val mediaUrl = currentMetadata.artworkUri
               ?: session.libraryItem.media.coverImageUrl
@@ -330,6 +333,8 @@ internal fun ExpandedPlaybackBar(
             text = currentMetadata.title ?: "--",
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.SemiBold,
+            fontFamily = PaytoneOneFontFamily,
             modifier = Modifier
               .align(Alignment.CenterHorizontally)
               .padding(horizontal = 24.dp),
@@ -338,7 +343,7 @@ internal fun ExpandedPlaybackBar(
           Text(
             text = session.libraryItem.media.metadata.title ?: "",
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.titleMedium,
             modifier = Modifier
               .align(Alignment.CenterHorizontally)
               .padding(horizontal = 24.dp)

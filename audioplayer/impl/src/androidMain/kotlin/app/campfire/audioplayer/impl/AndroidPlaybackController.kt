@@ -5,29 +5,26 @@ import android.content.ComponentName
 import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
-import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.PlaybackController
-import app.campfire.core.di.AppScope
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class)
 @Inject
 class AndroidPlaybackController(
   private val application: Application,
-  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
+  @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
-
-  override val currentPlayer = MutableStateFlow<AudioPlayer?>(null)
 
   private var mediaController: MediaController? = null
 
@@ -48,12 +45,13 @@ class AndroidPlaybackController(
           AudioPlayerService.start(mediaController!!, itemId, playImmediately)
 
           // Listen for the activity lifecycle to die, then release any saved media controller
-          applicationScope.launch {
+          userScopeHolder.get().launch {
             try {
               awaitCancellation()
             } finally {
               bark { "Releasing Media Controller!" }
               mediaController?.release()
+              mediaController = null
             }
           }
         },
