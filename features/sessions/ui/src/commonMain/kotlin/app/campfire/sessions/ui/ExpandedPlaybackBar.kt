@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -81,7 +80,6 @@ import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
-import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -91,7 +89,6 @@ import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.timer.TimerResult
 import app.campfire.sessions.ui.sheets.timer.showTimerBottomSheet
-import campfire.features.sessions.ui.generated.resources.Res
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -283,7 +280,7 @@ internal fun ExpandedPlaybackBar(
           Box(
             contentAlignment = Alignment.Center,
           ) {
-            val imageSize = 300.dp //CoverImageSize
+            val imageSize = 300.dp // CoverImageSize
 //              if (windowSizeClass.isSupportingPaneEnabled) {
 //              LargeCoverImageSize
 //            } else {

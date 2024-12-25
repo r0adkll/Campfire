@@ -5,14 +5,12 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 

@@ -10,7 +10,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
-import app.campfire.data.User
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
 import kotlinx.coroutines.CoroutineScope

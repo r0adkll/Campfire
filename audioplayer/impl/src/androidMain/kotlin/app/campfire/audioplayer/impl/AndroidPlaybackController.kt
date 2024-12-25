@@ -13,7 +13,6 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject

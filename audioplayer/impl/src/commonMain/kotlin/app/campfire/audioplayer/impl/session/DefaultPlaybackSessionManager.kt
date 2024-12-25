@@ -2,7 +2,6 @@ package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope

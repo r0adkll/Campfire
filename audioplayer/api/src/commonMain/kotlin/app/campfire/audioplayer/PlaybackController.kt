@@ -1,7 +1,6 @@
 package app.campfire.audioplayer
 
 import app.campfire.core.model.LibraryItemId
-import kotlinx.coroutines.flow.StateFlow
 
 /**
  * This interface is the means by which the app can acertain the [AudioPlayer] for any ongoing playback, or not
