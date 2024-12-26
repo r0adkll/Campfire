@@ -33,9 +33,13 @@ class StoreAuthorRepository(
           .stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
           .mapNotNull { response ->
             response.dataOrNull()?.let { dbAuthors ->
-              dbAuthors.map { author ->
-                author.asDomainModel()
-              }
+              dbAuthors
+                .map { author ->
+                  author.asDomainModel()
+                }
+                .sortedBy { author ->
+                  author.name
+                }
             }
           }
       }

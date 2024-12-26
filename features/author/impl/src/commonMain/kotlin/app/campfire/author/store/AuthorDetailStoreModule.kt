@@ -57,7 +57,9 @@ interface AuthorDetailStoreModule {
                   .asFlow()
                   .mapToList(dispatcherProvider.databaseRead)
                   .map { libraryItems ->
-                    val items = libraryItems.map { it.asDomainModel(coverImageHydrator) }
+                    val items = libraryItems
+                      .map { it.asDomainModel(coverImageHydrator) }
+                      .sortedBy { it.media.metadata.publishedYear?.toIntOrNull() }
                     author.asDomainModel(items)
                   }
               }
