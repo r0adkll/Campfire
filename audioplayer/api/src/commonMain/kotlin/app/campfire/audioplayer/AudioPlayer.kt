@@ -13,6 +13,11 @@ import kotlinx.coroutines.flow.StateFlow
 interface AudioPlayer {
 
   /**
+   * The current session this player has been prepared with.
+   */
+  val preparedSession: Session?
+
+  /**
    * A flow of the current playback state.
    */
   val state: StateFlow<State>
@@ -47,7 +52,12 @@ interface AudioPlayer {
    */
   val runningTimer: StateFlow<RunningTimer?>
 
-  suspend fun prepare(session: Session, playImmediately: Boolean = true)
+  suspend fun prepare(
+    session: Session,
+    playImmediately: Boolean = true,
+    chapterId: Int? = null,
+  )
+
   fun release()
 
   fun pause()

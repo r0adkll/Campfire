@@ -33,6 +33,8 @@ class VlcAudioPlayer(
     setListener(VlcPlayerListener())
   }
 
+  override var preparedSession: Session? = null
+
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
   override val overallTime = MutableStateFlow(0.seconds)
   override val currentTime = MutableStateFlow(0.seconds)
@@ -44,14 +46,51 @@ class VlcAudioPlayer(
   private var playbackTimer: PlaybackTimer? = null
   private var playbackTimerJob: Job? = null
 
-  override suspend fun prepare(session: Session, playImmediately: Boolean) {
+  override suspend fun prepare(
+    session: Session,
+    playImmediately: Boolean,
+    chapterId: Int?,
+  ) {
+    preparedSession = session
+
     // Build and set media items for the current session
     val mediaItems = MediaItemBuilder.build(session)
     mediaPlayer.setMediaItems(mediaItems)
 
     // Seek the media player
     var startTimeInChapterMs = 0L
-    if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
+    if (chapterId != null) {
+      val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
+        ?: error("Unable to find chapter to start")
+
+      val overallProgressOfChapterMs = session.libraryItem.media.chapters.fold(0L) { acc, c ->
+        if (c.id < chapterId) {
+          acc + c.duration.inWholeMilliseconds
+        } else {
+          acc
+        }
+      }
+
+      mediaPlayer.setCurrentItem(chapterId)
+
+      bark {
+        """
+          Preparing VLC media player(
+            chapter = $chapter,
+            overallProgress = $overallProgressOfChapterMs,
+            chapterId = $chapterId,
+          )
+        """.trimIndent()
+      }
+
+      currentTime.value = 0.seconds
+      currentDuration.value = chapter.duration
+      currentMetadata.value = Metadata(
+        title = chapter.title,
+        artworkUri = session.libraryItem.media.coverImageUrl,
+      )
+      overallTime.value = overallProgressOfChapterMs.milliseconds
+    } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
       val chapter = session.chapter
       val progressInChapter = (session.currentTime - chapter.start.seconds)
       mediaPlayer.setCurrentItem(chapter.id)
@@ -70,7 +109,10 @@ class VlcAudioPlayer(
       // Hydrate the current states so the UI reflects appropriately
       currentTime.value = progressInChapter
       currentDuration.value = chapter.duration
-      currentMetadata.value = Metadata(chapter.title)
+      currentMetadata.value = Metadata(
+        title = chapter.title,
+        artworkUri = session.libraryItem.media.coverImageUrl,
+      )
       overallTime.value = session.currentTime
     }
 
@@ -90,6 +132,7 @@ class VlcAudioPlayer(
   }
 
   override fun stop() {
+    preparedSession = null
     mediaPlayer.stop()
     mediaPlayer.release()
     scope.cancel()

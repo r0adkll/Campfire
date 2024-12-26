@@ -11,6 +11,7 @@ interface PlaybackSessionManager {
   suspend fun startSession(
     libraryItemId: LibraryItemId,
     playImmediately: Boolean = true,
+    chapterId: Int? = null
   )
 
   suspend fun stopSession(libraryItemId: LibraryItemId)

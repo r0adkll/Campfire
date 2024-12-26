@@ -80,6 +80,7 @@ import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -280,12 +281,11 @@ internal fun ExpandedPlaybackBar(
           Box(
             contentAlignment = Alignment.Center,
           ) {
-            val imageSize = 300.dp // CoverImageSize
-//              if (windowSizeClass.isSupportingPaneEnabled) {
-//              LargeCoverImageSize
-//            } else {
-//              CoverImageSize
-//            }
+            val imageSize = if (windowSizeClass.isSupportingPaneEnabled) {
+              LargeCoverImageSize
+            } else {
+              CoverImageSize
+            }
 
             val mediaUrl = currentMetadata.artworkUri
               ?: session.libraryItem.media.coverImageUrl

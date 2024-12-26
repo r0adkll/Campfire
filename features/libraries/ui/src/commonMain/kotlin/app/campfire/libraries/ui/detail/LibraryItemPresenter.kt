@@ -101,7 +101,7 @@ class LibraryItemPresenter(
               ?: throw IllegalStateException("Current session doesn't have a player")
           } else {
             // Start a new session for the item at the given chapter
-            playbackController.startSession(event.item.id, true)
+            playbackController.startSession(event.item.id, true, event.chapter.id)
           }
         }
       }

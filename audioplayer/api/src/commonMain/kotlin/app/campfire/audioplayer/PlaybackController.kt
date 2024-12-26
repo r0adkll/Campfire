@@ -22,7 +22,11 @@ interface PlaybackController {
   /**
    * Start a new playback session for a given library item
    */
-  fun startSession(itemId: LibraryItemId, playImmediately: Boolean = true)
+  fun startSession(
+    itemId: LibraryItemId,
+    playImmediately: Boolean = true,
+    chapterId: Int? = null
+  )
 
   /**
    * Stop a current session

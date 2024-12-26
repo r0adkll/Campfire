@@ -25,10 +25,14 @@ class DesktopPlaybackController(
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
-  override fun startSession(itemId: LibraryItemId, playImmediately: Boolean) {
+  override fun startSession(
+    itemId: LibraryItemId,
+    playImmediately: Boolean,
+    chapterId: Int?,
+  ) {
     userScopeHolder.get().launch {
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately)
+      playbackSessionManager.startSession(itemId, playImmediately, chapterId)
     }
   }
 

@@ -160,6 +160,7 @@ class AudioPlayerService : MediaSessionService() {
       if (customCommand.customAction == ACTION_PREPARE_SESSION) {
         val libraryItemId = args.getString(EXTRA_LIBRARY_ITEM_ID) ?: return sessionResult(SessionError.ERROR_BAD_VALUE)
         val playImmediately = args.getBoolean(EXTRA_PLAY_IMMEDIATELY)
+        val chapterId = args.getInt(EXTRA_CHAPTER_ID, UNSET_CHAPTER_ID)
 
         // Attach the meta data to the action
         session.sessionExtras = Bundle().apply {
@@ -169,7 +170,7 @@ class AudioPlayerService : MediaSessionService() {
         // Launch the manager to pull/create/prepare the session for the given element
         serviceScope.launch {
           component.playbackSessionManager
-            .startSession(libraryItemId, playImmediately)
+            .startSession(libraryItemId, playImmediately, chapterId.takeIf { it != UNSET_CHAPTER_ID })
         }
 
         return sessionResult(SessionResult.RESULT_SUCCESS)
@@ -216,19 +217,24 @@ class AudioPlayerService : MediaSessionService() {
     private const val ACTION_CLEAR_SESSION = "clearSession"
     private const val EXTRA_LIBRARY_ITEM_ID = "libraryItemId"
     private const val EXTRA_PLAY_IMMEDIATELY = "playWhenPrepared"
+    private const val EXTRA_CHAPTER_ID = "chapterId"
     private const val CHANNEL_ID = "app.campfire.notifications.playback"
     private const val NOTIFICATION_ID = 100
+
+    private const val UNSET_CHAPTER_ID = -1
 
     fun start(
       mediaController: MediaController,
       libraryItemId: LibraryItemId,
       playImmediately: Boolean,
+      chapterId: Int?,
     ) {
       mediaController.sendCustomCommand(
         SessionCommand(ACTION_PREPARE_SESSION, Bundle.EMPTY),
         bundleOf(
           EXTRA_LIBRARY_ITEM_ID to libraryItemId,
           EXTRA_PLAY_IMMEDIATELY to playImmediately,
+          EXTRA_CHAPTER_ID to (chapterId ?: UNSET_CHAPTER_ID),
         ),
       )
     }

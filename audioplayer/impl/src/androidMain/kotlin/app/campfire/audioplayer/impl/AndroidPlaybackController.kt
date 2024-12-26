@@ -65,13 +65,14 @@ class AndroidPlaybackController(
   override fun startSession(
     itemId: LibraryItemId,
     playImmediately: Boolean,
+    chapterId: Int?,
   ) {
     mediaControllerFlow
       .filterNotNull()
       .take(1)
       .onEach { mediaController ->
         bark(TAG) { "$mediaController starting for $itemId, playImmediately=$playImmediately" }
-        AudioPlayerService.start(mediaController, itemId, playImmediately)
+        AudioPlayerService.start(mediaController, itemId, playImmediately, chapterId)
       }
       .launchIn(scopeHolder.get())
   }

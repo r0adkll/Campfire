@@ -97,6 +97,8 @@ class ExoPlayerAudioPlayer(
   private var playbackTimer: PlaybackTimer? = null
   private var playbackTimerJob: Job? = null
 
+  override var preparedSession: Session? = null
+
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
   override val overallTime = MutableStateFlow(0.seconds)
   override val currentTime = MutableStateFlow(0.seconds)
@@ -108,7 +110,10 @@ class ExoPlayerAudioPlayer(
   override suspend fun prepare(
     session: Session,
     playImmediately: Boolean,
+    chapterId: Int?,
   ) = withContext(Dispatchers.Main) {
+    preparedSession = session
+
     val mediaItems = MediaItemBuilder.build(session)
 
     bark(AUDIO_TAG, LogPriority.INFO) {
@@ -120,6 +125,7 @@ class ExoPlayerAudioPlayer(
           mediaPlayer = ${session.mediaPlayer},
           duration = ${session.duration},
           currentTime = ${session.currentTime},
+          chapterId = $chapterId
         )
       """.trimIndent()
     }
@@ -129,7 +135,30 @@ class ExoPlayerAudioPlayer(
       setMediaItems(mediaItems, true)
 
       // Seek the media player
-      if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
+      if (chapterId != null) {
+        // If the Chapter Id is passed explicitly then we can take that intention as
+        // starting playback directly at that chapter
+        val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
+          ?: error("Unable to find chapter to start")
+
+        val overallProgressOfChapterMs = session.libraryItem.media.chapters.fold(0L) { acc, c ->
+          if (c.id < chapterId) {
+            acc + c.duration.inWholeMilliseconds
+          } else {
+            acc
+          }
+        }
+
+        seekTo(chapterId)
+        currentTime.value = 0.seconds
+        currentDuration.value = chapter.duration
+        currentMetadata.value = Metadata(
+          title = chapter.title,
+          artworkUri = session.libraryItem.media.coverImageUrl,
+        )
+        overallTime.value = overallProgressOfChapterMs.milliseconds
+
+      } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter
         val progressInChapterMs = (session.currentTime - chapter.start.seconds)
           .inWholeMilliseconds.coerceAtLeast(0L)
@@ -138,7 +167,10 @@ class ExoPlayerAudioPlayer(
         // Hydrate the current states so the UI reflects appropriately
         currentTime.value = progressInChapterMs.milliseconds
         currentDuration.value = chapter.duration
-        currentMetadata.value = Metadata(chapter.title)
+        currentMetadata.value = Metadata(
+          title = chapter.title,
+          artworkUri = session.libraryItem.media.coverImageUrl,
+        )
         overallTime.value = session.currentTime
       }
 
@@ -149,6 +181,7 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun release() {
+    preparedSession = null
     scope.cancel()
   }
 
@@ -165,6 +198,7 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun stop() {
+    preparedSession = null
     exoPlayer.stop()
   }
 
@@ -236,6 +270,7 @@ class ExoPlayerAudioPlayer(
     currentDuration.value = exoPlayer.duration.milliseconds
     currentMetadata.value = Metadata(
       title = mediaMetadata.title?.toString(),
+      artworkUri = mediaMetadata.artworkUri?.toString(),
     )
   }
 

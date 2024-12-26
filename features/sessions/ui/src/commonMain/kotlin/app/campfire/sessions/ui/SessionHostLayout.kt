@@ -49,7 +49,10 @@ fun SessionHostLayout(
   component.playbackController.attachController()
 
   LaunchedEffect(currentSession) {
-    if (currentSession != null && audioPlayer == null) {
+    if (
+      currentSession != null &&
+      (audioPlayer == null || currentSession!!.id != audioPlayer!!.preparedSession?.id)
+    ) {
       // If the current session exists but the audio player is not initialized yet, initialize it
       bark(LogPriority.WARN) { "Session found, but media player not initialized, starting…" }
       component.playbackController.startSession(

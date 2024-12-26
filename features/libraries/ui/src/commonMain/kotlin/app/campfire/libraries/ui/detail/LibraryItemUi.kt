@@ -126,6 +126,7 @@ fun LibraryItem(
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
+          state.eventSink(LibraryItemUiEvent.ChapterClick(contentState.data, chapter))
         },
         onPlayClick = {
           state.eventSink(LibraryItemUiEvent.PlayClick(contentState.data))

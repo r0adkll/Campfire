@@ -34,6 +34,7 @@ class DefaultPlaybackSessionManager(
   override suspend fun startSession(
     libraryItemId: LibraryItemId,
     playImmediately: Boolean,
+    chapterId: Int?,
   ) {
     withContext(dispatcherProvider.io) {
       val session = sessionsRepository.createSession(libraryItemId)
@@ -42,7 +43,7 @@ class DefaultPlaybackSessionManager(
 
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
-      player.prepare(session, playImmediately)
+      player.prepare(session, playImmediately, chapterId)
 
       // Keep the local database session and progress updated with the player
       var lastNetworkSync = fatherTime.nowInEpochMillis()
