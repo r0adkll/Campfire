@@ -318,7 +318,6 @@ internal class FileSystemPreferences : AbstractPreferences {
     try {
       newLastSyncTime = prefsFile.lastModified()
       FileInputStream(prefsFile).use { fis ->
-        // TODO: This is a no-op currently
         serializer.read(fis, m)
       }
     } catch (e: Exception) {
@@ -563,104 +562,6 @@ internal class FileSystemPreferences : AbstractPreferences {
   override fun flushSpi() {
     // assert false;
   }
-
-//  /**
-//   * Try to acquire the appropriate file lock (user or system).  If
-//   * the initial attempt fails, several more attempts are made using
-//   * an exponential backoff strategy.  If all attempts fail, this method
-//   * returns false.
-//   * @throws SecurityException if file access denied.
-//   */
-//  @Throws(SecurityException::class)
-//  private fun lockFile(shared: Boolean): Boolean {
-//    val usernode: Boolean = isUserNode()
-//    var result: IntArray
-//    var errorCode: Int = 0
-//    val lockFile: File? = (if (usernode) userLockFile else systemLockFile)
-//    var sleepTime: Long = INIT_SLEEP_TIME.toLong()
-//    for (i in 0 until MAX_ATTEMPTS) {
-//      try {
-//        val perm: Int = (if (usernode) USER_READ_WRITE else USER_RW_ALL_READ)
-//        result = lockFile0(lockFile!!.canonicalPath, perm, shared)
-//
-//        errorCode = result[ERROR_CODE]
-//        if (result[LOCK_HANDLE] != 0) {
-//          if (usernode) {
-//            userRootLockHandle = result[LOCK_HANDLE]
-//          } else {
-//            systemRootLockHandle = result[LOCK_HANDLE]
-//          }
-//          return true
-//        }
-//      } catch (e: IOException) {
-// //                // If at first, you don't succeed...
-//      }
-//
-//      try {
-//        Thread.sleep(sleepTime)
-//      } catch (e: InterruptedException) {
-//        checkLockFile0ErrorCode(errorCode)
-//        return false
-//      }
-//      sleepTime *= 2
-//    }
-//    checkLockFile0ErrorCode(errorCode)
-//    return false
-//  }
-
-//  /**
-//   * Checks if unlockFile0() returned an error. Throws a SecurityException,
-//   * if access denied. Logs a warning otherwise.
-//   */
-//  @Throws(SecurityException::class)
-//  private fun checkLockFile0ErrorCode(errorCode: Int) {
-//    if (errorCode == EACCES) throw SecurityException(
-//      "Could not lock " +
-//        (if (isUserNode()) "User prefs." else "System prefs.") +
-//        " Lock file access denied.",
-//    )
-//    if (errorCode != EAGAIN) logger.warning(
-//      "Could not lock " +
-//        (if (isUserNode()) "User prefs. " else "System prefs.") +
-//        " Unix error code " + errorCode + ".",
-//    )
-//  }
-
-  /**
-   * Release the appropriate file lock (user or system).
-   * @throws SecurityException if file access denied.
-   */
-//  private fun unlockFile() {
-//    val result: Int
-//    val usernode: Boolean = isUserNode()
-//    val lockFile: File? = (if (usernode) userLockFile else systemLockFile)
-//    val lockHandle: Int = (if (usernode) userRootLockHandle else systemRootLockHandle)
-//    if (lockHandle == 0) {
-//      logger.warning(
-//        "Unlock: zero lockHandle for " +
-//          (if (usernode) "user" else "system") + " preferences.)",
-//      )
-//      return
-//    }
-//    result = unlockFile0(lockHandle)
-//    if (result != 0) {
-//      logger.warning(
-//        "Could not drop file-lock on " +
-//          (if (isUserNode()) "user" else "system") + " preferences." +
-//          " Unix error code " + result + ".",
-//      )
-//      if (result == EACCES) throw SecurityException(
-//        "Could not unlock" +
-//          (if (isUserNode()) "User prefs." else "System prefs.") +
-//          " Lock file access denied.",
-//      )
-//    }
-//    if (isUserNode()) {
-//      userRootLockHandle = 0
-//    } else {
-//      systemRootLockHandle = 0
-//    }
-//  }
 
   companion object {
 
