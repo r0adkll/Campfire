@@ -30,7 +30,7 @@ class AndroidPlaybackController(
 ) : PlaybackController {
 
   private var mediaController: MediaController? = null
-    private set (value) {
+    private set(value) {
       field = value
       mediaControllerFlow.value = value
     }
@@ -48,13 +48,13 @@ class AndroidPlaybackController(
       controllerFuture.addListener(
         {
           mediaController = controllerFuture.get()
-          bark(TAG) { "Acquired MediaController (${mediaController})" }
+          bark(TAG) { "Acquired MediaController ($mediaController)" }
         },
         ContextCompat.getMainExecutor(context),
       )
 
       onDispose {
-        bark(TAG) { "Disposing of media controller (${mediaController})" }
+        bark(TAG) { "Disposing of media controller ($mediaController)" }
         MediaController.releaseFuture(controllerFuture)
         mediaController?.release()
         mediaController = null

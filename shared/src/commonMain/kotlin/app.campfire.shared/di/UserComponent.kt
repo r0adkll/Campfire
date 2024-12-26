@@ -4,9 +4,9 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.WindowScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.WindowScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession

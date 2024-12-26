@@ -3,9 +3,9 @@
 
 package app.campfire.di
 
-import app.campfire.core.di.WindowScope
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.WindowScope
 import app.campfire.shared.root.CampfireContentWithInsets
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 

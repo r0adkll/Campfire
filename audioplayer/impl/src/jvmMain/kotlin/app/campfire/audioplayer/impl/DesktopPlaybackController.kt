@@ -1,7 +1,5 @@
 package app.campfire.audioplayer.impl
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
