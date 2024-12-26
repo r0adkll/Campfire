@@ -25,7 +25,7 @@ interface PlaybackController {
   fun startSession(
     itemId: LibraryItemId,
     playImmediately: Boolean = true,
-    chapterId: Int? = null
+    chapterId: Int? = null,
   )
 
   /**

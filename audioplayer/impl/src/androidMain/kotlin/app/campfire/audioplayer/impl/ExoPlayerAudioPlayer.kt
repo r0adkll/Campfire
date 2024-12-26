@@ -157,7 +157,6 @@ class ExoPlayerAudioPlayer(
           artworkUri = session.libraryItem.media.coverImageUrl,
         )
         overallTime.value = overallProgressOfChapterMs.milliseconds
-
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter
         val progressInChapterMs = (session.currentTime - chapter.start.seconds)
