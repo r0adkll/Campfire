@@ -20,7 +20,6 @@ import me.tatarka.inject.annotations.Provides
 )
 interface ActivityComponent {
   val campfireContent: CampfireContent
-  val mediaControllerHolder: MediaControllerHolder
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {
