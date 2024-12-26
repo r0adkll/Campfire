@@ -36,13 +36,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @ContributesTo(UserScope::class)
 interface AudioPlayerComponent {
-  val audioPlayerHolder: AudioPlayerHolder
-  val exoPlayerFactory: ExoPlayerAudioPlayer.Factory
-  val sessionsRepository: SessionsRepository
-  val playbackSessionManager: PlaybackSessionManager
+  val audioPlayerHolder: AudioPlayerHolder // AppScope
+  val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // UserScope
+  val sessionsRepository: SessionsRepository // UserScope
+  val playbackSessionManager: PlaybackSessionManager // UserScope
 }
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -98,6 +99,7 @@ class AudioPlayerService : MediaSessionService() {
     serviceScope.cancel()
     player.release()
     session?.run {
+      player.stop()
       player.release()
       release()
       session = null
@@ -176,7 +178,9 @@ class AudioPlayerService : MediaSessionService() {
 
         serviceScope.launch {
           component.playbackSessionManager.stopSession(libraryItemId)
-          stopSelf()
+          withContext(Dispatchers.Main) {
+            player.stop()
+          }
         }
 
         return sessionResult(SessionResult.RESULT_SUCCESS)

@@ -3,7 +3,7 @@
 
 package app.deckbox.shared.di
 
-import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.WindowScope
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.CampfireUiViewController
@@ -11,16 +11,16 @@ import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import me.tatarka.inject.annotations.Provides
 import platform.UIKit.UIViewController
 
-@SingleIn(ActivityScope::class)
+@SingleIn(WindowScope::class)
 @ContributesSubcomponent(
-  scope = ActivityScope::class,
+  scope = WindowScope::class,
   parentScope = AppScope::class,
 )
 interface HomeUiControllerComponent {
   val uiViewControllerFactory: () -> UIViewController
 
   @Provides
-  @SingleIn(ActivityScope::class)
+  @SingleIn(WindowScope::class)
   fun uiViewController(bind: CampfireUiViewController): UIViewController = bind()
 
   @ContributesSubcomponent.Factory

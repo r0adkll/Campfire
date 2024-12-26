@@ -3,15 +3,15 @@
 
 package app.campfire.di
 
-import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.WindowScope
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.shared.root.CampfireContentWithInsets
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 
-@SingleIn(ActivityScope::class)
+@SingleIn(WindowScope::class)
 @ContributesSubcomponent(
-  scope = ActivityScope::class,
+  scope = WindowScope::class,
   parentScope = AppScope::class,
 )
 interface WindowComponent {

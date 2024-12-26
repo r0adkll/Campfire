@@ -45,6 +45,9 @@ fun SessionHostLayout(
     component.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
+  // Attach the playback controller to the lifecycle of this composition.
+  component.playbackController.attachController()
+
   LaunchedEffect(currentSession) {
     if (currentSession != null && audioPlayer == null) {
       // If the current session exists but the audio player is not initialized yet, initialize it

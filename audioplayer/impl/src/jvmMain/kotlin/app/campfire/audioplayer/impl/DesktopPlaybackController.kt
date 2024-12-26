@@ -1,5 +1,7 @@
 package app.campfire.audioplayer.impl
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
@@ -27,7 +29,7 @@ class DesktopPlaybackController(
 
   override fun startSession(itemId: LibraryItemId, playImmediately: Boolean) {
     userScopeHolder.get().launch {
-      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, fatherTime))
+      initializeAudioPlayerIfNeeded()
       playbackSessionManager.startSession(itemId, playImmediately)
     }
   }
@@ -36,6 +38,12 @@ class DesktopPlaybackController(
     userScopeHolder.get().launch {
       playbackSessionManager.stopSession(itemId)
       audioPlayerHolder.release()
+    }
+  }
+
+  private fun initializeAudioPlayerIfNeeded() {
+    if (audioPlayerHolder.currentPlayer.value == null) {
+      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, fatherTime))
     }
   }
 }

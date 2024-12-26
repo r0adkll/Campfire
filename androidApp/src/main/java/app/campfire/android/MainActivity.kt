@@ -11,15 +11,20 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import app.campfire.android.di.ActivityComponent
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.logging.bark
 
 class MainActivity : ComponentActivity() {
+
+  private lateinit var component: ActivityComponent
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    bark { "MainActivity::onCreate()" }
 
-    val component = ComponentHolder.component<ActivityComponent.Factory>()
+    component = ComponentHolder.component<ActivityComponent.Factory>()
       .create(this)
       .also {
-        ComponentHolder.components += it
+        ComponentHolder.updateComponent(it)
       }
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -34,6 +39,21 @@ class MainActivity : ComponentActivity() {
         Modifier,
       )
     }
+  }
+
+  override fun onStart() {
+    super.onStart()
+    bark { "MainActivity::onStart()" }
+  }
+
+  override fun onStop() {
+    super.onStop()
+    bark { "MainActivity::onStop()" }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    bark { "MainActivity::onDestroy()" }
   }
 }
 

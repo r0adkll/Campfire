@@ -4,7 +4,7 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.ActivityScope
+import app.campfire.core.di.WindowScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
@@ -20,7 +20,7 @@ import me.tatarka.inject.annotations.Provides
 @SingleIn(UserScope::class)
 @ContributesSubcomponent(
   scope = UserScope::class,
-  parentScope = ActivityScope::class,
+  parentScope = WindowScope::class,
 )
 interface UserComponent {
   val currentUserSession: UserSession
@@ -46,7 +46,7 @@ interface UserComponent {
   @SingleIn(UserScope::class)
   fun createCoroutineScopeHolder(): CoroutineScopeHolder {
     return CoroutineScopeHolder {
-      CoroutineScope(SupervisorJob() + Dispatchers.Default)
+      CoroutineScope(SupervisorJob() + Dispatchers.Main)
     }
   }
 

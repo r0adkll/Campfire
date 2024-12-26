@@ -3,6 +3,7 @@ import app.campfire.convention.addKspDependencyForAllTargets
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
+  id("app.campfire.compose")
   alias(libs.plugins.ksp)
 }
 
@@ -12,6 +13,8 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.audioplayer.api)
+
+        implementation(compose.runtime)
 
         implementation(projects.core)
         implementation(projects.common.settings)
@@ -28,6 +31,7 @@ kotlin {
         implementation(libs.media3.session)
         implementation(libs.media3.cast)
         implementation(libs.androidx.lifecycle.runtime)
+        implementation(libs.androidx.activity.compose)
       }
     }
 

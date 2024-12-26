@@ -78,8 +78,7 @@ class VlcAudioPlayer(
   }
 
   override fun release() {
-    mediaPlayer.stop()
-    mediaPlayer.release()
+    stop()
   }
 
   override fun pause() {
