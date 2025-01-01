@@ -16,6 +16,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -37,6 +38,7 @@ class LibraryItemPresenter(
   private val repository: LibraryItemRepository,
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
 ) : Presenter<LibraryItemUiState> {
@@ -59,6 +61,12 @@ class LibraryItemPresenter(
         .catch { LoadState.Error }
     }.collectAsState(LoadState.Loading)
 
+    val mediaProgressState by remember {
+      mediaProgressRepository.observeProgress(screen.libraryItemId)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
+
     val seriesContentState by remember {
       snapshotFlow {
         libraryItemContentState.dataOrNull
@@ -76,6 +84,7 @@ class LibraryItemPresenter(
       sessionUiState = currentSession,
       libraryItemContentState = libraryItemContentState,
       seriesContentState = seriesContentState,
+      mediaProgressState = mediaProgressState,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()

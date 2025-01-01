@@ -2,8 +2,10 @@ package app.campfire.sessions.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.audioplayer.AudioPlayer
@@ -16,6 +18,10 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)
@@ -26,27 +32,43 @@ interface SessionHostComponent {
 }
 
 @Composable
-private fun rememberSessionHostComponent(): SessionHostComponent {
-  return remember { ComponentHolder.component() }
+private fun rememberSessionHostComponent(): State<SessionHostComponent> {
+  return remember {
+    ComponentHolder.subscribe<SessionHostComponent>()
+      .onEach {
+        println("RememberSessionHost: $it")
+      }
+      .onCompletion {
+        println("RememberSessionHost - Completion!")
+      }
+  }.collectAsState(ComponentHolder.component<SessionHostComponent>())
 }
 
 @Composable
 fun SessionHostLayout(
-  component: SessionHostComponent = rememberSessionHostComponent(),
+  component: State<SessionHostComponent> = rememberSessionHostComponent(),
   content: @Composable (session: Session?, player: AudioPlayer?, clearSession: () -> Unit) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 
+  val comp by component
+
+  LaunchedEffect(comp) {
+    println("LaunchedEffect: $comp")
+  }
+
   val currentSession by remember {
-    component.sessionsRepository.observeCurrentSession()
+    comp.sessionsRepository.observeCurrentSession()
   }.collectAsState(null)
 
   val audioPlayer by remember {
-    component.audioPlayerHolder.currentPlayer
+    comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
   // Attach the playback controller to the lifecycle of this composition.
-  component.playbackController.attachController()
+  key(comp) {
+    comp.playbackController.attachController()
+  }
 
   LaunchedEffect(currentSession) {
     if (
@@ -55,7 +77,7 @@ fun SessionHostLayout(
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it
       bark(LogPriority.WARN) { "Session found, but media player not initialized, starting…" }
-      component.playbackController.startSession(
+      comp.playbackController.startSession(
         itemId = currentSession!!.libraryItem.id,
         playImmediately = false,
       )
@@ -66,7 +88,7 @@ fun SessionHostLayout(
     {
       currentSession?.let { s ->
         scope.launch {
-          component.playbackController.stopSession(s.libraryItem.id)
+          comp.playbackController.stopSession(s.libraryItem.id)
         }
       }
     }

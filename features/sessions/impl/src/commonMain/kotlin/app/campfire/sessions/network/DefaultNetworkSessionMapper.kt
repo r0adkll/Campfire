@@ -1,6 +1,6 @@
 package app.campfire.sessions.network
 
-import app.campfire.account.api.UserRepository
+import app.campfire.user.api.UserRepository
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.UserScope
@@ -20,9 +20,9 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultNetworkSessionMapper(
-  private val campfireSettings: CampfireSettings,
-  private val applicationInfo: ApplicationInfo,
-  private val userRepository: UserRepository,
+    private val campfireSettings: CampfireSettings,
+    private val applicationInfo: ApplicationInfo,
+    private val userRepository: UserRepository,
 ) : NetworkSessionMapper {
 
   override suspend fun map(session: Session): PlaybackSession {
@@ -85,7 +85,7 @@ class DefaultNetworkSessionMapper(
       date = "", // This value is dumb, why send this AND startedAt
       dayOfWeek = "", // This value is dumb, why send this AND startedAt
       timeListening = session.timeListening.asSeconds(),
-      startTime = session.startTime.asSeconds(),
+      startTime = session.startedAt.toInstant(TimeZone.UTC).toEpochMilliseconds().milliseconds.asSeconds(),
       currentTime = session.currentTime.asSeconds(),
       startedAt = session.startedAt.toInstant(TimeZone.UTC).toEpochMilliseconds(),
       updatedAt = session.updatedAt.toInstant(TimeZone.UTC).toEpochMilliseconds(),

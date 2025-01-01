@@ -48,8 +48,9 @@ fun main() = application {
   })
 
   val applicationComponent = remember {
-    DesktopApplicationComponent.createDesktopApplicationComponent().also {
-      ComponentHolder.components += it
+    DesktopApplicationComponent.createDesktopApplicationComponent().also { component ->
+      ComponentHolder.components += component
+      component.startupInitializer.initialize()
     }
   }
 

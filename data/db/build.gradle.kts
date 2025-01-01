@@ -17,6 +17,7 @@ kotlin {
       create("CampfireDatabase") {
         packageName.set("app.campfire")
         schemaOutputDirectory.set(file("src/commonMain/sqldelight/app/campfire/databases"))
+        generateAsync.set(true)
       }
     }
     linkSqlite.set(true)

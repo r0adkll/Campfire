@@ -25,6 +25,8 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.mapping)
         implementation(projects.features.libraries.api)
+        implementation(projects.features.user.api)
+        implementation(projects.audioplayer.api)
         implementation(libs.store)
       }
     }

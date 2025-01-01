@@ -6,31 +6,31 @@ import kotlinx.datetime.LocalDateTime;
 
 CREATE TABLE IF NOT EXISTS session (
   id TEXT AS Uuid NOT NULL UNIQUE,
-  libraryItemId TEXT NOT NULL PRIMARY KEY,
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
   isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
 
   playMethod TEXT AS PlayMethod NOT NULL,
   mediaPlayer TEXT NOT NULL,
 
-  duration INTEGER AS Duration NOT NULL DEFAULT 0,
   timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
-  startTime INTEGER AS Duration NOT NULL DEFAULT 0,
   currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
 
   startedAt TEXT AS LocalDateTime NOT NULL,
-  updatedAt TEXT AS LocalDateTime NOT NULL
+  updatedAt TEXT AS LocalDateTime NOT NULL,
+
+  PRIMARY KEY(userId, libraryItemId)
 );
 
 getActive:
 SELECT * FROM session
-WHERE isActive = 1;
-
-getAll:
-SELECT * FROM session;
+WHERE isActive = 1
+  AND userId = ?;
 
 getForId:
 SELECT * FROM session
-WHERE libraryItemId = ?;
+WHERE libraryItemId = ?
+  AND userId = ?;
 
 insert:
 INSERT OR IGNORE INTO session
@@ -38,24 +38,37 @@ VALUES ?;
 
 delete:
 DELETE FROM session
-WHERE libraryItemId = ?;
+WHERE libraryItemId = ?
+  AND userId = ?;
 
 updatePlayback:
 UPDATE session
-SET currentTime = ?
-WHERE libraryItemId = ?;
+SET currentTime = ?,
+    updatedAt = ?
+WHERE libraryItemId = ?
+  AND userId = ?;
+
+addTimeListening:
+UPDATE session
+SET timeListening = timeListening + ?,
+    updatedAt = ?
+WHERE libraryItemId = ?
+  AND userId = ?;
 
 disable:
 UPDATE session
 SET isActive = 0
-WHERE libraryItemId = ?;
+WHERE libraryItemId = ?
+  AND userId = ?;
 
 disableAll:
 UPDATE session
 SET isActive = 0
-WHERE isActive = 1;
+WHERE isActive = 1
+  AND userId = ?;
 
 enable:
 UPDATE session
 SET isActive = 1
-WHERE libraryItemId = ?;
+WHERE libraryItemId = ?
+  AND userId = ?;

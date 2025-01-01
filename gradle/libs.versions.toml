@@ -20,6 +20,7 @@ ksp = "2.1.0-1.0.29"
 ktlint = "0.49.1"
 ktor = "3.0.0"
 multiplatformsettings = "1.1.1"
+molecule = "2.0.0"
 okhttp = "4.12.0"
 paging = "3.3.5"
 junit = "4.13.2"
@@ -111,6 +112,8 @@ kotlinx-coroutines-playservices = { module = "org.jetbrains.kotlinx:kotlinx-coro
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlinx-immutable = "org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.8"
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+molecule = { module = "app.cash.molecule:molecule-runtime", version.ref = "molecule" }
 
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }

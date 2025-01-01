@@ -1,6 +1,6 @@
 package app.campfire.author
 
-import app.campfire.account.api.UserRepository
+import app.campfire.user.api.UserRepository
 import app.campfire.author.api.AuthorRepository
 import app.campfire.author.store.AuthorDetailStore
 import app.campfire.author.store.LibraryAuthorStore

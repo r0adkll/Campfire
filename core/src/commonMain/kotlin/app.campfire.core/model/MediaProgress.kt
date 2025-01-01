@@ -1,7 +1,6 @@
 package app.campfire.core.model
 
 data class MediaProgress(
-  val id: String,
   val userId: String,
   val libraryItemId: String,
   val episodeId: String? = null,

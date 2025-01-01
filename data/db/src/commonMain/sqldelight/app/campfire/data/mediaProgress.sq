@@ -2,9 +2,8 @@ import app.campfire.core.model.MediaType;
 import kotlin.Boolean;
 
 CREATE TABLE IF NOT EXISTS mediaProgress (
-  id TEXT NOT NULL PRIMARY KEY ,
-  userId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
   episodeId TEXT,
   mediaItemId TEXT NOT NULL,
   mediaItemType TEXT AS MediaType NOT NULL,
@@ -17,7 +16,8 @@ CREATE TABLE IF NOT EXISTS mediaProgress (
   ebookProgress REAL,
   lastUpdate INTEGER NOT NULL,
   startedAt INTEGER NOT NULL,
-  finishedAt INTEGER
+  finishedAt INTEGER,
+  PRIMARY KEY (libraryItemId, userId)
 );
 
 insert:
@@ -28,6 +28,10 @@ delete:
 DELETE FROM mediaProgress
 WHERE libraryItemId = ?;
 
+deleteForUser:
+DELETE FROM mediaProgress
+WHERE userId = ?;
+
 updateCurrentTime:
 UPDATE OR IGNORE mediaProgress
 SET currentTime = ?,
@@ -37,3 +41,7 @@ WHERE libraryItemId = ?;
 selectForLibraryItem:
 SELECT * FROM mediaProgress
 WHERE libraryItemId = ?;
+
+selectForUser:
+SELECT * FROM mediaProgress
+WHERE userId = ?;

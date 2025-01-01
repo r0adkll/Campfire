@@ -6,6 +6,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.time.FatherTime
 import app.campfire.core.time.GrandFatherTime
+import app.campfire.shared.initializer.StartupInitializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -15,6 +16,8 @@ import me.tatarka.inject.annotations.Provides
 interface SharedAppComponent : CoreComponent
 
 interface CoreComponent {
+
+  val startupInitializer: StartupInitializer
 
   @SingleIn(AppScope::class)
   @Provides

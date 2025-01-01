@@ -88,6 +88,10 @@ include(
   ":features:auth:ui",
 )
 include(
+  ":features:user:api",
+  ":features:user:impl",
+)
+include(
   ":features:libraries:api",
   ":features:libraries:impl",
   ":features:libraries:ui",

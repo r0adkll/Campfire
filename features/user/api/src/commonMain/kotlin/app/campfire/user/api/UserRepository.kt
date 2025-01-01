@@ -1,4 +1,4 @@
-package app.campfire.account.api
+package app.campfire.user.api
 
 import app.campfire.core.model.User
 import kotlinx.coroutines.flow.Flow

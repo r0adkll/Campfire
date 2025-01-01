@@ -25,9 +25,19 @@ interface SessionsRepository {
    * @param libraryItemId the id of the item to update
    * @param currentTime the current time to update
    */
-  suspend fun updateSession(
+  suspend fun updateCurrentTime(
     libraryItemId: LibraryItemId,
     currentTime: Duration,
+  )
+
+  /**
+   * Add the [amount] of time to the timeListening for the current [libraryItemId] session
+   * @param libraryItemId the id of the session to update
+   * @param amount the amount of time to add to the cumulative listening time
+   */
+  suspend fun addTimeListening(
+    libraryItemId: LibraryItemId,
+    amount: Duration,
   )
 
   /**

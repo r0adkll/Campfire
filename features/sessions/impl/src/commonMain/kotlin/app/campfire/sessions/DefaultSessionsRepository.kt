@@ -3,17 +3,14 @@ package app.campfire.sessions
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.network.AudioBookShelfApi
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.sessions.db.MediaProgressDataSource
 import app.campfire.sessions.db.SessionDataSource
+import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -28,8 +25,7 @@ class DefaultSessionsRepository(
   private val fatherTime: FatherTime,
   private val libraryItemRepository: LibraryItemRepository,
   private val dataSource: SessionDataSource,
-  private val mediaProgressDataSource: MediaProgressDataSource,
-  private val api: AudioBookShelfApi,
+  private val mediaProgressRepository: MediaProgressRepository,
 ) : SessionsRepository {
 
   override fun observeCurrentSession(): Flow<Session?> {
@@ -57,22 +53,20 @@ class DefaultSessionsRepository(
     dataSource.deleteSession(libraryItemId)
 
     // Now clear its media progress
-    mediaProgressDataSource.deleteMediaProgress(libraryItemId)
-
-    // Now delete progress from server
-    api.deleteMediaProgress(libraryItemId)
-      .onSuccess {
-        bark(LogPriority.INFO) { "Successfully deleted progress for $libraryItemId on server" }
-      }
-      .onFailure {
-        bark(LogPriority.ERROR) { "Failed to delete media progress for $libraryItemId" }
-      }
+    mediaProgressRepository.deleteProgress(libraryItemId)
   }
 
-  override suspend fun updateSession(libraryItemId: LibraryItemId, currentTime: Duration) {
-    dataSource.updateSession(
+  override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
+    dataSource.updateCurrentTime(
       libraryItemId = libraryItemId,
       currentTime = currentTime,
+    )
+  }
+
+  override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
+    dataSource.addTimeListening(
+      libraryItemId = libraryItemId,
+      amount = amount,
     )
   }
 

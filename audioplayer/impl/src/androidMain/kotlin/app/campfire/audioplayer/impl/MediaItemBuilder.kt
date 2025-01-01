@@ -61,7 +61,7 @@ object MediaItemBuilder {
   ): MediaItem {
     return MediaItem.Builder()
       .setMediaId("${media.id}_${chapter.id}")
-      .setUri(track.contentUrl)
+      .setUri(track.contentUrlWithToken)
       .setMimeType(track.mimeType)
       .apply {
         // If the item audio tracks and chapters line up (i.e. it has multiple audio files for the entire media)

@@ -53,6 +53,8 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
     sizeInBytes = size,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
+    // TODO: We should probably not be doing this and instead be pulling this separately in the presenter
+    //  logic so we can observe the media progress and keep it separate
     userMediaProgress = mediaProgressDataSource.getMediaProgress(id),
     media = Media(
       id = media.id,

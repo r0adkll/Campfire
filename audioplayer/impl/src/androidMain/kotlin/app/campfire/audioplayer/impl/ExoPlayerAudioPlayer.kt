@@ -123,7 +123,6 @@ class ExoPlayerAudioPlayer(
           title = ${session.libraryItem.media.metadata.title},
           playMethod = ${session.playMethod},
           mediaPlayer = ${session.mediaPlayer},
-          duration = ${session.duration},
           currentTime = ${session.currentTime},
           chapterId = $chapterId
         )
@@ -203,6 +202,7 @@ class ExoPlayerAudioPlayer(
 
   override fun seekTo(itemIndex: Int) {
     exoPlayer.seekToDefaultPosition(itemIndex)
+    exoPlayer.play()
   }
 
   override fun seekTo(progress: Float) {

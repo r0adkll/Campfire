@@ -5,6 +5,7 @@ import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
@@ -13,6 +14,7 @@ import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -50,15 +52,20 @@ class DefaultPlaybackSessionManager(
       updateJob?.cancel()
       updateJob = player.overallTime
         .onEach { time ->
-          sessionsRepository.updateSession(libraryItemId, time)
+//          sessionsRepository.updateCurrentTime(libraryItemId, time)
 
           // Let's update the server for each [NetworkSyncInterval] to make sure things reflect semi-up-to-date
           // as a user is listening to an itemf
+          // TODO: Make this smarter by checking if on a metered connection or not
+          //  and dynamically adjust the sync interval based on such information.
           val elapsed = fatherTime.nowInEpochMillis() - lastNetworkSync
           if (elapsed > NetworkSyncInterval) {
             synchronizer.sync(libraryItemId)
             lastNetworkSync = fatherTime.nowInEpochMillis()
           }
+        }
+        .onCompletion {
+          bark(LogPriority.INFO) { "Update Session Sync Completed" }
         }
         .launchIn(this)
 
@@ -69,6 +76,9 @@ class DefaultPlaybackSessionManager(
           if (state == AudioPlayer.State.Paused || state == AudioPlayer.State.Disabled) {
             synchronizer.sync(libraryItemId)
           }
+        }
+        .onCompletion {
+          bark(LogPriority.INFO) { "Player State Synchronize Completed" }
         }
         .launchIn(this)
     }

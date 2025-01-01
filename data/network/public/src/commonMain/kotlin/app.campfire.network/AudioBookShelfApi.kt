@@ -8,10 +8,12 @@ import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
+import app.campfire.network.models.User
 
 interface AudioBookShelfApi {
 
@@ -31,6 +33,11 @@ interface AudioBookShelfApi {
     username: String,
     password: String,
   ): Result<LoginResponse>
+
+  /**
+   * Retrieve the current user information, including media progress and bookmarks
+   */
+  suspend fun getCurrentUser(): Result<User>
 
   /**
    * Fetch all the libraries accessible to the user
@@ -89,9 +96,20 @@ interface AudioBookShelfApi {
   suspend fun getCollections(libraryId: String): Result<List<Collection>>
 
   /**
+   * This endpoint retrieves your media progress that is associated with the given library item ID or
+   * podcast episode ID.
+   */
+  suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress>
+
+  /**
    * Create/Update the media progress for a specific item
    */
   suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit>
+
+  /**
+   * This endpoint batch creates/updates your media progress.
+   */
+  suspend fun batchUpdateMediaProgress(updates: List<MediaProgressUpdatePayload>): Result<Unit>
 
   /**
    * Remove the media progress for a given [libraryItemId]

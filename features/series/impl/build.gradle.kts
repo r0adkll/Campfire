@@ -20,6 +20,7 @@ kotlin {
         implementation(projects.data.network.public)
         implementation(projects.data.account.api)
         implementation(projects.data.mapping)
+        implementation(projects.features.user.api)
         implementation(libs.store)
       }
     }

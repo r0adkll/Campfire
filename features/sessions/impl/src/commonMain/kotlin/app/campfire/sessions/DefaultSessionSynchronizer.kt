@@ -7,12 +7,15 @@ import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.sessions.api.SessionSynchronizer
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
+import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -22,6 +25,8 @@ import me.tatarka.inject.annotations.Inject
 class DefaultSessionSynchronizer(
   private val api: AudioBookShelfApi,
   private val dataSource: SessionDataSource,
+  private val userRepository: UserRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val mapper: NetworkSessionMapper,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionSynchronizer {
@@ -34,7 +39,7 @@ class DefaultSessionSynchronizer(
 //      syncSession(session)
 
       // Sync the media progress on the server
-      syncMediaProgress(libraryItemId, session)
+//      syncMediaProgress(session)
     }
   }
 
@@ -50,28 +55,31 @@ class DefaultSessionSynchronizer(
     }
   }
 
-  private suspend fun syncMediaProgress(libraryItemId: LibraryItemId, session: Session) {
-    withContext(dispatcherProvider.io) {
-      val mediaProgressUpdate = MediaProgressUpdatePayload(
-        duration = session.duration.asSeconds(),
-        progress = session.progress,
-        currentTime = session.currentTime.asSeconds(),
-        isFinished = session.isFinished,
-        hideFromContinueListening = false,
-        finishedAt = if (session.isFinished) {
-          session.updatedAt.epochMilliseconds
-        } else {
-          null
-        },
-        startedAt = session.startedAt.epochMilliseconds,
-      )
+  private suspend fun syncMediaProgress(session: Session) {
+    val currentUser = userRepository.getCurrentUser()
 
-      val result = api.updateMediaProgress(libraryItemId, mediaProgressUpdate)
-      if (result.isSuccess) {
-        bark { "Session(${session.libraryItem.id}) Media Progress Update Success\n$mediaProgressUpdate" }
+    val updatedProgress = MediaProgress(
+      userId = currentUser.id,
+      libraryItemId = session.libraryItem.id,
+      episodeId = null,
+      mediaItemId = session.libraryItem.media.id,
+      mediaItemType = session.libraryItem.mediaType,
+      duration = session.libraryItem.media.durationInSeconds,
+      progress = session.progress,
+      currentTime = session.currentTime.asSeconds(),
+      isFinished = session.isFinished,
+      hideFromContinueListening = false,
+      ebookLocation = null,
+      ebookProgress = null,
+      finishedAt = if (session.isFinished) {
+        session.updatedAt.epochMilliseconds
       } else {
-        bark { "Session(${session.libraryItem.id}) Media Progress Update Failed" }
-      }
-    }
+        null
+      },
+      lastUpdate = session.updatedAt.epochMilliseconds,
+      startedAt = session.startedAt.epochMilliseconds,
+    )
+
+    mediaProgressRepository.updateProgress(updatedProgress)
   }
 }

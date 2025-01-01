@@ -22,9 +22,14 @@ interface SessionDataSource {
     startedAt: LocalDateTime,
   ): Session
 
-  suspend fun updateSession(
+  suspend fun updateCurrentTime(
     libraryItemId: LibraryItemId,
     currentTime: Duration,
+  )
+
+  suspend fun addTimeListening(
+    libraryItemId: LibraryItemId,
+    amount: Duration,
   )
 
   suspend fun deleteSession(

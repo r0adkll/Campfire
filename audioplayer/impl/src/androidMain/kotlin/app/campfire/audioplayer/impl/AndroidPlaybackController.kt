@@ -8,11 +8,12 @@ import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
-import app.campfire.core.logging.bark
+import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,40 +27,13 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 @Inject
 class AndroidPlaybackController(
+  private val playbackSessionManager: PlaybackSessionManager,
+  private val mediaSessionConnector: MediaControllerConnector,
   @ForScope(UserScope::class) private val scopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
-  private var mediaController: MediaController? = null
-    private set(value) {
-      field = value
-      mediaControllerFlow.value = value
-    }
-
-  private val mediaControllerFlow = MutableStateFlow<MediaController?>(null)
-
-  @Composable
-  override fun attachController() {
-    val context = LocalContext.current
-    DisposableEffect(Unit) {
-      bark(TAG) { "Requesting new MediaController connection" }
-      // Create new token and build new controller
-      val sessionToken = SessionToken(context, ComponentName(context, AudioPlayerService::class.java))
-      val controllerFuture = MediaController.Builder(context, sessionToken).buildAsync()
-      controllerFuture.addListener(
-        {
-          mediaController = controllerFuture.get()
-          bark(TAG) { "Acquired MediaController ($mediaController)" }
-        },
-        ContextCompat.getMainExecutor(context),
-      )
-
-      onDispose {
-        bark(TAG) { "Disposing of media controller ($mediaController)" }
-        MediaController.releaseFuture(controllerFuture)
-        mediaController?.release()
-        mediaController = null
-      }
-    }
+  init {
+    ibark { "[${this}] Constructed" }
   }
 
   override fun startSession(
@@ -67,26 +41,30 @@ class AndroidPlaybackController(
     playImmediately: Boolean,
     chapterId: Int?,
   ) {
-    mediaControllerFlow
+    ibark { "[${this}] ~~> startSession($itemId, playImmediately=$playImmediately, chapterId=$chapterId)" }
+    mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
       .take(1)
       .onEach { mediaController ->
-        bark(TAG) { "$mediaController starting for $itemId, playImmediately=$playImmediately" }
-        AudioPlayerService.start(mediaController, itemId, playImmediately, chapterId)
+        ibark { "$mediaController <-- starting for $itemId, playImmediately=$playImmediately" }
+        playbackSessionManager.startSession(itemId, playImmediately, chapterId)
       }
       .launchIn(scopeHolder.get())
   }
 
   override fun stopSession(itemId: LibraryItemId) {
-    mediaControllerFlow
+    mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
       .take(1)
       .onEach { mediaController ->
-        bark(TAG) { "stopSession($mediaController)" }
-        AudioPlayerService.stopSession(mediaController, itemId)
+        ibark { "$this <!-- stopSession($mediaController)" }
+        mediaController.stop()
+        playbackSessionManager.stopSession(itemId)
       }
       .launchIn(scopeHolder.get())
   }
-}
 
-private const val TAG = "AndroidPlaybackController"
+  companion object : Cork {
+    override val tag: String = "AndroidPlaybackController"
+  }
+}

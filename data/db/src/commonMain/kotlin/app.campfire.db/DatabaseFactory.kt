@@ -83,9 +83,7 @@ class DatabaseFactory(
     sessionAdapter = Session.Adapter(
       idAdapter = UuidAdapter,
       playMethodAdapter = EnumColumnAdapter(),
-      durationAdapter = DurationAdapter,
       timeListeningAdapter = DurationAdapter,
-      startTimeAdapter = DurationAdapter,
       currentTimeAdapter = DurationAdapter,
       startedAtAdapter = LocalDateTimeAdapter,
       updatedAtAdapter = LocalDateTimeAdapter,

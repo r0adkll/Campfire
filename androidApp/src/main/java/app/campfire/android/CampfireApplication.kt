@@ -6,6 +6,7 @@ import app.campfire.android.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Heartwood
 import kimchi.merge.app.campfire.android.di.createAndroidAppComponent
+import kotlinx.coroutines.launch
 
 class CampfireApplication : Application() {
 
@@ -13,6 +14,10 @@ class CampfireApplication : Application() {
     super.onCreate()
     Heartwood.grow(AndroidBark())
 
-    ComponentHolder.components += AndroidAppComponent.createAndroidAppComponent(this)
+    val component = AndroidAppComponent.createAndroidAppComponent(this).also {
+      ComponentHolder.components += it
+    }
+
+    component.startupInitializer.initialize()
   }
 }

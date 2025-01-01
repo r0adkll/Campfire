@@ -58,3 +58,24 @@ user(
   selectedLibraryId
 )
 VALUES ?;
+
+update:
+UPDATE user
+SET
+  name = ?,
+  type = ?,
+  seriesHideFromContinueListening = ?,
+  isActive = ?,
+  isLocked = ?,
+  lastSeen = ?,
+  createdAt = ?,
+  permission_download = ?,
+  permission_update = ?,
+  permission_delete = ?,
+  permission_upload = ?,
+  permission_accessAllLibraries = ?,
+  permission_accessAllTags = ?,
+  permission_accessExplicitContent = ?,
+  librariesAccessible = ?,
+  itemTagsAccessible = ?
+WHERE id = ?;

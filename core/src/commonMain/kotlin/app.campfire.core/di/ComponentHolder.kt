@@ -1,5 +1,23 @@
 package app.campfire.core.di
 
+import app.campfire.core.di.ComponentHolder.components
+import app.campfire.core.logging.bark
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.timeout
+import kotlinx.coroutines.launch
+
 /**
  * DI component holder that provides a convenient way to fetch contributed elements on the graph.
  * Take the example where you might contribute a subcomponent,
@@ -22,7 +40,13 @@ package app.campfire.core.di
  * ```
  */
 object ComponentHolder {
+
   val components = mutableSetOf<Any>()
+  val componentSharedFlow = MutableSharedFlow<Any>(
+    replay = 8,
+    extraBufferCapacity = 20,
+    onBufferOverflow = BufferOverflow.DROP_OLDEST
+  )
 
   /**
    * Fetch a component of type [T] that has been added to the holder, automatically casting
@@ -36,10 +60,41 @@ object ComponentHolder {
   }
 
   /**
+   * Fetch a component of type [T] that has been added to the holder, automatically casting
+   * it in the return. If this component doesn't exist, then return null
+   */
+  inline fun <reified T> maybeComponent(): T? {
+    return components
+      .filterIsInstance<T>()
+      .firstOrNull()
+  }
+
+  /**
    * Update a component of the given type, [T], in the component holder
    */
-  fun <T : Any> updateComponent(component: T) {
+  fun <T : Any> updateComponent(scope: CoroutineScope, component: T) {
     components.removeAll { it::class.isInstance(component) }
     components += component
+
+    scope.launch {
+      componentSharedFlow.emit(component)
+      bark("ComponentHolder") { "updateComponent($component) - Success" }
+    }
+//    if (!componentSharedFlow.tryEmit(component)) {
+//      bark("ComponentHolder") { "updateComponent($component) - emission failed" }
+//    } else {
+//      bark("ComponentHolder") { "updateComponent($component) - Success" }
+//    }
+  }
+
+  inline fun <reified T> subscribe(): Flow<T> {
+    return componentSharedFlow
+      .onSubscription {
+        val existing = maybeComponent<T>()
+        if (existing != null) {
+          emit(existing)
+        }
+      }
+      .filterIsInstance<T>()
   }
 }

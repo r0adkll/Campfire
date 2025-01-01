@@ -5,6 +5,7 @@ package app.campfire.android.di
 
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
+import app.campfire.audioplayer.impl.MediaControllerConnector
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.WindowScope
@@ -20,6 +21,8 @@ import me.tatarka.inject.annotations.Provides
 )
 interface ActivityComponent {
   val campfireContent: CampfireContent
+
+  val mediaControllerConnector: MediaControllerConnector
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {

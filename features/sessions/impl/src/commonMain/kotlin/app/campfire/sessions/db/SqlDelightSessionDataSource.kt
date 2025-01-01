@@ -10,14 +10,16 @@ import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.DurationUnit
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -29,23 +31,29 @@ import me.tatarka.inject.annotations.Inject
 class SqlDelightSessionDataSource(
   private val db: CampfireDatabase,
   private val fatherTime: FatherTime,
+  private val userRepository: UserRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionDataSource {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentSession(): Flow<Session?> {
-    return db.sessionQueries
-      .getActive()
-      .asFlow()
-      .mapToOneOrNull(dispatcherProvider.databaseRead)
-      .map {
-        it?.let { model -> hydrateSession(model) }
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        db.sessionQueries
+          .getActive(user.id)
+          .asFlow()
+          .mapToOneOrNull(dispatcherProvider.databaseRead)
+          .map {
+            it?.let { model -> hydrateSession(model) }
+          }
       }
   }
 
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
+    val currentUser = userRepository.getCurrentUser()
     return withContext(dispatcherProvider.databaseRead) {
-      db.sessionQueries.getForId(libraryItemId)
+      db.sessionQueries.getForId(libraryItemId, currentUser.id)
         .executeAsOneOrNull()
         ?.let { hydrateSession(it) }
     }
@@ -59,30 +67,33 @@ class SqlDelightSessionDataSource(
     currentTime: Duration,
     startedAt: LocalDateTime,
   ): Session {
+    val currentUser = userRepository.getCurrentUser()
     return withContext(dispatcherProvider.databaseRead) {
-      val existingSession = db.sessionQueries.getForId(libraryItemId).executeAsOneOrNull()
+      val existingSession = db.sessionQueries.getForId(
+        libraryItemId = libraryItemId,
+        userId = currentUser.id,
+      ).executeAsOneOrNull()
       if (existingSession != null) {
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
-            db.sessionQueries.disableAll()
-            db.sessionQueries.enable(libraryItemId)
+            db.sessionQueries.disableAll(currentUser.id)
+            db.sessionQueries.enable(libraryItemId, currentUser.id)
           }
         }
         hydrateSession(existingSession)
       } else {
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
-            db.sessionQueries.disableAll()
+            db.sessionQueries.disableAll(currentUser.id)
             db.sessionQueries.insert(
               DbSession(
                 id = Uuid.random(),
+                userId = currentUser.id,
                 libraryItemId = libraryItemId,
                 isActive = true,
                 playMethod = PlayMethod.DirectPlay,
                 mediaPlayer = "campfire",
-                duration = duration,
                 timeListening = 0.seconds,
-                startTime = 0.seconds,
                 currentTime = currentTime,
                 startedAt = fatherTime.now(),
                 updatedAt = fatherTime.now(),
@@ -90,41 +101,49 @@ class SqlDelightSessionDataSource(
             )
           }
         }
-        db.sessionQueries.getForId(libraryItemId)
+        db.sessionQueries.getForId(libraryItemId, currentUser.id)
           .executeAsOne()
           .let { hydrateSession(it) }
       }
     }
   }
 
-  override suspend fun updateSession(libraryItemId: LibraryItemId, currentTime: Duration) {
+  override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
+    val currentUser = userRepository.getCurrentUser()
     withContext(dispatcherProvider.databaseWrite) {
-      db.transaction {
-        // Update the playback session information with the new time
-        db.sessionQueries.updatePlayback(
-          libraryItemId = libraryItemId,
-          currentTime = currentTime,
-        )
+      // Update the playback session information with the new time
+      db.sessionQueries.updatePlayback(
+        libraryItemId = libraryItemId,
+        userId = currentUser.id,
+        currentTime = currentTime,
+        updatedAt = fatherTime.now(),
+      )
+    }
+  }
 
-        // Update the UserMediaProgress with the new time
-        db.mediaProgressQueries.updateCurrentTime(
-          currentTime = currentTime.toDouble(DurationUnit.SECONDS),
-          lastUpdate = fatherTime.nowInEpochMillis(),
-          libraryItemId = libraryItemId,
-        )
-      }
+  override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
+    val currentUser = userRepository.getCurrentUser()
+    withContext(dispatcherProvider.databaseWrite) {
+      db.sessionQueries.addTimeListening(
+        libraryItemId = libraryItemId,
+        userId = currentUser.id,
+        timeListening = amount,
+        updatedAt = fatherTime.now(),
+      )
     }
   }
 
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
+    val currentUser = userRepository.getCurrentUser()
     withContext(dispatcherProvider.databaseWrite) {
-      db.sessionQueries.delete(libraryItemId)
+      db.sessionQueries.delete(libraryItemId, currentUser.id)
     }
   }
 
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
+    val currentUser = userRepository.getCurrentUser()
     withContext(dispatcherProvider.databaseWrite) {
-      db.sessionQueries.disable(libraryItemId)
+      db.sessionQueries.disable(libraryItemId, currentUser.id)
     }
   }
 
@@ -132,12 +151,11 @@ class SqlDelightSessionDataSource(
     val libraryItem = libraryItemRepository.getLibraryItem(session.libraryItemId)
     return Session(
       id = session.id,
+      userId = session.userId,
       libraryItem = libraryItem,
       playMethod = session.playMethod,
       mediaPlayer = session.mediaPlayer,
-      duration = session.duration,
       timeListening = session.timeListening,
-      startTime = session.startTime,
       currentTime = session.currentTime,
       startedAt = session.startedAt,
       updatedAt = session.updatedAt,

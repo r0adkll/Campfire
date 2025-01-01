@@ -18,6 +18,7 @@ kotlin {
         api(projects.data.mapping)
 
         implementation(projects.core)
+        implementation(projects.features.user.api)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.multiplatformsettings.core)
         implementation(libs.multiplatformsettings.coroutines)

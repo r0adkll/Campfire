@@ -54,6 +54,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import app.campfire.libraries.ui.detail.composables.ControlBar
 import app.campfire.libraries.ui.detail.composables.DurationListItem
@@ -123,6 +124,7 @@ fun LibraryItem(
       is LoadState.Loaded<out LibraryItem> -> LoadedState(
         item = contentState.data,
         seriesContentState = state.seriesContentState,
+        mediaProgressState = state.mediaProgressState,
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
@@ -154,6 +156,7 @@ fun LibraryItem(
 fun LoadedState(
   item: LibraryItem,
   seriesContentState: LoadState<out List<LibraryItem>>,
+  mediaProgressState: LoadState<out MediaProgress>,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
@@ -240,10 +243,10 @@ fun LoadedState(
 
     Spacer(Modifier.height(24.dp))
 
-    item.userMediaProgress?.let { progress ->
+    mediaProgressState.onLoaded { mediaProgress ->
       Spacer(Modifier.height(16.dp))
       MediaProgressBar(
-        progress = progress,
+        progress = mediaProgress,
         modifier = Modifier
           .padding(horizontal = 20.dp),
       )
@@ -251,7 +254,7 @@ fun LoadedState(
     }
 
     ControlBar(
-      hasProgress = item.userMediaProgress != null,
+      hasProgress = mediaProgressState is LoadState.Loaded,
       isCurrentListening = false,
       onPlayClick = onPlayClick,
       onDownloadClick = onDownloadClick,

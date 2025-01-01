@@ -10,6 +10,7 @@ kotlin {
         implementation(projects.features.libraries.api)
         implementation(projects.features.series.api)
         implementation(projects.features.sessions.api)
+        implementation(projects.features.user.api)
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)

@@ -4,6 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MediaProgressUpdatePayload(
+  val libraryItemId: String? = null,
+  val episodeId: String? = null,
   val duration: Float,
   val progress: Float,
   val currentTime: Float,

@@ -149,6 +149,10 @@ class StoreLibraryItemRepository(
   override fun observeLibraryItem(itemId: LibraryItemId): Flow<LibraryItem> {
     return itemStore.stream(StoreReadRequest.cached(itemId, true))
       .mapNotNull { resp ->
+        if (resp is StoreReadResponse.Error.Exception) {
+          bark(throwable = resp.error) {" Library Item Store Response Error "}
+        }
+
         bark { "Library Item Store Response ($resp)" }
         resp.dataOrNull()
       }

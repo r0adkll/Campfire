@@ -2,7 +2,7 @@ package app.campfire.series
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
-import app.campfire.account.api.UserRepository
+import app.campfire.user.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -27,7 +27,6 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -41,12 +40,12 @@ import org.mobilenativefoundation.store.store5.StoreReadRequest
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreSeriesRepository(
-  private val userSession: UserSession,
-  private val api: AudioBookShelfApi,
-  private val db: CampfireDatabase,
-  private val userRepository: UserRepository,
-  private val coverImageHydrator: CoverImageHydrator,
-  private val dispatcherProvider: DispatcherProvider,
+    private val userSession: UserSession,
+    private val api: AudioBookShelfApi,
+    private val db: CampfireDatabase,
+    private val userRepository: UserRepository,
+    private val coverImageHydrator: CoverImageHydrator,
+    private val dispatcherProvider: DispatcherProvider,
 ) : SeriesRepository {
 
   private val serverUrl by lazy {

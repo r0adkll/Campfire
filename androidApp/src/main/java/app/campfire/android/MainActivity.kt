@@ -9,6 +9,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
@@ -24,7 +25,7 @@ class MainActivity : ComponentActivity() {
     component = ComponentHolder.component<ActivityComponent.Factory>()
       .create(this)
       .also {
-        ComponentHolder.updateComponent(it)
+        ComponentHolder.updateComponent(lifecycleScope, it)
       }
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -44,11 +45,13 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     bark { "MainActivity::onStart()" }
+    component.mediaControllerConnector.connect()
   }
 
   override fun onStop() {
     super.onStop()
     bark { "MainActivity::onStop()" }
+    component.mediaControllerConnector.disconnect()
   }
 
   override fun onDestroy() {

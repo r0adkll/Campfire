@@ -30,6 +30,8 @@ kotlin {
         api(projects.features.auth.impl)
         api(projects.features.auth.ui)
 
+        api(projects.features.user.impl)
+
         api(projects.features.libraries.impl)
         api(projects.features.libraries.ui)
 

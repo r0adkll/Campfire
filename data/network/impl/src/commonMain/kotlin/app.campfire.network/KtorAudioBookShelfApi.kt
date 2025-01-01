@@ -19,10 +19,12 @@ import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
+import app.campfire.network.models.User
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -89,6 +91,10 @@ class KtorAudioBookShelfApi(
     }
   }
 
+  override suspend fun getCurrentUser(): Result<User> = trySendRequest {
+    hydratedClientRequest("/api/me")
+  }
+
   override suspend fun getAllLibraries(): Result<List<Library>> = trySendRequest<AllLibrariesResponse> {
     hydratedClientRequest("/api/libraries")
   }.map { it.libraries }
@@ -145,11 +151,26 @@ class KtorAudioBookShelfApi(
     }.map { it.results }
   }
 
+  override suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress> {
+    return trySendRequest {
+      hydratedClientRequest("/api/me/progress/$libraryItemId")
+    }
+  }
+
   override suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit> {
     return trySendRequest({}) {
       hydratedClientRequest("/api/me/progress/$libraryItemId") {
         method = HttpMethod.Patch
         setBody(update)
+      }
+    }
+  }
+
+  override suspend fun batchUpdateMediaProgress(updates: List<MediaProgressUpdatePayload>): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/me/progress/batch/update") {
+        method = HttpMethod.Patch
+        setBody(updates)
       }
     }
   }
