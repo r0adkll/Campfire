@@ -31,6 +31,32 @@ fun NetworkUser.asDatabaseModel(
   )
 }
 
+fun NetworkUser.asDomainModel(
+  serverUrl: String,
+  defaultLibraryId: String,
+): User {
+  return User(
+    id = id,
+    name = username,
+    type = User.Type.from(type),
+    isActive = isActive,
+    isLocked = isLocked,
+    lastSeen = lastSeen ?: -1L,
+    createdAt = createdAt,
+    permissions = User.Permissions(
+      download = permissions.download,
+      update = permissions.update,
+      delete = permissions.delete,
+      upload = permissions.upload,
+      accessAllLibraries = permissions.accessAllLibraries,
+      accessAllTags = permissions.accessAllTags,
+      accessExplicitContent = permissions.accessExplicitContent,
+    ),
+    selectedLibraryId = defaultLibraryId,
+    serverUrl = serverUrl,
+  )
+}
+
 fun DatabaseUser.asDomainModel(): User {
   return User(
     id = id,
@@ -41,6 +67,7 @@ fun DatabaseUser.asDomainModel(): User {
     isLocked = isLocked == true,
     lastSeen = lastSeen ?: -1L,
     createdAt = createdAt,
+    serverUrl = serverUrl,
     permissions = User.Permissions(
       download = permission_download == true,
       update = permission_update == true,

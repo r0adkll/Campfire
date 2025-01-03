@@ -1,12 +1,13 @@
 package app.campfire.user
 
+import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.session.UserSession
 import app.campfire.user.api.MediaProgressRepository
-import app.campfire.user.api.UserRepository
 import app.campfire.user.progress.MediaProgressStore
 import app.campfire.user.progress.MediaProgressStore.Operation
 import app.campfire.user.progress.MediaProgressStore.Output
@@ -14,6 +15,7 @@ import app.campfire.user.progress.MediaProgressWriteResponse
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -26,12 +28,12 @@ import org.mobilenativefoundation.store.store5.StoreWriteRequest
 import org.mobilenativefoundation.store.store5.StoreWriteResponse
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStoreApi::class)
-@ContributesBinding(UserScope::class)
-@SingleIn(UserScope::class)
+@ContributesBinding(AppScope::class)
+@SingleIn(AppScope::class)
 @Inject
 class StoreMediaProgressRepository(
+  private val userSessionManager: UserSessionManager,
   private val storeFactory: MediaProgressStore.Factory,
-  private val userRepository: UserRepository,
 ) : MediaProgressRepository {
 
   private val store: MutableStore<Operation, Output> by lazy { storeFactory.create() }
@@ -49,9 +51,10 @@ class StoreMediaProgressRepository(
   }
 
   override fun observeAllProgress(): Flow<List<MediaProgress>> {
-    return userRepository.observeCurrentUser()
-      .flatMapLatest { user ->
-        val request = StoreReadRequest.cached(Operation.Query.All(user.id), false)
+    return userSessionManager.observe()
+      .filterIsInstance<UserSession.LoggedIn>()
+      .flatMapLatest { session ->
+        val request = StoreReadRequest.cached(Operation.Query.All(session.user.id), false)
         store.stream<Output>(request)
           .onEach { response ->
             MediaProgressStore.ibark { "observeAllProgress --> $response" }
@@ -74,7 +77,7 @@ class StoreMediaProgressRepository(
 
   override suspend fun deleteProgress(libraryItemId: LibraryItemId) {
     MediaProgressStore.ibark { "deleteProgress <-- $libraryItemId" }
-    val currentUser = userRepository.getCurrentUser()
+    val currentUser = (userSessionManager.current as? UserSession.LoggedIn)?.user ?: return
     val request: StoreWriteRequest<Operation, Output, MediaProgressWriteResponse> = StoreWriteRequest.of(
       key = Operation.Mutation.Delete.One(currentUser.id, libraryItemId),
       value = Output.Collection(emptyList()),

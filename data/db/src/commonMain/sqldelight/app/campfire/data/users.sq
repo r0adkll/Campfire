@@ -30,6 +30,10 @@ CREATE TABLE IF NOT EXISTS user (
 selectAll:
 SELECT * FROM user;
 
+selectById:
+SELECT * FROM user
+WHERE id = ?;
+
 selectForServer:
 SELECT * FROM user
 WHERE serverUrl = ?;

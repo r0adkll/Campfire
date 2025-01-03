@@ -3,7 +3,7 @@ package app.campfire.network.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-abstract class LibraryItemBase {
+abstract class LibraryItemBase : NetworkModel() {
   abstract val id: String
   abstract val ino: String
   abstract val libraryId: String

@@ -12,6 +12,7 @@ data class User(
   val lastSeen: Long,
   val createdAt: Long,
   val permissions: Permissions,
+  val serverUrl: String,
 ) {
 
   enum class Type {

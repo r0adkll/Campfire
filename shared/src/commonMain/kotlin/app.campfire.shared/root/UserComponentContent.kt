@@ -14,6 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.settings.CampfireSettings
@@ -31,25 +32,20 @@ sealed interface ServerUrlState {
 
 @Composable
 fun UserComponentContent(
-  campfireSettings: CampfireSettings,
+  userSessionManager: UserSessionManager,
   userComponentManager: UserComponentManager = rememberUserComponentManager(),
   content: @Composable (UserComponent) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
 
-  val serverUrlState by campfireSettings.observeCurrentServerUrl()
-    .map { ServerUrlState.Loaded(it) }
-    .collectAsState(ServerUrlState.Loading)
+  val userSession by remember {
+    userSessionManager.observe()
+  }.collectAsState()
 
-  when (val state = serverUrlState) {
-    is ServerUrlState.Loaded -> {
-      val currentServerUrl = state.serverUrl
-
-      val userComponent = remember(currentServerUrl) {
-        val userSession = currentServerUrl
-          ?.let { UserSession.LoggedIn(it) }
-          ?: UserSession.LoggedOut
-
+  when (userSession) {
+    is UserSession.LoggedIn,
+    is UserSession.LoggedOut -> {
+      val userComponent = remember(userSession.key) {
         // Fetch a cached graph object, or create a new one for the current session
         userComponentManager.getOrCreateUserComponent(userSession)
           .also { component ->
@@ -65,7 +61,7 @@ fun UserComponentContent(
       }
     }
 
-    ServerUrlState.Loading -> SplashScreen()
+    else -> SplashScreen()
   }
 }
 

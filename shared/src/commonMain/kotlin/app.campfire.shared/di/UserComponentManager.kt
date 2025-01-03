@@ -2,12 +2,14 @@ package app.campfire.shared.di
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import com.r0adkll.kimchi.annotations.ContributesTo
 import me.tatarka.inject.annotations.Inject
 
@@ -15,7 +17,9 @@ typealias UserSessionKey = String
 
 @SingleIn(AppScope::class)
 @Inject
-class UserComponentManager {
+class UserComponentManager(
+//  private val userComponentFactory: UserComponent.Factory,
+) {
 
   /**
    * Containing cache of generated [UserComponent] graph objects. Due to the use
@@ -42,14 +46,14 @@ class UserComponentManager {
   fun getOrCreateUserComponent(userSession: UserSession): UserComponent {
     cancelCurrentScope()
     lastUserSession = userSession
-    val cached = componentCache[userSession.key]
+    val cached = componentCache[userSession.cacheKey]
     if (cached != null) {
       bark(LogPriority.INFO) { "Cached UserComponent for $userSession found" }
       return cached
     } else {
       bark(LogPriority.INFO) { "No cached UserComponent found for $userSession" }
       val newUserComponent = userComponentFactory.create(userSession)
-      componentCache[userSession.key] = newUserComponent
+      componentCache[userSession.cacheKey] = newUserComponent
       return newUserComponent
     }
   }
@@ -61,11 +65,9 @@ class UserComponentManager {
     }
   }
 
-  private val UserSession.key: UserSessionKey
-    get() = serverUrl ?: LOGGED_OUT_KEY
+  private val UserSession.cacheKey: UserSessionKey
+    get() = key.toString()
 }
-
-private const val LOGGED_OUT_KEY = "logged_out"
 
 @ContributesTo(AppScope::class)
 interface UserComponentManagerComponent {

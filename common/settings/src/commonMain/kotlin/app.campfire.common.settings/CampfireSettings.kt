@@ -1,5 +1,6 @@
 package app.campfire.common.settings
 
+import app.campfire.core.model.UserId
 import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
 import app.campfire.core.settings.ItemDisplayState
@@ -26,8 +27,8 @@ interface CampfireSettings {
   var sortDirection: SortDirection
   fun observeSortDirection(): Flow<SortDirection>
 
-  var currentServerUrl: String?
-  fun observeCurrentServerUrl(): Flow<String?>
+  var currentUserId: UserId?
+  fun observeCurrentUserId(): Flow<UserId?>
 
   enum class Theme(override val storageKey: String) : EnumSetting {
     LIGHT("light"),

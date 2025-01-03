@@ -9,6 +9,7 @@ import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.SelectForLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
@@ -107,7 +108,8 @@ class StoreLibraryRepository(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentLibrary(): Flow<Library> {
-    val serverUrl = (userSession as UserSession.LoggedIn).serverUrl
+    val serverUrl = userSession.serverUrl
+      ?: throw IllegalStateException("Only logged in users can request library items")
     // TODO: We should move this to a UserRepository where we can cache the current user for a given
     //  server url without having to pull from the DB everytime
     return db.usersQueries.selectForServer(serverUrl)

@@ -12,6 +12,7 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel

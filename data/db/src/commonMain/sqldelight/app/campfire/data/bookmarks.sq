@@ -1,0 +1,30 @@
+import kotlin.Int;
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE IF NOT EXISTS bookmarks(
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  title TEXT NOT NULL,
+  timeInSeconds INTEGER AS Int NOT NULL,
+  createdAt TEXT AS LocalDateTime NOT NULL,
+  PRIMARY KEY (userId, libraryItemId)
+);
+
+-- Queries
+
+insert:
+INSERT OR REPLACE INTO bookmarks
+VALUES ?;
+
+selectForItem:
+SELECT * FROM bookmarks
+WHERE userId = ?
+  AND libraryItemId = ?;
+
+deleteForItem:
+DELETE FROM bookmarks
+WHERE libraryItemId = ?;
+
+deleteForUser:
+DELETE FROM bookmarks
+WHERE userId = ?;

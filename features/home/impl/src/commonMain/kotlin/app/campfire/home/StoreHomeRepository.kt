@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel

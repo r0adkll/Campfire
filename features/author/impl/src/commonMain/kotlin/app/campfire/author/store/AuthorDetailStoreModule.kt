@@ -8,6 +8,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.core.model.AuthorId
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult

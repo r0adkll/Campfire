@@ -2,6 +2,7 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.data.Authors
+import app.campfire.data.Bookmarks
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
 import app.campfire.data.Media
@@ -88,5 +89,9 @@ class DatabaseFactory(
       startedAtAdapter = LocalDateTimeAdapter,
       updatedAtAdapter = LocalDateTimeAdapter,
     ),
+    bookmarksAdapter = Bookmarks.Adapter(
+      timeInSecondsAdapter = IntColumnAdapter,
+      createdAtAdapter = LocalDateTimeAdapter,
+    )
   )
 }

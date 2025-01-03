@@ -28,11 +28,12 @@ import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 
 fun LibraryItemBase.asDbModel(
-  serverUrl: String,
+  serverUrl: String? = null,
 ): DatabaseLibraryItem {
   return DatabaseLibraryItem(
     id = id,
@@ -56,7 +57,7 @@ fun LibraryItemBase.asDbModel(
     },
     numFiles = numFiles ?: -1,
     size = size,
-    serverUrl = serverUrl,
+    serverUrl = serverUrl ?: (origin as RequestOrigin.Url).serverUrl,
   )
 }
 

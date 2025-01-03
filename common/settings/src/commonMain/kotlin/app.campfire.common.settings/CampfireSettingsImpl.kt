@@ -4,6 +4,7 @@ import app.campfire.common.settings.CampfireSettings.Theme
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.model.UserId
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -14,6 +15,7 @@ import com.russhwolf.settings.coroutines.toFlowSettings
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -55,9 +57,9 @@ class CampfireSettingsImpl(
     return flowSettings.getEnumFlow(KEY_SORT_DIRECTION, SortDirection)
   }
 
-  override var currentServerUrl: String? by stringOrNullSetting(KEY_CURRENT_SERVER_URL)
-  override fun observeCurrentServerUrl(): Flow<String?> {
-    return flowSettings.getStringOrNullFlow(KEY_CURRENT_SERVER_URL)
+  override var currentUserId: UserId? by stringOrNullSetting(KEY_CURRENT_USER_ID)
+  override fun observeCurrentUserId(): Flow<UserId?> {
+    return flowSettings.getStringOrNullFlow(KEY_CURRENT_USER_ID)
   }
 }
 
@@ -67,4 +69,4 @@ internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
 internal const val KEY_SORT_MODE = "pref_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
-internal const val KEY_CURRENT_SERVER_URL = "pref_current_server_url"
+internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"

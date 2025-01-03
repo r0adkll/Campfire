@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import app.campfire.account.api.UserSessionManager
 import app.campfire.account.ui.rememberCurrentTent
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
@@ -45,14 +46,16 @@ fun CampfireContentWithInsets(
   @Assisted onOpenUrl: (String) -> Unit,
   @Assisted windowInsets: WindowInsets,
   settings: CampfireSettings,
+  userSessionManager: UserSessionManager,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
     LocalWindowSizeClass provides calculateWindowSizeClass(),
     LocalRetainedStateRegistry provides continuityRetainedStateRegistry(),
   ) {
+    // TODO: We are re-shifting scopes, so this will need to be reworked
     UserComponentContent(
-      campfireSettings = settings,
+      userSessionManager = userSessionManager,
     ) { userComponent ->
 
       val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
@@ -113,11 +116,13 @@ fun CampfireContent(
   @Assisted onRootPop: () -> Unit,
   @Assisted onOpenUrl: (String) -> Unit,
   settings: CampfireSettings,
+  userSessionManager: UserSessionManager,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
     onRootPop = onRootPop,
     settings = settings,
+    userSessionManager = userSessionManager,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars),
     modifier = modifier,

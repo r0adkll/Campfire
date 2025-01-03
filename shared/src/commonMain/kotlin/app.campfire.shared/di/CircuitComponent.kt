@@ -12,7 +12,7 @@ import com.slack.circuit.runtime.ui.Ui
 import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(UserScope::class)
-interface UiComponent {
+interface CircuitComponent {
 
   @Provides
   @SingleIn(UserScope::class)

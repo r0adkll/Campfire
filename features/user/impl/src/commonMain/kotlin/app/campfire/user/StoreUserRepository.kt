@@ -7,6 +7,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi

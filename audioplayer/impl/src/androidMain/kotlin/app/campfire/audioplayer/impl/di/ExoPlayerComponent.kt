@@ -6,7 +6,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
@@ -14,16 +13,11 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
-import app.campfire.account.api.AccountManager
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.core.di.UserScope
-import app.campfire.core.session.UserSession
-import app.campfire.core.session.requiredServerUrl
 import com.r0adkll.kimchi.annotations.ContributesTo
 import java.io.File
-import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)

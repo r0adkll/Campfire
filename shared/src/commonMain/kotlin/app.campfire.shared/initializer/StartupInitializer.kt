@@ -15,14 +15,16 @@ import me.tatarka.inject.annotations.Inject
 @SingleIn(AppScope::class)
 @Inject
 class StartupInitializer(
-  private val initializers: Set<AppInitializer>,
+  initializers: Set<AppInitializer>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) {
+
+  private val sortedInitializers = initializers.sortedByDescending { it.priority }
 
   fun initialize() {
     applicationScope.launch {
       ibark { "Starting startup initialization" }
-      val deferred = initializers.map { initializer ->
+      val deferred = sortedInitializers.map { initializer ->
         async {
           dbark { "--> ${initializer::class.simpleName} is starting" }
           try {
