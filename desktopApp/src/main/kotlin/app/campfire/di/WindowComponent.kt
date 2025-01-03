@@ -1,15 +1,15 @@
 package app.campfire.di
 
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
-import app.campfire.core.di.UserScope
 import app.campfire.shared.root.CampfireContentWithInsets
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 
 @SingleIn(UiScope::class)
 @ContributesSubcomponent(
   scope = UiScope::class,
-  parentScope = UserScope::class,
+  parentScope = AppScope::class,
 )
 interface WindowComponent {
   val campfireContent: CampfireContentWithInsets

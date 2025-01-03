@@ -89,6 +89,7 @@ fun AdaptiveCampfireLayout(
   hideBottomNav: Boolean = false,
   windowInsets: WindowInsets = WindowInsets.systemBars,
 ) {
+  val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   val navigationType = remember(windowSizeClass) {
     windowSizeClass.navigationType
@@ -98,18 +99,14 @@ fun AdaptiveCampfireLayout(
   }
   val supportingContentState =
     if (
-      (
-        showSupportingContent ||
-          windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge
-        ) &&
-      isSupportingPaneEnabled
+      (showSupportingContent || windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge) &&
+      isSupportingPaneEnabled &&
+      isLoggedIn
     ) {
       SupportingContentState.Open
     } else {
       SupportingContentState.Closed
     }
-
-  val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
 
   ContentWithOverlays(
     overlayHost = overlayHost,
@@ -287,7 +284,7 @@ fun AdaptiveCampfireLayout(
         }
       }
 
-      if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge) {
+      if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge && isLoggedIn) {
         Box(modifier = Modifier.fillMaxWidth()) {
           playbackBarContent()
         }
@@ -318,7 +315,7 @@ private fun DrawerWithContent(
         content()
       }
     }
-  } else if (navigationType == NavigationType.Drawer) {
+  } else if (navigationType == NavigationType.Drawer && gesturesEnabled) {
     PermanentNavigationDrawer(
       drawerContent = drawerContent,
       modifier = modifier,
