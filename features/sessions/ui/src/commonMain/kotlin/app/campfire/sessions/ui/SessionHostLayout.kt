@@ -18,10 +18,8 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)

@@ -15,20 +15,19 @@ import app.campfire.data.Media as DatabaseMedia
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
-import app.campfire.data.MediaProgress as DbMediaProgress
 import app.campfire.data.MetadataAuthor
 import app.campfire.data.SelectForAuthorName
 import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForId
 import app.campfire.data.SelectForLibrary
 import app.campfire.data.SelectForSeries
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.LibraryItemBase
 import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
-import app.campfire.network.RequestOrigin
 import app.campfire.network.models.MinifiedBookMetadata
 import kotlin.time.Duration.Companion.seconds
 

@@ -12,8 +12,8 @@ import me.tatarka.inject.annotations.Inject
 
 @Inject
 class AccountSwitcherPresenter(
-    private val serverRepository: ServerRepository,
-    private val userRepository: UserRepository,
+  private val serverRepository: ServerRepository,
+  private val userRepository: UserRepository,
 ) {
 
   @Composable

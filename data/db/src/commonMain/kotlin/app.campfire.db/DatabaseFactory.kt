@@ -92,6 +92,6 @@ class DatabaseFactory(
     bookmarksAdapter = Bookmarks.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,
       createdAtAdapter = LocalDateTimeAdapter,
-    )
+    ),
   )
 }

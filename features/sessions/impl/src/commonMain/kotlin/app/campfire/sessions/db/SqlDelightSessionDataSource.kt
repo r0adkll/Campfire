@@ -1,6 +1,5 @@
 package app.campfire.sessions.db
 
-import app.campfire.data.Session as DbSession
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
@@ -12,6 +11,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.time.FatherTime
+import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull

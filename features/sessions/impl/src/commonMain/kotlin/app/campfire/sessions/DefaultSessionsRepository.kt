@@ -10,7 +10,6 @@ import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.db.SessionDataSource
-import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

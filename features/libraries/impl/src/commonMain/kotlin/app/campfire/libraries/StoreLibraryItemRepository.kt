@@ -8,7 +8,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
-import app.campfire.data.MediaProgress
 import app.campfire.data.MetadataAuthor
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.items.LibraryItemStore
@@ -35,7 +34,7 @@ class StoreLibraryItemRepository(
     return itemStore.stream(StoreReadRequest.cached(itemId, true))
       .mapNotNull { resp ->
         if (resp is StoreReadResponse.Error.Exception) {
-          bark(throwable = resp.error) {" Library Item Store Response Error "}
+          bark(throwable = resp.error) { " Library Item Store Response Error " }
         }
 
         bark { "Library Item Store Response ($resp)" }

@@ -1,7 +1,6 @@
 package app.campfire.user
 
 import app.campfire.CampfireDatabase
-import app.campfire.user.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -11,6 +10,7 @@ import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -73,11 +73,11 @@ class StoreUserRepository(
           )
         }
       },
-    )
+    ),
   ).cachePolicy(
     MemoryPolicy.builder<Any, User>()
       .setMaxSize(1)
-      .build()
+      .build(),
   ).build()
 
   override fun observeCurrentUser(): Flow<User> {

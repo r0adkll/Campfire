@@ -1,6 +1,5 @@
 package app.campfire.libraries.items
 
-import app.campfire.network.models.LibraryItemExpanded as NetworkLibraryItem
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
@@ -9,6 +8,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.libraries.LibraryItemDbData
+import app.campfire.network.models.LibraryItemExpanded as NetworkLibraryItem
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -89,7 +89,7 @@ class LibraryItemSourceOfTruthFactory(
           // Only insert the media progress if the one we have locally isn't newer
           val existing = db.mediaProgressQueries.selectForLibraryItem(
             userId = progress.userId,
-            libraryItemId = libraryItemId
+            libraryItemId = libraryItemId,
           ).executeAsOneOrNull()
           if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
             db.mediaProgressQueries.insert(progress.asDbModel())

@@ -34,7 +34,7 @@ object MediaProgressStore : Cork {
         .cachePolicy(
           MemoryPolicy.builder<Operation, Output>()
             .setMaxSize(10)
-            .build()
+            .build(),
         )
         .build()
     }
@@ -60,4 +60,3 @@ object MediaProgressStore : Cork {
     }
   }
 }
-

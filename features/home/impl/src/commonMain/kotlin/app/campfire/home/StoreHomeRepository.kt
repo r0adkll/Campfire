@@ -1,7 +1,6 @@
 package app.campfire.home
 
 import app.campfire.account.api.CoverImageHydrator
-import app.campfire.user.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -12,6 +11,7 @@ import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,12 +25,12 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreHomeRepository(
-    private val userSession: UserSession,
-    private val api: AudioBookShelfApi,
-    private val userRepository: UserRepository,
-    private val imageHydrator: CoverImageHydrator,
-    private val mediaProgressDataSource: MediaProgressDataSource,
-    private val dispatcherProvider: DispatcherProvider,
+  private val userSession: UserSession,
+  private val api: AudioBookShelfApi,
+  private val userRepository: UserRepository,
+  private val imageHydrator: CoverImageHydrator,
+  private val mediaProgressDataSource: MediaProgressDataSource,
+  private val dispatcherProvider: DispatcherProvider,
 ) : HomeRepository {
 
   // TODO: Implement a store with api/db, for now just load directly from API

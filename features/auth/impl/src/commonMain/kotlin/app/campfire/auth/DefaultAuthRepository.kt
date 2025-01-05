@@ -77,7 +77,7 @@ class DefaultAuthRepository(
       // Update the current session manager which should trigger updates in the monitoring root parts of our
       // UI. Thus transitioning a user from logged out -> logged in, or from account to account.
       userSessionManager.current = UserSession.LoggedIn(
-        user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId)
+        user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
       )
 
       return Result.success(Unit)

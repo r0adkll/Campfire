@@ -2,14 +2,12 @@ package app.campfire.shared.di
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.serverUrl
 import com.r0adkll.kimchi.annotations.ContributesTo
 import me.tatarka.inject.annotations.Inject
 

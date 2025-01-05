@@ -2,20 +2,12 @@ package app.campfire.core.di
 
 import app.campfire.core.di.ComponentHolder.components
 import app.campfire.core.logging.bark
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.timeout
 import kotlinx.coroutines.launch
 
 /**
@@ -45,7 +37,7 @@ object ComponentHolder {
   val componentSharedFlow = MutableSharedFlow<Any>(
     replay = 8,
     extraBufferCapacity = 20,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST
+    onBufferOverflow = BufferOverflow.DROP_OLDEST,
   )
 
   /**

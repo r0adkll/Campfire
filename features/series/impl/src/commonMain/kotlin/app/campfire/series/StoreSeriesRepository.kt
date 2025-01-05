@@ -2,7 +2,6 @@ package app.campfire.series
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
-import app.campfire.user.api.UserRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -11,14 +10,15 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.Series as NetworkSeries
-import app.campfire.core.session.serverUrl
 import app.campfire.series.api.SeriesRepository
+import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -41,12 +41,12 @@ import org.mobilenativefoundation.store.store5.StoreReadRequest
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreSeriesRepository(
-    private val userSession: UserSession,
-    private val api: AudioBookShelfApi,
-    private val db: CampfireDatabase,
-    private val userRepository: UserRepository,
-    private val coverImageHydrator: CoverImageHydrator,
-    private val dispatcherProvider: DispatcherProvider,
+  private val userSession: UserSession,
+  private val api: AudioBookShelfApi,
+  private val db: CampfireDatabase,
+  private val userRepository: UserRepository,
+  private val coverImageHydrator: CoverImageHydrator,
+  private val dispatcherProvider: DispatcherProvider,
 ) : SeriesRepository {
 
   private val serverUrl by lazy {

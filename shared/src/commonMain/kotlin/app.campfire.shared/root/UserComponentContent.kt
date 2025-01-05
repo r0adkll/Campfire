@@ -17,13 +17,11 @@ import androidx.compose.ui.unit.dp
 import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.navigation.LocalUserSession
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.session.UserSession
 import app.campfire.shared.di.UserComponent
 import app.campfire.shared.di.UserComponentManager
 import app.campfire.shared.di.rememberUserComponentManager
-import kotlinx.coroutines.flow.map
 
 sealed interface ServerUrlState {
   data object Loading : ServerUrlState
@@ -44,7 +42,8 @@ fun UserComponentContent(
 
   when (userSession) {
     is UserSession.LoggedIn,
-    is UserSession.LoggedOut -> {
+    is UserSession.LoggedOut,
+    -> {
       val userComponent = remember(userSession.key) {
         // Fetch a cached graph object, or create a new one for the current session
         userComponentManager.getOrCreateUserComponent(userSession)

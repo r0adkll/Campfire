@@ -15,7 +15,6 @@ import com.russhwolf.settings.coroutines.toFlowSettings
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)

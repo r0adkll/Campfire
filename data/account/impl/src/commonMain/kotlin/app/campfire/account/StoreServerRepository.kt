@@ -4,7 +4,6 @@ import app.campfire.CampfireDatabase
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.UserSessionManager
 import app.campfire.account.server.asDomainModel
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Server

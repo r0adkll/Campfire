@@ -49,7 +49,7 @@ internal fun MediaProgressBar(
         MaterialTheme.colorScheme.inversePrimary
       } else {
         MaterialTheme.colorScheme.primary
-      }
+      },
     )
 
     Spacer(Modifier.height(4.dp))
@@ -63,7 +63,7 @@ internal fun MediaProgressBar(
           contentDescription = null,
           tint = Color.Green,
           modifier = Modifier
-            .size(14.dp)
+            .size(14.dp),
         )
         Spacer(Modifier.width(4.dp))
       }

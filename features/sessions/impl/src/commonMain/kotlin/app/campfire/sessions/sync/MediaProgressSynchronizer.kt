@@ -9,7 +9,6 @@ import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
-import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
@@ -25,7 +24,7 @@ interface MediaProgressSynchronizerComponent {
 @ContributesMultibinding(AppScope::class)
 @Inject
 class MediaProgressSynchronizer(
-  private val mediaProgressRepository: MediaProgressRepository
+  private val mediaProgressRepository: MediaProgressRepository,
 ) : PlaybackSynchronizer {
 
   private val sessionsRepository: SessionsRepository

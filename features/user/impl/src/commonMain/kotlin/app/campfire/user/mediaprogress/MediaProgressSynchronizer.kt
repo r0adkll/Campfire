@@ -62,11 +62,14 @@ class DefaultMediaProgressSynchronizer(
           // Now persist this to the database
           withContext(dispatcherProvider.databaseWrite) {
             db.mediaProgressQueries.insert(
-              updatedMediaProgress.asDbModel()
+              updatedMediaProgress.asDbModel(),
             )
           }
 
-          bark(LogPriority.DEBUG) { "New MediaProgress Id ${updatedMediaProgress.libraryItemId} --> ${updatedMediaProgress.id}" }
+          bark(LogPriority.DEBUG) {
+            "New MediaProgress Id ${updatedMediaProgress.libraryItemId} " +
+              "--> ${updatedMediaProgress.id}"
+          }
           lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()
         } else {
           lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()

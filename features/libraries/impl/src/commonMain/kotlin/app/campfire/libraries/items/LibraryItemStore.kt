@@ -30,11 +30,11 @@ object LibraryItemStore : Cork {
     fun create(): Store<LibraryItemId, LibraryItem> {
       return StoreBuilder.from(
         fetcher = fetcherFactory.create(),
-        sourceOfTruth = sourceOfTruthFactory.create()
+        sourceOfTruth = sourceOfTruthFactory.create(),
       ).cachePolicy(
         MemoryPolicy.builder<LibraryItemId, LibraryItem>()
           .setMaxSize(100)
-          .build()
+          .build(),
       ).build()
     }
   }

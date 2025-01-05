@@ -21,12 +21,12 @@ sealed class UserSession {
   data object Loading : UserSession()
 }
 
-val UserSession.serverUrl: String? get() = when(this) {
+val UserSession.serverUrl: String? get() = when (this) {
   is UserSession.LoggedIn -> user.serverUrl
   else -> null
 }
 
-val UserSession.userId: UserId? get() = when(this) {
+val UserSession.userId: UserId? get() = when (this) {
   is UserSession.LoggedIn -> user.id
   else -> null
 }

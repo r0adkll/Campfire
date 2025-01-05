@@ -6,7 +6,6 @@ import app.campfire.android.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Heartwood
 import kimchi.merge.app.campfire.android.di.createAndroidAppComponent
-import kotlinx.coroutines.launch
 
 class CampfireApplication : Application() {
 

@@ -1,12 +1,5 @@
 package app.campfire.audioplayer.impl
 
-import android.content.ComponentName
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.media3.session.MediaController
-import androidx.media3.session.SessionToken
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -16,7 +9,6 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -33,7 +25,7 @@ class AndroidPlaybackController(
 ) : PlaybackController {
 
   init {
-    ibark { "[${this}] Constructed" }
+    ibark { "[$this] Constructed" }
   }
 
   override fun startSession(
@@ -41,7 +33,7 @@ class AndroidPlaybackController(
     playImmediately: Boolean,
     chapterId: Int?,
   ) {
-    ibark { "[${this}] ~~> startSession($itemId, playImmediately=$playImmediately, chapterId=$chapterId)" }
+    ibark { "[$this] ~~> startSession($itemId, playImmediately=$playImmediately, chapterId=$chapterId)" }
     mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
       .take(1)

@@ -1,6 +1,5 @@
 package app.campfire.sessions.network
 
-import app.campfire.user.api.UserRepository
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.UserScope
@@ -10,6 +9,7 @@ import app.campfire.network.models.BookChapter
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
@@ -20,9 +20,9 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultNetworkSessionMapper(
-    private val campfireSettings: CampfireSettings,
-    private val applicationInfo: ApplicationInfo,
-    private val userRepository: UserRepository,
+  private val campfireSettings: CampfireSettings,
+  private val applicationInfo: ApplicationInfo,
+  private val userRepository: UserRepository,
 ) : NetworkSessionMapper {
 
   override suspend fun map(session: Session): PlaybackSession {

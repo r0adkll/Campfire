@@ -9,7 +9,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.coroutines.cancellation.CancellationException

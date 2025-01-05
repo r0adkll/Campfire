@@ -14,10 +14,10 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Output
-import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi

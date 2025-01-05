@@ -1,6 +1,5 @@
 package app.campfire.author
 
-import app.campfire.user.api.UserRepository
 import app.campfire.author.api.AuthorRepository
 import app.campfire.author.store.AuthorDetailStore
 import app.campfire.author.store.LibraryAuthorStore
@@ -8,6 +7,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow

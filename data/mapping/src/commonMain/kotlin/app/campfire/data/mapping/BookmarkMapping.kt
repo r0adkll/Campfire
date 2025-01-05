@@ -1,8 +1,8 @@
 package app.campfire.data.mapping
 
-import app.campfire.network.models.AudioBookmark as NetworkBookmark
-import app.campfire.data.Bookmarks as DbBookmark
 import app.campfire.core.model.Bookmark
+import app.campfire.data.Bookmarks as DbBookmark
+import app.campfire.network.models.AudioBookmark as NetworkBookmark
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone

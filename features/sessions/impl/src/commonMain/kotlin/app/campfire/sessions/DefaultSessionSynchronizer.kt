@@ -10,7 +10,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.sessions.api.SessionSynchronizer
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper

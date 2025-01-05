@@ -7,37 +7,23 @@ import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.os.bundleOf
 import androidx.media3.common.Player
-import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
 import androidx.media3.session.MediaSessionService
-import androidx.media3.session.SessionCommand
-import androidx.media3.session.SessionError
-import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.core.model.LibraryItemId
-import app.campfire.sessions.api.SessionsRepository
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @ContributesTo(AppScope::class)
 interface AudioPlayerComponent {

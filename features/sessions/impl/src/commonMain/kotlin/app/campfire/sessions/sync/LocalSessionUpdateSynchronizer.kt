@@ -7,7 +7,6 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
@@ -53,7 +52,7 @@ class LocalSessionUpdateSynchronizer(
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-    dbark { "onOverallTimeChanged(libraryItemId=${libraryItemId}, ${overallTime})" }
+    dbark { "onOverallTimeChanged(libraryItemId=$libraryItemId, $overallTime)" }
     sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
   }
 
