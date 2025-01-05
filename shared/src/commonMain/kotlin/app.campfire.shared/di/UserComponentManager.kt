@@ -16,7 +16,7 @@ typealias UserSessionKey = String
 @SingleIn(AppScope::class)
 @Inject
 class UserComponentManager(
-//  private val userComponentFactory: UserComponent.Factory,
+  private val userComponentFactory: UserComponent.Factory,
 ) {
 
   /**
@@ -30,11 +30,7 @@ class UserComponentManager(
   private val componentCache = mutableMapOf<UserSessionKey, UserComponent>()
 
   private var lastUserSession: UserSession? = null
-
-  // TODO: Update Kimchi to support injecting subcomponent factories
-  private val userComponentFactory: UserComponent.Factory
-    get() = ComponentHolder.component<UserComponent.Factory>()
-
+  
   /**
    * Get the current cached [UserComponent] for a given session, or create a new
    * one if it doesn't exist.
