@@ -110,5 +110,6 @@ fun DatabaseMediaProgress.asDomainModel(): MediaProgress {
     ebookProgress = ebookProgress?.toFloat(),
     lastUpdate = lastUpdate,
     startedAt = startedAt,
+    finishedAt = finishedAt,
   )
 }

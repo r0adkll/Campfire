@@ -91,7 +91,7 @@ class LibraryItemSourceOfTruthFactory(
             userId = progress.userId,
             libraryItemId = libraryItemId
           ).executeAsOneOrNull()
-          if (existing == null || existing.lastUpdate < progress.lastUpdate) {
+          if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
             db.mediaProgressQueries.insert(progress.asDbModel())
           }
         }

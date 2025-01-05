@@ -17,7 +17,9 @@ interface SessionsRepository {
   suspend fun createSession(libraryItemId: LibraryItemId): Session
 
   /**
-   * Delete a listening session
+   * Delete a listening session and discard the media progress locally and remotely for the
+   * item.
+   *
    * @param libraryItemId The id of the session to delete
    */
   suspend fun deleteSession(libraryItemId: LibraryItemId)

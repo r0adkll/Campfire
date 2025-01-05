@@ -25,58 +25,6 @@ insert:
 INSERT OR REPLACE INTO mediaProgress
 VALUES ?;
 
-upsert {
-  UPDATE mediaProgress
-  SET id = :id,
-      duration = :duration,
-      progress = :progress,
-      currentTime = :currentTime,
-      isFinished = :isFinished,
-      hideFromContinueListening = :hideFromContinueListening,
-      ebookLocation = :ebookLocation,
-      ebookProgress = :ebookProgress,
-      lastUpdate = :lastUpdate,
-      finishedAt = :finishedAt
-  WHERE userId = :userId
-    AND libraryItemId = :libraryItemId;
-
-  INSERT OR IGNORE INTO mediaProgress(
-    id,
-    libraryItemId,
-    userId,
-    episodeId,
-    mediaItemId,
-    mediaItemType,
-    duration,
-    progress,
-    currentTime,
-    isFinished,
-    hideFromContinueListening,
-    ebookLocation,
-    ebookProgress,
-    lastUpdate,
-    startedAt,
-    finishedAt
-  ) VALUES (
-    :id,
-    :libraryItemId,
-    :userId,
-    :episodeId,
-    :mediaItemId,
-    :mediaItemType,
-    :duration,
-    :progress,
-    :currentTime,
-    :isFinished,
-    :hideFromContinueListening,
-    :ebookLocation,
-    :ebookProgress,
-    :lastUpdate,
-    :startedAt,
-    :finishedAt
-  );
-}
-
 delete:
 DELETE FROM mediaProgress
 WHERE userId = ?
@@ -91,6 +39,28 @@ UPDATE OR IGNORE mediaProgress
 SET currentTime = ?,
     lastUpdate = ?
 WHERE libraryItemId = ?;
+
+markFinished:
+UPDATE OR IGNORE mediaProgress
+SET isFinished = 1,
+    progress = 1,
+    currentTime = 0,
+    hideFromContinueListening = 1,
+    lastUpdate = :timestamp,
+    finishedAt = :timestamp
+WHERE userId = :userId
+  AND libraryItemId = :libraryItemId;
+
+markNotFinished:
+UPDATE OR IGNORE mediaProgress
+SET isFinished = 0,
+    progress = 0,
+    currentTime = 0,
+    hideFromContinueListening = 0,
+    lastUpdate = :timestamp,
+    finishedAt = NULL
+WHERE userId = :userId
+  AND libraryItemId = :libraryItemId;
 
 selectForLibraryItem:
 SELECT * FROM mediaProgress

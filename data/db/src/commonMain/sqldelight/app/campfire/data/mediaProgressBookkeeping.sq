@@ -1,0 +1,69 @@
+CREATE TABLE IF NOT EXISTS mediaProgressFailedUpdate (
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  timestamp INTEGER,
+  PRIMARY KEY (libraryItemId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS mediaProgressFailedDelete (
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  timestamp INTEGER,
+  PRIMARY KEY (libraryItemId, userId)
+);
+
+-- Queries
+
+insertFailedUpdate:
+INSERT INTO mediaProgressFailedUpdate
+VALUES ?;
+
+insertFailedDelete:
+INSERT INTO mediaProgressFailedDelete
+VALUES ?;
+
+getOneFailedUpdate:
+SELECT timestamp FROM mediaProgressFailedUpdate
+WHERE libraryItemId = ? LIMIT 1;
+
+getOneFailedDelete:
+SELECT timestamp FROM mediaProgressFailedDelete
+WHERE libraryItemId = ? LIMIT 1;
+
+getManyFailedUpdates:
+SELECT timestamp FROM mediaProgressFailedUpdate
+WHERE libraryItemId IN ?;
+
+getManyFailedDeletes:
+SELECT timestamp FROM mediaProgressFailedDelete
+WHERE libraryItemId IN ?;
+
+getFailedUpdatesForUser:
+SELECT timestamp FROM mediaProgressFailedUpdate
+WHERE userId = ?;
+
+getFailedDeletesForUser:
+SELECT timestamp FROM mediaProgressFailedDelete
+WHERE userId = ?;
+
+clearFailedUpdates:
+DELETE FROM mediaProgressFailedUpdate
+WHERE libraryItemId = ?;
+
+clearFailedDeletes:
+DELETE FROM mediaProgressFailedDelete
+WHERE libraryItemId = ?;
+
+clearAllFailedUpdatesForUser:
+DELETE FROM mediaProgressFailedUpdate
+WHERE userId = ?;
+
+clearAllFailedDeletesForUser:
+DELETE FROM mediaProgressFailedDelete
+WHERE userId = ?;
+
+clearAllFailedUpdates:
+DELETE FROM mediaProgressFailedUpdate;
+
+clearAllFailedDeletes:
+DELETE FROM mediaProgressFailedDelete;

@@ -11,7 +11,6 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.series.api.SeriesRepository
@@ -99,6 +98,19 @@ class LibraryItemPresenter(
           playbackController.stopSession(event.item.id)
           scope.launch {
             sessionsRepository.deleteSession(event.item.id)
+            mediaProgressRepository.deleteProgress(event.item.id)
+          }
+        }
+        is LibraryItemUiEvent.MarkFinished -> {
+          playbackController.stopSession(event.item.id)
+          scope.launch {
+            sessionsRepository.deleteSession(event.item.id)
+            mediaProgressRepository.markFinished(event.item.id)
+          }
+        }
+        is LibraryItemUiEvent.MarkNotFinished -> {
+          scope.launch {
+            mediaProgressRepository.markNotFinished(event.item.id)
           }
         }
         is LibraryItemUiEvent.ChapterClick -> {

@@ -15,4 +15,8 @@ interface MediaProgressRepository {
   )
 
   suspend fun deleteProgress(libraryItemId: LibraryItemId)
+
+  suspend fun markFinished(libraryItemId: LibraryItemId)
+
+  suspend fun markNotFinished(libraryItemId: LibraryItemId)
 }

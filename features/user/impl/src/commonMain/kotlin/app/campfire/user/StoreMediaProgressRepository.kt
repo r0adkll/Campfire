@@ -2,14 +2,17 @@ package app.campfire.user
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UserSessionManager
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
+import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.mediaprogress.store.MediaProgressStore
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
@@ -24,6 +27,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.Store
@@ -40,6 +44,8 @@ class StoreMediaProgressRepository(
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
   private val mediaProgressSynchronizer: MediaProgressSynchronizer,
+  private val fatherTime: FatherTime,
+  private val dispatcherProvider: DispatcherProvider,
 ) : MediaProgressRepository {
 
   private val store: Store<Operation, Output> by lazy { storeFactory.create() }
@@ -87,7 +93,7 @@ class StoreMediaProgressRepository(
       MediaProgressStore.vbark { "insertingProgress --> Existing($existing)" }
 
       db.mediaProgressQueries.insert(
-        newProgress.asDbModel(existing?.id)
+        newProgress.asDbModel(existing?.id),
       )
 
       existing?.id?.takeIf { it != MediaProgress.UNKNOWN_ID } ?: newProgress.id
@@ -114,6 +120,61 @@ class StoreMediaProgressRepository(
         }
     } else {
       MediaProgressStore.ebark { "Error deleting progress for libraryItemId $libraryItemId" }
+    }
+  }
+
+  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+    api.updateMediaProgress(
+      libraryItemId = libraryItemId,
+      update = MediaProgressUpdatePayload(
+        isFinished = true,
+        finishedAt = fatherTime.nowInEpochMillis(),
+      ),
+    ).onSuccess {
+      val currentUserId = userSessionManager.current.userId!!
+      val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
+        .requireSingle()
+      if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
+        withContext(dispatcherProvider.databaseWrite) {
+          db.mediaProgressQueries.markFinished(
+            timestamp = fatherTime.nowInEpochMillis(),
+            userId = currentUserId,
+            libraryItemId = libraryItemId,
+          )
+        }
+        MediaProgressStore.ibark { "MediaProgress[$libraryItemId] marked finished!" }
+      } else {
+        MediaProgressStore.ebark { "Error marking local finished for libraryItemId $libraryItemId" }
+      }
+    }.onFailure {
+      MediaProgressStore.ebark { "Error marking finished for libraryItemId $libraryItemId" }
+    }
+  }
+
+  override suspend fun markNotFinished(libraryItemId: LibraryItemId) {
+    api.updateMediaProgress(
+      libraryItemId = libraryItemId,
+      update = MediaProgressUpdatePayload(
+        isFinished = false,
+      ),
+    ).onSuccess {
+      val currentUserId = userSessionManager.current.userId!!
+      val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
+        .requireSingle()
+      if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
+        withContext(dispatcherProvider.databaseWrite) {
+          db.mediaProgressQueries.markNotFinished(
+            timestamp = fatherTime.nowInEpochMillis(),
+            userId = currentUserId,
+            libraryItemId = libraryItemId,
+          )
+        }
+        MediaProgressStore.ibark { "MediaProgress[$libraryItemId] marked NOT finished!" }
+      } else {
+        MediaProgressStore.ebark { "Error marking local not finished for libraryItemId $libraryItemId" }
+      }
+    }.onFailure {
+      MediaProgressStore.ebark { "Error marking not finished for libraryItemId $libraryItemId" }
     }
   }
 }

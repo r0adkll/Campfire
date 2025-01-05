@@ -6,11 +6,11 @@ import kotlinx.serialization.Serializable
 data class MediaProgressUpdatePayload(
   val libraryItemId: String? = null,
   val episodeId: String? = null,
-  val duration: Float,
-  val progress: Float,
-  val currentTime: Float,
+  val duration: Float? = null,
+  val progress: Float? = null,
+  val currentTime: Float? = null,
   val isFinished: Boolean? = null,
-  val hideFromContinueListening: Boolean,
+  val hideFromContinueListening: Boolean? = null,
   val finishedAt: Long? = null,
-  val startedAt: Long,
+  val startedAt: Long? = null,
 )

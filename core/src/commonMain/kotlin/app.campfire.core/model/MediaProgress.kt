@@ -22,7 +22,7 @@ data class MediaProgress(
 ) {
 
   val actualProgress: Float
-    get() = currentTime / duration
+    get() = if (isFinished) 1f else currentTime / duration
 
   companion object {
     const val UNKNOWN_ID = "unknown_id"

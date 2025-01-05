@@ -28,7 +28,6 @@ class MediaProgressSourceOfTruthFactory(
       when (operation) {
         is Operation.Query.All -> observeAll(operation.userId)
         is Operation.Query.One -> observeByLibraryItemId(operation.userId, operation.libraryItemId)
-        else -> flowOf(null)
       }
     },
     writer = { operation, output ->

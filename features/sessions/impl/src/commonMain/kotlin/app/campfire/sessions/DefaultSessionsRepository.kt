@@ -25,7 +25,6 @@ class DefaultSessionsRepository(
   private val fatherTime: FatherTime,
   private val libraryItemRepository: LibraryItemRepository,
   private val dataSource: SessionDataSource,
-  private val mediaProgressRepository: MediaProgressRepository,
 ) : SessionsRepository {
 
   override fun observeCurrentSession(): Flow<Session?> {
@@ -53,11 +52,7 @@ class DefaultSessionsRepository(
   }
 
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
-    // Delete locally stored session for a given library item
     dataSource.deleteSession(libraryItemId)
-
-    // Now clear its media progress
-    mediaProgressRepository.deleteProgress(libraryItemId)
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {

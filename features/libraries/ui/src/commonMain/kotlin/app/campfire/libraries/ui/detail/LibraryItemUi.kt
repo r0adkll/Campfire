@@ -143,6 +143,10 @@ fun LibraryItem(
         onAddToCollection = {
         },
         onMarkFinished = {
+          state.eventSink(LibraryItemUiEvent.MarkFinished(contentState.data))
+        },
+        onMarkNotFinished = {
+          state.eventSink(LibraryItemUiEvent.MarkNotFinished(contentState.data))
         },
         onDiscardProgress = {
           state.eventSink(LibraryItemUiEvent.DiscardProgress(contentState.data))
@@ -161,6 +165,7 @@ fun LoadedState(
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
   onMarkFinished: () -> Unit,
+  onMarkNotFinished: () -> Unit,
   onDiscardProgress: () -> Unit,
   onAddToPlaylist: () -> Unit,
   onAddToCollection: () -> Unit,
@@ -244,7 +249,7 @@ fun LoadedState(
     Spacer(Modifier.height(24.dp))
 
     mediaProgressState.onLoaded { mediaProgress ->
-      if (mediaProgress != null) {
+      if (mediaProgress != null && mediaProgress.progress > 0f) {
         Spacer(Modifier.height(16.dp))
         MediaProgressBar(
           progress = mediaProgress,
@@ -256,11 +261,12 @@ fun LoadedState(
     }
 
     ControlBar(
-      hasProgress = mediaProgressState.dataOrNull != null,
+      mediaProgress = mediaProgressState.dataOrNull,
       isCurrentListening = false,
       onPlayClick = onPlayClick,
       onDownloadClick = onDownloadClick,
       onMarkFinished = onMarkFinished,
+      onMarkNotFinished = onMarkNotFinished,
       onDiscardProgress = onDiscardProgress,
       onAddToPlaylist = onAddToPlaylist,
       onAddToCollection = onAddToCollection,

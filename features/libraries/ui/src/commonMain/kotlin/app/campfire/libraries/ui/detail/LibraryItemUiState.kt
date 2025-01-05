@@ -25,6 +25,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class PlayClick(val item: LibraryItem) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
+  data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
+  data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
