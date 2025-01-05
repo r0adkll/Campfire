@@ -4,9 +4,14 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
+import app.campfire.sessions.api.SessionsRepository
+import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -15,6 +20,14 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
+
+@ContributesTo(UserScope::class)
+interface SessionsRepositoryComponent {
+  val sessionsRepository: SessionsRepository
+}
+
+private val sessionsRepositoryComponent: SessionsRepositoryComponent
+  get() = ComponentHolder.component()
 
 @Inject
 class PlaybackSynchroOrchestrator(
@@ -33,9 +46,11 @@ class PlaybackSynchroOrchestrator(
           val deferred = mutableListOf<Deferred<*>>()
 
           deferred += async {
+            var lastState: AudioPlayer.State = AudioPlayer.State.Disabled
             audioPlayer.state
               .collect { s ->
-                dispatchSynchronization(audioPlayer, "State") { onStateChanged(it, s) }
+                dispatchSynchronization(audioPlayer, "State") { onStateChanged(it, s, lastState) }
+                lastState = s
               }
           }
 
@@ -85,12 +100,12 @@ class PlaybackSynchroOrchestrator(
   private suspend fun dispatchSynchronization(
     player: AudioPlayer,
     tag: String,
-    block: suspend PlaybackSynchronizer.(Session) -> Unit,
+    block: suspend PlaybackSynchronizer.(LibraryItemId) -> Unit,
   ) {
     if (player.preparedSession == null) return
     sortedSynchronizers.forEach { synchro ->
       try {
-        synchro.block(player.preparedSession!!)
+        synchro.block(player.preparedSession!!.libraryItem.id)
       } catch (e: Exception) {
         if (e is CancellationException) throw e
         bark(

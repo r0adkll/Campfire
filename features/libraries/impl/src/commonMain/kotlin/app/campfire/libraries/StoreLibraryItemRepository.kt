@@ -61,6 +61,5 @@ data class LibraryItemDbData(
   val audioFiles: List<MediaAudioFiles>,
   val audioTracks: List<MediaAudioTracks>,
   val chapters: List<MediaChapters>,
-  val progress: MediaProgress?,
   val metadataAuthors: List<MetadataAuthor>,
 )

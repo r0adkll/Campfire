@@ -12,7 +12,7 @@ data class LibraryItemUiState(
   val sessionUiState: SessionUiState,
   val libraryItemContentState: LoadState<out LibraryItem>,
   val seriesContentState: LoadState<out List<LibraryItem>>,
-  val mediaProgressState: LoadState<out MediaProgress>,
+  val mediaProgressState: LoadState<out MediaProgress?>,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 

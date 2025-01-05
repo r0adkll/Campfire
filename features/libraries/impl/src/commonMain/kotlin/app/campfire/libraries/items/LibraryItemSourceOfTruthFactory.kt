@@ -40,7 +40,7 @@ class LibraryItemSourceOfTruthFactory(
       .mapLatest { item ->
         if (item == null) return@mapLatest null
         withContext(dispatcherProvider.databaseRead) {
-          val (audioFiles, audioTracks, chapters, progress, authors) = db.transactionWithResult {
+          val (audioFiles, audioTracks, chapters, authors) = db.transactionWithResult {
             val audioFiles = db.mediaAudioFilesQueries
               .selectForMediaId(item.mediaId)
               .executeAsList()
@@ -53,15 +53,11 @@ class LibraryItemSourceOfTruthFactory(
               .selectForMediaId(item.mediaId)
               .executeAsList()
 
-            val progress = db.mediaProgressQueries
-              .selectForLibraryItem(item.id)
-              .executeAsOneOrNull()
-
             val authors = db.metadataAuthorQueries
               .selectForMediaId(item.mediaId)
               .executeAsList()
 
-            LibraryItemDbData(audioFiles, audioTracks, chapters, progress, authors)
+            LibraryItemDbData(audioFiles, audioTracks, chapters, authors)
           }
 
           item.asDomainModel(
@@ -69,7 +65,6 @@ class LibraryItemSourceOfTruthFactory(
             audioFiles,
             audioTracks,
             chapters,
-            progress,
             authors,
           )
         }
@@ -92,7 +87,10 @@ class LibraryItemSourceOfTruthFactory(
 
         item.userMediaProgress?.let { progress ->
           // Only insert the media progress if the one we have locally isn't newer
-          val existing = db.mediaProgressQueries.selectForLibraryItem(libraryItemId).executeAsOneOrNull()
+          val existing = db.mediaProgressQueries.selectForLibraryItem(
+            userId = progress.userId,
+            libraryItemId = libraryItemId
+          ).executeAsOneOrNull()
           if (existing == null || existing.lastUpdate < progress.lastUpdate) {
             db.mediaProgressQueries.insert(progress.asDbModel())
           }

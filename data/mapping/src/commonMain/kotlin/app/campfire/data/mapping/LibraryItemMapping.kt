@@ -357,7 +357,6 @@ suspend fun SelectForId.asDomainModel(
   mediaAudioFiles: List<MediaAudioFiles>,
   mediaAudioTracks: List<MediaAudioTracks>,
   mediaChapters: List<MediaChapters>,
-  mediaProgress: DbMediaProgress?,
   metadataAuthors: List<MetadataAuthor>,
 ): LibraryItem {
   return LibraryItem(
@@ -476,6 +475,6 @@ suspend fun SelectForId.asDomainModel(
       sizeInBytes = sizeInBytes,
       ebookFormat = ebookFormat,
     ),
-    userMediaProgress = mediaProgress?.asDomainModel(),
+    userMediaProgress = null,
   )
 }

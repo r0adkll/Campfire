@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface SessionsRepository {
 
+  suspend fun getSession(libraryItemId: LibraryItemId): Session?
+
   /**
    * Create a new listening session to begin playback
    * @param item The item to begin listening to

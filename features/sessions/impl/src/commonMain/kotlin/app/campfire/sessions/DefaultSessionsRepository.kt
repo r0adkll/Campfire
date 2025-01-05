@@ -32,6 +32,10 @@ class DefaultSessionsRepository(
     return dataSource.observeCurrentSession()
   }
 
+  override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
+    return dataSource.getSession(libraryItemId)
+  }
+
   override suspend fun createSession(libraryItemId: LibraryItemId): Session {
     val startedAt = fatherTime.now()
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)

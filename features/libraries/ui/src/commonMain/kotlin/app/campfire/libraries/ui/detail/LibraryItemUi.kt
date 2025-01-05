@@ -156,7 +156,7 @@ fun LibraryItem(
 fun LoadedState(
   item: LibraryItem,
   seriesContentState: LoadState<out List<LibraryItem>>,
-  mediaProgressState: LoadState<out MediaProgress>,
+  mediaProgressState: LoadState<out MediaProgress?>,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
@@ -244,17 +244,19 @@ fun LoadedState(
     Spacer(Modifier.height(24.dp))
 
     mediaProgressState.onLoaded { mediaProgress ->
-      Spacer(Modifier.height(16.dp))
-      MediaProgressBar(
-        progress = mediaProgress,
-        modifier = Modifier
-          .padding(horizontal = 20.dp),
-      )
-      Spacer(Modifier.height(16.dp))
+      if (mediaProgress != null) {
+        Spacer(Modifier.height(16.dp))
+        MediaProgressBar(
+          progress = mediaProgress,
+          modifier = Modifier
+            .padding(horizontal = 20.dp),
+        )
+        Spacer(Modifier.height(16.dp))
+      }
     }
 
     ControlBar(
-      hasProgress = mediaProgressState is LoadState.Loaded,
+      hasProgress = mediaProgressState.dataOrNull != null,
       isCurrentListening = false,
       onPlayClick = onPlayClick,
       onDownloadClick = onDownloadClick,

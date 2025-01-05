@@ -1,17 +1,21 @@
 package app.campfire.user
 
+import app.campfire.CampfireDatabase
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.userId
+import app.campfire.data.mapping.asDbModel
+import app.campfire.network.AudioBookShelfApi
 import app.campfire.user.api.MediaProgressRepository
-import app.campfire.user.progress.MediaProgressStore
-import app.campfire.user.progress.MediaProgressStore.Operation
-import app.campfire.user.progress.MediaProgressStore.Output
-import app.campfire.user.progress.MediaProgressWriteResponse
+import app.campfire.user.mediaprogress.store.MediaProgressStore
+import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
+import app.campfire.user.mediaprogress.store.MediaProgressStore.Output
+import app.campfire.user.mediaprogress.MediaProgressSynchronizer
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -22,10 +26,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
-import org.mobilenativefoundation.store.store5.MutableStore
+import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreReadRequest
-import org.mobilenativefoundation.store.store5.StoreWriteRequest
-import org.mobilenativefoundation.store.store5.StoreWriteResponse
+import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStoreApi::class)
 @ContributesBinding(AppScope::class)
@@ -34,20 +37,26 @@ import org.mobilenativefoundation.store.store5.StoreWriteResponse
 class StoreMediaProgressRepository(
   private val userSessionManager: UserSessionManager,
   private val storeFactory: MediaProgressStore.Factory,
+  private val db: CampfireDatabase,
+  private val api: AudioBookShelfApi,
+  private val mediaProgressSynchronizer: MediaProgressSynchronizer,
 ) : MediaProgressRepository {
 
-  private val store: MutableStore<Operation, Output> by lazy { storeFactory.create() }
+  private val store: Store<Operation, Output> by lazy { storeFactory.create() }
 
-  override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress> {
-    val request = StoreReadRequest.cached(Operation.Query.One(libraryItemId), false)
-    return store.stream<Output>(request)
-      .onEach { response ->
-        response.throwIfError()
-        MediaProgressStore.ibark { "observeProgress --> $response" }
+  override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress?> {
+    return userSessionManager.observe()
+      .filterIsInstance<UserSession.LoggedIn>()
+      .flatMapLatest { session ->
+        val request = StoreReadRequest.cached(Operation.Query.One(session.user.id, libraryItemId), false)
+        store.stream(request)
+          .onEach { response ->
+            MediaProgressStore.ibark { "observeProgress --> $response" }
+          }
+          .map { it.dataOrNull() }
+          .filterNotNull()
+          .map { it.requireSingle() }
       }
-      .map { it.dataOrNull() }
-      .filterNotNull()
-      .map { it.requireSingle() }
   }
 
   override fun observeAllProgress(): Flow<List<MediaProgress>> {
@@ -55,7 +64,7 @@ class StoreMediaProgressRepository(
       .filterIsInstance<UserSession.LoggedIn>()
       .flatMapLatest { session ->
         val request = StoreReadRequest.cached(Operation.Query.All(session.user.id), false)
-        store.stream<Output>(request)
+        store.stream(request)
           .onEach { response ->
             MediaProgressStore.ibark { "observeAllProgress --> $response" }
           }
@@ -65,41 +74,46 @@ class StoreMediaProgressRepository(
       }
   }
 
-  override suspend fun updateProgress(newProgress: MediaProgress) {
+  override suspend fun updateProgress(newProgress: MediaProgress, force: Boolean) {
     MediaProgressStore.ibark { "updateProgress <-- $newProgress" }
-    val request: StoreWriteRequest<Operation, Output, MediaProgressWriteResponse> = StoreWriteRequest.of(
-      key = Operation.Mutation.Update.UpsertOne(newProgress),
-      value = Output.Single(newProgress),
-    )
 
-    writeRequest(request)
+    // Update local storage
+    val progressId = db.mediaProgressQueries.transactionWithResult {
+      val existing = db.mediaProgressQueries.selectForLibraryItem(
+        userId = newProgress.userId,
+        libraryItemId = newProgress.libraryItemId,
+      ).awaitAsOneOrNull()
+
+      MediaProgressStore.vbark { "insertingProgress --> Existing($existing)" }
+
+      db.mediaProgressQueries.insert(
+        newProgress.asDbModel(existing?.id)
+      )
+
+      existing?.id?.takeIf { it != MediaProgress.UNKNOWN_ID } ?: newProgress.id
+    }
+
+    val updatedProgress = newProgress.copy(id = progressId)
+
+    // Kick off potential synchronizer
+    mediaProgressSynchronizer.sync(updatedProgress, force)
   }
 
   override suspend fun deleteProgress(libraryItemId: LibraryItemId) {
-    MediaProgressStore.ibark { "deleteProgress <-- $libraryItemId" }
-    val currentUser = (userSessionManager.current as? UserSession.LoggedIn)?.user ?: return
-    val request: StoreWriteRequest<Operation, Output, MediaProgressWriteResponse> = StoreWriteRequest.of(
-      key = Operation.Mutation.Delete.One(currentUser.id, libraryItemId),
-      value = Output.Collection(emptyList()),
-    )
-
-    writeRequest(request)
-  }
-
-  private suspend fun writeRequest(request: StoreWriteRequest<Operation, Output, MediaProgressWriteResponse>) {
-    when (val response = store.write(request)) {
-      is StoreWriteResponse.Error.Exception -> MediaProgressStore.ebark(response.error) {
-        "Error writing to store: $request"
-      }
-      is StoreWriteResponse.Error.Message -> MediaProgressStore.ebark {
-        "Error writing to store: ${response.message}\nRequest = $request"
-      }
-      is StoreWriteResponse.Success.Typed<*> -> MediaProgressStore.ibark {
-        "Store write success: ${response.value}\nRequest = $request"
-      }
-      is StoreWriteResponse.Success.Untyped -> MediaProgressStore.ibark {
-        "Store write success: ${response.value}\nRequest = $request"
-      }
+    val currentUserId = userSessionManager.current.userId!!
+    val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
+      .requireSingle()
+    if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
+      api.deleteMediaProgress(existing.id)
+        .onSuccess {
+          store.clear(Operation.Query.One(existing.userId, existing.libraryItemId))
+          MediaProgressStore.ibark { "MediaProgress for $libraryItemId was deleted" }
+        }
+        .onFailure {
+          MediaProgressStore.ebark { "MediaProgress for $libraryItemId failed to delete" }
+        }
+    } else {
+      MediaProgressStore.ebark { "Error deleting progress for libraryItemId $libraryItemId" }
     }
   }
 }

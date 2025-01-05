@@ -2,6 +2,7 @@ import app.campfire.core.model.MediaType;
 import kotlin.Boolean;
 
 CREATE TABLE IF NOT EXISTS mediaProgress (
+  id TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
   userId TEXT NOT NULL,
   episodeId TEXT,
@@ -24,9 +25,62 @@ insert:
 INSERT OR REPLACE INTO mediaProgress
 VALUES ?;
 
+upsert {
+  UPDATE mediaProgress
+  SET id = :id,
+      duration = :duration,
+      progress = :progress,
+      currentTime = :currentTime,
+      isFinished = :isFinished,
+      hideFromContinueListening = :hideFromContinueListening,
+      ebookLocation = :ebookLocation,
+      ebookProgress = :ebookProgress,
+      lastUpdate = :lastUpdate,
+      finishedAt = :finishedAt
+  WHERE userId = :userId
+    AND libraryItemId = :libraryItemId;
+
+  INSERT OR IGNORE INTO mediaProgress(
+    id,
+    libraryItemId,
+    userId,
+    episodeId,
+    mediaItemId,
+    mediaItemType,
+    duration,
+    progress,
+    currentTime,
+    isFinished,
+    hideFromContinueListening,
+    ebookLocation,
+    ebookProgress,
+    lastUpdate,
+    startedAt,
+    finishedAt
+  ) VALUES (
+    :id,
+    :libraryItemId,
+    :userId,
+    :episodeId,
+    :mediaItemId,
+    :mediaItemType,
+    :duration,
+    :progress,
+    :currentTime,
+    :isFinished,
+    :hideFromContinueListening,
+    :ebookLocation,
+    :ebookProgress,
+    :lastUpdate,
+    :startedAt,
+    :finishedAt
+  );
+}
+
 delete:
 DELETE FROM mediaProgress
-WHERE libraryItemId = ?;
+WHERE userId = ?
+  AND libraryItemId = ?;
 
 deleteForUser:
 DELETE FROM mediaProgress
@@ -40,7 +94,8 @@ WHERE libraryItemId = ?;
 
 selectForLibraryItem:
 SELECT * FROM mediaProgress
-WHERE libraryItemId = ?;
+WHERE userId = ?
+  AND libraryItemId = ?;
 
 selectForUser:
 SELECT * FROM mediaProgress

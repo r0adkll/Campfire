@@ -112,9 +112,9 @@ interface AudioBookShelfApi {
   suspend fun batchUpdateMediaProgress(updates: List<MediaProgressUpdatePayload>): Result<Unit>
 
   /**
-   * Remove the media progress for a given [libraryItemId]
+   * Remove the media progress for a given [mediaProgressId]
    */
-  suspend fun deleteMediaProgress(libraryItemId: String): Result<Unit>
+  suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit>
 
   /**
    * This endpoint creates/updates multiple local listening sessions on the server. Used for syncing offline listening

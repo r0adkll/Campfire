@@ -6,6 +6,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Cork
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.sessions.api.SessionsRepository
@@ -34,22 +35,26 @@ class LocalSessionUpdateSynchronizer(
 
   private var lastPlayedTime = mutableMapOf<String, Long>()
 
-  override suspend fun onStateChanged(session: Session, state: AudioPlayer.State) {
+  override suspend fun onStateChanged(
+    libraryItemId: LibraryItemId,
+    state: AudioPlayer.State,
+    previousState: AudioPlayer.State,
+  ) {
     if (state == AudioPlayer.State.Playing) {
-      lastPlayedTime[session.libraryItem.id] = fatherTime.nowInEpochMillis()
+      lastPlayedTime[libraryItemId] = fatherTime.nowInEpochMillis()
     } else if (state == AudioPlayer.State.Paused || state == AudioPlayer.State.Disabled) {
-      val lastPlayed = lastPlayedTime[session.libraryItem.id]
+      val lastPlayed = lastPlayedTime[libraryItemId]
       if (lastPlayed != null) {
         val elapsed = (fatherTime.nowInEpochMillis() - lastPlayed).milliseconds
-        ibark { "Adding $elapsed time listening to ${session.libraryItem.id}" }
-        sessionsRepository.addTimeListening(session.libraryItem.id, elapsed)
+        ibark { "Adding $elapsed time listening to $libraryItemId" }
+        sessionsRepository.addTimeListening(libraryItemId, elapsed)
       }
     }
   }
 
-  override suspend fun onOverallTimeChanged(session: Session, overallTime: Duration) {
-    dbark { "onOverallTimeChanged(session=${session.id}, ${overallTime})" }
-    sessionsRepository.updateCurrentTime(session.libraryItem.id, overallTime)
+  override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
+    dbark { "onOverallTimeChanged(libraryItemId=${libraryItemId}, ${overallTime})" }
+    sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
   }
 
   companion object : Cork {

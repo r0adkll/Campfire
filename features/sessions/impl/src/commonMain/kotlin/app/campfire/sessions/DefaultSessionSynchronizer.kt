@@ -59,6 +59,7 @@ class DefaultSessionSynchronizer(
     val currentUser = userRepository.getCurrentUser()
 
     val updatedProgress = MediaProgress(
+      id = MediaProgress.UNKNOWN_ID,
       userId = currentUser.id,
       libraryItemId = session.libraryItem.id,
       episodeId = null,

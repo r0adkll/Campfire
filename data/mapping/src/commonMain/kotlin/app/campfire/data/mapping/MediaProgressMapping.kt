@@ -6,10 +6,12 @@ import app.campfire.data.MediaProgress as DatabaseMediaProgress
 import app.campfire.network.models.MediaProgress as NetworkMediaProgress
 import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgressId
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 
 fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
   return DatabaseMediaProgress(
+    id = id,
     userId = userId,
     libraryItemId = libraryItemId,
     episodeId = episodeId,
@@ -31,8 +33,9 @@ fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
   )
 }
 
-fun MediaProgress.asDbModel(): DatabaseMediaProgress {
+fun MediaProgress.asDbModel(existingId: MediaProgressId? = null): DatabaseMediaProgress {
   return DatabaseMediaProgress(
+    id = existingId.takeIf { it != MediaProgress.UNKNOWN_ID } ?: id,
     userId = userId,
     libraryItemId = libraryItemId,
     episodeId = episodeId,
@@ -59,7 +62,7 @@ fun MediaProgress.asNetworkUpdate(
     duration = duration,
     progress = progress,
     currentTime = currentTime,
-    isFinished = isFinished,
+    isFinished = isFinished.takeIf { it },
     hideFromContinueListening = hideFromContinueListening,
     startedAt = startedAt,
     finishedAt = finishedAt,
@@ -68,6 +71,7 @@ fun MediaProgress.asNetworkUpdate(
 
 fun NetworkMediaProgress.asDomainModel(): MediaProgress {
   return MediaProgress(
+    id = id,
     userId = userId,
     libraryItemId = libraryItemId,
     episodeId = episodeId,
@@ -91,6 +95,7 @@ fun NetworkMediaProgress.asDomainModel(): MediaProgress {
 
 fun DatabaseMediaProgress.asDomainModel(): MediaProgress {
   return MediaProgress(
+    id = id,
     userId = userId,
     libraryItemId = libraryItemId,
     episodeId = episodeId,

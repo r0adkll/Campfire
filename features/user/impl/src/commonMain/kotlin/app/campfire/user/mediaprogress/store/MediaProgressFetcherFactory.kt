@@ -1,11 +1,11 @@
-package app.campfire.user.progress
+package app.campfire.user.mediaprogress.store
 
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.user.progress.MediaProgressStore.Operation
-import app.campfire.user.progress.MediaProgressStore.Output
+import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
+import app.campfire.user.mediaprogress.store.MediaProgressStore.Output
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.FetcherResult
 

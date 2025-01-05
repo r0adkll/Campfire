@@ -2,7 +2,6 @@ package app.campfire.network
 
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.session.serverUrl
@@ -49,7 +48,6 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
-import io.ktor.http.etag
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
@@ -179,9 +177,9 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  override suspend fun deleteMediaProgress(libraryItemId: String): Result<Unit> {
+  override suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit> {
     return trySendRequest({}) {
-      hydratedClientRequest("/api/me/progress/$libraryItemId") {
+      hydratedClientRequest("/api/me/progress/$mediaProgressId") {
         method = HttpMethod.Delete
       }
     }

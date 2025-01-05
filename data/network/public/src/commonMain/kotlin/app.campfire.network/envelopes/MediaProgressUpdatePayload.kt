@@ -9,7 +9,7 @@ data class MediaProgressUpdatePayload(
   val duration: Float,
   val progress: Float,
   val currentTime: Float,
-  val isFinished: Boolean,
+  val isFinished: Boolean? = null,
   val hideFromContinueListening: Boolean,
   val finishedAt: Long? = null,
   val startedAt: Long,
