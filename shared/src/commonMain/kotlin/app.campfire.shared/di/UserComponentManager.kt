@@ -30,7 +30,7 @@ class UserComponentManager(
   private val componentCache = mutableMapOf<UserSessionKey, UserComponent>()
 
   private var lastUserSession: UserSession? = null
-  
+
   /**
    * Get the current cached [UserComponent] for a given session, or create a new
    * one if it doesn't exist.
