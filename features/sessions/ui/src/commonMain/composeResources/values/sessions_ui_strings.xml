@@ -12,6 +12,18 @@
   <string name="label_current_timer">Current timer</string>
   <string name="label_end_of_chapter_short">EoC</string>
 
+  <string name="bookmark_bottomsheet_title">Bookmarks</string>
+  <string name="bookmark_bottomsheet_action_create">Create new bookmark @ %1$s</string>
+  <string name="bookmark_bottomsheet_error_message">Uh-oh, something went wrong loading bookmarks for this item.</string>
+  <string name="bookmark_delete_title">Are you sure?</string>
+  <string name="bookmark_delete_action_cancel">Cancel</string>
+  <string name="bookmark_delete_action_delete">Delete</string>
+
+  <string name="bookmark_new_dialog_title">New bookmark</string>
+  <string name="bookmark_new_dialog_label_title">Title</string>
+  <string name="bookmark_new_dialog_action_cancel">Cancel</string>
+  <string name="bookmark_new_dialog_action_create">Create</string>
+
   <string name="action_set_timer">Set timer</string>
   <string name="action_clear_timer">Clear</string>
 </resources>

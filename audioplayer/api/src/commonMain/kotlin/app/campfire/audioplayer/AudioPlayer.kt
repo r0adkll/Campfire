@@ -65,6 +65,7 @@ interface AudioPlayer {
   fun stop()
   fun seekTo(itemIndex: Int)
   fun seekTo(progress: Float)
+  fun seekTo(timestamp: Duration)
 
   fun skipToNext()
   fun skipToPrevious()

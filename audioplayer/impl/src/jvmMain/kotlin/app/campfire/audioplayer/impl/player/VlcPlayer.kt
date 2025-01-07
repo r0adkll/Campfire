@@ -59,6 +59,8 @@ class VlcPlayer {
     currentItemIndex = 0
   }
 
+  fun getMediaItemCount(): Int = mediaItems.size
+
   fun getMediaItemAt(index: Int): MediaItem {
     return mediaItems[index]
   }
@@ -109,10 +111,10 @@ class VlcPlayer {
     }
   }
 
-  fun seekTo(index: Int) {
+  fun seekTo(index: Int, startTimeInItemMillis: Long = 0L) {
     if (index in mediaItems.indices) {
       currentItemIndex = index
-      prepareCurrentItem()
+      prepareCurrentItem(startTimeInItemMillis = startTimeInItemMillis)
     }
   }
 

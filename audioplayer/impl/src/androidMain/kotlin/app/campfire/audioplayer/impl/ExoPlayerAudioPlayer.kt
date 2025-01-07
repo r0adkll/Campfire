@@ -26,6 +26,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -209,6 +210,24 @@ class ExoPlayerAudioPlayer(
     val positionMs = (progress * exoPlayer.duration).toLong()
     exoPlayer.seekTo(positionMs)
     currentTime.value = positionMs.milliseconds
+  }
+
+  override fun seekTo(timestamp: Duration) {
+    val timestampInMillis = timestamp.inWholeMilliseconds
+    var mediaItemOffsetMs = 0L
+
+    for (index in 0 until exoPlayer.mediaItemCount) {
+      val mediaItem = exoPlayer.getMediaItemAt(index)
+      val mediaItemDuration = mediaItem.mediaMetadata.durationMs ?: error("Media Metadata Corrupted")
+      val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
+      if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
+        val progressInMediaItem = timestampInMillis - mediaItemOffsetMs
+        exoPlayer.seekTo(index, progressInMediaItem)
+        exoPlayer.play()
+        return
+      }
+      mediaItemOffsetMs = mediaItemEnd
+    }
   }
 
   override fun skipToNext() {

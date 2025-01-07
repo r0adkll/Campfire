@@ -3,6 +3,7 @@ package app.campfire.network
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
@@ -115,6 +116,16 @@ interface AudioBookShelfApi {
    * Remove the media progress for a given [mediaProgressId]
    */
   suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit>
+
+  /**
+   * This endpoint creates a bookmark for a book library item and returns the created bookmark.
+   */
+  suspend fun createBookmark(libraryItemId: String, timeInSeconds: Int, title: String): Result<AudioBookmark>
+
+  /**
+   * This endpoint removes a bookmark(
+   */
+  suspend fun removeBookmark(libraryItemId: String, timeInSeconds: Int): Result<Unit>
 
   /**
    * This endpoint creates/updates multiple local listening sessions on the server. Used for syncing offline listening

@@ -2,6 +2,8 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.data.Authors
+import app.campfire.data.BookmarkFailedCreate
+import app.campfire.data.BookmarkFailedDelete
 import app.campfire.data.Bookmarks
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
@@ -92,6 +94,12 @@ class DatabaseFactory(
     bookmarksAdapter = Bookmarks.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,
       createdAtAdapter = LocalDateTimeAdapter,
+    ),
+    bookmarkFailedCreateAdapter = BookmarkFailedCreate.Adapter(
+      timeInSecondsAdapter = IntColumnAdapter,
+    ),
+    bookmarkFailedDeleteAdapter = BookmarkFailedDelete.Adapter(
+      timeInSecondsAdapter = IntColumnAdapter,
     ),
   )
 }

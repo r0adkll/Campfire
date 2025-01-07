@@ -19,6 +19,16 @@ fun NetworkBookmark.asDbModel(userId: String): DbBookmark {
   )
 }
 
+fun NetworkBookmark.asDomainModel(userId: String): Bookmark {
+  return Bookmark(
+    userId = userId,
+    libraryItemId = libraryItemId,
+    title = title,
+    time = time.seconds,
+    createdAt = Instant.fromEpochSeconds(createdAt).toLocalDateTime(TimeZone.UTC),
+  )
+}
+
 fun DbBookmark.asDomainModel(): Bookmark {
   return Bookmark(
     userId = userId,
@@ -29,11 +39,12 @@ fun DbBookmark.asDomainModel(): Bookmark {
   )
 }
 
-fun Bookmark.asNetworkModel(): NetworkBookmark {
-  return NetworkBookmark(
+fun Bookmark.asDbModel(): DbBookmark {
+  return DbBookmark(
+    userId = userId,
     libraryItemId = libraryItemId,
     title = title,
-    time = time.inWholeSeconds.toInt(),
-    createdAt = createdAt.toInstant(TimeZone.UTC).toEpochMilliseconds(),
+    timeInSeconds = time.inWholeSeconds.toInt(),
+    createdAt = createdAt,
   )
 }

@@ -1,0 +1,67 @@
+import kotlin.Int;
+
+CREATE TABLE IF NOT EXISTS bookmarkFailedCreate (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  timeInSeconds INTEGER AS Int NOT NULL,
+  timestamp INTEGER NOT NULL,
+  PRIMARY KEY (libraryItemId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS bookmarkFailedDelete (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  timeInSeconds INTEGER AS Int NOT NULL,
+  timestamp INTEGER NOT NULL,
+  PRIMARY KEY (libraryItemId, userId)
+);
+
+-- Queries
+
+insertFailedCreate:
+INSERT INTO bookmarkFailedCreate
+VALUES ?;
+
+insertFailedDelete:
+INSERT INTO bookmarkFailedDelete
+VALUES ?;
+
+selectFailedCreate:
+SELECT timestamp FROM bookmarkFailedCreate
+WHERE userId = ?
+  AND libraryItemId = ?;
+
+selectFailedDelete:
+SELECT timestamp FROM bookmarkFailedDelete
+WHERE userId = ?
+  AND libraryItemId = ?;
+
+deleteFailedCreate:
+DELETE FROM bookmarkFailedCreate
+WHERE userId = ?
+  AND libraryItemId = ?
+  AND timeInSeconds = ?;
+
+deleteFailedDelete:
+DELETE FROM bookmarkFailedDelete
+WHERE userId = ?
+  AND libraryItemId = ?
+  AND timeInSeconds = ?;
+
+deleteAllFailedCreate:
+DELETE FROM bookmarkFailedCreate
+WHERE userId = ?
+  AND libraryItemId = ?;
+
+deleteAllFailedDelete:
+DELETE FROM bookmarkFailedDelete
+WHERE userId = ?
+  AND libraryItemId = ?;
+
+deleteAll {
+  DELETE FROM bookmarkFailedCreate
+  WHERE userId = :userId;
+
+  DELETE FROM bookmarkFailedDelete
+  WHERE userId = :userId;
+}

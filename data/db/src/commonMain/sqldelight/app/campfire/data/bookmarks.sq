@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS bookmarks(
   title TEXT NOT NULL,
   timeInSeconds INTEGER AS Int NOT NULL,
   createdAt TEXT AS LocalDateTime NOT NULL,
-  PRIMARY KEY (userId, libraryItemId)
+  PRIMARY KEY (userId, libraryItemId, timeInSeconds)
 );
 
 -- Queries
@@ -21,9 +21,16 @@ SELECT * FROM bookmarks
 WHERE userId = ?
   AND libraryItemId = ?;
 
+delete:
+DELETE FROM bookmarks
+WHERE userId = ?
+  AND libraryItemId = ?
+  AND timeInSeconds = ?;
+
 deleteForItem:
 DELETE FROM bookmarks
-WHERE libraryItemId = ?;
+WHERE userId = ?
+  AND libraryItemId = ?;
 
 deleteForUser:
 DELETE FROM bookmarks

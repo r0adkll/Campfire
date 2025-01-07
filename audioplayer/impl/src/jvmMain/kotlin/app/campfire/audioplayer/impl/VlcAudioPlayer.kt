@@ -11,6 +11,7 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -144,6 +145,23 @@ class VlcAudioPlayer(
 
   override fun seekTo(progress: Float) {
     mediaPlayer.seekTo(progress)
+  }
+
+  override fun seekTo(timestamp: Duration) {
+    val timestampInMillis = timestamp.inWholeMilliseconds
+    var mediaItemOffsetMs = 0L
+
+    for (index in 0 until mediaPlayer.getMediaItemCount()) {
+      val mediaItem =  mediaPlayer.getMediaItemAt(index)
+      val mediaItemDuration = mediaItem.metadata?.durationMs ?: error("Media Metadata Corrupted")
+      val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
+      if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
+        val progressInMediaItem = timestampInMillis - mediaItemOffsetMs
+        mediaPlayer.seekTo(index, progressInMediaItem)
+        return
+      }
+      mediaItemOffsetMs = mediaItemEnd
+    }
   }
 
   override fun skipToNext() {

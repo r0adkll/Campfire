@@ -8,6 +8,7 @@ import app.campfire.core.session.serverUrl
 import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.CollectionsResponse
+import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
@@ -15,6 +16,7 @@ import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
@@ -180,6 +182,28 @@ class KtorAudioBookShelfApi(
   override suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit> {
     return trySendRequest({}) {
       hydratedClientRequest("/api/me/progress/$mediaProgressId") {
+        method = HttpMethod.Delete
+      }
+    }
+  }
+
+  override suspend fun createBookmark(libraryItemId: String, timeInSeconds: Int, title: String): Result<AudioBookmark> {
+    return trySendRequest {
+      hydratedClientRequest("/api/me/item/$libraryItemId/bookmark") {
+        method = HttpMethod.Post
+        setBody(
+          CreateBookmarkRequest(
+            time = timeInSeconds,
+            title = title,
+          )
+        )
+      }
+    }
+  }
+
+  override suspend fun removeBookmark(libraryItemId: String, timeInSeconds: Int): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/me/item/$libraryItemId/bookmark/$timeInSeconds") {
         method = HttpMethod.Delete
       }
     }

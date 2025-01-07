@@ -1,6 +1,5 @@
 package app.campfire.sessions.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -32,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.outlined.BookmarkAdd
 import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.Forward10
@@ -43,7 +41,8 @@ import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
-import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,15 +75,20 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.filled.Bookmarks
+import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.RunningTimerText
+import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
+import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
@@ -123,6 +127,7 @@ internal fun ExpandedPlaybackBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -152,6 +157,7 @@ internal fun ExpandedPlaybackBar(
       onTimerCleared = onTimerCleared,
       onTimerSelected = onTimerSelected,
       onChapterSelected = onChapterSelected,
+      onBookmarkSelected = onBookmarkSelected,
       onClose = onClose,
       sharedTransitionScope = sharedTransitionScope,
       animatedVisibilityScope = animatedVisibilityScope,
@@ -180,6 +186,7 @@ internal fun ExpandedPlaybackBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -379,7 +386,14 @@ internal fun ExpandedPlaybackBar(
       Spacer(Modifier.height(24.dp))
 
       ActionRow(
-        onBookmarkAddClick = {},
+        onBookmarksClick = {
+          scope.launch {
+            when (val result = overlayHost.showBookmarksBottomSheet(session.libraryItem.id)) {
+              is BookmarkResult.Selected -> onBookmarkSelected(result.bookmark)
+              BookmarkResult.None -> Unit
+            }
+          }
+        },
         onSpeedClick = {
           scope.launch {
             overlayHost.showPlaybackSpeedBottomSheet(playbackSpeed)
@@ -592,7 +606,7 @@ private fun PlaybackActions(
 
 @Composable
 private fun ActionRow(
-  onBookmarkAddClick: () -> Unit,
+  onBookmarksClick: () -> Unit,
   onSpeedClick: () -> Unit,
   onTimerClick: () -> Unit,
   onChapterListClick: () -> Unit,
@@ -606,9 +620,9 @@ private fun ActionRow(
     horizontalArrangement = Arrangement.SpaceEvenly,
   ) {
     IconButton(
-      onClick = onBookmarkAddClick,
+      onClick = onBookmarksClick,
     ) {
-      Icon(Icons.Outlined.BookmarkAdd, contentDescription = null)
+      Icon(Icons.Rounded.Bookmarks, contentDescription = null)
     }
 
     IconButton(
