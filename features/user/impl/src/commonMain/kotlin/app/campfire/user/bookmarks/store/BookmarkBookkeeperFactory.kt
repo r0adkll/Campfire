@@ -87,14 +87,14 @@ class BookmarkBookkeeperFactory(
         db.bookmarkBookkeepingQueries.deleteFailedCreate(
           userId = operation.userId,
           libraryItemId = operation.libraryItemId,
-          timeInSeconds = operation.timeInSeconds
+          timeInSeconds = operation.timeInSeconds,
         )
       }
       is BookmarkStore.Operation.Mutation.Delete -> {
         db.bookmarkBookkeepingQueries.deleteFailedDelete(
           userId = operation.userId,
           libraryItemId = operation.libraryItemId,
-          timeInSeconds = operation.timeInSeconds
+          timeInSeconds = operation.timeInSeconds,
         )
       }
     }

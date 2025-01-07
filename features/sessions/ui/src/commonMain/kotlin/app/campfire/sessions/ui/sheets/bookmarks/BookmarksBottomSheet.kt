@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,12 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BookmarkAdd
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.FastRewind
 import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.Replay
-import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,7 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,16 +52,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.zIndex
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.Bookmark
 import app.campfire.common.compose.icons.rounded.BookmarkStar
@@ -94,7 +84,6 @@ import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_act
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_action_create
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_label_title
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_title
-import campfire.features.sessions.ui.generated.resources.timer_bottomsheet_title
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
@@ -400,11 +389,10 @@ private fun CreateNewDialog(
           modifier = Modifier.padding(24.dp),
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-
           Icon(
             Icons.Rounded.BookmarkStar,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary
+            tint = MaterialTheme.colorScheme.secondary,
           )
 
           Spacer(Modifier.height(16.dp))
@@ -436,8 +424,8 @@ private fun CreateNewDialog(
               ),
             ) {
               Icon(
-                  Icons.Rounded.Replay,
-                  contentDescription = null,
+                Icons.Rounded.Replay,
+                contentDescription = null,
               )
             }
 

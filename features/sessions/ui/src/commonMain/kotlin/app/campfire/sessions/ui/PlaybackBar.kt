@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
-import app.campfire.core.model.Bookmark
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
@@ -142,7 +141,7 @@ fun PlaybackBar(
               },
               onBookmarkSelected = { bookmark ->
                 audioPlayer?.seekTo(bookmark.time)
-              }
+              },
             )
           }
         }

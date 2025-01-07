@@ -6,7 +6,6 @@ import app.campfire.network.models.AudioBookmark as NetworkBookmark
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 
 fun NetworkBookmark.asDbModel(userId: String): DbBookmark {

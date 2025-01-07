@@ -48,7 +48,7 @@ object BookmarkStore : Cork {
 
     private fun createConverter(): Converter<User, List<Bookmark>, List<Bookmark>> {
       return Converter.Builder<User, List<Bookmark>, List<Bookmark>>()
-        .fromNetworkToLocal { user -> user.bookmarks.map { it.asDomainModel(user.id) }}
+        .fromNetworkToLocal { user -> user.bookmarks.map { it.asDomainModel(user.id) } }
         .fromOutputToLocal { it }
         .build()
     }

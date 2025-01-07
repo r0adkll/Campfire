@@ -2,7 +2,6 @@ package app.campfire.user.bookmarks.store
 
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.User
 import org.mobilenativefoundation.store.store5.Fetcher
 

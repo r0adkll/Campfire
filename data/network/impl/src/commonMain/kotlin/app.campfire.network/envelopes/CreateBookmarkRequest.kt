@@ -7,4 +7,3 @@ data class CreateBookmarkRequest(
   val time: Int,
   val title: String,
 )
-

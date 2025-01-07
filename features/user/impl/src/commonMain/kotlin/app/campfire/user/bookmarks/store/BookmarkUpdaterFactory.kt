@@ -3,7 +3,6 @@ package app.campfire.user.bookmarks.store
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.UserId
-import app.campfire.data.Bookmarks
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.AudioBookShelfApi
 import org.mobilenativefoundation.store.store5.OnUpdaterCompletion

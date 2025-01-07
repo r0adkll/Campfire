@@ -152,7 +152,7 @@ class VlcAudioPlayer(
     var mediaItemOffsetMs = 0L
 
     for (index in 0 until mediaPlayer.getMediaItemCount()) {
-      val mediaItem =  mediaPlayer.getMediaItemAt(index)
+      val mediaItem = mediaPlayer.getMediaItemAt(index)
       val mediaItemDuration = mediaItem.metadata?.durationMs ?: error("Media Metadata Corrupted")
       val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
       if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {

@@ -195,7 +195,7 @@ class KtorAudioBookShelfApi(
           CreateBookmarkRequest(
             time = timeInSeconds,
             title = title,
-          )
+          ),
         )
       }
     }

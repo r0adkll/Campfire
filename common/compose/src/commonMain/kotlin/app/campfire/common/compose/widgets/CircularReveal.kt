@@ -42,17 +42,16 @@ fun Modifier.circularReveal(
   revealFrom: Offset = Offset(0.5f, 0.5f),
   durationMillis: Int = 250,
   easing: Easing = EaseInOutSine,
-  size: MutableState<IntSize> = mutableStateOf(IntSize(0, 0))
+  size: MutableState<IntSize> = mutableStateOf(IntSize(0, 0)),
 ): Modifier =
   onGloballyPositioned {
     size.value = it.size
   }.composed(
     factory = {
-
       val animationProgress: State<Float> = animateFloatAsState(
         targetValue = if (isVisible) 1f else 0f,
         animationSpec = tween(durationMillis = durationMillis, easing = easing),
-        label = ""
+        label = "",
       )
 
       circularReveal(animationProgress, revealFrom / size.value.toSize())
@@ -62,7 +61,7 @@ fun Modifier.circularReveal(
       properties["visible"] = isVisible
       properties["revealFrom"] = revealFrom
       properties["durationMillis"] = durationMillis
-    }
+    },
   )
 
 /**
@@ -74,7 +73,7 @@ fun Modifier.circularReveal(
  */
 private fun Modifier.circularReveal(
   transitionProgress: State<Float>,
-  revealFrom: Offset = Offset(0.5f, 0.5f)
+  revealFrom: Offset = Offset(0.5f, 0.5f),
 ): Modifier = drawWithCache {
   val path = Path()
 
