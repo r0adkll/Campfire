@@ -472,6 +472,7 @@ private fun CreateNewDialog(
               titleValue = newValue
             },
             label = { Text(stringResource(Res.string.bookmark_new_dialog_label_title)) },
+            modifier = Modifier.fillMaxWidth(),
           )
 
           Spacer(Modifier.height(16.dp))

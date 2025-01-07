@@ -69,12 +69,16 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.RunningTimerText
+import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
+import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
@@ -145,6 +149,9 @@ fun PlaybackBottomBar(
       onChapterSelected = { chapter ->
         audioPlayer?.seekTo(chapter.id)
       },
+      onBookmarkSelected = { bookmark ->
+        audioPlayer?.seekTo(bookmark.time)
+      },
       modifier = modifier,
     )
   }
@@ -169,6 +176,7 @@ private fun PlaybackBottomBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onBookmarkSelected: (Bookmark) -> Unit,
 
   modifier: Modifier = Modifier,
 ) {
@@ -249,7 +257,15 @@ private fun PlaybackBottomBar(
       ActionRow(
         modifier = Modifier.weight(1f),
         runningTimer = runningTimer,
-        onBookmarkAddClick = {},
+        onBookmarkAddClick = {
+          if (session == null) return@ActionRow
+          scope.launch {
+            when (val result = overlayHost.showBookmarksBottomSheet(session.libraryItem.id)) {
+              is BookmarkResult.Selected -> onBookmarkSelected(result.bookmark)
+              BookmarkResult.None -> Unit
+            }
+          }
+        },
         onSpeedClick = {
           scope.launch {
             overlayHost.showPlaybackSpeedBottomSheet(playbackSpeed)
@@ -514,7 +530,7 @@ private fun ActionRow(
     IconButton(
       onClick = onBookmarkAddClick,
     ) {
-      Icon(Icons.Outlined.BookmarkAdd, contentDescription = null)
+      Icon(Icons.Rounded.Bookmarks, contentDescription = null)
     }
 
     IconButton(

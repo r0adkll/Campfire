@@ -26,6 +26,7 @@ class BookmarkSourceOfTruthFactory(
     return SourceOfTruth.of(
       reader = { operation ->
         require(operation is BookmarkStore.Operation.Item)
+        BookmarkStore.dbark { "handleRead($operation)" }
         observeForItem(operation.userId, operation.libraryItemId)
       },
       writer = { operation, bookmarks -> handleWrite(operation, bookmarks) },
@@ -46,8 +47,13 @@ class BookmarkSourceOfTruthFactory(
     operation: BookmarkStore.Operation,
     bookmarks: List<Bookmark> = emptyList(),
   ) {
+    BookmarkStore.dbark { "handleWrite($operation, $bookmarks)" }
     when (operation) {
-      is BookmarkStore.Operation.Item -> writeAll(bookmarks)
+      is BookmarkStore.Operation.Item -> writeAll(
+        userId = operation.userId,
+        libraryItemId = operation.libraryItemId,
+        bookmarks = bookmarks,
+      )
 
       is BookmarkStore.Operation.Mutation.Create -> createOne(
         userId = operation.userId,
@@ -63,6 +69,7 @@ class BookmarkSourceOfTruthFactory(
   private suspend fun handleDelete(
     operation: BookmarkStore.Operation,
   ) {
+    BookmarkStore.dbark { "handleDelete($operation)" }
     when (operation) {
       is BookmarkStore.Operation.Item -> deleteAll(
         userId = operation.userId,
@@ -84,9 +91,12 @@ class BookmarkSourceOfTruthFactory(
   }
 
   private suspend fun writeAll(
+    userId: UserId,
+    libraryItemId: LibraryItemId,
     bookmarks: List<Bookmark>,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.bookmarksQueries.transaction {
+      db.bookmarksQueries.deleteForItem(userId, libraryItemId)
       bookmarks.forEach { bookmark ->
         db.bookmarksQueries.insert(
           bookmark.asDbModel(),

@@ -16,14 +16,17 @@ class BookmarkUpdaterFactory(
 
   fun create(): Updater<BookmarkStore.Operation, List<Bookmark>, BookmarkStore.Update> {
     return Updater.by(
-      post = { operation, bookmarks -> handlePost(operation, bookmarks) },
+      post = { operation, bookmarks ->
+        BookmarkStore.dbark { "post --> $operation, $bookmarks" }
+        handlePost(operation, bookmarks)
+      },
       onCompletion = OnUpdaterCompletion(
         onSuccess = {
           BookmarkStore.ibark { "Updater completed successfully: $it" }
         },
         onFailure = {
           BookmarkStore.ebark { "Updater failed: $it" }
-        }
+        },
       ),
     )
   }
@@ -33,15 +36,31 @@ class BookmarkUpdaterFactory(
     bookmarks: List<Bookmark>,
   ): UpdaterResult = when (operation) {
     is BookmarkStore.Operation.Item -> {
-      BookmarkStore.ebark { "Posting a batch is not currently supported" }
-      throw UnsupportedOperationException("Posting a batch is not currently supported")
+      bookmarks.forEach {
+        val result = createOne(
+          it.userId,
+          it.libraryItemId,
+          it.time.inWholeSeconds.toInt(),
+          it.title,
+        )
+
+        BookmarkStore.vbark { "posting ~~> B(${it.time.inWholeSeconds}) = $result" }
+
+        if (result is UpdaterResult.Error) {
+          return result
+        }
+      }
+
+      UpdaterResult.Success.Typed(Unit)
     }
+
     is BookmarkStore.Operation.Mutation.Create -> createOne(
       operation.userId,
       operation.libraryItemId,
       operation.timeInSeconds,
       operation.title,
     )
+
     is BookmarkStore.Operation.Mutation.Delete -> deleteOne(
       libraryItemId = operation.libraryItemId,
       timeInSeconds = operation.timeInSeconds,
@@ -54,17 +73,14 @@ class BookmarkUpdaterFactory(
     timeInSeconds: Int,
     title: String,
   ): UpdaterResult {
-    return api.createBookmark(libraryItemId, timeInSeconds, title)
-      .map { it.asDomainModel(userId) }
-      .asUpdaterResult()
+    return api.createBookmark(libraryItemId, timeInSeconds, title).map { it.asDomainModel(userId) }.asUpdaterResult()
   }
 
   private suspend fun deleteOne(
     libraryItemId: LibraryItemId,
     timeInSeconds: Int,
   ): UpdaterResult {
-    return api.removeBookmark(libraryItemId, timeInSeconds)
-      .asUpdaterResult()
+    return api.removeBookmark(libraryItemId, timeInSeconds).asUpdaterResult()
   }
 
   private fun <T : Any> Result<T>.asUpdaterResult(): UpdaterResult {

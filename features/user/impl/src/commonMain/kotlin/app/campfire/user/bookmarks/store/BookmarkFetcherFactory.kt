@@ -14,6 +14,9 @@ class BookmarkFetcherFactory(
     return Fetcher.ofResult { operation ->
       require(operation is BookmarkStore.Operation.Item)
       api.getCurrentUser()
+        .also {
+          BookmarkStore.dbark { "Fetcher Result(${it.getOrNull()?.bookmarks})" }
+        }
         .asFetcherResult()
     }
   }
