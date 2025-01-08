@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
@@ -75,7 +76,6 @@ import campfire.shared.generated.resources.nav_series_content_description
 import campfire.shared.generated.resources.nav_series_label
 import campfire.shared.generated.resources.settings
 import campfire.shared.generated.resources.settings_content_description
-import com.moriatsushi.insetsx.navigationBars
 import com.slack.circuit.backstack.SaveableBackStack
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitContent

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -113,6 +114,7 @@ fun LibraryItem(
       )
     },
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (val contentState = state.libraryItemContentState) {
       LoadState.Error -> ErrorListState(

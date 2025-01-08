@@ -16,8 +16,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
@@ -62,7 +62,7 @@ fun HomeScreen(
       .fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
         nestedScroll(appBarBehavior.nestedScrollConnection)
       },
-    contentWindowInsets = windowSizeClass.contentWindowInsets,
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.homeFeed) {
       HomeFeed.Loading -> LoadingListState(Modifier.padding(paddingValues))

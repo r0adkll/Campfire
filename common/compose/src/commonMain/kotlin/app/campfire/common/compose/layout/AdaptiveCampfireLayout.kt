@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -61,7 +62,6 @@ import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.session.isLoggedIn
-import com.moriatsushi.insetsx.navigationBars
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 

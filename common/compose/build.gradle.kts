@@ -21,7 +21,6 @@ kotlin {
         api(libs.coil.compose)
         api(libs.coil.svg)
         api(libs.compose.material3.windowsizeclass)
-        api(libs.insetsx)
         api(libs.materialcolorsutilities)
 
         api(compose.foundation)

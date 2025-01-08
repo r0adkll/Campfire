@@ -225,7 +225,7 @@ private fun CollapsedPlaybackBarContent(
       ) {
         val title = when (dragState.actionState) {
           Dispose -> "Clear session"
-          else -> currentMetadata.title ?: "--"
+          else -> currentMetadata.title ?: session.chapter.title
         }
 
         Text(

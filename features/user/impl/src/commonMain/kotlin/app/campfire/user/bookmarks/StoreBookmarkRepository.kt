@@ -49,7 +49,7 @@ class StoreBookmarkRepository(
 
         bookmarkStore.stream<List<Bookmark>>(request)
           .onEach { BookmarkStore.dbark { "observe --> $it" } }
-          .filterNot { it is StoreReadResponse.Loading && it is StoreReadResponse.NoNewData }
+          .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .map { it.dataOrNull() ?: emptyList() }
           .map { it.sortedBy(Bookmark::time) }
       }

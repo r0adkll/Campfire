@@ -5,10 +5,13 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.UserId
+import app.campfire.core.model.isContentDifferent
+import app.campfire.core.model.isSame
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Bookmarks
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.Flow
@@ -51,7 +54,6 @@ class BookmarkSourceOfTruthFactory(
     when (operation) {
       is BookmarkStore.Operation.Item -> writeAll(
         userId = operation.userId,
-        libraryItemId = operation.libraryItemId,
         bookmarks = bookmarks,
       )
 
@@ -92,14 +94,34 @@ class BookmarkSourceOfTruthFactory(
 
   private suspend fun writeAll(
     userId: UserId,
-    libraryItemId: LibraryItemId,
     bookmarks: List<Bookmark>,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.bookmarksQueries.transaction {
-      db.bookmarksQueries.deleteForItem(userId, libraryItemId)
+      val currentItems = db.bookmarksQueries.selectForUser(userId)
+        .awaitAsList()
+        .map { it.asDomainModel() }
+        .toMutableList()
+
       bookmarks.forEach { bookmark ->
-        db.bookmarksQueries.insert(
-          bookmark.asDbModel(),
+        val existing = currentItems.find { it isSame bookmark }
+          ?.also { currentItems.remove(it) }
+
+        // If exists and is different update,
+        if (existing != null && existing isContentDifferent bookmark) {
+          db.bookmarksQueries.insert(bookmark.asDbModel())
+
+          // If doesn't exist, insert
+        } else if (existing == null) {
+          db.bookmarksQueries.insert(bookmark.asDbModel())
+        }
+      }
+
+      // Remove local items that are no longer on the server
+      currentItems.forEach { deadBookmark ->
+        db.bookmarksQueries.delete(
+          userId = deadBookmark.userId,
+          libraryItemId = deadBookmark.libraryItemId,
+          timeInSeconds = deadBookmark.time.inWholeSeconds.toInt(),
         )
       }
     }

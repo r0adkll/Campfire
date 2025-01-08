@@ -5,7 +5,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.audioplayer.AudioPlayer
@@ -48,12 +47,7 @@ fun SessionHostLayout(
   content: @Composable (session: Session?, player: AudioPlayer?, clearSession: () -> Unit) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
-
   val comp by component
-
-  LaunchedEffect(comp) {
-    println("LaunchedEffect: $comp")
-  }
 
   val currentSession by remember {
     comp.sessionsRepository.observeCurrentSession()
@@ -63,15 +57,13 @@ fun SessionHostLayout(
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
-  // Attach the playback controller to the lifecycle of this composition.
-  key(comp) {
-    comp.playbackController.attachController()
-  }
-
   LaunchedEffect(currentSession) {
     if (
       currentSession != null &&
-      (audioPlayer == null || currentSession!!.id != audioPlayer!!.preparedSession?.id)
+      (
+        (audioPlayer == null || audioPlayer!!.state.value == AudioPlayer.State.Disabled) ||
+          currentSession!!.id != audioPlayer!!.preparedSession?.id
+        )
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it
       bark(LogPriority.WARN) { "Session found, but media player not initialized, starting…" }

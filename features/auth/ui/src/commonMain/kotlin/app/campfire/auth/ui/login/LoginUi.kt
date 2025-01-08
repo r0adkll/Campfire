@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -34,7 +35,6 @@ import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
-import com.moriatsushi.insetsx.imePadding
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 

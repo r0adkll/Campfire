@@ -21,6 +21,10 @@ SELECT * FROM bookmarks
 WHERE userId = ?
   AND libraryItemId = ?;
 
+selectForUser:
+SELECT * FROM bookmarks
+WHERE userId = ?;
+
 delete:
 DELETE FROM bookmarks
 WHERE userId = ?

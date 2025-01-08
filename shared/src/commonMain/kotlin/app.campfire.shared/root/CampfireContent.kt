@@ -2,11 +2,15 @@ package app.campfire.shared.root
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -16,12 +20,11 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
+import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.logging.bark
 import app.campfire.shared.navigator.OpenUrlNavigator
-import com.moriatsushi.insetsx.statusBars
-import com.moriatsushi.insetsx.systemBars
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.rememberCircuitNavigator
@@ -72,6 +75,11 @@ fun CampfireContentWithInsets(
         }
       }
 
+      // Observe Current Session
+      val currentSession by remember(userComponent) {
+        userComponent.sessionsRepository.observeCurrentSession()
+      }.collectAsState(null)
+
       PlatformBackHandler(
         enabled = backStack.size > 1,
         onBack = {
@@ -92,12 +100,16 @@ fun CampfireContentWithInsets(
           useDarkColors = settings.shouldUseDarkColors(),
           useDynamicColors = settings.shouldUseDynamicColors(),
         ) {
-          HomeUi(
-            backstack = backStack,
-            navigator = urlNavigator,
-            windowInsets = windowInsets,
-            modifier = modifier,
-          )
+          CompositionLocalProvider(
+            LocalPlaybackSession provides currentSession,
+          ) {
+            HomeUi(
+              backstack = backStack,
+              navigator = urlNavigator,
+              windowInsets = windowInsets,
+              modifier = modifier,
+            )
+          }
         }
       }
     }

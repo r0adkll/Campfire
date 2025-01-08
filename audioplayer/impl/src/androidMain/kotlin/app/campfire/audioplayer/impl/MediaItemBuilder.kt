@@ -8,6 +8,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER
 import androidx.media3.common.util.UnstableApi
 import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -37,7 +38,7 @@ object MediaItemBuilder {
       // Determine now if the audio track needs to be clipped for this item\
       val diff = computerChapterTrackDiffInSeconds(chapter, track)
 
-      bark { "MediaItem[~${diff}s](chapter=$chapter, track=$track)" }
+      bark(LogPriority.VERBOSE) { "MediaItem[~${diff}s](chapter=$chapter, track=$track)" }
 
       createMediaItem(chapter, track, likelyTrackPerChapter || diff < 0f, media)
     }

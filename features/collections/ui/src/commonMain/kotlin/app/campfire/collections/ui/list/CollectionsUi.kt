@@ -31,11 +31,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.layout.LazyContentSize
-import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
@@ -97,7 +97,7 @@ fun Collections(
     modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
       nestedScroll(appBarBehavior.nestedScrollConnection)
     },
-    contentWindowInsets = windowSizeClass.contentWindowInsets.exclude(WindowInsets.navigationBars),
+    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.collectionContentState) {
       CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -153,7 +153,7 @@ private fun LoadedState(
           items = collection.books,
           modifier = Modifier
             .fillMaxWidth()
-            .animateItemPlacement()
+            .animateItem()
             .clickable { onCollectionClick(collection) },
         )
       }

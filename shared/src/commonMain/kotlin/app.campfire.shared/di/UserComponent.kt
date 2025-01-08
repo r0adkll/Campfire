@@ -9,6 +9,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
+import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +31,8 @@ interface UserComponent {
 
   @get:ForScope(UserScope::class)
   val coroutineScopeHolder: CoroutineScopeHolder
+
+  val sessionsRepository: SessionsRepository
 
   @Provides @RootScreen
   @SingleIn(UserScope::class)

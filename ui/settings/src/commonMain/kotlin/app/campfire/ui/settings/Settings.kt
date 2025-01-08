@@ -40,10 +40,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.Platform
 import app.campfire.common.compose.currentPlatform
-import app.campfire.common.compose.layout.contentWindowInsets
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.settings.CampfireSettings
@@ -91,7 +91,7 @@ fun Settings(
       }
     },
     modifier = modifier,
-    contentWindowInsets = windowSizeClass.contentWindowInsets,
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     Column(
       modifier = Modifier
