@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.player
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.vlcj.ifPlayable
 import app.campfire.audioplayer.impl.vlcj.isPlaying
 import app.campfire.audioplayer.impl.vlcj.pause

@@ -20,3 +20,7 @@ infix fun Duration.progressOver(other: Duration): Float {
  * Return the duration as a [Float] in seconds.
  */
 fun Duration.asSeconds(): Float = toDouble(DurationUnit.SECONDS).toFloat()
+
+infix fun ClosedRange<Duration>.isIn(other: ClosedRange<Duration>): Boolean {
+  return start >= other.start && endInclusive <= other.endInclusive
+}

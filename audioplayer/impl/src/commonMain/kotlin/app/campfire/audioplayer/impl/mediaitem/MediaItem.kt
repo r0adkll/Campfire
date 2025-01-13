@@ -1,4 +1,4 @@
-package app.campfire.audioplayer.impl.player
+package app.campfire.audioplayer.impl.mediaitem
 
 data class MediaItem(
   val id: String,
@@ -17,6 +17,7 @@ data class MediaItem(
   }
 
   data class Metadata(
+    val id: Int?,
     val title: String?,
     val artist: String?,
     val description: String,

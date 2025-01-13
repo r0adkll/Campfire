@@ -9,6 +9,22 @@ plugins {
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+
+  /**
+   * NOTE: These have to match the iOS targets configured in
+   * [app.campfire.convention.KotlinMultiplatformConventionPlugin]
+   */
+  listOf(
+    iosArm64(),
+    iosSimulatorArm64(),
+  ).forEach { target ->
+    target.compilations.getByName("main") {
+      // https://kotlinlang.org/docs/multiplatform-dsl-reference.html#cinterops
+      // The default file path is src/nativeInterop/cinterop/<interop-name>.def
+      val nskeyvalueobserving by cinterops.creating
+    }
+  }
+
   sourceSets {
     commonMain {
       dependencies {

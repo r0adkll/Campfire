@@ -1,0 +1,14 @@
+# https://slack-chats.kotlinlang.org/t/528792/hello-is-it-possible-to-use-in-kotlin-addobserver-on-nsobjec#968aa67c-9166-41c6-b44c-d549a377c08e
+package = platform.foundation
+language = Objective-C
+---
+#import <Foundation/Foundation.h>
+
+@protocol NSKeyValueObserving
+@required
+// https://developer.apple.com/documentation/objectivec/nsobject/1416553-observevalueforkeypath
+- (void) observeValueForKeyPath:(NSString *)keyPath
+    ofObject:(id)object
+    change:(NSDictionary<NSKeyValueChangeKey, id> *)change
+    context:(void *)context;
+@end;

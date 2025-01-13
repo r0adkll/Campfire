@@ -1,5 +1,7 @@
 package app.campfire.core.model
 
+import kotlin.time.Duration
+
 data class AudioFile(
   val index: Int,
   val ino: String,
@@ -15,7 +17,7 @@ data class AudioFile(
   val exclude: Boolean,
   val error: String? = null,
   val format: String,
-  val duration: Float,
+  val duration: Duration,
   val bitRate: Int,
   val language: String? = null,
   val codec: String,

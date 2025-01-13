@@ -52,7 +52,6 @@ class LocalSessionUpdateSynchronizer(
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-    dbark { "onOverallTimeChanged(libraryItemId=$libraryItemId, $overallTime)" }
     sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
   }
 

@@ -34,7 +34,7 @@ interface HttpClientModule {
       install(HttpCache)
 
       install(Logging) {
-        level = LogLevel.BODY
+        level = LogLevel.INFO
         logger = object : Logger {
           override fun log(message: String) {
             bark(LogPriority.INFO) { message }

@@ -61,12 +61,22 @@ fun SessionHostLayout(
     if (
       currentSession != null &&
       (
-        (audioPlayer == null || audioPlayer!!.state.value == AudioPlayer.State.Disabled) ||
+        /*FIXME: || audioPlayer!!.state.value == AudioPlayer.State.Disabled*/
+        (audioPlayer == null) ||
           currentSession!!.id != audioPlayer!!.preparedSession?.id
         )
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it
-      bark(LogPriority.WARN) { "Session found, but media player not initialized, starting…" }
+      bark(LogPriority.WARN) {
+        """
+          Session(
+            currentSession = ${currentSession?.id},
+            audioPlayer = $audioPlayer,
+            audioPlayer.state = ${audioPlayer?.state?.value},
+            audioPlayer.session = ${audioPlayer?.preparedSession},
+          ) found, but media player not initialized, starting
+        """.trimIndent()
+      }
       comp.playbackController.startSession(
         itemId = currentSession!!.libraryItem.id,
         playImmediately = false,

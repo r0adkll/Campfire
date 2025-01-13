@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -115,7 +116,7 @@ class ExoPlayerAudioPlayer(
   ) = withContext(Dispatchers.Main) {
     preparedSession = session
 
-    val mediaItems = MediaItemBuilder.build(session)
+    val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems()
 
     bark(AUDIO_TAG, LogPriority.INFO) {
       """

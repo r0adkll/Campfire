@@ -11,6 +11,7 @@ import kotlin.experimental.ExperimentalNativeApi
 import me.tatarka.inject.annotations.Provides
 import platform.Foundation.NSBundle
 import platform.Foundation.NSUserDefaults
+import platform.UIKit.UIDevice
 
 @SingleIn(AppScope::class)
 @MergeComponent(AppScope::class)
@@ -32,6 +33,8 @@ abstract class IosApplicationComponent() : SharedAppComponent {
       )
       ?.toIntOrNull()
       ?: 0,
+    osName = UIDevice.currentDevice.systemName,
+    osVersion = UIDevice.currentDevice.systemVersion,
   )
 
   @Provides

@@ -421,7 +421,7 @@ suspend fun SelectForId.asDomainModel(
           exclude = it.exclude,
           error = it.error,
           format = it.format ?: "",
-          duration = it.duration.toFloat(),
+          duration = it.duration.seconds,
           bitRate = it.bitRate,
           language = it.language,
           codec = it.codec,

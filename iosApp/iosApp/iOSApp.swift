@@ -13,7 +13,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 //        if !(FirebaseOptions.defaultOptions()?.apiKey?.isEmpty ?? true) {
 //            FirebaseApp.configure()
 //        }
-//        applicationComponent.initializers.initialize()
+        applicationComponent.startupInitializer.initialize()
         return true
     }
 }

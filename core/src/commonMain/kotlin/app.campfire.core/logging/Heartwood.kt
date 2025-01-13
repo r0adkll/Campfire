@@ -21,12 +21,12 @@ class Heartwood private constructor() {
   }
 }
 
-enum class LogPriority(val priority: Int) {
-  VERBOSE(2),
-  DEBUG(3),
-  INFO(4),
-  WARN(5),
-  ERROR(6),
+enum class LogPriority(val priority: Int, val short: String) {
+  VERBOSE(2, "V"),
+  DEBUG(3, "D"),
+  INFO(4, "I"),
+  WARN(5, "W"),
+  ERROR(6, "E"),
 }
 
 /**

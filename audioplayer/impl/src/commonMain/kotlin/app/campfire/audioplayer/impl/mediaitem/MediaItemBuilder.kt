@@ -1,6 +1,5 @@
-package app.campfire.audioplayer.impl
+package app.campfire.audioplayer.impl.mediaitem
 
-import app.campfire.audioplayer.impl.player.MediaItem
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -36,7 +35,7 @@ object MediaItemBuilder {
     }
   }
 
-  private fun computerChapterTrackDiffInSeconds(
+  internal fun computerChapterTrackDiffInSeconds(
     chapter: Chapter,
     track: AudioTrack,
   ): Float {
@@ -63,15 +62,23 @@ object MediaItemBuilder {
       } else {
         null
       },
-      metadata = MediaItem.Metadata(
-        title = chapter.title,
-        artist = media.metadata.authorName,
-        description = media.metadata.description ?: "",
-        subtitle = media.metadata.subtitle,
-        albumTitle = media.metadata.seriesName,
-        artworkUri = media.coverImageUrl,
-        durationMs = chapter.duration.inWholeMilliseconds,
-      ),
+      metadata = createMediaMetadata(chapter, media),
+    )
+  }
+
+  internal fun createMediaMetadata(
+    chapter: Chapter,
+    media: Media,
+  ): MediaItem.Metadata {
+    return MediaItem.Metadata(
+      id = chapter.id,
+      title = chapter.title,
+      artist = media.metadata.authorName,
+      description = media.metadata.description ?: "",
+      subtitle = media.metadata.subtitle,
+      albumTitle = media.metadata.seriesName,
+      artworkUri = media.coverImageUrl,
+      durationMs = chapter.duration.inWholeMilliseconds,
     )
   }
 }
