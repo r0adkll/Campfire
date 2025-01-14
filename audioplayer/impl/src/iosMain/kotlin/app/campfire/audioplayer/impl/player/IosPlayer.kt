@@ -154,7 +154,10 @@ class IosPlayer {
       change: Map<Any?, *>?,
       context: COpaquePointer?,
     ) {
-      bark { "PlayerRateObserver(keyPath=$keyPath, ofObject=$ofObject, change=$change, context=$context): ${avPlayer.rate}" }
+      bark {
+        "PlayerRateObserver(keyPath=$keyPath, ofObject=$ofObject, change=$change, context=$context): " +
+          "${avPlayer.rate}"
+      }
     }
   }
 
@@ -173,7 +176,6 @@ class IosPlayer {
       options = NSKeyValueObservingOptionNew or NSKeyValueObservingOptionOld,
       context = null,
     )
-
 
     NSNotificationCenter.defaultCenter.addObserverForName(
       name = AVAudioSessionInterruptionNotification,
@@ -240,7 +242,10 @@ class IosPlayer {
       stopTimeObserver()
 
       // Determine the current media item position based on passed time information
-      bark { "IosPlayer(currentItemIndex=$currentItemIndex, startTimeInItemMillis=$startTimeInItemMillis, playImmediately=$playImmediately)" }
+      bark {
+        "IosPlayer(currentItemIndex=$currentItemIndex, " +
+          "startTimeInItemMillis=$startTimeInItemMillis, playImmediately=$playImmediately)"
+      }
 
       // Now grab media item and compute the starting offset within the item
       val mediaItem = mediaItems[currentItemIndex]
