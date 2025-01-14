@@ -12,40 +12,45 @@ interface Cork {
    */
   val tag: String
 
+  /**
+   * Flag to enable or disable all logging calls sent from this instance
+   */
+  val enabled: Boolean get() = true
+
   fun bark(
     priority: LogPriority,
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(tag, priority, throwable, extras, message)
+  ) = if (enabled) bark(tag, priority, throwable, extras, message) else Unit
 
   fun vbark(
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(LogPriority.VERBOSE, throwable, extras, message)
+  ) = if (enabled) bark(LogPriority.VERBOSE, throwable, extras, message) else Unit
 
   fun dbark(
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(LogPriority.DEBUG, throwable, extras, message)
+  ) = if (enabled) bark(LogPriority.DEBUG, throwable, extras, message) else Unit
 
   fun ibark(
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(LogPriority.INFO, throwable, extras, message)
+  ) = if (enabled) bark(LogPriority.INFO, throwable, extras, message) else Unit
 
   fun wbark(
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(LogPriority.WARN, throwable, extras, message)
+  ) = if (enabled) bark(LogPriority.WARN, throwable, extras, message) else Unit
 
   fun ebark(
     throwable: Throwable? = null,
     extras: Extras? = null,
     message: () -> String,
-  ) = bark(LogPriority.ERROR, throwable, extras, message)
+  ) = if (enabled) bark(LogPriority.ERROR, throwable, extras, message) else Unit
 }

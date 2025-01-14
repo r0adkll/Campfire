@@ -24,6 +24,7 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -33,6 +34,7 @@ import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
+import org.mobilenativefoundation.store.store5.StoreReadResponse
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -102,6 +104,7 @@ class StoreCollectionsRepository(
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         collectionsStore.stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+          .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             response.dataOrNull()?.let { collections ->
               collections.entries.map { (c, books) ->

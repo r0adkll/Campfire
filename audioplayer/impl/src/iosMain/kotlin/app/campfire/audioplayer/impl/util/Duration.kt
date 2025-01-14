@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.util
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlinx.cinterop.CValue
@@ -17,7 +18,7 @@ fun Duration.asCMTime(): CValue<CMTime> = CMTimeMakeWithSeconds(
 )
 
 @OptIn(ExperimentalForeignApi::class)
-fun Long.asCMTimeSeconds(): CValue<CMTime> = seconds.asCMTime()
+fun Long.asCMTimeFromMillis(): CValue<CMTime> = milliseconds.asCMTime()
 
 @OptIn(ExperimentalForeignApi::class)
 fun Double.asCMTimeSeconds(): CValue<CMTime> = CMTimeMakeWithSeconds(this, NSEC_PER_SEC.toInt())

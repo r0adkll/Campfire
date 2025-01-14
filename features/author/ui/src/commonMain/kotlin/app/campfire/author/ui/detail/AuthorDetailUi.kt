@@ -23,6 +23,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.author.ui.detail.composables.AuthorDetailHeader
 import app.campfire.author.ui.detail.composables.AuthorHeader
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
@@ -61,6 +62,7 @@ fun AuthorDetail(
       )
     },
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.authorContentState) {
       AuthorContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))

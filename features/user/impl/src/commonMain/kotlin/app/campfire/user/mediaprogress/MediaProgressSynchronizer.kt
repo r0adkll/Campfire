@@ -39,8 +39,6 @@ class DefaultMediaProgressSynchronizer(
     val lastSync = lastSyncTimes[mediaProgress.libraryItemId] ?: 0
     val elapsed = fatherTime.nowInEpochMillis() - lastSync
 
-    bark { "Checking MediaProgress Sync for ${mediaProgress.id} for elapsed $elapsed" }
-
     if (force || mediaProgress.id == MediaProgress.UNKNOWN_ID || elapsed > MIN_SYNC_TIME) {
       val duration = syncInternal(mediaProgress)
       bark(LogPriority.INFO) { "Syncing MediaProgress(${mediaProgress.libraryItemId}) took $duration" }
