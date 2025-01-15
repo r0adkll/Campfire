@@ -203,7 +203,7 @@ private fun PlaybackBottomBar(
           verticalArrangement = Arrangement.Center,
         ) {
           Text(
-            text = currentMetadata.title ?: "--",
+            text = currentMetadata.title ?: session?.title ?: "--",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
             fontFamily = PaytoneOneFontFamily,

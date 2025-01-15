@@ -282,6 +282,7 @@ internal fun ExpandedPlaybackBar(
           verticalArrangement = Arrangement.Center,
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+          // TODO: Extract this composable
           Box(
             contentAlignment = Alignment.Center,
           ) {
@@ -331,7 +332,7 @@ internal fun ExpandedPlaybackBar(
           Spacer(Modifier.height(16.dp))
 
           Text(
-            text = currentMetadata.title ?: "--",
+            text = currentMetadata.title ?: session.title,
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.SemiBold,
