@@ -25,3 +25,6 @@ fun Double.asCMTimeSeconds(): CValue<CMTime> = CMTimeMakeWithSeconds(this, NSEC_
 
 @OptIn(ExperimentalForeignApi::class)
 val CValue<CMTime>.seconds: Duration get() = CMTimeGetSeconds(this).seconds
+
+@OptIn(ExperimentalForeignApi::class)
+val ZERO_CM_TIME: CValue<CMTime> get() = CMTimeMakeWithSeconds(0.0, NSEC_PER_SEC.toInt())

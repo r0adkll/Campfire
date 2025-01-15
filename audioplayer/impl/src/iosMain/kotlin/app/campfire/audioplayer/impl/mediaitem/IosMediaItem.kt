@@ -78,7 +78,7 @@ data class IosMediaItem(
   ) {
     val duration: Duration get() = (endMs - startMs).milliseconds
 
-    fun timeInTrack(timeInItem: Duration): Duration = timeInItem - startMs.milliseconds
+    fun timeInTrack(overallTime: Duration): Duration = overallTime - startMs.milliseconds
 
     operator fun contains(time: Duration): Boolean = time.inWholeMilliseconds in startMs..endMs
   }

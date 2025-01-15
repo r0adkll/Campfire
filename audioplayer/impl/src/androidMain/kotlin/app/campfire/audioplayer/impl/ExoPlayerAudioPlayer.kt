@@ -236,7 +236,12 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun skipToPrevious() {
-    exoPlayer.seekToPreviousMediaItem()
+    if (exoPlayer.currentPosition.milliseconds > settings.trackResetThreshold) {
+      exoPlayer.seekToDefaultPosition()
+      exoPlayer.play()
+    } else {
+      exoPlayer.seekToPreviousMediaItem()
+    }
   }
 
   override fun seekForward() {

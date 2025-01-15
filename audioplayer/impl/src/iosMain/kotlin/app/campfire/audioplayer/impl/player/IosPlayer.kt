@@ -1,8 +1,14 @@
 package app.campfire.audioplayer.impl.player
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.kvo.AVTimeObservable.Companion.createTimeObservable
+import app.campfire.audioplayer.impl.kvo.NSObservable.Option.New
+import app.campfire.audioplayer.impl.kvo.NSObservable.Option.Old
+import app.campfire.audioplayer.impl.kvo.NSObservableAction
+import app.campfire.audioplayer.impl.kvo.observe
 import app.campfire.audioplayer.impl.mediaitem.IosMediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
+import app.campfire.audioplayer.impl.util.ZERO_CM_TIME
 import app.campfire.audioplayer.impl.util.asCMTime
 import app.campfire.audioplayer.impl.util.asCMTimeFromMillis
 import app.campfire.audioplayer.impl.util.asCMTimeSeconds
@@ -14,7 +20,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.cinterop.COpaquePointer
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +32,6 @@ import platform.AVFoundation.AVPlayerItem
 import platform.AVFoundation.AVPlayerItemStatusFailed
 import platform.AVFoundation.AVPlayerItemStatusReadyToPlay
 import platform.AVFoundation.AVPlayerItemStatusUnknown
-import platform.AVFoundation.AVPlayerRateDidChangeNotification
 import platform.AVFoundation.AVPlayerStatusFailed
 import platform.AVFoundation.AVPlayerStatusReadyToPlay
 import platform.AVFoundation.AVPlayerStatusUnknown
@@ -39,8 +43,6 @@ import platform.AVFoundation.AVPlayerWaitingForCoordinatedPlaybackReason
 import platform.AVFoundation.AVPlayerWaitingToMinimizeStallsReason
 import platform.AVFoundation.AVPlayerWaitingWhileEvaluatingBufferingRateReason
 import platform.AVFoundation.AVPlayerWaitingWithNoItemToPlayReason
-import platform.AVFoundation.addBoundaryTimeObserverForTimes
-import platform.AVFoundation.addPeriodicTimeObserverForInterval
 import platform.AVFoundation.asset
 import platform.AVFoundation.automaticallyWaitsToMinimizeStalling
 import platform.AVFoundation.currentItem
@@ -50,29 +52,22 @@ import platform.AVFoundation.pause
 import platform.AVFoundation.play
 import platform.AVFoundation.rate
 import platform.AVFoundation.reasonForWaitingToPlay
-import platform.AVFoundation.removeTimeObserver
 import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.AVFoundation.seekToTime
 import platform.AVFoundation.setDefaultRate
 import platform.AVFoundation.setRate
 import platform.AVFoundation.timeControlStatus
-import platform.AVFoundation.valueWithCMTime
 import platform.CoreMedia.CMTime
 import platform.CoreMedia.CMTimeGetSeconds
-import platform.CoreMedia.CMTimeMakeWithSeconds
-import platform.Foundation.NSKeyValueObservingOptionNew
-import platform.Foundation.NSKeyValueObservingOptionOld
 import platform.Foundation.NSNotificationCenter
-import platform.Foundation.NSValue
-import platform.Foundation.addObserver
-import platform.Foundation.removeObserver
-import platform.darwin.NSEC_PER_SEC
-import platform.darwin.NSObject
-import platform.darwin.dispatch_get_main_queue
-import platform.foundation.NSKeyValueObservingProtocol
 
 @OptIn(ExperimentalForeignApi::class)
-class IosPlayer {
+class IosPlayer(
+  private val skipToPreviousResetThreshold: Duration = 5.seconds,
+) : AutoCloseable {
+
+  private val closeables = mutableListOf<AutoCloseable>()
+  private val playerItemCloseables = mutableListOf<AutoCloseable>()
 
   //region State Information
 
@@ -103,114 +98,71 @@ class IosPlayer {
     get() = mediaItems[currentItemIndex]
 
   private var playWhenReady: Boolean = false
+  private var isPreparing: Boolean = false
 
   //endregion
 
-  private val timeControlObserver: NSObject = object : NSObject(), NSKeyValueObservingProtocol {
-    override fun observeValueForKeyPath(
-      keyPath: String?,
-      ofObject: Any?,
-      change: Map<Any?, *>?,
-      context: COpaquePointer?,
-    ) {
-      // bark(LogPriority.INFO) { "TimeControlObserver(keyPath=$keyPath, ofObject=$ofObject, change=$change)" }
-      syncPlayerState("timeControlObserver()")
+  private val playerItemStatusObserver: NSObservableAction<AVPlayerItem> = { path, playerItem, change ->
+    bark(LogPriority.INFO) {
+      "PlayerItemStatusObserver(keyPath=$path, change=$change, status=${
+        avPlayerItemStatusString(
+          playerItem.status,
+        )
+      })"
     }
-  }
 
-  private val playerItemStatusObserver: NSObject = object : NSObject(), NSKeyValueObservingProtocol {
-    override fun observeValueForKeyPath(
-      keyPath: String?,
-      ofObject: Any?,
-      change: Map<Any?, *>?,
-      context: COpaquePointer?,
-    ) {
-      val playerItem = ofObject as? AVPlayerItem ?: return
-      bark(LogPriority.INFO) {
-        "PlayerItemStatusObserver(keyPath=$keyPath, change=$change, status=${
-          avPlayerItemStatusString(
-            playerItem.status,
-          )
-        })"
+    if (playerItem.status == AVPlayerItemStatusReadyToPlay) {
+      // If marked to play immediately, start it now
+      if (playWhenReady) {
+        bark { "playWhenReady() -- Item Ready!" }
+        playWhenReady = false
+        avPlayer.play()
       }
 
-      if (playerItem.status == AVPlayerItemStatusReadyToPlay) {
-        // If marked to play immediately, start it now
-        if (playWhenReady) {
-          bark { "playWhenReady() -- Item Ready!" }
-          playWhenReady = false
-          avPlayer.play()
-        }
-      }
-
-      syncPlayerState("playerItemStatusObserver()")
+      // Mark the preparing phase as completed and the time ready to reflect the actual AVPlayer/Item states
+      isPreparing = false
     }
-  }
 
-  private val playerRateObserver: NSObject = object : NSObject(), NSKeyValueObservingProtocol {
-    override fun observeValueForKeyPath(
-      keyPath: String?,
-      ofObject: Any?,
-      change: Map<Any?, *>?,
-      context: COpaquePointer?,
-    ) {
-      bark {
-        "PlayerRateObserver(keyPath=$keyPath, ofObject=$ofObject, change=$change, context=$context): " +
-          "${avPlayer.rate}"
-      }
-    }
+    syncPlayerState("playerItemStatusObserver()")
   }
 
   private val avPlayer = AVPlayer().apply {
     automaticallyWaitsToMinimizeStalling = true
-    addObserver(
-      observer = timeControlObserver,
-      forKeyPath = "timeControlStatus",
-      options = NSKeyValueObservingOptionNew or NSKeyValueObservingOptionOld,
-      context = null,
-    )
 
-    addObserver(
-      observer = playerRateObserver,
-      forKeyPath = "rate",
-      options = NSKeyValueObservingOptionNew or NSKeyValueObservingOptionOld,
-      context = null,
-    )
+    closeables += observe(
+      path = "timeControlStatus",
+      options = listOf(Old, New),
+    ) { _, obj, change ->
+      bark { "AVPlayer::timeControlStatus(change=$change): ${obj!!.rate}" }
+      syncPlayerState("kvo::timeControlStatus")
+    }
 
-    NSNotificationCenter.defaultCenter.addObserverForName(
+    closeables += observe(
+      path = "rate",
+      options = listOf(Old, New),
+    ) { _, obj, change ->
+      bark { "AVPlayer::rate(change=$change): ${obj!!.rate}" }
+      syncPlayerState("kvo::rate")
+    }
+
+    closeables += NSNotificationCenter.defaultCenter.observe(
       name = AVAudioSessionInterruptionNotification,
-      `object` = AVAudioSession.sharedInstance(),
-      queue = null,
-      usingBlock = {
-        bark { "audioSession Interruption Notification: $it" }
-      },
-    )
+      nsObject = AVAudioSession.sharedInstance(),
+    ) { _, notification ->
+      bark { "audioSession Interruption Notification: $notification" }
+    }
 
-    NSNotificationCenter.defaultCenter.addObserverForName(
+    closeables += NSNotificationCenter.defaultCenter.observe(
       name = AVAudioSessionRouteChangeNotification,
-      `object` = AVAudioSession.sharedInstance(),
-      queue = null,
-      usingBlock = {
-        bark { "audioSession Route Change Notification: $it" }
-      },
-    )
-
-    NSNotificationCenter.defaultCenter.addObserverForName(
-      name = AVPlayerRateDidChangeNotification,
-      `object` = this,
-      queue = null,
-      usingBlock = {
-        bark { "AVPlayerRateDidChangeNotification: $it" }
-      },
-    )
+      nsObject = AVAudioSession.sharedInstance(),
+    ) { _, notification ->
+      bark { "audioSession Route Change Notification: $notification" }
+    }
   }
-
-  private var timeObserverToken: Any? = null
-  private var timeBoundaryToken: Any? = null
 
   fun setMediaItems(items: List<IosMediaItem>) {
     // Reset the media player
-    release()
+    reset()
 
     // Reset our internal data structure
     mediaItems.clear()
@@ -235,16 +187,21 @@ class IosPlayer {
     startTimeInItemMillis: Long = 0L,
   ) {
     if (mediaItems.isNotEmpty()) {
+      // Set the current state to preparing so we can adjust accordingly when we sync the current AVPlayer
+      // and AVPlayerItem statuses to the outgoing [_state] flow
+      isPreparing = true
+      syncPlayerState("prepare(start)")
+
       // Ensure player is reset
       removeCurrentItemObservers()
       avPlayer.pause()
       avPlayer.replaceCurrentItemWithPlayerItem(null)
-      stopTimeObserver()
 
       // Determine the current media item position based on passed time information
       bark {
         "IosPlayer(currentItemIndex=$currentItemIndex, " +
-          "startTimeInItemMillis=$startTimeInItemMillis, playImmediately=$playImmediately)"
+          "startTimeInItemMillis=$startTimeInItemMillis, " +
+          "playImmediately=$playImmediately)"
       }
 
       // Now grab media item and compute the starting offset within the item
@@ -252,20 +209,20 @@ class IosPlayer {
       val track = mediaItem.indexedTrackAtItemPosition(startTimeInItemMillis.milliseconds)?.second
 
       // Pre-populate state information
+      val overallTime = mediaItem.startOffset + startTimeInItemMillis.milliseconds
       _currentDuration.value = track?.duration ?: 0.seconds
-      _currentPosition.value =
-        track?.timeInTrack(mediaItem.startOffset + (startTimeInItemMillis).milliseconds) ?: 0.seconds
-      _overallPosition.value = mediaItem.startOffset + startTimeInItemMillis.milliseconds
+      _currentPosition.value = track?.timeInTrack(overallTime) ?: 0.seconds
+      _currentMetadata.value = track?.metadata
+      _overallPosition.value = overallTime
 
       playWhenReady = playImmediately
 
       // Now initialize the iOS player with said info
       val avPlayerItem = mediaItem.asAVPlayerItem().apply {
-        addObserver(
-          observer = playerItemStatusObserver,
-          forKeyPath = "status",
-          options = NSKeyValueObservingOptionNew or NSKeyValueObservingOptionOld,
-          null,
+        playerItemCloseables += observe(
+          path = "status",
+          options = listOf(Old, New),
+          action = playerItemStatusObserver,
         )
 
         asset.loadValuesAsynchronouslyForKeys(listOf("duration")) {
@@ -275,6 +232,9 @@ class IosPlayer {
       }
 
       avPlayer.replaceCurrentItemWithPlayerItem(avPlayerItem)
+
+      // TODO: Is this actually needed per item? I feel like we could just scope this to
+      //  the object.
       startTimeObserver()
 
       if (startTimeInItemMillis > 0L) {
@@ -283,47 +243,31 @@ class IosPlayer {
           bark { "<-- Seek Completion: $completed" }
         }
       }
-
-      // Update our current state information
-      syncPlayerState("prepare()")
     } else {
       throw IllegalStateException("No media items have been set, or the current item is out of index")
     }
   }
 
   private fun scheduleNextSkipOnEndPlaying(duration: CValue<CMTime>) {
-    val time = CMTimeMakeWithSeconds(seconds = CMTimeGetSeconds(duration), preferredTimescale = NSEC_PER_SEC.toInt())
-    timeBoundaryToken = avPlayer.addBoundaryTimeObserverForTimes(
-      times = listOf(NSValue.valueWithCMTime(time)),
-      queue = dispatch_get_main_queue(),
-    ) {
-      bark { "Time boundary reached, skipping to next item" }
-      onCurrentItemFinished()
+    playerItemCloseables += avPlayer.createTimeObservable {
+      addBoundariesObserver(
+        times = listOf(duration.seconds),
+      ) {
+        bark { "Time boundary reached, skipping to next item" }
+        onCurrentItemFinished()
+      }
     }
   }
 
   private fun startTimeObserver() {
-    timeObserverToken = avPlayer.addPeriodicTimeObserverForInterval((0.5).seconds.asCMTime(), null) {
-      onUpdate(it.seconds)
-    }
-  }
-
-  private fun stopTimeObserver() {
-    timeObserverToken?.let {
-      avPlayer.removeTimeObserver(it)
-      timeObserverToken = null
-    }
-
-    timeBoundaryToken?.let {
-      avPlayer.removeTimeObserver(it)
-      timeBoundaryToken = null
+    playerItemCloseables += avPlayer.createTimeObservable {
+      addPeriodicObserver(0.5.seconds, ::onUpdate)
     }
   }
 
   private fun removeCurrentItemObservers() {
-    avPlayer.currentItem?.apply {
-      removeObserver(playerItemStatusObserver, "status")
-    }
+    playerItemCloseables.forEach(AutoCloseable::close)
+    playerItemCloseables.clear()
   }
 
   fun playPause() {
@@ -396,6 +340,7 @@ class IosPlayer {
       // The next track exists, so just seek to its start time
       val nextTrack = currentMediaItem.tracks[index + 1]
       avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis())
+      avPlayer.playIfReady()
     } else {
       // Treat the current item as finished, and start the next one
       // or end the playback.
@@ -405,20 +350,40 @@ class IosPlayer {
 
   fun skipToPrevious() {
     val currentTimeInItem = avPlayer.currentTime().seconds
-    val (index, _) = currentMediaItem.indexedTrackAtItemPosition(currentTimeInItem)
+    val (index, track) = currentMediaItem.indexedTrackAtItemPosition(currentTimeInItem)
       ?: throw IllegalStateException("Unable to determine current track in player")
 
     if (index > 0) {
-      // The previous track exists, so just seek to its start time
-      val nextTrack = currentMediaItem.tracks[index - 1]
-      avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis())
+      if (currentTimeInItem > skipToPreviousResetThreshold) {
+        val trackStartTimeInItem = (track.startMs - currentMediaItem.startOffset.inWholeMilliseconds)
+          .coerceAtLeast(0L)
+        // If we are well into the playback for the current track, just seek to the start of the track
+        avPlayer.seekToTime(trackStartTimeInItem.asCMTimeFromMillis())
+        avPlayer.playIfReady()
+      } else {
+        // The previous track exists, so just seek to its start time
+        val nextTrack = currentMediaItem.tracks[index - 1]
+        avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis())
+        avPlayer.playIfReady()
+      }
     } else if (currentItemIndex > 0) {
-      // The previous track would be in the previous item, seek to that item
-      currentItemIndex--
-      prepare(playImmediately = true)
+      if (currentTimeInItem > skipToPreviousResetThreshold) {
+        avPlayer.seekToTime(ZERO_CM_TIME)
+        avPlayer.playIfReady()
+      } else {
+        // The previous track would be in the previous item, seek to that item
+        currentItemIndex--
+
+        // Seed our state with the change while things prepare
+        onUpdate(0.seconds)
+        _state.value = AudioPlayer.State.Buffering
+
+        prepare(playImmediately = true)
+      }
     } else if (avPlayer.status == AVPlayerStatusReadyToPlay) {
       // If the previous is the start of the item, just seek to the start if the player is ready
       avPlayer.seekToTime(ZERO.asCMTime())
+      avPlayer.playIfReady()
     }
   }
 
@@ -440,9 +405,19 @@ class IosPlayer {
     }
   }
 
-  fun release() {
+  override fun close() {
+    closeables.forEach(AutoCloseable::close)
+    closeables.clear()
+
+    reset()
+  }
+
+  /**
+   * Reset the audio player, removing all current item and time observers,
+   * pausing the player and clearing the current item.
+   */
+  private fun reset() {
     removeCurrentItemObservers()
-    stopTimeObserver()
     avPlayer.pause()
     avPlayer.replaceCurrentItemWithPlayerItem(null)
 
@@ -457,21 +432,10 @@ class IosPlayer {
    * Called by periodic time observer to update the state from the player
    */
   private fun onUpdate(timeInItem: Duration) {
-    // Sync the current player state
-    syncPlayerState("onUpdate($timeInItem)")
-
     // Get the current MediaItem and Track for the current position in the playing media item.
     // Then update the current track metadata
     val currentItem = currentMediaItem
     val (_, track) = currentItem.indexedTrackAtItemPosition(timeInItem) ?: return
-
-//    bark {
-//      "onUpdate(timeInItem = $timeInItem, " +
-//        "trackStart = ${track.startMs}, " +
-//        "currentPosition = ${track.timeInTrack(timeInItem)}, " +
-//        "overallPosition=${currentItem.startOffset + timeInItem}, " +
-//        "metadata=${track.metadata.title})"
-//    }
 
     // Update stateful information based on track and position
     val trackNormalizedTime = timeInItem + currentItem.startOffset
@@ -484,12 +448,16 @@ class IosPlayer {
   private fun onCurrentItemFinished() {
     if (currentItemIndex < mediaItems.lastIndex) {
       currentItemIndex++
+
+      // Prepare the visual state for the transition
+      onUpdate(0.seconds)
+      _state.value = AudioPlayer.State.Buffering
+
       prepare(playImmediately = true)
     } else {
       // TODO: We are in a "Finished" state at this point. Add "Finished" to the list of available
       //  [AudioPlayer.State] options.
-      release()
-      syncPlayerState("onCurrentItemFinished()")
+      reset()
     }
   }
 
@@ -498,32 +466,39 @@ class IosPlayer {
    * can be updated with the current player state
    */
   private fun syncPlayerState(tag: String) {
-    bark {
-      """
-        SyncPlayerState(
-          tag = $tag,
-          playerStatus = ${avPlayerStatusString(avPlayer.status)},
-          timeControlStatus = ${avTimeControlStatusString(avPlayer.timeControlStatus)},
-          currentItem.status = ${avPlayerItemStatusString(avPlayer.currentItem?.status)},
-          currentItem.failure = ${avPlayer.currentItem?.error?.asDebugString()},
-          error = ${avPlayer.error},
-        )
-      """.trimIndent()
+    // If we are actively preparing the player than we should be in a buffering state,
+    // since we can't actively rely on the status of the AV objects during this phase
+    if (isPreparing) {
+      _state.value = AudioPlayer.State.Buffering
+      bark {
+        """
+          SyncPlayerState(
+            tag = $tag,
+            isPreparing = true,
+          ) ==> Buffering
+        """.trimIndent()
+      }
+      return
     }
+
     _state.value = when (avPlayer.status) {
-      AVPlayerStatusReadyToPlay -> when (avPlayer.timeControlStatus) {
-        AVPlayerTimeControlStatusPaused -> AudioPlayer.State.Paused
-        AVPlayerTimeControlStatusPlaying -> AudioPlayer.State.Playing
-        AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate -> when (avPlayer.reasonForWaitingToPlay) {
-          AVPlayerWaitingWhileEvaluatingBufferingRateReason -> AudioPlayer.State.Buffering
-          AVPlayerWaitingToMinimizeStallsReason -> AudioPlayer.State.Buffering
-          AVPlayerWaitingForCoordinatedPlaybackReason -> AudioPlayer.State.Buffering
-          AVPlayerWaitingDuringInterstitialEventReason -> AudioPlayer.State.Buffering
-          AVPlayerWaitingWithNoItemToPlayReason -> AudioPlayer.State.Disabled
+      AVPlayerStatusReadyToPlay -> when (avPlayer.currentItem?.status) {
+        AVPlayerItemStatusReadyToPlay -> when (avPlayer.timeControlStatus) {
+          AVPlayerTimeControlStatusPaused -> AudioPlayer.State.Paused
+          AVPlayerTimeControlStatusPlaying -> AudioPlayer.State.Playing
+          AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate -> when (avPlayer.reasonForWaitingToPlay) {
+            AVPlayerWaitingWhileEvaluatingBufferingRateReason -> AudioPlayer.State.Buffering
+            AVPlayerWaitingToMinimizeStallsReason -> AudioPlayer.State.Buffering
+            AVPlayerWaitingForCoordinatedPlaybackReason -> AudioPlayer.State.Buffering
+            AVPlayerWaitingDuringInterstitialEventReason -> AudioPlayer.State.Buffering
+            AVPlayerWaitingWithNoItemToPlayReason -> AudioPlayer.State.Disabled
+            // This should never be reached, but is needed due to iOS translation layer
+            else -> AudioPlayer.State.Buffering
+          }
           // This should never be reached, but is needed due to iOS translation layer
-          else -> AudioPlayer.State.Buffering
+          else -> AudioPlayer.State.Disabled
         }
-        // This should never be reached, but is needed due to iOS translation layer
+
         else -> AudioPlayer.State.Disabled
       }
 
@@ -531,6 +506,19 @@ class IosPlayer {
       AVPlayerStatusUnknown -> AudioPlayer.State.Disabled
       // This should never be reached, but is needed due to iOS translation layer
       else -> AudioPlayer.State.Disabled
+    }.also {
+      bark {
+        """
+        SyncPlayerState(
+          tag = $tag,
+          playerStatus = ${avPlayerStatusString(avPlayer.status)},
+          timeControlStatus = ${avTimeControlStatusString(avPlayer.timeControlStatus)},
+          currentItem.status = ${avPlayerItemStatusString(avPlayer.currentItem?.status)},
+          currentItem.failure = ${avPlayer.currentItem?.error?.asDebugString()},
+          error = ${avPlayer.error},
+        ) ==> $it
+        """.trimIndent()
+      }
     }
   }
 }

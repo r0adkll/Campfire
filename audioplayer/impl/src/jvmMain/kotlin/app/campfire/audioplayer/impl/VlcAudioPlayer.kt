@@ -170,7 +170,11 @@ class VlcAudioPlayer(
   }
 
   override fun skipToPrevious() {
-    mediaPlayer.skipToPrevious()
+    if (currentTime.value > settings.trackResetThreshold) {
+      mediaPlayer.seekTo(0f)
+    } else {
+      mediaPlayer.skipToPrevious()
+    }
   }
 
   override fun seekForward() {

@@ -7,6 +7,9 @@ import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.FlowSettings
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.map
 
 abstract class AppSettings {
@@ -29,6 +32,16 @@ abstract class AppSettings {
 
     override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Long) {
       settings.putLong(key, value)
+    }
+  }
+
+  fun durationSetting(key: String, defaultValue: Duration) = object : ReadWriteProperty<AppSettings, Duration> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Duration {
+      return settings.getDoubleOrNull(key)?.seconds ?: defaultValue
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Duration) {
+      settings.putDouble(key, value.toDouble(DurationUnit.SECONDS))
     }
   }
 

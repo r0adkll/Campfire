@@ -7,10 +7,13 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
 
@@ -43,11 +46,24 @@ class PlaybackSettingsImpl(
     return flowSettings.getLongFlow(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
       .stateIn(settingsScope, SharingStarted.Lazily, backwardTimeMs)
   }
+
+  override var trackResetThreshold: Duration by durationSetting(
+    key = PREF_TRACK_RESET_THRESHOLD,
+    defaultValue = DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds,
+  )
+
+  override fun observeTrackResetThreshold(): StateFlow<Duration> {
+    return flowSettings.getDoubleFlow(PREF_TRACK_RESET_THRESHOLD, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS)
+      .map { it.seconds }
+      .stateIn(settingsScope, SharingStarted.Lazily, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds)
+  }
 }
 
 internal const val PREF_MP3_SEEKING = "pref_playback_mp3_seeking"
 internal const val PREF_FORWARD_TIME_MS = "pref_playback_forward_time_ms"
 internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
+internal const val PREF_TRACK_RESET_THRESHOLD = "pref_playback_track_reset_threshold"
 
 internal const val DEFAULT_FORWARD_TIME_MS = 15L * 1000L // 30s
 internal const val DEFAULT_BACKWARD_TIME_MS = 10L * 1000L // 15s
+internal const val DEFAULT_TRACK_RESET_THRESHOLD_SECONDS = 5.0 // 5s

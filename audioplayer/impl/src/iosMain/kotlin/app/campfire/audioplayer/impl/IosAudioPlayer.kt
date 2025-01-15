@@ -41,7 +41,10 @@ class IosAudioPlayer(
   private var playbackTimer: PlaybackTimer? = null
   private var playbackTimerJob: Job? = null
 
-  private val player = IosPlayer()
+  private val player = IosPlayer(
+    skipToPreviousResetThreshold = settings.trackResetThreshold,
+  )
+
   override val state: StateFlow<AudioPlayer.State> = player.state
   override val currentTime: StateFlow<Duration> = player.currentPosition
   override val overallTime: StateFlow<Duration> = player.overallPosition
@@ -143,7 +146,7 @@ class IosAudioPlayer(
 
   override fun release() {
     scope.cancel()
-    player.release()
+    player.close()
   }
 
   override fun pause() {
@@ -156,7 +159,7 @@ class IosAudioPlayer(
 
   override fun stop() {
     preparedSession = null
-    player.release()
+    player.close()
     scope.cancel()
   }
 

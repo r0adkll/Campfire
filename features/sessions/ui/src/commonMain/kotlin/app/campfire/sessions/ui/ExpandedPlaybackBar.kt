@@ -444,7 +444,7 @@ private fun PlaybackSeekBar(
   var sliderValue by remember { mutableStateOf(calculateProgress()) }
   val softSliderValue by animateFloatAsState(sliderValue)
   LaunchedEffect(isInteracting, state, currentTime, currentDuration) {
-    if (!isInteracting && state == AudioPlayer.State.Playing) {
+    if (!isInteracting) {
       sliderValue = calculateProgress()
     }
   }
