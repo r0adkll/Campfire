@@ -65,6 +65,12 @@ class StoreMediaProgressRepository(
       }
   }
 
+  override suspend fun getProgress(libraryItemId: LibraryItemId): MediaProgress? {
+    val user = (userSessionManager.current as? UserSession.LoggedIn)?.user ?: return null
+    val operation = Operation.Query.One(user.id, libraryItemId)
+    return store.get(operation).requireSingle()
+  }
+
   override fun observeAllProgress(): Flow<List<MediaProgress>> {
     return userSessionManager.observe()
       .filterIsInstance<UserSession.LoggedIn>()

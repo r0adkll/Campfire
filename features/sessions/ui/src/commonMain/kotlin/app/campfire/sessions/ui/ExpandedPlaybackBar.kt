@@ -438,8 +438,7 @@ private fun PlaybackSeekBar(
   fun calculateProgress(): Float = if (currentDuration.inWholeMilliseconds == 0L) {
     0f
   } else {
-    currentTime.inWholeMilliseconds.toFloat() /
-      currentDuration.inWholeMilliseconds.toFloat()
+    (currentTime / currentDuration).toFloat()
   }
 
   var sliderValue by remember { mutableStateOf(calculateProgress()) }

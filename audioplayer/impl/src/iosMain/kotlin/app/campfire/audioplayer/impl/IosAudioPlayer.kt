@@ -1,8 +1,14 @@
 package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
 import app.campfire.audioplayer.impl.mediaitem.IosMediaItemBuilder
 import app.campfire.audioplayer.impl.player.IosPlayer
+import app.campfire.audioplayer.impl.player.NowPlaying
+import app.campfire.audioplayer.impl.player.enable
+import app.campfire.audioplayer.impl.player.getPreferredIntervals
+import app.campfire.audioplayer.impl.player.setPreferredIntervals
+import app.campfire.audioplayer.impl.util.seconds
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
@@ -24,10 +30,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import platform.AVFoundation.currentTime
+import platform.MediaPlayer.MPChangePlaybackPositionCommandEvent
+import platform.MediaPlayer.MPChangePlaybackRateCommandEvent
+import platform.MediaPlayer.MPRemoteCommandCenter
+import platform.MediaPlayer.MPRemoteCommandEvent
+import platform.MediaPlayer.MPRemoteCommandHandlerStatus
+import platform.MediaPlayer.MPRemoteCommandHandlerStatusCommandFailed
+import platform.MediaPlayer.MPRemoteCommandHandlerStatusNoSuchContent
+import platform.MediaPlayer.MPRemoteCommandHandlerStatusSuccess
+import platform.MediaPlayer.MPSkipIntervalCommand
+import platform.UIKit.UIApplication
+import platform.UIKit.beginReceivingRemoteControlEvents
+import platform.UIKit.endReceivingRemoteControlEvents
 
 class IosAudioPlayer(
   private val settings: PlaybackSettings,
   private val fatherTime: FatherTime,
+  private val artworkLoader: ArtworkLoader,
 ) : AudioPlayer {
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -42,6 +63,7 @@ class IosAudioPlayer(
   private var playbackTimerJob: Job? = null
 
   private val player = IosPlayer(
+    scope = scope,
     skipToPreviousResetThreshold = settings.trackResetThreshold,
   )
 
@@ -74,6 +96,16 @@ class IosAudioPlayer(
     chapterId: Int?,
   ) {
     preparedSession = session
+
+    setupRemoteTransportControls()
+
+    // Setup now playing with session and artwork information
+    scope.launch {
+      NowPlaying.updateSession(session)
+      artworkLoader.load(session.libraryItem.media.coverImageUrl)?.let { artwork ->
+        NowPlaying.updateSession(session, artwork)
+      }
+    }
 
     // Build the media items and adapt them to the platform
     val mediaItems = IosMediaItemBuilder.build(session)
@@ -145,8 +177,7 @@ class IosAudioPlayer(
   }
 
   override fun release() {
-    scope.cancel()
-    player.close()
+    stop()
   }
 
   override fun pause() {
@@ -160,11 +191,15 @@ class IosAudioPlayer(
   override fun stop() {
     preparedSession = null
     player.close()
-    scope.cancel()
+    scope.launch {
+      UIApplication.sharedApplication.endReceivingRemoteControlEvents()
+    }.invokeOnCompletion {
+      scope.cancel()
+    }
   }
 
   override fun seekTo(itemIndex: Int) {
-    // From the UI persepctive [itemIndex] is the chapter id when making this call
+    // From the UI perspective [itemIndex] is the chapter id when making this call
     // However, since we don't have a 1-to-1 mapping of chapters -> MediaItems in the
     // iOS player [itemIndex] is essentially track id and the player will find and jump
     // accordingly
@@ -222,5 +257,80 @@ class IosAudioPlayer(
     playbackTimerJob = null
     playbackTimer = null
     runningTimer.value = null
+  }
+
+  private fun setupRemoteTransportControls() {
+    scope.launch {
+      UIApplication.sharedApplication.beginReceivingRemoteControlEvents()
+    }
+
+    val commandCenter = MPRemoteCommandCenter.sharedCommandCenter()
+
+    val playPauseHandler: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus = {
+      playPause()
+      MPRemoteCommandHandlerStatusSuccess
+    }
+
+    commandCenter.playCommand.enable(action = playPauseHandler)
+    commandCenter.pauseCommand.enable(action = playPauseHandler)
+    commandCenter.togglePlayPauseCommand.enable(action = playPauseHandler)
+
+    commandCenter.skipForwardCommand.enable(
+      setup = { setPreferredIntervals(settings.forwardTimeMs) },
+      action = { event ->
+        when (val command = event.command) {
+          is MPSkipIntervalCommand -> {
+            command.getPreferredIntervals().firstOrNull()?.let { interval ->
+              player.seekForward(interval.inWholeMilliseconds)
+              MPRemoteCommandHandlerStatusSuccess
+            } ?: MPRemoteCommandHandlerStatusCommandFailed
+          }
+          else -> MPRemoteCommandHandlerStatusNoSuchContent
+        }
+      },
+    )
+
+    commandCenter.skipBackwardCommand.enable(
+      setup = { setPreferredIntervals(settings.backwardTimeMs) },
+      action = { event ->
+        when (val command = event.command) {
+          is MPSkipIntervalCommand -> {
+            command.getPreferredIntervals().firstOrNull()?.let { interval ->
+              player.seekBackward(interval.inWholeMilliseconds)
+              MPRemoteCommandHandlerStatusSuccess
+            } ?: MPRemoteCommandHandlerStatusCommandFailed
+          }
+          else -> MPRemoteCommandHandlerStatusNoSuchContent
+        }
+      },
+    )
+
+    commandCenter.nextTrackCommand.enable {
+      skipToNext()
+      MPRemoteCommandHandlerStatusSuccess
+    }
+
+    commandCenter.previousTrackCommand.enable {
+      skipToPrevious()
+      MPRemoteCommandHandlerStatusSuccess
+    }
+
+    commandCenter.changePlaybackPositionCommand.enable {
+      val event = it as? MPChangePlaybackPositionCommandEvent
+        ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent
+      val newProgress = event.positionTime.seconds / currentDuration.value
+      player.seekTo(newProgress.toFloat())
+      MPRemoteCommandHandlerStatusSuccess
+    }
+
+    commandCenter.changePlaybackRateCommand.enable(
+      setup = { setSupportedPlaybackRates(settings.playbackRates) },
+      action = { event ->
+        val playbackRateEvent = event as? MPChangePlaybackRateCommandEvent
+          ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent
+        setPlaybackSpeed(playbackRateEvent.playbackRate)
+        MPRemoteCommandHandlerStatusSuccess
+      },
+    )
   }
 }

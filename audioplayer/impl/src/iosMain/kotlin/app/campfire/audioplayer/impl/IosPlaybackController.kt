@@ -2,6 +2,8 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
+import app.campfire.audioplayer.impl.player.NowPlaying
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -29,6 +31,7 @@ class IosPlaybackController(
   private val playbackSettings: PlaybackSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val fatherTime: FatherTime,
+  private val artworkLoader: ArtworkLoader,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -43,6 +46,7 @@ class IosPlaybackController(
   override fun stopSession(itemId: LibraryItemId) {
     userScopeHolder.get().launch {
       disableAudioSession()
+      NowPlaying.reset()
       playbackSessionManager.stopSession(itemId)
       audioPlayerHolder.release()
     }
@@ -74,7 +78,7 @@ class IosPlaybackController(
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
       bark { "Initializing IosAudioPlayer..." }
-      audioPlayerHolder.setCurrentPlayer(IosAudioPlayer(playbackSettings, fatherTime))
+      audioPlayerHolder.setCurrentPlayer(IosAudioPlayer(playbackSettings, fatherTime, artworkLoader))
     }
   }
 }

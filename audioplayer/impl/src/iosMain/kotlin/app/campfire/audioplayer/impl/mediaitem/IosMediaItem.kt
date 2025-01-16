@@ -76,10 +76,12 @@ data class IosMediaItem(
     val endMs: Long,
     val metadata: MediaItem.Metadata,
   ) {
+    val start: Duration get() = startMs.milliseconds
+    val end: Duration get() = endMs.milliseconds
     val duration: Duration get() = (endMs - startMs).milliseconds
 
     fun timeInTrack(overallTime: Duration): Duration = overallTime - startMs.milliseconds
 
-    operator fun contains(time: Duration): Boolean = time.inWholeMilliseconds in startMs..endMs
+    operator fun contains(time: Duration): Boolean = time.inWholeMilliseconds in startMs until endMs
   }
 }

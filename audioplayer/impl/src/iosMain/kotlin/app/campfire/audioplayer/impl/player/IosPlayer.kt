@@ -8,12 +8,15 @@ import app.campfire.audioplayer.impl.kvo.NSObservableAction
 import app.campfire.audioplayer.impl.kvo.observe
 import app.campfire.audioplayer.impl.mediaitem.IosMediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
+import app.campfire.audioplayer.impl.player.InterruptionType.Began
+import app.campfire.audioplayer.impl.player.InterruptionType.Ended
 import app.campfire.audioplayer.impl.util.ZERO_CM_TIME
 import app.campfire.audioplayer.impl.util.asCMTime
 import app.campfire.audioplayer.impl.util.asCMTimeFromMillis
-import app.campfire.audioplayer.impl.util.asCMTimeSeconds
 import app.campfire.audioplayer.impl.util.asDebugString
 import app.campfire.audioplayer.impl.util.seconds
+import app.campfire.core.extensions.asSeconds
+import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import kotlin.time.Duration
@@ -22,16 +25,17 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.CValue
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import platform.AVFAudio.AVAudioSession
 import platform.AVFAudio.AVAudioSessionInterruptionNotification
 import platform.AVFAudio.AVAudioSessionRouteChangeNotification
+import platform.AVFAudio.currentRoute
 import platform.AVFoundation.AVPlayer
 import platform.AVFoundation.AVPlayerItem
-import platform.AVFoundation.AVPlayerItemStatusFailed
 import platform.AVFoundation.AVPlayerItemStatusReadyToPlay
-import platform.AVFoundation.AVPlayerItemStatusUnknown
 import platform.AVFoundation.AVPlayerStatusFailed
 import platform.AVFoundation.AVPlayerStatusReadyToPlay
 import platform.AVFoundation.AVPlayerStatusUnknown
@@ -47,7 +51,7 @@ import platform.AVFoundation.asset
 import platform.AVFoundation.automaticallyWaitsToMinimizeStalling
 import platform.AVFoundation.currentItem
 import platform.AVFoundation.currentTime
-import platform.AVFoundation.duration
+import platform.AVFoundation.defaultRate
 import platform.AVFoundation.pause
 import platform.AVFoundation.play
 import platform.AVFoundation.rate
@@ -58,12 +62,13 @@ import platform.AVFoundation.setDefaultRate
 import platform.AVFoundation.setRate
 import platform.AVFoundation.timeControlStatus
 import platform.CoreMedia.CMTime
-import platform.CoreMedia.CMTimeGetSeconds
+import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
 
 @OptIn(ExperimentalForeignApi::class)
 class IosPlayer(
-  private val skipToPreviousResetThreshold: Duration = 5.seconds,
+  private val scope: CoroutineScope,
+  private val skipToPreviousResetThreshold: Duration,
 ) : AutoCloseable {
 
   private val closeables = mutableListOf<AutoCloseable>()
@@ -141,8 +146,27 @@ class IosPlayer(
       path = "rate",
       options = listOf(Old, New),
     ) { _, obj, change ->
-      bark { "AVPlayer::rate(change=$change): ${obj!!.rate}" }
+      bark { "AVPlayer::rate(change=$change): ${obj.rate}" }
+      scope.launch {
+        NowPlaying.update(
+          defaultRate = obj.defaultRate.toDouble(),
+          rate = obj.rate.toDouble(),
+        )
+      }
+
       syncPlayerState("kvo::rate")
+    }
+
+    closeables += observe(
+      path = "defaultRate",
+    ) { _, obj, change ->
+      bark { "AVPlayer::defaultRate(change=$change): ${obj.defaultRate}" }
+      scope.launch {
+        NowPlaying.update(
+          defaultRate = obj.defaultRate.toDouble(),
+          rate = obj.rate.toDouble(),
+        )
+      }
     }
 
     closeables += NSNotificationCenter.defaultCenter.observe(
@@ -150,6 +174,7 @@ class IosPlayer(
       nsObject = AVAudioSession.sharedInstance(),
     ) { _, notification ->
       bark { "audioSession Interruption Notification: $notification" }
+      handleInterruption(notification!!)
     }
 
     closeables += NSNotificationCenter.defaultCenter.observe(
@@ -157,6 +182,7 @@ class IosPlayer(
       nsObject = AVAudioSession.sharedInstance(),
     ) { _, notification ->
       bark { "audioSession Route Change Notification: $notification" }
+      handleRouteChange(notification!!)
     }
   }
 
@@ -296,9 +322,14 @@ class IosPlayer(
   }
 
   fun seekTo(progress: Float) {
-    avPlayer.currentItem?.let { item ->
-      val newTime = CMTimeGetSeconds(item.duration) * progress
-      avPlayer.seekToTime(newTime.asCMTimeSeconds())
+    val currentTimeInItem = avPlayer.currentTime().seconds - currentMediaItem.startOffset
+    val (_, track) = currentMediaItem.indexedTrackAtItemPosition(currentTimeInItem)
+      ?: throw IllegalStateException("Unable to determine current track in player")
+
+    val newTimeInTrack = (track.duration.asSeconds() * progress).seconds
+    val newTime = (track.start - currentMediaItem.startOffset) + newTimeInTrack
+    avPlayer.seekToTime(newTime.asCMTime()) { completed ->
+      if (completed && avPlayer.isPaused) avPlayer.playIfReady()
     }
   }
 
@@ -321,7 +352,9 @@ class IosPlayer(
 
   private fun seekTo(index: Int, startTimeInItemMillis: Long) {
     if (index == currentItemIndex) {
-      avPlayer.seekToTime(startTimeInItemMillis.asCMTimeFromMillis())
+      avPlayer.seekToTime(startTimeInItemMillis.asCMTimeFromMillis()) { completed ->
+        if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+      }
     } else {
       currentItemIndex = index
       prepare(
@@ -339,8 +372,9 @@ class IosPlayer(
     if (index < currentMediaItem.tracks.lastIndex) {
       // The next track exists, so just seek to its start time
       val nextTrack = currentMediaItem.tracks[index + 1]
-      avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis())
-      avPlayer.playIfReady()
+      avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis()) { completed ->
+        if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+      }
     } else {
       // Treat the current item as finished, and start the next one
       // or end the playback.
@@ -358,18 +392,21 @@ class IosPlayer(
         val trackStartTimeInItem = (track.startMs - currentMediaItem.startOffset.inWholeMilliseconds)
           .coerceAtLeast(0L)
         // If we are well into the playback for the current track, just seek to the start of the track
-        avPlayer.seekToTime(trackStartTimeInItem.asCMTimeFromMillis())
-        avPlayer.playIfReady()
+        avPlayer.seekToTime(trackStartTimeInItem.asCMTimeFromMillis()) { completed ->
+          if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+        }
       } else {
         // The previous track exists, so just seek to its start time
-        val nextTrack = currentMediaItem.tracks[index - 1]
-        avPlayer.seekToTime(nextTrack.startMs.asCMTimeFromMillis())
-        avPlayer.playIfReady()
+        val prevTrack = currentMediaItem.tracks[index - 1]
+        avPlayer.seekToTime(prevTrack.startMs.asCMTimeFromMillis()) { completed ->
+          if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+        }
       }
     } else if (currentItemIndex > 0) {
       if (currentTimeInItem > skipToPreviousResetThreshold) {
-        avPlayer.seekToTime(ZERO_CM_TIME)
-        avPlayer.playIfReady()
+        avPlayer.seekToTime(ZERO_CM_TIME) { completed ->
+          if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+        }
       } else {
         // The previous track would be in the previous item, seek to that item
         currentItemIndex--
@@ -382,8 +419,9 @@ class IosPlayer(
       }
     } else if (avPlayer.status == AVPlayerStatusReadyToPlay) {
       // If the previous is the start of the item, just seek to the start if the player is ready
-      avPlayer.seekToTime(ZERO.asCMTime())
-      avPlayer.playIfReady()
+      avPlayer.seekToTime(ZERO.asCMTime()) { completed ->
+        if (completed && avPlayer.isPaused) avPlayer.playIfReady()
+      }
     }
   }
 
@@ -398,7 +436,6 @@ class IosPlayer(
   }
 
   fun setPlaybackSpeed(rate: Float) {
-    if (rate !in 0f..1f) return
     avPlayer.setDefaultRate(rate)
     if (avPlayer.timeControlStatus == AVPlayerTimeControlStatusPlaying) {
       avPlayer.setRate(rate)
@@ -430,6 +467,8 @@ class IosPlayer(
 
   /**
    * Called by periodic time observer to update the state from the player
+   * @param timeInItem this is the time that the [AVPlayer] is currently at in relation to the duration of
+   *   [currentMediaItem].
    */
   private fun onUpdate(timeInItem: Duration) {
     // Get the current MediaItem and Track for the current position in the playing media item.
@@ -437,14 +476,54 @@ class IosPlayer(
     val currentItem = currentMediaItem
     val (_, track) = currentItem.indexedTrackAtItemPosition(timeInItem) ?: return
 
-    // Update stateful information based on track and position
-    val trackNormalizedTime = timeInItem + currentItem.startOffset
-    _currentPosition.value = track.timeInTrack(trackNormalizedTime)
-    _overallPosition.value = currentItem.startOffset + timeInItem
+    /*
+     * Update stateful information based on track and position
+     * We'll want to normalize [timeInItem] to the current track and current media item
+     * |---[ Track 1 ]-------------------------------------------------------------|
+     * |---[ Media 1 ]-------------------------------------------------------------|
+     * |--------------[ Track 2]---------------------------------------------------|
+     * |--------------[ Media 2]---------------------------------------------------|
+     *
+     * Here we have a 1-to-1 media item / track relationship. The [timeInItem] is
+     * essentially the same as [timeInMedia] and and can be treated as a direct value
+     * for [_currentPosition] since track.start - currentItem.startOffset == 0
+     *
+     * vs.
+     * |---[ Track 1 ]-------------------------------------------------------------|
+     * |--------------[ Track 2]---------------------------------------------------|
+     * |[                              Media Item 0                               ]|
+     *
+     * Here we have a 1-to-many media item / track relationship. The [timeInItem] is now
+     * track.start + timeInItem in terms of its position, and thus position in seekable
+     * context of how the AVPlayer is configured. Here [currentItem.startOffset] is likely
+     * to always be 0, so we must normalize the [timeInItem] for [_currentPosition] so
+     * that the UI doesn't reflect the playback duration and position of the entire media item
+     */
+    val overallTime = currentItem.startOffset + timeInItem
+    val timeInTrack = overallTime - track.start
+
+    _currentPosition.value = timeInTrack
+    _overallPosition.value = overallTime
     _currentDuration.value = track.duration
     _currentMetadata.value = track.metadata
+
+    // Update now playing
+    scope.launch {
+      NowPlaying.update(
+        currentTime = timeInTrack,
+        currentDuration = track.duration,
+        defaultRate = avPlayer.defaultRate.toDouble(),
+        rate = avPlayer.rate.toDouble(),
+        metadata = track.metadata,
+      )
+    }
   }
 
+  /**
+   * This is called when either the user skips to the next track, but was at the end of the current media item. Or
+   * the playback for the current item finished, and we need to either jump to the next item in the queue, or
+   * mark ourselves as "finished"
+   */
   private fun onCurrentItemFinished() {
     if (currentItemIndex < mediaItems.lastIndex) {
       currentItemIndex++
@@ -458,6 +537,42 @@ class IosPlayer(
       // TODO: We are in a "Finished" state at this point. Add "Finished" to the list of available
       //  [AudioPlayer.State] options.
       reset()
+    }
+  }
+
+  private fun handleInterruption(notification: NSNotification) {
+    val interruptionType = InterruptionType.fromNotification(notification)
+    when (interruptionType) {
+      Began -> {
+        bark { "Interruption Began" }
+      }
+      Ended -> {
+        val options = InterruptionOptions.fromNotification(notification)
+        bark { "Interruption Ended: $options" }
+        if (options == InterruptionOptions.ShouldResume) {
+          avPlayer.playIfReady()
+        }
+      }
+      else -> Unit
+    }
+  }
+
+  private fun handleRouteChange(notification: NSNotification) {
+    val reason = RouteChangeReason.fromNotification(notification)
+
+    when (reason) {
+      RouteChangeReason.NewDeviceAvailable -> {
+        // Do nothing?
+      }
+      RouteChangeReason.OldDeviceUnavailable -> {
+        val headphonesAreConnected = AVAudioSession.sharedInstance().currentRoute.hasHeadphones()
+        val headphonesWereConnected = notification.getPreviousRoute()?.hasHeadphones() == true
+        if (headphonesWereConnected && !headphonesAreConnected) {
+          // We are going from Headphones -> Not Headphones (i.e. Speaker, etc) so we should pause the playback
+          pause()
+        }
+      }
+      else -> Unit
     }
   }
 
@@ -521,34 +636,8 @@ class IosPlayer(
       }
     }
   }
-}
 
-fun avPlayerStatusString(status: Long): String = when (status) {
-  AVPlayerStatusReadyToPlay -> "AVPlayerStatusReadyToPlay"
-  AVPlayerStatusFailed -> "AVPlayerStatusFailed"
-  AVPlayerStatusUnknown -> "AVPlayerStatusUnknown"
-  else -> "<$status:unknown>"
-}
-
-fun avTimeControlStatusString(status: Long): String = when (status) {
-  AVPlayerTimeControlStatusPaused -> "AVPlayerTimeControlStatusPaused"
-  AVPlayerTimeControlStatusPlaying -> "AVPlayerTimeControlStatusPlaying"
-  AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate -> "AVPlayerTimeControlStatusWaitingToPlayAtSpecifiedRate"
-  else -> "<$status: unknown>"
-}
-
-fun avPlayerItemStatusString(status: Long?) = when (status) {
-  AVPlayerItemStatusReadyToPlay -> "AVPlayerItemStatusReadyToPlay"
-  AVPlayerItemStatusFailed -> "AVPlayerItemStatusFailed"
-  AVPlayerItemStatusUnknown -> "AVPlayerItemStatusUnknown"
-  else -> "<$status: unknown>"
-}
-
-fun avReasonForWaitingToPlayString(reason: String): String = when (reason) {
-  AVPlayerWaitingWhileEvaluatingBufferingRateReason -> "AVPlayerWaitingWhileEvaluatingBufferingRateReason"
-  AVPlayerWaitingToMinimizeStallsReason -> "AVPlayerWaitingToMinimizeStallsReason"
-  AVPlayerWaitingForCoordinatedPlaybackReason -> "AVPlayerWaitingForCoordinatedPlaybackReason"
-  AVPlayerWaitingDuringInterstitialEventReason -> "AVPlayerWaitingDuringInterstitialEventReason"
-  AVPlayerWaitingWithNoItemToPlayReason -> "AVPlayerWaitingWithNoItemToPlayReason"
-  else -> "<unknown --> $reason>"
+  private fun updateNowPlaying() {
+    NowPlaying
+  }
 }
