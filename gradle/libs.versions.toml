@@ -164,7 +164,7 @@ vlcj = { module = "uk.co.caprica:vlcj", version.ref="vlcj" }
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
-turbine = "app.cash.turbine:turbine:1.1.0"
+turbine = "app.cash.turbine:turbine:1.2.0"
 leakCanary = "com.squareup.leakcanary:leakcanary-android:2.14"
 robolectric = "org.robolectric:robolectric:4.13"
 strikt-core = "io.strikt:strikt-core:0.35.1"
