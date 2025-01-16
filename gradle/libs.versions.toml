@@ -1,7 +1,7 @@
 [versions]
 agp = "8.7.3"
 androidxlifecycle = "2.8.7"
-androidxactivity = "1.9.3"
+androidxactivity = "1.10.0"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-alpha06"
 core-ktx = "1.15.0"
