@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
@@ -27,7 +26,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
-import app.campfire.common.compose.layout.LazyContentSize
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
@@ -164,7 +162,6 @@ private fun LoadedContent(
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LibraryGrid(
   items: List<LibraryItem>,
@@ -180,12 +177,6 @@ private fun LibraryGrid(
   state: LazyGridState = rememberLazyGridState(),
 ) {
   LazyCampfireGrid(
-    gridCells = {
-      when (it) {
-        LazyContentSize.Small -> GridCells.Fixed(2)
-        LazyContentSize.Large -> GridCells.Fixed(4)
-      }
-    },
     state = state,
     modifier = modifier,
     contentPadding = contentPadding,

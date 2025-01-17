@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -24,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
-import app.campfire.common.compose.layout.LazyContentSize
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
@@ -98,12 +97,7 @@ private fun LoadedState(
     modifier = modifier.fillMaxSize(),
   ) {
     LazyCampfireGrid(
-      gridCells = {
-        when (it) {
-          LazyContentSize.Small -> GridCells.Fixed(1)
-          LazyContentSize.Large -> GridCells.Fixed(2)
-        }
-      },
+      columns = GridCells.Adaptive(LargeAdaptiveColumnSize),
       state = state,
       contentPadding = contentPadding + PaddingValues(ContentPadding),
       modifier = Modifier.fillMaxSize(),

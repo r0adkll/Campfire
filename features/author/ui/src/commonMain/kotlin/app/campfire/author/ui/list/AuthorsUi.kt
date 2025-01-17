@@ -4,9 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
@@ -20,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ErrorListState
@@ -84,10 +83,8 @@ private fun LoadedState(
   contentPadding: PaddingValues,
   modifier: Modifier = Modifier,
   state: LazyGridState = rememberLazyGridState(),
-  columns: Int = DefaultColumns,
 ) {
-  LazyVerticalGrid(
-    columns = GridCells.Adaptive(100.dp),
+  LazyCampfireGrid(
     state = state,
     modifier = modifier,
     contentPadding = contentPadding + PaddingValues(16.dp),
@@ -107,5 +104,3 @@ private fun LoadedState(
     }
   }
 }
-
-private val DefaultColumns = 3

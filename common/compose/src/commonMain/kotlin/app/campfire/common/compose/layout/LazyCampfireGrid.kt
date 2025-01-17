@@ -9,16 +9,8 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
-import app.campfire.common.compose.LocalWindowSizeClass
-
-enum class LazyContentSize {
-  Small,
-  Large,
-}
+import androidx.compose.ui.unit.dp
 
 /**
  * A custom wrapper around [LazyVerticalGrid] that takes into account the
@@ -28,8 +20,8 @@ enum class LazyContentSize {
  */
 @Composable
 fun LazyCampfireGrid(
-  gridCells: (LazyContentSize) -> GridCells,
   modifier: Modifier = Modifier,
+  columns: GridCells = GridCells.Adaptive(DefaultAdaptiveColumnSize),
   state: LazyGridState = rememberLazyGridState(),
   contentPadding: PaddingValues = PaddingValues(),
   reverseLayout: Boolean = false,
@@ -38,22 +30,6 @@ fun LazyCampfireGrid(
   horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
   content: LazyGridScope.() -> Unit,
 ) {
-  val supportingPaneEnabled by rememberUpdatedState(LocalSupportingContentState.current)
-  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
-
-  val contentSize = if (
-    supportingPaneEnabled == SupportingContentState.Closed &&
-    windowSizeClass.isSupportingPaneEnabled
-  ) {
-    LazyContentSize.Large
-  } else {
-    LazyContentSize.Small
-  }
-
-  val columns = remember(contentSize) {
-    gridCells(contentSize)
-  }
-
   LazyVerticalGrid(
     columns = columns,
     state = state,
@@ -64,3 +40,6 @@ fun LazyCampfireGrid(
     content = content,
   )
 }
+
+val DefaultAdaptiveColumnSize = 120.dp
+val LargeAdaptiveColumnSize = 300.dp
