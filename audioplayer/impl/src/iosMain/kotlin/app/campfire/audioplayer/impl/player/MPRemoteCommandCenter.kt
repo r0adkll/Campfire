@@ -1,5 +1,6 @@
 package app.campfire.audioplayer.impl.player
 
+import app.campfire.core.logging.bark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -16,25 +17,27 @@ fun <Command : MPRemoteCommand> Command.enable(
   setup: Command.() -> Unit = {},
   action: (MPRemoteCommandEvent) -> MPRemoteCommandHandlerStatus,
 ) {
+  bark { "Enabling RemoteCommand $this" }
   setEnabled(enabled)
   removeTarget(null)
   setup()
   addTargetWithHandler { event ->
     if (event == null) return@addTargetWithHandler MPRemoteCommandHandlerStatusCommandFailed
+    bark { "--> RemoteCommand $event" }
     action(event)
   }
 }
 
-fun MPSkipIntervalCommand.setPreferredIntervals(vararg intervalsInMillis: Long) {
+fun MPSkipIntervalCommand.preferredIntervals(vararg intervalsInMillis: Long) {
   preferredIntervals = intervalsInMillis.map { it.milliseconds.toDouble(DurationUnit.SECONDS) }
 }
 
 fun MPSkipIntervalCommand.getPreferredIntervals(): List<Duration> {
   return preferredIntervals
-    .filterIsInstance<Double>()
-    .map { it.seconds }
+    .filterIsInstance<Number>()
+    .map { it.toDouble().seconds }
 }
 
-fun MPChangePlaybackRateCommand.setSupportedPlaybackRates(rates: List<Float>) {
+fun MPChangePlaybackRateCommand.supportedPlaybackRates(rates: List<Float>) {
   supportedPlaybackRates = rates.map { it.toDouble() }
 }

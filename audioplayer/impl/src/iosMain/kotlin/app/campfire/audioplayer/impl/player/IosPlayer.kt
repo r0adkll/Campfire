@@ -322,7 +322,7 @@ class IosPlayer(
   }
 
   fun seekTo(progress: Float) {
-    val currentTimeInItem = avPlayer.currentTime().seconds - currentMediaItem.startOffset
+    val currentTimeInItem = avPlayer.currentTime().seconds
     val (_, track) = currentMediaItem.indexedTrackAtItemPosition(currentTimeInItem)
       ?: throw IllegalStateException("Unable to determine current track in player")
 

@@ -7,8 +7,8 @@ import app.campfire.audioplayer.impl.player.IosPlayer
 import app.campfire.audioplayer.impl.player.NowPlaying
 import app.campfire.audioplayer.impl.player.enable
 import app.campfire.audioplayer.impl.player.getPreferredIntervals
-import app.campfire.audioplayer.impl.player.setPreferredIntervals
-import app.campfire.audioplayer.impl.util.seconds
+import app.campfire.audioplayer.impl.player.preferredIntervals
+import app.campfire.audioplayer.impl.player.supportedPlaybackRates
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
@@ -31,7 +31,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import platform.AVFoundation.currentTime
 import platform.MediaPlayer.MPChangePlaybackPositionCommandEvent
 import platform.MediaPlayer.MPChangePlaybackRateCommandEvent
 import platform.MediaPlayer.MPRemoteCommandCenter
@@ -276,7 +275,7 @@ class IosAudioPlayer(
     commandCenter.togglePlayPauseCommand.enable(action = playPauseHandler)
 
     commandCenter.skipForwardCommand.enable(
-      setup = { setPreferredIntervals(settings.forwardTimeMs) },
+      setup = { preferredIntervals(settings.forwardTimeMs) },
       action = { event ->
         when (val command = event.command) {
           is MPSkipIntervalCommand -> {
@@ -291,7 +290,7 @@ class IosAudioPlayer(
     )
 
     commandCenter.skipBackwardCommand.enable(
-      setup = { setPreferredIntervals(settings.backwardTimeMs) },
+      setup = { preferredIntervals(settings.backwardTimeMs) },
       action = { event ->
         when (val command = event.command) {
           is MPSkipIntervalCommand -> {
@@ -324,7 +323,7 @@ class IosAudioPlayer(
     }
 
     commandCenter.changePlaybackRateCommand.enable(
-      setup = { setSupportedPlaybackRates(settings.playbackRates) },
+      setup = { supportedPlaybackRates(settings.playbackRates) },
       action = { event ->
         val playbackRateEvent = event as? MPChangePlaybackRateCommandEvent
           ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent

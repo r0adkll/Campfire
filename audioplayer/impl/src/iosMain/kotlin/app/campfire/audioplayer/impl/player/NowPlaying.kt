@@ -1,12 +1,10 @@
 package app.campfire.audioplayer.impl.player
 
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import platform.MediaPlayer.MPMediaItemArtwork
@@ -26,7 +24,6 @@ object NowPlaying {
   private val infoMutex = Mutex()
   private val info = mutableMapOf<Any?, Any?>()
 
-  @OptIn(ExperimentalForeignApi::class)
   suspend fun update(
     currentTime: Duration,
     currentDuration: Duration,
@@ -88,7 +85,6 @@ object NowPlaying {
 
   private fun dispatch() {
     val filteredInfo = info.filterValues { it != null }
-    bark { "Dispatching NowPlaying info: ${filteredInfo.entries.joinToString("\n") { "${it.key} = ${it.value}" }}" }
     MPNowPlayingInfoCenter.defaultCenter().setNowPlayingInfo(filteredInfo)
   }
 }
