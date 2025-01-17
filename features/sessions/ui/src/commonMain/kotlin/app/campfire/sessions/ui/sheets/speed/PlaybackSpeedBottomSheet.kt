@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.extensions.toString
@@ -65,14 +66,14 @@ suspend fun OverlayHost.showPlaybackSpeedBottomSheet(speed: Float) {
 
 @ContributesTo(AppScope::class)
 interface PlaybackSpeedBottomSheetComponent {
+  val playbackSettings: PlaybackSettings
   val audioPlayerHolder: AudioPlayerHolder
 }
 
 @Composable
-private fun rememberAudioPlayerHolder(): AudioPlayerHolder {
+private fun rememberPlaybackSpeedComponent(): PlaybackSpeedBottomSheetComponent {
   return remember {
     ComponentHolder.component<PlaybackSpeedBottomSheetComponent>()
-      .audioPlayerHolder
   }
 }
 
@@ -81,14 +82,16 @@ private fun rememberAudioPlayerHolder(): AudioPlayerHolder {
 private fun PlaybackSpeedBottomSheet(
   speed: Float,
   modifier: Modifier = Modifier,
-  audioPlayerHolder: AudioPlayerHolder = rememberAudioPlayerHolder(),
+  component: PlaybackSpeedBottomSheetComponent = rememberPlaybackSpeedComponent(),
 ) {
   val currentSpeed by remember {
-    audioPlayerHolder.currentPlayer
+    component.audioPlayerHolder.currentPlayer
       .flatMapLatest {
         it?.playbackSpeed ?: emptyFlow()
       }
   }.collectAsState(speed)
+
+  val speedOptions = remember { component.playbackSettings.playbackRates.sorted() }
 
   SessionSheetLayout(
     modifier = modifier,
@@ -99,14 +102,14 @@ private fun PlaybackSpeedBottomSheet(
     SingleChoiceSegmentedButtonRow(
       modifier = Modifier.align(Alignment.CenterHorizontally),
     ) {
-      DefaultSpeedOptions.forEachIndexed { index, defaultSpeed ->
+      speedOptions.forEachIndexed { index, defaultSpeed ->
         val isCurrentSpeed = currentSpeed == defaultSpeed
         SegmentedButton(
-          shape = SegmentedButtonDefaults.itemShape(index, DefaultSpeedOptions.size, RoundedCornerShape(16.dp)),
+          shape = SegmentedButtonDefaults.itemShape(index, speedOptions.size, RoundedCornerShape(16.dp)),
           selected = isCurrentSpeed,
           label = { Text("${defaultSpeed.readable}x") },
           onClick = {
-            audioPlayerHolder.currentPlayer.value
+            component.audioPlayerHolder.currentPlayer.value
               ?.setPlaybackSpeed(defaultSpeed)
           },
         )
@@ -130,7 +133,7 @@ private fun PlaybackSpeedBottomSheet(
         }
       }
 
-      val sliderProgressNormalized = sliderValue / (DefaultSpeedOptions.min() + DefaultSpeedOptions.length)
+      val sliderProgressNormalized = sliderValue / (speedOptions.min() + speedOptions.length)
       val waveLength = lerp(WavelengthRange.endInclusive, WavelengthRange.start, sliderProgressNormalized)
       val waveHeight = lerp(WaveHeightRange.start, WaveHeightRange.endInclusive, sliderProgressNormalized)
       val waveVelocity = lerp(WaveVelocityRange.start, WaveVelocityRange.endInclusive, sliderProgressNormalized)
@@ -138,10 +141,10 @@ private fun PlaybackSpeedBottomSheet(
 
       WavySlider(
         value = sliderValue,
-        valueRange = DefaultSpeedOptions.asRange,
+        valueRange = speedOptions.asRange,
         onValueChange = {
           sliderValue = it
-          audioPlayerHolder.currentPlayer.value?.setPlaybackSpeed(it)
+          component.audioPlayerHolder.currentPlayer.value?.setPlaybackSpeed(it)
         },
         waveLength = waveLength,
         waveHeight = waveHeight,
@@ -170,14 +173,15 @@ private val Float.readable: String
   get() {
     val asInt = roundToInt()
     val isWhole = this == asInt.toFloat()
+    val hasHalf = (this * 10) % 1 == 0.5f
     return if (isWhole) {
       "$asInt"
+    } else if (hasHalf) {
+      toString(2)
     } else {
       toString(1)
     }
   }
-
-private val DefaultSpeedOptions = listOf(3f, 2f, 1.5f, 1f, 0.5f)
 
 private val WavelengthRange = 40.dp.rangeTo(135.dp)
 private val WaveHeightRange = 0.dp.rangeTo(40.dp)

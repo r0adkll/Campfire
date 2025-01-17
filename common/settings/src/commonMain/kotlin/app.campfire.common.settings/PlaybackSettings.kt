@@ -16,7 +16,6 @@ interface PlaybackSettings {
   var trackResetThreshold: Duration
   fun observeTrackResetThreshold(): StateFlow<Duration>
 
-  // TODO: Use this to drive the UI so that these options are synced
   var playbackRates: List<Float>
   fun observePlaybackRates(): StateFlow<List<Float>>
 }

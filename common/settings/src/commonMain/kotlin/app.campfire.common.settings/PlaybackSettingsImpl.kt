@@ -86,4 +86,4 @@ internal const val PLAYBACK_RATES_SEPARATOR = "::"
 internal const val DEFAULT_FORWARD_TIME_MS = 15L * 1000L // 30s
 internal const val DEFAULT_BACKWARD_TIME_MS = 10L * 1000L // 15s
 internal const val DEFAULT_TRACK_RESET_THRESHOLD_SECONDS = 5.0 // 5s
-internal val DEFAULT_PLAYBACK_RATES = listOf(0.5f, 1f, 1.5f, 2f, 3f)
+internal val DEFAULT_PLAYBACK_RATES = listOf(0.5f, 0.75f, 1f, 1.5f, 2f)
