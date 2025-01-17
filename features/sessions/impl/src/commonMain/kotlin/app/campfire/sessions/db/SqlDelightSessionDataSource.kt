@@ -8,11 +8,13 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
+import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -60,6 +62,14 @@ class SqlDelightSessionDataSource(
       db.sessionQueries.getForId(libraryItemId, userSession.requiredUserId)
         .executeAsOneOrNull()
         ?.let { hydrateSession(it) }
+    }
+  }
+
+  override suspend fun getSessions(userId: UserId): List<Session> {
+    return withContext(dispatcherProvider.databaseRead) {
+      db.sessionQueries.getAll(userId)
+        .awaitAsList()
+        .map { hydrateSession(it) }
     }
   }
 

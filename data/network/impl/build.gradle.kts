@@ -12,7 +12,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.data.network.public)
+        api(projects.data.network.api)
         implementation(projects.common.settings)
         implementation(projects.core)
         implementation(projects.data.account.api)
@@ -20,10 +20,13 @@ kotlin {
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.serialization.json)
+
         api(libs.ktor.client.core)
         implementation(libs.ktor.client.contentnegotiation)
         implementation(libs.ktor.client.logging)
         implementation(libs.ktor.client.serialization.json)
+
+        api(libs.connectivity.core)
       }
     }
 
@@ -37,6 +40,7 @@ kotlin {
       dependencies {
         api(libs.okhttp.okhttp)
         implementation(libs.ktor.client.okhttp)
+        implementation(libs.connectivity.android)
       }
     }
 
@@ -44,12 +48,14 @@ kotlin {
       dependencies {
         api(libs.okhttp.okhttp)
         implementation(libs.ktor.client.okhttp)
+        implementation(libs.connectivity.http)
       }
     }
 
     iosMain {
       dependencies {
         implementation(libs.ktor.client.darwin)
+        implementation(libs.connectivity.apple)
       }
     }
   }

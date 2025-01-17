@@ -28,6 +28,7 @@ import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
+import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 @ContributesBinding(UserScope::class)
 @Inject
@@ -73,6 +74,11 @@ class StoreServerRepository(
           emptyFlow()
         }
       }
+  }
+
+  override suspend fun getCurrentServer(): Server? {
+    val user = (userSessionManager.current as? UserSession.LoggedIn)?.user ?: return null
+    return serverStore.get(user.serverUrl)
   }
 
   override suspend fun changeTent(tent: Tent) {

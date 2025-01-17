@@ -27,6 +27,10 @@ SELECT * FROM session
 WHERE isActive = 1
   AND userId = ?;
 
+getAll:
+SELECT * FROM session
+WHERE userId = ?;
+
 getForId:
 SELECT * FROM session
 WHERE libraryItemId = ?

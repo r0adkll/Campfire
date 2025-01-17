@@ -12,6 +12,11 @@ interface ServerRepository {
   fun observeCurrentServer(): Flow<Server>
 
   /**
+   * Fetch the current active server
+   */
+  suspend fun getCurrentServer(): Server?
+
+  /**
    * Change the [Tent] for the current server
    */
   suspend fun changeTent(tent: Tent)

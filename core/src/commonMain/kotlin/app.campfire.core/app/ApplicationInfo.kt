@@ -19,5 +19,5 @@ data class ApplicationInfo(
 )
 
 enum class Flavor {
-  Standard,
+  Standard, Beta, Alpha
 }

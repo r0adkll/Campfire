@@ -16,6 +16,7 @@ import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.envelopes.SyncSessionRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -215,7 +216,7 @@ class KtorAudioBookShelfApi(
     return trySendRequest<SyncLocalSessionsResult> {
       hydratedClientRequest("/api/session/local-all") {
         method = HttpMethod.Post
-        setBody(sessions)
+        setBody(SyncSessionRequest(sessions))
       }
     }
   }

@@ -3,6 +3,7 @@ package app.campfire.sessions.db
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
+import app.campfire.core.model.UserId
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDateTime
@@ -12,6 +13,8 @@ interface SessionDataSource {
   fun observeCurrentSession(): Flow<Session?>
 
   suspend fun getSession(libraryItemId: LibraryItemId): Session?
+
+  suspend fun getSessions(userId: UserId): List<Session>
 
   suspend fun createOrStartSession(
     libraryItemId: LibraryItemId,

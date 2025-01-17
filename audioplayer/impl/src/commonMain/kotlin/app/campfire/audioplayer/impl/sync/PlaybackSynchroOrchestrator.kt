@@ -4,13 +4,9 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.ComponentHolder
-import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
-import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -19,14 +15,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
-
-@ContributesTo(UserScope::class)
-interface SessionsRepositoryComponent {
-  val sessionsRepository: SessionsRepository
-}
-
-private val sessionsRepositoryComponent: SessionsRepositoryComponent
-  get() = ComponentHolder.component()
 
 @Inject
 class PlaybackSynchroOrchestrator(

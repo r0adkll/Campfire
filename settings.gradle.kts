@@ -77,7 +77,7 @@ include(
   ":data:account:ui",
 )
 include(
-  ":data:network:public",
+  ":data:network:api",
   ":data:network:impl",
   ":data:db",
   ":data:mapping",

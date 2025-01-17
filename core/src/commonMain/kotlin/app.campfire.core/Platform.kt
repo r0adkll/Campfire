@@ -1,4 +1,4 @@
-package app.campfire.common.compose
+package app.campfire.core
 
 enum class Platform {
   ANDROID,

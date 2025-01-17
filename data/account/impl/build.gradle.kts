@@ -14,7 +14,7 @@ kotlin {
         api(projects.data.account.api)
         api(projects.common.settings)
         api(projects.data.db)
-        api(projects.data.network.public)
+        api(projects.data.network.api)
         api(projects.data.mapping)
 
         implementation(projects.core)

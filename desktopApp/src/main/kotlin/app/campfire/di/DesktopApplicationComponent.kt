@@ -26,8 +26,8 @@ abstract class DesktopApplicationComponent : SharedAppComponent {
     flavor = Flavor.Standard,
     versionName = "1.0.0",
     versionCode = 1,
-    osName = "JVM",
-    osVersion = "1",
+    osName = System.getProperty("os.name"),
+    osVersion = System.getProperty("os.version"),
   )
 
   @SingleIn(AppScope::class)

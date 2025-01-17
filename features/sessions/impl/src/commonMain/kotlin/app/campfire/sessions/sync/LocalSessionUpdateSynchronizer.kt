@@ -18,6 +18,7 @@ import me.tatarka.inject.annotations.Inject
 @ContributesTo(UserScope::class)
 interface LocalSessionComponent {
   val sessionsRepository: SessionsRepository
+  val remoteSessionsUpdater: RemoteSessionsUpdater
 }
 
 @Inject
@@ -29,8 +30,8 @@ class LocalSessionUpdateSynchronizer(
   // FIXME: This is a hack to get around the AppScope -> UserScope issue.
   //  We need to find a better way to organize our user management and scoping to prevent this
   //  when we DON'T really need the separation for some of these operations
-  private val sessionsRepository: SessionsRepository
-    get() = ComponentHolder.component<LocalSessionComponent>().sessionsRepository
+  private val component: LocalSessionComponent
+    get() = ComponentHolder.component<LocalSessionComponent>()
 
   private var lastPlayedTime = mutableMapOf<String, Long>()
 
@@ -46,13 +47,15 @@ class LocalSessionUpdateSynchronizer(
       if (lastPlayed != null) {
         val elapsed = (fatherTime.nowInEpochMillis() - lastPlayed).milliseconds
         ibark { "Adding $elapsed time listening to $libraryItemId" }
-        sessionsRepository.addTimeListening(libraryItemId, elapsed)
+        component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
+        component.remoteSessionsUpdater.update(skipInterval = true)
       }
     }
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-    sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
+    component.sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
+    component.remoteSessionsUpdater.update()
   }
 
   companion object : Cork {

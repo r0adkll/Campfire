@@ -8,6 +8,7 @@ core-ktx = "1.15.0"
 coroutines = "1.9.0"
 # This is used in the build logic
 compose-multiplatform = "1.7.3"
+connectivity = "1.2.0"
 coil = "3.0.4"
 circuit = "0.25.0"
 media3 = "1.5.1"
@@ -137,6 +138,10 @@ ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", version.ref = "connectivity"}
+connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity"}
+connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity"}
+connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity"}
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.4"
 store = "org.mobilenativefoundation.store:store5:5.0.0"

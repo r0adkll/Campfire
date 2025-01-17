@@ -1,4 +1,5 @@
 plugins {
+  id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   alias(libs.plugins.kotlin.serialization)
 }

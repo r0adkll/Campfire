@@ -55,11 +55,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.Platform
-import app.campfire.common.compose.currentPlatform
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.session.isLoggedIn
 import com.slack.circuit.overlay.ContentWithOverlays

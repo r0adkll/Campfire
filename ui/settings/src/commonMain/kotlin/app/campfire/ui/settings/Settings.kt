@@ -42,14 +42,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.Platform
-import app.campfire.common.compose.currentPlatform
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.common.settings.CampfireSettings.Theme.DARK
 import app.campfire.common.settings.CampfireSettings.Theme.LIGHT
 import app.campfire.common.settings.CampfireSettings.Theme.SYSTEM
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.ui.settings.composables.Header
