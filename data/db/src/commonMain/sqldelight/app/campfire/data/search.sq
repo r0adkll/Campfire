@@ -1,0 +1,115 @@
+import app.campfire.core.model.BasicSearchResult;
+import kotlin.collections.List;
+
+CREATE TABLE IF NOT EXISTS search (
+  key TEXT NOT NULL PRIMARY KEY,
+  userId TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS search_books (
+  searchKey TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  PRIMARY KEY (searchKey, libraryItemId),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS search_authors (
+  searchKey TEXT NOT NULL,
+  authorId TEXT NOT NULL,
+  PRIMARY KEY (searchKey, authorId),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS search_series (
+  searchKey TEXT NOT NULL,
+  seriesId TEXT NOT NULL,
+  PRIMARY KEY (searchKey, seriesId),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS search_narrators (
+  searchKey TEXT NOT NULL,
+  narrators TEXT AS List<BasicSearchResult> NOT NULL,
+  PRIMARY KEY (searchKey, narrators),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS search_tags (
+  searchKey TEXT NOT NULL,
+  tags TEXT AS List<BasicSearchResult> NOT NULL,
+  PRIMARY KEY (searchKey, tags),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+CREATE TABLE IF NOT EXISTS search_genres (
+  searchKey TEXT NOT NULL,
+  genres TEXT AS List<BasicSearchResult> NOT NULL,
+  PRIMARY KEY (searchKey, genres),
+  FOREIGN KEY (searchKey) REFERENCES search(key) ON DELETE CASCADE ON UPDATE NO ACTION
+);
+
+-- Queries
+
+select:
+SELECT * FROM search
+WHERE key = ?;
+
+insert:
+INSERT OR IGNORE INTO search
+VALUES ?;
+
+insertBooks:
+INSERT OR REPLACE INTO search_books
+VALUES ?;
+
+insertAuthors:
+INSERT OR REPLACE INTO search_authors
+VALUES ?;
+
+insertSeries:
+INSERT OR REPLACE INTO search_series
+VALUES ?;
+
+insertNarrators:
+INSERT OR REPLACE INTO search_narrators
+VALUES ?;
+
+insertTags:
+INSERT OR REPLACE INTO search_tags
+VALUES ?;
+
+insertGenres:
+INSERT OR REPLACE INTO search_genres
+VALUES ?;
+
+delete:
+DELETE FROM search
+WHERE key = ?;
+
+searchBooks:
+SELECT libraryItem.*, media.* FROM search_books
+INNER JOIN libraryItem ON libraryItem.id = search_books.libraryItemId
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE search_books.searchKey = ?;
+
+searchAuthors:
+SELECT * FROM search_authors
+INNER JOIN authors ON authors.id = search_authors.authorId
+WHERE search_authors.searchKey = ?;
+
+searchSeries:
+SELECT * FROM search_series
+INNER JOIN series ON series.id = search_series.seriesId
+WHERE search_series.searchKey = ?;
+
+searchNarrators:
+SELECT narrators FROM search_narrators
+WHERE searchKey = ?;
+
+searchTags:
+SELECT tags FROM search_tags
+WHERE searchKey = ?;
+
+searchGenres:
+SELECT genres FROM search_genres
+WHERE searchKey = ?;

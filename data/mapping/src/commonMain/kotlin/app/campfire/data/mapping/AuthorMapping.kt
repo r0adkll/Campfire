@@ -4,6 +4,7 @@ import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.data.Authors as DbAuthor
+import app.campfire.data.SearchAuthors
 import app.campfire.network.models.Author as NetworkAuthor
 
 suspend fun NetworkAuthor.asDbModel(
@@ -35,5 +36,18 @@ fun DbAuthor.asDomainModel(
     updatedAt = updatedAt,
     numBooks = numBooks,
     libraryItems = items,
+  )
+}
+
+fun SearchAuthors.asDomainModel(): Author {
+  return Author(
+    id = id,
+    asin = asin,
+    name = name,
+    description = description,
+    imagePath = imagePath,
+    addedAt = addedAt,
+    updatedAt = updatedAt,
+    numBooks = numBooks,
   )
 }

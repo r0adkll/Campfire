@@ -27,6 +27,7 @@ import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
@@ -51,6 +52,7 @@ import io.ktor.http.URLBuilder
 import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
+import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
@@ -229,6 +231,12 @@ class KtorAudioBookShelfApi(
         method = HttpMethod.Post
         setBody(session)
       }
+    }
+  }
+
+  override suspend fun searchLibrary(libraryId: String, query: String): Result<SearchResult> {
+    return trySendRequest {
+      hydratedClientRequest("api/libraries/$libraryId/search?q=${query.encodeURLQueryComponent()}")
     }
   }
 

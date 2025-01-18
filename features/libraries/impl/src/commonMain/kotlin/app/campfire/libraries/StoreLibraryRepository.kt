@@ -10,10 +10,11 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
-import app.campfire.data.SelectForLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.model.LibraryItemWithMedia
+import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
@@ -52,7 +53,7 @@ class StoreLibraryRepository(
       },
       sourceOfTruth = SourceOfTruth.of(
         reader = { libraryId: LibraryId ->
-          db.libraryItemsQueries.selectForLibrary(libraryId)
+          db.libraryItemsQueries.selectForLibrary(libraryId, ::mapToLibraryItem)
             .asFlow()
             .mapToList(dispatcherProvider.databaseRead)
         },
@@ -77,7 +78,7 @@ class StoreLibraryRepository(
       ),
     )
     .cachePolicy(
-      MemoryPolicy.builder<LibraryId, List<SelectForLibrary>>()
+      MemoryPolicy.builder<LibraryId, List<LibraryItemWithMedia>>()
         .setMaxSize(10)
         .setExpireAfterAccess(15.minutes)
         .build(),

@@ -18,9 +18,8 @@ import app.campfire.data.MediaChapters
 import app.campfire.data.MetadataAuthor
 import app.campfire.data.SelectForAuthorName
 import app.campfire.data.SelectForCollection
-import app.campfire.data.SelectForId
-import app.campfire.data.SelectForLibrary
 import app.campfire.data.SelectForSeries
+import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.network.RequestOrigin
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.LibraryItemBase
@@ -108,66 +107,6 @@ fun <T : Media> T.asDbModel(
     metadata_series_id = metadataSeries?.id,
     metadata_series_name = metadataSeries?.name,
     metadata_series_sequence = metadataSeries?.sequence,
-  )
-}
-
-suspend fun SelectForLibrary.asDomainModel(
-  coverImageHydrator: CoverImageHydrator,
-): LibraryItem {
-  return LibraryItem(
-    id = id,
-    libraryId = libraryId,
-    isMissing = isMissing,
-    isInvalid = isInvalid,
-    mediaType = mediaType,
-    numFiles = numFiles,
-    sizeInBytes = sizeInBytes,
-    addedAtMillis = addedAt,
-    updatedAtMillis = updatedAt,
-    media = DomainMedia(
-      id = mediaId,
-      metadata = DomainMedia.Metadata(
-        title = metadata_title,
-        titleIgnorePrefix = metadata_titleIgnorePrefix,
-        subtitle = metadata_subtitle,
-        authorName = metadata_authorName,
-        authorNameLastFirst = metadata_authorNameLF,
-        narratorName = metadata_narratorName,
-        seriesName = metadata_seriesName,
-        genres = metadata_genres ?: emptyList(),
-        publishedYear = metadata_publishedYear,
-        publishedDate = metadata_publishedDate,
-        publisher = metadata_publisher,
-        description = metadata_description,
-        ISBN = metadata_isbn,
-        ASIN = metadata_asin,
-        language = metadata_language,
-        isExplicit = metadata_explicit,
-        isAbridged = metadata_abridged,
-        seriesSequence = createIfNotNull(
-          metadata_series_id,
-          metadata_series_name,
-          metadata_series_sequence,
-        ) {
-          SeriesSequence(
-            id = metadata_series_id!!,
-            name = metadata_series_name!!,
-            sequence = metadata_series_sequence!!,
-          )
-        },
-      ),
-      coverImageUrl = coverImageHydrator.hydrateLibraryItem(id),
-      coverPath = coverPath,
-      tags = tags ?: emptyList(),
-      numTracks = numTracks,
-      numAudioFiles = numAudioFiles,
-      numChapters = numChapters,
-      numMissingParts = numMissingParts,
-      numInvalidAudioFiles = numInvalidAudioFiles,
-      durationInMillis = durationInMillis,
-      sizeInBytes = sizeInBytes,
-      ebookFormat = ebookFormat,
-    ),
   )
 }
 
@@ -351,12 +290,12 @@ suspend fun SelectForAuthorName.asDomainModel(
   )
 }
 
-suspend fun SelectForId.asDomainModel(
+suspend fun LibraryItemWithMedia.asDomainModel(
   coverImageHydrator: CoverImageHydrator,
-  mediaAudioFiles: List<MediaAudioFiles>,
-  mediaAudioTracks: List<MediaAudioTracks>,
-  mediaChapters: List<MediaChapters>,
-  metadataAuthors: List<MetadataAuthor>,
+  mediaAudioFiles: List<MediaAudioFiles> = emptyList(),
+  mediaAudioTracks: List<MediaAudioTracks> = emptyList(),
+  mediaChapters: List<MediaChapters> = emptyList(),
+  metadataAuthors: List<MetadataAuthor> = emptyList(),
 ): LibraryItem {
   return LibraryItem(
     id = id,

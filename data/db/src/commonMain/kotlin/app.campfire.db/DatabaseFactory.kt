@@ -12,6 +12,9 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
+import app.campfire.data.Search_genres
+import app.campfire.data.Search_narrators
+import app.campfire.data.Search_tags
 import app.campfire.data.Server
 import app.campfire.data.Session
 import app.campfire.data.User
@@ -100,6 +103,15 @@ class DatabaseFactory(
     ),
     bookmarkFailedDeleteAdapter = BookmarkFailedDelete.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,
+    ),
+    search_tagsAdapter = Search_tags.Adapter(
+      tagsAdapter = BasicSearchResultListAdapter,
+    ),
+    search_narratorsAdapter = Search_narrators.Adapter(
+      narratorsAdapter = BasicSearchResultListAdapter,
+    ),
+    search_genresAdapter = Search_genres.Adapter(
+      genresAdapter = BasicSearchResultListAdapter,
     ),
   )
 }

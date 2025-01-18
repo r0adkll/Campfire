@@ -47,6 +47,9 @@ kotlin {
         api(projects.features.sessions.impl)
         api(projects.features.sessions.ui)
 
+        api(projects.features.search.impl)
+        api(projects.features.search.ui)
+
         api(projects.ui.drawer)
         api(projects.ui.settings)
 

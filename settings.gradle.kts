@@ -122,6 +122,11 @@ include(
   ":features:sessions:ui",
 )
 include(
+  ":features:search:api",
+  ":features:search:impl",
+  ":features:search:ui",
+)
+include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:settings",

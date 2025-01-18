@@ -1,5 +1,6 @@
 package app.campfire.db
 
+import app.campfire.core.model.BasicSearchResult
 import app.cash.sqldelight.ColumnAdapter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -61,4 +62,26 @@ object DurationAdapter : ColumnAdapter<Duration, Long> {
 object UuidAdapter : ColumnAdapter<Uuid, String> {
   override fun decode(databaseValue: String): Uuid = Uuid.parse(databaseValue)
   override fun encode(value: Uuid): String = value.toString()
+}
+
+object BasicSearchResultListAdapter : ColumnAdapter<List<BasicSearchResult>, String> {
+  private const val ITEM_SEPARATOR = "|"
+  private const val FIELD_SEPARATOR = ";;"
+
+  override fun decode(databaseValue: String): List<BasicSearchResult> {
+    return databaseValue.split(ITEM_SEPARATOR).mapNotNull { rawValue ->
+      val parts = rawValue.split(FIELD_SEPARATOR)
+      if (parts.size != 2) return@mapNotNull null
+      BasicSearchResult(
+        name = parts[0],
+        numItems = parts[1].toIntOrNull() ?: 0,
+      )
+    }
+  }
+
+  override fun encode(value: List<BasicSearchResult>): String {
+    return value.joinToString(ITEM_SEPARATOR) {
+      "${it.name}$FIELD_SEPARATOR${it.numItems}"
+    }
+  }
 }

@@ -12,6 +12,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
@@ -138,4 +139,9 @@ interface AudioBookShelfApi {
    * This endpoint creates/updates a local listening session on the server. Used for syncing offline listening
    */
   suspend fun syncLocalSession(session: PlaybackSession): Result<Unit>
+
+  /**
+   * This endpoint searches a library for the query and returns the results.
+   */
+  suspend fun searchLibrary(libraryId: String, query: String): Result<SearchResult>
 }
