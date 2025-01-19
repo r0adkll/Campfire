@@ -85,7 +85,9 @@ fun LibraryItemCard(
           .padding(horizontal = 16.dp),
       )
       Text(
-        text = item.media.metadata.authorName ?: stringResource(Res.string.unknown_author_name),
+        text = item.media.metadata.authorName
+          ?: item.media.metadata.authors.firstOrNull()?.name
+          ?: stringResource(Res.string.unknown_author_name),
         style = MaterialTheme.typography.bodySmall,
         fontStyle = if (item.media.metadata.authorName == null) FontStyle.Italic else null,
         maxLines = 1,

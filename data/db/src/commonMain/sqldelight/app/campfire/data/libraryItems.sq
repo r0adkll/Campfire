@@ -30,6 +30,10 @@ insert:
 INSERT OR REPLACE INTO libraryItem
 VALUES ?;
 
+insertOrIgnore:
+INSERT OR IGNORE INTO libraryItem
+VALUES ?;
+
 selectForId:
 SELECT * FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id

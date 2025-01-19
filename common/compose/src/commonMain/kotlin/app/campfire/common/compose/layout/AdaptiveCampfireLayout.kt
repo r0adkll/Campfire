@@ -2,8 +2,6 @@ package app.campfire.common.compose.layout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
@@ -24,28 +22,20 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -54,10 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalUserSession
-import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
@@ -79,6 +69,7 @@ fun AdaptiveCampfireLayout(
   drawerContent: @Composable () -> Unit,
   bottomBarNavigation: @Composable () -> Unit,
   railNavigation: @Composable () -> Unit,
+  searchBar: @Composable () -> Unit,
 
   content: @Composable () -> Unit,
   playbackBarContent: @Composable BoxScope.() -> Unit,
@@ -169,53 +160,15 @@ fun AdaptiveCampfireLayout(
                 .fillMaxHeight(),
             ) {
               if (isSupportingPaneEnabled && isLoggedIn) {
-                var query by remember { mutableStateOf("") }
-                var isActive by remember { mutableStateOf(false) }
-                DockedSearchBar(
-                  query = query,
-                  onQueryChange = {
-                    query = it
-                  },
-                  onSearch = {
-                  },
-                  active = isActive,
-                  onActiveChange = {
-                    isActive = it
-                  },
-                  leadingIcon = {
-                    Icon(Icons.Rounded.Search, contentDescription = null)
-                  },
-                  trailingIcon = {
-                    androidx.compose.animation.AnimatedVisibility(
-                      visible = query.isNotBlank() || isActive,
-                      enter = fadeIn(),
-                      exit = fadeOut(),
-                    ) {
-                      IconButton(
-                        onClick = {
-                          query = ""
-                          isActive = false
-                        },
-                      ) {
-                        Icon(Icons.Rounded.Clear, contentDescription = null)
-                      }
-                    }
-                  },
-                  placeholder = {
-                    Text("Search for your next story…")
-                  },
+                Box(
                   modifier = Modifier
                     .statusBarsPadding()
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .fillMaxHeight()
                     .padding(end = supportingContentWidth)
-                    .fluentIf(currentPlatform == Platform.DESKTOP) {
-                      padding(top = 16.dp)
-                    },
+                    .zIndex(1f),
                 ) {
-                  EmptyState(
-                    "Start typing to start lookin'",
-                  )
+                  searchBar()
                 }
               }
 

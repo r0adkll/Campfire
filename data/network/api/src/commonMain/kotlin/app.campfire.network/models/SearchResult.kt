@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SearchResult(
-  val books: List<LibraryItemSearchResult>,
+  val book: List<LibraryItemSearchResult>,
   val narrators: List<NarratorSearchResult>,
   val authors: List<Author>,
   val tags: List<TagSearchResult>,
@@ -12,9 +12,9 @@ data class SearchResult(
   val series: List<SeriesSearchResult>,
 ) : NetworkModel() {
 
-  fun toShortString(): String = buildString {
-    "SearchResult(books=${books.size}, narrators=${narrators.size}, authors=${authors.size}, tags=${tags.size}, " +
-      "genres=${genres.size}, series=${series.size})"
+  fun toShortString(): String {
+    return "SearchResult(books=${book.size}, narrators=${narrators.size}, authors=${authors.size}, " +
+      "tags=${tags.size}, genres=${genres.size}, series=${series.size})"
   }
 }
 

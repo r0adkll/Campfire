@@ -20,7 +20,8 @@ data class LibraryItemExpanded(
   override val isMissing: Boolean,
   override val isInvalid: Boolean,
   override val mediaType: MediaType,
-  override val size: Long,
+  // This shouldn't be nullable, but sometimes the API (i.e. Search) returns unexpected values
+  override val size: Long? = null,
   override val numFiles: Int? = null,
   val media: MediaExpanded,
   val libraryFiles: List<LibraryFile>,

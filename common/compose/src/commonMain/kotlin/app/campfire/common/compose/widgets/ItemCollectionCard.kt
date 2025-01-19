@@ -1,6 +1,5 @@
 package app.campfire.common.compose.widgets
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Column
@@ -15,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
@@ -26,19 +26,20 @@ private val BookImageSize = 180.dp
 private val BookCornerSize = 12.dp
 private const val MaxBookDisplay = 8
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemCollectionCard(
   name: String,
   description: String?,
   items: List<LibraryItem>,
   modifier: Modifier = Modifier,
+  itemSize: Dp = Dp.Unspecified,
 ) {
   ElevatedCard(
     modifier = modifier,
   ) {
     MultiBookLayout(
       items = items,
+      itemSize = itemSize,
       modifier = Modifier
         .background(MaterialTheme.colorScheme.primaryContainer)
         .fillMaxWidth()
@@ -72,7 +73,9 @@ fun ItemCollectionCard(
 private fun MultiBookLayout(
   items: List<LibraryItem>,
   modifier: Modifier = Modifier,
+  itemSize: Dp = Dp.Unspecified,
 ) {
+  val bookImageSize = itemSize.takeIf { it != Dp.Unspecified } ?: BookImageSize
   Layout(
     content = {
       items
@@ -82,7 +85,7 @@ private fun MultiBookLayout(
           ItemImage(
             imageUrl = item.media.coverImageUrl,
             contentDescription = item.media.metadata.title,
-            modifier = Modifier.size(BookImageSize),
+            modifier = Modifier.size(bookImageSize),
           )
         }
     },
@@ -93,7 +96,7 @@ private fun MultiBookLayout(
 
     // Grab the total width
     val totalItemWidth = placeables.fastSumBy { it.measuredWidth }
-    val maxItemWidth = placeables.fastMaxBy { it.measuredWidth }?.measuredWidth ?: BookImageSize.roundToPx()
+    val maxItemWidth = placeables.fastMaxBy { it.measuredWidth }?.measuredWidth ?: bookImageSize.roundToPx()
     val maxItemHeight = placeables.fastMaxBy { it.measuredHeight }?.measuredHeight ?: constraints.minHeight
 
     // Compute the item offset amount

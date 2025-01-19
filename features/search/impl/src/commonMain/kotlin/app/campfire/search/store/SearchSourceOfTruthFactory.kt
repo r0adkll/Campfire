@@ -3,6 +3,7 @@ package app.campfire.search.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.CoverImageHydrator
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.logging.bark
 import app.campfire.data.Search
 import app.campfire.data.Search_authors
 import app.campfire.data.Search_books
@@ -10,6 +11,7 @@ import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_series
 import app.campfire.data.Search_tags
+import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
@@ -103,6 +105,8 @@ class SearchSourceOfTruthFactory(
     query: Query,
     result: NetworkSearchResult,
   ) = withContext(dispatcherProvider.databaseWrite) {
+    bark { "Writing Search Result: ${result.toShortString()}" }
+
     db.transaction {
       // Setup transaction notifications
       afterCommit { onWriteSuccess(query, result) }
@@ -140,7 +144,10 @@ class SearchSourceOfTruthFactory(
     result.apply {
       // Insert Books + Relations
       transactionWithResult {
-        books.forEach { bookResult ->
+        book.forEach { bookResult ->
+          // We need to pass the serverUrl origin to the library item object as it sets itself up
+          // as a child to the server column in the database.
+          bookResult.libraryItem.origin = result.origin
           libraryItemDao.insert(bookResult.libraryItem, asTransaction = false)
         }
       }
@@ -181,13 +188,25 @@ class SearchSourceOfTruthFactory(
       // Insert Series + Books
       transactionWithResult {
         series.forEach { seriesSearchResult ->
-          seriesSearchResult.books.forEach {
-            libraryItemDao.insert(it, asTransaction = false)
-          }
 
           db.seriesQueries.insert(
             seriesSearchResult.series.asDbModel(query.libraryId),
           )
+
+          seriesSearchResult.books.forEach { libraryItem ->
+            libraryItem.origin = result.origin
+            libraryItemDao.insert(
+              item = libraryItem,
+              asTransaction = true,
+              ignoreOnInsert = true,
+            )
+            db.seriesBookJoinQueries.insert(
+              SeriesBookJoin(
+                seriesId = seriesSearchResult.series.id,
+                libraryItemId = libraryItem.id,
+              ),
+            )
+          }
         }
       }
     }
@@ -201,7 +220,7 @@ class SearchSourceOfTruthFactory(
 
     // Insert Books
     transactionWithResult {
-      result.books.forEach { book ->
+      result.book.forEach { book ->
         db.searchQueries.insertBooks(
           Search_books(
             searchKey = searchKey,

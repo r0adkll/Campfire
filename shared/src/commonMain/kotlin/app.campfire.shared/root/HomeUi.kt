@@ -7,11 +7,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
@@ -58,7 +60,10 @@ import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
+import app.campfire.search.ui.CampfireDockedSearchBar
 import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.shared.navigator.HomeNavigator
@@ -88,6 +93,7 @@ import com.slack.circuitx.gesturenavigation.GestureNavigationDecoration
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeUi(
   backstack: SaveableBackStack,
@@ -170,6 +176,19 @@ internal fun HomeUi(
         modifier = Modifier.fillMaxHeight(),
       )
     },
+
+    searchBar = {
+      CampfireDockedSearchBar(
+        navigator = homeNavigator,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp)
+          .fluentIf(currentPlatform == Platform.DESKTOP) {
+            padding(top = 16.dp)
+          },
+      )
+    },
+
     content = {
       NavigableCircuitContent(
         navigator = homeNavigator,

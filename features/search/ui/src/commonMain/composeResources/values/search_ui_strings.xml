@@ -1,0 +1,22 @@
+<resources>
+  <string name="search_placeholder_format">Search for your next %1$s</string>
+  <string-array name="search_placeholder_options">
+    <item>tale</item>
+    <item>story</item>
+    <item>adventure</item>
+    <item>romance</item>
+    <item>space journey</item>
+    <item>mystery</item>
+  </string-array>
+
+  <string name="search_empty_message">Start typing to start lookin</string>
+  <string name="search_results_empty_message">Unable to find any results for</string>
+  <string name="search_results_error_message">Uh-oh! Something went wrong when searching for results.</string>
+
+  <string name="header_books">Books</string>
+  <string name="header_narrators">Narrators</string>
+  <string name="header_authors">Authors</string>
+  <string name="header_series">Series</string>
+  <string name="header_tags">Tags</string>
+  <string name="header_genres">Genres</string>
+</resources>

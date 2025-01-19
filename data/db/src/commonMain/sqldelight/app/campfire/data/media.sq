@@ -46,3 +46,7 @@ CREATE TABLE IF NOT EXISTS media (
 insert:
 INSERT OR REPLACE INTO media
 VALUES ?;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO media
+VALUES ?;

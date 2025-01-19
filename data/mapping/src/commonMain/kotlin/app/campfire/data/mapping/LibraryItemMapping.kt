@@ -54,7 +54,7 @@ fun LibraryItemBase.asDbModel(
       NetworkMediaType.Podcast -> DomainMediaType.Podcast
     },
     numFiles = numFiles ?: -1,
-    size = size,
+    size = size ?: -1,
     serverUrl = serverUrl ?: (origin as RequestOrigin.Url).serverUrl,
   )
 }
@@ -68,8 +68,15 @@ fun <T : Media> T.asDbModel(
     else -> error("Unknown media metadata")
   }
 
+  val metadataAuthorName = metadata.authorName
+    ?: (metadata as? ExpandedBookMetadata)?.authors?.firstOrNull()?.name
+
+  val metadataAuthorNameLF = metadata.authorNameLF
+    ?: (metadata as? ExpandedBookMetadata)?.authors?.firstOrNull()?.name?.lastFirst
+
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
     ?: (metadata as? ExpandedBookMetadata)?.series?.firstOrNull()
+
   return DatabaseMedia(
     libraryItemId = libraryItemId,
 
@@ -81,8 +88,22 @@ fun <T : Media> T.asDbModel(
     numChapters = numChapters,
     numMissingParts = numMissingParts,
     numInvalidAudioFiles = numInvalidAudioFiles,
-    durationInMillis = duration.seconds.inWholeMilliseconds,
-    sizeInBytes = size,
+    durationInMillis = duration?.seconds?.inWholeMilliseconds ?: run {
+      // We've hit an odd response from the API, so we need to compute this on the fly
+      val computedDuration = (this as? MediaExpanded)?.let {
+        it.audioFiles
+          .sumOf { it.duration.toDouble() }
+          .seconds
+      } ?: error("Unable to compute duration, breaking to debug")
+      computedDuration.inWholeMilliseconds
+    },
+    sizeInBytes = size ?: run {
+      (this as? MediaExpanded)?.let {
+        it.audioFiles
+          .sumOf { it.metadata.size }
+          .toLong()
+      } ?: error("Unable to compute size, breaking to debug")
+    },
     propertySize = propertySize,
     ebookFormat = ebookFormat,
 
@@ -99,8 +120,8 @@ fun <T : Media> T.asDbModel(
     metadata_explicit = metadata.explicit,
     metadata_abridged = metadata.abridged,
     metadata_titleIgnorePrefix = metadata.titleIgnorePrefix,
-    metadata_authorName = metadata.authorName,
-    metadata_authorNameLF = metadata.authorNameLF,
+    metadata_authorName = metadataAuthorName,
+    metadata_authorNameLF = metadataAuthorNameLF,
     metadata_narratorName = metadata.narratorName,
     metadata_seriesName = metadata.seriesName,
 
@@ -108,6 +129,17 @@ fun <T : Media> T.asDbModel(
     metadata_series_name = metadataSeries?.name,
     metadata_series_sequence = metadataSeries?.sequence,
   )
+}
+
+private val String.lastFirst: String get() {
+  val parts = split(" ")
+  return if (parts.size > 1) {
+    val firstName = parts.subList(0, parts.lastIndex).joinToString(" ")
+    val lastName = parts.last()
+    "$lastName, $firstName"
+  } else {
+    this
+  }
 }
 
 suspend fun SelectForSeries.asDomainModel(
@@ -313,8 +345,8 @@ suspend fun LibraryItemWithMedia.asDomainModel(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,
-        authorName = metadata_authorName,
-        authorNameLastFirst = metadata_authorNameLF,
+        authorName = metadata_authorName ?: metadataAuthors.firstOrNull()?.name,
+        authorNameLastFirst = metadata_authorNameLF ?: metadataAuthors.firstOrNull()?.name?.lastFirst,
         narratorName = metadata_narratorName,
         seriesName = metadata_seriesName,
         genres = metadata_genres ?: emptyList(),

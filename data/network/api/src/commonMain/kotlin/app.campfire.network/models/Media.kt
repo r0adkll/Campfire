@@ -15,8 +15,12 @@ abstract class Media {
   abstract val numChapters: Int
   abstract val numMissingParts: Int
   abstract val numInvalidAudioFiles: Int
-  abstract val duration: Double
-  abstract val size: Long
+
+  // These fields _should_ be non-null, but from some endpoints they are missing (i.e. Search)
+  // so we must null-ify them, and attempt post-Network processing to determine if missing
+  abstract val duration: Double?
+  abstract val size: Long?
+
   abstract val propertySize: Int?
   abstract val ebookFormat: String?
 }
@@ -48,8 +52,8 @@ data class MediaExpanded(
   override val numChapters: Int = 0,
   override val numMissingParts: Int = 0,
   override val numInvalidAudioFiles: Int = 0,
-  override val duration: Double,
-  override val size: Long,
+  override val duration: Double? = null,
+  override val size: Long? = null,
   override val propertySize: Int? = null,
   override val ebookFormat: String? = null,
   val metadata: ExpandedBookMetadata,

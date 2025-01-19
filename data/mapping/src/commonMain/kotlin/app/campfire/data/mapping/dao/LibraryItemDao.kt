@@ -41,7 +41,11 @@ interface LibraryItemDao {
    * @param item the [LibraryItemExpanded] network model to insert into the database
    * @param asTransaction true to wrap database insertion in a transaction, false to just execute
    */
-  suspend fun insert(item: LibraryItemExpanded, asTransaction: Boolean = true)
+  suspend fun insert(
+    item: LibraryItemExpanded,
+    asTransaction: Boolean = true,
+    ignoreOnInsert: Boolean = false,
+  )
 }
 
 @ContributesBinding(UserScope::class)
@@ -94,16 +98,25 @@ class SqlDelightLibraryItemDao(
   override suspend fun insert(
     item: LibraryItemExpanded,
     asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transactionIf(asTransaction) {
       val libraryItem = item.asDbModel()
 
       // 1) Insert the root library item
-      db.libraryItemsQueries.insert(libraryItem)
+      if (ignoreOnInsert) {
+        db.libraryItemsQueries.insertOrIgnore(libraryItem)
+      } else {
+        db.libraryItemsQueries.insert(libraryItem)
+      }
 
       // 2) Insert the media meta
       val media = item.media.asDbModel(libraryItem.id)
-      db.mediaQueries.insert(media)
+      if (ignoreOnInsert) {
+        db.mediaQueries.insertOrIgnore(media)
+      } else {
+        db.mediaQueries.insert(media)
+      }
 
       // 3) Insert relations
 

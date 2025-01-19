@@ -42,8 +42,7 @@ object SearchStore : Cork {
       ).cachePolicy(
         MemoryPolicy.builder<Operation.Query, SearchResult>()
           .setMaxSize(10)
-          .setExpireAfterAccess(5.minutes)
-          .setExpireAfterWrite(15.minutes)
+          .setExpireAfterWrite(10.minutes)
           .build(),
       ).build()
     }

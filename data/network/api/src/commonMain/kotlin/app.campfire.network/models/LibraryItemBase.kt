@@ -21,5 +21,5 @@ abstract class LibraryItemBase : NetworkModel() {
   abstract val isInvalid: Boolean
   abstract val mediaType: MediaType
   abstract val numFiles: Int?
-  abstract val size: Long
+  abstract val size: Long?
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,6 +26,17 @@ private val EmptyVerticalSpacing = 32.dp
 @Composable
 fun EmptyState(
   message: String,
+  modifier: Modifier = Modifier,
+) {
+  EmptyState(
+    message = { Text(message) },
+    modifier = modifier,
+  )
+}
+
+@Composable
+fun EmptyState(
+  message: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -43,10 +55,12 @@ fun EmptyState(
 
     Spacer(Modifier.height(EmptyVerticalSpacing))
 
-    Text(
-      message,
-      style = MaterialTheme.typography.titleMedium,
-      textAlign = TextAlign.Center,
-    )
+    ProvideTextStyle(
+      MaterialTheme.typography.titleMedium.copy(
+        textAlign = TextAlign.Center,
+      ),
+    ) {
+      message()
+    }
   }
 }
