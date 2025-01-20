@@ -63,7 +63,9 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.logging.bark
 import app.campfire.search.ui.CampfireDockedSearchBar
+import app.campfire.search.ui.showSearchOverlay
 import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.shared.navigator.HomeNavigator
@@ -123,6 +125,7 @@ internal fun HomeUi(
 
   val overlayHost = rememberOverlayHost()
   PlatformBackHandler(overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen) {
+    bark("OverlayHost") { "onBackHandler(${overlayHost.currentOverlayData})" }
     overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
   }
 
@@ -139,12 +142,21 @@ internal fun HomeUi(
   var playbackBarExpanded by remember { mutableStateOf(false) }
   PlatformBackHandler(playbackBarExpanded) { playbackBarExpanded = false }
 
+  // Search View wiring
+
   AdaptiveCampfireLayout(
     overlayHost = overlayHost,
     drawerState = drawerState,
     drawerEnabled = !playbackBarExpanded,
     windowInsets = windowInsets,
     hideBottomNav = currentPresentation?.hideBottomNav == true || playbackBarExpanded,
+
+    onSearchClick = {
+      coroutineScope.launch {
+        overlayHost.showSearchOverlay(homeNavigator)
+      }
+    },
+
     drawerContent = {
       CompositionLocalProvider(
         LocalRootScreen provides rootScreen,

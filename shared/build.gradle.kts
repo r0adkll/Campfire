@@ -57,6 +57,7 @@ kotlin {
         api(compose.foundation)
         api(compose.material)
         api(compose.material3)
+        api(compose.material3AdaptiveNavigationSuite)
         api(compose.materialIconsExtended)
         @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
         api(compose.components.resources)

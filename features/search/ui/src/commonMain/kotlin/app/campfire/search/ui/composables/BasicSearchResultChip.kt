@@ -33,6 +33,7 @@ internal fun BasicSearchResultChip(
     Row(
       verticalAlignment = Alignment.CenterVertically,
     ) {
+      Spacer(Modifier.width(8.dp))
       Text(result.name)
       Spacer(Modifier.width(8.dp))
       Text(

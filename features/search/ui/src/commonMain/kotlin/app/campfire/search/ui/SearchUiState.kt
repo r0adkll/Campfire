@@ -17,6 +17,7 @@ data class SearchUiState(
 sealed interface SearchUiEvent : CircuitUiEvent {
   data class QueryChanged(val query: String) : SearchUiEvent
   data object ClearQuery : SearchUiEvent
+  data object Dismiss : SearchUiEvent
 
   data class OnBookClick(val book: LibraryItem) : SearchUiEvent
   data class OnNarratorClick(val narrator: BasicSearchResult) : SearchUiEvent

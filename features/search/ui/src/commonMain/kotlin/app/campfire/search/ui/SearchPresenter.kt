@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import app.campfire.common.screens.AuthorDetailScreen
+import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.search.api.SearchRepository
@@ -20,12 +21,13 @@ import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias SearchPresenterFactory = (navigator: Navigator) -> SearchPresenter
+typealias SearchPresenterFactory = (navigator: Navigator, requestDismiss: () -> Unit) -> SearchPresenter
 
 @Inject
 class SearchPresenter(
   private val searchRepository: SearchRepository,
   @Assisted private val navigator: Navigator,
+  @Assisted private val requestDismiss: () -> Unit,
 ) : Presenter<SearchUiState> {
 
   @Composable
@@ -51,19 +53,20 @@ class SearchPresenter(
     ) { event ->
       when (event) {
         SearchUiEvent.ClearQuery -> query = ""
+        SearchUiEvent.Dismiss -> requestDismiss()
         is SearchUiEvent.QueryChanged -> query = event.query
 
-        is SearchUiEvent.OnAuthorClick -> navigator.goTo(
+        is SearchUiEvent.OnAuthorClick -> navigateTo(
           AuthorDetailScreen(
             event.author.id,
             event.author.name,
           ),
         )
 
-        is SearchUiEvent.OnBookClick -> navigator.goTo(LibraryItemScreen(event.book.id))
+        is SearchUiEvent.OnBookClick -> navigateTo(LibraryItemScreen(event.book.id))
         is SearchUiEvent.OnGenreClick -> TODO("Navigate to LibraryItemScreen with filter information")
         is SearchUiEvent.OnNarratorClick -> TODO("Navigate to LibraryItemScreen with filter information")
-        is SearchUiEvent.OnSeriesClick -> navigator.goTo(
+        is SearchUiEvent.OnSeriesClick -> navigateTo(
           SeriesDetailScreen(
             event.series.id,
             event.series.name,
@@ -73,5 +76,10 @@ class SearchPresenter(
         is SearchUiEvent.OnTagClick -> TODO("Navigate to LibraryItemScreen with filter information")
       }
     }
+  }
+
+  private fun navigateTo(screen: BaseScreen) {
+    navigator.goTo(screen)
+    requestDismiss()
   }
 }

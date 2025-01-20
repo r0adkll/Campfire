@@ -47,7 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
+import app.campfire.common.compose.navigation.LocalSearchView
 import app.campfire.common.compose.navigation.LocalUserSession
+import app.campfire.common.compose.navigation.SearchViewNavigationState
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
@@ -65,6 +67,7 @@ fun AdaptiveCampfireLayout(
   overlayHost: OverlayHost,
   drawerState: DrawerState,
   drawerEnabled: Boolean,
+  onSearchClick: () -> Unit,
 
   drawerContent: @Composable () -> Unit,
   bottomBarNavigation: @Composable () -> Unit,
@@ -99,8 +102,9 @@ fun AdaptiveCampfireLayout(
       SupportingContentState.Closed
     }
 
-  ContentWithOverlays(
+  ContentLayoutWithSearchNav(
     overlayHost = overlayHost,
+    onSearchClick = onSearchClick,
   ) {
     // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
     // otherwise, this just pass the content() block through
@@ -243,6 +247,25 @@ fun AdaptiveCampfireLayout(
         }
       }
     }
+  }
+}
+
+@Composable
+private fun ContentLayoutWithSearchNav(
+  overlayHost: OverlayHost,
+  onSearchClick: () -> Unit,
+  content: @Composable () -> Unit,
+) {
+  val searchViewNavigationState = remember {
+    SearchViewNavigationState(onSearchClick)
+  }
+  CompositionLocalProvider(
+    LocalSearchView provides searchViewNavigationState,
+  ) {
+    ContentWithOverlays(
+      overlayHost = overlayHost,
+      content = content,
+    )
   }
 }
 

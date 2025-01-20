@@ -4,6 +4,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.common.compose.navigation.LocalSearchView
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.common.compose.widgets.CampfireAppBar
 import me.tatarka.inject.annotations.Assisted
@@ -27,11 +28,12 @@ fun CampfireAppBar(
   @Assisted scrollBehavior: TopAppBarScrollBehavior?,
 ) {
   val drawerOpener = localDrawerOpener()
+  val searchViewNavigationState = LocalSearchView.current
   val state = presenter.present()
   CampfireAppBar(
     state = state,
     onNavigationClick = drawerOpener,
-    onSearchClick = onSearchClick,
+    onSearchClick = { searchViewNavigationState?.navigateToSearchView() },
     modifier = modifier,
     scrollBehavior = scrollBehavior,
   )
