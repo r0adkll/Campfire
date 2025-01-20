@@ -6,11 +6,13 @@ import app.campfire.network.models.ServerSettings
 
 fun ServerSettings.asDatabaseModel(
   url: String,
+  userId: String,
   name: String,
   tent: Tent,
 ): DatabaseServer {
   return DatabaseServer(
     url = url,
+    userId = userId,
     name = name,
     tent = tent,
     scannerFindCovers = scannerFindCovers,

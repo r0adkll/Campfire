@@ -7,7 +7,6 @@ import app.campfire.auth.api.AuthRepository
 import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Tent
-import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.asDatabaseModel
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
@@ -46,6 +45,7 @@ class DefaultAuthRepository(
         db.serversQueries.insert(
           response.serverSettings.asDatabaseModel(
             url = serverUrl,
+            userId = response.user.id,
             name = serverName,
             tent = tent,
           ),
@@ -67,16 +67,10 @@ class DefaultAuthRepository(
         }
       }
 
-      // Store the access token into secure storage
-      // For later use in authentication.
-      accountManager.setToken(serverUrl, response.user.token)
-
-      // Update the stored current user id. This value is used to reconstruct the session on new app launches
-      settings.currentUserId = response.user.id
-
-      // Update the current session manager which should trigger updates in the monitoring root parts of our
-      // UI. Thus transitioning a user from logged out -> logged in, or from account to account.
-      userSessionManager.current = UserSession.LoggedIn(
+      // Add the new account/user and set it as the current session
+      accountManager.addAccount(
+        serverUrl = serverUrl,
+        token = response.user.token,
         user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
       )
 

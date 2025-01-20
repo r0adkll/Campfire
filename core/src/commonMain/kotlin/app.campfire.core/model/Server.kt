@@ -2,6 +2,7 @@ package app.campfire.core.model
 
 data class Server(
   val url: String,
+  val user: User,
   val name: String,
   val tent: Tent,
   val settings: Settings,

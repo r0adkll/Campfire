@@ -5,7 +5,8 @@ CREATE TABLE IF NOT EXISTS bookmarkFailedCreate (
   libraryItemId TEXT NOT NULL,
   timeInSeconds INTEGER AS Int NOT NULL,
   timestamp INTEGER NOT NULL,
-  PRIMARY KEY (libraryItemId, userId)
+  PRIMARY KEY (libraryItemId, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS bookmarkFailedDelete (
@@ -13,7 +14,8 @@ CREATE TABLE IF NOT EXISTS bookmarkFailedDelete (
   libraryItemId TEXT NOT NULL,
   timeInSeconds INTEGER AS Int NOT NULL,
   timestamp INTEGER NOT NULL,
-  PRIMARY KEY (libraryItemId, userId)
+  PRIMARY KEY (libraryItemId, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 -- Queries

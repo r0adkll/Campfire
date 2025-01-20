@@ -32,6 +32,10 @@ class DefaultSessionsRepository(
     return dataSource.observeCurrentSession()
   }
 
+  override suspend fun getCurrentSession(): Session? {
+    return dataSource.getCurrentSession()
+  }
+
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
     return dataSource.getSession(libraryItemId)
   }

@@ -5,6 +5,7 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.session.serverUrl
+import app.campfire.core.session.userId
 import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.CollectionsResponse
@@ -268,7 +269,9 @@ class KtorAudioBookShelfApi(
   ): HttpResponse {
     val currentServerUrl = userSessionManager.current.serverUrl
       ?: throw IllegalStateException("You must be logged in to perform this request")
-    val token = accountManager.getToken(currentServerUrl)
+    val currentUserId = userSessionManager.current.userId
+      ?: throw IllegalStateException("You must be logged in to perform this request")
+    val token = accountManager.getToken(currentUserId)
       ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
     return client.request {
       url("${cleanServerUrl(currentServerUrl)}${if (!endpoint.startsWith("/")) "/" else ""}$endpoint")
@@ -285,7 +288,9 @@ class KtorAudioBookShelfApi(
   ): HttpResponse {
     val currentServerUrl = userSessionManager.current.serverUrl
       ?: throw IllegalStateException("You must be logged in to perform this request")
-    val token = accountManager.getToken(currentServerUrl)
+    val currentUserId = userSessionManager.current.userId
+      ?: throw IllegalStateException("You must be logged in to perform this request")
+    val token = accountManager.getToken(currentUserId)
       ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
     return client.request {
       url {

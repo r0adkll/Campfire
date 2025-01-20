@@ -3,6 +3,7 @@ package app.campfire.account.ui.switcher
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,44 +11,43 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.core.model.Server
+import app.campfire.core.coroutines.LoadState
+import app.campfire.core.di.UserScope
 import app.campfire.core.model.Tent
-import app.campfire.core.model.User
 import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import com.r0adkll.kimchi.annotations.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Injectable typealias for the [AccountSwitcher] composable so that we can inject its
- * own presenter for managing the current account state to display
- */
-typealias AccountSwitcher = @Composable (
-  onClick: () -> Unit,
-  modifier: Modifier,
-) -> Unit
+@ContributesTo(UserScope::class)
+interface AccountSwitcherComponent {
+  val presenterFactory: AccountSwitcherPresenterFactory
+}
 
-@Inject
 @Composable
 fun AccountSwitcher(
-  presenter: AccountSwitcherPresenter,
-  @Assisted onClick: () -> Unit,
-  @Assisted modifier: Modifier = Modifier,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  component: AccountSwitcherComponent = rememberComponent(),
 ) {
+  val presenter = remember(component) { component.presenterFactory() }
   val state = presenter.present()
   AccountSwitcher(
     state = state,
@@ -56,43 +56,52 @@ fun AccountSwitcher(
   )
 }
 
-sealed interface AccountSwitcherState {
-  data object Loading : AccountSwitcherState
-  data class Loaded(
-    val server: Server,
-    val user: User,
-  ) : AccountSwitcherState
-  data object Error : AccountSwitcherState
-}
-
 @Composable
 private fun AccountSwitcher(
-  state: AccountSwitcherState,
+  state: AccountSwitcherUiState,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val tent = when (state) {
-    is AccountSwitcherState.Loaded -> state.server.tent
+  val tent = when (val currentAccount = state.currentAccount) {
+    is LoadState.Loaded -> currentAccount.data.tent
     else -> Tent.Default
   }
 
-  val serverName = when (state) {
-    is AccountSwitcherState.Loaded -> state.server.name
-    AccountSwitcherState.Loading -> stringResource(Res.string.server_name_loading)
-    AccountSwitcherState.Error -> stringResource(Res.string.server_name_error)
+  val serverName = when (val currentAccount = state.currentAccount) {
+    is LoadState.Loaded -> currentAccount.data.name
+    LoadState.Loading -> stringResource(Res.string.server_name_loading)
+    LoadState.Error -> stringResource(Res.string.server_name_error)
   }
 
-  val userName = when (state) {
-    is AccountSwitcherState.Loaded -> state.user.name
+  val userName = when (val currentAccount = state.currentAccount) {
+    is LoadState.Loaded -> currentAccount.data.user.name
     else -> null
   }
 
-  AccountSwitcher(
-    tent = tent,
-    serverName = { Text(serverName) },
-    userName = { userName?.let { Text(it) } },
-    onClick = onClick,
+  AccountCard(
+    modifier = modifier
+      .padding(16.dp),
+  ) {
+    AccountSwitcher(
+      tent = tent,
+      serverName = { Text(serverName) },
+      userName = { userName?.let { Text(it) } },
+      onClick = onClick,
+    )
+  }
+}
+
+@Composable
+private fun AccountCard(
+  modifier: Modifier = Modifier,
+  content: @Composable ColumnScope.() -> Unit,
+) {
+  ElevatedCard(
     modifier = modifier,
+    colors = CardDefaults.elevatedCardColors(
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+    ),
+    content = content,
   )
 }
 

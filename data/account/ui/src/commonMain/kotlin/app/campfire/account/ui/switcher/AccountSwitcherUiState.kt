@@ -1,0 +1,14 @@
+package app.campfire.account.ui.switcher
+
+import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.Server
+import com.slack.circuit.runtime.CircuitUiEvent
+import com.slack.circuit.runtime.CircuitUiState
+
+data class AccountSwitcherUiState(
+  val currentAccount: LoadState<out Server>,
+  val allAccounts: LoadState<out List<Server>>,
+  val eventSink: (AccountSwitcherUiEvent) -> Unit,
+) : CircuitUiState
+
+sealed interface AccountSwitcherUiEvent : CircuitUiEvent

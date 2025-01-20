@@ -1,4 +1,4 @@
-package app.campfire.common.compose.layout
+package app.campfire.common.compose.theme
 
 import androidx.compose.ui.unit.dp
 
@@ -6,7 +6,7 @@ import androidx.compose.ui.unit.dp
  * Copy of [androidx.compose.material3.tokens.ElevationTokens] for internal use
  * here.
  */
-internal object ElevationTokens {
+object ElevationTokens {
   val Level0 = 0.0.dp
   val Level1 = 1.0.dp
   val Level2 = 3.0.dp

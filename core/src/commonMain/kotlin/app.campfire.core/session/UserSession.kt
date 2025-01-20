@@ -31,7 +31,7 @@ val UserSession.userId: UserId? get() = when (this) {
   else -> null
 }
 
-val UserSession.requiredUserId: UserId get() = userId!!
+val UserSession.requiredUserId: UserId get() = requireNotNull(userId)
 
 val UserSession.isLoggedIn: Boolean
   get() = this is UserSession.LoggedIn

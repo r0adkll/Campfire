@@ -12,6 +12,8 @@ interface SessionDataSource {
 
   fun observeCurrentSession(): Flow<Session?>
 
+  suspend fun getCurrentSession(): Session?
+
   suspend fun getSession(libraryItemId: LibraryItemId): Session?
 
   suspend fun getSessions(userId: UserId): List<Session>

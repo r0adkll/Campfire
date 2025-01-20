@@ -9,6 +9,8 @@ interface SessionsRepository {
 
   suspend fun getSession(libraryItemId: LibraryItemId): Session?
 
+  suspend fun getCurrentSession(): Session?
+
   /**
    * Create a new listening session to begin playback
    * @param item The item to begin listening to

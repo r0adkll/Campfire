@@ -4,12 +4,11 @@ import app.campfire.account.settings.TokenSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.model.UserId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.toSuspendSettings
-import kotlin.io.encoding.Base64
-import kotlin.io.encoding.ExperimentalEncodingApi
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -26,20 +25,22 @@ class SecureTokenStorage(
     tokenSettings.toSuspendSettings(dispatcherProvider.io)
   }
 
-  override suspend fun get(serverUrl: String): String? {
-    return settings.getStringOrNull(tokenStorageKey(serverUrl))
+  override suspend fun get(userId: UserId): String? {
+    return settings.getStringOrNull(tokenStorageKey(userId))
   }
 
-  override suspend fun put(serverUrl: String, token: String) {
+  override suspend fun put(userId: UserId, token: String) {
     settings.putString(
-      key = tokenStorageKey(serverUrl),
+      key = tokenStorageKey(userId),
       value = token,
     )
   }
 
-  @OptIn(ExperimentalEncodingApi::class)
-  private fun tokenStorageKey(serverUrl: String): String {
-    val serverUrlBase64 = Base64.UrlSafe.encode(serverUrl.encodeToByteArray())
-    return "token_$serverUrlBase64"
+  override suspend fun remove(userId: UserId) {
+    settings.remove(tokenStorageKey(userId))
+  }
+
+  private fun tokenStorageKey(userId: String): String {
+    return "token_$userId"
   }
 }

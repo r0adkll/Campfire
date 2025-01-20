@@ -11,10 +11,12 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
+import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -55,6 +57,13 @@ class SqlDelightSessionDataSource(
             it?.let { model -> hydrateSession(model) }
           }
       }
+  }
+
+  override suspend fun getCurrentSession(): Session? {
+    val currentUserId = userSessionManager.current.userId ?: return null
+    return db.sessionQueries.getActive(currentUserId)
+      .awaitAsOneOrNull()
+      ?.let { hydrateSession(it) }
   }
 
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? {

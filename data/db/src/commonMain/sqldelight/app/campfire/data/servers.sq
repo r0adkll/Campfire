@@ -5,7 +5,8 @@ import kotlin.String;
 import kotlin.collections.List;
 
 CREATE TABLE IF NOT EXISTS server (
-  url TEXT NOT NULL PRIMARY KEY,
+  url TEXT NOT NULL,
+  userId TEXT NOT NULL,
   name TEXT NOT NULL,
   tent TEXT AS Tent NOT NULL,
   scannerFindCovers INTEGER AS Boolean NOT NULL DEFAULT 0,
@@ -32,57 +33,40 @@ CREATE TABLE IF NOT EXISTS server (
   timeFormat TEXT NOT NULL,
   language TEXT NOT NULL,
   logLevel INTEGER AS Int NOT NULL DEFAULT 0,
-  version TEXT NOT NULL
+  version TEXT NOT NULL,
+
+  PRIMARY KEY (url, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 selectAll:
-SELECT *
-FROM server;
+SELECT * FROM server
+INNER JOIN user ON user.id = server.userId;
 
 selectByUrl:
 SELECT * FROM server
+INNER JOIN user ON user.id = server.userId
 WHERE url = ?;
 
+selectByUserId:
+SELECT * FROM server
+INNER JOIN user ON user.id = server.userId
+WHERE userId = ?;
+
 insert:
-INSERT OR REPLACE INTO server(
-  url,
-  name,
-  tent,
-  scannerFindCovers,
-  scannerCoverProvider,
-  scannerParseSubtitle,
-  scannerPreferMatchedMetadata,
-  scannerDisableWatcher,
-  storeCoverWithItem,
-  storeMetadataWithItem,
-  metadataFileFormat,
-  rateLimitLoginRequests,
-  rateLimitLoginWindow,
-  backupSchedule,
-  backupsToKeep,
-  maxBackupSize,
-  loggerDailyLogsToKeep,
-  loggerScannerLogsToKeep,
-  homeBookshelfView,
-  bookshelfView,
-  sortingIgnorePrefix,
-  sortingPrefixes,
-  chromecastEnabled,
-  dateFormat,
-  timeFormat,
-  language,
-  logLevel,
-  version
-) VALUES ?;
+INSERT OR REPLACE INTO server
+VALUES ?;
 
 updateTent:
 UPDATE server
 SET tent = ?
-WHERE url = ?;
+WHERE userId = ?;
 
-deleteByUrl:
+updateName:
+UPDATE server
+SET name = ?
+WHERE userId = ?;
+
+delete:
 DELETE FROM server
-WHERE url = ?;
-
-deleteAll:
-DELETE FROM server;
+WHERE userId = ?;

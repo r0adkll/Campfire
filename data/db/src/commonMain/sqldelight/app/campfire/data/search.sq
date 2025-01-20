@@ -3,7 +3,8 @@ import kotlin.collections.List;
 
 CREATE TABLE IF NOT EXISTS search (
   key TEXT NOT NULL PRIMARY KEY,
-  userId TEXT NOT NULL
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS search_books (
@@ -85,6 +86,10 @@ VALUES ?;
 delete:
 DELETE FROM search
 WHERE key = ?;
+
+deleteAll:
+DELETE FROM search
+WHERE userId = ?;
 
 searchBooks:
 SELECT libraryItem.*, media.* FROM search_books

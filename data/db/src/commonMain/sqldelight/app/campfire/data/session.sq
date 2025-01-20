@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS session (
   startedAt TEXT AS LocalDateTime NOT NULL,
   updatedAt TEXT AS LocalDateTime NOT NULL,
 
-  PRIMARY KEY(userId, libraryItemId)
+  PRIMARY KEY(userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 getActive:

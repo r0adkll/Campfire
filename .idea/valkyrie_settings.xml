@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Valkyrie.Settings">
+    <option name="addTrailingComma" value="true" />
     <option name="iconPackDestination" value="$PROJECT_DIR$/common/compose/src/commonMain/kotlin/app/campfire/common/compose/icons/rounded" />
+    <option name="indentSize" value="2" />
     <option name="mode" value="Simple" />
     <option name="packageName" value="app.campfire.common.compose.icons.rounded" />
   </component>

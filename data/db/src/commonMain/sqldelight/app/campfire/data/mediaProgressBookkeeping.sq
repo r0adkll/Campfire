@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS mediaProgressFailedUpdate (
   libraryItemId TEXT NOT NULL,
   userId TEXT NOT NULL,
   timestamp INTEGER,
-  PRIMARY KEY (libraryItemId, userId)
+  PRIMARY KEY (libraryItemId, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS mediaProgressFailedDelete (

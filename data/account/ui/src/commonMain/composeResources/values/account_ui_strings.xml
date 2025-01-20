@@ -1,4 +1,13 @@
 <resources>
   <string name="server_name_loading">Loading…</string>
   <string name="server_name_error">Error!</string>
+
+  <string name="account_picker_sheet_title">Accounts</string>
+  <string name="account_picker_sheet_error_message">Uh-oh! Unable to load all your accounts.</string>
+  <string name="account_picker_sheet_add_account">Add an account</string>
+
+  <string name="account_picker_logout_title">Sign out of account</string>
+  <string name="account_picker_logout_text_format">Are you sure you want to sign out of "%1$s"?</string>
+  <string name="account_picker_logout_action_confirm">Sign out</string>
+  <string name="account_picker_logout_action_dismiss">Cancel</string>
 </resources>

@@ -23,6 +23,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.account.ui.picker.AccountPickerResult
+import app.campfire.account.ui.picker.showAccountPicker
 import app.campfire.account.ui.switcher.AccountSwitcher
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.filled.Author
@@ -66,6 +68,7 @@ import campfire.ui.drawer.generated.resources.nav_statistics_label
 import campfire.ui.drawer.generated.resources.nav_storage_content_description
 import campfire.ui.drawer.generated.resources.nav_storage_label
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -73,20 +76,28 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun Drawer(
   state: DrawerUiState,
-  accountSwitcher: AccountSwitcher,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
   val drawerItems = buildDrawerItems()
   val drawerState by rememberUpdatedState(LocalDrawerState.current)
   val rootScreen by rememberUpdatedState(LocalRootScreen.current)
+  val overlayHost = LocalOverlayHost.current
 
   DrawerSheet(
     modifier = modifier,
   ) {
     // Show the root account switcher
-    accountSwitcher(
-      {},
+    AccountSwitcher(
+      {
+        coroutineScope.launch {
+          when (val result = overlayHost.showAccountPicker()) {
+            AccountPickerResult.AddAccount -> state.eventSink(DrawerUiEvent.AddAccount)
+            is AccountPickerResult.SwitchAccount -> state.eventSink(DrawerUiEvent.SwitchAccount(result.server))
+            else -> Unit
+          }
+        }
+      },
       Modifier,
     )
     Spacer(Modifier.height(8.dp))

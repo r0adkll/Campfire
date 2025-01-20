@@ -17,8 +17,10 @@ kotlin {
         api(projects.data.network.api)
         api(projects.data.mapping)
 
+        implementation(projects.audioplayer.api)
         implementation(projects.core)
         implementation(projects.features.user.api)
+        implementation(projects.features.sessions.api)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.multiplatformsettings.core)
         implementation(libs.multiplatformsettings.coroutines)
