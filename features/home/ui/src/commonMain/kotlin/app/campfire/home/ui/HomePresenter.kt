@@ -37,9 +37,6 @@ class HomePresenter(
       homeFeed = feed,
     ) { event ->
       when (event) {
-        HomeUiEvent.OpenSearch -> {
-        }
-
         is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id))
         is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
         is HomeUiEvent.OpenSeries -> navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))

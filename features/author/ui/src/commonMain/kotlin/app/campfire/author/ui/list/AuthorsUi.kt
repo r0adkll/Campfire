@@ -49,7 +49,6 @@ fun Authors(
         // Injected appbar that injects its own presenter to consistently load its state
         // across multiple services.
         campfireAppBar(
-          { },
           Modifier,
           appBarBehavior,
         )

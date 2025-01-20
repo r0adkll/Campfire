@@ -34,7 +34,6 @@ data class LibrarySort(
 )
 
 sealed interface LibraryUiEvent : CircuitUiEvent {
-  data object OpenSearch : LibraryUiEvent
   data object ToggleItemDisplayState : LibraryUiEvent
   data object FilterClick : LibraryUiEvent
   data class SortModeSelected(val mode: SortMode) : LibraryUiEvent

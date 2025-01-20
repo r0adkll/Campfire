@@ -62,10 +62,6 @@ class LibraryPresenter(
       itemDisplayState = itemDisplayState,
     ) { event ->
       when (event) {
-        LibraryUiEvent.OpenSearch -> {
-          // TODO: Open search overlay screen
-        }
-
         LibraryUiEvent.FilterClick -> {
           // TODO: Navigate to bottom sheet filter, with result
         }

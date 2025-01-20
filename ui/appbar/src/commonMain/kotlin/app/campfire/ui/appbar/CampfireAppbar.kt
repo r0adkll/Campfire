@@ -13,7 +13,6 @@ import me.tatarka.inject.annotations.Inject
 // Injectable typealias
 @OptIn(ExperimentalMaterial3Api::class)
 typealias CampfireAppBar = @Composable (
-  onSearchClick: () -> Unit,
   modifier: Modifier,
   scrollBehavior: TopAppBarScrollBehavior?,
 ) -> Unit
@@ -23,7 +22,6 @@ typealias CampfireAppBar = @Composable (
 @Composable
 fun CampfireAppBar(
   presenter: CampfireAppbarPresenter,
-  @Assisted onSearchClick: () -> Unit,
   @Assisted modifier: Modifier = Modifier,
   @Assisted scrollBehavior: TopAppBarScrollBehavior?,
 ) {
