@@ -50,8 +50,10 @@ kotlin {
         api(projects.features.search.impl)
         api(projects.features.search.ui)
 
+        api(projects.features.settings.impl)
+        api(projects.features.settings.ui)
+
         api(projects.ui.drawer)
-        api(projects.ui.settings)
 
         api(compose.runtime)
         api(compose.foundation)

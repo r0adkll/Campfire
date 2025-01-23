@@ -69,7 +69,6 @@ include(
 include(
   ":common:screens",
   ":common:compose",
-  ":common:settings",
 )
 include(
   ":data:account:api",
@@ -127,9 +126,13 @@ include(
   ":features:search:ui",
 )
 include(
+  ":features:settings:api",
+  ":features:settings:impl",
+  ":features:settings:ui",
+)
+include(
   ":ui:appbar",
   ":ui:drawer",
-  ":ui:settings",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

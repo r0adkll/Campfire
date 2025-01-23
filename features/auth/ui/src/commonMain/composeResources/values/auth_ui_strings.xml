@@ -15,4 +15,6 @@
   <string name="label_authenticating_loading_message">Logging in…</string>
   <string name="label_login_error_network">A network error has occurred. Please try again.</string>
   <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
+
+  <string name="login_add_account_title">Add campsites</string>
 </resources>

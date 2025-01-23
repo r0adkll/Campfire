@@ -33,7 +33,7 @@ kotlin {
         implementation(compose.runtime)
 
         implementation(projects.core)
-        implementation(projects.common.settings)
+        implementation(projects.features.settings.api)
         implementation(projects.data.account.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.sessions.api)

@@ -13,7 +13,7 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.data.network.api)
-        implementation(projects.common.settings)
+        implementation(projects.features.settings.api)
         implementation(projects.core)
         implementation(projects.data.account.api)
 

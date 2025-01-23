@@ -13,7 +13,7 @@ kotlin {
       dependencies {
         api(projects.core)
         api(projects.common.screens)
-        api(projects.common.settings)
+        api(projects.features.settings.api)
 
         api(libs.circuit.foundation)
         api(libs.circuit.overlay)

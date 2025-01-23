@@ -14,7 +14,7 @@ kotlin {
       dependencies {
         api(projects.features.author.api)
 
-        implementation(projects.common.settings)
+        implementation(projects.features.settings.api)
         implementation(projects.core)
         implementation(projects.data.db)
         implementation(projects.data.network.api)

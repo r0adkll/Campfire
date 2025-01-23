@@ -35,11 +35,13 @@ import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
+import campfire.features.auth.ui.generated.resources.login_add_account_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
@@ -76,17 +78,9 @@ private fun LoginContent(
       .fillMaxSize(),
   ) {
     Box {
-      TitleBanner(
-        modifier = Modifier
-          .padding(
-            horizontal = 24.dp,
-            vertical = 48.dp,
-          ),
-      )
-
       if (isAddingAccount) {
-        TopAppBar(
-          title = {},
+        CampfireTopAppBar(
+          title = { Text(stringResource(Res.string.login_add_account_title)) },
           navigationIcon = {
             IconButton(
               onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
@@ -94,7 +88,14 @@ private fun LoginContent(
               Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
             }
           },
-          colors = TopAppBarDefaults.topAppBarColors(),
+        )
+      } else {
+        TitleBanner(
+          modifier = Modifier
+            .padding(
+              horizontal = 24.dp,
+              vertical = 48.dp,
+            ),
         )
       }
 
