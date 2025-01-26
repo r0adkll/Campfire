@@ -22,8 +22,8 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.logging.bark
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.shared.navigator.OpenUrlNavigator
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals

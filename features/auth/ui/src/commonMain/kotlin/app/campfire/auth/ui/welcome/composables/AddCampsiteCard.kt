@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
@@ -15,7 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.TentRed
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.Red
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_add_campsite_subtitle
 import campfire.features.auth.ui.generated.resources.welcome_add_campsite_title
@@ -38,7 +38,7 @@ internal fun AddCampsiteCard(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Image(
-        Icons.TentRed,
+        CampfireIcons.Tents.Red,
         contentDescription = null,
       )
       Spacer(Modifier.width(16.dp))

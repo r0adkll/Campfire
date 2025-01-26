@@ -1,7 +1,6 @@
 package app.campfire.sessions.network
 
 import app.campfire.account.api.ServerRepository
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.Platform.ANDROID
 import app.campfire.core.Platform.DESKTOP
 import app.campfire.core.Platform.IOS
@@ -15,6 +14,7 @@ import app.campfire.network.models.BookChapter
 import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration.Companion.milliseconds

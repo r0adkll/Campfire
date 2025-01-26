@@ -14,7 +14,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
@@ -55,8 +54,7 @@ class PlaybackSettingsImpl(
   )
 
   override fun observeTrackResetThreshold(): StateFlow<Duration> {
-    return flowSettings.getDoubleFlow(PREF_TRACK_RESET_THRESHOLD, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS)
-      .map { it.seconds }
+    return flowSettings.getDurationFlow(PREF_TRACK_RESET_THRESHOLD, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds)
       .stateIn(settingsScope, SharingStarted.Lazily, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds)
   }
 

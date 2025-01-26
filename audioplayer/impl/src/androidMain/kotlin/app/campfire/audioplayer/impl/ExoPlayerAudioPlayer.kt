@@ -21,12 +21,12 @@ import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
-import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
+import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds

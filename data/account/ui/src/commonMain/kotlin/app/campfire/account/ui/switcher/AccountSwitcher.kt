@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
@@ -24,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -157,7 +157,7 @@ private fun AccountSwitcher(
       onClick = onClick,
     ) {
       Icon(
-        Icons.Rounded.AccountSwitch,
+        CampfireIcons.Rounded.AccountSwitch,
         contentDescription = null,
       )
     }

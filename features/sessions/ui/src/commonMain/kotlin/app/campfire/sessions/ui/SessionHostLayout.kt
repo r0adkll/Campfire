@@ -17,8 +17,6 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)
@@ -32,12 +30,6 @@ interface SessionHostComponent {
 private fun rememberSessionHostComponent(): State<SessionHostComponent> {
   return remember {
     ComponentHolder.subscribe<SessionHostComponent>()
-      .onEach {
-        println("RememberSessionHost: $it")
-      }
-      .onCompletion {
-        println("RememberSessionHost - Completion!")
-      }
   }.collectAsState(ComponentHolder.component<SessionHostComponent>())
 }
 

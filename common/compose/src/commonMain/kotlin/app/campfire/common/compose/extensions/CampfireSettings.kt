@@ -4,7 +4,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import app.campfire.common.settings.CampfireSettings
+import app.campfire.settings.api.CampfireSettings
 
 @Composable
 fun CampfireSettings.shouldUseDarkColors(): Boolean {

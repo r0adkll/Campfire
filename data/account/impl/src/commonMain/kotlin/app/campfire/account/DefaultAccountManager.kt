@@ -6,12 +6,12 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.account.server.LogoutUseCase
 import app.campfire.account.server.SessionStopUseCase
 import app.campfire.account.storage.TokenStorage
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
+import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 

@@ -34,7 +34,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +75,7 @@ import app.campfire.core.model.Session
 import app.campfire.sessions.ui.ActionState.Dispose
 import app.campfire.sessions.ui.ActionState.None
 import app.campfire.sessions.ui.ActionState.Open
+import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.Thumbnail
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.time_remaining
@@ -257,10 +257,7 @@ private fun CollapsedPlaybackBarContent(
         IconButton(
           onClick = onRewindClick,
         ) {
-          Icon(
-            Icons.Rounded.Replay10,
-            contentDescription = null,
-          )
+          RewindIcon()
         }
       }
 

@@ -9,7 +9,6 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.features.settings.api)
         implementation(projects.core)
         api(libs.multiplatformsettings.core)
         api(libs.multiplatformsettings.coroutines)

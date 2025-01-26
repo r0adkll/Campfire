@@ -1,12 +1,12 @@
 package app.campfire.account.session
 
 import app.campfire.CampfireDatabase
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.settings.api.CampfireSettings
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.measureTimedValue

@@ -1,5 +1,6 @@
 package app.campfire.shared.di
 
+import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -40,4 +41,7 @@ interface CoreComponent {
   @SingleIn(AppScope::class)
   @Provides
   fun provideFatherTime(): FatherTime = GrandFatherTime
+
+  @Provides
+  fun provideApplicationUrls(): ApplicationUrls = ApplicationUrls()
 }

@@ -42,6 +42,9 @@ kotlin {
 
     jvmMain {
       dependsOn(jvmCommon)
+      dependencies {
+        implementation(compose.preview)
+      }
     }
 
     androidMain {

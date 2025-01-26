@@ -13,9 +13,9 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
-import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
 import java.io.File
 import me.tatarka.inject.annotations.Provides

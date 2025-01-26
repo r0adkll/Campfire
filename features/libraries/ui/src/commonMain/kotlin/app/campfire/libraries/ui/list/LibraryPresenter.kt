@@ -7,11 +7,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.LibraryScreen
-import app.campfire.common.settings.CampfireSettings
 import app.campfire.core.di.UserScope
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.util.LibraryItemComparator
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter

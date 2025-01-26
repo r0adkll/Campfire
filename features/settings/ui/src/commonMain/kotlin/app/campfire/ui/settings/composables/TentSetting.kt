@@ -28,11 +28,11 @@ internal fun TentSetting(
   onTentChange: (Tent) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  var isExpanded by remember { mutableStateOf(false) }
   ListItem(
     headlineContent = { Text("Tent") },
     supportingContent = { Text("Pick your campsites tent & theme") },
     trailingContent = {
-      var isExpanded by remember { mutableStateOf(false) }
       Box {
         Image(
           tent.icon,
@@ -67,6 +67,7 @@ internal fun TentSetting(
         }
       }
     },
-    modifier = modifier,
+    modifier = modifier
+      .clickable { isExpanded = true },
   )
 }

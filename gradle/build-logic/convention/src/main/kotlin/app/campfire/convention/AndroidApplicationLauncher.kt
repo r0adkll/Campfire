@@ -7,6 +7,8 @@ import app.campfire.convention.util.capitalized
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
+import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.process.ExecOperations
 
 fun Project.configureLauncherTasks() {
   androidComponents {
@@ -14,7 +16,7 @@ fun Project.configureLauncherTasks() {
       tasks.findByPath("install${variant.name.capitalized()}")?.let {
         tasks.register("open${variant.name.capitalized()}") {
           doLast {
-            exec {
+            serviceOf<ExecOperations>().exec {
               commandLine =
                 "adb shell monkey -p ${variant.applicationId.get()} -c android.intent.category.LAUNCHER 1".split(" ")
             }

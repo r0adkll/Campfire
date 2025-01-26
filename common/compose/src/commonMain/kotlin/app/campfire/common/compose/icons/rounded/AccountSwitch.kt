@@ -1,6 +1,5 @@
 package app.campfire.common.compose.icons.rounded
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -9,10 +8,11 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
 
 private var _Accountswitch: ImageVector? = null
 
-val Icons.Rounded.AccountSwitch: ImageVector
+val CampfireIcons.Rounded.AccountSwitch: ImageVector
   get() {
     if (_Accountswitch != null) {
       return _Accountswitch!!

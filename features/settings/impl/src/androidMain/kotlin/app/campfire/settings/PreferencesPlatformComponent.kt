@@ -25,5 +25,4 @@ actual interface PreferencesPlatformComponent {
     PreferenceManager.getDefaultSharedPreferences(context)
 }
 
-
 typealias AppSharedPreferences = SharedPreferences

@@ -3,13 +3,13 @@ package app.campfire.audioplayer.impl
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
-import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
+import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject

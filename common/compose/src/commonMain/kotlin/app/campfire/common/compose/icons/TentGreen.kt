@@ -1,6 +1,5 @@
 package app.campfire.common.compose.icons
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -12,7 +11,7 @@ import androidx.compose.ui.unit.dp
 
 private var _TentGreen: ImageVector? = null
 
-val Icons.TentGreen: ImageVector
+val CampfireIcons.Tents.Green: ImageVector
   get() {
     if (_TentGreen != null) {
       return _TentGreen!!

@@ -26,4 +26,8 @@
 
   <string name="action_set_timer">Set timer</string>
   <string name="action_clear_timer">Clear</string>
+
+  <!-- Content Descriptions -->
+  <string name="cd_forward_time">Forward %1$s seconds</string>
+  <string name="cd_rewind_time">Rewind %1$s seconds</string>
 </resources>

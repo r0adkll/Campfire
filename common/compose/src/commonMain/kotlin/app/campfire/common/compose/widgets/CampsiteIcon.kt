@@ -1,12 +1,12 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.foundation.Image
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.common.compose.icons.Campfire
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.icon
 import app.campfire.core.model.Tent
 import kotlin.math.max
@@ -26,7 +26,7 @@ fun CampsiteIcon(
 
       if (hasFire) {
         Image(
-          Icons.Campfire,
+          CampfireIcons.Campfire,
           contentDescription = null,
         )
       }

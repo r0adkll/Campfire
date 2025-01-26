@@ -4,6 +4,7 @@ androidxlifecycle = "2.8.7"
 androidxactivity = "1.10.0"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-alpha06"
+about-libraries = "11.4.0"
 core-ktx = "1.15.0"
 coroutines = "1.10.1"
 # This is used in the build logic
@@ -40,6 +41,7 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 android-lint = { id = "com.android.lint", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
+about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "about-libraries" }
 buildConfig = "com.github.gmazzo.buildconfig:5.5.1"
 cacheFixPlugin = { id = "org.gradle.android.cache-fix", version = "3.0.1" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

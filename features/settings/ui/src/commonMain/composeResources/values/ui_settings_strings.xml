@@ -1,11 +1,76 @@
 <resources>
   <string name="settings_title">Settings</string>
 
+  <!-- Root setting strings -->
+  <string name="setting_account_title">Account</string>
+  <string name="setting_account_subtitle">Name, tent, and other campsite settings</string>
+  <string name="setting_appearance_title">Appearance</string>
+  <string name="setting_appearance_subtitle">Theme, look and feel</string>
+  <string name="setting_playback_title">Playback</string>
+  <string name="setting_playback_subtitle">Time jumps, and other playback settings</string>
+  <string name="setting_sleep_title">Sleep</string>
+  <string name="setting_sleep_subtitle">Timers, shake to reset, and haptics</string>
+  <string name="setting_about_title">About</string>
+  <string name="setting_about_subtitle">Developer, attributions, and version</string>
+
+  <!-- Account setting strings -->
+  <string name="setting_account_logout">Sign out</string>
+  <string name="setting_account_logout_subtitle">Sign out of this account</string>
+  <string name="setting_account_server_url">Server URL</string>
+  <string name="setting_account_server_version">Server Version</string>
+  <string name="setting_account_name_subtitle">Update the name of this server in the app</string>
+  <string name="setting_account_dialog_title">Change server name</string>
+  <string name="setting_account_dialog_label">Server name</string>
+
+  <!-- Appearance setting strings -->
   <string name="setting_theme_title">Theme</string>
   <string name="setting_theme_description">Change the application theme</string>
 
   <string name="setting_dynamic_colors_title">Use Dynamic Colors</string>
   <string name="setting_dynamic_colors_description">Enable dynamic colors on Android 12+ devices</string>
 
-  <string name="setting_version_title">Version</string>
+  <!-- Playback setting strings -->
+  <string name="setting_playback_forward_title">Forward time</string>
+  <string name="setting_playback_forward_subtitle">How far to jump forward in time</string>
+  <string name="setting_playback_backward_title">Rewind time</string>
+  <string name="setting_playback_backward_subtitle">How far to jump backward in time</string>
+  <string name="setting_playback_mp3seeking_title">Enable MP3 index seeking</string>
+  <string name="setting_playback_mp3seeking_subtitle">Improve the accuracy of seeking in variable bitrate MP3s</string>
+  <string name="setting_playback_track_reset_title">Track reset threshold</string>
+  <string name="setting_playback_track_reset_subtitle">How far into a track that skip previous will just restart it</string>
+  <string name="header_shake_to_reset">Reset</string>
+  <string name="setting_playback_sleep_shake_to_reset_title">Shake-to-reset</string>
+  <string name="setting_playback_sleep_shake_to_reset_subtitle">Enable shaking to reset the current or previous timer</string>
+  <string name="setting_playback_shake_sensitivity_title">Shake sensitivity</string>
+  <string name="setting_playback_shake_sensitivity_subtitle">How sensitive the shake detection is</string>
+  <string name="shake_sensitivity_very_low">Very low</string>
+  <string name="shake_sensitivity_low">Low</string>
+  <string name="shake_sensitivity_medium">Medium</string>
+  <string name="shake_sensitivity_high">High</string>
+  <string name="shake_sensitivity_very_high">Very High</string>
+  <string name="header_auto_sleep">Auto sleep timer</string>"
+  <string name="setting_auto_sleep_title">Enable auto sleep timer</string>
+  <string name="setting_auto_sleep_subtitle">Automatically set a sleep timer when listening between specific times</string>
+  <string name="setting_auto_sleep_start_title">Start time</string>
+  <string name="setting_auto_sleep_end_title">End time</string>
+  <string name="setting_auto_sleep_auto_rewind_title">Enable auto rewind</string>
+  <string name="setting_auto_sleep_auto_rewind_subtitle">Automatically rewind content when playing after auto sleep timer has expired</string>
+  <string name="setting_auto_sleep_auto_rewind_amount_title">Auto rewind time</string>
+
+  <!-- About setting strings-->
+  <string name="about_header_developer">Developer</string>
+  <string name="about_developer_title">Made by</string>
+  <string name="about_developer_subtitle">r0adkll</string>
+  <string name="about_developer_oss_title">Contribute</string>
+  <string name="about_developer_oss_subtitle">Campfire is open source! Join the discussion.</string>
+
+  <string name="about_header_legal">Legal &amp; Other information</string>"
+  <string name="about_privacy_policy_title">Privacy policy</string>
+  <string name="about_tos_title">Terms of service</string>
+  <string name="about_attributions_title">Open source attributions</string>
+  <string name="about_version_title">Version</string>
+
+  <!-- Misc actions-->
+  <string name="dialog_confirm_action">Apply</string>
+  <string name="dialog_dismiss_action">Cancel</string>
 </resources>

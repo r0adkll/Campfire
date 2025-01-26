@@ -28,10 +28,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material.icons.rounded.Speed
@@ -75,6 +73,8 @@ import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
+import app.campfire.sessions.ui.composables.ForwardIcon
+import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -344,10 +344,8 @@ private fun PlaybackActions(
     IconButton(
       onClick = onRewindClick,
     ) {
-      Icon(
-        Icons.Rounded.Replay10,
+      RewindIcon(
         modifier = Modifier.size(actionSize),
-        contentDescription = null,
       )
     }
 
@@ -400,10 +398,8 @@ private fun PlaybackActions(
     IconButton(
       onClick = onForwardClick,
     ) {
-      Icon(
-        Icons.Rounded.Forward10,
+      ForwardIcon(
         modifier = Modifier.size(actionSize),
-        contentDescription = null,
       )
     }
 

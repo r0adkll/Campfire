@@ -27,11 +27,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.common.settings.PlaybackSettings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.extensions.toString
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
+import app.campfire.settings.api.PlaybackSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.speed_bottomsheet_title
 import com.r0adkll.kimchi.annotations.ContributesTo

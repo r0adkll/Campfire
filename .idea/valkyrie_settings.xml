@@ -2,9 +2,12 @@
 <project version="4">
   <component name="Valkyrie.Settings">
     <option name="addTrailingComma" value="true" />
-    <option name="iconPackDestination" value="$PROJECT_DIR$/common/compose/src/commonMain/kotlin/app/campfire/common/compose/icons/rounded" />
+    <option name="iconPackDestination" value="$PROJECT_DIR$/common/compose/src/commonMain/kotlin/app/campfire/common/compose/icons" />
+    <option name="iconPackName" value="CampfireIcons" />
+    <option name="iconPackPackage" value="app.campfire.common.compose.icons" />
     <option name="indentSize" value="2" />
     <option name="mode" value="Simple" />
-    <option name="packageName" value="app.campfire.common.compose.icons.rounded" />
+    <option name="nestedPacks" value="Rounded" />
+    <option name="packageName" value="app.campfire.common.compose.icons" />
   </component>
 </project>

@@ -10,7 +10,10 @@ import kotlin.reflect.KProperty
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalTime
 
 abstract class AppSettings {
   abstract val settings: ObservableSettings
@@ -83,6 +86,36 @@ abstract class AppSettings {
     }
   }
 
+  fun localTimeSetting(
+    key: String,
+    defaultValue: LocalTime,
+  ) = object : ReadWriteProperty<AppSettings, LocalTime> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): LocalTime {
+      return settings.getStringOrNull(key)
+        ?.let { LocalTime.parse(it) }
+        ?: defaultValue
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: LocalTime) {
+      settings.putString(key, value.toString())
+    }
+  }
+
+  fun localDateTimeSetting(
+    key: String,
+    defaultValue: LocalDateTime,
+  ) = object : ReadWriteProperty<AppSettings, LocalDateTime> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): LocalDateTime {
+      return settings.getStringOrNull(key)
+        ?.let { LocalDateTime.parse(it) }
+        ?: defaultValue
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: LocalDateTime) {
+      settings.putString(key, value.toString())
+    }
+  }
+
   inline fun <reified T> enumSetting(
     key: String,
     provider: EnumSettingProvider<T>,
@@ -121,3 +154,10 @@ inline fun <reified T> FlowSettings.getEnumFlow(
 ) where T : Enum<T>, T : EnumSetting =
   getStringOrNullFlow(key)
     .map(provider::fromStorageKey)
+
+@OptIn(ExperimentalSettingsApi::class)
+fun FlowSettings.getDurationFlow(
+  key: String,
+  defaultValue: Duration,
+): Flow<Duration> = getDoubleFlow(key, defaultValue.toDouble(DurationUnit.SECONDS))
+  .map { it.seconds }
