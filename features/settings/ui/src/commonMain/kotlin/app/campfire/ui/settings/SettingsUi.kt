@@ -1,12 +1,6 @@
 package app.campfire.ui.settings
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.LocalSupportingContentState
@@ -78,6 +71,7 @@ import org.jetbrains.compose.resources.stringResource
 @CircuitInject(SettingsScreen::class, UserScope::class)
 @Composable
 fun SettingsUi(
+  screen: SettingsScreen,
   state: SettingsUiState,
   modifier: Modifier = Modifier,
 ) {
@@ -89,7 +83,18 @@ fun SettingsUi(
     ) ||
     windowSizeClass.widthSizeClass >= WindowWidthSizeClass.ExtraLarge
 
-  var currentSettingsPane by rememberSaveable { mutableStateOf<SettingsPane?>(null) }
+  var currentSettingsPane by rememberSaveable {
+    mutableStateOf(
+      when (screen.page) {
+        SettingsScreen.Page.Root -> null
+        SettingsScreen.Page.Account -> SettingsPane.Account
+        SettingsScreen.Page.Appearance -> SettingsPane.Appearance
+        SettingsScreen.Page.Playback -> SettingsPane.Playback
+        SettingsScreen.Page.Sleep -> SettingsPane.Sleep
+        SettingsScreen.Page.About -> SettingsPane.About
+      },
+    )
+  }
 
   if (isTwoPaneLayout) {
     TwoPaneLayout(
@@ -98,12 +103,18 @@ fun SettingsUi(
       onPaneClick = { currentSettingsPane = it },
       modifier = modifier,
     )
-  } else {
+  } else if (screen.page == SettingsScreen.Page.Root) {
     OnePaneLayout(
       state = state,
       pane = currentSettingsPane,
-      onPaneClick = { currentSettingsPane = it },
+      onPaneClick = { state.eventSink(SettingsUiEvent.SettingsPaneClick(it)) },
       modifier = modifier,
+    )
+  } else {
+    OnlyPaneLayout(
+      state = state,
+      pane = currentSettingsPane!!,
+      onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     )
   }
 }
@@ -142,6 +153,7 @@ private fun TwoPaneLayout(
       modifier = Modifier
         .padding(
           top = 16.dp,
+          bottom = 16.dp,
         )
         .fillMaxHeight()
         .weight(1f),
@@ -170,53 +182,35 @@ private fun TwoPaneLayout(
 private fun OnePaneLayout(
   state: SettingsUiState,
   pane: SettingsPane?,
-  onPaneClick: (SettingsPane?) -> Unit,
+  onPaneClick: (SettingsPane) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  SettingsRootPane(
+    pane = pane,
+    onPaneClick = onPaneClick,
+    onBackClick = { state.eventSink(SettingsUiEvent.Back) },
+    modifier = modifier
+      .fillMaxSize(),
+  )
+}
+
+@Composable
+private fun OnlyPaneLayout(
+  state: SettingsUiState,
+  pane: SettingsPane,
+  onBackClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Box(
-    modifier = modifier.fillMaxSize(),
+    modifier
+      .background(MaterialTheme.colorScheme.surface)
+      .fillMaxSize(),
   ) {
-    SettingsRootPane(
-      pane = pane,
-      onPaneClick = onPaneClick,
-      onBackClick = { state.eventSink(SettingsUiEvent.Back) },
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(0f),
+    SettingPaneContent(
+      state = state,
+      settingsPane = pane,
+      onBackClick = onBackClick,
     )
-
-    AnimatedContent(
-      targetState = pane,
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(1f),
-      transitionSpec = {
-        (
-          fadeIn(animationSpec = tween(220, delayMillis = 90)) +
-            slideInHorizontally(animationSpec = tween(220, delayMillis = 90)) { it }
-          )
-          .togetherWith(
-            fadeOut(animationSpec = tween(90)) +
-              slideOutHorizontally(animationSpec = tween(90)) { it },
-          )
-      },
-    ) { target ->
-      if (target != null) {
-        Box(
-          Modifier
-            .background(MaterialTheme.colorScheme.surface)
-            .fillMaxSize(),
-        ) {
-          SettingPaneContent(
-            state = state,
-            settingsPane = target,
-            onBackClick = { onPaneClick(null) },
-          )
-        }
-      } else {
-        Spacer(Modifier.fillMaxSize())
-      }
-    }
   }
 }
 

@@ -1,6 +1,7 @@
 package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Server
@@ -55,10 +56,20 @@ enum class SettingsPane {
   Playback,
   Sleep,
   About,
+  ;
+
+  val screenPage: SettingsScreen.Page get() = when (this) {
+    Account -> SettingsScreen.Page.Account
+    Appearance -> SettingsScreen.Page.Appearance
+    Playback -> SettingsScreen.Page.Playback
+    Sleep -> SettingsScreen.Page.Sleep
+    About -> SettingsScreen.Page.About
+  }
 }
 
 sealed interface SettingsUiEvent : CircuitUiEvent {
   data object Back : SettingsUiEvent
+  data class SettingsPaneClick(val pane: SettingsPane) : SettingsUiEvent
 
   // Account Pane Events - TODO: Move to sealed interface
   data class ChangeTent(val tent: Tent) : SettingsUiEvent

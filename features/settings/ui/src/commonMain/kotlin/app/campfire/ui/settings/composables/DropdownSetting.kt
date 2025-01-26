@@ -14,7 +14,6 @@ import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -41,7 +40,7 @@ internal fun <T> DropdownSetting(
   modifier: Modifier = Modifier,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
-  ListItem(
+  SettingListItem(
     modifier = modifier.clickable { isExpanded = true },
     headlineContent = headlineContent,
     supportingContent = supportingContent,

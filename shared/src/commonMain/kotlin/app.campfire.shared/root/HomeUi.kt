@@ -318,7 +318,7 @@ private fun HomeNavigationRail(
       },
       label = { Text(text = stringResource(Res.string.settings)) },
       selected = false,
-      onClick = { onNavigationSelected(SettingsScreen) },
+      onClick = { onNavigationSelected(SettingsScreen()) },
     )
   }
 }

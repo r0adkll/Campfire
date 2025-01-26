@@ -115,6 +115,7 @@ class SettingsPresenter(
     ) { event ->
       when (event) {
         SettingsUiEvent.Back -> navigator.pop()
+        is SettingsUiEvent.SettingsPaneClick -> navigator.goTo(SettingsScreen(event.pane.screenPage))
 
         is SettingsUiEvent.Theme -> settings.theme = event.theme
         is SettingsUiEvent.UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors

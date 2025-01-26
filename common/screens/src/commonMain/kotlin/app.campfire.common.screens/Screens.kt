@@ -84,7 +84,21 @@ data object StatisticsScreen : BaseScreen(name = "Statistics()")
 data object StorageScreen : BaseScreen(name = "Storage()")
 
 @Parcelize
-data object SettingsScreen : BaseScreen(name = "Settings()")
+data class SettingsScreen(
+  val page: Page = Page.Root,
+) : BaseScreen(name = "Settings($page)") {
+
+  override val arguments get() = mapOf("page" to page)
+
+  enum class Page {
+    Root,
+    Account,
+    Appearance,
+    Playback,
+    Sleep,
+    About,
+  }
+}
 
 //endregion
 

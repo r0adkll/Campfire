@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -55,7 +54,7 @@ internal fun LocalTimeSetting(
 ) {
   var showDialog by remember { mutableStateOf(false) }
 
-  ListItem(
+  SettingListItem(
     headlineContent = headlineContent,
     supportingContent = supportingContent,
     trailingContent = {

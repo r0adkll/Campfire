@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +28,7 @@ internal fun TentSetting(
   modifier: Modifier = Modifier,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
-  ListItem(
+  SettingListItem(
     headlineContent = { Text("Tent") },
     supportingContent = { Text("Pick your campsites tent & theme") },
     trailingContent = {

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -48,7 +47,7 @@ internal fun ThemeModeSetting(
   modifier: Modifier = Modifier,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
-  ListItem(
+  SettingListItem(
     modifier = modifier.clickable { isExpanded = true },
     headlineContent = { Text(stringResource(Res.string.setting_theme_title)) },
     supportingContent = { Text(stringResource(Res.string.setting_theme_description)) },

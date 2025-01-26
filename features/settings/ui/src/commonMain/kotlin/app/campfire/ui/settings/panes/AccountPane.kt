@@ -1,18 +1,17 @@
 package app.campfire.ui.settings.panes
 
-import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
+import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.TentSetting
 import app.campfire.ui.settings.composables.TextFieldSetting
 import campfire.features.settings.ui.generated.resources.Res
@@ -54,22 +53,22 @@ internal fun AccountPane(
         dialogInputLabel = { Text(stringResource(Res.string.setting_account_dialog_label)) },
       )
 
-      ListItem(
+      ActionSetting(
         headlineContent = { Text(stringResource(Res.string.setting_account_server_url)) },
         supportingContent = { Text(server.url) },
       )
 
-      ListItem(
+      ActionSetting(
         headlineContent = { Text(stringResource(Res.string.setting_account_server_version)) },
         supportingContent = { Text(server.settings.version) },
       )
     }
 
-    ListItem(
+    ActionSetting(
       headlineContent = { Text(stringResource(Res.string.setting_account_logout)) },
       supportingContent = { Text(stringResource(Res.string.setting_account_logout_subtitle)) },
       trailingContent = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },
-      modifier = Modifier.clickable {
+      onClick = {
         state.eventSink(SettingsUiEvent.Logout)
       },
     )

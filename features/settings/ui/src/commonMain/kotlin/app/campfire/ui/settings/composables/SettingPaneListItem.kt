@@ -32,11 +32,19 @@ fun SettingPaneListItem(
     supportingContent = subtitle,
     leadingContent = icon,
     colors = ListItemDefaults.colors(
-      containerColor = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
-      leadingIconColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-      headlineColor = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+      containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+      leadingIconColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+      } else {
+        MaterialTheme.colorScheme.onSurface
+      },
+      headlineColor = if (selected) {
+        MaterialTheme.colorScheme.onPrimaryContainer
+      } else {
+        MaterialTheme.colorScheme.onSurface
+      },
       supportingColor = if (selected) {
-        MaterialTheme.colorScheme.onPrimary
+        MaterialTheme.colorScheme.onPrimaryContainer
       } else {
         MaterialTheme.colorScheme.onSurfaceVariant
       },

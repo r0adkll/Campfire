@@ -1,7 +1,6 @@
 package app.campfire.ui.settings.composables
 
 import androidx.compose.foundation.clickable
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
@@ -16,7 +15,7 @@ internal fun SwitchSetting(
   supportingContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  ListItem(
+  SettingListItem(
     headlineContent = headlineContent,
     supportingContent = supportingContent,
     trailingContent = {

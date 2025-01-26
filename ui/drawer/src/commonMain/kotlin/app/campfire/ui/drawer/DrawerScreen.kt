@@ -224,7 +224,7 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
     )
     add(
       HomeNavigationItem(
-        screen = SettingsScreen,
+        screen = SettingsScreen(),
         label = stringResource(Res.string.nav_settings_label),
         contentDescription = stringResource(Res.string.nav_settings_content_description),
         iconImageVector = Icons.Rounded.Settings,

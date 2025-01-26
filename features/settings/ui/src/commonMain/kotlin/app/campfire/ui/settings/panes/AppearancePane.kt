@@ -1,7 +1,5 @@
 package app.campfire.ui.settings.panes
 
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,6 +7,7 @@ import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
+import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.ThemeModeSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
@@ -33,15 +32,11 @@ internal fun AppearancePane(
     )
 
     if (currentPlatform == Platform.ANDROID) {
-      ListItem(
+      SwitchSetting(
+        value = state.useDynamicColors,
+        onValueChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_dynamic_colors_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_dynamic_colors_description)) },
-        trailingContent = {
-          Switch(
-            checked = state.useDynamicColors,
-            onCheckedChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
-          )
-        },
       )
     }
   }
