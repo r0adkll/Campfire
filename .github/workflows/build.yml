@@ -56,7 +56,7 @@ jobs:
     steps:
       - name: Generate build number
         shell: bash
-        run: echo "ORG_GRADLE_PROJECT_DECKBOX_VERSIONCODE=$(( $GITHUB_RUN_NUMBER + 10000 ))" >> $GITHUB_ENV
+        run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( $GITHUB_RUN_NUMBER + 10000 ))" >> $GITHUB_ENV
 
       - uses: actions/checkout@v4
 
@@ -76,11 +76,11 @@ jobs:
       - name: Build Android App (skipping benchmark variant)
         run: |
           ./gradlew \
-            :androidApp:bundle \
-            :androidApp:build \
+            :app:android:bundle \
+            :app:android:build \
             lint \
-            -x :androidApp:assemble \
-            -x :androidApp:bundle
+            -x :app:android:assemble \
+            -x :app:android:bundle
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -96,7 +96,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-build-outputs
-          path: androidApp/build/outputs
+          path: app/android/build/outputs
 
       - name: Upload reports
         if: always()
@@ -136,14 +136,14 @@ jobs:
           cache-disabled: true
 
       - name: Build Desktop App
-        run: ./gradlew jvmTest :desktopApp:packageDistributionForCurrentOS
+        run: ./gradlew jvmTest :app:desktop:packageDistributionForCurrentOS
 
       - name: Upload build outputs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: desktop-build-binaries
-          path: desktopApp/build/compose/binaries
+          path: app/desktop/build/compose/binaries
 
       - name: Upload reports
         if: always()
