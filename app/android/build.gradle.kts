@@ -5,6 +5,7 @@ plugins {
   id("app.campfire.kotlin.android")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.about.libraries)
 }
 
 ksp {
@@ -55,6 +56,10 @@ android {
       isMinifyEnabled = false
     }
   }
+}
+
+aboutLibraries {
+  prettyPrint = true
 }
 
 dependencies {

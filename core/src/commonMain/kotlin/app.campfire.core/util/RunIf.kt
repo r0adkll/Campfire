@@ -10,7 +10,7 @@ import kotlin.contracts.contract
 @OptIn(ExperimentalContracts::class)
 inline fun runIf(predicate: Boolean, block: () -> Unit) {
   contract {
-    callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    callsInPlace(block, InvocationKind.AT_MOST_ONCE)
   }
 
   if (predicate) block()

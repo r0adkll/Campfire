@@ -4,6 +4,7 @@ plugins {
   id("app.campfire.kotlin.jvm")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.about.libraries)
 }
 
 kotlin {
@@ -33,4 +34,9 @@ compose.desktop {
       packageVersion = "1.0.0"
     }
   }
+}
+
+aboutLibraries {
+  registerAndroidTasks = false
+  prettyPrint = true
 }

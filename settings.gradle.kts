@@ -58,8 +58,10 @@ buildCache {
 }
 
 rootProject.name = "Campfire"
-include(":androidApp")
-include(":desktopApp")
+include(
+  ":app:android",
+  ":app:desktop"
+)
 include(":shared")
 include(":core")
 include(
