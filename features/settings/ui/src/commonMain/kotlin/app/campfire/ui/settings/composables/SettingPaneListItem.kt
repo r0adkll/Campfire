@@ -25,7 +25,7 @@ fun SettingPaneListItem(
       .clip(CircleShape)
       .clickable(onClick = onClick),
     headlineContent = {
-      ProvideTextStyle(MaterialTheme.typography.titleLarge) {
+      ProvideTextStyle(MaterialTheme.typography.titleMedium) {
         title()
       }
     },

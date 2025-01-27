@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.key
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -95,20 +97,26 @@ fun main() = application {
       }
     }
 
-    CompositionLocalProvider(
-      LocalWindowBackEventDispatcher provides windowBackEventDispatcher,
-    ) {
-      component.campfireContent(
-        { exitApplication() },
-        { url ->
+    val uriHandler = remember {
+      object : UriHandler {
+        override fun openUri(uri: String) {
           try {
-            val uri = URI(url)
             val dt = Desktop.getDesktop()
-            dt.browse(uri)
+            dt.browse(URI(uri))
           } catch (ex: Exception) {
             bark(throwable = ex) { "Unable to open URL" }
           }
-        },
+        }
+      }
+    }
+
+    CompositionLocalProvider(
+      LocalWindowBackEventDispatcher provides windowBackEventDispatcher,
+      LocalUriHandler provides uriHandler,
+    ) {
+      component.campfireContent(
+        { exitApplication() },
+        uriHandler::openUri,
         WindowInsets(
           top = 24.dp,
           bottom = 24.dp,

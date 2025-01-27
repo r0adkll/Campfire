@@ -62,7 +62,7 @@ include(
   ":app:android",
   ":app:common",
   ":app:desktop",
-  ":app:ios"
+  ":app:ios",
 )
 include(":core")
 include(
@@ -136,6 +136,7 @@ include(
 include(
   ":ui:appbar",
   ":ui:drawer",
+  ":ui:attribution",
 )
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

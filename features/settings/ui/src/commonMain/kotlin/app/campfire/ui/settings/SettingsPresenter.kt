@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
+import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.app.ApplicationInfo
@@ -157,7 +158,7 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.AboutSettingEvent -> when (event) {
-          AttributionsClick -> TODO()
+          AttributionsClick -> navigator.goTo(AttributionScreen)
           DeveloperClick -> navigator.goTo(UrlScreen(applicationUrls.developerHomepage))
           GithubClick -> navigator.goTo(UrlScreen(applicationUrls.githubDiscussion))
           PrivacyPolicyClick -> navigator.goTo(UrlScreen(applicationUrls.privacyPolicy))

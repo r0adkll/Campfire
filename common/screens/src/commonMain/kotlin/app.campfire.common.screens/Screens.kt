@@ -100,6 +100,9 @@ data class SettingsScreen(
   }
 }
 
+@Parcelize
+data object AttributionScreen : BaseScreen(name = "Attributions()")
+
 //endregion
 
 //region Utility Screens

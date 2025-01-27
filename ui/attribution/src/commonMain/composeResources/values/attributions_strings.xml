@@ -1,0 +1,4 @@
+<resources>
+  <string name="attributions_title">License attributions</string>
+  <string name="attributions_error_message">Uh-oh! Looks like there was an issue loading the attributions.</string>
+</resources>

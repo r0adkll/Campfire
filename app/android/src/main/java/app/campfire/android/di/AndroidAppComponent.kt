@@ -3,11 +3,11 @@ package app.campfire.android.di
 import android.app.Application
 import android.os.Build
 import app.campfire.android.BuildConfig
+import app.campfire.common.di.SharedAppComponent
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.common.di.SharedAppComponent
 import com.r0adkll.kimchi.annotations.MergeComponent
 import me.tatarka.inject.annotations.Provides
 

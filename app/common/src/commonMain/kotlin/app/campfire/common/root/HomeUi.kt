@@ -51,6 +51,7 @@ import app.campfire.common.compose.icons.outline.Series
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.navigation.LocalRootScreen
+import app.campfire.common.navigator.HomeNavigator
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
@@ -68,7 +69,6 @@ import app.campfire.search.ui.CampfireDockedSearchBar
 import app.campfire.search.ui.showSearchOverlay
 import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.sessions.ui.PlaybackBottomBar
-import app.campfire.common.navigator.HomeNavigator
 import campfire.app.common.generated.resources.Res
 import campfire.app.common.generated.resources.empty_supporting_pane_message
 import campfire.app.common.generated.resources.nav_authors_content_description

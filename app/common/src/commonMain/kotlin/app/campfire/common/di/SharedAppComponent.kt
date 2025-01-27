@@ -1,5 +1,6 @@
 package app.campfire.common.di
 
+import app.campfire.common.initializer.StartupInitializer
 import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
@@ -7,7 +8,6 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.time.FatherTime
 import app.campfire.core.time.GrandFatherTime
-import app.campfire.common.initializer.StartupInitializer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO

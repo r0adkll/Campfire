@@ -3,7 +3,6 @@ package app.campfire.attribution
 import app.campfire.core.attributions.LicenseAttributionLoader
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.util.withJson
 import com.r0adkll.kimchi.annotations.ContributesBinding
