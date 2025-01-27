@@ -2,7 +2,7 @@ package app.campfire.core.attributions
 
 import com.mikepenz.aboutlibraries.Libs
 
-interface LicenceAttributionLoader {
+interface LicenseAttributionLoader {
 
   /**
    * Load the library and license attribution used in this app

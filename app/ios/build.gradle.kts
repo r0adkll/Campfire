@@ -19,6 +19,8 @@ kotlin {
 
         implementation(libs.kimchi.annotations)
         implementation(libs.kotlininject.runtime)
+
+        implementation(compose.components.resources)
       }
     }
   }
