@@ -7,7 +7,7 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.shared.di.SharedAppComponent
+import app.campfire.common.di.SharedAppComponent
 import com.r0adkll.kimchi.annotations.MergeComponent
 import me.tatarka.inject.annotations.Provides
 

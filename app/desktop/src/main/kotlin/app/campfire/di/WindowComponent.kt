@@ -3,7 +3,7 @@ package app.campfire.di
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
-import app.campfire.shared.root.CampfireContentWithInsets
+import app.campfire.common.root.CampfireContentWithInsets
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 
 @SingleIn(UiScope::class)

@@ -14,7 +14,7 @@ kotlin {
 }
 
 dependencies {
-  implementation(projects.shared)
+  implementation(projects.app.common)
   implementation(compose.desktop.currentOs)
 
   implementation(libs.kimchi.annotations)

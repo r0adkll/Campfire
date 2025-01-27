@@ -60,9 +60,10 @@ buildCache {
 rootProject.name = "Campfire"
 include(
   ":app:android",
-  ":app:desktop"
+  ":app:common",
+  ":app:desktop",
+  ":app:ios"
 )
-include(":shared")
 include(":core")
 include(
   ":audioplayer:api",

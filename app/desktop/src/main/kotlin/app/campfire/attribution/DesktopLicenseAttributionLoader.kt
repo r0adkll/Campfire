@@ -8,9 +8,11 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.util.withJson
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
+import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
+@Inject
 class DesktopLicenseAttributionLoader(
   private val dispatcherProvider: DispatcherProvider,
 ) : LicenceAttributionLoader {

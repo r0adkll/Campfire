@@ -1,0 +1,4 @@
+APP_NAME = Campfire
+PRODUCT_BUNDLE_IDENTIFIER = com.r0adkll.campfire
+VERSION_NAME = 1.0.0
+VERSION_CODE = 1

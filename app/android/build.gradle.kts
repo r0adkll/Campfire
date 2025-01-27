@@ -64,7 +64,7 @@ aboutLibraries {
 }
 
 dependencies {
-  implementation(projects.shared)
+  implementation(projects.app.common)
   implementation(projects.common.screens)
 
   implementation(libs.about.libraries.core)

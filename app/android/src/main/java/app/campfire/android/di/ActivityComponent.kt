@@ -6,7 +6,7 @@ import app.campfire.audioplayer.impl.MediaControllerConnector
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
-import app.campfire.shared.root.CampfireContent
+import app.campfire.common.root.CampfireContent
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import java.util.Locale
 import me.tatarka.inject.annotations.Provides
