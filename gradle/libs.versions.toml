@@ -58,6 +58,10 @@ sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
 [libraries]
+# About Libraries
+about-libraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "about-libraries" }
+about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "about-libraries" }
+
 #Android
 androidx-activity-activity = { module = "androidx.activity:activity", version.ref = "androidxactivity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxactivity" }

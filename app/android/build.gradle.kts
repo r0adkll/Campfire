@@ -59,12 +59,15 @@ android {
 }
 
 aboutLibraries {
+  registerAndroidTasks = false
   prettyPrint = true
 }
 
 dependencies {
   implementation(projects.shared)
   implementation(projects.common.screens)
+
+  implementation(libs.about.libraries.core)
 
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.browser)

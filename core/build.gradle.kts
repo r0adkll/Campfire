@@ -9,6 +9,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(libs.about.libraries.core)
         api(libs.kimchi.annotations)
         api(libs.kotlinx.coroutines.core)
         api(libs.kotlininject.runtime)
