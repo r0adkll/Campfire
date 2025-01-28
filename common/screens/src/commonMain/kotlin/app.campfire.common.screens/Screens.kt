@@ -32,6 +32,10 @@ data object WelcomeScreen : BaseScreen(name = "Welcome()") {
 data class LoginScreen(
   val isAddingAccount: Boolean = false,
 ) : BaseScreen(name = "Login()") {
+  override val arguments = mapOf(
+    "isAddingAccount" to isAddingAccount,
+  )
+
   override val presentation: Presentation
     get() = Presentation(hideBottomNav = !isAddingAccount)
 }

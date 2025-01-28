@@ -1,3 +1,6 @@
+// Copyright 2025, Google LLC, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package app.campfire.common.compose.shaders
 
 import androidx.compose.runtime.Composable
@@ -5,7 +8,7 @@ import androidx.compose.ui.Modifier
 
 /* Copyright 2022 Google LLC.
    SPDX-License-Identifier: Apache-2.0 */
-//@Language("AGSL")
+// @Language("AGSL")
 val PerlinNoise = """
    uniform float2 resolution;
    uniform float time;

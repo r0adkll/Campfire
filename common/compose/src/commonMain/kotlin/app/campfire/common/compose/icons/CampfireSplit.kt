@@ -3,7 +3,6 @@ package app.campfire.common.compose.icons
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -218,7 +217,7 @@ fun NoisyCampfireIcon(
           frequencyX = 15f,
           frequencyY = 3f,
           speed = 0.7f,
-          amplitude = 0.02f
+          amplitude = 0.02f,
         ),
     )
     Image(
@@ -231,7 +230,7 @@ fun NoisyCampfireIcon(
           frequencyX = 8f,
           frequencyY = 4f,
           amplitude = 0.04f,
-          speed = .75f
+          speed = .75f,
         ),
     )
   }

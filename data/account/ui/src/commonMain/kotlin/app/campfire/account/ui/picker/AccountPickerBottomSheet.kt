@@ -43,7 +43,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.filled.PersonAdd
-import app.campfire.common.compose.icons.filled.ShieldPerson
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.widgets.CampsiteIcon
 import app.campfire.core.coroutines.LoadState
@@ -275,16 +274,7 @@ private fun AccountListItem(
       Row(
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text(server.user.name)
-        if (isCurrent) {
-          Spacer(Modifier.width(4.dp))
-          Icon(
-            Icons.Filled.ShieldPerson,
-            contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = MaterialTheme.colorScheme.primary,
-          )
-        }
+        Text("${server.user.name} @ ${server.name}")
       }
     },
     supportingContent = { Text(server.url) },

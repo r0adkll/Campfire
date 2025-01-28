@@ -1,4 +1,4 @@
-// Copyright 2022, Google LLC, Christopher Banes and the Tivi project contributors
+// Copyright 2022, Google LLC, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: Apache-2.0
 
 package app.campfire.core.extensions

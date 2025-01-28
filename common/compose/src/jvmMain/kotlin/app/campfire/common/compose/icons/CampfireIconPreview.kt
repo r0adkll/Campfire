@@ -15,26 +15,24 @@ import androidx.compose.ui.unit.dp
 fun CampfireIconPreview() {
   Row(
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(16.dp)
+    horizontalArrangement = Arrangement.spacedBy(16.dp),
   ) {
-
     Image(
       CampfireIcons.Campfire,
-      contentDescription = null
+      contentDescription = null,
     )
 
     Image(
       CampfireIcons.Campfire,
       contentDescription = null,
-      modifier = Modifier.size(120.dp)
+      modifier = Modifier.size(120.dp),
     )
 
     Image(
       CampfireIcons.Campfire,
       contentDescription = null,
       modifier = Modifier
-        .size(240.dp)
+        .size(240.dp),
     )
-
   }
 }

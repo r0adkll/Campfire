@@ -67,9 +67,6 @@ private fun LoginContent(
   isAddingAccount: Boolean,
   modifier: Modifier = Modifier,
 ) {
-  val eventSink = state.eventSink
-  var hasFocus by remember { mutableStateOf(false) }
-
   Surface(
     modifier = modifier
       .systemBarsPadding()
@@ -97,63 +94,76 @@ private fun LoginContent(
         )
       }
 
-      Column(
+      LoginUiContent(
+        state = state,
         modifier = Modifier
           .align(Alignment.Center)
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-      ) {
-        ServerCard(
-          tent = state.tent,
-          onTentChange = { eventSink(LoginUiEvent.ChangeTent(it)) },
-          serverName = state.serverName,
-          onServerNameChange = { eventSink(LoginUiEvent.ServerName(it)) },
-          serverUrl = state.serverUrl,
-          onServerUrlChange = { eventSink(LoginUiEvent.ServerUrl(it)) },
-          username = state.userName,
-          onUsernameChange = { eventSink(LoginUiEvent.UserName(it)) },
-          password = state.password,
-          onPasswordChange = { eventSink(LoginUiEvent.Password(it)) },
-          onGo = { eventSink(LoginUiEvent.AddCampsite) },
-          connectionState = state.connectionState,
-          authError = state.authError,
-          isAuthenticating = state.isAuthenticating,
-          modifier = Modifier.onFocusChanged {
-            hasFocus = it.hasFocus
-          }.widthIn(max = 500.dp),
+          .fillMaxWidth(),
+      )
+    }
+  }
+}
+
+@Composable
+internal fun LoginUiContent(
+  state: LoginUiState,
+  modifier: Modifier = Modifier,
+) {
+  val eventSink = state.eventSink
+  var hasFocus by remember { mutableStateOf(false) }
+
+  Column(
+    modifier = modifier.padding(horizontal = 16.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+  ) {
+    ServerCard(
+      tent = state.tent,
+      onTentChange = { eventSink(LoginUiEvent.ChangeTent(it)) },
+      serverName = state.serverName,
+      onServerNameChange = { eventSink(LoginUiEvent.ServerName(it)) },
+      serverUrl = state.serverUrl,
+      onServerUrlChange = { eventSink(LoginUiEvent.ServerUrl(it)) },
+      username = state.userName,
+      onUsernameChange = { eventSink(LoginUiEvent.UserName(it)) },
+      password = state.password,
+      onPasswordChange = { eventSink(LoginUiEvent.Password(it)) },
+      onGo = { eventSink(LoginUiEvent.AddCampsite) },
+      connectionState = state.connectionState,
+      authError = state.authError,
+      isAuthenticating = state.isAuthenticating,
+      modifier = Modifier.onFocusChanged {
+        hasFocus = it.hasFocus
+      }.widthIn(max = 500.dp),
+    )
+
+    Spacer(Modifier.height(16.dp))
+
+    Button(
+      enabled = state.serverUrl.isNotBlank() &&
+        state.userName.isNotBlank() &&
+        state.password.isNotBlank() &&
+        !state.isAuthenticating,
+      onClick = {
+        eventSink(LoginUiEvent.AddCampsite)
+      },
+      modifier = Modifier
+        .widthIn(max = 500.dp)
+        .fillMaxWidth(),
+    ) {
+      if (!state.isAuthenticating) {
+        Icon(
+          Icons.Rounded.Add,
+          contentDescription = null,
         )
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-          enabled = state.serverUrl.isNotBlank() &&
-            state.userName.isNotBlank() &&
-            state.password.isNotBlank() &&
-            !state.isAuthenticating,
-          onClick = {
-            eventSink(LoginUiEvent.AddCampsite)
-          },
-          modifier = Modifier
-            .widthIn(max = 500.dp)
-            .fillMaxWidth(),
-        ) {
-          if (!state.isAuthenticating) {
-            Icon(
-              Icons.Rounded.Add,
-              contentDescription = null,
-            )
-            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-            Text(stringResource(Res.string.action_add_campsite))
-          } else {
-            Text(stringResource(Res.string.label_authenticating_loading_message))
-          }
-        }
-
-        Spacer(
-          Modifier.imePadding(),
-        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(stringResource(Res.string.action_add_campsite))
+      } else {
+        Text(stringResource(Res.string.label_authenticating_loading_message))
       }
     }
+
+    Spacer(
+      Modifier.imePadding(),
+    )
   }
 }
