@@ -32,6 +32,10 @@ kotlin {
       }
     }
 
+    val skikoMain by creating {
+      dependsOn(commonMain.get())
+    }
+
     val jvmCommon by creating {
       dependsOn(commonMain.get())
 
@@ -41,6 +45,7 @@ kotlin {
     }
 
     jvmMain {
+      dependsOn(skikoMain)
       dependsOn(jvmCommon)
       dependencies {
         implementation(compose.preview)
@@ -61,6 +66,7 @@ kotlin {
     }
 
     appleMain {
+      dependsOn(skikoMain)
       dependencies {
         api(libs.coil.networking.ktor3)
         api(libs.ktor.client.darwin)

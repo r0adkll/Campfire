@@ -1,5 +1,11 @@
 package app.campfire.common.compose.icons
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -9,15 +15,19 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import app.campfire.common.compose.shaders.applyNoiseEffect
 
-private var _Campfire: ImageVector? = null
+private var _CampfireLogs: ImageVector? = null
+private var _CampfireFireInner: ImageVector? = null
+private var _CampfireFireOuter: ImageVector? = null
 
-val CampfireIcons.Campfire: ImageVector
+val CampfireIcons.CampfireLogs: ImageVector
   get() {
-    if (_Campfire != null) {
-      return _Campfire!!
+    if (_CampfireLogs != null) {
+      return _CampfireLogs!!
     }
-    _Campfire = ImageVector.Builder(
+    _CampfireLogs = ImageVector.Builder(
       name = "Campfire",
       defaultWidth = 53.dp,
       defaultHeight = 53.dp,
@@ -102,6 +112,60 @@ val CampfireIcons.Campfire: ImageVector
         curveTo(12.8265f, 40.9493f, 14.9952f, 42.3333f, 15.9704f, 44.7198f)
         close()
       }
+    }.build()
+    return _CampfireLogs!!
+  }
+
+val CampfireIcons.CampfireFireInner: ImageVector
+  get() {
+    if (_CampfireFireInner != null) {
+      return _CampfireFireInner!!
+    }
+    _CampfireFireInner = ImageVector.Builder(
+      name = "Campfire",
+      defaultWidth = 53.dp,
+      defaultHeight = 53.dp,
+      viewportWidth = 53f,
+      viewportHeight = 53f,
+    ).apply {
+      group {
+        // Inner Fire
+        path(
+          fill = SolidColor(Color(0xFFF34624)),
+          fillAlpha = 1.0f,
+          stroke = null,
+          strokeAlpha = 1.0f,
+          strokeLineWidth = 1.0f,
+          strokeLineCap = StrokeCap.Butt,
+          strokeLineJoin = StrokeJoin.Miter,
+          strokeLineMiter = 1.0f,
+          pathFillType = PathFillType.NonZero,
+        ) {
+          moveTo(26.9498253f, 24.9999084f)
+          curveToRelative(-0.7755f, -0.4743f, -1.7608f, -0.0158f, -1.9127f, 0.8804f)
+          curveToRelative(-0.3024f, 1.7842f, -1.8528f, 3.0309f, -2.5905f, 5.0946f)
+          curveToRelative(-0.8599f, 2.4056f, 0.4236f, 4.7362f, 2.8423f, 5.3638f)
+          curveToRelative(2.5983f, 0.6742f, 4.9416f, -0.7221f, 5.428f, -3.2344f)
+          curveTo(31.3254f, 29.9616f, 29.7492f, 26.7119f, 26.9498f, 24.9999f)
+          close()
+        }
+      }
+    }.build()
+    return _CampfireFireInner!!
+  }
+
+val CampfireIcons.CampfireFireOuter: ImageVector
+  get() {
+    if (_CampfireFireOuter != null) {
+      return _CampfireFireOuter!!
+    }
+    _CampfireFireOuter = ImageVector.Builder(
+      name = "Campfire",
+      defaultWidth = 53.dp,
+      defaultHeight = 53.dp,
+      viewportWidth = 53f,
+      viewportHeight = 53f,
+    ).apply {
       group {
         // Outer Fire
         path(
@@ -127,28 +191,48 @@ val CampfireIcons.Campfire: ImageVector
           curveTo(13.2618f, 26.5846f, 13.7082f, 19.6188f, 18.9636f, 14.207f)
           close()
         }
-
-        // Inner Fire
-        path(
-          fill = SolidColor(Color(0xFFF34624)),
-          fillAlpha = 1.0f,
-          stroke = null,
-          strokeAlpha = 1.0f,
-          strokeLineWidth = 1.0f,
-          strokeLineCap = StrokeCap.Butt,
-          strokeLineJoin = StrokeJoin.Miter,
-          strokeLineMiter = 1.0f,
-          pathFillType = PathFillType.NonZero,
-        ) {
-          moveTo(26.9498253f, 24.9999084f)
-          curveToRelative(-0.7755f, -0.4743f, -1.7608f, -0.0158f, -1.9127f, 0.8804f)
-          curveToRelative(-0.3024f, 1.7842f, -1.8528f, 3.0309f, -2.5905f, 5.0946f)
-          curveToRelative(-0.8599f, 2.4056f, 0.4236f, 4.7362f, 2.8423f, 5.3638f)
-          curveToRelative(2.5983f, 0.6742f, 4.9416f, -0.7221f, 5.428f, -3.2344f)
-          curveTo(31.3254f, 29.9616f, 29.7492f, 26.7119f, 26.9498f, 24.9999f)
-          close()
-        }
       }
     }.build()
-    return _Campfire!!
+    return _CampfireFireOuter!!
   }
+
+@Composable
+fun NoisyCampfireIcon(
+  modifier: Modifier = Modifier,
+) {
+  Box(modifier) {
+    Image(
+      CampfireIcons.CampfireLogs,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(0f),
+    )
+    Image(
+      CampfireIcons.CampfireFireOuter,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(1f)
+        .applyNoiseEffect(
+          frequencyX = 15f,
+          frequencyY = 3f,
+          speed = 0.7f,
+          amplitude = 0.02f
+        ),
+    )
+    Image(
+      CampfireIcons.CampfireFireInner,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(2f)
+        .applyNoiseEffect(
+          frequencyX = 8f,
+          frequencyY = 4f,
+          amplitude = 0.04f,
+          speed = .75f
+        ),
+    )
+  }
+}

@@ -1,6 +1,5 @@
 package app.campfire.auth.ui.login.composables
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.Campfire
-import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.NoisyCampfireIcon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_title
@@ -29,9 +27,7 @@ internal fun TitleBanner(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.aligned(Alignment.CenterHorizontally),
   ) {
-    Image(
-      CampfireIcons.Campfire,
-      contentDescription = null,
+    NoisyCampfireIcon(
       modifier = Modifier.size(96.dp),
     )
     Spacer(Modifier.width(16.dp))
