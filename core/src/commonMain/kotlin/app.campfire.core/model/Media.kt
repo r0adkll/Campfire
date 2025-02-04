@@ -47,6 +47,7 @@ data class Media(
     val isAbridged: Boolean,
 
     val authors: List<AuthorMetadata> = emptyList(),
+    val narrators: List<String> = emptyList(),
   )
 
   data class AuthorMetadata(

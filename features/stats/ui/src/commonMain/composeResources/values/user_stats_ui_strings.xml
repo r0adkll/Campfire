@@ -1,0 +1,16 @@
+<resources>
+  <string name="user_stats_title">Statistics</string>
+  <string name="user_stats_error_message">Uh-oh! Looks like something went wrong loading your stats.</string>
+
+  <string name="user_stats_recent_sessions_header">Recent sessions</string>
+  <string name="weekly_listening_card_title">Weekly listening</string>
+
+  <string name="card_library_totals_title">Summary</string>
+  <string name="card_largest_items_title">Largest items</string>
+  <string name="card_longest_items_title">Longest items</string>
+  <string name="card_top_authors_title">Top authors</string>
+  <string name="totals_format">%1$s Total</string>
+  <string name="library_totals_summary_format">There are {{items}} from {{authors}} spanning {{time}} over {{tracks}} taking up {{size}} of storage.</string>
+  <string name="stats_user">User</string>
+  <string name="stats_library">Library</string>
+</resources>

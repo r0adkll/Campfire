@@ -134,6 +134,11 @@ include(
   ":features:settings:ui",
 )
 include(
+  ":features:stats:api",
+  ":features:stats:impl",
+  ":features:stats:ui",
+)
+include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:attribution",

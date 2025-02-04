@@ -24,6 +24,8 @@ import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.LibraryStats
+import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
@@ -126,6 +128,12 @@ class KtorAudioBookShelfApi(
   override suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded> {
     return trySendRequest<LibraryItemExpanded> {
       hydratedClientRequest("/api/items/$itemId?expanded=1&include=progress,authors,downloads")
+    }
+  }
+
+  override suspend fun getLibraryStats(libraryId: String): Result<LibraryStats> {
+    return trySendRequest {
+      hydratedClientRequest("/api/libraries/$libraryId/stats")
     }
   }
 
@@ -238,6 +246,14 @@ class KtorAudioBookShelfApi(
   override suspend fun searchLibrary(libraryId: String, query: String): Result<SearchResult> {
     return trySendRequest {
       hydratedClientRequest("api/libraries/$libraryId/search?q=${query.encodeURLQueryComponent()}")
+    }
+  }
+
+  override suspend fun getListeningStats(): Result<ListeningStats> {
+    val currentUserId = userSessionManager.current.userId
+      ?: throw IllegalStateException("You must be logged in to perform this request")
+    return trySendRequest {
+      hydratedClientRequest("api/users/$currentUserId/listening-stats")
     }
   }
 

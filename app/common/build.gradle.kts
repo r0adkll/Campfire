@@ -53,6 +53,9 @@ kotlin {
         api(projects.features.settings.impl)
         api(projects.features.settings.ui)
 
+        api(projects.features.stats.impl)
+        api(projects.features.stats.ui)
+
         api(projects.ui.drawer)
         api(projects.ui.attribution)
 

@@ -10,10 +10,12 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.Session
+import app.campfire.network.models.AuthorSeries
 import app.campfire.network.models.BookChapter
 import app.campfire.network.models.DeviceInfo
-import app.campfire.network.models.MinifiedBookMetadata
+import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.SeriesSequence
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -50,7 +52,7 @@ class DefaultNetworkSessionMapper(
         DESKTOP -> "vlc"
       },
       mediaMetadata = with(session.libraryItem.media.metadata) {
-        MinifiedBookMetadata(
+        ExpandedBookMetadata(
           title = title,
           subtitle = subtitle,
           genres = genres,
@@ -68,6 +70,17 @@ class DefaultNetworkSessionMapper(
           authorNameLF = authorNameLastFirst,
           narratorName = narratorName,
           seriesName = seriesName,
+          authors = authors.map { AuthorSeries(it.id, it.name) },
+          series = seriesSequence?.let {
+            listOf(
+              SeriesSequence(
+                id = it.id,
+                name = it.name,
+                sequence = it.sequence,
+              ),
+            )
+          },
+          narrators = narrators,
         )
       },
       chapters = session.libraryItem.media.chapters.map { c ->

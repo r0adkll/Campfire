@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,7 +22,6 @@ import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -45,6 +45,7 @@ import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.filled.PersonAdd
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.widgets.CampsiteIcon
+import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Server
@@ -143,7 +144,7 @@ private fun AccountPickerContent(
   modifier: Modifier = Modifier,
 ) {
   when (accounts) {
-    is LoadState.Loading -> LoadingContent(modifier)
+    is LoadState.Loading -> LoadingState(modifier.fillMaxSize())
     is LoadState.Error -> ErrorContent(modifier)
     is LoadState.Loaded -> LoadedContent(
       accountState = accounts.data,
@@ -152,15 +153,6 @@ private fun AccountPickerContent(
       onLogout = onLogout,
       modifier = modifier,
     )
-  }
-}
-
-@Composable
-private fun LoadingContent(
-  modifier: Modifier = Modifier,
-) {
-  NonLoadedContent(modifier) {
-    CircularProgressIndicator()
   }
 }
 

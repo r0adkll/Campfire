@@ -9,6 +9,8 @@ import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.LibraryStats
+import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
@@ -70,6 +72,11 @@ interface AudioBookShelfApi {
    * @return as result with the library item with expanded details
    */
   suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded>
+
+  /**
+   * This endpoint returns a library's stats
+   */
+  suspend fun getLibraryStats(libraryId: String): Result<LibraryStats>
 
   /**
    * Get a Library's Personalized View
@@ -144,4 +151,9 @@ interface AudioBookShelfApi {
    * This endpoint searches a library for the query and returns the results.
    */
   suspend fun searchLibrary(libraryId: String, query: String): Result<SearchResult>
+
+  /**
+   * This endpoint retrieves a user's listening statistics.
+   */
+  suspend fun getListeningStats(): Result<ListeningStats>
 }

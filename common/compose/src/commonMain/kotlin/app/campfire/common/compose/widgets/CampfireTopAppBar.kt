@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -59,6 +60,50 @@ fun CampfireTopAppBar(
     colors = colors,
     scrollBehavior = scrollBehavior,
     expandedHeight = expandedHeight,
+    windowInsets = windowInsets,
+    modifier = modifier,
+  )
+}
+
+/**
+ * A common [TopAppBar] implementation for use across the entire app. This commonizes
+ * the title font family and scroll container colors based on [ContentLayout].
+ * @see TopAppBar
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CampfireMediumTopAppBar(
+  title: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+  navigationIcon: @Composable () -> Unit = {},
+  actions: @Composable RowScope.() -> Unit = {},
+  windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+  scrollBehavior: TopAppBarScrollBehavior? = null,
+) {
+  val currentContentLayout = LocalContentLayout.current
+  val colors = TopAppBarDefaults.mediumTopAppBarColors(
+    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+    containerColor = if (currentContentLayout == ContentLayout.Supporting) {
+      MaterialTheme.colorScheme.surfaceColorAtElevation(SupportingContentElevation)
+    } else {
+      Color.Unspecified
+    },
+  )
+
+  MediumTopAppBar(
+    title = {
+      ProvideTextStyle(
+        MaterialTheme.typography.titleLarge.copy(
+          fontFamily = PaytoneOneFontFamily,
+        ),
+      ) {
+        title()
+      }
+    },
+    navigationIcon = navigationIcon,
+    actions = actions,
+    colors = colors,
+    scrollBehavior = scrollBehavior,
     windowInsets = windowInsets,
     modifier = modifier,
   )

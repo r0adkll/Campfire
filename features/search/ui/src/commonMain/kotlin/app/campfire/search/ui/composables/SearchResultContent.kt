@@ -2,7 +2,6 @@ package app.campfire.search.ui.composables
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,12 +15,10 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -34,6 +31,7 @@ import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LibraryItemCard
+import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.model.Author
 import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
@@ -68,7 +66,7 @@ internal fun SearchResultContent(
 ) {
   when (results) {
     SearchResult.Error -> EmptyState(stringResource(Res.string.search_results_error_message), modifier)
-    SearchResult.Loading -> LoadingContent(modifier)
+    SearchResult.Loading -> LoadingState(modifier.fillMaxSize())
     is SearchResult.Success -> if (results.isEmpty && query.isNotBlank()) {
       EmptyState(
         message = {
@@ -107,18 +105,6 @@ internal fun SearchResultContent(
         )
       }
     }
-  }
-}
-
-@Composable
-private fun LoadingContent(
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier.fillMaxSize(),
-    contentAlignment = Alignment.Center,
-  ) {
-    CircularProgressIndicator()
   }
 }
 

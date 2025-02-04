@@ -6,8 +6,8 @@
     <option name="iconPackName" value="CampfireIcons" />
     <option name="iconPackPackage" value="app.campfire.common.compose.icons" />
     <option name="indentSize" value="2" />
-    <option name="mode" value="Simple" />
-    <option name="nestedPacks" value="Rounded" />
+    <option name="mode" value="IconPack" />
+    <option name="nestedPacks" value="Rounded,Tents" />
     <option name="packageName" value="app.campfire.common.compose.icons" />
   </component>
 </project>

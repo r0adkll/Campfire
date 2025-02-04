@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -30,6 +31,7 @@ fun ItemImage(
   imageUrl: String,
   contentDescription: String?,
   modifier: Modifier = Modifier,
+  contentScale: ContentScale = ContentScale.Fit,
 ) {
   Box(
     modifier = modifier,
@@ -49,6 +51,7 @@ fun ItemImage(
     Image(
       painter,
       contentDescription = contentDescription,
+      contentScale = contentScale,
       modifier = Modifier
         .fillMaxSize(),
     )
