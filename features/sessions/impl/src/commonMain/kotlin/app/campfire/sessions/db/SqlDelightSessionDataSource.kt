@@ -82,6 +82,14 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  /**
+   * Sessions should be pretty ephemeral and more/less synced to the user experience.
+   * Anytime we call this method, essentially when the user opens the app again and auto-loads
+   * or starts a new listening session then we'll want to replace the current db entry that
+   * has a new id and reset timeListening.
+   *
+   * This helps provide better accuracy and reporting on the backend for the user stats
+   */
   override suspend fun createOrStartSession(
     libraryItemId: LibraryItemId,
     playMethod: PlayMethod,
@@ -91,43 +99,30 @@ class SqlDelightSessionDataSource(
     startedAt: LocalDateTime,
   ): Session {
     val currentUserId = userSession.requiredUserId
-    return withContext(dispatcherProvider.databaseRead) {
-      val existingSession = db.sessionQueries.getForId(
-        libraryItemId = libraryItemId,
+
+    return withContext(dispatcherProvider.databaseWrite) {
+      val dbSession = DbSession(
+        id = Uuid.random(),
         userId = currentUserId,
-      ).executeAsOneOrNull()
-      if (existingSession != null) {
-        withContext(dispatcherProvider.databaseWrite) {
-          db.transaction {
-            db.sessionQueries.disableAll(currentUserId)
-            db.sessionQueries.enable(libraryItemId, currentUserId)
-          }
-        }
-        hydrateSession(existingSession)
-      } else {
-        withContext(dispatcherProvider.databaseWrite) {
-          db.transaction {
-            db.sessionQueries.disableAll(currentUserId)
-            db.sessionQueries.insert(
-              DbSession(
-                id = Uuid.random(),
-                userId = currentUserId,
-                libraryItemId = libraryItemId,
-                isActive = true,
-                playMethod = PlayMethod.DirectPlay,
-                mediaPlayer = "campfire",
-                timeListening = 0.seconds,
-                currentTime = currentTime,
-                startedAt = fatherTime.now(),
-                updatedAt = fatherTime.now(),
-              ),
-            )
-          }
-        }
-        db.sessionQueries.getForId(libraryItemId, currentUserId)
-          .executeAsOne()
-          .let { hydrateSession(it) }
+        libraryItemId = libraryItemId,
+        isActive = true,
+        playMethod = PlayMethod.DirectPlay,
+        mediaPlayer = "campfire",
+        timeListening = 0.seconds,
+        startTime = currentTime,
+        currentTime = currentTime,
+        startedAt = fatherTime.now(),
+        updatedAt = fatherTime.now(),
+      )
+
+      // Insert, replacing any existing session and disable any other active sessions
+      db.transaction {
+        db.sessionQueries.insert(dbSession)
+        db.sessionQueries.activate(currentUserId, libraryItemId)
       }
+
+      // Hydrate with latest item
+      hydrateSession(dbSession)
     }
   }
 
@@ -175,6 +170,7 @@ class SqlDelightSessionDataSource(
       playMethod = session.playMethod,
       mediaPlayer = session.mediaPlayer,
       timeListening = session.timeListening,
+      startTime = session.startTime,
       currentTime = session.currentTime,
       startedAt = session.startedAt,
       updatedAt = session.updatedAt,

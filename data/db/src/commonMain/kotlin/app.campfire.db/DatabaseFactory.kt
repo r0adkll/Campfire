@@ -90,6 +90,7 @@ class DatabaseFactory(
       idAdapter = UuidAdapter,
       playMethodAdapter = EnumColumnAdapter(),
       timeListeningAdapter = DurationAdapter,
+      startTimeAdapter = DurationAdapter,
       currentTimeAdapter = DurationAdapter,
       startedAtAdapter = LocalDateTimeAdapter,
       updatedAtAdapter = LocalDateTimeAdapter,

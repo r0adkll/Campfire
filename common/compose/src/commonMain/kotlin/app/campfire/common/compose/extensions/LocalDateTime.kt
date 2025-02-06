@@ -1,6 +1,7 @@
 package app.campfire.common.compose.extensions
 
 import androidx.compose.runtime.Composable
+import app.campfire.core.extensions.epochMilliseconds
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.time_ago_days
 import campfire.common.compose.generated.resources.time_ago_hours
@@ -14,14 +15,11 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toInstant
 import org.jetbrains.compose.resources.stringResource
 
 val LocalDateTime.timeAgo: String
   @Composable get() {
-    val thisMs = toInstant(TimeZone.UTC).toEpochMilliseconds()
-    return thisMs.timeAgo
+    return epochMilliseconds.timeAgo
   }
 
 val Long.timeAgo: String
@@ -31,7 +29,7 @@ val Long.timeAgo: String
     val elapsedDuration = elapsedMs.milliseconds
 
     return when {
-      elapsedDuration < 5.minutes -> stringResource(Res.string.time_ago_now)
+      elapsedDuration < 1.minutes -> stringResource(Res.string.time_ago_now)
       elapsedDuration < 1.hours -> stringResource(
         Res.string.time_ago_minutes,
         (elapsedDuration.inWholeMinutes % 60).toInt(),

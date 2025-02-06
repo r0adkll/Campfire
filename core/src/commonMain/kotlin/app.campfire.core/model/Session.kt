@@ -19,6 +19,7 @@ data class Session(
 
   // Current Playback State
   val timeListening: Duration,
+  val startTime: Duration,
   val currentTime: Duration,
 
   // Date / Time

@@ -9,6 +9,7 @@ import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.capitalized
+import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.model.Session
 import app.campfire.network.models.AuthorSeries
 import app.campfire.network.models.BookChapter
@@ -22,9 +23,7 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.toInstant
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
@@ -112,10 +111,10 @@ class DefaultNetworkSessionMapper(
       date = session.startedAt.date.format(LocalDate.Formats.ISO),
       dayOfWeek = session.startedAt.date.dayOfWeek.name.capitalized(),
       timeListening = session.timeListening.asSeconds(),
-      startTime = session.startedAt.toInstant(TimeZone.UTC).toEpochMilliseconds().milliseconds.asSeconds(),
+      startTime = session.startTime.asSeconds(),
       currentTime = session.currentTime.asSeconds(),
-      startedAt = session.startedAt.toInstant(TimeZone.UTC).toEpochMilliseconds(),
-      updatedAt = session.updatedAt.toInstant(TimeZone.UTC).toEpochMilliseconds(),
+      startedAt = session.startedAt.epochMilliseconds,
+      updatedAt = session.updatedAt.epochMilliseconds,
     )
   }
 }

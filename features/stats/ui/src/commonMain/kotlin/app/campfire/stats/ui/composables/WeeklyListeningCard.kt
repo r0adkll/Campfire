@@ -41,7 +41,6 @@ import androidx.compose.ui.zIndex
 import app.campfire.common.compose.extensions.largestDurationUnit
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.core.extensions.toString
-import app.campfire.core.logging.bark
 import app.campfire.stats.ui.StatsUiModel.WeeklyListening
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.weekly_listening_card_title
@@ -214,8 +213,6 @@ private fun WeeklyGraph(
 
         val columnWidth = size.width / 7
         val x = (columnWidth / 2f) + (columnWidth * (6 - i))
-
-        bark { "Graph[$i] - [$thisWeekDayOffset, $lastWeekDayOffset] - x($x)" }
 
         val pathHeight = size.height - TopGraphPadding.toPx()
         val thisWeekY = size.height - pathHeight * (thisWeekDayDuration / maxDuration)

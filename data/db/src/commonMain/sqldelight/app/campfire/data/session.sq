@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS session (
   mediaPlayer TEXT NOT NULL,
 
   timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
+  startTime INTEGER AS Duration NOT NULL DEFAULT 0,
   currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
 
   startedAt TEXT AS LocalDateTime NOT NULL,
@@ -38,8 +39,19 @@ WHERE libraryItemId = ?
   AND userId = ?;
 
 insert:
-INSERT OR IGNORE INTO session
+INSERT OR REPLACE INTO session
 VALUES ?;
+
+activate {
+  UPDATE session
+  SET isActive = 0
+  WHERE userId = :userId;
+
+  UPDATE session
+  SET isActive = 1
+  WHERE libraryItemId = :libraryItemId
+    AND userId = :userId;
+}
 
 delete:
 DELETE FROM session
@@ -66,14 +78,3 @@ SET isActive = 0
 WHERE libraryItemId = ?
   AND userId = ?;
 
-disableAll:
-UPDATE session
-SET isActive = 0
-WHERE isActive = 1
-  AND userId = ?;
-
-enable:
-UPDATE session
-SET isActive = 1
-WHERE libraryItemId = ?
-  AND userId = ?;
