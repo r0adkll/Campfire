@@ -74,8 +74,13 @@ interface AuthorDetailStoreModule {
                 author.libraryItems?.forEach { libraryItem ->
                   val dbLibraryItem = libraryItem.asDbModel(userSession.serverUrl!!)
                   val dbMedia = libraryItem.media.asDbModel(dbLibraryItem.id)
-                  db.libraryItemsQueries.insert(dbLibraryItem)
-                  db.mediaQueries.insert(dbMedia)
+
+                  // Various APIs return minified versions of the library item queries, which if
+                  // persisted as INSERT OR REPLACE will overwrite the expanded version stored
+                  // including a lot of useful information for display rich item details such as
+                  // chapters, tracks, author lists, and narrator lists.
+                  db.libraryItemsQueries.insertOrIgnore(dbLibraryItem)
+                  db.mediaQueries.insertOrIgnore(dbMedia)
                 }
               }
             }

@@ -20,4 +20,4 @@ data class MediaProgress(
   val lastUpdate: Long,
   val startedAt: Long,
   val finishedAt: Long? = null,
-)
+) : NetworkModel()

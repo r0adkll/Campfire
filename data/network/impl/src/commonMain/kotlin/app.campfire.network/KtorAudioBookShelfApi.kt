@@ -10,6 +10,7 @@ import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
+import app.campfire.network.envelopes.Envelope
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
@@ -23,11 +24,9 @@ import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
-import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SearchResult
@@ -116,10 +115,11 @@ class KtorAudioBookShelfApi(
   override suspend fun getLibraryItems(
     libraryId: String,
     filter: String?,
-  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
+  ): Result<List<LibraryItemExpanded>> {
     return trySendRequest<LibraryItemsResponse> {
       hydratedClientRequest({
         appendPathSegments("api", "libraries", libraryId, "items")
+        parameters.append("minified", "0")
         filter?.let { f -> parameters.append("filter", f) }
       })
     }.map { it.results }
@@ -269,6 +269,13 @@ class KtorAudioBookShelfApi(
         if (body is NetworkModel && originServerUrl != null) {
           body.origin = RequestOrigin.Url(originServerUrl)
         }
+
+        // If our response model is an [Envelope] be sure to apply
+        // its postage.
+        if (body is Envelope) {
+          body.applyPostage()
+        }
+
         Result.success(body)
       } else {
         Result.failure(ApiException(response.status.value, response.bodyAsText()))

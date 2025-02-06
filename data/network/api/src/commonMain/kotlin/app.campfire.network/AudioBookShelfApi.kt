@@ -8,11 +8,9 @@ import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
-import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
@@ -63,7 +61,7 @@ interface AudioBookShelfApi {
   suspend fun getLibraryItems(
     libraryId: String,
     filter: String? = null,
-  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
+  ): Result<List<LibraryItemExpanded>>
 
   /**
    * Fetch a single library item

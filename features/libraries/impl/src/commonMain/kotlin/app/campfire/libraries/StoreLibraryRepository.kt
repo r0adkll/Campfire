@@ -13,6 +13,7 @@ import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.libraries.api.LibraryRepository
@@ -42,6 +43,7 @@ class StoreLibraryRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
+  private val libraryItemDao: LibraryItemDao,
   private val tokenHydrator: TokenHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
@@ -61,11 +63,10 @@ class StoreLibraryRepository(
           withContext(dispatcherProvider.databaseWrite) {
             db.transaction {
               data.forEach { item ->
-                val libraryItem = item.asDbModel(userSession.serverUrl!!)
-                val media = item.media.asDbModel(item.id)
-
-                db.libraryItemsQueries.insert(libraryItem)
-                db.mediaQueries.insert(media)
+                libraryItemDao.insert(
+                  item = item,
+                  asTransaction = false,
+                )
               }
             }
           }

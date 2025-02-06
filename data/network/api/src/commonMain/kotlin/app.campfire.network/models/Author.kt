@@ -30,4 +30,4 @@ data class Author(
   // Attributes only included in /authors/:id endpoint
   val libraryItems: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
   val series: List<AuthorSeries>? = null,
-)
+) : NetworkModel()

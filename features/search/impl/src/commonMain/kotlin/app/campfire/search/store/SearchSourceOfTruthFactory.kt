@@ -145,9 +145,6 @@ class SearchSourceOfTruthFactory(
       // Insert Books + Relations
       transactionWithResult {
         book.forEach { bookResult ->
-          // We need to pass the serverUrl origin to the library item object as it sets itself up
-          // as a child to the server column in the database.
-          bookResult.libraryItem.origin = result.origin
           libraryItemDao.insert(bookResult.libraryItem, asTransaction = false)
         }
       }
@@ -194,7 +191,6 @@ class SearchSourceOfTruthFactory(
           )
 
           seriesSearchResult.books.forEach { libraryItem ->
-            libraryItem.origin = result.origin
             libraryItemDao.insert(
               item = libraryItem,
               asTransaction = true,

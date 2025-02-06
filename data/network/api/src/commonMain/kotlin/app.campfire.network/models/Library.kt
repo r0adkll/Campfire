@@ -28,4 +28,4 @@ data class Library(
   val settings: LibrarySettings,
   val createdAt: Long,
   val lastUpdate: Long,
-)
+) : NetworkModel()

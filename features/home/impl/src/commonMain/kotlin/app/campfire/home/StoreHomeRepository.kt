@@ -1,6 +1,7 @@
 package app.campfire.home
 
 import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -11,10 +12,10 @@ import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -25,9 +26,8 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreHomeRepository(
-  private val userSession: UserSession,
+  private val userSessionManager: UserSessionManager,
   private val api: AudioBookShelfApi,
-  private val userRepository: UserRepository,
   private val imageHydrator: TokenHydrator,
   private val mediaProgressDataSource: MediaProgressDataSource,
   private val dispatcherProvider: DispatcherProvider,
@@ -38,26 +38,26 @@ class StoreHomeRepository(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeHomeFeed(): Flow<List<Shelf<*>>> {
-    // TODO: This pattern is less than ideal. Should probably find a more graceful way to cast this
-    val serverUrl = userSession.serverUrl ?: error("User is not logged in")
-    return userRepository.observeCurrentUser()
-      .flatMapLatest { user ->
+    return userSessionManager.observe()
+      .filterIsInstance<UserSession.LoggedIn>()
+      .flatMapLatest { session ->
         flow {
-          val result = api.getPersonalizedHome(user.selectedLibraryId)
+          val result = api.getPersonalizedHome(session.user.selectedLibraryId)
           if (result.isSuccess) {
             val data = result.getOrThrow()
               .map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
-            shelfCache[serverUrl] = data
+            shelfCache[session.user.serverUrl] = data
             emit(data)
           } else {
             throw result.exceptionOrNull()
               ?: Exception("Unable to fetch home feed")
           }
-        }.flowOn(dispatcherProvider.io)
-      }
-      .onStart {
-        // If we have shelf data in the cache, emit it for faster UI experience
-        shelfCache[serverUrl]?.let { emit(it) }
+        }
+          .flowOn(dispatcherProvider.io)
+          .onStart {
+            // If we have shelf data in the cache, emit it for faster UI experience
+            shelfCache[session.user.serverUrl]?.let { emit(it) }
+          }
       }
   }
 }

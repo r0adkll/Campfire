@@ -11,11 +11,11 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.serverUrl
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -44,6 +44,7 @@ class StoreCollectionsRepository(
   private val userRepository: UserRepository,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
+  private val libraryItemDao: LibraryItemDao,
   private val tokenHydrator: TokenHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) : CollectionsRepository {
@@ -64,7 +65,7 @@ class StoreCollectionsRepository(
             }
           }
       },
-      writer = { libraryId, collections ->
+      writer = { _, collections ->
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             collections.forEach { collection ->
@@ -73,11 +74,12 @@ class StoreCollectionsRepository(
 
               // Insert the collection books
               collection.books.forEach { book ->
-                val libraryItem = book.asDbModel(userSession.serverUrl!!)
-                val media = book.media.asDbModel(book.id)
 
-                db.libraryItemsQueries.insert(libraryItem)
-                db.mediaQueries.insert(media)
+                // These books are expanded objects, so they should be safe to insert/replace
+                libraryItemDao.insert(
+                  item = book,
+                  asTransaction = false,
+                )
 
                 // Insert junction entry
                 db.collectionsBookJoinQueries.insert(

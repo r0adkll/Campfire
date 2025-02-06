@@ -1,5 +1,6 @@
 package app.campfire.network.models
 
+import app.campfire.network.envelopes.Envelope
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -10,7 +11,13 @@ data class SearchResult(
   val tags: List<TagSearchResult>,
   val genres: List<TagSearchResult>,
   val series: List<SeriesSearchResult>,
-) : NetworkModel() {
+) : Envelope() {
+
+  override fun applyPostage() {
+    book.forEach { b -> b.libraryItem.origin = origin }
+    authors.forEach { a -> a.origin = origin }
+    series.forEach { s -> s.books.forEach { sb -> sb.origin = origin } }
+  }
 
   fun toShortString(): String {
     return "SearchResult(books=${book.size}, narrators=${narrators.size}, authors=${authors.size}, " +

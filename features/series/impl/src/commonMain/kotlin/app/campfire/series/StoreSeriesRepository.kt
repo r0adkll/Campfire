@@ -15,6 +15,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.series.api.SeriesRepository
@@ -46,6 +47,7 @@ class StoreSeriesRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
+  private val libraryItemDao: LibraryItemDao,
   private val userRepository: UserRepository,
   private val tokenHydrator: TokenHydrator,
   private val dispatcherProvider: DispatcherProvider,
@@ -83,8 +85,10 @@ class StoreSeriesRepository(
               series.books?.forEach { book ->
                 val libraryItem = book.asDbModel(serverUrl)
                 val media = book.media.asDbModel(book.id)
-                db.libraryItemsQueries.insert(libraryItem)
-                db.mediaQueries.insert(media)
+
+                // If these items exist, lets not overwrite their metadata
+                db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                db.mediaQueries.insertOrIgnore(media)
 
                 // Insert junction entry
                 db.seriesBookJoinQueries.insert(
@@ -133,10 +137,10 @@ class StoreSeriesRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             items.forEach { item ->
-              val libraryItem = item.asDbModel(serverUrl)
-              val media = item.media.asDbModel(item.id)
-              db.libraryItemsQueries.insert(libraryItem)
-              db.mediaQueries.insert(media)
+              libraryItemDao.insert(
+                item = item,
+                asTransaction = false,
+              )
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(

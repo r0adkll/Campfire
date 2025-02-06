@@ -10,7 +10,7 @@ data class Collection(
   val description: String?,
   val cover: String? = null,
   val coverFullPath: String? = null,
-  val books: List<LibraryItemMinified<ExpandedBookMetadata>>,
+  val books: List<LibraryItemExpanded>,
   val lastUpdate: Long,
   val createdAt: Long,
-)
+) : NetworkModel()
