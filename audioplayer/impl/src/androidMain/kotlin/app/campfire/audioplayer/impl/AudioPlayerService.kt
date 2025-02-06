@@ -70,7 +70,7 @@ class AudioPlayerService : MediaSessionService() {
           0,
           component.sessionActivityIntentProvider.provide(),
           PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        ),
       )
       .build()
 
@@ -176,7 +176,7 @@ class AudioPlayerService : MediaSessionService() {
       session: MediaSession,
       controller: MediaSession.ControllerInfo,
       customCommand: SessionCommand,
-      args: Bundle
+      args: Bundle,
     ): ListenableFuture<SessionResult> {
       return when (customCommand.customAction) {
         CUSTOM_COMMAND_SEEK_BACKWARD -> {
@@ -232,7 +232,7 @@ class AudioPlayerService : MediaSessionService() {
       CommandButton.Builder(skipForwardIcon)
         .setDisplayName(getString(R.string.exo_controls_skip_forward))
         .setSessionCommand(SessionCommand(CUSTOM_COMMAND_SEEK_FORWARD, Bundle.EMPTY))
-        .build()
+        .build(),
     )
   }
 
