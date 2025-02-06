@@ -2,6 +2,8 @@ package app.campfire.audioplayer.impl
 
 import android.content.Context
 import androidx.annotation.OptIn
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_IS_PLAYING_CHANGED
@@ -74,6 +76,13 @@ class ExoPlayerAudioPlayer(
     .setSeekForwardIncrementMs(settings.forwardTimeMs)
     .setSeekBackIncrementMs(settings.backwardTimeMs)
     .setHandleAudioBecomingNoisy(true)
+    .setAudioAttributes(
+      AudioAttributes.Builder()
+        .setContentType(C.AUDIO_CONTENT_TYPE_SPEECH)
+        .setUsage(C.USAGE_MEDIA)
+        .build(),
+      true,
+    )
     .setLoadControl(
       DefaultLoadControl.Builder()
         .setBufferDurationsMs(

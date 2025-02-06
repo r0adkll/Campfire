@@ -5,4 +5,7 @@
     is still present, otherwise please open the app to start the playback and re-connect the session
     to the controller</string>
   <string name="notification_channel_name">Audio Playback Notifications</string>
+
+  <string name="exo_controls_skip_backward">Skip backward</string>
+  <string name="exo_controls_skip_forward">Skip forward</string>
 </resources>

@@ -49,13 +49,13 @@ fun SessionHostLayout(
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
-  LaunchedEffect(currentSession) {
+  LaunchedEffect(currentSession, audioPlayer) {
     if (
       currentSession != null &&
       (
-        /*FIXME: || audioPlayer!!.state.value == AudioPlayer.State.Disabled*/
         (audioPlayer == null) ||
-          currentSession!!.id != audioPlayer!!.preparedSession?.id
+          currentSession!!.id != audioPlayer!!.preparedSession?.id ||
+          audioPlayer!!.state.value == AudioPlayer.State.Disabled
         )
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it

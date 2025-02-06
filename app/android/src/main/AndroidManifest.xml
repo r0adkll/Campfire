@@ -18,6 +18,7 @@
       android:name=".MainActivity"
       android:exported="true"
       android:theme="@style/Theme.Campfire.Home"
+      android:launchMode="singleTop"
       >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

@@ -1,5 +1,8 @@
 package app.campfire.android
 
+import android.app.Application
+import android.app.PendingIntent
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,8 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
+import app.campfire.audioplayer.impl.SessionActivityIntentProvider
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
+import com.r0adkll.kimchi.annotations.ContributesBinding
+import me.tatarka.inject.annotations.Inject
 
 class MainActivity : ComponentActivity() {
 
@@ -66,4 +73,15 @@ private fun backDispatcherRootPop(): () -> Unit {
     LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
       ?: error("No OnBackPressedDispatcherOwner found, unable to handle root navigation pops.")
   return { onBackPressedDispatcher.onBackPressed() }
+}
+
+@ContributesBinding(AppScope::class)
+@Inject
+class MainActivityIntentProvider(
+  private val application: Application,
+) : SessionActivityIntentProvider {
+
+  override fun provide(): Intent {
+    return Intent(application, MainActivity::class.java)
+  }
 }
