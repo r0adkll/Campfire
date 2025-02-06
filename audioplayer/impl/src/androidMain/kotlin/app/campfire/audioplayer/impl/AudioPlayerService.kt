@@ -2,13 +2,12 @@ package app.campfire.audioplayer.impl
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media3.common.Player
@@ -146,7 +145,14 @@ class AudioPlayerService : MediaSessionService() {
           )
           .setPriority(NotificationCompat.PRIORITY_DEFAULT)
           .setAutoCancel(true)
-//          .also { builder -> getBackStackedActivity()?.let { builder.setContentIntent(it) } }
+          .setContentIntent(
+            PendingIntent.getActivity(
+              this@AudioPlayerService,
+              0,
+              component.sessionActivityIntentProvider.provide(),
+              PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            ),
+          )
       notificationManagerCompat.notify(NOTIFICATION_ID, builder.build())
     }
   }
@@ -183,28 +189,27 @@ class AudioPlayerService : MediaSessionService() {
           player.seekBackward()
           Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
+
         CUSTOM_COMMAND_SEEK_FORWARD -> {
           player.seekForward()
           Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
+
         else -> Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
       }
     }
   }
 
   private fun ensureNotificationChannel(notificationManagerCompat: NotificationManagerCompat) {
-    if (
-      notificationManagerCompat.getNotificationChannel(CHANNEL_ID) != null
-    ) {
+    if (notificationManagerCompat.getNotificationChannel(CHANNEL_ID) != null) {
       return
     }
 
-    val channel =
-      NotificationChannel(
-        CHANNEL_ID,
-        getString(R.string.notification_channel_name),
-        NotificationManager.IMPORTANCE_DEFAULT,
-      )
+    val channel = NotificationChannelCompat.Builder(CHANNEL_ID, NotificationManagerCompat.IMPORTANCE_LOW)
+      .setName(getString(R.string.notification_channel_name))
+      .setVibrationEnabled(false)
+      .build()
+
     notificationManagerCompat.createNotificationChannel(channel)
   }
 
