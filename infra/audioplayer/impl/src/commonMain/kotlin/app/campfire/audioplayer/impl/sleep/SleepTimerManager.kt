@@ -16,7 +16,7 @@ interface SleepTimerManager {
 
   interface Factory {
     fun create(
-      player: AudioPlayer
-    ) : SleepTimerManager
+      player: AudioPlayer,
+    ): SleepTimerManager
   }
 }

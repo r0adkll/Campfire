@@ -46,7 +46,7 @@ class IosAudioPlayer(
   private val settings: PlaybackSettings,
   private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
-  sleepTimerManagerFactory: SleepTimerManager.Factory
+  sleepTimerManagerFactory: SleepTimerManager.Factory,
 ) : AudioPlayer {
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)

@@ -5,7 +5,8 @@ enum class ShakeSensitivity(val value: Int) {
   Low(11),
   Medium(13),
   High(15),
-  VeryHigh(16);
+  VeryHigh(16),
+  ;
 
   val valueSquared: Int get() = value * value
 

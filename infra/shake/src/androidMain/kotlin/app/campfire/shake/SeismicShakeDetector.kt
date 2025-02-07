@@ -33,7 +33,7 @@ class SeismicShakeDetector(
   @JvmOverloads
   fun start(
     sensorManager: SensorManager,
-    sensorDelay: Int = SensorManager.SENSOR_DELAY_NORMAL
+    sensorDelay: Int = SensorManager.SENSOR_DELAY_NORMAL,
   ): Boolean {
     // Already started?
     if (accelerometer != null) {
@@ -41,7 +41,7 @@ class SeismicShakeDetector(
     }
 
     accelerometer = sensorManager.getDefaultSensor(
-      Sensor.TYPE_ACCELEROMETER
+      Sensor.TYPE_ACCELEROMETER,
     )
 
     // If this phone has an accelerometer, listen to it.

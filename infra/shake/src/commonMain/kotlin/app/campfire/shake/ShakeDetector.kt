@@ -3,13 +3,11 @@ package app.campfire.shake
 import app.campfire.core.di.AppScope
 import com.r0adkll.kimchi.annotations.ContributesTo
 
-
-
 expect class ShakeDetector {
 
   fun start(
     sensitivity: ShakeSensitivity,
-    listener: Listener
+    listener: Listener,
   )
 
   fun stop()

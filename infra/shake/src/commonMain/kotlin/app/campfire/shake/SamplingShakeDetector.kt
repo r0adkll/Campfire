@@ -1,6 +1,5 @@
 package app.campfire.shake
 
-
 /**
  * Detects phone shaking. If more than 75% of the samples taken in the past 0.5s are
  * accelerating, the device is a) shaking, or b) free falling 1.84m (h =
@@ -134,7 +133,9 @@ class SamplingShakeDetector(
        * Returns true if we have enough samples and more than 3/4 of those samples
        * are accelerating.
        */
-      get() = newest != null && oldest != null && newest!!.timestamp - oldest!!.timestamp >= MIN_WINDOW_SIZE && acceleratingCount >= (sampleCount shr 1) + (sampleCount shr 2)
+      get() = newest != null && oldest != null &&
+        newest!!.timestamp - oldest!!.timestamp >= MIN_WINDOW_SIZE &&
+        acceleratingCount >= (sampleCount shr 1) + (sampleCount shr 2)
 
     companion object {
       /** Window size in ns. Used to compute the average.  */
