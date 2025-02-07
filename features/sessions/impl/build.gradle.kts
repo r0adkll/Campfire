@@ -26,7 +26,7 @@ kotlin {
         implementation(projects.data.mapping)
         implementation(projects.features.libraries.api)
         implementation(projects.features.user.api)
-        implementation(projects.audioplayer.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(libs.store)
       }
     }

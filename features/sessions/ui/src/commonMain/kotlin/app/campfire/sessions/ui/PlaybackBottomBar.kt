@@ -582,7 +582,7 @@ private fun ActionRow(
               endOfChapterText = stringResource(Res.string.label_end_of_chapter_short),
               style = {
                 when (it) {
-                  PlaybackTimer.EndOfChapter -> MaterialTheme.typography.labelMedium
+                  is PlaybackTimer.EndOfChapter -> MaterialTheme.typography.labelMedium
                   is PlaybackTimer.Epoch -> MaterialTheme.typography.labelMedium
                 }
               },

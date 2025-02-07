@@ -38,7 +38,7 @@ interface SleepSettings {
     data object EndOfChapter : AutoSleepTimer()
 
     companion object {
-      val Default get() = Epoch(5.minutes.inWholeMilliseconds)
+      val Default get() = Epoch(15.minutes.inWholeMilliseconds)
     }
   }
 

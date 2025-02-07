@@ -17,7 +17,7 @@ kotlin {
         api(projects.data.network.api)
         api(projects.data.mapping)
 
-        implementation(projects.audioplayer.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(projects.core)
         implementation(projects.features.user.api)
         implementation(projects.features.sessions.api)

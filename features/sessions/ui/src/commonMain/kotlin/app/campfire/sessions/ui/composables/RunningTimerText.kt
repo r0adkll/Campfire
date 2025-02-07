@@ -32,7 +32,7 @@ internal fun RunningTimerText(
   modifier: Modifier = Modifier,
   style: @Composable (PlaybackTimer) -> TextStyle = {
     when (it) {
-      PlaybackTimer.EndOfChapter -> MaterialTheme.typography.displaySmall
+      is PlaybackTimer.EndOfChapter -> MaterialTheme.typography.displaySmall
       is PlaybackTimer.Epoch -> MaterialTheme.typography.displayMedium
     }
   },
@@ -53,7 +53,7 @@ internal fun RunningTimerText(
   Text(
     text = when (runningTimer.timer) {
       is PlaybackTimer.Epoch -> timeLeft
-      PlaybackTimer.EndOfChapter -> endOfChapterText
+      is PlaybackTimer.EndOfChapter -> endOfChapterText
       else -> ""
     },
     textAlign = TextAlign.Center,

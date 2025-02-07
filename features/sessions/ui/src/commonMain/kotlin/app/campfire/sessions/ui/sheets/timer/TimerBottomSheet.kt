@@ -129,7 +129,7 @@ private fun TimerBottomSheet(
       ListItem(
         headlineContent = { Text(stringResource(Res.string.timer_end_of_chapter)) },
         modifier = Modifier.clickable {
-          onTimerSelected(PlaybackTimer.EndOfChapter)
+          onTimerSelected(PlaybackTimer.EndOfChapter())
         },
         colors = ListItemDefaults.colors(
           containerColor = Color.Transparent,
@@ -226,7 +226,7 @@ private fun RunningTimerCard(
         runningTimer = runningTimer,
         style = { timer ->
           when (timer) {
-            PlaybackTimer.EndOfChapter -> MaterialTheme.typography.titleLarge
+            is PlaybackTimer.EndOfChapter -> MaterialTheme.typography.titleLarge
             is PlaybackTimer.Epoch -> MaterialTheme.typography.displayMedium
           }
         },

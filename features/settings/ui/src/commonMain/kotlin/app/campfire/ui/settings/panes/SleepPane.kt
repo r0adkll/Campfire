@@ -13,6 +13,8 @@ import app.campfire.common.compose.icons.rounded.ShakeLow
 import app.campfire.common.compose.icons.rounded.ShakeMedium
 import app.campfire.common.compose.icons.rounded.ShakeVeryHigh
 import app.campfire.common.compose.icons.rounded.ShakeVeryLow
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.capitalized
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity.High
@@ -66,40 +68,42 @@ internal fun SleepPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-    Header(
-      title = { Text(stringResource(Res.string.header_shake_to_reset)) },
-    )
-
-    // Shake to Reset
-    SwitchSetting(
-      value = state.sleepSettings.shakeToReset,
-      onValueChange = { state.eventSink(ShakeToReset(it)) },
-      headlineContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_title)) },
-      supportingContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_subtitle)) },
-    )
-
-    // Shake Sensitivity
-    AnimatedVisibility(
-      visible = state.sleepSettings.shakeToReset,
-    ) {
-      DropdownSetting(
-        value = state.sleepSettings.shakeSensitivity,
-        values = ShakeSensitivity.entries,
-        onValueChange = { sensitivity ->
-          state.eventSink(SleepSettingEvent.ShakeSensitivity(sensitivity))
-        },
-        headlineContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_title)) },
-        supportingContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_subtitle)) },
-        itemIcon = { sensitivity ->
-          Icon(
-            sensitivity.asImageVector,
-            contentDescription = sensitivity.name.capitalized(),
-          )
-        },
-        itemText = { sensitivity ->
-          Text(stringResource(sensitivity.asStringResource))
-        },
+    if (currentPlatform != Platform.DESKTOP) {
+      Header(
+        title = { Text(stringResource(Res.string.header_shake_to_reset)) },
       )
+
+      // Shake to Reset
+      SwitchSetting(
+        value = state.sleepSettings.shakeToReset,
+        onValueChange = { state.eventSink(ShakeToReset(it)) },
+        headlineContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_subtitle)) },
+      )
+
+      // Shake Sensitivity
+      AnimatedVisibility(
+        visible = state.sleepSettings.shakeToReset,
+      ) {
+        DropdownSetting(
+          value = state.sleepSettings.shakeSensitivity,
+          values = ShakeSensitivity.entries,
+          onValueChange = { sensitivity ->
+            state.eventSink(SleepSettingEvent.ShakeSensitivity(sensitivity))
+          },
+          headlineContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_title)) },
+          supportingContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_subtitle)) },
+          itemIcon = { sensitivity ->
+            Icon(
+              sensitivity.asImageVector,
+              contentDescription = sensitivity.name.capitalized(),
+            )
+          },
+          itemText = { sensitivity ->
+            Text(stringResource(sensitivity.asStringResource))
+          },
+        )
+      }
     }
 
     Header(
