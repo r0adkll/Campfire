@@ -148,7 +148,6 @@ class StoreSeriesRepository(
               db.libraryItemsQueries.insertOrIgnore(libraryItem)
               db.mediaQueries.insertOrIgnore(media)
 
-
               // Insert junction entry
               db.seriesBookJoinQueries.insert(
                 SeriesBookJoin(

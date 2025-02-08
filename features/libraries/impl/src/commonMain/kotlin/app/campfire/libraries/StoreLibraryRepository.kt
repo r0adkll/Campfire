@@ -74,7 +74,6 @@ class StoreLibraryRepository(
 
                 db.libraryItemsQueries.insertOrIgnore(libraryItem)
                 db.mediaQueries.insertOrIgnore(media)
-
               }
             }
           }

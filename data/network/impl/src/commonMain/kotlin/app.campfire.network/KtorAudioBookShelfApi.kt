@@ -130,7 +130,7 @@ class KtorAudioBookShelfApi(
 
   @Deprecated(
     "This endpoint is deprecated since it only returns the minified model",
-    replaceWith = ReplaceWith("getLibraryItems")
+    replaceWith = ReplaceWith("getLibraryItems"),
   )
   override suspend fun getLibraryItemsMinified(
     libraryId: String,
