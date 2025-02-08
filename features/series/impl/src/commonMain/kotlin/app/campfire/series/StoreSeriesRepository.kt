@@ -119,7 +119,7 @@ class StoreSeriesRepository(
   private val libraryItemStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { s: SeriesItems ->
       val encodedSeriesId = Base64.encode(s.seriesId.encodeToByteArray())
-      api.getLibraryItems(s.libraryId, "series.$encodedSeriesId").asFetcherResult()
+      api.getLibraryItemsMinified(s.libraryId, "series.$encodedSeriesId").asFetcherResult()
     },
     sourceOfTruth = SourceOfTruth.of(
       reader = { s: SeriesItems ->
@@ -137,10 +137,17 @@ class StoreSeriesRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             items.forEach { item ->
-              libraryItemDao.insert(
-                item = item,
-                asTransaction = false,
-              )
+              // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
+//              libraryItemDao.insert(
+//                item = item,
+//                asTransaction = false,
+//              )
+
+              val libraryItem = item.asDbModel(serverUrl)
+              val media = item.media.asDbModel(item.id)
+              db.libraryItemsQueries.insertOrIgnore(libraryItem)
+              db.mediaQueries.insertOrIgnore(media)
+
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(

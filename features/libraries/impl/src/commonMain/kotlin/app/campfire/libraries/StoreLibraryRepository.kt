@@ -51,7 +51,7 @@ class StoreLibraryRepository(
   private val libraryItemStore = StoreBuilder
     .from(
       fetcher = Fetcher.ofResult { libraryId: LibraryId ->
-        api.getLibraryItems(libraryId).asFetcherResult()
+        api.getLibraryItemsMinified(libraryId).asFetcherResult()
       },
       sourceOfTruth = SourceOfTruth.of(
         reader = { libraryId: LibraryId ->
@@ -63,10 +63,18 @@ class StoreLibraryRepository(
           withContext(dispatcherProvider.databaseWrite) {
             db.transaction {
               data.forEach { item ->
-                libraryItemDao.insert(
-                  item = item,
-                  asTransaction = false,
-                )
+                // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
+//                libraryItemDao.insert(
+//                  item = item,
+//                  asTransaction = false,
+//                )
+
+                val libraryItem = item.asDbModel(userSession.serverUrl!!)
+                val media = item.media.asDbModel(item.id)
+
+                db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                db.mediaQueries.insertOrIgnore(media)
+
               }
             }
           }

@@ -8,9 +8,11 @@ import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
+import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
@@ -62,6 +64,27 @@ interface AudioBookShelfApi {
     libraryId: String,
     filter: String? = null,
   ): Result<List<LibraryItemExpanded>>
+
+  /**
+   * DEPRECATED
+   * ----------
+   * This endpoint is deprecated, and only in use while we get a fix merged upstream for returning
+   * the expanded item models from the backend.
+   * [https://github.com/advplyr/audiobookshelf/pull/3945](https://github.com/advplyr/audiobookshelf/pull/3945)
+   *
+   * Fetch a library's items
+   *
+   * @param libraryId the id of the library to fetch the items for
+   * @return as result with the list of library items
+   */
+  @Deprecated(
+    message = "This endpoint is deprecated since it only returns the minified model",
+    replaceWith = ReplaceWith("getLibraryItems"),
+  )
+  suspend fun getLibraryItemsMinified(
+    libraryId: String,
+    filter: String? = null,
+  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>>
 
   /**
    * Fetch a single library item

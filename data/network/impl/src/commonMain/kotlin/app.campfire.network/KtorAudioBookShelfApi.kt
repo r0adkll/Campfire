@@ -15,6 +15,7 @@ import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
@@ -24,9 +25,11 @@ import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
+import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SearchResult
@@ -120,6 +123,23 @@ class KtorAudioBookShelfApi(
       hydratedClientRequest({
         appendPathSegments("api", "libraries", libraryId, "items")
         parameters.append("minified", "0")
+        filter?.let { f -> parameters.append("filter", f) }
+      })
+    }.map { it.results }
+  }
+
+  @Deprecated(
+    "This endpoint is deprecated since it only returns the minified model",
+    replaceWith = ReplaceWith("getLibraryItems")
+  )
+  override suspend fun getLibraryItemsMinified(
+    libraryId: String,
+    filter: String?,
+  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
+    return trySendRequest<MinifiedLibraryItemsResponse> {
+      hydratedClientRequest({
+        appendPathSegments("api", "libraries", libraryId, "items")
+        parameters.append("minified", "1")
         filter?.let { f -> parameters.append("filter", f) }
       })
     }.map { it.results }
