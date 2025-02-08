@@ -2,6 +2,7 @@ package app.campfire.shake
 
 import android.app.Application
 import android.content.Context
+import android.hardware.Sensor
 import android.hardware.SensorManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -14,6 +15,9 @@ actual class ShakeDetector(
   private val seismicShakeDetector = SeismicShakeDetector(this)
 
   private var listener: Listener? = null
+
+  actual val isAvailable: Boolean
+    get() = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
 
   actual fun start(sensitivity: ShakeSensitivity, listener: Listener) {
     this.listener = listener

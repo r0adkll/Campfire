@@ -28,13 +28,13 @@ internal fun AppearancePane(
   ) {
     ThemeModeSetting(
       themeMode = state.theme,
-      onThemeChange = { state.eventSink(SettingsUiEvent.Theme(it)) },
+      onThemeChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.Theme(it)) },
     )
 
     if (currentPlatform == Platform.ANDROID) {
       SwitchSetting(
         value = state.useDynamicColors,
-        onValueChange = { state.eventSink(SettingsUiEvent.UseDynamicColors(it)) },
+        onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_dynamic_colors_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_dynamic_colors_description)) },
       )

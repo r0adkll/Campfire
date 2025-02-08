@@ -2,6 +2,8 @@ package app.campfire.shake
 
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.time.FatherTime
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
@@ -20,24 +22,34 @@ actual class ShakeDetector(
     listener?.onShake()
   }
 
+  actual val isAvailable: Boolean
+    get() = motionManager.isAccelerometerAvailable()
+
   @OptIn(ExperimentalForeignApi::class)
   actual fun start(sensitivity: ShakeSensitivity, listener: Listener) {
     this.listener = listener
     samplingShakeDetector.clear()
     samplingShakeDetector.sensitivity = sensitivity
 
-    motionManager.accelerometerUpdateInterval = 0.2
+    if (!motionManager.isAccelerometerAvailable()) {
+      bark(LogPriority.WARN) { "Accelerometer not available" }
+      return
+    }
+
+    motionManager.accelerometerUpdateInterval = 1.0 / 50.0 // 50hz
     motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue, { data, error ->
-      data?.acceleration?.useContents {
-        val event = AccelerometerEvent(
+      val event = data?.acceleration?.useContents {
+        AccelerometerEvent(
           x = x,
           y = y,
           z = z,
           timestamp = fatherTime.nowInEpochMillis(),
         )
-
-        samplingShakeDetector.addAccelerometerEvent(event)
       }
+
+      if (event == null) return@startAccelerometerUpdatesToQueue
+
+      samplingShakeDetector.addAccelerometerEvent(event)
     })
   }
 

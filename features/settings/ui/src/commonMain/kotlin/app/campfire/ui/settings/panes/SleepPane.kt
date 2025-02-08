@@ -3,10 +3,14 @@ package app.campfire.ui.settings.panes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ShakeHigh
 import app.campfire.common.compose.icons.rounded.ShakeLow
@@ -16,6 +20,7 @@ import app.campfire.common.compose.icons.rounded.ShakeVeryLow
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.capitalized
+import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity.High
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity.Low
@@ -25,6 +30,9 @@ import app.campfire.settings.api.SleepSettings.ShakeSensitivity.VeryLow
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.SettingsUiState
+import app.campfire.ui.settings.bottomsheet.TimerResult
+import app.campfire.ui.settings.bottomsheet.showTimerBottomSheet
+import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.DropdownSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.LocalTimeSetting
@@ -40,8 +48,8 @@ import campfire.features.settings.ui.generated.resources.setting_auto_sleep_auto
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_end_title
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_start_title
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_subtitle
+import campfire.features.settings.ui.generated.resources.setting_auto_sleep_timer
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_title
-import campfire.features.settings.ui.generated.resources.setting_playback_shake_sensitivity_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_shake_sensitivity_title
 import campfire.features.settings.ui.generated.resources.setting_playback_sleep_shake_to_reset_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_sleep_shake_to_reset_title
@@ -51,8 +59,13 @@ import campfire.features.settings.ui.generated.resources.shake_sensitivity_low
 import campfire.features.settings.ui.generated.resources.shake_sensitivity_medium
 import campfire.features.settings.ui.generated.resources.shake_sensitivity_very_high
 import campfire.features.settings.ui.generated.resources.shake_sensitivity_very_low
+import campfire.features.settings.ui.generated.resources.timer_end_of_chapter
+import com.slack.circuit.overlay.LocalOverlayHost
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.DurationUnit
+import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalTime
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -68,7 +81,7 @@ internal fun SleepPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-    if (currentPlatform != Platform.DESKTOP) {
+    if (currentPlatform != Platform.DESKTOP && state.isShakingAvailable) {
       Header(
         title = { Text(stringResource(Res.string.header_shake_to_reset)) },
       )
@@ -92,7 +105,6 @@ internal fun SleepPane(
             state.eventSink(SleepSettingEvent.ShakeSensitivity(sensitivity))
           },
           headlineContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_title)) },
-          supportingContent = { Text(stringResource(Res.string.setting_playback_shake_sensitivity_subtitle)) },
           itemIcon = { sensitivity ->
             Icon(
               sensitivity.asImageVector,
@@ -132,6 +144,34 @@ internal fun SleepPane(
           value = state.sleepSettings.autoSleepSetting?.end ?: LocalTime(0, 0),
           onValueChange = { state.eventSink(SleepSettingEvent.AutoSleepTimerEnd(it)) },
           headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_end_title)) },
+        )
+
+        val scope = rememberCoroutineScope()
+        val overlayHost = LocalOverlayHost.current
+        ActionSetting(
+          headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_timer)) },
+          trailingContent = {
+            Text(
+              text = when (val timer = state.sleepSettings.autoSleepSetting?.timer) {
+                SleepSettings.AutoSleepTimer.EndOfChapter -> stringResource(Res.string.timer_end_of_chapter)
+                is SleepSettings.AutoSleepTimer.Epoch -> timer.millis.milliseconds.thresholdReadoutFormat(
+                  thresholds = mapOf(DurationUnit.MINUTES to 120), // 2hrs
+                )
+                null -> ""
+              },
+              style = MaterialTheme.typography.titleMedium,
+              color = MaterialTheme.colorScheme.primary,
+              fontWeight = FontWeight.Bold,
+            )
+          },
+          onClick = {
+            scope.launch {
+              when (val result = overlayHost.showTimerBottomSheet()) {
+                is TimerResult.Selected -> state.eventSink(SleepSettingEvent.AutoSleepTimer(result.timer))
+                else -> Unit
+              }
+            }
+          },
         )
 
         SwitchSetting(

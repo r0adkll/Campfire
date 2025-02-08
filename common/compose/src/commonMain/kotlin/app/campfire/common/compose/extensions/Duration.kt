@@ -44,7 +44,14 @@ fun Duration.thresholdReadoutFormat(
   ),
 ): String = buildString {
   fun thresholdFor(unit: DurationUnit): Int {
-    return thresholds.getOrElse(unit) { 0 }
+    return thresholds.getOrElse(unit) {
+      when (unit) {
+        DurationUnit.SECONDS -> 60
+        DurationUnit.MINUTES -> 60
+        DurationUnit.HOURS -> 24
+        else -> 0
+      }
+    }
   }
 
   if (inWholeMinutes == 0L) {

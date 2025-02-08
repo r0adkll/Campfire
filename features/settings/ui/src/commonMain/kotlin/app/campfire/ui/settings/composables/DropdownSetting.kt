@@ -34,9 +34,9 @@ internal fun <T> DropdownSetting(
   values: List<T>,
   onValueChange: (T) -> Unit,
   headlineContent: @Composable () -> Unit,
-  supportingContent: @Composable () -> Unit,
   itemIcon: @Composable (T) -> Unit,
   itemText: @Composable (T) -> Unit,
+  supportingContent: (@Composable () -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   var isExpanded by remember { mutableStateOf(false) }

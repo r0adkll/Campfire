@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
+import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
@@ -17,11 +18,17 @@ import app.campfire.core.di.UserScope
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
+import app.campfire.shake.ShakeDetector
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfServiceClick
+import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeName
+import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
+import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
@@ -55,6 +62,7 @@ class SettingsPresenter(
   private val sleepSettings: SleepSettings,
   private val serverRepository: ServerRepository,
   private val accountManager: AccountManager,
+  private val shakeDetector: ShakeDetector,
 ) : Presenter<SettingsUiState> {
 
   @Composable
@@ -90,6 +98,7 @@ class SettingsPresenter(
     return SettingsUiState(
       server = server,
       theme = theme,
+      isShakingAvailable = remember { shakeDetector.isAvailable },
       useDynamicColors = useDynamicColors,
       applicationInfo = applicationInfo,
       playbackSettings = PlaybackSettingsInfo(
@@ -118,25 +127,21 @@ class SettingsPresenter(
         SettingsUiEvent.Back -> navigator.pop()
         is SettingsUiEvent.SettingsPaneClick -> navigator.goTo(SettingsScreen(event.pane.screenPage))
 
-        is SettingsUiEvent.Theme -> settings.theme = event.theme
-        is SettingsUiEvent.UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors
-
-        is SettingsUiEvent.ChangeTent -> {
-          scope.launch {
-            serverRepository.changeTent(event.tent)
+        is SettingsUiEvent.AccountSettingEvent -> when (event) {
+          is ChangeName -> {
+            scope.launch { serverRepository.changeName(event.name) }
+          }
+          is ChangeTent -> {
+            scope.launch { serverRepository.changeTent(event.tent) }
+          }
+          Logout -> {
+            scope.launch { accountManager.logout(server.dataOrNull!!) }
           }
         }
 
-        is SettingsUiEvent.ChangeName -> {
-          scope.launch {
-            serverRepository.changeName(event.name)
-          }
-        }
-
-        SettingsUiEvent.Logout -> {
-          scope.launch {
-            accountManager.logout(server.dataOrNull!!)
-          }
+        is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
+          is Theme -> settings.theme = event.theme
+          is UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
@@ -152,7 +157,10 @@ class SettingsPresenter(
           is AutoSleepTimerEnabled -> sleepSettings.autoSleepTimerEnabled = event.enabled
           is AutoSleepTimerStart -> sleepSettings.autoSleepStart = event.time
           is AutoSleepTimerEnd -> sleepSettings.autoSleepEnd = event.time
-          is AutoSleepTimer -> sleepSettings.autoSleepTimer = event.timer
+          is AutoSleepTimer -> sleepSettings.autoSleepTimer = when (val timer = event.timer) {
+            is PlaybackTimer.EndOfChapter -> SleepSettings.AutoSleepTimer.EndOfChapter
+            is PlaybackTimer.Epoch -> SleepSettings.AutoSleepTimer.Epoch(timer.epochMillis)
+          }
           is AutoSleepRewindEnabled -> sleepSettings.autoRewindEnabled = event.enabled
           is AutoSleepRewindAmount -> sleepSettings.autoRewindAmount = event.amount
         }

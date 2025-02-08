@@ -5,6 +5,8 @@ import com.r0adkll.kimchi.annotations.ContributesTo
 
 expect class ShakeDetector {
 
+  val isAvailable: Boolean
+
   fun start(
     sensitivity: ShakeSensitivity,
     listener: Listener,

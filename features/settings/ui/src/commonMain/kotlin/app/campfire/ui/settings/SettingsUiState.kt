@@ -1,6 +1,7 @@
 package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
+import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
@@ -18,6 +19,7 @@ import kotlinx.datetime.LocalTime
 data class SettingsUiState(
   val server: LoadState<out Server>,
   val theme: CampfireSettings.Theme,
+  val isShakingAvailable: Boolean,
   val useDynamicColors: Boolean,
   val applicationInfo: ApplicationInfo,
   val playbackSettings: PlaybackSettingsInfo,
@@ -71,14 +73,18 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   data object Back : SettingsUiEvent
   data class SettingsPaneClick(val pane: SettingsPane) : SettingsUiEvent
 
-  // Account Pane Events - TODO: Move to sealed interface
-  data class ChangeTent(val tent: Tent) : SettingsUiEvent
-  data class ChangeName(val name: String) : SettingsUiEvent
-  data object Logout : SettingsUiEvent
+  // Account Pane Events
+  sealed interface AccountSettingEvent : SettingsUiEvent {
+    data class ChangeTent(val tent: Tent) : AccountSettingEvent
+    data class ChangeName(val name: String) : AccountSettingEvent
+    data object Logout : AccountSettingEvent
+  }
 
-  // Appearance Pane Events - TODO: Move to sealed interface
-  data class Theme(val theme: CampfireSettings.Theme) : SettingsUiEvent
-  data class UseDynamicColors(val useDynamicColors: Boolean) : SettingsUiEvent
+  // Appearance Pane Events
+  sealed interface AppearanceSettingEvent : SettingsUiEvent {
+    data class Theme(val theme: CampfireSettings.Theme) : AppearanceSettingEvent
+    data class UseDynamicColors(val useDynamicColors: Boolean) : AppearanceSettingEvent
+  }
 
   // Playback Setting Events
   sealed interface PlaybackSettingEvent : SettingsUiEvent {
@@ -95,7 +101,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class AutoSleepTimerEnabled(val enabled: Boolean) : SleepSettingEvent
     data class AutoSleepTimerStart(val time: LocalTime) : SleepSettingEvent
     data class AutoSleepTimerEnd(val time: LocalTime) : SleepSettingEvent
-    data class AutoSleepTimer(val timer: SleepSettings.AutoSleepTimer) : SleepSettingEvent
+    data class AutoSleepTimer(val timer: PlaybackTimer) : SleepSettingEvent
     data class AutoSleepRewindEnabled(val enabled: Boolean) : SleepSettingEvent
     data class AutoSleepRewindAmount(val amount: Duration) : SleepSettingEvent
   }

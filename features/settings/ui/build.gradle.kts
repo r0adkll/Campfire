@@ -11,6 +11,10 @@ kotlin {
         api(projects.data.account.ui)
 
         implementation(projects.features.settings.api)
+        implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.shake)
+
+        implementation(libs.circuitx.overlays)
 
         implementation(compose.components.resources)
       }

@@ -15,7 +15,8 @@
 
   <!-- Account setting strings -->
   <string name="setting_account_logout">Sign out</string>
-  <string name="setting_account_logout_subtitle">Sign out of this account</string>
+  <string name="setting_account_server_title">Server</string>
+  <string name="setting_account_server_appearance_title">Appearance</string>
   <string name="setting_account_server_url">Server URL</string>
   <string name="setting_account_server_version">Server Version</string>
   <string name="setting_account_name_subtitle">Update the name of this server in the app</string>
@@ -53,9 +54,17 @@
   <string name="setting_auto_sleep_subtitle">Automatically set a sleep timer when listening between specific times</string>
   <string name="setting_auto_sleep_start_title">Start time</string>
   <string name="setting_auto_sleep_end_title">End time</string>
+  <string name="setting_auto_sleep_timer">Timer</string>
   <string name="setting_auto_sleep_auto_rewind_title">Enable auto rewind</string>
   <string name="setting_auto_sleep_auto_rewind_subtitle">Automatically rewind content when playing after auto sleep timer has expired</string>
   <string name="setting_auto_sleep_auto_rewind_amount_title">Auto rewind time</string>
+
+  <string name="timer_bottomsheet_title">Timer</string>
+  <string name="timer_end_of_chapter">End of chapter</string>
+  <string name="timer_custom">Custom</string>
+  <string name="label_current_timer">Current timer</string>
+  <string name="action_set_timer">Set timer</string>
+  <string name="action_clear_timer">Clear</string>
 
   <!-- About setting strings-->
   <string name="about_header_developer">Developer</string>

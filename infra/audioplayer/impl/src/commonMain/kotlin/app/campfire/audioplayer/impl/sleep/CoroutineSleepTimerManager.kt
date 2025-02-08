@@ -51,7 +51,7 @@ class CoroutineSleepTimerManager(
   override fun onSessionStart() {
     if (sleepSettings.autoSleepTimerEnabled) {
       if (isNowAnAutoSleepZone()) {
-        clearTimer()
+        clearTimerInternal()
         stopShakeDetector()
 
         val newTimer = when (val sleepTimer = sleepSettings.autoSleepTimer) {
@@ -81,7 +81,7 @@ class CoroutineSleepTimerManager(
   }
 
   override fun setTimer(timer: PlaybackTimer) {
-    clearTimer()
+    clearTimerInternal()
     stopShakeDetector()
     playbackTimer = timer
     lastPlaybackTimer = timer
@@ -107,6 +107,11 @@ class CoroutineSleepTimerManager(
   }
 
   override fun clearTimer() {
+    clearTimerInternal()
+    stopShakeDetector()
+  }
+
+  private fun clearTimerInternal() {
     playbackTimerJob?.cancel()
     playbackTimerJob = null
     playbackTimer = null
@@ -127,7 +132,7 @@ class CoroutineSleepTimerManager(
 
     // Pause playback and clear the timer
     player.pause()
-    clearTimer()
+    clearTimerInternal()
 
     // If we hit the end of the sleep timer delay for an amount of time,
     // then stop the shake detector allowing a brief period of time where the user
