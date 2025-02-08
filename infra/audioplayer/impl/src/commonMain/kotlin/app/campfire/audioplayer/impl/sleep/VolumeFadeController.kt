@@ -9,6 +9,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 
 object VolumeFadeController {
 
@@ -19,19 +20,18 @@ object VolumeFadeController {
     getVolume: () -> Float,
     setVolume: (Float) -> Unit,
     onPause: () -> Unit,
+    now: () -> Long = { Clock.System.now().toEpochMilliseconds() },
   ): Job {
     return scope.launch {
       val delayStep = 1000L / tickRate
       val fadeStep = getVolume() / (duration.asSeconds() * tickRate)
 
-      val elapsed = measureTime {
-        while (isActive && getVolume() > 0f) {
-          setVolume((getVolume() - fadeStep).coerceAtLeast(0f))
-          delay(delayStep)
-        }
+      // Grab a timestamp and never let the loop here extend passed the [duration]
+      val start = now()
+      while (isActive && getVolume() > 0f && now() - start < duration.inWholeMilliseconds) {
+        setVolume((getVolume() - fadeStep).coerceAtLeast(0f))
+        delay(delayStep)
       }
-
-      bark(tag = "VolumeFadeController") { "Fade took $elapsed to complete" }
 
       onPause()
     }

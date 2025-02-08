@@ -162,6 +162,13 @@ class VlcAudioPlayer(
       sleepTimerManager.onSessionStart()
     }
 
+    // Reset volume if stored
+    if (mediaPlayer.volume == 0f && previousVolumeLevel > 0f) {
+      mediaPlayer.volume = previousVolumeLevel
+    } else if (mediaPlayer.volume == 0f) {
+      mediaPlayer.volume = 1f
+    }
+
     mediaPlayer.playPause()
   }
 

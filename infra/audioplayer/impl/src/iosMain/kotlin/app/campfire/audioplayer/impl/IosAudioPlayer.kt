@@ -210,6 +210,13 @@ class IosAudioPlayer(
       sleepTimerManager.onSessionStart()
     }
 
+    // Reset volume if stored
+    if (player.volume == 0f && previousVolumeLevel > 0f) {
+      player.volume = previousVolumeLevel
+    } else if (player.volume == 0f) {
+      player.volume = 1f
+    }
+
     player.playPause()
   }
 

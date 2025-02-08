@@ -233,6 +233,8 @@ class ExoPlayerAudioPlayer(
       // Reset volume if stored
       if (exoPlayer.volume == 0f && previousVolumeLevel > 0f) {
         exoPlayer.volume = previousVolumeLevel
+      } else if (exoPlayer.volume == 0f) {
+        exoPlayer.volume = 1f
       }
 
       exoPlayer.play()

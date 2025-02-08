@@ -12,7 +12,7 @@ import app.campfire.audioplayer.impl.vlcj.stop
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.util.runIf
-import kotlin.math.roundToInt
+import kotlin.math.floor
 import kotlin.math.roundToLong
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.media.MediaRef
@@ -42,9 +42,11 @@ class VlcPlayer {
   private val mediaPlayer: MediaPlayer
 
   var volume: Float
-    get() = mediaPlayer.audio().volume() / 200f
+    get() = mediaPlayer.audio().volume() / 100f
     set(value) {
-      mediaPlayer.audio().setVolume((value * 200).roundToInt())
+      // the floor() is important here as our fade controller works in small float increments.
+      // without this operation the first increment always ends up rounding back to 100
+      mediaPlayer.audio().setVolume(floor(value * 100).toInt())
     }
 
   init {
