@@ -1,9 +1,7 @@
 package app.campfire.audioplayer.impl.sleep
 
 import app.campfire.core.extensions.asSeconds
-import app.campfire.core.logging.bark
 import kotlin.time.Duration
-import kotlin.time.measureTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

@@ -77,7 +77,6 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
-import app.campfire.common.compose.icons.rounded.ShakeMedium
 import app.campfire.common.compose.icons.rounded.ShakeVeryHigh
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -425,7 +424,6 @@ private fun SharedTransitionScope.ExpandedItemImage(
           .size(size)
           .background(Color.Black.copy(0.3f), RoundedCornerShape(32.dp)),
       ) {
-
         if (runningTimer?.isShakeToRestartEnabled == true) {
           Icon(
             CampfireIcons.Rounded.ShakeVeryHigh,
@@ -433,7 +431,7 @@ private fun SharedTransitionScope.ExpandedItemImage(
             tint = Color.White.copy(alpha = 0.9f),
             modifier = Modifier
               .align(Alignment.TopEnd)
-              .padding(16.dp)
+              .padding(16.dp),
           )
         }
 
@@ -459,7 +457,7 @@ private fun PlaybackSeekBar(
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
   Column(
-    modifier = modifier
+    modifier = modifier,
   ) {
     val isPressed by interactionSource.collectIsPressedAsState()
     val isDragged by interactionSource.collectIsDraggedAsState()

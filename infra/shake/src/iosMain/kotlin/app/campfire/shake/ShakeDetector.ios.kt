@@ -4,7 +4,6 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.core.time.FatherTime
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
@@ -12,9 +11,7 @@ import me.tatarka.inject.annotations.Provides
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 
-actual class ShakeDetector(
-  private val fatherTime: FatherTime,
-) {
+actual class ShakeDetector {
 
   private var listener: Listener? = null
 
@@ -41,22 +38,23 @@ actual class ShakeDetector(
     }
 
     motionManager.accelerometerUpdateInterval = 1.0 / 50.0 // 50hz
-    motionManager.startAccelerometerUpdatesToQueue(NSOperationQueue.mainQueue, { data, error ->
-      val event = data?.acceleration?.useContents {
-        AccelerometerEvent(
-          x = x,
-          y = y,
-          z = z,
-          timestamp = data.timestamp.seconds.inWholeNanoseconds,
-        )
-      }
+    motionManager.startAccelerometerUpdatesToQueue(
+      NSOperationQueue.mainQueue,
+      { data, error ->
+        val event = data?.acceleration?.useContents {
+          AccelerometerEvent(
+            x = x,
+            y = y,
+            z = z,
+            timestamp = data.timestamp.seconds.inWholeNanoseconds,
+          )
+        }
 
-      bark("ShakeDetector") { "Accelerometer event(${event} error: $error" }
+        if (event == null) return@startAccelerometerUpdatesToQueue
 
-      if (event == null) return@startAccelerometerUpdatesToQueue
-
-      samplingShakeDetector.addAccelerometerEvent(event)
-    })
+        samplingShakeDetector.addAccelerometerEvent(event)
+      },
+    )
   }
 
   actual fun stop() {
@@ -73,7 +71,5 @@ actual interface ShakeDetectorPlatformComponent {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideIosShakeDetector(
-    fatherTime: FatherTime,
-  ): ShakeDetector = ShakeDetector(fatherTime)
+  fun provideIosShakeDetector(): ShakeDetector = ShakeDetector()
 }
