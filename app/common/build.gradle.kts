@@ -12,7 +12,6 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.infra.audioplayer.impl)
         api(projects.core)
         api(projects.common.screens)
         api(projects.common.compose)
@@ -22,6 +21,10 @@ kotlin {
         api(projects.data.network.impl)
         api(projects.data.account.impl)
         api(projects.data.account.ui)
+
+        // Infra Modules
+        api(projects.infra.audioplayer.impl)
+        api(projects.infra.audioplayer.publicUi)
 
         // Feature Modules
         api(projects.features.home.impl)

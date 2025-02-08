@@ -10,6 +10,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import app.campfire.audioplayer.ui.TimerResult
+import app.campfire.audioplayer.ui.showTimerBottomSheet
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ShakeHigh
@@ -30,8 +32,6 @@ import app.campfire.settings.api.SleepSettings.ShakeSensitivity.VeryLow
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.SettingsUiState
-import app.campfire.ui.settings.bottomsheet.TimerResult
-import app.campfire.ui.settings.bottomsheet.showTimerBottomSheet
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.DropdownSetting
 import app.campfire.ui.settings.composables.Header

@@ -65,6 +65,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.audioplayer.ui.TimerResult
+import app.campfire.audioplayer.ui.showTimerBottomSheet
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
@@ -81,8 +83,6 @@ import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
-import app.campfire.sessions.ui.sheets.timer.TimerResult
-import app.campfire.sessions.ui.sheets.timer.showTimerBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
 import com.slack.circuit.overlay.LocalOverlayHost

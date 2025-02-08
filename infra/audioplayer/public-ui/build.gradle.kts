@@ -7,13 +7,8 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.common.compose)
-        api(projects.data.account.api)
-        api(projects.data.account.ui)
-        api(projects.infra.audioplayer.publicUi)
 
         implementation(projects.infra.audioplayer.api)
-        implementation(projects.features.settings.api)
-        implementation(projects.infra.shake)
 
         implementation(libs.circuitx.overlays)
 

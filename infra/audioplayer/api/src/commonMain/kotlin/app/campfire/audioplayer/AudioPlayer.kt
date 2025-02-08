@@ -5,6 +5,8 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.model.Session
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -61,6 +63,10 @@ interface AudioPlayer {
   fun release()
 
   fun pause()
+  fun fadeToPause(
+    duration: Duration = DefaultFadeDuration,
+    tickRate: Long = DefaultFadeTickRate,
+  ): Job
   fun playPause()
   fun stop()
   fun seekTo(itemIndex: Int)
@@ -84,3 +90,6 @@ interface AudioPlayer {
     Paused,
   }
 }
+
+private val DefaultFadeDuration = 5.seconds
+private const val DefaultFadeTickRate = 1000L / 16L

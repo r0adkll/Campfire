@@ -96,6 +96,7 @@ fun PlaybackBar(
               currentTime = currentTime.value,
               currentDuration = currentDuration.value,
               currentMetadata = currentMetadata.value,
+              runningTimer = runningTimer.value,
               onClick = { onExpansionChange(!expanded) },
               onPlayPauseClick = {
                 audioPlayer?.playPause()

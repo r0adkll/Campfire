@@ -20,10 +20,12 @@ import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
+import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
@@ -106,6 +108,8 @@ class ExoPlayerAudioPlayer(
     }
 
   private var progressJob: Job? = null
+  private var fadeJob: Job? = null
+  private var previousVolumeLevel: Float = 0f
 
   override var preparedSession: Session? = null
 
@@ -184,8 +188,10 @@ class ExoPlayerAudioPlayer(
         overallTime.value = session.currentTime
       }
 
-      // Potentially trigger the auto sleep timer
-      sleepTimerManager.onSessionStart()
+      if (playImmediately) {
+        // Potentially trigger the auto sleep timer
+        sleepTimerManager.onSessionStart()
+      }
 
       // Set when to play, and prepare
       playWhenReady = playImmediately
@@ -199,13 +205,36 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun pause() {
+    bark("CoroutineSleepTimerManager") { "Pausing player: isPlaying=${exoPlayer.isPlaying}" }
     exoPlayer.pause()
+  }
+
+  override fun fadeToPause(duration: Duration, tickRate: Long): Job {
+    previousVolumeLevel = exoPlayer.volume
+    fadeJob?.cancel()
+
+    return VolumeFadeController.fade(
+      scope = scope,
+      duration = duration,
+      tickRate = tickRate,
+      getVolume = { exoPlayer.volume },
+      setVolume = { exoPlayer.volume = it },
+      onPause = { exoPlayer.pause() },
+    ).also { fadeJob = it }
   }
 
   override fun playPause() {
     if (exoPlayer.isPlaying) {
       exoPlayer.pause()
     } else {
+      // Potentially trigger the auto sleep timer
+      sleepTimerManager.onSessionStart()
+
+      // Reset volume if stored
+      if (exoPlayer.volume == 0f && previousVolumeLevel > 0f) {
+        exoPlayer.volume = previousVolumeLevel
+      }
+
       exoPlayer.play()
     }
   }

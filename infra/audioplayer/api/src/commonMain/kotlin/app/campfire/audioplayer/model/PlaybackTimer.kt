@@ -16,4 +16,5 @@ sealed interface PlaybackTimer {
 data class RunningTimer(
   val timer: PlaybackTimer,
   val startedAt: Long,
+  val isShakeToRestartEnabled: Boolean,
 )

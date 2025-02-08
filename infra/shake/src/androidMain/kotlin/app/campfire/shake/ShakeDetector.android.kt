@@ -19,6 +19,9 @@ actual class ShakeDetector(
   actual val isAvailable: Boolean
     get() = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) != null
 
+  actual val isRunning: Boolean
+    get() = seismicShakeDetector.isRunning
+
   actual fun start(sensitivity: ShakeSensitivity, listener: Listener) {
     this.listener = listener
     seismicShakeDetector.setSensitivity(sensitivity)

@@ -5,6 +5,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.time.FatherTime
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
 import me.tatarka.inject.annotations.Provides
@@ -25,6 +26,9 @@ actual class ShakeDetector(
   actual val isAvailable: Boolean
     get() = motionManager.isAccelerometerAvailable()
 
+  actual val isRunning: Boolean
+    get() = motionManager.isAccelerometerActive()
+
   @OptIn(ExperimentalForeignApi::class)
   actual fun start(sensitivity: ShakeSensitivity, listener: Listener) {
     this.listener = listener
@@ -43,9 +47,11 @@ actual class ShakeDetector(
           x = x,
           y = y,
           z = z,
-          timestamp = fatherTime.nowInEpochMillis(),
+          timestamp = data.timestamp.seconds.inWholeNanoseconds,
         )
       }
+
+      bark("ShakeDetector") { "Accelerometer event(${event} error: $error" }
 
       if (event == null) return@startAccelerometerUpdatesToQueue
 

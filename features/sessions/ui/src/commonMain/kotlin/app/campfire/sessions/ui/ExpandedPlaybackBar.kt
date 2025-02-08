@@ -1,5 +1,6 @@
 package app.campfire.sessions.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -63,15 +64,21 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.audioplayer.ui.TimerResult
+import app.campfire.audioplayer.ui.showTimerBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
+import app.campfire.common.compose.icons.rounded.ShakeMedium
+import app.campfire.common.compose.icons.rounded.ShakeVeryHigh
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
@@ -88,8 +95,6 @@ import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
-import app.campfire.sessions.ui.sheets.timer.TimerResult
-import app.campfire.sessions.ui.sheets.timer.showTimerBottomSheet
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -281,52 +286,17 @@ internal fun ExpandedPlaybackBar(
           verticalArrangement = Arrangement.Center,
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          // TODO: Extract this composable
-          Box(
-            contentAlignment = Alignment.Center,
-          ) {
-            val imageSize = if (windowSizeClass.isSupportingPaneEnabled) {
+          ExpandedItemImage(
+            currentMetadata = currentMetadata,
+            runningTimer = runningTimer,
+            session = session,
+            animatedVisibilityScope = animatedVisibilityScope,
+            size = if (windowSizeClass.isSupportingPaneEnabled) {
               LargeCoverImageSize
             } else {
               CoverImageSize
-            }
-
-            val mediaUrl = currentMetadata.artworkUri
-              ?: session.libraryItem.media.coverImageUrl
-            CoverImage(
-              imageUrl = mediaUrl,
-              contentDescription = session.libraryItem.media.metadata.title,
-              size = imageSize,
-              modifier = Modifier
-                .sharedElement(
-                  rememberSharedContentState(SharedImage),
-                  animatedVisibilityScope = animatedVisibilityScope,
-                ),
-            )
-
-            androidx.compose.animation.AnimatedVisibility(
-              visible = runningTimer != null,
-              enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-              modifier = Modifier.size(imageSize),
-            ) {
-              Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                  .size(imageSize)
-                  .background(Color.Black.copy(0.3f), RoundedCornerShape(32.dp)),
-              ) {
-                if (runningTimer != null) {
-                  RunningTimerText(
-                    runningTimer = runningTimer,
-                    color = Color.White,
-                    modifier = Modifier
-                      .fillMaxWidth()
-                      .padding(16.dp),
-                  )
-                }
-              }
-            }
-          }
+            },
+          )
 
           Spacer(Modifier.height(16.dp))
 
@@ -362,8 +332,6 @@ internal fun ExpandedPlaybackBar(
           currentTime = currentTime,
           currentDuration = currentDuration,
           onSeek = onSeek,
-          modifier = Modifier
-            .padding(horizontal = 24.dp),
           interactionSource = interactionSource,
         )
 
@@ -420,79 +388,144 @@ internal fun ExpandedPlaybackBar(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+private fun SharedTransitionScope.ExpandedItemImage(
+  session: Session,
+  currentMetadata: Metadata,
+  runningTimer: RunningTimer?,
+  animatedVisibilityScope: AnimatedVisibilityScope,
+  size: Dp,
+  modifier: Modifier = Modifier,
+) {
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier = modifier,
+  ) {
+    val mediaUrl = currentMetadata.artworkUri
+      ?: session.libraryItem.media.coverImageUrl
+    CoverImage(
+      imageUrl = mediaUrl,
+      contentDescription = session.libraryItem.media.metadata.title,
+      size = size,
+      modifier = Modifier.sharedElement(
+        rememberSharedContentState(SharedImage),
+        animatedVisibilityScope = animatedVisibilityScope,
+      ),
+    )
+
+    AnimatedVisibility(
+      visible = runningTimer != null,
+      enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+      modifier = Modifier.size(size),
+    ) {
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+          .size(size)
+          .background(Color.Black.copy(0.3f), RoundedCornerShape(32.dp)),
+      ) {
+
+        if (runningTimer?.isShakeToRestartEnabled == true) {
+          Icon(
+            CampfireIcons.Rounded.ShakeVeryHigh,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.9f),
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(16.dp)
+          )
+        }
+
+        if (runningTimer != null) {
+          RunningTimerText(
+            runningTimer = runningTimer,
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+          )
+        }
+      }
+    }
+  }
+}
+
 @Composable
 private fun PlaybackSeekBar(
   state: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
   onSeek: (Float) -> Unit,
-  // FIXME: This is an error to not be attached to something, Also that this composable emits multiple items
   modifier: Modifier = Modifier,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-  val isPressed by interactionSource.collectIsPressedAsState()
-  val isDragged by interactionSource.collectIsDraggedAsState()
-  val isInteracting = isPressed || isDragged
-
-  fun calculateProgress(): Float = if (currentDuration.inWholeMilliseconds == 0L) {
-    0f
-  } else {
-    (currentTime / currentDuration).toFloat()
-  }
-
-  var sliderValue by remember { mutableStateOf(calculateProgress()) }
-  val softSliderValue by animateFloatAsState(sliderValue)
-  LaunchedEffect(isInteracting, state, currentTime, currentDuration) {
-    if (!isInteracting) {
-      sliderValue = calculateProgress()
-    }
-  }
-
-  val waveHeight = if (state == AudioPlayer.State.Playing) 16.dp else 0.dp
-  val waveVelocity = if (state == AudioPlayer.State.Playing) 40.dp else 0.dp
-  val waveThickness = if (state == AudioPlayer.State.Playing) 12.dp else 16.dp
-
-  WavySlider(
-    value = softSliderValue,
-    onValueChange = { sliderValue = it },
-    onValueChangeFinished = {
-      onSeek(sliderValue)
-    },
-    interactionSource = interactionSource,
-    colors = SliderDefaults.colors(
-      inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
-    ),
-    waveLength = 50.dp,
-    waveHeight = waveHeight,
-    waveVelocity = waveVelocity to WaveDirection.TAIL,
-    waveThickness = waveThickness,
-    modifier = Modifier.fillMaxWidth()
-      .padding(horizontal = 24.dp),
-  )
-
-  Row(
-    Modifier
-      .fillMaxWidth()
-      .padding(horizontal = 32.dp),
+  Column(
+    modifier = modifier
   ) {
-    val currentTimeLabel = if (isInteracting) {
-      currentDuration.times(sliderValue.toDouble()).readoutFormat()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isDragged by interactionSource.collectIsDraggedAsState()
+    val isInteracting = isPressed || isDragged
+
+    fun calculateProgress(): Float = if (currentDuration.inWholeMilliseconds == 0L) {
+      0f
     } else {
-      currentTime.readoutFormat()
+      (currentTime / currentDuration).toFloat()
     }
 
-    Text(
-      text = currentTimeLabel,
-      style = MaterialTheme.typography.labelSmall,
+    var sliderValue by remember { mutableStateOf(calculateProgress()) }
+    val softSliderValue by animateFloatAsState(sliderValue)
+    LaunchedEffect(isInteracting, state, currentTime, currentDuration) {
+      if (!isInteracting) {
+        sliderValue = calculateProgress()
+      }
+    }
+
+    val waveHeight = if (state == AudioPlayer.State.Playing) 16.dp else 0.dp
+    val waveVelocity = if (state == AudioPlayer.State.Playing) 40.dp else 0.dp
+    val waveThickness = if (state == AudioPlayer.State.Playing) 12.dp else 16.dp
+
+    WavySlider(
+      value = softSliderValue,
+      onValueChange = { sliderValue = it },
+      onValueChangeFinished = {
+        onSeek(sliderValue)
+      },
+      interactionSource = interactionSource,
+      colors = SliderDefaults.colors(
+        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
+      ),
+      waveLength = 50.dp,
+      waveHeight = waveHeight,
+      waveVelocity = waveVelocity to WaveDirection.TAIL,
+      waveThickness = waveThickness,
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 24.dp),
     )
 
-    Spacer(Modifier.weight(1f))
+    Row(
+      Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 32.dp),
+    ) {
+      val currentTimeLabel = if (isInteracting) {
+        currentDuration.times(sliderValue.toDouble()).readoutFormat()
+      } else {
+        currentTime.readoutFormat()
+      }
 
-    val currentRemainingDuration = currentDuration - currentTime
-    Text(
-      text = currentRemainingDuration.readoutFormat(),
-      style = MaterialTheme.typography.labelSmall,
-    )
+      Text(
+        text = currentTimeLabel,
+        style = MaterialTheme.typography.labelSmall,
+      )
+
+      Spacer(Modifier.weight(1f))
+
+      val currentRemainingDuration = currentDuration - currentTime
+      Text(
+        text = currentRemainingDuration.readoutFormat(),
+        style = MaterialTheme.typography.labelSmall,
+      )
+    }
   }
 }
 

@@ -12,6 +12,7 @@ import app.campfire.audioplayer.impl.vlcj.stop
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.util.runIf
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.media.MediaRef
@@ -39,6 +40,12 @@ class VlcPlayer {
   private var listener: Listener? = null
 
   private val mediaPlayer: MediaPlayer
+
+  var volume: Float
+    get() = mediaPlayer.audio().volume() / 200f
+    set(value) {
+      mediaPlayer.audio().setVolume((value * 200).roundToInt())
+    }
 
   init {
     NativeDiscovery().discover()

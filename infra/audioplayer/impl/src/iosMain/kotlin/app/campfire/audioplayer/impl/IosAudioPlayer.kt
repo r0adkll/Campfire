@@ -10,9 +10,11 @@ import app.campfire.audioplayer.impl.player.getPreferredIntervals
 import app.campfire.audioplayer.impl.player.preferredIntervals
 import app.campfire.audioplayer.impl.player.supportedPlaybackRates
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
+import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
@@ -22,12 +24,15 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import platform.MediaPlayer.MPChangePlaybackPositionCommandEvent
 import platform.MediaPlayer.MPChangePlaybackRateCommandEvent
@@ -69,6 +74,9 @@ class IosAudioPlayer(
   override val currentTime: StateFlow<Duration> = player.currentPosition
   override val overallTime: StateFlow<Duration> = player.overallPosition
   override val currentDuration: StateFlow<Duration> = player.currentDuration
+
+  private var fadeJob: Job? = null
+  private var previousVolumeLevel: Float = 0f
 
   init {
     bark { "Initializing $this" }
@@ -168,7 +176,9 @@ class IosAudioPlayer(
       )
     }
 
-    sleepTimerManager.onSessionStart()
+    if (playImmediately) {
+      sleepTimerManager.onSessionStart()
+    }
 
     player.prepare(playImmediately, startTimeInChapterMs)
   }
@@ -181,7 +191,25 @@ class IosAudioPlayer(
     player.pause()
   }
 
+  override fun fadeToPause(duration: Duration, tickRate: Long): Job {
+    previousVolumeLevel = player.volume
+    fadeJob?.cancel()
+
+    return VolumeFadeController.fade(
+      scope = scope,
+      duration = duration,
+      tickRate = tickRate,
+      getVolume = { player.volume },
+      setVolume = { player.volume = it },
+      onPause = { player.pause() },
+    ).also { fadeJob = it }
+  }
+
   override fun playPause() {
+    if (state.value == AudioPlayer.State.Paused) {
+      sleepTimerManager.onSessionStart()
+    }
+
     player.playPause()
   }
 

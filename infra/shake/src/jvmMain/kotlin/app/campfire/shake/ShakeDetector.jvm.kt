@@ -7,6 +7,7 @@ import me.tatarka.inject.annotations.Provides
 actual class ShakeDetector {
 
   actual val isAvailable: Boolean = false
+  actual val isRunning: Boolean = false
 
   actual fun start(sensitivity: ShakeSensitivity, listener: Listener) {
     // No-op

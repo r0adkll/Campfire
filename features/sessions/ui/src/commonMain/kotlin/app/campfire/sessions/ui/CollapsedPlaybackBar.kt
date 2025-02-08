@@ -1,14 +1,19 @@
 package app.campfire.sessions.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -34,6 +39,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Snooze
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -68,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.extensions.progressOver
@@ -91,6 +99,7 @@ internal fun CollapsedPlaybackBar(
   currentTime: Duration,
   currentDuration: Duration,
   currentMetadata: Metadata,
+  runningTimer: RunningTimer?,
   onClick: () -> Unit,
   onPlayPauseClick: () -> Unit,
   onRewindClick: () -> Unit,
@@ -143,6 +152,7 @@ internal fun CollapsedPlaybackBar(
       currentTime = currentTime,
       currentDuration = currentDuration,
       currentMetadata = currentMetadata,
+      runningTimer = runningTimer,
       onClick = onClick,
       onPlayPauseClick = onPlayPauseClick,
       onRewindClick = onRewindClick,
@@ -161,6 +171,7 @@ private fun CollapsedPlaybackBarContent(
   currentTime: Duration,
   currentDuration: Duration,
   currentMetadata: Metadata,
+  runningTimer: RunningTimer?,
   onClick: () -> Unit,
   onPlayPauseClick: () -> Unit,
   onRewindClick: () -> Unit,
@@ -197,16 +208,55 @@ private fun CollapsedPlaybackBarContent(
         )
 
         androidx.compose.animation.AnimatedVisibility(
-          visible = dragState.actionState == Dispose,
-          enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+          visible = runningTimer != null && dragState.actionState != Dispose,
+          enter = fadeIn(),
+          exit = fadeOut(),
         ) {
+          val cornerRadius by transition.animateDp {
+            if (it == EnterExitState.Visible) 8.dp else 28.dp
+          }
+
+          val size by transition.animateDp {
+            if (it == EnterExitState.Visible) 56.dp else 0.dp
+          }
+
           Box(
             modifier = Modifier
-              .size(56.dp)
+              .background(
+                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f),
+                shape = RoundedCornerShape(cornerRadius),
+              )
+              .size(size),
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              Icons.Rounded.Snooze,
+              contentDescription = null,
+              tint = Color.White,
+            )
+          }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+          visible = dragState.actionState == Dispose,
+          enter = fadeIn(),
+          exit = fadeOut(),
+        ) {
+          val cornerRadius by transition.animateDp {
+            if (it == EnterExitState.Visible) 8.dp else 28.dp
+          }
+
+          val size by transition.animateDp {
+            if (it == EnterExitState.Visible) 56.dp else 0.dp
+          }
+
+          Box(
+            modifier = Modifier
               .background(
                 color = MaterialTheme.colorScheme.error.copy(0.6f),
-                shape = RoundedCornerShape(8.dp),
-              ),
+                shape = RoundedCornerShape(cornerRadius),
+              )
+              .size(size),
             contentAlignment = Alignment.Center,
           ) {
             Icon(

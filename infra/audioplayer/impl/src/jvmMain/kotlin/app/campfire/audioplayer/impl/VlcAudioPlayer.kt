@@ -5,9 +5,11 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.player.VlcPlayer
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
+import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
@@ -18,10 +20,14 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
 class VlcAudioPlayer(
   private val settings: PlaybackSettings,
@@ -48,6 +54,9 @@ class VlcAudioPlayer(
 
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
+
+  private var fadeJob: Job? = null
+  private var previousVolumeLevel: Float = 0f
 
   override suspend fun prepare(
     session: Session,
@@ -119,7 +128,9 @@ class VlcAudioPlayer(
       overallTime.value = session.currentTime
     }
 
-    sleepTimerManager.onSessionStart()
+    if (playImmediately) {
+      sleepTimerManager.onSessionStart()
+    }
 
     mediaPlayer.prepare(playImmediately, startTimeInChapterMs)
   }
@@ -132,7 +143,25 @@ class VlcAudioPlayer(
     mediaPlayer.pause()
   }
 
+  override fun fadeToPause(duration: Duration, tickRate: Long): Job {
+    previousVolumeLevel = mediaPlayer.volume
+    fadeJob?.cancel()
+
+    return VolumeFadeController.fade(
+      scope = scope,
+      duration = duration,
+      tickRate = tickRate,
+      getVolume = { mediaPlayer.volume },
+      setVolume = { mediaPlayer.volume = it },
+      onPause = { mediaPlayer.pause() },
+    ).also { fadeJob = it }
+  }
+
   override fun playPause() {
+    if (state.value == AudioPlayer.State.Paused) {
+      sleepTimerManager.onSessionStart()
+    }
+
     mediaPlayer.playPause()
   }
 

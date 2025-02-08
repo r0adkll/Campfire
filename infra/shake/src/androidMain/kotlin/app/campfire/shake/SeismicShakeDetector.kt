@@ -4,6 +4,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import app.campfire.core.logging.bark
 
 class SeismicShakeDetector(
   private val listener: Listener,
@@ -21,6 +22,8 @@ class SeismicShakeDetector(
 
   private var sensorManager: SensorManager? = null
   private var accelerometer: Sensor? = null
+
+  val isRunning: Boolean get() = accelerometer != null
 
   /**
    * Starts listening for shakes on devices with appropriate hardware.
@@ -59,6 +62,9 @@ class SeismicShakeDetector(
   fun stop() {
     if (accelerometer != null) {
       samplingShakeDetector.clear()
+      sensorManager?.unregisterListener(this, accelerometer)
+      sensorManager = null
+      accelerometer = null
     }
   }
 
@@ -69,6 +75,9 @@ class SeismicShakeDetector(
       event.values[2].toDouble(),
       event.timestamp,
     )
+
+    bark("ShakeDetector") { "Accelerometer event: $accelerometerEvent" }
+
     samplingShakeDetector.addAccelerometerEvent(accelerometerEvent)
   }
 

@@ -60,7 +60,9 @@ import platform.AVFoundation.replaceCurrentItemWithPlayerItem
 import platform.AVFoundation.seekToTime
 import platform.AVFoundation.setDefaultRate
 import platform.AVFoundation.setRate
+import platform.AVFoundation.setVolume
 import platform.AVFoundation.timeControlStatus
+import platform.AVFoundation.volume
 import platform.CoreMedia.CMTime
 import platform.Foundation.NSNotification
 import platform.Foundation.NSNotificationCenter
@@ -185,6 +187,12 @@ class IosPlayer(
       handleRouteChange(notification!!)
     }
   }
+
+  var volume: Float
+    get() = avPlayer.volume
+    set(value) {
+      avPlayer.setVolume(value)
+    }
 
   fun setMediaItems(items: List<IosMediaItem>) {
     // Reset the media player
