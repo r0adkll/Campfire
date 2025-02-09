@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.core.extensions.fluentIf
@@ -85,19 +86,27 @@ private fun ChapterListBottomSheet(
         items = chapters,
         key = { it.id },
       ) { chapter ->
+        val isCurrentChapter = currentChapter?.id == chapter.id
+
         ListItem(
-          headlineContent = { Text(chapter.title) },
+          headlineContent = {
+            Text(
+              text = chapter.title,
+              fontWeight = if (isCurrentChapter) FontWeight.Bold else null,
+            )
+          },
           trailingContent = {
             Text(
               text = chapter.start.seconds.clockFormat(),
               style = MaterialTheme.typography.labelLarge,
+              fontWeight = if (isCurrentChapter) FontWeight.Bold else null,
             )
           },
           modifier = Modifier
             .clickable {
               onChapterClicked(chapter)
             }
-            .fluentIf(currentChapter?.id == chapter.id) {
+            .fluentIf(isCurrentChapter) {
               drawBehind {
                 val width = size.width // * progress
                 drawRect(

@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.core.extensions.fluentIf
@@ -36,11 +37,13 @@ internal fun DurationListItem(
   progressColor: Color = MaterialTheme.colorScheme.primaryContainer,
   selectedColor: Color = MaterialTheme.colorScheme.primary,
 ) {
+  val isActiveChapter = progress > 0f && progress < 1f
+
   Row(
     modifier = modifier
       .defaultMinSize(minHeight = ListItemHeight)
       .fillMaxWidth()
-      .fluentIf(progress > 0f && progress < 1f) {
+      .fluentIf(isActiveChapter) {
         drawBehind {
           val width = size.width * progress
           drawRoundRect(
@@ -64,6 +67,7 @@ internal fun DurationListItem(
     Text(
       text = title,
       style = MaterialTheme.typography.labelLarge,
+      fontWeight = if (isActiveChapter) FontWeight.Bold else null,
       modifier = Modifier.weight(1f),
     )
     Spacer(Modifier.width(16.dp))
@@ -71,6 +75,7 @@ internal fun DurationListItem(
       text = duration.clockFormat(),
       style = MaterialTheme.typography.labelLarge,
       fontFamily = FontFamily.Monospace,
+      fontWeight = if (isActiveChapter) FontWeight.Bold else null,
     )
   }
 }
