@@ -9,7 +9,6 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
@@ -22,7 +21,6 @@ class DesktopPlaybackController(
   private val playbackSessionManager: PlaybackSessionManager,
   private val playbackSettings: PlaybackSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
-  private val fatherTime: FatherTime,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
@@ -47,7 +45,7 @@ class DesktopPlaybackController(
 
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
-      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, fatherTime, sleepTimerManagerFactory))
+      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, sleepTimerManagerFactory))
     }
   }
 }
