@@ -4,15 +4,22 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.extensions.clockFormat
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
@@ -27,7 +34,10 @@ sealed interface ChapterResult {
   data class Selected(val chapter: Chapter) : ChapterResult
 }
 
-suspend fun OverlayHost.showChapterBottomSheet(chapters: List<Chapter>): ChapterResult {
+suspend fun OverlayHost.showChapterBottomSheet(
+  chapters: List<Chapter>,
+  currentChapter: Chapter? = null,
+): ChapterResult {
   return show(
     BottomSheetOverlay<List<Chapter>, ChapterResult>(
       model = chapters,
@@ -39,6 +49,7 @@ suspend fun OverlayHost.showChapterBottomSheet(chapters: List<Chapter>): Chapter
     ) { models, overlayNavigator ->
       ChapterListBottomSheet(
         chapters = models,
+        currentChapter = currentChapter,
         onChapterClicked = { chapter ->
           overlayNavigator.finish(ChapterResult.Selected(chapter))
         },
@@ -51,24 +62,58 @@ suspend fun OverlayHost.showChapterBottomSheet(chapters: List<Chapter>): Chapter
 @Composable
 private fun ChapterListBottomSheet(
   chapters: List<Chapter>,
+  currentChapter: Chapter? = null,
   onChapterClicked: (Chapter) -> Unit,
   modifier: Modifier = Modifier,
+  progressColor: Color = MaterialTheme.colorScheme.primaryContainer,
+  selectedColor: Color = MaterialTheme.colorScheme.primary,
 ) {
   SessionSheetLayout(
     modifier = modifier,
     title = { Text(stringResource(Res.string.chapters_bottomsheet_title)) },
   ) {
-    LazyColumn {
+    val lazyListState = rememberLazyListState(
+      initialFirstVisibleItemIndex = chapters
+        .indexOfFirst { it.id == currentChapter?.id }
+        .takeIf { it != -1 } ?: 0,
+    )
+
+    LazyColumn(
+      state = lazyListState,
+    ) {
       items(
         items = chapters,
         key = { it.id },
       ) { chapter ->
         ListItem(
           headlineContent = { Text(chapter.title) },
-          trailingContent = { Text(chapter.start.seconds.readoutFormat()) },
-          modifier = Modifier.clickable {
-            onChapterClicked(chapter)
+          trailingContent = {
+            Text(
+              text = chapter.start.seconds.clockFormat(),
+              style = MaterialTheme.typography.labelLarge,
+            )
           },
+          modifier = Modifier
+            .clickable {
+              onChapterClicked(chapter)
+            }
+            .fluentIf(currentChapter?.id == chapter.id) {
+              drawBehind {
+                val width = size.width // * progress
+                drawRect(
+                  color = progressColor,
+                  topLeft = Offset(-ProgressCornerRadius.toPx(), 0f),
+                  size = size.copy(width = width + ProgressCornerRadius.toPx()),
+                )
+
+                drawRoundRect(
+                  color = selectedColor,
+                  topLeft = Offset(-IndicatorSize.toPx(), IndicatorPadding.toPx()),
+                  size = Size(IndicatorSize.toPx() * 2f, size.height - (IndicatorPadding * 2).toPx()),
+                  cornerRadius = CornerRadius(IndicatorSize.toPx()),
+                )
+              }
+            },
           colors = ListItemDefaults.colors(
             containerColor = Color.Transparent,
           ),
@@ -77,3 +122,7 @@ private fun ChapterListBottomSheet(
     }
   }
 }
+
+private val IndicatorSize = 8.dp
+private val IndicatorPadding = 0.dp
+private val ProgressCornerRadius = 24.dp

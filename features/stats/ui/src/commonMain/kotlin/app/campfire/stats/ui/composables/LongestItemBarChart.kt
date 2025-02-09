@@ -5,7 +5,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import app.campfire.common.compose.extensions.readoutAtMostHours
+import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.SquareFoot
@@ -14,6 +14,7 @@ import app.campfire.stats.ui.StatsUiModel
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.card_longest_items_title
 import campfire.features.stats.ui.generated.resources.totals_format
+import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -44,7 +45,7 @@ internal fun LongestItemBarChart(
       ChartBar(
         imageUrl = item.coverImageUrl,
         title = item.title,
-        trailingLabel = item.duration.readoutAtMostHours(),
+        trailingLabel = item.duration.readoutAtMost(DurationUnit.HOURS),
         progress = progress.toFloat(),
         modifier = Modifier.clickable {
           onItemClick(item)

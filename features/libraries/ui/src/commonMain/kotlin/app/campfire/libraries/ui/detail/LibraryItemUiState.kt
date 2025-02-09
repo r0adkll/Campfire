@@ -19,6 +19,8 @@ data class LibraryItemUiState(
 sealed interface SessionUiState {
   data object None : SessionUiState
   data class Current(val session: Session) : SessionUiState
+
+  fun sessionOrNull(): Session? = (this as? Current)?.session
 }
 
 sealed interface LibraryItemUiEvent : CircuitUiEvent {

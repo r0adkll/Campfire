@@ -12,15 +12,22 @@ fun ReadoutStyle.formatForStyle(short: String, long: String): String = when (thi
   ReadoutStyle.Short -> short
 }
 
-fun Duration.readoutAtMostHours(style: ReadoutStyle = ReadoutStyle.Short): String {
-  return if (inWholeHours > 0) {
+fun Duration.readoutAtMost(
+  atMost: DurationUnit,
+  style: ReadoutStyle = ReadoutStyle.Short,
+): String {
+  return if (inWholeHours > 0 && atMost >= DurationUnit.HOURS) {
     "$inWholeHours ${style.formatForStyle("hrs", "hours")}"
-  } else if (inWholeMinutes > 0) {
+  } else if (inWholeMinutes > 0 && atMost >= DurationUnit.MINUTES) {
     "$inWholeMinutes ${style.formatForStyle("min", "minutes")}"
-  } else if (inWholeSeconds > 0) {
+  } else if (inWholeSeconds > 0 && atMost >= DurationUnit.SECONDS) {
     "$inWholeSeconds ${style.formatForStyle("s", "seconds")}"
-  } else {
+  } else if (inWholeMilliseconds > 0 && atMost >= DurationUnit.MILLISECONDS) {
     "$inWholeMilliseconds ${style.formatForStyle("ms", "millis")}"
+  } else if (inWholeMicroseconds > 0 && atMost >= DurationUnit.MICROSECONDS) {
+    "$inWholeMicroseconds ${style.formatForStyle("μs", "micros")}"
+  } else {
+    "$inWholeNanoseconds ${style.formatForStyle("ns", "nanos")}"
   }
 }
 

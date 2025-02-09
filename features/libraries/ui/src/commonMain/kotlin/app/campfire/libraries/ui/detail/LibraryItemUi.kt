@@ -336,7 +336,7 @@ fun LoadedState(
       )
     }
 
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(24.dp))
 
     if (item.media.chapters.isNotEmpty()) {
       HorizontalDivider(Modifier.fillMaxWidth())
@@ -349,14 +349,18 @@ fun LoadedState(
       )
 
       item.media.chapters.forEach { chapter ->
+        val progress = mediaProgressState.dataOrNull?.let { mediaProgress ->
+          (mediaProgress.currentTime.seconds - chapter.start.seconds) / chapter.duration
+        }?.toFloat() ?: 0f
+
         DurationListItem(
           title = chapter.title,
           duration = chapter.start.seconds,
+          progress = progress,
           modifier = Modifier
             .clickable {
               onChapterClick(chapter)
-            }
-            .padding(horizontal = 16.dp),
+            },
         )
       }
     }

@@ -33,7 +33,7 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.audioplayer.ui.composables.RunningTimerCard
 import app.campfire.audioplayer.ui.composables.SessionSheetLayout
-import app.campfire.common.compose.extensions.readoutAtMostHours
+import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.core.isDebug
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
 import campfire.infra.audioplayer.public_ui.generated.resources.action_set_timer
@@ -45,6 +45,7 @@ import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface TimerResult {
@@ -114,7 +115,7 @@ private fun TimerBottomSheet(
 
       timers.forEach { timerDuration ->
         ListItem(
-          headlineContent = { Text(timerDuration.readoutAtMostHours()) },
+          headlineContent = { Text(timerDuration.readoutAtMost(DurationUnit.MINUTES)) },
           modifier = Modifier.clickable {
             onTimerSelected(PlaybackTimer.Epoch(timerDuration.inWholeMilliseconds))
           },

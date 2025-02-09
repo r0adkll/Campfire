@@ -21,4 +21,7 @@ val LocalDateTime.readableFormat: String
 val LocalDateTime.epochMilliseconds: Long
   get() = toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds()
 
+val LocalDateTime.utcEpochMilliseconds: Long
+  get() = toInstant(TimeZone.UTC).toEpochMilliseconds()
+
 private fun Int.withSignificantZero(): String = if (this < 10) "0$this" else "$this"

@@ -5,6 +5,8 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.utcEpochMilliseconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
@@ -21,6 +23,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -100,6 +103,25 @@ class SqlDelightSessionDataSource(
   ): Session {
     val currentUserId = userSession.requiredUserId
 
+    val existingSession = withContext(dispatcherProvider.databaseRead) {
+      db.sessionQueries.getForId(libraryItemId, currentUserId)
+        .awaitAsOneOrNull()
+    }
+
+    // If an existing session has been updated withing allowed time interval,
+    // just re-use the session
+    if (existingSession != null) {
+      val elapsed = fatherTime.nowInEpochMillis() - existingSession.updatedAt.utcEpochMilliseconds
+      if (elapsed <= 15.minutes.inWholeMilliseconds) {
+        bark { "Existing session is still young enough, returning it." }
+        withContext(dispatcherProvider.databaseWrite) {
+          db.sessionQueries.activate(currentUserId, libraryItemId)
+        }
+        return hydrateSession(existingSession)
+      }
+    }
+
+    // If there is no existing, or its too old. Create a new session.
     return withContext(dispatcherProvider.databaseWrite) {
       val dbSession = DbSession(
         id = Uuid.random(),

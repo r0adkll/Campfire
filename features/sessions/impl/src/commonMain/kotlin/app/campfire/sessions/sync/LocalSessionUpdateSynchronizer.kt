@@ -55,6 +55,17 @@ class LocalSessionUpdateSynchronizer(
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
     component.sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
+
+    // Add time since last played to the current session
+    val lastPlayed = lastPlayedTime[libraryItemId]
+    val now = fatherTime.nowInEpochMillis()
+    lastPlayedTime[libraryItemId] = now
+    if (lastPlayed != null) {
+      val elapsed = (now - lastPlayed).milliseconds
+      component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
+    }
+
+    // Trigger an update if conditions are right
     component.remoteSessionsUpdater.update()
   }
 

@@ -17,13 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.ReadoutStyle
-import app.campfire.common.compose.extensions.readoutAtMostHours
+import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.stats.ui.StatsUiModel
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.card_library_totals_title
 import campfire.features.stats.ui.generated.resources.library_totals_summary_format
 import kotlin.time.Duration
+import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -86,7 +87,7 @@ private fun createOverviewText(
           when (token.key) {
             "items" -> append("$totalItem items")
             "authors" -> append("$totalAuthors authors")
-            "time" -> append(totalTime.readoutAtMostHours(ReadoutStyle.Long))
+            "time" -> append(totalTime.readoutAtMost(DurationUnit.HOURS, ReadoutStyle.Long))
             "tracks" -> append("$totalTracks tracks")
             "size" -> append(totalSizeInBytes.asReadableBytes())
             else -> Unit

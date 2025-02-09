@@ -283,7 +283,10 @@ private fun PlaybackBottomBar(
         onChapterListClick = {
           if (session == null) return@ActionRow
           scope.launch {
-            val result = overlayHost.showChapterBottomSheet(session.libraryItem.media.chapters)
+            val result = overlayHost.showChapterBottomSheet(
+              chapters = session.libraryItem.media.chapters,
+              currentChapter = session.chapter,
+            )
             if (result is ChapterResult.Selected) {
               onChapterSelected(result.chapter)
             }
