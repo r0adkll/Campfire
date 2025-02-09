@@ -9,8 +9,7 @@ import app.campfire.audioplayer.impl.vlcj.play
 import app.campfire.audioplayer.impl.vlcj.seekBackward
 import app.campfire.audioplayer.impl.vlcj.seekForward
 import app.campfire.audioplayer.impl.vlcj.stop
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
+import app.campfire.core.logging.Cork
 import app.campfire.core.util.runIf
 import kotlin.math.floor
 import kotlin.math.roundToLong
@@ -183,9 +182,9 @@ class VlcPlayer {
 
       val result = mediaPlayer.media().start(item.uri, *options)
       if (result) {
-        bark(LogPriority.DEBUG, TAG) { "Starting '${item.metadata?.title}', with ${options.joinToString()}" }
+        dbark { "Starting '${item.metadata?.title}', with ${options.joinToString()}" }
       } else {
-        bark(LogPriority.ERROR, TAG) { "Unable to start playback for '${item.metadata?.title}'" }
+        dbark { "Unable to start playback for '${item.metadata?.title}'" }
       }
     }
   }
@@ -217,50 +216,50 @@ class VlcPlayer {
 
   private inner class EventListener : MediaPlayerEventAdapter() {
     override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "mediaPlayerReady()" }
+      dbark { "mediaPlayerReady()" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun mediaChanged(mediaPlayer: MediaPlayer?, media: MediaRef?) {
-      bark(TAG) { "mediaChanged($media)" }
+      dbark { "mediaChanged($media)" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun opening(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "opening()" }
+      dbark { "opening()" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun buffering(mediaPlayer: MediaPlayer?, newCache: Float) {
-      bark(TAG) { "buffering(newCache=$newCache)" }
+      dbark { "buffering(newCache=$newCache)" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun playing(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "playing" }
+      dbark { "playing" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun paused(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "paused()" }
+      dbark { "paused()" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun stopped(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "stopped()" }
+      dbark { "stopped()" }
       mediaPlayer?.syncStateToListener()
     }
 
     override fun forward(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "forward()" }
+      dbark { "forward()" }
     }
 
     override fun backward(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "backward()" }
+      dbark { "backward()" }
     }
 
     override fun finished(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "finished($mediaPlayer)" }
+      dbark { "finished($mediaPlayer)" }
       listener?.onPositionChanged(0L)
       mediaPlayer?.submit {
         skipToNext()
@@ -268,19 +267,19 @@ class VlcPlayer {
     }
 
     override fun seekableChanged(mediaPlayer: MediaPlayer?, newSeekable: Int) {
-      bark(TAG) { "seekableChanged(newSeekable=$newSeekable)" }
+      dbark { "seekableChanged(newSeekable=$newSeekable)" }
     }
 
     override fun pausableChanged(mediaPlayer: MediaPlayer?, newPausable: Int) {
-      bark(TAG) { "pausableChanged(newPausable=$newPausable)" }
+      dbark { "pausableChanged(newPausable=$newPausable)" }
     }
 
     override fun titleChanged(mediaPlayer: MediaPlayer?, newTitle: Int) {
-      bark(TAG) { "titleChanged(newTitle=$newTitle)" }
+      dbark { "titleChanged(newTitle=$newTitle)" }
     }
 
     override fun lengthChanged(mediaPlayer: MediaPlayer?, newLength: Long) {
-      bark(TAG) { "lengthChanged(newLength=$newLength)" }
+      dbark { "lengthChanged(newLength=$newLength)" }
 
       // If the current media item has a clipping configuration set then
       // we'll just want to report its duration since the underlying
@@ -294,7 +293,7 @@ class VlcPlayer {
     }
 
     override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-      bark(TAG) { "timeChanged(newTime=$newTime)" }
+      dbark { "timeChanged(newTime=$newTime)" }
 
       // If the current media item has a clipping configuration set then
       // we'll want to adjust the current time here to be within the clip
@@ -309,23 +308,23 @@ class VlcPlayer {
     }
 
     override fun corked(mediaPlayer: MediaPlayer?, corked: Boolean) {
-      bark(TAG) { "corked(corked=$corked)" }
+      dbark { "corked(corked=$corked)" }
     }
 
     override fun muted(mediaPlayer: MediaPlayer?, muted: Boolean) {
-      bark(TAG) { "muted(muted=$muted)" }
+      dbark { "muted(muted=$muted)" }
     }
 
     override fun audioDeviceChanged(mediaPlayer: MediaPlayer?, audioDevice: String?) {
-      bark(TAG) { "audioDeviceChanged(audioDevice=$audioDevice)" }
+      dbark { "audioDeviceChanged(audioDevice=$audioDevice)" }
     }
 
     override fun chapterChanged(mediaPlayer: MediaPlayer?, newChapter: Int) {
-      bark(TAG) { "chapterChanged(newChapter=$newChapter)" }
+      dbark { "chapterChanged(newChapter=$newChapter)" }
     }
 
     override fun error(mediaPlayer: MediaPlayer?) {
-      bark(TAG) { "error(${mediaPlayer?.status()?.state()})" }
+      dbark { "error(${mediaPlayer?.status()?.state()})" }
       mediaPlayer?.syncStateToListener()
     }
 
@@ -348,6 +347,11 @@ class VlcPlayer {
       listener?.onStateChanged(playerState)
     }
   }
+
+  companion object : Cork {
+    override val tag: String = "VlcPlayer"
+    override val enabled: Boolean = false
+  }
 }
 
 sealed class VlcOption(val option: String) {
@@ -359,5 +363,3 @@ sealed class VlcOption(val option: String) {
 private fun List<VlcOption>.toOptionArray(): Array<String> {
   return map { it.option }.toTypedArray()
 }
-
-private const val TAG = "VlcPlayer"

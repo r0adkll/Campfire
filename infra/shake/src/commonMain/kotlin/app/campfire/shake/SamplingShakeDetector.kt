@@ -1,7 +1,5 @@
 package app.campfire.shake
 
-import app.campfire.core.logging.bark
-
 /**
  * Detects phone shaking. If more than 75% of the samples taken in the past 0.5s are
  * accelerating, the device is a) shaking, or b) free falling 1.84m (h =
@@ -47,7 +45,6 @@ class SamplingShakeDetector(
     // compare their squares. This is equivalent and doesn't need the
     // actual magnitude, which would be computed using (expensive) Math.sqrt().
     val magnitudeSquared = (ax * ax + ay * ay + az * az).toDouble()
-    bark("ShakeDetector") { "Magnitude($magnitudeSquared) > ${sensitivity.valueSquared}" }
     return magnitudeSquared > sensitivity.valueSquared
   }
 

@@ -67,6 +67,7 @@ interface AudioPlayer {
     duration: Duration = DefaultFadeDuration,
     tickRate: Long = DefaultFadeTickRate,
   ): Job
+
   fun playPause()
   fun stop()
   fun seekTo(itemIndex: Int)
@@ -85,6 +86,7 @@ interface AudioPlayer {
 
   enum class State {
     Disabled,
+    Initializing,
     Buffering,
     Playing,
     Paused,

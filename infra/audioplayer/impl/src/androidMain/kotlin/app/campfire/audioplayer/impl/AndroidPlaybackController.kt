@@ -28,17 +28,27 @@ class AndroidPlaybackController(
     ibark { "[$this] Constructed" }
   }
 
+  private var currentSessionId: LibraryItemId? = null
+
   override fun startSession(
     itemId: LibraryItemId,
     playImmediately: Boolean,
     chapterId: Int?,
   ) {
+    // Dumb hack to get around edge case where this can be called twice from [SessionLayoutHost]
+    // during init/new session
+    if (currentSessionId == itemId && chapterId != null) {
+      wbark { "[$this] -!-> Current session is $currentSessionId, ignoring request" }
+      return
+    }
+
     ibark { "[$this] ~~> startSession($itemId, playImmediately=$playImmediately, chapterId=$chapterId)" }
     mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
       .take(1)
       .onEach { mediaController ->
         ibark { "$mediaController <-- starting for $itemId, playImmediately=$playImmediately" }
+        currentSessionId = itemId
         playbackSessionManager.startSession(itemId, playImmediately, chapterId)
       }
       .launchIn(scopeHolder.get())

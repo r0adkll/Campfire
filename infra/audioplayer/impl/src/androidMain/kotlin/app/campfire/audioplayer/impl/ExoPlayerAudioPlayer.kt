@@ -128,6 +128,7 @@ class ExoPlayerAudioPlayer(
     chapterId: Int?,
   ) = withContext(Dispatchers.Main) {
     preparedSession = session
+    state.value = AudioPlayer.State.Initializing
 
     val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems()
 

@@ -96,6 +96,7 @@ class IosAudioPlayer(
     chapterId: Int?,
   ) {
     preparedSession = session
+    player.prePrepare()
 
     setupRemoteTransportControls()
 

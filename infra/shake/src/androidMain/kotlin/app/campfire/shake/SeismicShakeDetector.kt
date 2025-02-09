@@ -4,7 +4,6 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import app.campfire.core.logging.bark
 
 class SeismicShakeDetector(
   private val listener: Listener,
@@ -75,8 +74,6 @@ class SeismicShakeDetector(
       event.values[2].toDouble(),
       event.timestamp,
     )
-
-    bark("ShakeDetector") { "Accelerometer event: $accelerometerEvent" }
 
     samplingShakeDetector.addAccelerometerEvent(accelerometerEvent)
   }

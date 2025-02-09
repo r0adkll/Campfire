@@ -211,6 +211,13 @@ class IosPlayer(
   }
 
   /**
+   * Work around to put the state into initialization mode while we prepare the player
+   */
+  fun prePrepare() {
+    _state.value = AudioPlayer.State.Initializing
+  }
+
+  /**
    * Prepare this player for playback, feeding it an option to start playback immediately when its ready
    * or to wait. Also give the starting overall time position of where to resume/start playback.
    * @param playImmediately start playback immediately

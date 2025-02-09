@@ -12,7 +12,6 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
-import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 
 class VlcAudioPlayer(
   private val settings: PlaybackSettings,
-  private val fatherTime: FatherTime,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
 ) : AudioPlayer {
 
@@ -60,6 +58,7 @@ class VlcAudioPlayer(
     chapterId: Int?,
   ) {
     preparedSession = session
+    state.value = AudioPlayer.State.Initializing
 
     // Build and set media items for the current session
     val mediaItems = MediaItemBuilder.build(session)

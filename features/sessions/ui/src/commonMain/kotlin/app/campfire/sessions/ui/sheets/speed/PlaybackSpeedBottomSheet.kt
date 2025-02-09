@@ -100,7 +100,9 @@ private fun PlaybackSpeedBottomSheet(
     Spacer(Modifier.height(16.dp))
 
     SingleChoiceSegmentedButtonRow(
-      modifier = Modifier.align(Alignment.CenterHorizontally),
+      modifier = Modifier
+        .align(Alignment.CenterHorizontally)
+        .padding(horizontal = 16.dp),
     ) {
       speedOptions.forEachIndexed { index, defaultSpeed ->
         val isCurrentSpeed = currentSpeed == defaultSpeed
