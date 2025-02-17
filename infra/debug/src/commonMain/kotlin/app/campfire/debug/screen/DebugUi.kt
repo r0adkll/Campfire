@@ -34,7 +34,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -43,7 +42,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.theme.colorPalette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
-import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.common.compose.widgets.Tag
 import app.campfire.common.compose.widgets.TagGroup
@@ -58,7 +56,6 @@ import app.campfire.debug.screen.model.EventUiModel
 import app.campfire.debug.theme.JetBrainsMono
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.datetime.format.Padding
 
 @CircuitInject(DebugScreen::class, UserScope::class)
 @Composable
@@ -66,23 +63,21 @@ fun Debug(
   state: DebugUiState,
   modifier: Modifier = Modifier,
 ) {
-
-
   Scaffold(
     topBar = {
       Surface(
-        shadowElevation = 2.dp
+        shadowElevation = 2.dp,
       ) {
         Column {
           CampfireTopAppBar(
             title = { Text("Events") },
             navigationIcon = {
               IconButton(
-                onClick = { state.eventSink(DebugUiEvent.Back) }
+                onClick = { state.eventSink(DebugUiEvent.Back) },
               ) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
               }
-            }
+            },
           )
           SearchBar(
             modifier = Modifier
@@ -99,7 +94,7 @@ fun Debug(
                 onSearch = { state.eventSink(DebugUiEvent.Query(it)) },
                 trailingIcon = {
                   IconButton(
-                    onClick = { state.eventSink(DebugUiEvent.ClearQuery) }
+                    onClick = { state.eventSink(DebugUiEvent.ClearQuery) },
                   ) {
                     Icon(Icons.Rounded.Clear, contentDescription = null)
                   }
@@ -160,9 +155,9 @@ private fun LoadedContent(
               withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                 append("\"$query\"")
               }
-            }
+            },
           )
-        }
+        },
       )
     }
   }
@@ -193,14 +188,13 @@ private fun EventListItem(
         }
       },
   ) {
-
     Column(
       modifier = Modifier.run {
         weight(1f)
-            .padding(
-              horizontal = 16.dp,
-              vertical = 4.dp
-            )
+          .padding(
+            horizontal = 16.dp,
+            vertical = 4.dp,
+          )
       },
     ) {
       Text(
@@ -218,11 +212,10 @@ private fun EventListItem(
           tags = buildList {
             if (event.throwable != null) add(Tag(event.throwable::class.simpleName!!, TagStyle.Outline))
             event.tags.map { Tag(it, TagStyle.Filled) }
-          }
+          },
         )
       }
     }
-
   }
 }
 

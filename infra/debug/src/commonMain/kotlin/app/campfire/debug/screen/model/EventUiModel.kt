@@ -18,5 +18,5 @@ enum class EventType(val key: String) {
   TrySend("~~>"),
   Receive("<--"),
   ReceiveFailure("<!--"),
-  None("1234567890")
+  None("1234567890"),
 }

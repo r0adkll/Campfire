@@ -48,8 +48,8 @@ interface HttpClientModule {
               tag = "KtorClient",
               priority = LogPriority.INFO,
               extras = mapOf(
-                "isLogging" to "true"
-              )
+                "isLogging" to "true",
+              ),
             ) { message }
           }
         }

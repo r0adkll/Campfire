@@ -70,7 +70,7 @@ include(
   ":infra:audioplayer:impl",
   ":infra:audioplayer:public-ui",
   ":infra:shake",
-  ":infra:debug"
+  ":infra:debug",
 )
 include(
   ":common:screens",

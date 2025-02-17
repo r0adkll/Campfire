@@ -5,7 +5,7 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.extensions.utcEpochMilliseconds
+import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
@@ -16,7 +16,6 @@ import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
-import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.libraries.api.LibraryItemRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
@@ -26,7 +25,6 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
