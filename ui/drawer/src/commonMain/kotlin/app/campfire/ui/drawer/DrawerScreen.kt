@@ -27,6 +27,7 @@ import app.campfire.account.ui.picker.AccountPickerResult
 import app.campfire.account.ui.picker.showAccountPicker
 import app.campfire.account.ui.switcher.AccountSwitcher
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.Author
 import app.campfire.common.compose.icons.filled.Collections
 import app.campfire.common.compose.icons.filled.Home
@@ -36,12 +37,14 @@ import app.campfire.common.compose.icons.outline.Author
 import app.campfire.common.compose.icons.outline.Collections
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
+import app.campfire.common.compose.icons.rounded.LogFile
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalRootScreen
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DebugScreen
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LibraryScreen
@@ -50,6 +53,7 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.common.screens.StorageScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.isDebug
 import campfire.ui.drawer.generated.resources.Res
 import campfire.ui.drawer.generated.resources.nav_authors_content_description
 import campfire.ui.drawer.generated.resources.nav_authors_label
@@ -231,5 +235,17 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
         selectedImageVector = Icons.Filled.Settings,
       ),
     )
+
+    if (isDebug) {
+      add(
+        HomeNavigationItem(
+          screen = DebugScreen,
+          label = "Debug",
+          contentDescription = "Debug",
+          iconImageVector = CampfireIcons.Rounded.LogFile,
+          selectedImageVector = CampfireIcons.Rounded.LogFile,
+        ),
+      )
+    }
   }
 }

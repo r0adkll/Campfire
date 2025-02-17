@@ -44,7 +44,13 @@ interface HttpClientModule {
         level = LogLevel.INFO
         logger = object : Logger {
           override fun log(message: String) {
-            bark(LogPriority.INFO) { message }
+            bark(
+              tag = "KtorClient",
+              priority = LogPriority.INFO,
+              extras = mapOf(
+                "isLogging" to "true"
+              )
+            ) { message }
           }
         }
       }

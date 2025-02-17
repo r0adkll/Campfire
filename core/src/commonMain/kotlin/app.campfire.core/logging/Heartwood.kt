@@ -6,6 +6,8 @@ class Heartwood private constructor() {
 
   interface Bark {
     fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String)
+    fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String, throwable: Throwable?) =
+      log(priority, tag, extras, messageWithStacktrace(throwable, message))
   }
 
   companion object : Bark {
@@ -17,6 +19,10 @@ class Heartwood private constructor() {
 
     override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
       barks.forEach { it.log(priority, tag, extras, message) }
+    }
+
+    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String, throwable: Throwable?) {
+      barks.forEach { it.log(priority, tag, extras, message, throwable) }
     }
   }
 }
@@ -44,7 +50,7 @@ inline fun Any.bark(
   message: () -> String,
 ) {
   val tagOrCaller = tag ?: outerClassSimpleNameInternalOnlyDoNotUseKThxBye()
-  Heartwood.log(priority, tagOrCaller, extras, messageWithStacktrace(throwable, message))
+  Heartwood.log(priority, tagOrCaller, extras, message(), throwable)
 }
 
 /**
@@ -59,11 +65,11 @@ inline fun bark(
   extras: Extras? = null,
   message: () -> String,
 ) {
-  Heartwood.log(priority, tag, extras, messageWithStacktrace(throwable, message))
+  Heartwood.log(priority, tag, extras, message(), throwable)
 }
 
-inline fun messageWithStacktrace(t: Throwable?, msg: () -> String): String {
-  var message = msg()
+inline fun messageWithStacktrace(t: Throwable?, msg: String): String {
+  var message = msg
   if (t != null) {
     message += "\n${t.stackTraceToString()}"
   }

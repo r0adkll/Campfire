@@ -18,6 +18,9 @@ import com.slack.circuit.runtime.screen.StaticScreen
 data object RootScreen : BaseScreen(name = "Root")
 
 @Parcelize
+data object DebugScreen : BaseScreen(name = "Debug()")
+
+@Parcelize
 data class EmptyScreen(
   val message: String,
 ) : StaticScreen

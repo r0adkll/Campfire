@@ -16,6 +16,7 @@ import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
+import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.libraries.api.LibraryItemRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
@@ -23,6 +24,8 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
@@ -111,17 +114,21 @@ class SqlDelightSessionDataSource(
     // If an existing session has been updated withing allowed time interval,
     // just re-use the session
     if (existingSession != null) {
-      val elapsed = fatherTime.nowInEpochMillis() - existingSession.updatedAt.utcEpochMilliseconds
-      if (elapsed <= 15.minutes.inWholeMilliseconds) {
+      val now = fatherTime.now()
+      val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
+      if (elapsed <= 4.hours.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
         bark { "Existing session is still young enough, returning it." }
         withContext(dispatcherProvider.databaseWrite) {
           db.sessionQueries.activate(currentUserId, libraryItemId)
         }
         return hydrateSession(existingSession)
+      } else {
+        bark { "Existing session is too old, creating new. Age: ${elapsed.milliseconds}" }
       }
     }
 
     // If there is no existing, or its too old. Create a new session.
+    bark { "Creating new session for $libraryItemId" }
     return withContext(dispatcherProvider.databaseWrite) {
       val dbSession = DbSession(
         id = Uuid.random(),

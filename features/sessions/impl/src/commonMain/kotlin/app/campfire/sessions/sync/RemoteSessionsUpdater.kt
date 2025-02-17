@@ -12,6 +12,7 @@ import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
@@ -74,7 +75,11 @@ class NetworkRemoteSessionsUpdater(
   private suspend fun syncLocalSessionsToServer() {
     // Read local sessions from db
     val currentUserId = userSession.userId ?: return
-    val localSessions = sessionDataSource.getSessions(currentUserId)
+    val localSessions = sessionDataSource.getSessions(currentUserId).filter { session ->
+      // Omit sessions that have < 20s of listening time. These could likely be errant, or restoration sessions
+      // and we should hold off on uploading them until they have a significant amount of listening time
+      session.timeListening > 20.seconds
+    }
 
     if (localSessions.isNotEmpty()) {
       val networkPlaybackSessions = localSessions.map { networkSessionMapper.map(it) }
