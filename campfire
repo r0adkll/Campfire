@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+
+########################################################################
+##
+## Script wrapper for Clikt based kotlin CLI tool in /scripts/app
+##
+########################################################################
+
+APP_BINARY="scripts/app/build/install/app/bin/app"
+
+# Filter the args for '--rebuild' and trigger if specified
+do_rebuild=0
+filtered_args=()
+for arg in "$@"; do
+    if [[ "$arg" != "--rebuild" ]]; then
+        filtered_args+=("$arg")
+    else
+        do_rebuild=1
+    fi
+done
+set -- "${filtered_args[@]}"
+
+# Install the scripts app by running gradle
+install_app() {
+    ./gradlew :scripts:app:installDist --quiet
+    echo "Successfully installed scripts app"
+}
+
+# Check if scripts app has been installed already,
+if [[ ! -f "$APP_BINARY" || "$do_rebuild" == 1 ]] ; then
+    echo "Building script application, Please wait…"
+    install_app
+fi
+
+# Pass script calling to scripts app
+./scripts/app/build/install/app/bin/app "$@"

@@ -5,6 +5,7 @@ androidxactivity = "1.10.1"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-alpha06"
 about-libraries = "11.6.3"
+clikt = "5.0.3"
 core-ktx = "1.15.0"
 coroutines = "1.10.1"
 # This is used in the build logic
@@ -21,6 +22,7 @@ ksoup = "0.5.0"
 ksp = "2.1.10-1.0.31"
 ktlint = "0.49.1"
 ktor = "3.1.1"
+mosaic = "0.16.0"
 multiplatformsettings = "1.3.0"
 molecule = "2.0.0"
 okhttp = "4.12.0"
@@ -76,6 +78,10 @@ androidx-paging-common = { module = "androidx.paging:paging-common", version.ref
 androidx-preferences = "androidx.preference:preference:1.2.1"
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-security-crypto = { module =  "androidx.security:security-crypto", version.ref = "androidxsecuritycrypto" }
+
+#CLI
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+mosaic = { module = "com.jakewharton.mosaic:mosaic-runtime", version.ref = "mosaic" }
 
 #Circuit
 circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }

@@ -147,4 +147,6 @@ include(
   ":ui:attribution",
 )
 
+include(":scripts:app")
+
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
