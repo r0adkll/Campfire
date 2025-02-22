@@ -22,18 +22,18 @@ fun BorderedTitledBox(
   borderColor: Color = secondaryDark,
   content: @Composable BoxScope.() -> Unit,
 ) {
-	Box(modifier = modifier.border(color = borderColor).padding(horizontal = 1)) {
-		Text(
-			buildAnnotatedString {
-				append("┐ ")
-				withStyle(SpanStyle(titleColor)) {
-					append(title)
-				}
-				append(" ┌")
-			},
-			modifier = Modifier.align(Alignment.TopStart).offset(x = -1, y = -1),
-			color = borderColor,
-		)
-		content()
-	}
+  Box(modifier = modifier.border(color = borderColor).padding(horizontal = 1)) {
+    Text(
+      buildAnnotatedString {
+        append("┐ ")
+        withStyle(SpanStyle(titleColor)) {
+          append(title)
+        }
+        append(" ┌")
+      },
+      modifier = Modifier.align(Alignment.TopStart).offset(x = -1, y = -1),
+      color = borderColor,
+    )
+    content()
+  }
 }

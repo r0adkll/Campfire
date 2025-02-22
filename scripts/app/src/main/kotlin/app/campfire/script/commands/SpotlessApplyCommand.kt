@@ -32,7 +32,7 @@ class SpotlessApplyCommand : SuspendingCliktCommand(
         CliktError(
           message = "Running spotless on the main project failed",
           statusCode = code,
-        )
+        ),
       )
     }.onSuccess {
       echo("Spotless applied to main project!")
@@ -48,11 +48,10 @@ class SpotlessApplyCommand : SuspendingCliktCommand(
         CliktError(
           message = "Running spotless on the main project failed",
           statusCode = code,
-        )
+        ),
       )
     }.onSuccess {
       echo("Spotless applied to build logic!")
     }
   }
 }
-

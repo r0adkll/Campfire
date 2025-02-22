@@ -49,7 +49,7 @@ private val skippableFolders = listOf(
   ".idea",
   "spotless",
   "build",
-  "src"
+  "src",
 )
 
 suspend fun BaseCliktCommand<*>.gradleModules(
@@ -63,8 +63,9 @@ suspend fun BaseCliktCommand<*>.gradleModules(
     }
     .visitFileTree {
       onPreVisitDirectory { directory, _ ->
-        if (directory.name in skippableFolders) FileVisitResult.SKIP_SUBTREE
-        else FileVisitResult.CONTINUE
+        if (directory.name in skippableFolders) {
+          FileVisitResult.SKIP_SUBTREE
+        } else FileVisitResult.CONTINUE
       }
 
       onVisitFile { file, _ ->

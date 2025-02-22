@@ -2,14 +2,13 @@ package app.campfire.script.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import app.campfire.script.ui.composables.BorderedTitledBox
 import app.campfire.script.theme.primaryDark
 import app.campfire.script.theme.secondaryDark
+import app.campfire.script.ui.composables.BorderedTitledBox
 import com.jakewharton.mosaic.LocalTerminal
 import com.jakewharton.mosaic.layout.KeyEvent
 import com.jakewharton.mosaic.layout.background

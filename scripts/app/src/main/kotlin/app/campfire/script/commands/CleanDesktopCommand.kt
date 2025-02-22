@@ -13,7 +13,7 @@ import me.tatarka.inject.annotations.Inject
 )
 @Inject
 class CleanDesktopCommand : SuspendingCliktCommand(
-  name = "clean-desktop"
+  name = "clean-desktop",
 ) {
 
   override suspend fun run() {

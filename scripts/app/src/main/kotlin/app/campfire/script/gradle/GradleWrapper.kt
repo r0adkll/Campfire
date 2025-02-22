@@ -22,7 +22,7 @@ suspend fun BaseCliktCommand<*>.gw(
 ): ProcessResult<String> = gw(
   arguments = arguments,
   quiet = quiet,
-  block = { process.inputStream.bufferedReader().readText() }
+  block = { process.inputStream.bufferedReader().readText() },
 )
 
 fun Path.asGradleModulePath(): String {

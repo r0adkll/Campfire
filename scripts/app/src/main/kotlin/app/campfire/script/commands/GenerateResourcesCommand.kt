@@ -60,7 +60,6 @@ class GenerateResourcesCommand : SuspendingCliktCommand(
     } ?: run {
       var selectedModule: String? = null
       runMosaic {
-
         var modules by remember { mutableStateOf(persistentListOf<String>()) }
 
         // Load available gradle modules that are CMP resource enabled
@@ -79,7 +78,7 @@ class GenerateResourcesCommand : SuspendingCliktCommand(
           options = modules,
           onOptionSelected = { module ->
             selectedModule = module
-          }
+          },
         )
       }
 
@@ -105,9 +104,9 @@ class GenerateResourcesCommand : SuspendingCliktCommand(
 
     if (result.isSuccess) {
       val generateTasks = buildList {
-        add("${module}:generateComposeResClass")
+        add("$module:generateComposeResClass")
         result.output.forEach {
-          add("${module}:${it.trim()}")
+          add("$module:${it.trim()}")
         }
       }.toTypedArray()
 
@@ -130,7 +129,7 @@ class GenerateResourcesCommand : SuspendingCliktCommand(
         CliktError(
           message = "Failed to find any generateResourceAccessorsFor tasks in $module",
           statusCode = result.code,
-        )
+        ),
       )
     }
   }

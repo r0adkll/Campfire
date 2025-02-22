@@ -15,14 +15,15 @@ class CampfireCli : SuspendingCliktCommand(
 ) {
 
   private val verbose by option(
-    "-v", "--verbose",
+    "-v",
+    "--verbose",
     help = "Print out more verbose logging for commands",
   ).flag()
   private val config by findOrSetObject { CampfireConfig() }
 
   override fun help(context: Context): String = """
     This is the Campfire CLI for various related tasks, cleanup, and other utilities relating to this project.
-    """.trimIndent()
+  """.trimIndent()
 
   override suspend fun run() {
     config.verbose = verbose
