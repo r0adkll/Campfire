@@ -149,7 +149,7 @@ connectivity-android = { module = "dev.jordond.connectivity:connectivity-android
 connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity"}
 connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity"}
 
-tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.4"
+tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 store = "org.mobilenativefoundation.store:store5:5.0.0"
 
 # SqlDelight
