@@ -93,7 +93,7 @@ coil-networking-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", vers
 coil-networking-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 
 # Firebase
-google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.2.0"
+google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.3.0"
 google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.4.1"
 google-firebase-perf = "com.google.firebase:firebase-perf-ktx:21.0.4"
 
