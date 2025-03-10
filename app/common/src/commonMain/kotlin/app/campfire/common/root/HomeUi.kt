@@ -91,7 +91,7 @@ import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
-import com.slack.circuitx.gesturenavigation.GestureNavigationDecoration
+import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -205,7 +205,7 @@ internal fun HomeUi(
       NavigableCircuitContent(
         navigator = homeNavigator,
         backStack = backstack,
-        decoration = GestureNavigationDecoration(
+        decoratorFactory = GestureNavigationDecorationFactory(
           onBackInvoked = navigator::pop,
         ),
       )
