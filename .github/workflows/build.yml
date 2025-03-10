@@ -14,7 +14,7 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     name: "danger-pr"
     container:
-      image: docker://ghcr.io/danger/danger-kotlin:1.3.3
+      image: docker://ghcr.io/r0adkll/danger-kotlin:2.0.4
     steps:
       - uses: actions/checkout@v4
       - name: Run Danger

@@ -3,6 +3,7 @@
 import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import com.gianluz.dangerkotlin.androidlint.androidLint
 import systems.danger.kotlin.*
+import systems.danger.kotlin.models.github.GitHubUserType
 
 register plugin AndroidLint
 
@@ -13,6 +14,11 @@ danger(args) {
   val sourceChanges = allSourceFiles.firstOrNull { it.contains("src") }
 
   onGitHub {
+    if (pullRequest.user.type == GitHubUserType.BOT) {
+      message("This PR is part of some automation, skip...")
+      return@danger
+    }
+
     val isTrivial = pullRequest.title.contains("#trivial")
 
     message("This PR has been checked by Danger")
