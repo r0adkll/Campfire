@@ -21,10 +21,11 @@ captures
 .idea/artifacts
 gradle.xml
 *.iml
-ios-app/Tivi/.idea/*
 .fleet
 .kotlin
 .campfire
+.danger
+danger_out.json
 
 # General
 .DS_Store

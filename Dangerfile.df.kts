@@ -7,6 +7,10 @@ import systems.danger.kotlin.models.github.GitHubUserType
 
 register plugin AndroidLint
 
+/**
+ * Install the 'Danger Kotlin' IntelliJ Plugin for easy editing of this file!
+ * See https://r0adkll.github.io/danger-kotlin/intellij-plugin
+ */
 danger(args) {
 
   val allSourceFiles = git.modifiedFiles + git.createdFiles
