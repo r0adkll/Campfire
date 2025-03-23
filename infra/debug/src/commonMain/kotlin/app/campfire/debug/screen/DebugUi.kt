@@ -46,15 +46,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.theme.colorPalette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.LoadingState
-import app.campfire.common.compose.widgets.Tag
-import app.campfire.common.compose.widgets.TagGroup
-import app.campfire.common.compose.widgets.TagStyle
 import app.campfire.common.screens.DebugScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -217,7 +213,7 @@ private fun EventListItem(
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.clickable {
           maxLines = if (maxLines == 4) Int.MAX_VALUE else 4
-        }
+        },
       )
 
       if (event.tags.isNotEmpty() || event.throwable != null) {
@@ -256,7 +252,6 @@ private fun LogTagChip(
       ),
   )
 }
-
 
 val LogPriority.color: Color get() = when (this) {
   LogPriority.VERBOSE -> Color.LightGray

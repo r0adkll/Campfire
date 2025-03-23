@@ -24,9 +24,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -118,13 +116,19 @@ class SqlDelightSessionDataSource(
       val now = fatherTime.now()
       val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
       if (elapsed <= devSettings.sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
-        bark { "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], returning it." }
+        bark {
+          "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], " +
+            "returning it."
+        }
         withContext(dispatcherProvider.databaseWrite) {
           db.sessionQueries.activate(currentUserId, libraryItemId)
         }
         return hydrateSession(existingSession)
       } else {
-        bark { "Existing session is too old, creating new. Age [${elapsed.milliseconds}], Session Age [${devSettings.sessionAge}]" }
+        bark {
+          "Existing session is too old, creating new. Age [${elapsed.milliseconds}], " +
+            "Session Age [${devSettings.sessionAge}]"
+        }
       }
     }
 

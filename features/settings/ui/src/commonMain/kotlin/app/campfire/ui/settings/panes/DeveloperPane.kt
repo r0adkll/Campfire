@@ -23,7 +23,6 @@ internal fun DeveloperPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-
     DurationInputSetting(
       value = state.developerSettings.sessionAge,
       onValueChange = { state.eventSink(DeveloperSettingEvent.SessionAge(it)) },

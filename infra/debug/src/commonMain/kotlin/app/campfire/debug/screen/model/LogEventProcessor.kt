@@ -51,7 +51,7 @@ class LogEventProcessor(
         message = buildString {
           if (eventType == EventType.NetworkRequest) {
             append("-->")
-          } else if (resultCode in 200..299){
+          } else if (resultCode in 200..299) {
             append("<--")
           } else {
             append("<!--")
