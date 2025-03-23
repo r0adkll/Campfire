@@ -12,6 +12,8 @@
   <string name="setting_sleep_subtitle">Timers, shake to reset, and haptics</string>
   <string name="setting_about_title">About</string>
   <string name="setting_about_subtitle">Developer, attributions, and version</string>
+  <string name="setting_developer_title">Developer</string>
+  <string name="setting_developer_subtitle">Debug, Troubleshooting, and other</string>
 
   <!-- Account setting strings -->
   <string name="setting_account_logout">Sign out</string>
@@ -78,6 +80,11 @@
   <string name="about_tos_title">Terms of service</string>
   <string name="about_attributions_title">Open source attributions</string>
   <string name="about_version_title">Version</string>
+
+  <!-- Developer setting -->
+  <string name="developer_settings_title">Developer</string>
+  <string name="developer_settings_session_age_title">Session age</string>
+  <string name="developer_settings_session_age_subtitle">The amount of time before resetting a listening session</string>
 
   <!-- Misc actions-->
   <string name="dialog_confirm_action">Apply</string>

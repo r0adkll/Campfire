@@ -24,6 +24,7 @@ data class SettingsUiState(
   val applicationInfo: ApplicationInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
+  val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -52,12 +53,18 @@ data class SleepSettingsInfo(
   )
 }
 
+@Immutable
+data class DeveloperSettingsInfo(
+  val sessionAge: Duration,
+)
+
 enum class SettingsPane {
   Account,
   Appearance,
   Playback,
   Sleep,
   About,
+  Developer,
   ;
 
   val screenPage: SettingsScreen.Page get() = when (this) {
@@ -66,6 +73,7 @@ enum class SettingsPane {
     Playback -> SettingsScreen.Page.Playback
     Sleep -> SettingsScreen.Page.Sleep
     About -> SettingsScreen.Page.About
+    Developer -> SettingsScreen.Page.Developer
   }
 }
 
@@ -112,5 +120,9 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object PrivacyPolicyClick : AboutSettingEvent
     data object TermsOfServiceClick : AboutSettingEvent
     data object AttributionsClick : AboutSettingEvent
+  }
+
+  sealed interface DeveloperSettingEvent : SettingsUiEvent {
+    data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
   }
 }

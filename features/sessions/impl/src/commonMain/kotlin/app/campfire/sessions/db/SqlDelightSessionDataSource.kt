@@ -17,6 +17,7 @@ import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.settings.api.DevSettings
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
@@ -25,6 +26,7 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -45,6 +47,7 @@ class SqlDelightSessionDataSource(
   private val fatherTime: FatherTime,
   private val userSessionManager: UserSessionManager,
   private val libraryItemRepository: LibraryItemRepository,
+  private val devSettings: DevSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionDataSource {
 
@@ -114,14 +117,14 @@ class SqlDelightSessionDataSource(
     if (existingSession != null) {
       val now = fatherTime.now()
       val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
-      if (elapsed <= 4.hours.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
-        bark { "Existing session is still young enough, returning it." }
+      if (elapsed <= devSettings.sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
+        bark { "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], returning it." }
         withContext(dispatcherProvider.databaseWrite) {
           db.sessionQueries.activate(currentUserId, libraryItemId)
         }
         return hydrateSession(existingSession)
       } else {
-        bark { "Existing session is too old, creating new. Age: ${elapsed.milliseconds}" }
+        bark { "Existing session is too old, creating new. Age [${elapsed.milliseconds}], Session Age [${devSettings.sessionAge}]" }
       }
     }
 

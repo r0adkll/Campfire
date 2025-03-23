@@ -18,5 +18,7 @@ enum class EventType(val key: String) {
   TrySend("~~>"),
   Receive("<--"),
   ReceiveFailure("<!--"),
+  NetworkRequest("REQUEST:"),
+  NetworkResponse("RESPONSE:"),
   None("1234567890"),
 }

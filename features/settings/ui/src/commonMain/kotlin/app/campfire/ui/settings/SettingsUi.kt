@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.DeveloperMode
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsPaused
 import androidx.compose.material.icons.rounded.Palette
@@ -45,10 +46,12 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.isDebug
 import app.campfire.ui.settings.composables.SettingPaneListItem
 import app.campfire.ui.settings.panes.AboutPane
 import app.campfire.ui.settings.panes.AccountPane
 import app.campfire.ui.settings.panes.AppearancePane
+import app.campfire.ui.settings.panes.DeveloperPane
 import app.campfire.ui.settings.panes.LocalPaneState
 import app.campfire.ui.settings.panes.PaneState
 import app.campfire.ui.settings.panes.PlaybackPane
@@ -60,6 +63,8 @@ import campfire.features.settings.ui.generated.resources.setting_account_subtitl
 import campfire.features.settings.ui.generated.resources.setting_account_title
 import campfire.features.settings.ui.generated.resources.setting_appearance_subtitle
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
+import campfire.features.settings.ui.generated.resources.setting_developer_subtitle
+import campfire.features.settings.ui.generated.resources.setting_developer_title
 import campfire.features.settings.ui.generated.resources.setting_playback_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_title
 import campfire.features.settings.ui.generated.resources.setting_sleep_subtitle
@@ -92,6 +97,7 @@ fun SettingsUi(
         SettingsScreen.Page.Playback -> SettingsPane.Playback
         SettingsScreen.Page.Sleep -> SettingsPane.Sleep
         SettingsScreen.Page.About -> SettingsPane.About
+        SettingsScreen.Page.Developer -> SettingsPane.Developer
       },
     )
   }
@@ -328,6 +334,24 @@ private fun SettingsRootPane(
           onPaneClick(SettingsPane.About)
         },
       )
+
+      // Developer - DEBUG ONLY
+      if (isDebug) {
+        SettingPaneListItem(
+          selected = pane == SettingsPane.Developer && hideTopBar,
+          icon = {
+            Icon(
+              Icons.Rounded.DeveloperMode,
+              contentDescription = null,
+            )
+          },
+          title = { Text(stringResource(Res.string.setting_developer_title)) },
+          subtitle = { Text(stringResource(Res.string.setting_developer_subtitle)) },
+          onClick = {
+            onPaneClick(SettingsPane.Developer)
+          },
+        )
+      }
     }
   }
 }
@@ -365,6 +389,12 @@ private fun SettingPaneContent(
     )
 
     SettingsPane.About -> AboutPane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.Developer -> DeveloperPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,

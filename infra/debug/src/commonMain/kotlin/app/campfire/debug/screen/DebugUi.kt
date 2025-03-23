@@ -1,9 +1,13 @@
 package app.campfire.debug.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +30,10 @@ import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -38,6 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.theme.colorPalette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -165,11 +174,13 @@ private fun LoadedContent(
 
 private val PriorityCornerRadius = 8.dp
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun EventListItem(
   event: EventUiModel,
   modifier: Modifier = Modifier,
 ) {
+  var maxLines by remember { mutableStateOf(4) }
   Row(
     modifier = modifier
       .background(MaterialTheme.colorScheme.surfaceContainerLow)
@@ -199,25 +210,53 @@ private fun EventListItem(
     ) {
       Text(
         text = event.message,
-        maxLines = 4,
+        maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
         fontFamily = JetBrainsMono,
         fontWeight = FontWeight.Medium,
         style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.clickable {
+          maxLines = if (maxLines == 4) Int.MAX_VALUE else 4
+        }
       )
 
       if (event.tags.isNotEmpty() || event.throwable != null) {
         Spacer(Modifier.height(4.dp))
-        TagGroup(
-          tags = buildList {
-            if (event.throwable != null) add(Tag(event.throwable::class.simpleName!!, TagStyle.Outline))
-            event.tags.map { Tag(it, TagStyle.Filled) }
-          },
-        )
+        FlowRow(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+          event.tags.forEach { tag ->
+            LogTagChip(tag)
+          }
+        }
       }
     }
   }
 }
+
+@Composable
+private fun LogTagChip(
+  text: String,
+  modifier: Modifier = Modifier,
+) {
+  Text(
+    text = text,
+    style = MaterialTheme.typography.labelSmall,
+    fontWeight = FontWeight.SemiBold,
+    modifier = modifier
+      .border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.outline,
+        shape = MaterialTheme.shapes.extraSmall,
+      )
+      .padding(
+        horizontal = 4.dp,
+        vertical = 2.dp,
+      ),
+  )
+}
+
 
 val LogPriority.color: Color get() = when (this) {
   LogPriority.VERBOSE -> Color.LightGray
@@ -232,5 +271,7 @@ val EventType.color: Color get() = when (this) {
   EventType.TrySend -> Tent.Orange.colorPalette.lightColorScheme.primaryContainer
   EventType.Receive -> Tent.Green.colorPalette.lightColorScheme.secondaryContainer
   EventType.ReceiveFailure -> Tent.Red.colorPalette.lightColorScheme.errorContainer
+  EventType.NetworkRequest -> Tent.Purple.colorPalette.lightColorScheme.secondaryContainer
+  EventType.NetworkResponse -> Tent.Blue.colorPalette.lightColorScheme.secondaryContainer
   EventType.None -> Color.Unspecified
 }

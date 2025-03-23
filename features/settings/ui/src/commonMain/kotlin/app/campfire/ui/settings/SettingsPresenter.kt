@@ -16,6 +16,7 @@ import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.shake.ShakeDetector
@@ -60,6 +61,7 @@ class SettingsPresenter(
   private val settings: CampfireSettings,
   private val playbackSettings: PlaybackSettings,
   private val sleepSettings: SleepSettings,
+  private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val accountManager: AccountManager,
   private val shakeDetector: ShakeDetector,
@@ -95,6 +97,9 @@ class SettingsPresenter(
     val autoSleepRewindEnabled by remember { sleepSettings.observeAutoRewindEnabled() }.collectAsState()
     val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState()
 
+    // Developer Settings
+    val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
+
     return SettingsUiState(
       server = server,
       theme = theme,
@@ -122,6 +127,9 @@ class SettingsPresenter(
           null
         },
       ),
+      developerSettings = DeveloperSettingsInfo(
+        sessionAge = sessionAge,
+      ),
     ) { event ->
       when (event) {
         SettingsUiEvent.Back -> navigator.pop()
@@ -131,9 +139,11 @@ class SettingsPresenter(
           is ChangeName -> {
             scope.launch { serverRepository.changeName(event.name) }
           }
+
           is ChangeTent -> {
             scope.launch { serverRepository.changeTent(event.tent) }
           }
+
           Logout -> {
             scope.launch { accountManager.logout(server.dataOrNull!!) }
           }
@@ -161,6 +171,7 @@ class SettingsPresenter(
             is PlaybackTimer.EndOfChapter -> SleepSettings.AutoSleepTimer.EndOfChapter
             is PlaybackTimer.Epoch -> SleepSettings.AutoSleepTimer.Epoch(timer.epochMillis)
           }
+
           is AutoSleepRewindEnabled -> sleepSettings.autoRewindEnabled = event.enabled
           is AutoSleepRewindAmount -> sleepSettings.autoRewindAmount = event.amount
         }
@@ -171,6 +182,10 @@ class SettingsPresenter(
           GithubClick -> navigator.goTo(UrlScreen(applicationUrls.githubDiscussion))
           PrivacyPolicyClick -> navigator.goTo(UrlScreen(applicationUrls.privacyPolicy))
           TermsOfServiceClick -> navigator.goTo(UrlScreen(applicationUrls.termsOfService))
+        }
+
+        is SettingsUiEvent.DeveloperSettingEvent -> when (event) {
+          is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.sessionAge = event.sessionAge
         }
       }
     }

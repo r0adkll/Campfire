@@ -104,6 +104,7 @@ data class SettingsScreen(
     Playback,
     Sleep,
     About,
+    Developer,
   }
 }
 
