@@ -3,11 +3,15 @@ package app.campfire.audioplayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
+
+typealias OnFinishedListener = suspend (LibraryItemId) -> Unit
 
 /**
  * The interface by which to interact with the actual media controls
@@ -58,6 +62,7 @@ interface AudioPlayer {
     session: Session,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
+    onFinished: OnFinishedListener = { },
   )
 
   fun release()
@@ -90,6 +95,7 @@ interface AudioPlayer {
     Buffering,
     Playing,
     Paused,
+    Finished,
   }
 }
 

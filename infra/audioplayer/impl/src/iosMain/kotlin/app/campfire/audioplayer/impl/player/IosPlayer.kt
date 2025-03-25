@@ -71,6 +71,7 @@ import platform.Foundation.NSNotificationCenter
 class IosPlayer(
   private val scope: CoroutineScope,
   private val skipToPreviousResetThreshold: Duration,
+  private val onFinished: () -> Unit,
 ) : AutoCloseable {
 
   private val closeables = mutableListOf<AutoCloseable>()
@@ -549,9 +550,9 @@ class IosPlayer(
 
       prepare(playImmediately = true)
     } else {
-      // TODO: We are in a "Finished" state at this point. Add "Finished" to the list of available
-      //  [AudioPlayer.State] options.
       reset()
+      _state.value = AudioPlayer.State.Finished
+      onFinished()
     }
   }
 

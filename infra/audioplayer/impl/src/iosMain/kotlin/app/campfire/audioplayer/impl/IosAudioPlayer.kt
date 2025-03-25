@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
 import app.campfire.audioplayer.impl.mediaitem.IosMediaItemBuilder
 import app.campfire.audioplayer.impl.player.IosPlayer
@@ -56,6 +57,7 @@ class IosAudioPlayer(
   private val sleepTimerManager = sleepTimerManagerFactory.create(this)
 
   override var preparedSession: Session? = null
+  private var finishedListener: OnFinishedListener? = null
 
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(1f)
@@ -65,6 +67,13 @@ class IosAudioPlayer(
   private val player = IosPlayer(
     scope = scope,
     skipToPreviousResetThreshold = settings.trackResetThreshold,
+    onFinished = {
+      scope.launch {
+        finishedListener?.invoke(
+          preparedSession?.libraryItem?.id ?: return@launch
+        )
+      }
+    }
   )
 
   override val state: StateFlow<AudioPlayer.State> = player.state
@@ -94,8 +103,10 @@ class IosAudioPlayer(
     session: Session,
     playImmediately: Boolean,
     chapterId: Int?,
+    onFinished: OnFinishedListener,
   ) {
     preparedSession = session
+    finishedListener = onFinished
     player.prePrepare()
 
     setupRemoteTransportControls()
@@ -220,6 +231,7 @@ class IosAudioPlayer(
 
   override fun stop() {
     preparedSession = null
+    finishedListener = null
     player.close()
     scope.launch {
       UIApplication.sharedApplication.endReceivingRemoteControlEvents()

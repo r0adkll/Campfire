@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -16,6 +17,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class DefaultPlaybackSessionManager(
   private val sessionsRepository: SessionsRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
@@ -31,7 +33,11 @@ class DefaultPlaybackSessionManager(
 
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
-      player.prepare(session, playImmediately, chapterId)
+      player.prepare(session, playImmediately, chapterId) { libraryItemId ->
+        // TODO: We should probably wire this into some sort of playlist functionality
+        //  where we want to mark the finished item as done, and start the next.
+        mediaProgressRepository.markFinished(libraryItemId)
+      }
     }
   }
 

@@ -131,6 +131,9 @@ class VlcPlayer {
     if (currentItemIndex < mediaItems.size - 1) {
       currentItemIndex += 1
       prepareCurrentItem()
+    } else {
+      // We are finished!
+      listener?.onFinished()
     }
   }
 
@@ -212,6 +215,7 @@ class VlcPlayer {
     fun onDurationChanged(durationInMillis: Long)
     fun onPositionChanged(positionInMillis: Long)
     fun onMediaItemChanged(mediaItem: MediaItem): Boolean
+    fun onFinished()
   }
 
   private inner class EventListener : MediaPlayerEventAdapter() {

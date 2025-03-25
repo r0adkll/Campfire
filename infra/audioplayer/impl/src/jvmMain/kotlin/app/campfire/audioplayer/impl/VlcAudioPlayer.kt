@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.player.VlcPlayer
@@ -23,6 +24,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class VlcAudioPlayer(
   private val settings: PlaybackSettings,
@@ -38,6 +40,7 @@ class VlcAudioPlayer(
   private val sleepTimerManager = sleepTimerManagerFactory.create(this)
 
   override var preparedSession: Session? = null
+  private var finishedListener: OnFinishedListener? = null
 
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
   override val overallTime = MutableStateFlow(0.seconds)
@@ -56,8 +59,10 @@ class VlcAudioPlayer(
     session: Session,
     playImmediately: Boolean,
     chapterId: Int?,
+    onFinished: OnFinishedListener,
   ) {
     preparedSession = session
+    finishedListener = onFinished
     state.value = AudioPlayer.State.Initializing
 
     // Build and set media items for the current session
@@ -169,6 +174,7 @@ class VlcAudioPlayer(
 
   override fun stop() {
     preparedSession = null
+    finishedListener = null
     mediaPlayer.stop()
     mediaPlayer.release()
     scope.cancel()
@@ -267,6 +273,12 @@ class VlcAudioPlayer(
         artworkUri = mediaItem.metadata?.artworkUri,
       )
       return timerTriggered
+    }
+
+    override fun onFinished() {
+      scope.launch {
+        finishedListener?.invoke(preparedSession?.libraryItem?.id ?: return@launch)
+      }
     }
   }
 }
