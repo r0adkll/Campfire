@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.1"
+agp = "8.9.2"
 androidxlifecycle = "2.8.7"
 androidxactivity = "1.10.1"
 androidx-test-ext-junit = "1.2.1"
