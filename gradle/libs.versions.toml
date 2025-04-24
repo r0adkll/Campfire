@@ -100,7 +100,7 @@ coil-networking-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", versio
 
 # Firebase
 google-firebase-analytics = "com.google.firebase:firebase-analytics-ktx:22.4.0"
-google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.4.2"
+google-firebase-crashlytics = "com.google.firebase:firebase-crashlytics-ktx:19.4.3"
 google-firebase-perf = "com.google.firebase:firebase-perf-ktx:21.0.5"
 
 # Settings
