@@ -42,7 +42,11 @@ class LocalSessionUpdateSynchronizer(
   ) {
     if (state == AudioPlayer.State.Playing) {
       lastPlayedTime[libraryItemId] = fatherTime.nowInEpochMillis()
-    } else if (state == AudioPlayer.State.Paused || state == AudioPlayer.State.Disabled) {
+    } else if (
+      state == AudioPlayer.State.Paused ||
+      state == AudioPlayer.State.Disabled ||
+      state == AudioPlayer.State.Finished
+    ) {
       val lastPlayed = lastPlayedTime[libraryItemId]
       if (lastPlayed != null) {
         val elapsed = (fatherTime.nowInEpochMillis() - lastPlayed).milliseconds
@@ -55,15 +59,6 @@ class LocalSessionUpdateSynchronizer(
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
     component.sessionsRepository.updateCurrentTime(libraryItemId, overallTime)
-
-//    // Add time since last played to the current session
-//    val lastPlayed = lastPlayedTime[libraryItemId]
-//    val now = fatherTime.nowInEpochMillis()
-//    lastPlayedTime[libraryItemId] = now
-//    if (lastPlayed != null) {
-//      val elapsed = (now - lastPlayed).milliseconds
-//      component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
-//    }
 
     // Trigger an update if conditions are right
     component.remoteSessionsUpdater.update()

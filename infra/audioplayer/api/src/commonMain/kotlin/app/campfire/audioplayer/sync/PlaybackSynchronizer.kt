@@ -21,9 +21,9 @@ interface PlaybackSynchronizer {
   suspend fun onPlaybackSpeedChanged(libraryItemId: LibraryItemId, playbackSpeed: Float) = Unit
 
   companion object {
-    const val RANK_LOWEST = Int.MIN_VALUE
+    const val RANK_LOWEST = Int.MAX_VALUE
     const val RANK_DEFAULT = 0
-    const val RANK_HIGHEST = Int.MAX_VALUE
+    const val RANK_HIGHEST = Int.MIN_VALUE
   }
 }
 
