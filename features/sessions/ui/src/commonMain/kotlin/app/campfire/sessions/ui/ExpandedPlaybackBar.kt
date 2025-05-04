@@ -309,7 +309,7 @@ internal fun ExpandedPlaybackBar(
                 delay(350L)
                 navigator.goTo(LibraryItemScreen(session.libraryItem.id))
               }
-            }
+            },
           )
 
           Spacer(Modifier.height(16.dp))
