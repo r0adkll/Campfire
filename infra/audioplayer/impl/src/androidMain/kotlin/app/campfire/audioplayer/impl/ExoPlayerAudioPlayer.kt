@@ -29,7 +29,6 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration

@@ -70,10 +70,10 @@ class IosAudioPlayer(
     onFinished = {
       scope.launch {
         finishedListener?.invoke(
-          preparedSession?.libraryItem?.id ?: return@launch
+          preparedSession?.libraryItem?.id ?: return@launch,
         )
       }
-    }
+    },
   )
 
   override val state: StateFlow<AudioPlayer.State> = player.state
