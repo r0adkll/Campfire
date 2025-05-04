@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 abstract class Media {
   abstract val id: String
-  abstract val coverPath: String
+  abstract val coverPath: String?
   abstract val tags: List<String>?
   abstract val numTracks: Int
   abstract val numAudioFiles: Int
@@ -28,7 +28,7 @@ abstract class Media {
 @Serializable
 data class MediaMinified<M : BookMetadata>(
   override val id: String,
-  override val coverPath: String,
+  override val coverPath: String?,
   override val tags: List<String>? = null,
   override val numTracks: Int = 0,
   override val numAudioFiles: Int = 0,
@@ -45,7 +45,7 @@ data class MediaMinified<M : BookMetadata>(
 @Serializable
 data class MediaExpanded(
   override val id: String,
-  override val coverPath: String,
+  override val coverPath: String?,
   override val tags: List<String>? = null,
   override val numTracks: Int = 0,
   override val numAudioFiles: Int = 0,
