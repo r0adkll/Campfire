@@ -5,7 +5,7 @@ import com.gianluz.dangerkotlin.androidlint.androidLint
 import systems.danger.kotlin.*
 import systems.danger.kotlin.models.github.GitHubUserType
 
-register plugin AndroidLint
+Danger register AndroidLint
 
 /**
  * Install the 'Danger Kotlin' IntelliJ Plugin for easy editing of this file!
