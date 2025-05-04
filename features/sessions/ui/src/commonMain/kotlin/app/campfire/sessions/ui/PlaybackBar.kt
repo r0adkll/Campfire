@@ -19,6 +19,7 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
+import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -39,6 +40,7 @@ internal val TonalElevation = 2.dp
 fun PlaybackBar(
   expanded: Boolean,
   onExpansionChange: (Boolean) -> Unit,
+  navigator: Navigator,
   modifier: Modifier = Modifier,
 ) {
   SessionHostLayout { currentSession, audioPlayer, clearSession ->
@@ -113,6 +115,7 @@ fun PlaybackBar(
 
           Expanded -> {
             ExpandedPlaybackBar(
+              navigator = navigator,
               session = currentSession!!,
               state = playerState.value,
               playbackSpeed = playbackSpeed.value,

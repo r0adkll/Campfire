@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -82,6 +83,7 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
+import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
@@ -97,9 +99,11 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
+import com.slack.circuit.runtime.Navigator
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val ExpandedVerticalOffsetFactor = 56.dp
@@ -110,6 +114,8 @@ internal val LargeCoverImageSize = 188.dp
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ExpandedPlaybackBar(
+  navigator: Navigator,
+
   state: AudioPlayer.State,
   playbackSpeed: Float,
   currentTime: Duration,
@@ -140,6 +146,7 @@ internal fun ExpandedPlaybackBar(
     modifier = modifier,
   ) {
     ExpandedPlaybackBar(
+      navigator = navigator,
       overlayHost = overlayHost,
       state = state,
       playbackSpeed = playbackSpeed,
@@ -168,6 +175,7 @@ internal fun ExpandedPlaybackBar(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ExpandedPlaybackBar(
+  navigator: Navigator,
   overlayHost: OverlayHost,
   state: AudioPlayer.State,
   playbackSpeed: Float,
@@ -295,6 +303,13 @@ internal fun ExpandedPlaybackBar(
             } else {
               CoverImageSize
             },
+            modifier = Modifier.clickable {
+              scope.launch {
+                onClose()
+                delay(350L)
+                navigator.goTo(LibraryItemScreen(session.libraryItem.id))
+              }
+            }
           )
 
           Spacer(Modifier.height(16.dp))

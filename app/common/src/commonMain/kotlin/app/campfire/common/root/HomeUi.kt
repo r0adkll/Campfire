@@ -213,6 +213,7 @@ internal fun HomeUi(
         PlaybackBar(
           expanded = playbackBarExpanded,
           onExpansionChange = { playbackBarExpanded = it },
+          navigator = homeNavigator,
           modifier = Modifier
             .align(Alignment.BottomStart)
             .widthIn(max = 500.dp)

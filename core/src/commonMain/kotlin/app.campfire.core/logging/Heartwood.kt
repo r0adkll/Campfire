@@ -68,7 +68,7 @@ inline fun bark(
   Heartwood.log(priority, tag, extras, message(), throwable)
 }
 
-inline fun messageWithStacktrace(t: Throwable?, msg: String): String {
+fun messageWithStacktrace(t: Throwable?, msg: String): String {
   var message = msg
   if (t != null) {
     message += "\n${t.stackTraceToString()}"
