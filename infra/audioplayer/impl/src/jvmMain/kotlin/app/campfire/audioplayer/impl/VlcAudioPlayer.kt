@@ -277,6 +277,7 @@ class VlcAudioPlayer(
 
     override fun onFinished() {
       scope.launch {
+        bark { "onFinished($finishedListener, ${preparedSession?.libraryItem?.id})" }
         finishedListener?.invoke(preparedSession?.libraryItem?.id ?: return@launch)
       }
     }

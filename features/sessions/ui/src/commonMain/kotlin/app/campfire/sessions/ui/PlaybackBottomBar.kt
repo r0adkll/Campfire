@@ -353,6 +353,7 @@ private fun PlaybackActions(
     }
 
     val isPlayPauseEnabled = state != AudioPlayer.State.Disabled &&
+      state != AudioPlayer.State.Finished &&
       state != AudioPlayer.State.Buffering &&
       !isInteracting
 
