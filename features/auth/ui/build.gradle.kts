@@ -8,6 +8,7 @@ buildConfig {
   buildConfigField("String?", "TEST_SERVER_URL", providers.gradleProperty("campfire_server_url").orNull)
   buildConfigField("String?", "TEST_USERNAME", providers.gradleProperty("campfire_username").orNull)
   buildConfigField("String?", "TEST_PASSWORD", providers.gradleProperty("campfire_password").orNull)
+  useKotlinOutput()
 }
 
 kotlin {
