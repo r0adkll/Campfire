@@ -10,7 +10,7 @@ core-ktx = "1.16.0"
 coroutines = "1.10.2"
 # This is used in the build logic
 compose-multiplatform = "1.8.0"
-connectivity = "1.2.0"
+connectivity = "2.0.1"
 coil = "3.1.0"
 circuit = "0.27.1"
 media3 = "1.6.1"
