@@ -12,6 +12,11 @@ plugins {
 //  arg("me.tatarka.inject.generateCompanionExtensions", "true")
 // }
 
+metro {
+  debug.set(true)
+  reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
+}
+
 kotlin {
   compilerOptions {
     freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")

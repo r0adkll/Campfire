@@ -87,11 +87,6 @@ kotlin {
   }
 }
 
-metro {
-  debug.set(true)
-  reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
-}
-
 ksp {
 //  arg("me.tatarka.inject.generateCompanionExtensions", "true")
   arg("circuit.codegen.mode", "metro")

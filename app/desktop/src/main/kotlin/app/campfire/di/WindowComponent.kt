@@ -11,7 +11,7 @@ import dev.zacsweers.metro.SingleIn
 interface WindowComponent {
   val campfireContentProvider: CampfireContentProvider
 
-  @ContributesGraphExtension(AppScope::class)
+  @ContributesGraphExtension.Factory(AppScope::class)
   interface Factory {
     fun create(): WindowComponent
   }

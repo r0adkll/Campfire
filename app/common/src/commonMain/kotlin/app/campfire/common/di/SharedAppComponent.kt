@@ -14,9 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
 
-interface SharedAppComponent : CoreComponent
-
-interface CoreComponent {
+interface SharedAppComponent {
 
   val startupInitializer: StartupInitializer
 
