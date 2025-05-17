@@ -16,9 +16,12 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filter
@@ -26,10 +29,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Inject
 class LibraryItemPresenter(
   @Assisted private val screen: LibraryItemScreen,
@@ -41,6 +41,12 @@ class LibraryItemPresenter(
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
 ) : Presenter<LibraryItemUiState> {
+
+  @CircuitInject(LibraryItemScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(screen: LibraryItemScreen, navigator: Navigator): LibraryItemPresenter
+  }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable

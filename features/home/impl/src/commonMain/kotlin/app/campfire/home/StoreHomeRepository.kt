@@ -3,7 +3,6 @@ package app.campfire.home
 import app.campfire.account.api.TokenHydrator
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
@@ -12,7 +11,9 @@ import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.network.AudioBookShelfApi
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

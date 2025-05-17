@@ -42,17 +42,17 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimer
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerStart
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivity
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(SettingsScreen::class, UserScope::class)
 @Inject
 class SettingsPresenter(
   @Assisted private val navigator: Navigator,
@@ -66,6 +66,12 @@ class SettingsPresenter(
   private val accountManager: AccountManager,
   private val shakeDetector: ShakeDetector,
 ) : Presenter<SettingsUiState> {
+
+  @CircuitInject(SettingsScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): SettingsPresenter
+  }
 
   @Composable
   override fun present(): SettingsUiState {

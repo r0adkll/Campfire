@@ -4,26 +4,56 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.navigation.LocalSearchView
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.common.compose.widgets.CampfireAppBar
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import app.campfire.core.di.UserScope
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
 
-// Injectable typealias
-@OptIn(ExperimentalMaterial3Api::class)
-typealias CampfireAppBar = @Composable (
-  modifier: Modifier,
-  scrollBehavior: TopAppBarScrollBehavior?,
-) -> Unit
+@ContributesTo(UserScope::class)
+interface CampfireAppbarComponent {
+  val campfireAppBarFactory: CampfireAppbarFactory
+}
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Inject
 @Composable
-fun CampfireAppBar(
+fun CampfireAppbar(
+  modifier: Modifier = Modifier,
+  scrollBehavior: TopAppBarScrollBehavior?,
+  component: CampfireAppbarComponent = rememberComponent(),
+) {
+  component.campfireAppBarFactory.Content(
+    modifier = modifier,
+    scrollBehavior = scrollBehavior,
+  )
+}
+
+// TODO: The naming here could be better
+@Inject
+class CampfireAppbarFactory(
+  private val presenter: CampfireAppbarPresenter,
+) {
+
+  @Composable
+  fun Content(
+    modifier: Modifier,
+    scrollBehavior: TopAppBarScrollBehavior?,
+  ) {
+    CampfireAppBar(
+      presenter = presenter,
+      modifier = modifier,
+      scrollBehavior = scrollBehavior,
+    )
+  }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun CampfireAppBar(
   presenter: CampfireAppbarPresenter,
-  @Assisted modifier: Modifier = Modifier,
-  @Assisted scrollBehavior: TopAppBarScrollBehavior?,
+  modifier: Modifier = Modifier,
+  scrollBehavior: TopAppBarScrollBehavior?,
 ) {
   val drawerOpener = localDrawerOpener()
   val searchViewNavigationState = LocalSearchView.current

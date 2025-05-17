@@ -34,18 +34,17 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Series
-import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.appbar.CampfireAppbar
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.empty_series_items_message
 import campfire.features.series.ui.generated.resources.error_series_items_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(SeriesScreen::class, UserScope::class)
 @Composable
 fun Series(
   state: SeriesUiState,
-  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -54,11 +53,8 @@ fun Series(
   Scaffold(
     topBar = {
       if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
+        CampfireAppbar(
+          scrollBehavior = appBarBehavior,
         )
       }
     },

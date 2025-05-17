@@ -5,9 +5,9 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import campfire.app.ios.generated.resources.Res
 import com.mikepenz.aboutlibraries.Libs
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @ContributesBinding(AppScope::class)

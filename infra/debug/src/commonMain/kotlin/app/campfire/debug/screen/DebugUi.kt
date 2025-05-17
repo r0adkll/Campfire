@@ -59,7 +59,7 @@ import app.campfire.core.model.Tent
 import app.campfire.debug.screen.model.EventType
 import app.campfire.debug.screen.model.EventUiModel
 import app.campfire.debug.theme.JetBrainsMono
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlinx.collections.immutable.ImmutableList
 
 @CircuitInject(DebugScreen::class, UserScope::class)

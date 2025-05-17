@@ -31,7 +31,7 @@ import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(WelcomeScreen::class, UserScope::class)

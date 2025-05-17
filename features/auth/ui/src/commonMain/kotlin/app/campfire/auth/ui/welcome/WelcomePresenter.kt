@@ -6,18 +6,24 @@ import app.campfire.auth.ui.login.LoginPresenter
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 
-@CircuitInject(WelcomeScreen::class, UserScope::class)
 @Inject
 class WelcomePresenter(
   private val authRepository: AuthRepository,
   @Assisted private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
+
+  @CircuitInject(WelcomeScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): WelcomePresenter
+  }
 
   private val loginPresenter = LoginPresenter(
     navigator = navigator,

@@ -12,8 +12,8 @@ import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

@@ -3,13 +3,13 @@
 
 package app.campfire.common.di
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuit.runtime.presenter.Presenter
 import com.slack.circuit.runtime.ui.Ui
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 @ContributesTo(UserScope::class)
 interface CircuitComponent {

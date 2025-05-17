@@ -66,7 +66,7 @@ import campfire.features.stats.ui.generated.resources.stats_library
 import campfire.features.stats.ui.generated.resources.stats_user
 import campfire.features.stats.ui.generated.resources.user_stats_error_message
 import campfire.features.stats.ui.generated.resources.user_stats_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(StatisticsScreen::class, UserScope::class)

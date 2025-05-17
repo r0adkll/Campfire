@@ -3,6 +3,7 @@
 
 package app.campfire.convention
 
+import com.google.devtools.ksp.gradle.KspExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -20,6 +21,7 @@ class UiConventionPlugin : Plugin<Project> {
       apply("app.campfire.multiplatform")
       apply("app.campfire.compose")
       libs.findPlugin("ksp").ifPresent { apply(it.get().pluginId) }
+      libs.findPlugin("metro").ifPresent { apply(it.get().pluginId) }
     }
 
     extensions.configure<KotlinMultiplatformExtension> {
@@ -43,16 +45,21 @@ class UiConventionPlugin : Plugin<Project> {
         libs.findLibrary("circuit-runtime").ifPresent { implementation(it) }
 
         // Add DI / Kimchi Dependencies
-        libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }
-        libs.findLibrary("kimchi-circuit-annotations").ifPresent { implementation(it) }
+        libs.findLibrary("circuit-codegen-annotations").ifPresent { implementation(it) }
+//        libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }
+//        libs.findLibrary("kimchi-circuit-annotations").ifPresent { implementation(it) }
       }
       sourceSets["commonTest"].dependencies {
         libs.findLibrary("kotlin-test").ifPresent { implementation(it) }
       }
     }
 
+    extensions.configure<KspExtension> {
+      arg("circuit.codegen.mode", "metro")
+    }
+
     // Add DI / Kimchi KSP compilers
-    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
-    libs.findLibrary("kimchi-circuit-compiler").ifPresent { addKspDependencyForCommon(it) }
+//    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
+    libs.findLibrary("circuit-codegen").ifPresent { addKspDependencyForAllTargets(it) }
   }
 }

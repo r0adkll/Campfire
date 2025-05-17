@@ -16,9 +16,12 @@ import app.campfire.core.time.FatherTime
 import app.campfire.stats.api.StatsRepository
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.user_stats_recent_sessions_header
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
@@ -28,10 +31,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(StatisticsScreen::class, UserScope::class)
 @Inject
 class StatsPresenter(
   private val statsRepository: StatsRepository,
@@ -39,6 +39,12 @@ class StatsPresenter(
   private val dispatcherProvider: DispatcherProvider,
   @Assisted private val navigator: Navigator,
 ) : Presenter<StatsUiState> {
+
+  @CircuitInject(StatisticsScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): StatsPresenter
+  }
 
   @Composable
   override fun present(): StatsUiState {

@@ -3,17 +3,17 @@ package app.campfire.audioplayer.impl
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

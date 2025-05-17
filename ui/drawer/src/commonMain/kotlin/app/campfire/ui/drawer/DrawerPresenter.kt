@@ -6,19 +6,25 @@ import app.campfire.account.api.AccountManager
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(DrawerScreen::class, UserScope::class)
 @Inject
 class DrawerPresenter(
   private val accountManager: AccountManager,
   @Assisted private val navigator: Navigator,
 ) : Presenter<DrawerUiState> {
+
+  @CircuitInject(DrawerScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): DrawerPresenter
+  }
 
   @Composable
   override fun present(): DrawerUiState {

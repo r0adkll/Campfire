@@ -6,12 +6,13 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.account.server.store.ServerStore
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -20,7 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.impl.extensions.get
 

@@ -3,7 +3,6 @@ package app.campfire.libraries
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
@@ -22,14 +21,15 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import app.cash.sqldelight.coroutines.mapToOneOrNull
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.SourceOfTruth

@@ -3,9 +3,9 @@ package app.campfire.debug.screen.model
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.LogPriority
 import app.campfire.debug.events.LogEvent
+import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @Inject
 class LogEventProcessor(

@@ -5,7 +5,7 @@ import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.time.FatherTime
 import app.campfire.debug.events.storage.EventStorage
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class LogEventCollectorBark(

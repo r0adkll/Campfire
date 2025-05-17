@@ -3,8 +3,8 @@ package app.campfire.account.server
 import app.campfire.account.api.ServerRepository
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Server
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 interface LogoutUseCase {
 

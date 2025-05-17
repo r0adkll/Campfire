@@ -11,17 +11,17 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
-import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
 interface MediaProgressSynchronizerComponent {
   val sessionsRepository: SessionsRepository
 }
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class MediaProgressSynchronizer(
   private val mediaProgressRepository: MediaProgressRepository,

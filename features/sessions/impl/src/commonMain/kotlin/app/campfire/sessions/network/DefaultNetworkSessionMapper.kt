@@ -19,12 +19,12 @@ import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SeriesSequence
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

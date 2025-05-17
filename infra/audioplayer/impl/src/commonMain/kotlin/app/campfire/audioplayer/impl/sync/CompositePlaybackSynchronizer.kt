@@ -4,11 +4,11 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.model.LibraryItemId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

@@ -33,7 +33,7 @@ import app.campfire.core.model.Tent
 import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)

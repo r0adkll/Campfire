@@ -5,11 +5,11 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
-import me.tatarka.inject.annotations.Inject
 
 interface SessionStopUseCase {
 

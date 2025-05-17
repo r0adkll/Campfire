@@ -1,10 +1,11 @@
 package app.campfire.debug.events.storage
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.debug.events.LogEvent
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
@@ -14,7 +15,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

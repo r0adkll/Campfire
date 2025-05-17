@@ -4,27 +4,24 @@
 package app.campfire.ios.di
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
-import app.campfire.ios.CampfireUiViewController
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
-import me.tatarka.inject.annotations.Provides
+import app.campfire.ios.CampfireUiViewControllerFactory
+import dev.zacsweers.metro.ContributesGraphExtension
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import platform.UIKit.UIViewController
 
 @SingleIn(UiScope::class)
-@ContributesSubcomponent(
-  scope = UiScope::class,
-  parentScope = AppScope::class,
-)
+@ContributesGraphExtension(UiScope::class)
 interface HomeUiControllerComponent {
-  val uiViewControllerFactory: () -> UIViewController
+  val uiViewControllerFactory: CampfireUiViewControllerFactory
 
   @Provides
   @SingleIn(UiScope::class)
-  fun uiViewController(bind: CampfireUiViewController): UIViewController = bind()
+  fun uiViewController(bind: CampfireUiViewControllerFactory): UIViewController = bind.create()
 
-  @ContributesSubcomponent.Factory
+  @ContributesGraphExtension.Factory(AppScope::class)
   interface Factory {
-    fun createHomeUiControllerComponent(): HomeUiControllerComponent
+    fun create(): HomeUiControllerComponent
   }
 }

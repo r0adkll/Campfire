@@ -2,15 +2,15 @@ package app.campfire.common.initializer
 
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @Inject

@@ -34,9 +34,9 @@ import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.settings.api.PlaybackSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.speed_bottomsheet_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.math.roundToInt

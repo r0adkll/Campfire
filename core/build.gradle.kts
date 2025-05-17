@@ -2,6 +2,11 @@ plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   alias(libs.plugins.kotlin.serialization)
+  alias(libs.plugins.metro)
+}
+
+metro {
+  enabled.set(false)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -10,9 +15,9 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.about.libraries.core)
-        api(libs.kimchi.annotations)
+//        api(libs.kimchi.annotations)
         api(libs.kotlinx.coroutines.core)
-        api(libs.kotlininject.runtime)
+//        api(libs.kotlininject.runtime)
         api(libs.kotlinx.datetime)
         api(libs.kotlinx.immutable)
         api(libs.uuid)

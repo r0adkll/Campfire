@@ -1,13 +1,13 @@
 package app.campfire.shake
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.useContents
-import me.tatarka.inject.annotations.Provides
 import platform.CoreMotion.CMMotionManager
 import platform.Foundation.NSOperationQueue
 

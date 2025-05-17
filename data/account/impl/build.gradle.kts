@@ -1,9 +1,7 @@
-import app.campfire.convention.addKspDependencyForCommon
-
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
-  alias(libs.plugins.ksp)
+  alias(libs.plugins.metro)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -43,4 +41,4 @@ kotlin {
   }
 }
 
-addKspDependencyForCommon(libs.kimchi.compiler)
+// addKspDependencyForCommon(libs.kimchi.compiler)

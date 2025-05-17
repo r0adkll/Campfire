@@ -10,11 +10,11 @@ import app.campfire.account.api.ServerRepository
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Server
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 typealias AccountPickerPresenterFactory = () -> AccountPickerPresenter
 

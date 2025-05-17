@@ -31,6 +31,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.settings.api.PlaybackSettings
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -45,7 +46,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(UnstableApi::class)
 class ExoPlayerAudioPlayer(

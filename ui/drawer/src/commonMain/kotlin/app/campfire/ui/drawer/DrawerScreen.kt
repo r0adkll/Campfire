@@ -71,7 +71,7 @@ import campfire.ui.drawer.generated.resources.nav_statistics_content_description
 import campfire.ui.drawer.generated.resources.nav_statistics_label
 import campfire.ui.drawer.generated.resources.nav_storage_content_description
 import campfire.ui.drawer.generated.resources.nav_storage_label
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

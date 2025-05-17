@@ -3,13 +3,13 @@ package app.campfire.account.storage
 import app.campfire.account.settings.TokenSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.model.UserId
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.toSuspendSettings
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)

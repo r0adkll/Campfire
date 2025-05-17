@@ -2,14 +2,16 @@ package app.campfire.settings
 
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
@@ -19,11 +21,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.LocalTime
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = SleepSettings::class)
+@ContributesBinding(AppScope::class, binding = binding<SleepSettings>())
 @Inject
 class SleepSettingsImpl(
   override val settings: ObservableSettings,

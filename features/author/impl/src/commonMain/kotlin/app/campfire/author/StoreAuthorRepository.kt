@@ -3,17 +3,17 @@ package app.campfire.author
 import app.campfire.author.api.AuthorRepository
 import app.campfire.author.store.AuthorDetailStore
 import app.campfire.author.store.LibraryAuthorStore
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 
 @SingleIn(UserScope::class)

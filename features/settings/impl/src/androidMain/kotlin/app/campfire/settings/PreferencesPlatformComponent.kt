@@ -4,10 +4,10 @@ import android.app.Application
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.SharedPreferencesSettings
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 actual interface PreferencesPlatformComponent {
 

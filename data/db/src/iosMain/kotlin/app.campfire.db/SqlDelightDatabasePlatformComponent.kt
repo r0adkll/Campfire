@@ -2,11 +2,11 @@ package app.campfire.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 actual interface SqlDelightDatabasePlatformComponent {
 

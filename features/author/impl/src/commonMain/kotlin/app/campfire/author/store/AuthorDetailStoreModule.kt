@@ -3,7 +3,6 @@ package app.campfire.author.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.core.model.AuthorId
@@ -16,12 +15,13 @@ import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Provides
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.Store

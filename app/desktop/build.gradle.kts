@@ -4,6 +4,7 @@ plugins {
   id("app.campfire.kotlin.jvm")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.metro)
   alias(libs.plugins.about.libraries)
 }
 
@@ -17,11 +18,17 @@ dependencies {
   implementation(projects.app.common)
   implementation(compose.desktop.currentOs)
 
-  implementation(libs.kimchi.annotations)
-  implementation(libs.kotlininject.runtime)
+//  implementation(libs.kimchi.annotations)
+//  implementation(libs.kotlininject.runtime)
+  implementation(libs.circuit.codegen.annotations)
 
-  ksp(libs.kotlininject.ksp)
-  ksp(libs.kimchi.compiler)
+//  ksp(libs.kotlininject.ksp)
+//  ksp(libs.kimchi.compiler)
+  ksp(libs.circuit.codegen)
+}
+
+ksp {
+  arg("circuit.codegen.mode", "metro")
 }
 
 compose.desktop {

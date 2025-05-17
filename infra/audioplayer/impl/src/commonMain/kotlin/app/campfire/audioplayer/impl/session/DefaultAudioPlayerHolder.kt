@@ -4,16 +4,16 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import app.campfire.core.di.qualifier.ForScope
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.scan
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

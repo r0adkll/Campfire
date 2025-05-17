@@ -29,10 +29,10 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.ui.composables.ShelfListItem
-import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.appbar.CampfireAppbar
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.home_feed_load_error
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +40,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun HomeScreen(
   state: HomeUiState,
-  campfireAppbar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -49,11 +48,8 @@ fun HomeScreen(
   Scaffold(
     topBar = {
       if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppbar(
-          Modifier,
-          appBarBehavior,
+        CampfireAppbar(
+          scrollBehavior = appBarBehavior,
         )
       }
     },

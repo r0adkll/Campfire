@@ -4,12 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
-import com.r0adkll.kimchi.annotations.ContributesTo
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 typealias UserSessionKey = String
 

@@ -31,26 +31,57 @@ import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.continuityRetainedStateRegistry
 import com.slack.circuit.runtime.Navigator
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
-typealias CampfireContentWithInsets = @Composable (
-  onRootPop: () -> Unit,
-  onOpenUrl: (String) -> Unit,
-  windowInsets: WindowInsets,
-  modifier: Modifier,
-) -> Unit
+@Inject
+class CampfireContentProvider(
+  private val settings: CampfireSettings,
+  private val userSessionManager: UserSessionManager,
+) {
+
+  @Composable
+  fun Content(
+    onRootPop: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    modifier: Modifier,
+  ) {
+    CampfireContent(
+      onRootPop = onRootPop,
+      onOpenUrl = onOpenUrl,
+      settings = settings,
+      userSessionManager = userSessionManager,
+      modifier = modifier,
+    )
+  }
+
+  @Composable
+  fun ContentWithInsets(
+    onRootPop: () -> Unit,
+    onOpenUrl: (String) -> Unit,
+    windowInsets: WindowInsets,
+    modifier: Modifier = Modifier,
+  ) {
+    CampfireContentWithInsets(
+      onRootPop = onRootPop,
+      onOpenUrl = onOpenUrl,
+      windowInsets = windowInsets,
+      settings = settings,
+      userSessionManager = userSessionManager,
+      modifier = modifier,
+    )
+  }
+}
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Inject
 @Composable
-fun CampfireContentWithInsets(
-  @Assisted onRootPop: () -> Unit,
-  @Assisted onOpenUrl: (String) -> Unit,
-  @Assisted windowInsets: WindowInsets,
+internal fun CampfireContentWithInsets(
+  onRootPop: () -> Unit,
+  onOpenUrl: (String) -> Unit,
+  windowInsets: WindowInsets,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
-  @Assisted modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
     LocalWindowSizeClass provides calculateWindowSizeClass(),
@@ -116,20 +147,13 @@ fun CampfireContentWithInsets(
   }
 }
 
-typealias CampfireContent = @Composable (
+@Composable
+internal fun CampfireContent(
   onRootPop: () -> Unit,
   onOpenUrl: (String) -> Unit,
-  modifier: Modifier,
-) -> Unit
-
-@Inject
-@Composable
-fun CampfireContent(
-  @Assisted onRootPop: () -> Unit,
-  @Assisted onOpenUrl: (String) -> Unit,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
-  @Assisted modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
     onRootPop = onRootPop,

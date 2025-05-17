@@ -4,15 +4,15 @@ import app.campfire.common.initializer.StartupInitializer
 import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.time.FatherTime
 import app.campfire.core.time.GrandFatherTime
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.SupervisorJob
-import me.tatarka.inject.annotations.Provides
 
 interface SharedAppComponent : CoreComponent
 

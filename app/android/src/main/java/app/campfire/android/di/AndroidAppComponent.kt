@@ -7,15 +7,18 @@ import app.campfire.common.di.SharedAppComponent
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.MergeComponent
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 @SingleIn(AppScope::class)
-@MergeComponent(AppScope::class)
-abstract class AndroidAppComponent(
-  @get:Provides val application: Application,
-) : SharedAppComponent {
+@DependencyGraph(AppScope::class, isExtendable = true)
+interface AndroidAppComponent : SharedAppComponent {
+
+  @DependencyGraph.Factory
+  interface Factory {
+    fun create(@Provides application: Application): AndroidAppComponent
+  }
 
   @Suppress("DEPRECATION")
   @SingleIn(AppScope::class)
@@ -36,6 +39,4 @@ abstract class AndroidAppComponent(
       sdkVersion = Build.VERSION.SDK_INT,
     )
   }
-
-  companion object
 }

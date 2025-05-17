@@ -30,7 +30,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.error_series_detail_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(SeriesDetailScreen::class, UserScope::class)

@@ -57,10 +57,10 @@ import campfire.data.account.ui.generated.resources.account_picker_logout_title
 import campfire.data.account.ui.generated.resources.account_picker_sheet_add_account
 import campfire.data.account.ui.generated.resources.account_picker_sheet_error_message
 import campfire.data.account.ui.generated.resources.account_picker_sheet_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)

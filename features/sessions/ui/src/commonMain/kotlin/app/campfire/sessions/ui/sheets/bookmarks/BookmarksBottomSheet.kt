@@ -84,9 +84,9 @@ import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_act
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_action_create
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_label_title
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi

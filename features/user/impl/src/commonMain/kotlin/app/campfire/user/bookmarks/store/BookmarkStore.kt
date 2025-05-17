@@ -11,7 +11,7 @@ import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.User
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 import org.mobilenativefoundation.store.store5.Converter
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.MutableStore

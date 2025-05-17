@@ -6,10 +6,10 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 /**
  * Component to be implemented by platform configurations and

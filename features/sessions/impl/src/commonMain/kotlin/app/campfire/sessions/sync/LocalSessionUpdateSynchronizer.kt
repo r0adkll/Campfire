@@ -9,11 +9,11 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
 interface LocalSessionComponent {
@@ -22,7 +22,7 @@ interface LocalSessionComponent {
 }
 
 @Inject
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 class LocalSessionUpdateSynchronizer(
   private val fatherTime: FatherTime,
 ) : PlaybackSynchronizer {

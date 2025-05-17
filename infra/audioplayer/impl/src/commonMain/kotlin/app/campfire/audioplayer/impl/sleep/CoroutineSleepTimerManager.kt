@@ -5,13 +5,16 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.SleepSettings
 import app.campfire.shake.ShakeDetector
 import app.campfire.shake.ShakeSensitivity
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -20,8 +23,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalTime
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @Inject
 class CoroutineSleepTimerManager(
@@ -33,14 +34,19 @@ class CoroutineSleepTimerManager(
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : SleepTimerManager {
 
+  @AssistedFactory
+  fun interface ManagerAssistedFactory {
+    fun create(player: AudioPlayer): CoroutineSleepTimerManager
+  }
+
   @ContributesBinding(AppScope::class)
   @Inject
   class Factory(
-    private val managerFactory: (AudioPlayer) -> CoroutineSleepTimerManager,
+    private val managerFactory: ManagerAssistedFactory,
   ) : SleepTimerManager.Factory {
 
     override fun create(player: AudioPlayer): SleepTimerManager {
-      return managerFactory(player)
+      return managerFactory.create(player)
     }
   }
 

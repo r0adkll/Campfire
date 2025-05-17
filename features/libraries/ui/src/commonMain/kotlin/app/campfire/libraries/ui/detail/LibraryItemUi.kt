@@ -68,7 +68,7 @@ import campfire.features.libraries.ui.generated.resources.error_library_item_mes
 import campfire.features.libraries.ui.generated.resources.header_chapters
 import campfire.features.libraries.ui.generated.resources.placeholder_book
 import campfire.features.libraries.ui.generated.resources.unknown_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource

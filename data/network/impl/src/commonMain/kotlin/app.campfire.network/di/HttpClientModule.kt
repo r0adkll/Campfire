@@ -3,10 +3,11 @@ package app.campfire.network.di
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -18,7 +19,6 @@ import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
 interface HttpClientModule {

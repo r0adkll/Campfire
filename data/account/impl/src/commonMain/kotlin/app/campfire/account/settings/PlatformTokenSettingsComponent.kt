@@ -1,8 +1,8 @@
 package app.campfire.account.settings
 
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesTo
-import me.tatarka.inject.annotations.Qualifier
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)

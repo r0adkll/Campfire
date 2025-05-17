@@ -6,7 +6,7 @@ import androidx.compose.ui.Modifier
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 
 @CircuitInject(EmptyScreen::class, UserScope::class)
 @Composable

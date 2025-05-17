@@ -4,7 +4,6 @@ import app.campfire.CampfireDatabase
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.session.UserSession
@@ -19,7 +18,9 @@ import app.campfire.user.mediaprogress.store.MediaProgressStore
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Output
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterIsInstance
@@ -28,7 +29,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreReadRequest

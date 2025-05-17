@@ -24,9 +24,7 @@ struct iOSApp: App {
 
 	var body: some Scene {
 		WindowGroup {
-			let uiComponent = createHomeUiControllerComponent(
-                applicationComponent: delegate.applicationComponent
-            )
+			let uiComponent = createHomeUiControllerComponent()
             ContentView(component: uiComponent)
 		}
 	}
@@ -34,16 +32,10 @@ struct iOSApp: App {
 
 private func createApplicationComponent(
     appDelegate: AppDelegate
-) -> MergedIosApplicationComponent {
-    var component = IosApplicationComponent.companion.createIosApplicationComponent()
-    IosComponentHolder().addComponent(component: component)
-    return component
+) -> IosApplicationComponent {
+    return IosDI.createApplicationComponent()
 }
 
-private func createHomeUiControllerComponent(
-    applicationComponent: MergedIosApplicationComponent
-) -> HomeUiControllerComponent {
-    var component = applicationComponent.createHomeUiControllerComponent()
-    IosComponentHolder().addComponent(component: component)
-    return component
+private func createHomeUiControllerComponent() -> HomeUiControllerComponent {
+    return IosDI.createHomeUiControllerComponent()
 }

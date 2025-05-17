@@ -8,20 +8,26 @@ import app.campfire.common.screens.AttributionScreen
 import app.campfire.core.attributions.LicenseAttributionLoader
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(AttributionScreen::class, UserScope::class)
 @Inject
 class AttributionPresenter(
   private val licenseAttributionLoader: LicenseAttributionLoader,
-  @Assisted private val navigator: Navigator,
+  @Assisted val navigator: Navigator,
 ) : Presenter<AttributionUiState> {
+
+  @CircuitInject(AttributionScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): AttributionPresenter
+  }
 
   @Composable
   override fun present(): AttributionUiState {

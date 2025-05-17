@@ -3,21 +3,18 @@ package app.campfire.android.di
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
 import app.campfire.audioplayer.impl.MediaControllerConnector
-import app.campfire.common.root.CampfireContent
+import app.campfire.common.root.CampfireContentProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
+import dev.zacsweers.metro.ContributesGraphExtension
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import java.util.Locale
-import me.tatarka.inject.annotations.Provides
 
 @SingleIn(UiScope::class)
-@ContributesSubcomponent(
-  scope = UiScope::class,
-  parentScope = AppScope::class,
-)
+@ContributesGraphExtension(UiScope::class)
 interface ActivityComponent {
-  val campfireContent: CampfireContent
+  val campfireContentProvider: CampfireContentProvider
   val mediaControllerConnector: MediaControllerConnector
 
   @Provides
@@ -26,8 +23,8 @@ interface ActivityComponent {
       .get(0) ?: Locale.getDefault()
   }
 
-  @ContributesSubcomponent.Factory
+  @ContributesGraphExtension.Factory(AppScope::class)
   interface Factory {
-    fun create(activity: Activity): ActivityComponent
+    fun create(@Provides activity: Activity): ActivityComponent
   }
 }

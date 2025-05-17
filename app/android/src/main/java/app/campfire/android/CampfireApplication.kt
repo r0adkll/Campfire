@@ -5,7 +5,7 @@ import app.campfire.android.di.AndroidAppComponent
 import app.campfire.android.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Heartwood
-import kimchi.merge.app.campfire.android.di.createAndroidAppComponent
+import dev.zacsweers.metro.createGraphFactory
 
 class CampfireApplication : Application() {
 
@@ -13,9 +13,11 @@ class CampfireApplication : Application() {
     super.onCreate()
     Heartwood.grow(AndroidBark())
 
-    val component = AndroidAppComponent.createAndroidAppComponent(this).also {
-      ComponentHolder.components += it
-    }
+    val component = createGraphFactory<AndroidAppComponent.Factory>()
+      .create(this)
+      .also {
+        ComponentHolder.components += it
+      }
 
     component.startupInitializer.initialize()
   }

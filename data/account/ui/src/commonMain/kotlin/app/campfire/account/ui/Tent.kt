@@ -7,7 +7,7 @@ import app.campfire.account.api.ServerRepository
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Tent
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.flow.map
 
 @ContributesTo(UserScope::class)

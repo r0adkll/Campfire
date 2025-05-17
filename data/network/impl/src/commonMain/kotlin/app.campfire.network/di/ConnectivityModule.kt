@@ -1,10 +1,10 @@
 package app.campfire.network.di
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.ContributesTo
 import dev.jordond.connectivity.Connectivity
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 @ContributesTo(AppScope::class)
 interface ConnectivityModule {

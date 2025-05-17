@@ -12,21 +12,27 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.util.LibraryItemComparator
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(LibraryScreen::class, UserScope::class)
 @Inject
 class LibraryPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: LibraryRepository,
   private val settings: CampfireSettings,
 ) : Presenter<LibraryUiState> {
+
+  @CircuitInject(LibraryScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): LibraryPresenter
+  }
 
   @Composable
   override fun present(): LibraryUiState {

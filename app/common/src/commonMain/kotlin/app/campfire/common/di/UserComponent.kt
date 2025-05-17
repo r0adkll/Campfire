@@ -4,35 +4,29 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.rootScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
-import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
+import dev.zacsweers.metro.ContributesGraphExtension
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import me.tatarka.inject.annotations.Provides
 
 @SingleIn(UserScope::class)
-@ContributesSubcomponent(
-  scope = UserScope::class,
-  parentScope = AppScope::class,
-)
-interface UserComponent {
+@ContributesGraphExtension(UserScope::class)
+interface UserComponent : SessionRepositoryComponent {
   val currentUserSession: UserSession
   val circuit: Circuit
 
-  @get:RootScreen
+  @RootScreen
   val rootScreen: BaseScreen
 
-  @get:ForScope(UserScope::class)
+  @ForScope(UserScope::class)
   val coroutineScopeHolder: CoroutineScopeHolder
-
-  val sessionsRepository: SessionsRepository
 
   @Provides @RootScreen
   @SingleIn(UserScope::class)
@@ -49,8 +43,8 @@ interface UserComponent {
     }
   }
 
-  @ContributesSubcomponent.Factory
+  @ContributesGraphExtension.Factory(AppScope::class)
   interface Factory {
-    fun create(userSession: UserSession): UserComponent
+    fun create(@Provides userSession: UserSession): UserComponent
   }
 }

@@ -5,6 +5,7 @@ plugins {
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.metro)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -77,16 +78,23 @@ kotlin {
         api(libs.circuit.runtime)
         api(libs.circuitx.gesturenav)
 
-        implementation(libs.kotlininject.runtime)
-        implementation(libs.kimchi.annotations)
-        implementation(libs.kimchi.circuit.annotations)
+//        implementation(libs.kotlininject.runtime)
+//        implementation(libs.kimchi.annotations)
+//        implementation(libs.kimchi.circuit.annotations)
+        implementation(libs.circuit.codegen.annotations)
       }
     }
   }
 }
 
+metro {
+  debug.set(true)
+  reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
+}
+
 ksp {
-  arg("me.tatarka.inject.generateCompanionExtensions", "true")
+//  arg("me.tatarka.inject.generateCompanionExtensions", "true")
+  arg("circuit.codegen.mode", "metro")
 }
 
 android {
@@ -97,6 +105,7 @@ android {
   }
 }
 
-addKspDependencyForAllTargets(libs.kotlininject.ksp)
-addKspDependencyForAllTargets(libs.kimchi.compiler)
-addKspDependencyForAllTargets(libs.kimchi.circuit.compiler)
+// addKspDependencyForAllTargets(libs.kotlininject.ksp)
+// addKspDependencyForAllTargets(libs.kimchi.compiler)
+// addKspDependencyForAllTargets(libs.kimchi.circuit.compiler)
+addKspDependencyForAllTargets(libs.circuit.codegen)

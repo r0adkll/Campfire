@@ -7,7 +7,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.network.AudioBookShelfApi
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder

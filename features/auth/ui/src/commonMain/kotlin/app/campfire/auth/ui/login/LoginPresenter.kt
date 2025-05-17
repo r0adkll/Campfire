@@ -21,21 +21,27 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.Tent
 import coil3.toUri
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 import okio.IOException
 
-@CircuitInject(LoginScreen::class, UserScope::class)
 @Inject
 class LoginPresenter(
   @Assisted private val navigator: Navigator,
   private val authRepository: AuthRepository,
 ) : Presenter<LoginUiState> {
+
+  @CircuitInject(LoginScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): LoginPresenter
+  }
 
   @Composable
   override fun present(): LoginUiState {

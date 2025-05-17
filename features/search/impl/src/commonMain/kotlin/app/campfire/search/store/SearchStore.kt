@@ -9,8 +9,8 @@ import app.campfire.core.model.UserId
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.search.api.SearchResult
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.minutes
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder

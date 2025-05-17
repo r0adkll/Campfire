@@ -8,9 +8,9 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.data.mapping.asDomainModel
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

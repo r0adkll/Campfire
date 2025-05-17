@@ -8,20 +8,26 @@ import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(CollectionsScreen::class, UserScope::class)
 @Inject
 class CollectionsPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: CollectionsRepository,
 ) : Presenter<CollectionsUiState> {
+
+  @CircuitInject(CollectionsScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): CollectionsPresenter
+  }
 
   @Composable
   override fun present(): CollectionsUiState {

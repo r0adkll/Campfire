@@ -1,7 +1,7 @@
 package app.campfire.settings
 
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 
 expect interface PreferencesPlatformComponent
 

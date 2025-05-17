@@ -17,9 +17,12 @@ import app.campfire.debug.events.LogEvent
 import app.campfire.debug.events.storage.EventStorage
 import app.campfire.debug.screen.model.EventUiModel
 import app.campfire.debug.screen.model.LogEventProcessor
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -27,10 +30,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-@CircuitInject(DebugScreen::class, UserScope::class)
 @Inject
 class DebugPresenter(
   private val eventStorage: EventStorage,
@@ -38,6 +38,12 @@ class DebugPresenter(
   private val dispatcherProvider: DispatcherProvider,
   @Assisted private val navigator: Navigator,
 ) : Presenter<DebugUiState> {
+
+  @CircuitInject(DebugScreen::class, UserScope::class)
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator): DebugPresenter
+  }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable

@@ -1,6 +1,5 @@
 package app.campfire.libraries
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
@@ -11,12 +10,13 @@ import app.campfire.data.MediaChapters
 import app.campfire.data.MetadataAuthor
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.items.LibraryItemStore
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.mapNotNull
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse
 import org.mobilenativefoundation.store.store5.impl.extensions.fresh

@@ -3,10 +3,10 @@ package app.campfire.account.session
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class UserSessionInitializer(
   private val userSessionRestorer: UserSessionRestorer,

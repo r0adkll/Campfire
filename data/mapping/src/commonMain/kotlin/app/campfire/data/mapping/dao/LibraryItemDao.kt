@@ -18,9 +18,9 @@ import app.campfire.network.models.LibraryItemExpanded
 import app.cash.sqldelight.SuspendingTransacter
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
 import app.cash.sqldelight.async.coroutines.awaitAsList
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * This is an experimental pattern for access db or composite-db operations in a

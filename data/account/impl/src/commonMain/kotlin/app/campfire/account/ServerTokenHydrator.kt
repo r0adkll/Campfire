@@ -8,8 +8,8 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.session.userId
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

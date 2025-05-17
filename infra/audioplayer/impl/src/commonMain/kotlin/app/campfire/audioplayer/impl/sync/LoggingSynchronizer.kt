@@ -6,10 +6,11 @@ import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 
-@ContributesMultibinding(AppScope::class, boundType = PlaybackSynchronizer::class)
+@ContributesIntoSet(AppScope::class, binding = binding<PlaybackSynchronizer>())
 object LoggingSynchronizer : PlaybackSynchronizer, Cork {
 
   override val rank: Int = PlaybackSynchronizer.RANK_HIGHEST

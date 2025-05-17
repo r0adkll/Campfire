@@ -21,7 +21,7 @@ import app.campfire.settings.api.PlaybackSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.cd_forward_time
 import campfire.features.sessions.ui.generated.resources.cd_rewind_time
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(AppScope::class)

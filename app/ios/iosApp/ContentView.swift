@@ -22,7 +22,7 @@ struct ComposeView: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context _: Context) -> UIViewController {
-        return component.uiViewControllerFactory()
+        return component.uiViewControllerFactory.create()
     }
 
     func updateUIViewController(_: UIViewController, context _: Context) {}

@@ -1,8 +1,8 @@
 package app.campfire.shake
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 actual class ShakeDetector {
 

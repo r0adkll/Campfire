@@ -5,14 +5,14 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ForScope
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

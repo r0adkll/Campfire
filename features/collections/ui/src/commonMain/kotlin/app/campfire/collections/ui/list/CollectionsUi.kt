@@ -45,19 +45,18 @@ import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Collection
-import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.appbar.CampfireAppbar
 import campfire.features.collections.ui.generated.resources.Res
 import campfire.features.collections.ui.generated.resources.action_add_new_collection
 import campfire.features.collections.ui.generated.resources.empty_collection_items_message
 import campfire.features.collections.ui.generated.resources.error_collection_items_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(CollectionsScreen::class, UserScope::class)
 @Composable
 fun Collections(
   state: CollectionsUiState,
-  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -67,11 +66,8 @@ fun Collections(
   Scaffold(
     topBar = {
       if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
+        CampfireAppbar(
+          scrollBehavior = appBarBehavior,
         )
       }
     },

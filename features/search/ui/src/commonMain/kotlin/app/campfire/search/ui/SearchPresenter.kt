@@ -14,12 +14,12 @@ import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 typealias SearchPresenterFactory = (navigator: Navigator, requestDismiss: () -> Unit) -> SearchPresenter
 

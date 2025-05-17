@@ -4,7 +4,7 @@ import app.campfire.account.server.db.ServerDao
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.Server
 import app.campfire.core.model.UserId
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
 import org.mobilenativefoundation.store.store5.FetcherResult
 import org.mobilenativefoundation.store.store5.MemoryPolicy

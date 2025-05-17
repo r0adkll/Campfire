@@ -4,7 +4,8 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
@@ -13,7 +14,6 @@ import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.allocArrayOf
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 import platform.Foundation.NSData
 import platform.Foundation.dataWithBytes
 import platform.MediaPlayer.MPMediaItemArtwork

@@ -14,11 +14,11 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import java.io.File
-import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
 interface ExoPlayerComponent {

@@ -42,11 +42,11 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
 import app.campfire.libraries.ui.sort.SortModeResult
 import app.campfire.libraries.ui.sort.showSortModeBottomSheet
-import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.appbar.CampfireAppbar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.error_library_items_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -55,7 +55,6 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun LibraryUi(
   state: LibraryUiState,
-  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -67,11 +66,8 @@ fun LibraryUi(
   Scaffold(
     topBar = {
       if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
+        CampfireAppbar(
+          scrollBehavior = appBarBehavior,
         )
       }
     },

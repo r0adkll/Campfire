@@ -36,7 +36,8 @@ import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -63,7 +64,6 @@ import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import me.tatarka.inject.annotations.Inject
 
 @Inject
 @ContributesBinding(AppScope::class)

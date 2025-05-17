@@ -1,10 +1,10 @@
 package app.campfire.settings
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.russhwolf.settings.NSUserDefaultsSettings
 import com.russhwolf.settings.ObservableSettings
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import platform.Foundation.NSUserDefaults
 
 actual interface PreferencesPlatformComponent {

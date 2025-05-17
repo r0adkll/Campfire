@@ -10,7 +10,7 @@ import app.campfire.common.compose.widgets.AppBarState
 import app.campfire.common.compose.widgets.AppBarState.LibraryState
 import app.campfire.common.compose.widgets.AppBarState.ServerState
 import app.campfire.libraries.api.LibraryRepository
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class CampfireAppbarPresenter(

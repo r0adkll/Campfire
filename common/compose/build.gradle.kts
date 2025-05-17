@@ -1,10 +1,8 @@
-import app.campfire.convention.addKspDependencyForCommon
-
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
+  alias(libs.plugins.metro)
 }
 
 kotlin {
@@ -75,4 +73,4 @@ kotlin {
   }
 }
 
-addKspDependencyForCommon(libs.kimchi.compiler)
+// addKspDependencyForCommon(libs.kimchi.compiler)

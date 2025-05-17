@@ -36,7 +36,7 @@ import app.campfire.core.model.LibraryItem
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.author_books_header
 import campfire.features.author.ui.generated.resources.error_author_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(AuthorDetailScreen::class, UserScope::class)

@@ -1,6 +1,6 @@
 package app.campfire.core.di.qualifier
 
-import me.tatarka.inject.annotations.Qualifier
+import dev.zacsweers.metro.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)

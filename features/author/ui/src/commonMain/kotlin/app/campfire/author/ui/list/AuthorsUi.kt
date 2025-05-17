@@ -27,17 +27,16 @@ import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
-import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.appbar.CampfireAppbar
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.error_authors_items_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(AuthorsScreen::class, UserScope::class)
 @Composable
 fun Authors(
   state: AuthorsUiState,
-  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -48,9 +47,8 @@ fun Authors(
       if (!windowSizeClass.isSupportingPaneEnabled) {
         // Injected appbar that injects its own presenter to consistently load its state
         // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
+        CampfireAppbar(
+          scrollBehavior = appBarBehavior,
         )
       }
     },

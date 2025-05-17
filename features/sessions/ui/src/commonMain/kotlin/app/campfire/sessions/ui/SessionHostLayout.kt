@@ -16,7 +16,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.launch
 
 @ContributesTo(UserScope::class)

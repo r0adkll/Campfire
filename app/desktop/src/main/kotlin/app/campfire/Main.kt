@@ -30,10 +30,11 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
+import dev.zacsweers.metro.asContribution
+import dev.zacsweers.metro.createGraph
 import java.awt.Desktop
 import java.awt.GraphicsEnvironment
 import java.net.URI
-import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
@@ -50,7 +51,7 @@ fun main() = application {
   })
 
   val applicationComponent = remember {
-    DesktopApplicationComponent.createDesktopApplicationComponent().also { component ->
+    createGraph<DesktopApplicationComponent>().also { component ->
       ComponentHolder.components += component
       component.startupInitializer.initialize()
     }
@@ -92,9 +93,11 @@ fun main() = application {
 
   ) {
     val component: WindowComponent = remember(applicationComponent) {
-      ComponentHolder.component<WindowComponent.Factory>().create().also {
-        ComponentHolder.components += it
-      }
+      applicationComponent.asContribution<WindowComponent.Factory>()
+        .create()
+        .also {
+          ComponentHolder.components += it
+        }
     }
 
     val uriHandler = remember {
@@ -114,7 +117,7 @@ fun main() = application {
       LocalWindowBackEventDispatcher provides windowBackEventDispatcher,
       LocalUriHandler provides uriHandler,
     ) {
-      component.campfireContent(
+      component.campfireContentProvider.ContentWithInsets(
         { exitApplication() },
         uriHandler::openUri,
         WindowInsets(

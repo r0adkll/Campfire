@@ -2,12 +2,14 @@ package app.campfire.settings
 
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.toFlowSettings
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -16,11 +18,10 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = PlaybackSettings::class)
+@ContributesBinding(AppScope::class, binding = binding<PlaybackSettings>())
 @Inject
 class PlaybackSettingsImpl(
   override val settings: ObservableSettings,

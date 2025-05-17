@@ -13,15 +13,16 @@ compose-multiplatform = "1.8.0"
 connectivity = "2.0.2"
 coil = "3.2.0"
 circuit = "0.28.0"
-media3 = "1.7.1"
 kimchi = "0.5.1"
 kotlin = "2.1.21"
 kotlin-inject = "0.7.2"
 kotlinpoet = "2.2.0"
 ksoup = "0.5.0"
-ksp = "2.1.20-1.0.32"
+ksp = "2.1.21-2.0.1"
 ktlint = "0.49.1"
 ktor = "3.1.3"
+media3 = "1.7.1"
+metro = "0.3.2"
 mosaic = "0.17.0"
 multiplatformsettings = "1.3.0"
 molecule = "2.1.0"
@@ -56,6 +57,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 gms-googleServices = "com.google.gms.google-services:4.4.2"
 firebase-crashlytics = "com.google.firebase.crashlytics:3.0.3"
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 
@@ -84,6 +86,8 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 mosaic = { module = "com.jakewharton.mosaic:mosaic-runtime", version.ref = "mosaic" }
 
 #Circuit
+circuit-codegen = { module = "com.slack.circuit:circuit-codegen", version.ref = "circuit" }
+circuit-codegen-annotations = { module = "com.slack.circuit:circuit-codegen-annotations", version.ref = "circuit" }
 circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }
 circuit-overlay = { module = "com.slack.circuit:circuit-overlay", version.ref = "circuit" }
 circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = "circuit" }
@@ -136,6 +140,7 @@ kimchi-circuit-annotations = { module = "com.r0adkll.kimchi:kimchi-circuit-annot
 kimchi-circuit-compiler = { module = "com.r0adkll.kimchi:kimchi-circuit-compiler", version.ref = "kimchi" }
 kimchi-annotations = { module = "com.r0adkll.kimchi:kimchi-annotations", version.ref = "kimchi" }
 kimchi-compiler = { module = "com.r0adkll.kimchi:kimchi-compiler", version.ref = "kimchi" }
+metro-runtime = { module = "dev.zacsweers.metro:metro-runtime", version.ref = "metro"}
 
 ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 
@@ -191,6 +196,7 @@ android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref 
 compose-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "compose-multiplatform" }
 composeCompiler-gradlePlugin = { module = "org.jetbrains.kotlin:compose-compiler-gradle-plugin", version.ref = "kotlin" }
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp"}
 
 spotless-gradlePlugin = { module = "com.diffplug.spotless:spotless-plugin-gradle", version.ref = "spotless" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }

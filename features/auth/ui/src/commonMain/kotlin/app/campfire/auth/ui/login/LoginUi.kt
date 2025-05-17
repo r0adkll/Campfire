@@ -40,7 +40,7 @@ import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(LoginScreen::class, UserScope::class)
