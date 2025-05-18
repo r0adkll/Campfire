@@ -77,7 +77,4 @@ dependencies {
   implementation(libs.circuit.foundation)
 
   debugImplementation(projects.infra.debug)
-
-//  ksp(libs.kimchi.compiler)
-//  ksp(libs.kotlininject.ksp)
 }

@@ -7,7 +7,7 @@ import com.github.ajalt.clikt.command.main
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.subcommands
 import com.github.ajalt.clikt.parameters.arguments.argument
-import kimchi.merge.app.campfire.script.di.createScriptComponent
+import dev.zacsweers.metro.createGraph
 
 class Hello : CliktCommand() {
 
@@ -21,7 +21,7 @@ class Hello : CliktCommand() {
 }
 
 suspend fun main(args: Array<String>) {
-  val component = ScriptComponent::class.createScriptComponent()
+  val component = createGraph<ScriptComponent>()
   CampfireCli()
     .subcommands(component.commands)
     .main(args)

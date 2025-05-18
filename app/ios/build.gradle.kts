@@ -18,8 +18,6 @@ kotlin {
       dependencies {
         implementation(projects.app.common)
 
-//        implementation(libs.kimchi.annotations)
-//        implementation(libs.kotlininject.runtime)
         implementation(libs.circuit.codegen.annotations)
 
         implementation(compose.components.resources)
@@ -29,12 +27,9 @@ kotlin {
 }
 
 ksp {
-  // arg("me.tatarka.inject.generateCompanionExtensions", "true")
   arg("circuit.codegen.mode", "metro")
 }
 
-// addKspDependencyForAllTargets(libs.kotlininject.ksp)
-// addKspDependencyForAllTargets(libs.kimchi.compiler)
 addKspDependencyForAllTargets(libs.circuit.codegen)
 
 aboutLibraries {

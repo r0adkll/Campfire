@@ -19,17 +19,18 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.optional
 import com.github.ajalt.clikt.parameters.types.path
 import com.jakewharton.mosaic.runMosaic
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import java.nio.file.Path
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(
+@ContributesIntoSet(
   scope = ScriptScope::class,
-  boundType = CoreSuspendingCliktCommand::class,
+  binding = binding<CoreSuspendingCliktCommand>(),
 )
 @Inject
 class GenerateResourcesCommand : SuspendingCliktCommand(

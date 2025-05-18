@@ -3,13 +3,14 @@ package app.campfire.script.commands
 import app.campfire.script.di.ScriptScope
 import com.github.ajalt.clikt.command.CoreSuspendingCliktCommand
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import java.io.File
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(
+@ContributesIntoSet(
   scope = ScriptScope::class,
-  boundType = CoreSuspendingCliktCommand::class,
+  binding = binding<CoreSuspendingCliktCommand>(),
 )
 @Inject
 class CleanDesktopCommand : SuspendingCliktCommand(

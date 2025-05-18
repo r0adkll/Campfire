@@ -7,12 +7,13 @@ import com.github.ajalt.clikt.command.CoreSuspendingCliktCommand
 import com.github.ajalt.clikt.command.SuspendingCliktCommand
 import com.github.ajalt.clikt.core.CliktError
 import com.github.ajalt.clikt.core.requireObject
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 
-@ContributesMultibinding(
+@ContributesIntoSet(
   scope = ScriptScope::class,
-  boundType = CoreSuspendingCliktCommand::class,
+  binding = binding<CoreSuspendingCliktCommand>(),
 )
 @Inject
 class SpotlessApplyCommand : SuspendingCliktCommand(

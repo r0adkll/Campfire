@@ -18,12 +18,8 @@ dependencies {
   implementation(projects.app.common)
   implementation(compose.desktop.currentOs)
 
-//  implementation(libs.kimchi.annotations)
-//  implementation(libs.kotlininject.runtime)
   implementation(libs.circuit.codegen.annotations)
 
-//  ksp(libs.kotlininject.ksp)
-//  ksp(libs.kimchi.compiler)
   ksp(libs.circuit.codegen)
 }
 

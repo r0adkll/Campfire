@@ -66,5 +66,3 @@ kotlin {
     }
   }
 }
-
-// addKspDependencyForAllTargets(libs.kimchi.compiler)

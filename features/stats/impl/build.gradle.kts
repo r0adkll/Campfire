@@ -18,5 +18,3 @@ kotlin {
     }
   }
 }
-
-// addKspDependencyForCommon(libs.kimchi.compiler)

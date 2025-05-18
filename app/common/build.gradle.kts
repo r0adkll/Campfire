@@ -78,9 +78,6 @@ kotlin {
         api(libs.circuit.runtime)
         api(libs.circuitx.gesturenav)
 
-//        implementation(libs.kotlininject.runtime)
-//        implementation(libs.kimchi.annotations)
-//        implementation(libs.kimchi.circuit.annotations)
         implementation(libs.circuit.codegen.annotations)
       }
     }
@@ -88,7 +85,6 @@ kotlin {
 }
 
 ksp {
-//  arg("me.tatarka.inject.generateCompanionExtensions", "true")
   arg("circuit.codegen.mode", "metro")
 }
 
@@ -100,7 +96,4 @@ android {
   }
 }
 
-// addKspDependencyForAllTargets(libs.kotlininject.ksp)
-// addKspDependencyForAllTargets(libs.kimchi.compiler)
-// addKspDependencyForAllTargets(libs.kimchi.circuit.compiler)
 addKspDependencyForAllTargets(libs.circuit.codegen)
