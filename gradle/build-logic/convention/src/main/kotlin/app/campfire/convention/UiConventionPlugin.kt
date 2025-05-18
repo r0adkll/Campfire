@@ -46,8 +46,6 @@ class UiConventionPlugin : Plugin<Project> {
 
         // Add DI / Kimchi Dependencies
         libs.findLibrary("circuit-codegen-annotations").ifPresent { implementation(it) }
-//        libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }
-//        libs.findLibrary("kimchi-circuit-annotations").ifPresent { implementation(it) }
       }
       sourceSets["commonTest"].dependencies {
         libs.findLibrary("kotlin-test").ifPresent { implementation(it) }
@@ -58,8 +56,7 @@ class UiConventionPlugin : Plugin<Project> {
       arg("circuit.codegen.mode", "metro")
     }
 
-    // Add DI / Kimchi KSP compilers
-//    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
+    // Add DI KSP compilers
     libs.findLibrary("circuit-codegen").ifPresent { addKspDependencyForAllTargets(it) }
   }
 }
