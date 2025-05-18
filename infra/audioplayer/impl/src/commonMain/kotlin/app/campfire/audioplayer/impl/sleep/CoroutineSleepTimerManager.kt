@@ -5,6 +5,7 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForAppScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.SleepSettings
@@ -13,7 +14,6 @@ import app.campfire.shake.ShakeSensitivity
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.ContributesBinding
-import dev.zacsweers.metro.ForScope
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -31,7 +31,7 @@ class CoroutineSleepTimerManager(
   private val shakeDetector: ShakeDetector,
   private val dispatcherProvider: DispatcherProvider,
   private val fatherTime: FatherTime,
-  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
+  @ForAppScope private val applicationScope: CoroutineScope,
 ) : SleepTimerManager {
 
   @AssistedFactory

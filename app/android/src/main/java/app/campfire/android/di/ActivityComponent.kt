@@ -2,7 +2,6 @@ package app.campfire.android.di
 
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
-import app.campfire.audioplayer.impl.MediaControllerConnector
 import app.campfire.common.root.CampfireContentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.UiScope
@@ -15,7 +14,10 @@ import java.util.Locale
 @ContributesGraphExtension(UiScope::class)
 interface ActivityComponent {
   val campfireContentProvider: CampfireContentProvider
-  val mediaControllerConnector: MediaControllerConnector
+
+  // FIXME: https://github.com/ZacSweers/metro/issues/377
+  //  can't have this provision here AND in AndroidAppComponent
+//  val mediaControllerConnector: MediaControllerConnector
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {

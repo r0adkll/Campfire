@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-typealias AccountPickerPresenterFactory = () -> AccountPickerPresenter
-
 @Inject
 class AccountPickerPresenter(
   private val serverRepository: ServerRepository,

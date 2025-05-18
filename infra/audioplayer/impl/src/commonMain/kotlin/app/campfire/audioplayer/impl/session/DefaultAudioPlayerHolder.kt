@@ -4,8 +4,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForAppScope
 import dev.zacsweers.metro.ContributesBinding
-import dev.zacsweers.metro.ForScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.scan
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAudioPlayerHolder(
-  @ForScope(AppScope::class) private val scope: CoroutineScope,
+  @ForAppScope private val scope: CoroutineScope,
   private val synchronizer: PlaybackSynchronizer,
 ) : AudioPlayerHolder {
 

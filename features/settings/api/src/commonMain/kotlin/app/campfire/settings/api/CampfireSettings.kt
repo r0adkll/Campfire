@@ -38,7 +38,7 @@ interface CampfireSettings {
 
     companion object : EnumSettingProvider<Theme> {
       override fun fromStorageKey(key: String?): Theme {
-        return values().find { it.storageKey == key } ?: SYSTEM
+        return entries.find { it.storageKey == key } ?: SYSTEM
       }
     }
   }

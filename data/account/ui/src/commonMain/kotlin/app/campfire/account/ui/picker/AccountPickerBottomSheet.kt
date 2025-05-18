@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,7 +42,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.filled.PersonAdd
-import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.widgets.CampsiteIcon
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.coroutines.LoadState
@@ -61,11 +59,12 @@ import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provider
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface AccountPickerComponent {
-  val accountPickerPresenterFactory: AccountPickerPresenterFactory
+  val accountPickerPresenterProvider: Provider<AccountPickerPresenter>
 }
 
 sealed interface AccountPickerResult {
@@ -117,7 +116,7 @@ private fun AccountPickerContent(
       }
     }
 
-    val presenter = remember(component) { component.accountPickerPresenterFactory() }
+    val presenter = remember(component) { component.accountPickerPresenterProvider() }
     val state = presenter.present()
 
     AccountPickerContent(

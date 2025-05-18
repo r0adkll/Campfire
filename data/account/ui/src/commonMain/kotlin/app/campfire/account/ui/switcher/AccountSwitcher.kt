@@ -34,11 +34,12 @@ import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
 import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provider
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface AccountSwitcherComponent {
-  val presenterFactory: AccountSwitcherPresenterFactory
+  val presenterProvider: Provider<AccountSwitcherPresenter>
 }
 
 @Composable
@@ -47,7 +48,7 @@ fun AccountSwitcher(
   modifier: Modifier = Modifier,
   component: AccountSwitcherComponent = rememberComponent(),
 ) {
-  val presenter = remember(component) { component.presenterFactory() }
+  val presenter = remember(component) { component.presenterProvider() }
   val state = presenter.present()
   AccountSwitcher(
     state = state,

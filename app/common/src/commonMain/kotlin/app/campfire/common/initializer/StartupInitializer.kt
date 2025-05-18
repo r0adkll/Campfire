@@ -2,8 +2,8 @@ package app.campfire.common.initializer
 
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForAppScope
 import app.campfire.core.logging.Cork
-import dev.zacsweers.metro.ForScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlin.coroutines.cancellation.CancellationException
@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 @Inject
 class StartupInitializer(
   initializers: Set<AppInitializer>,
-  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
+  @ForAppScope private val applicationScope: CoroutineScope,
 ) {
 
   private val sortedInitializers = initializers.sortedByDescending { it.priority }

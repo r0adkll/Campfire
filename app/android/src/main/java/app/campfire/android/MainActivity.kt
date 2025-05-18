@@ -24,13 +24,16 @@ import dev.zacsweers.metro.asContribution
 
 class MainActivity : ComponentActivity() {
 
+  private val appComponent by lazy {
+    ComponentHolder.component<AndroidAppComponent>()
+  }
   private lateinit var component: ActivityComponent
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     bark { "MainActivity::onCreate()" }
 
-    component = ComponentHolder.component<AndroidAppComponent>()
+    component = appComponent
       .asContribution<ActivityComponent.Factory>()
       .create(this)
       .also {
@@ -54,13 +57,13 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     bark { "MainActivity::onStart()" }
-    component.mediaControllerConnector.connect()
+    appComponent.mediaControllerConnector.connect()
   }
 
   override fun onStop() {
     super.onStop()
     bark { "MainActivity::onStop()" }
-    component.mediaControllerConnector.disconnect()
+    appComponent.mediaControllerConnector.disconnect()
   }
 
   override fun onDestroy() {

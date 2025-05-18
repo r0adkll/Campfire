@@ -61,7 +61,7 @@ class SearchOverlay(
   override fun Content(navigator: OverlayNavigator<Unit>) {
     val component = rememberComponent<SearchUiComponent>()
     val presenter = remember(component) {
-      component.searchPresenterFactory(homeNavigator) {
+      component.searchPresenterFactory.create(homeNavigator) {
         navigator.finish(Unit)
       }
     }

@@ -8,12 +8,8 @@ plugins {
   alias(libs.plugins.about.libraries)
 }
 
-// ksp {
-//  arg("me.tatarka.inject.generateCompanionExtensions", "true")
-// }
-
 metro {
-  debug.set(true)
+  debug.set(false)
   reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
 }
 

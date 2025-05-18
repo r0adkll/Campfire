@@ -36,7 +36,9 @@ fun CampfireDockedSearchBar(
 ) {
   var expanded by remember { mutableStateOf(false) }
 
-  val presenter = remember(component, navigator) { component.searchPresenterFactory(navigator) { expanded = false } }
+  val presenter = remember(component, navigator) {
+    component.searchPresenterFactory.create(navigator) { expanded = false }
+  }
   val uiState = presenter.present()
 
   CampfireDockedSearchBar(

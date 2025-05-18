@@ -1,12 +1,17 @@
 package app.campfire.account.settings
 
 import app.campfire.core.di.AppScope
+import com.russhwolf.settings.Settings
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Qualifier
 
 @Qualifier
-@Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.BINARY)
 annotation class TokenSettings
+
+class TokenSettingsHolder(
+  val settings: Settings,
+)
 
 /**
  * Component to be implemented by platform configurations and

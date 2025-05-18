@@ -1,9 +1,9 @@
 package app.campfire.debug.events.storage
 
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForAppScope
 import app.campfire.debug.events.LogEvent
 import dev.zacsweers.metro.ContributesBinding
-import dev.zacsweers.metro.ForScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.toPersistentList
@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 @ContributesBinding(AppScope::class)
 @Inject
 class InMemoryEventStorage(
-  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
+  @ForAppScope private val applicationScope: CoroutineScope,
 ) : EventStorage {
 
   private val eventChannel = Channel<LogEvent>(

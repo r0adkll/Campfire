@@ -15,6 +15,7 @@ import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
@@ -29,6 +30,11 @@ class SearchPresenter(
   @Assisted private val navigator: Navigator,
   @Assisted private val requestDismiss: () -> Unit,
 ) : Presenter<SearchUiState> {
+
+  @AssistedFactory
+  fun interface Factory {
+    fun create(navigator: Navigator, requestDismiss: () -> Unit): SearchPresenter
+  }
 
   @Composable
   override fun present(): SearchUiState {

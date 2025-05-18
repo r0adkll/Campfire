@@ -11,8 +11,6 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 
-typealias AccountSwitcherPresenterFactory = () -> AccountSwitcherPresenter
-
 @Inject
 class AccountSwitcherPresenter(
   private val serverRepository: ServerRepository,

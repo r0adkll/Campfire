@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import app.campfire.core.di.AppScope
-import com.russhwolf.settings.Settings
 import com.russhwolf.settings.SharedPreferencesSettings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -17,13 +16,15 @@ import dev.zacsweers.metro.SingleIn
  */
 actual interface PlatformTokenSettingsComponent {
 
+  //  @TokenSettings
   @SingleIn(AppScope::class)
   @Provides
-  @TokenSettings
   fun provideTokenSettings(
     application: Application,
-  ): Settings = SharedPreferencesSettings(
-    delegate = createEncryptedSharedPreferences(application),
+  ): TokenSettingsHolder = TokenSettingsHolder(
+    SharedPreferencesSettings(
+      delegate = createEncryptedSharedPreferences(application),
+    ),
   )
 }
 
