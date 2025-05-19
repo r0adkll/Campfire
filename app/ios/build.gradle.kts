@@ -8,6 +8,11 @@ plugins {
   alias(libs.plugins.about.libraries)
 }
 
+metro {
+  debug.set(true)
+  reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
+}
+
 kotlin {
   compilerOptions {
     freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
@@ -23,6 +28,14 @@ kotlin {
         implementation(compose.components.resources)
       }
     }
+
+    iosMain {
+      commonMain {
+        dependencies {
+          implementation(projects.app.common)
+        }
+      }
+    }
   }
 }
 
@@ -33,6 +46,6 @@ ksp {
 addKspDependencyForAllTargets(libs.circuit.codegen)
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }

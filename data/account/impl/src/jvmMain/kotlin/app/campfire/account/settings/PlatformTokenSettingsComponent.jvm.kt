@@ -16,9 +16,9 @@ actual interface PlatformTokenSettingsComponent {
 
   @SingleIn(AppScope::class)
   @Provides
-  @TokenSettings
-  fun provideTokenSettings(delegate: Preferences): Settings {
+//  @TokenSettings FIXME: https://github.com/ZacSweers/metro/issues/444
+  fun provideTokenSettings(delegate: Preferences): TokenSettingsHolder {
     bark { "Desktop Preferences: ${delegate.absolutePath()}" }
-    return PreferencesSettings(delegate)
+    return TokenSettingsHolder(PreferencesSettings(delegate))
   }
 }

@@ -16,7 +16,7 @@ import dev.zacsweers.metro.SingleIn
  */
 actual interface PlatformTokenSettingsComponent {
 
-  //  @TokenSettings
+  //  @TokenSettings FIXME: https://github.com/ZacSweers/metro/issues/444
   @SingleIn(AppScope::class)
   @Provides
   fun provideTokenSettings(

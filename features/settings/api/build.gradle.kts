@@ -1,6 +1,5 @@
 plugins {
   id("app.campfire.multiplatform")
-  alias(libs.plugins.metro)
 }
 
 kotlin {

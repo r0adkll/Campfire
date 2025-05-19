@@ -16,6 +16,6 @@ actual interface PlatformTokenSettingsComponent {
   @OptIn(ExperimentalSettingsImplementation::class)
   @SingleIn(AppScope::class)
   @Provides
-  @TokenSettings
-  fun provideTokenSettings(): Settings = KeychainSettings("app.campfire.app.tokens")
+//  @TokenSettings FIXME: https://github.com/ZacSweers/metro/issues/444
+  fun provideTokenSettings(): TokenSettingsHolder = TokenSettingsHolder(KeychainSettings("app.campfire.app.tokens"))
 }

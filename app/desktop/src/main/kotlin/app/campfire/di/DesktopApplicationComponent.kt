@@ -11,6 +11,8 @@ import app.campfire.core.app.Flavor
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForAppScope
+import app.campfire.settings.api.DevSettings
+import app.campfire.settings.api.SleepSettings
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -22,6 +24,12 @@ import kotlinx.coroutines.SupervisorJob
 @SingleIn(AppScope::class)
 @DependencyGraph(AppScope::class, isExtendable = true)
 interface DesktopApplicationComponent : SharedAppComponent {
+
+  // FIXME: Needed for https://github.com/ZacSweers/metro/issues/377
+  val devSettings: DevSettings
+
+  // FIXME: Needed for https://github.com/ZacSweers/metro/issues/377
+  val sleepSettings: SleepSettings
 
   @SingleIn(AppScope::class)
   @Provides
