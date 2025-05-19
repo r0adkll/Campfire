@@ -3,7 +3,6 @@ package app.campfire.account.settings
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
 import com.russhwolf.settings.PreferencesSettings
-import com.russhwolf.settings.Settings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import java.util.prefs.Preferences
@@ -14,9 +13,9 @@ import java.util.prefs.Preferences
  */
 actual interface PlatformTokenSettingsComponent {
 
+  //  @TokenSettings FIXME: https://github.com/ZacSweers/metro/issues/444
   @SingleIn(AppScope::class)
   @Provides
-//  @TokenSettings FIXME: https://github.com/ZacSweers/metro/issues/444
   fun provideTokenSettings(delegate: Preferences): TokenSettingsHolder {
     bark { "Desktop Preferences: ${delegate.absolutePath()}" }
     return TokenSettingsHolder(PreferencesSettings(delegate))
