@@ -10,6 +10,7 @@ plugins {
 
 metro {
   debug.set(true)
+  transformProvidersToPrivate.set(false)
   reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
 }
 
@@ -30,10 +31,8 @@ kotlin {
     }
 
     iosMain {
-      commonMain {
-        dependencies {
-          implementation(projects.app.common)
-        }
+      dependencies {
+        implementation(projects.app.common)
       }
     }
   }

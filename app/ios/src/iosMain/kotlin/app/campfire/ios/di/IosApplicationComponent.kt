@@ -44,15 +44,4 @@ interface IosApplicationComponent : SharedAppComponent {
 
   @Provides
   fun provideNsUserDefaults(): NSUserDefaults = NSUserDefaults.standardUserDefaults
-
-  // FIXME: https://github.com/ZacSweers/metro/pull/407
-  //  Fixed in Kotlin 2.2.0 + Future Metro version
-  //  Should probably re-think about how we approach DI scoped primitives like CoroutineScope and the like
-  // HACK to get building
-  @SingleIn(AppScope::class)
-  @Provides
-  @ForAppScope
-  fun provideApplicationCoroutineScope(
-    dispatcherProvider: DispatcherProvider,
-  ): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

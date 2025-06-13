@@ -54,15 +54,4 @@ interface DesktopApplicationComponent : SharedAppComponent {
 
   @Provides
   fun provideDensity(): Density = Density(density = 1f) // FIXME
-
-  // FIXME: https://github.com/ZacSweers/metro/pull/407
-  //  Fixed in Kotlin 2.2.0 + Future Metro version
-  //  Should probably re-think about how we approach DI scoped primitives like CoroutineScope and the like
-  // HACK to get building
-  @SingleIn(AppScope::class)
-  @Provides
-  @ForAppScope
-  fun provideApplicationCoroutineScope(
-    dispatcherProvider: DispatcherProvider,
-  ): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 }

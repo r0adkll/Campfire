@@ -10,6 +10,7 @@ plugins {
 
 metro {
   debug.set(false)
+  transformProvidersToPrivate.set(false)
   reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
 }
 
@@ -60,8 +61,8 @@ android {
 }
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }
 
 dependencies {

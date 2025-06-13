@@ -21,7 +21,10 @@ import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, binding = binding<CampfireSettings>())
+@ContributesBinding(
+  scope = AppScope::class,
+  binding = binding<CampfireSettings>(),
+)
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,

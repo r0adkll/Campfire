@@ -8,6 +8,12 @@ plugins {
   alias(libs.plugins.about.libraries)
 }
 
+metro {
+  debug.set(false)
+  transformProvidersToPrivate.set(false)
+  reportsDestination.set(layout.buildDirectory.dir("metro/reports"))
+}
+
 kotlin {
   compilerOptions {
     freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
@@ -40,6 +46,6 @@ compose.desktop {
 }
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }
