@@ -1,11 +1,21 @@
 @file:Suppress("UnstableApiUsage")
 
+import com.android.build.api.instrumentation.AsmClassVisitorFactory
+import com.android.build.api.instrumentation.ClassContext
+import com.android.build.api.instrumentation.ClassData
+import com.android.build.api.instrumentation.InstrumentationParameters
+import com.android.build.api.instrumentation.InstrumentationScope
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.FieldVisitor
+
+
 plugins {
   id("app.campfire.android.application")
   id("app.campfire.kotlin.android")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
   alias(libs.plugins.about.libraries)
+  alias(libs.plugins.baselineprofile)
 }
 
 ksp {
@@ -51,16 +61,45 @@ android {
     )
   }
 
+  signingConfigs {
+    getByName("debug") {
+      storeFile = rootProject.file("app/signing/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
+    }
+
+    if (rootProject.file("app/signing/campfire.keystore").exists()) {
+      create("release") {
+        storeFile = file("app/signing/campfire.keystore")
+        storePassword = properties["CAMPFIRE_KEYSTORE_PWD"]?.toString().orEmpty()
+        keyAlias = "audiobooks"
+        keyPassword = properties["CAMPFIRE_KEY_PWD"]?.toString().orEmpty()
+      }
+    }
+  }
+
   buildTypes {
+    debug {
+      signingConfig = signingConfigs["debug"]
+      versionNameSuffix = "-dev"
+    }
+
     getByName("release") {
-      isMinifyEnabled = false
+      signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+      isMinifyEnabled = true
+      isShrinkResources = true
+      proguardFiles(
+        getDefaultProguardFile("proguard-android-optimize.txt"),
+        "proguard-rules.pro"
+      )
     }
   }
 }
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }
 
 dependencies {
@@ -74,9 +113,60 @@ dependencies {
 
   implementation(libs.circuit.runtime)
   implementation(libs.circuit.foundation)
+  implementation(libs.androidx.profileinstaller)
+  "baselineProfile"(project(":app:baselineprofile"))
 
   debugImplementation(projects.infra.debug)
 
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
+}
+
+// 1. Add this class visitor in `buildSrc` or directly into your build script
+
+class FieldSkippingClassVisitor(
+  apiVersion: Int,
+  nextClassVisitor: ClassVisitor,
+) : ClassVisitor(apiVersion, nextClassVisitor) {
+
+  // Returning null from this method will cause the ClassVisitor to strip all fields from the class.
+  override fun visitField(
+    access: Int,
+    name: String?,
+    descriptor: String?,
+    signature: String?,
+    value: Any?
+  ): FieldVisitor? = null
+
+  abstract class Factory : AsmClassVisitorFactory<Parameters> {
+
+    private val excludedClasses
+      get() = parameters.get().classes.get()
+
+    override fun isInstrumentable(classData: ClassData): Boolean =
+      classData.className in excludedClasses
+
+    override fun createClassVisitor(classContext: ClassContext, nextClassVisitor: ClassVisitor): ClassVisitor {
+      return FieldSkippingClassVisitor(
+        apiVersion = instrumentationContext.apiVersion.get(),
+        nextClassVisitor = nextClassVisitor,
+      )
+    }
+  }
+
+  abstract class Parameters : InstrumentationParameters {
+    @get:Input
+    abstract val classes: SetProperty<String>
+  }
+}
+
+androidComponents {
+  onVariants { variant ->
+    variant.instrumentation.transformClassesWith(
+      FieldSkippingClassVisitor.Factory::class.java,
+      scope = InstrumentationScope.ALL,
+    ) { params ->
+      params.classes.add("io.ktor.client.plugins.Messages")
+    }
+  }
 }

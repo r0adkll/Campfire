@@ -21,7 +21,7 @@ kotlin {
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.serialization.json)
 
-        api(libs.ktor.client.core)
+        implementation(libs.ktor.client.core)
         implementation(libs.ktor.client.contentnegotiation)
         implementation(libs.ktor.client.logging)
         implementation(libs.ktor.client.serialization.json)
@@ -39,7 +39,7 @@ kotlin {
     androidMain {
       dependencies {
         api(libs.okhttp.okhttp)
-        implementation(libs.ktor.client.okhttp)
+        api(libs.ktor.client.okhttp)
         implementation(libs.connectivity.android)
       }
     }
@@ -47,14 +47,14 @@ kotlin {
     jvmMain {
       dependencies {
         api(libs.okhttp.okhttp)
-        implementation(libs.ktor.client.okhttp)
+        api(libs.ktor.client.okhttp)
         implementation(libs.connectivity.http)
       }
     }
 
     iosMain {
       dependencies {
-        implementation(libs.ktor.client.darwin)
+        api(libs.ktor.client.darwin)
         implementation(libs.connectivity.apple)
       }
     }

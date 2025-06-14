@@ -34,6 +34,6 @@ addKspDependencyForAllTargets(libs.kotlininject.ksp)
 addKspDependencyForAllTargets(libs.kimchi.compiler)
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }

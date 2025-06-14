@@ -37,6 +37,6 @@ compose.desktop {
 }
 
 aboutLibraries {
-  registerAndroidTasks = false
-  prettyPrint = true
+  android.registerAndroidTasks = false
+  export.prettyPrint = true
 }

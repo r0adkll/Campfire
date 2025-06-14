@@ -64,6 +64,7 @@ include(
   ":app:desktop",
   ":app:ios",
 )
+include(":app:baselineprofile")
 include(":core")
 include(
   ":infra:audioplayer:api",

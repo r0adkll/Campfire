@@ -5,6 +5,6 @@ package app.campfire.convention
 
 object Versions {
   const val compileSdk = 35
-  const val minSdk = 26
+  const val minSdk = 30
   const val targetSdk = 35
 }
