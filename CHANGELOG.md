@@ -21,8 +21,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Other Notes & Contributions
 
-## [1.0.0] - 2023-10-01
+## [0.1.0-alpha] - 2025-06-15
 
-### Changed
+### Added
 
-- Everything. _TBD_
+- Initial Alpha Release.
