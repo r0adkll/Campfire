@@ -93,7 +93,7 @@ android {
       isShrinkResources = true
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
-        "proguard-rules.pro"
+        "proguard-rules.pro",
       )
     }
 
@@ -147,7 +147,7 @@ class FieldSkippingClassVisitor(
     name: String?,
     descriptor: String?,
     signature: String?,
-    value: Any?
+    value: Any?,
   ): FieldVisitor? = null
 
   abstract class Factory : AsmClassVisitorFactory<Parameters> {

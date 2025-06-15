@@ -74,7 +74,7 @@ class StartupBenchmarks {
         uiAutomator {
           startApp(packageName = packageName)
         }
-      }
+      },
     )
   }
 }

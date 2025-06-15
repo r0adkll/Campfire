@@ -4,7 +4,6 @@ import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.textAsString
 import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
@@ -50,13 +49,13 @@ class BaselineProfileGenerator {
 
       // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
       stableIterations = 3,
-      includeInStartupProfile = true
+      includeInStartupProfile = true,
     ) {
       uiAutomator {
         startApp(packageName = packageName)
 
         // Login, assuming default credentials
-        onElement { textAsString() == "Add a campsite"}.click()
+        onElement { textAsString() == "Add a campsite" }.click()
         waitForStableInActiveWindow()
         onElement { textAsString() == "Add campsite" }.click()
       }
