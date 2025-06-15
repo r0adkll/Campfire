@@ -16,6 +16,8 @@ plugins {
   alias(libs.plugins.ksp)
   alias(libs.plugins.about.libraries)
   alias(libs.plugins.baselineprofile)
+  alias(libs.plugins.google.services)
+  alias(libs.plugins.firebase.crashlytics)
 }
 
 ksp {
@@ -33,8 +35,8 @@ android {
 
   defaultConfig {
     applicationId = "app.campfire.android"
-    versionCode = 1
-    versionName = "1.0.0"
+    versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 999999999
+    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString() ?: "1.0.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -71,7 +73,7 @@ android {
 
     if (rootProject.file("app/signing/campfire.keystore").exists()) {
       create("release") {
-        storeFile = file("app/signing/campfire.keystore")
+        storeFile = file("../signing/campfire.keystore")
         storePassword = properties["CAMPFIRE_KEYSTORE_PWD"]?.toString().orEmpty()
         keyAlias = "audiobooks"
         keyPassword = properties["CAMPFIRE_KEY_PWD"]?.toString().orEmpty()
@@ -94,6 +96,10 @@ android {
         "proguard-rules.pro"
       )
     }
+
+    create("nonMinifiedRelease") {
+      signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+    }
   }
 }
 
@@ -103,6 +109,10 @@ aboutLibraries {
 }
 
 dependencies {
+  implementation(platform(libs.google.firebase.bom))
+  implementation(libs.google.firebase.analytics)
+  implementation(libs.google.firebase.crashlytics)
+
   implementation(projects.app.common)
   implementation(projects.common.screens)
 
@@ -114,7 +124,8 @@ dependencies {
   implementation(libs.circuit.runtime)
   implementation(libs.circuit.foundation)
   implementation(libs.androidx.profileinstaller)
-  "baselineProfile"(project(":app:baselineprofile"))
+
+  baselineProfile(projects.app.baselineprofile)
 
   debugImplementation(projects.infra.debug)
 
@@ -122,8 +133,9 @@ dependencies {
   ksp(libs.kotlininject.ksp)
 }
 
-// 1. Add this class visitor in `buildSrc` or directly into your build script
-
+// Temporary workaround for ktor and R8
+// https://youtrack.jetbrains.com/issue/KTOR-8583/Space-characters-in-SimpleName-error-when-executing-R8-mergeExtDex-task-with-3.2.0
+// TODO: Remove this in v3.2.1+
 class FieldSkippingClassVisitor(
   apiVersion: Int,
   nextClassVisitor: ClassVisitor,

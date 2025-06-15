@@ -2,12 +2,17 @@ package app.campfire.baselineprofile
 
 import androidx.benchmark.macro.BaselineProfileMode
 import androidx.benchmark.macro.CompilationMode
+import androidx.benchmark.macro.ExperimentalMetricApi
+import androidx.benchmark.macro.FrameTimingMetric
+import androidx.benchmark.macro.MemoryUsageMetric
+import androidx.benchmark.macro.PowerMetric
 import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -32,6 +37,7 @@ import org.junit.runner.RunWith
  * For more information, see the [Macrobenchmark documentation](https://d.android.com/macrobenchmark#create-macrobenchmark)
  * and the [instrumentation arguments documentation](https://d.android.com/topic/performance/benchmarking/macrobenchmark-instrumentation-args).
  **/
+@OptIn(ExperimentalMetricApi::class)
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class StartupBenchmarks {
@@ -52,7 +58,12 @@ class StartupBenchmarks {
     rule.measureRepeated(
       packageName = InstrumentationRegistry.getArguments().getString("targetAppId")
         ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
-      metrics = listOf(StartupTimingMetric()),
+      metrics = listOf(
+        StartupTimingMetric(),
+        FrameTimingMetric(),
+        MemoryUsageMetric(MemoryUsageMetric.Mode.Max),
+        PowerMetric(PowerMetric.Type.Power()),
+      ),
       compilationMode = compilationMode,
       startupMode = StartupMode.COLD,
       iterations = 10,
@@ -60,16 +71,9 @@ class StartupBenchmarks {
         pressHome()
       },
       measureBlock = {
-        startActivityAndWait()
-
-        // TODO Add interactions to wait for when your app is fully drawn.
-        // The app is fully drawn when Activity.reportFullyDrawn is called.
-        // For Jetpack Compose, you can use ReportDrawn, ReportDrawnWhen and ReportDrawnAfter
-        // from the AndroidX Activity library.
-
-        // Check the UiAutomator documentation for more information on how to
-        // interact with the app.
-        // https://d.android.com/training/testing/other-components/ui-automator
+        uiAutomator {
+          startApp(packageName = packageName)
+        }
       }
     )
   }

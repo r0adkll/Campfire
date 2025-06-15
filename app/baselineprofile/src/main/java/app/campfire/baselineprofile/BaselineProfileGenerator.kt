@@ -4,6 +4,9 @@ import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiDevice
+import androidx.test.uiautomator.textAsString
+import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -46,23 +49,17 @@ class BaselineProfileGenerator {
         ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
 
       // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
+      stableIterations = 3,
       includeInStartupProfile = true
     ) {
-      // This block defines the app's critical user journey. Here we are interested in
-      // optimizing for app startup. But you can also navigate and scroll through your most important UI.
+      uiAutomator {
+        startApp(packageName = packageName)
 
-      // Start default activity for your app
-      pressHome()
-      startActivityAndWait()
-
-      // TODO Write more interactions to optimize advanced journeys of your app.
-      // For example:
-      // 1. Wait until the content is asynchronously loaded
-      // 2. Scroll the feed content
-      // 3. Navigate to detail screen
-
-      // Check UiAutomator documentation for more information how to interact with the app.
-      // https://d.android.com/training/testing/other-components/ui-automator
+        // Login, assuming default credentials
+        onElement { textAsString() == "Add a campsite"}.click()
+        waitForStableInActiveWindow()
+        onElement { textAsString() == "Add campsite" }.click()
+      }
     }
   }
 }

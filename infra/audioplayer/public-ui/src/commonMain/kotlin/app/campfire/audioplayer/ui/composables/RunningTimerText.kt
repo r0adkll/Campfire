@@ -54,7 +54,6 @@ internal fun RunningTimerText(
     text = when (runningTimer.timer) {
       is PlaybackTimer.Epoch -> timeLeft
       is PlaybackTimer.EndOfChapter -> endOfChapterText
-      else -> ""
     },
     textAlign = TextAlign.Center,
     style = style(runningTimer.timer),
