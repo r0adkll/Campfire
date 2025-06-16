@@ -10,6 +10,8 @@ kotlin {
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)
+
+        implementation(libs.circuitx.overlays)
       }
     }
 

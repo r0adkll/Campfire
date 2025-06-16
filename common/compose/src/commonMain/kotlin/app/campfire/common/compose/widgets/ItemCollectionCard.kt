@@ -3,6 +3,7 @@ package app.campfire.common.compose.widgets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,9 +43,11 @@ fun ItemCollectionCard(
       itemSize = itemSize,
       modifier = Modifier
         .background(MaterialTheme.colorScheme.primaryContainer)
+        .defaultMinSize(minHeight = BookImageSize)
         .fillMaxWidth()
         .clip(RoundedCornerShape(BookCornerSize)),
     )
+
     Column(
       Modifier.padding(
         horizontal = 16.dp,

@@ -10,7 +10,6 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.session.UserSession
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
@@ -23,6 +22,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
@@ -41,7 +41,6 @@ import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
 @ContributesBinding(UserScope::class)
 @Inject
 class StoreCollectionsRepository(
-  private val userSession: UserSession,
   private val userRepository: UserRepository,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
@@ -134,5 +133,11 @@ class StoreCollectionsRepository(
         selectForCollection
           .map { it.asDomainModel(tokenHydrator) }
       }
+  }
+
+  override suspend fun createCollection(name: String, description: String?): CollectionId {
+    // TODO: Re-write the above Store implementation to support mutations
+    delay(3000L)
+    return "TODO"
   }
 }

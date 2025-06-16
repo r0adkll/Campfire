@@ -3,5 +3,11 @@
   <string name="empty_collection_items_message">Doesn't look like you have any collections. Try adding one now!</string>
   <string name="error_collection_detail_message">Something went wrong when trying to load this collection</string>
 
-  <string name="action_add_new_collection">Add collection</string>
+  <string name="action_add_new_collection">Create new</string>
+
+  <string name="new_collection_bottomsheet_title">New Collection</string>
+  <string name="new_collection_bottomsheet_input_title_label">Name</string>
+  <string name="new_collection_bottomsheet_input_description_label">Description</string>
+  <string name="new_collection_bottomsheet_action_create">Create new collection</string>
+  <string name="new_collection_bottomsheet_action_creating">Creating</string>
 </resources>

@@ -1,6 +1,5 @@
 package app.campfire.collections.ui.list
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +19,7 @@ import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -27,10 +27,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.collections.ui.list.CollectionsUiEvent.CollectionCreated
+import app.campfire.collections.ui.list.bottomsheets.NewCollectionResult
+import app.campfire.collections.ui.list.bottomsheets.showNewCollectionBottomSheet
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
@@ -51,6 +55,8 @@ import campfire.features.collections.ui.generated.resources.action_add_new_colle
 import campfire.features.collections.ui.generated.resources.empty_collection_items_message
 import campfire.features.collections.ui.generated.resources.error_collection_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.overlay.LocalOverlayHost
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(CollectionsScreen::class, UserScope::class)
@@ -60,6 +66,8 @@ fun Collections(
   campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
+  val scope = rememberCoroutineScope()
+
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   val gridState = rememberLazyGridState()
@@ -83,16 +91,23 @@ fun Collections(
         }
       }
 
+      val overlayHost = LocalOverlayHost.current
       ExtendedFloatingActionButton(
         onClick = {
-          // TODO: Navigate to collection creation screen/dialog/bottomsheet
+          scope.launch {
+            when (val result = overlayHost.showNewCollectionBottomSheet()) {
+              is NewCollectionResult.Created -> state.eventSink(CollectionCreated(result.id, result.name))
+              NewCollectionResult.None -> Unit
+            }
+          }
         },
         text = { Text(stringResource(Res.string.action_add_new_collection)) },
         icon = { Icon(Icons.Rounded.LibraryAdd, contentDescription = null) },
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
         expanded = isExpanded,
       )
     },
-    floatingActionButtonPosition = FabPosition.Center,
+    floatingActionButtonPosition = FabPosition.End,
     modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
       nestedScroll(appBarBehavior.nestedScrollConnection)
     },
@@ -115,7 +130,6 @@ fun Collections(
   }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun LoadedState(
   items: List<Collection>,

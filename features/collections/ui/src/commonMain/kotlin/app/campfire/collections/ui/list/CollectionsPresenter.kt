@@ -41,6 +41,13 @@ class CollectionsPresenter(
             event.collection.name,
           ),
         )
+
+        is CollectionsUiEvent.CollectionCreated -> navigator.goTo(
+          CollectionDetailScreen(
+            event.id,
+            event.name,
+          ),
+        )
       }
     }
   }
