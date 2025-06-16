@@ -39,6 +39,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse
+import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -170,6 +171,12 @@ class StoreSeriesRepository(
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             response.dataOrNull()?.let { series ->
+              // If the response is empty, but was from the SoT, then lets just return null and wait
+              // for the network request.
+              if (series.isEmpty() && response.origin == StoreReadResponseOrigin.SourceOfTruth) {
+                return@mapNotNull null
+              }
+
               series.entries.map { (s, books) ->
                 val sortedBooks = books
                   .map { it.asDomainModel(tokenHydrator) }
