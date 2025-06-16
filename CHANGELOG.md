@@ -11,6 +11,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Added
 
+- Ability to create new collections from root Collections screen
+
 ### Changed
 
 ### Deprecated

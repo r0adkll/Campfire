@@ -121,7 +121,6 @@ internal fun SheetScaffold(
   }
 }
 
-
 @Composable
 private fun NewCollectionBottomSheet(
   onCollectionCreated: (CollectionId, String) -> Unit,
@@ -142,7 +141,6 @@ private fun NewCollectionBottomSheet(
         horizontal = 16.dp,
       ),
   ) {
-
     OutlinedTextField(
       enabled = !isCreating,
       value = name,
