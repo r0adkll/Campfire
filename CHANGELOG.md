@@ -19,6 +19,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Fixed
 
+- Loading indicators not showing on series/collections screens for initial load
+
 ### Other Notes & Contributions
 
 ## [0.1.0-alpha] - 2025-06-15
