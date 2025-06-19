@@ -21,6 +21,7 @@ object VolumeFadeController {
     now: () -> Long = { Clock.System.now().toEpochMilliseconds() },
   ): Job {
     return scope.launch {
+      val startVolume = getVolume()
       val delayStep = 1000L / tickRate
       val fadeStep = getVolume() / (duration.asSeconds() * tickRate)
 
@@ -32,6 +33,9 @@ object VolumeFadeController {
       }
 
       onPause()
+
+      // Reset the volume to where it started
+      setVolume(startVolume)
     }
   }
 }

@@ -7,6 +7,8 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.serverUrl
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
@@ -46,6 +48,17 @@ interface LibraryItemDao {
     asTransaction: Boolean = true,
     ignoreOnInsert: Boolean = false,
   )
+
+  /**
+   * Insert an expanded library item and all of its relations in a transaction
+   * @param item the [LibraryItemExpanded] network model to insert into the database
+   * @param asTransaction true to wrap database insertion in a transaction, false to just execute
+   */
+  suspend fun insert(
+    item: LibraryItem,
+    asTransaction: Boolean = true,
+    ignoreOnInsert: Boolean = false,
+  )
 }
 
 @ContributesBinding(UserScope::class)
@@ -54,6 +67,7 @@ class SqlDelightLibraryItemDao(
   private val db: CampfireDatabase,
   private val tokenHydrator: TokenHydrator,
   private val dispatcherProvider: DispatcherProvider,
+  private val userSession: UserSession,
 ) : LibraryItemDao {
 
   override suspend fun hydrateItem(
@@ -102,6 +116,74 @@ class SqlDelightLibraryItemDao(
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transactionIf(asTransaction) {
       val libraryItem = item.asDbModel()
+
+      // 1) Insert the root library item
+      if (ignoreOnInsert) {
+        db.libraryItemsQueries.insertOrIgnore(libraryItem)
+      } else {
+        db.libraryItemsQueries.insert(libraryItem)
+      }
+
+      // 2) Insert the media meta
+      val media = item.media.asDbModel(libraryItem.id)
+      if (ignoreOnInsert) {
+        db.mediaQueries.insertOrIgnore(media)
+      } else {
+        db.mediaQueries.insert(media)
+      }
+
+      // 3) Insert relations
+
+      item.userMediaProgress?.let { progress ->
+        // Only insert the media progress if the one we have locally isn't newer
+        val existing = db.mediaProgressQueries.selectForLibraryItem(
+          userId = progress.userId,
+          libraryItemId = libraryItem.id,
+        ).executeAsOneOrNull()
+        if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
+          db.mediaProgressQueries.insert(progress.asDbModel())
+        }
+      }
+
+      item.media.audioFiles.forEach { audioFile ->
+        db.mediaAudioFilesQueries.insert(audioFile.asDbModel(media.mediaId))
+      }
+
+      item.media.chapters.forEach { chapter ->
+        db.mediaChaptersQueries.insert(chapter.asDbModel(media.mediaId))
+      }
+
+      item.media.tracks.forEach { track ->
+        db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId))
+      }
+
+      item.media.metadata.authors?.forEach { authorMeta ->
+        db.metadataAuthorQueries.insert(authorMeta.asDbModel(media.mediaId))
+      }
+
+      afterCommit {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItemExpanded[${item.id}] inserted"
+        }
+      }
+
+      afterRollback {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItemExpanded[${item.id}] insert failed, rolling back"
+        }
+      }
+    }
+  }
+
+  override suspend fun insert(
+    item: LibraryItem,
+    asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    db.transactionIf(asTransaction) {
+      // Should we attach the serverUrl information to the domain model here? This way we don't have
+      // to pipe it around like this?
+      val libraryItem = item.asDbModel(userSession.serverUrl!!)
 
       // 1) Insert the root library item
       if (ignoreOnInsert) {

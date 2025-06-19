@@ -1,0 +1,32 @@
+CREATE TABLE collectionsBookkeeping (
+  collectionId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+
+  PRIMARY KEY (collectionId, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Queries
+
+insertFailedSync:
+INSERT OR REPLACE INTO collectionsBookkeeping
+VALUES ?;
+
+getLastFailedSync:
+SELECT timestamp FROM collectionsBookkeeping
+WHERE collectionId = ?
+  AND userId = ?;
+
+getLastFailedSyncs:
+SELECT MAX(timestamp) FROM collectionsBookkeeping
+WHERE userId = ?;
+
+deleteFor:
+DELETE FROM collectionsBookkeeping
+WHERE collectionId = ?
+  AND userId = ?;
+
+deleteAll:
+DELETE FROM collectionsBookkeeping
+WHERE userId = ?;

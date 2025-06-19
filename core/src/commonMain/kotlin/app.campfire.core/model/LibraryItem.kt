@@ -6,7 +6,16 @@ typealias LibraryItemId = String
 
 data class LibraryItem(
   val id: LibraryItemId,
+  val ino: String,
   val libraryId: LibraryId,
+  val oldLibraryId: String? = null,
+  val folderId: String,
+  val path: String,
+  val relPath: String,
+  val isFile: Boolean,
+  val mtimeMs: Long,
+  val ctimeMs: Long,
+  val birthtimeMs: Long,
   val isMissing: Boolean,
   val isInvalid: Boolean,
   val mediaType: MediaType,

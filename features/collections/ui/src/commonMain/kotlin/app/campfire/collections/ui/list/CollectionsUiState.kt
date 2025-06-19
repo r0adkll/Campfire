@@ -20,8 +20,4 @@ sealed interface CollectionContentState {
 
 sealed interface CollectionsUiEvent : CircuitUiEvent {
   data class CollectionClick(val collection: Collection) : CollectionsUiEvent
-  data class CollectionCreated(
-    val id: CollectionId,
-    val name: String,
-  ) : CollectionsUiEvent
 }

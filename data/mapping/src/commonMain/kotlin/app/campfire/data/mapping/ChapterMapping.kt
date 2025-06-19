@@ -14,6 +14,16 @@ fun BookChapter.asDbModel(mediaId: String): MediaChapters {
   )
 }
 
+fun Chapter.asDbModel(mediaId: String): MediaChapters {
+  return MediaChapters(
+    mediaId = mediaId,
+    id = id,
+    start = start.toDouble(),
+    end = end.toDouble(),
+    title = title,
+  )
+}
+
 fun BookChapter.asDomainModel(): Chapter {
   return Chapter(
     id = id,

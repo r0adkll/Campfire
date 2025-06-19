@@ -126,6 +126,35 @@ interface AudioBookShelfApi {
   suspend fun getCollections(libraryId: String): Result<List<Collection>>
 
   /**
+   * Get a single collection
+   */
+  suspend fun getCollection(collectionId: String): Result<Collection>
+
+  /**
+   * Create a new collection
+   */
+  suspend fun createCollection(
+    libraryId: String,
+    name: String,
+    description: String?,
+    bookIds: List<String>,
+  ) : Result<Collection>
+
+  /**
+   * Update an existing collection
+   */
+  suspend fun updateCollection(
+    collectionId: String,
+    name: String? = null,
+    description: String? = null,
+  ) : Result<Collection>
+
+  /**
+   * Delete an existing collection
+   */
+  suspend fun deleteCollection(collectionId: String): Result<Unit>
+
+  /**
    * This endpoint retrieves your media progress that is associated with the given library item ID or
    * podcast episode ID.
    */

@@ -16,10 +16,12 @@ import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
+import app.campfire.network.envelopes.NewCollectionRequest
 import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncSessionRequest
+import app.campfire.network.envelopes.UpdateCollectionRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -185,6 +187,59 @@ class KtorAudioBookShelfApi(
     return trySendRequest<CollectionsResponse> {
       hydratedClientRequest("/api/libraries/$libraryId/collections")
     }.map { it.results }
+  }
+
+  override suspend fun getCollection(collectionId: String): Result<Collection> {
+    return trySendRequest {
+      hydratedClientRequest("/api/collections/$collectionId")
+    }
+  }
+
+  override suspend fun createCollection(
+    libraryId: String,
+    name: String,
+    description: String?,
+    bookIds: List<String>,
+  ): Result<Collection> {
+    return trySendRequest {
+      hydratedClientRequest("/api/collections") {
+        method = HttpMethod.Post
+        setBody(
+          NewCollectionRequest(
+            libraryId = libraryId,
+            name = name,
+            description = description,
+            books = bookIds,
+          )
+        )
+      }
+    }
+  }
+
+  override suspend fun updateCollection(
+    collectionId: String,
+    name: String?,
+    description: String?,
+  ): Result<Collection> {
+    return trySendRequest {
+      hydratedClientRequest("/api/collections/$collectionId") {
+        method = HttpMethod.Patch
+        setBody(
+          UpdateCollectionRequest(
+            name = name,
+            description = description,
+          )
+        )
+      }
+    }
+  }
+
+  override suspend fun deleteCollection(collectionId: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/collections/$collectionId") {
+        method = HttpMethod.Delete
+      }
+    }
   }
 
   override suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress> {

@@ -13,11 +13,11 @@ insert:
 INSERT OR IGNORE INTO collectionsBookJoin
 VALUES ?;
 
-deleteForSeries:
+delete:
 DELETE FROM collectionsBookJoin
 WHERE collectionsId = :collectionsId;
 
-deleteForSeriesItem:
+deleteForItem:
 DELETE FROM collectionsBookJoin
 WHERE collectionsId = :collectionsId
 AND libraryItemId = :libraryItemId;

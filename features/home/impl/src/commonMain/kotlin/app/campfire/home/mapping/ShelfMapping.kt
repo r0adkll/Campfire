@@ -42,7 +42,16 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
 ): LibraryItem {
   return LibraryItem(
     id = id,
+    ino = ino,
     libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
     isMissing = isMissing,
     isInvalid = isInvalid,
     mediaType = when (mediaType) {

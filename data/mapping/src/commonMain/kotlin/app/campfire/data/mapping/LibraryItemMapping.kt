@@ -23,6 +23,7 @@ import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.network.RequestOrigin
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.LibraryItemBase
+import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.Media
 import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
@@ -56,6 +57,32 @@ fun LibraryItemBase.asDbModel(
     numFiles = numFiles ?: -1,
     size = size ?: -1,
     serverUrl = serverUrl ?: (origin as RequestOrigin.Url).serverUrl,
+  )
+}
+
+fun LibraryItem.asDbModel(
+  serverUrl: String,
+): DatabaseLibraryItem {
+  return DatabaseLibraryItem(
+    id = id,
+    ino = ino,
+    libraryId = libraryId,
+    oldLibraryItemId = oldLibraryId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
+    addedAt = addedAtMillis,
+    updatedAt = updatedAtMillis,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = mediaType,
+    numFiles = numFiles,
+    size = sizeInBytes,
+    serverUrl = serverUrl,
   )
 }
 
@@ -131,6 +158,53 @@ fun <T : Media> T.asDbModel(
   )
 }
 
+fun DomainMedia.asDbModel(
+  libraryItemId: String,
+): DatabaseMedia {
+  val metadataAuthorName = metadata.authorName
+  val metadataAuthorNameLF = metadata.authorNameLastFirst
+  val metadataSeries = metadata.seriesSequence
+
+  return DatabaseMedia(
+    libraryItemId = libraryItemId,
+
+    mediaId = id,
+    coverPath = coverPath,
+    tags = tags,
+    numTracks = numTracks,
+    numAudioFiles = numAudioFiles,
+    numChapters = numChapters,
+    numMissingParts = numMissingParts,
+    numInvalidAudioFiles = numInvalidAudioFiles,
+    durationInMillis = durationInMillis,
+    sizeInBytes = sizeInBytes,
+    propertySize = null,
+    ebookFormat = ebookFormat,
+
+    metadata_title = metadata.title,
+    metadata_subtitle = metadata.subtitle,
+    metadata_genres = metadata.genres,
+    metadata_publishedYear = metadata.publishedYear,
+    metadata_publishedDate = metadata.publishedDate,
+    metadata_publisher = metadata.publisher,
+    metadata_description = metadata.description,
+    metadata_isbn = metadata.ISBN,
+    metadata_asin = metadata.ASIN,
+    metadata_language = metadata.language,
+    metadata_explicit = metadata.isExplicit,
+    metadata_abridged = metadata.isAbridged,
+    metadata_titleIgnorePrefix = metadata.titleIgnorePrefix,
+    metadata_authorName = metadataAuthorName,
+    metadata_authorNameLF = metadataAuthorNameLF,
+    metadata_narratorName = metadata.narratorName,
+    metadata_seriesName = metadata.seriesName,
+
+    metadata_series_id = metadataSeries?.id,
+    metadata_series_name = metadataSeries?.name,
+    metadata_series_sequence = metadataSeries?.sequence,
+  )
+}
+
 private val String.lastFirst: String get() {
   val parts = split(" ")
   return if (parts.size > 1) {
@@ -142,12 +216,78 @@ private val String.lastFirst: String get() {
   }
 }
 
+suspend fun LibraryItemExpanded.asDomainModel(
+  tokenHydrator: TokenHydrator
+): LibraryItem {
+  return LibraryItem(
+    id = id,
+    ino = ino,
+    libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = when (mediaType) {
+      NetworkMediaType.Book -> DomainMediaType.Book
+      NetworkMediaType.Podcast -> DomainMediaType.Podcast
+    },
+    numFiles = numFiles ?: -1,
+    sizeInBytes = size ?: -1,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
+    media = with (this.media) {
+      DomainMedia(
+        id = id,
+        metadata = metadata.asDomainModel(),
+        coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+        coverPath = coverPath,
+        tags = tags ?: emptyList(),
+        numTracks = numTracks,
+        numAudioFiles = numAudioFiles,
+        numChapters = numChapters,
+        numMissingParts = numMissingParts,
+        numInvalidAudioFiles = numInvalidAudioFiles,
+        durationInMillis = duration?.seconds?.inWholeMilliseconds ?: 0,
+        sizeInBytes = size ?: -1,
+        ebookFormat = ebookFormat,
+
+        audioFiles = audioFiles.map {
+          it.asDomainModel()
+        },
+
+        chapters = chapters.map {
+          it.asDomainModel()
+        },
+
+        tracks = tracks.map {
+          it.asDomainModel(tokenHydrator)
+        }
+      )
+    },
+  )
+}
+
 suspend fun SelectForSeries.asDomainModel(
   tokenHydrator: TokenHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
+    ino = ino,
     libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
     isMissing = isMissing,
     isInvalid = isInvalid,
     mediaType = mediaType,
@@ -207,7 +347,16 @@ suspend fun SelectForCollection.asDomainModel(
 ): LibraryItem {
   return LibraryItem(
     id = id,
+    ino = ino,
     libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
     isMissing = isMissing,
     isInvalid = isInvalid,
     mediaType = mediaType,
@@ -267,7 +416,16 @@ suspend fun SelectForAuthorName.asDomainModel(
 ): LibraryItem {
   return LibraryItem(
     id = id,
+    ino = ino,
     libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
     isMissing = isMissing,
     isInvalid = isInvalid,
     mediaType = mediaType,
@@ -331,7 +489,16 @@ suspend fun LibraryItemWithMedia.asDomainModel(
 ): LibraryItem {
   return LibraryItem(
     id = id,
+    ino = ino,
     libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
     isMissing = isMissing,
     isInvalid = isInvalid,
     mediaType = mediaType,
