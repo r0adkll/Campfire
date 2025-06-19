@@ -217,7 +217,7 @@ private val String.lastFirst: String get() {
 }
 
 suspend fun LibraryItemExpanded.asDomainModel(
-  tokenHydrator: TokenHydrator
+  tokenHydrator: TokenHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -241,7 +241,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
     sizeInBytes = size ?: -1,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = with (this.media) {
+    media = with(this.media) {
       DomainMedia(
         id = id,
         metadata = metadata.asDomainModel(),
@@ -267,7 +267,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
 
         tracks = tracks.map {
           it.asDomainModel(tokenHydrator)
-        }
+        },
       )
     },
   )

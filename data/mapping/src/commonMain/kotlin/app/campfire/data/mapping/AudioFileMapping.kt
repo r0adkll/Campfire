@@ -1,6 +1,5 @@
 package app.campfire.data.mapping
 
-import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioFile
 import app.campfire.data.MediaAudioFiles

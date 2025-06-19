@@ -39,7 +39,7 @@ suspend fun NetworkCollection.asDomainModel(tokenHydrator: TokenHydrator): Colle
 
 fun Collection.asDbModel(
   userId: UserId,
-  libraryId: LibraryId
+  libraryId: LibraryId,
 ): DbCollection {
   return DbCollection(
     id = id,

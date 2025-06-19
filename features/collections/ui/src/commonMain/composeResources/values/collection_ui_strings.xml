@@ -10,4 +10,10 @@
   <string name="dialog_confirm_delete_message">Are you sure you want to delete</string>
   <string name="dialog_confirm_delete_action_delete">Delete</string>
   <string name="dialog_confirm_delete_action_cancel">Cancel</string>
+
+  <string name="edit_collection_bottomsheet_title">Edit collection</string>
+  <string name="edit_collection_bottomsheet_input_title_label">Title</string>
+  <string name="edit_collection_bottomsheet_input_description_label">Description</string>
+  <string name="edit_collection_bottomsheet_action_creating">Updating</string>
+  <string name="edit_collection_bottomsheet_action_create">Update</string>
 </resources>

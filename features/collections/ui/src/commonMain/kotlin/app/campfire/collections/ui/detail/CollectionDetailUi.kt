@@ -39,6 +39,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSheet
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
@@ -56,6 +57,7 @@ import campfire.features.collections.ui.generated.resources.dialog_confirm_delet
 import campfire.features.collections.ui.generated.resources.error_collection_detail_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(CollectionDetailScreen::class, UserScope::class)
@@ -109,12 +111,9 @@ fun CollectionDetail(
       val overlayHost = LocalOverlayHost.current
       ExtendedFloatingActionButton(
         onClick = {
-//          scope.launch {
-//            when (val result = overlayHost.showNewCollectionBottomSheet()) {
-//              is NewCollectionResult.Created -> state.eventSink(CollectionCreated(result.id, result.name))
-//              NewCollectionResult.None -> Unit
-//            }
-//          }
+          scope.launch {
+            overlayHost.showEditCollectionBottomSheet(state.collection!!)
+          }
         },
         text = { Text(stringResource(Res.string.action_edit_collection)) },
         icon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
