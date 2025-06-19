@@ -9,8 +9,16 @@ interface CollectionsRepository {
 
   /**
    * Observe the list of [Collection] for the current library
+   * @return a flow of all [Collection]s
    */
   fun observeAllCollections(): Flow<List<Collection>>
+
+  /**
+   * Observe a single collection for a given item
+   * @param collectionId the id of the collection to observe
+   * @return a flow of the [Collection]
+   */
+  fun observeCollection(collectionId: CollectionId): Flow<Collection>
 
   /**
    * Observe the list of [LibraryItem] for a given [Collection]
@@ -41,7 +49,7 @@ interface CollectionsRepository {
     collectionId: CollectionId,
     name: String? = null,
     description: String? = null,
-  ) : Result<Unit>
+  ): Result<Unit>
 
   /**
    * Delete a collection
@@ -50,5 +58,5 @@ interface CollectionsRepository {
    */
   suspend fun deleteCollection(
     collectionId: CollectionId,
-  ) : Result<Unit>
+  ): Result<Unit>
 }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.LibraryItemScreen
@@ -13,6 +14,7 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -26,6 +28,12 @@ class CollectionDetailPresenter(
 
   @Composable
   override fun present(): CollectionDetailUiState {
+    val scope = rememberCoroutineScope()
+
+    val collection by remember {
+      collectionsRepository.observeCollection(screen.collectionId)
+    }.collectAsState(null)
+
     val collectionContentState by remember {
       collectionsRepository.observeCollectionItems(screen.collectionId)
         .map { CollectionContentState.Loaded(it) }
@@ -33,10 +41,16 @@ class CollectionDetailPresenter(
     }.collectAsState(CollectionContentState.Loading)
 
     return CollectionDetailUiState(
+      collection = collection,
       collectionContentState = collectionContentState,
     ) { event ->
       when (event) {
         CollectionDetailUiEvent.Back -> navigator.pop()
+        CollectionDetailUiEvent.Delete -> scope.launch {
+          collectionsRepository.deleteCollection(screen.collectionId)
+          navigator.pop()
+        }
+
         is CollectionDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
       }
     }

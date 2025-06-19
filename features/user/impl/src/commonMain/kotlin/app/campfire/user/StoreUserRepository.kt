@@ -15,6 +15,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
@@ -85,6 +86,7 @@ class StoreUserRepository(
     return userStore.stream(StoreReadRequest.cached(Unit, refresh = false))
       .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
       .map { it.requireData() }
+      .distinctUntilChanged()
   }
 
   override suspend fun getCurrentUser(): User {

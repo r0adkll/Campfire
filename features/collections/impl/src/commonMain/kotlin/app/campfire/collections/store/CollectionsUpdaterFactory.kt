@@ -3,7 +3,6 @@ package app.campfire.collections.store
 import app.campfire.CampfireDatabase
 import app.campfire.collections.store.CollectionsStore.Operation
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.data.Collections
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
@@ -32,12 +31,10 @@ class CollectionsUpdaterFactory(
       },
       onCompletion = OnUpdaterCompletion(
         onSuccess = { result ->
-
         },
         onFailure = {
-
         },
-      )
+      ),
     )
   }
 
@@ -74,7 +71,7 @@ class CollectionsUpdaterFactory(
         // Copy over the junction entries
         collection.books.forEach { book ->
           db.collectionsBookJoinQueries.insert(
-            CollectionsBookJoin(collection.id, book.id)
+            CollectionsBookJoin(collection.id, book.id),
           )
         }
 

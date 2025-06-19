@@ -45,6 +45,7 @@ class CollectionsSourceOfTruthFactory(
   }
 
   private fun handleRead(operation: CollectionsStore.Operation): Flow<CollectionsStore.Output> {
+    CollectionsStore.ibark { "handleRead -> $operation" }
     require(operation is CollectionsStore.Operation.All || operation is CollectionsStore.Operation.Single)
     return when (operation) {
       is CollectionsStore.Operation.All -> readAll(operation.libraryId)

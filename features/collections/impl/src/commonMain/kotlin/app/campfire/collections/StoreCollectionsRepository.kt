@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -29,7 +30,7 @@ import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
 import org.mobilenativefoundation.store.store5.StoreWriteRequest
 import org.mobilenativefoundation.store.store5.StoreWriteResponse
 
-@OptIn(ExperimentalStoreApi::class)
+@OptIn(ExperimentalStoreApi::class, ExperimentalCoroutinesApi::class)
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
@@ -43,31 +44,53 @@ class StoreCollectionsRepository(
 
   private val collectionsStore by lazy { storeFactory.create() }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeAllCollections(): Flow<List<Collection>> {
+    CollectionsStore.ibark { "start observing all collections" }
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
+        CollectionsStore.vbark { "User: $user" }
+
         val operation = CollectionsStore.Operation.All(user.id, user.selectedLibraryId)
         val request = StoreReadRequest.cached(operation, refresh = true)
 
         collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
+          .onEach { CollectionsStore.dbark { "observeAllCollections -> $it" } }
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
+            CollectionsStore.ibark { "response -> ${response.dataOrNull()}" }
+
             response.dataOrNull()?.let { output ->
               // If the response is empty, and from the SoT then lets just return null and wait
               // for the network request to return.
               if (output.isEmpty() && response.origin == StoreReadResponseOrigin.SourceOfTruth) {
+                CollectionsStore.dbark { "Output is empty and response is from SoT, force network fetch." }
                 return@mapNotNull null
               }
 
-              (output as CollectionsStore.Output.Collection)
-                .collections
+              (output as CollectionsStore.Output.Collection).collections
             }
           }
       }
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeCollection(collectionId: CollectionId): Flow<Collection> {
+    CollectionsStore.ibark { "start observing single collection: $collectionId" }
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        CollectionsStore.vbark { "User: $user" }
+        val operation = CollectionsStore.Operation.Single(user.id, user.selectedLibraryId, collectionId)
+        val request = StoreReadRequest.cached(operation, refresh = false)
+
+        collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
+          .onEach { CollectionsStore.dbark { "observeCollection -> $it" } }
+          .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
+          .mapNotNull { response ->
+            val output = response.dataOrNull() as? CollectionsStore.Output.Single
+            output?.collection
+          }
+      }
+  }
+
   override fun observeCollectionItems(collectionId: CollectionId): Flow<List<LibraryItem>> {
     return db.libraryItemsQueries
       .selectForCollection(collectionId)

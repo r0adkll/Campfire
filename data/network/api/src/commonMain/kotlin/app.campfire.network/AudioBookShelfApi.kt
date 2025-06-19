@@ -138,7 +138,7 @@ interface AudioBookShelfApi {
     name: String,
     description: String?,
     bookIds: List<String>,
-  ) : Result<Collection>
+  ): Result<Collection>
 
   /**
    * Update an existing collection
@@ -147,7 +147,7 @@ interface AudioBookShelfApi {
     collectionId: String,
     name: String? = null,
     description: String? = null,
-  ) : Result<Collection>
+  ): Result<Collection>
 
   /**
    * Delete an existing collection
