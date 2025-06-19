@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.UserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Collections
 import app.campfire.data.CollectionsBookJoin
@@ -45,17 +46,16 @@ class CollectionsSourceOfTruthFactory(
   }
 
   private fun handleRead(operation: CollectionsStore.Operation): Flow<CollectionsStore.Output> {
-    CollectionsStore.ibark { "handleRead -> $operation" }
     require(operation is CollectionsStore.Operation.All || operation is CollectionsStore.Operation.Single)
     return when (operation) {
-      is CollectionsStore.Operation.All -> readAll(operation.libraryId)
+      is CollectionsStore.Operation.All -> readAll(operation.userId, operation.libraryId)
       is CollectionsStore.Operation.Single -> readSingle(operation.collectionId)
       else -> throw IllegalArgumentException("Unknown operation: $operation")
     }
   }
 
-  private fun readAll(libraryId: LibraryId): Flow<CollectionsStore.Output.Collection> {
-    return db.collectionsQueries.selectByLibraryId(libraryId)
+  private fun readAll(userId: UserId, libraryId: LibraryId): Flow<CollectionsStore.Output.Collection> {
+    return db.collectionsQueries.selectByLibraryId(libraryId, userId)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { collections ->
@@ -95,8 +95,8 @@ class CollectionsSourceOfTruthFactory(
     collections: List<Collection> = emptyList(),
   ) {
     when (operation) {
-      is CollectionsStore.Operation.All -> writeAll(operation.libraryId, collections)
-      is CollectionsStore.Operation.Single -> writeAll(operation.libraryId, collections)
+      is CollectionsStore.Operation.All -> writeAll(operation.userId, operation.libraryId, collections)
+      is CollectionsStore.Operation.Single -> writeSingle(operation.userId, operation.libraryId, collections.first())
       is CollectionsStore.Operation.Mutation.Create -> writeCreate(operation)
       is CollectionsStore.Operation.Mutation.Update -> writeUpdate(operation)
       is CollectionsStore.Operation.Mutation.Delete -> handleDelete(operation)
@@ -104,13 +104,17 @@ class CollectionsSourceOfTruthFactory(
   }
 
   private suspend fun writeAll(
+    userId: UserId,
     libraryId: LibraryId,
     collections: List<Collection>,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transaction {
+      // Delete any existing entries that no longer exist
+      db.collectionsQueries.deleteOld(collections.map { it.id })
+
       collections.forEach { collection ->
         // Insert collection
-        db.collectionsQueries.insert(collection.asDbModel(libraryId))
+        db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
         // Insert the collection books
         collection.books.forEach { book ->
@@ -133,6 +137,35 @@ class CollectionsSourceOfTruthFactory(
     }
   }
 
+  private suspend fun writeSingle(
+    userId: UserId,
+    libraryId: LibraryId,
+    collection: Collection,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    db.transaction {
+      // Insert collection
+      db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
+
+      // Insert the collection books
+      collection.books.forEach { book ->
+
+        // These books are expanded objects, so they should be safe to insert/replace
+        libraryItemDao.insert(
+          item = book,
+          asTransaction = false,
+        )
+
+        // Insert junction entry
+        db.collectionsBookJoinQueries.insert(
+          CollectionsBookJoin(
+            collectionsId = collection.id,
+            libraryItemId = book.id,
+          ),
+        )
+      }
+    }
+  }
+
   private suspend fun writeCreate(
     mutation: CollectionsStore.Operation.Mutation.Create,
   ) = withContext(dispatcherProvider.databaseWrite) {
@@ -141,6 +174,7 @@ class CollectionsSourceOfTruthFactory(
         .insert(
           Collections(
             id = mutation.creationId.toHexDashString(),
+            userId = mutation.userId,
             name = mutation.name,
             description = mutation.description,
             cover = null,

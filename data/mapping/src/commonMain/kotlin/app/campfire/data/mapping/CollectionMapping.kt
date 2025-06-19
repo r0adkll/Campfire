@@ -4,10 +4,13 @@ import app.campfire.account.api.TokenHydrator
 import app.campfire.core.model.Collection
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.UserId
 import app.campfire.data.Collections as DbCollection
 import app.campfire.network.models.Collection as NetworkCollection
 
-fun NetworkCollection.asDbModel(): DbCollection {
+fun NetworkCollection.asDbModel(
+  userId: UserId,
+): DbCollection {
   return DbCollection(
     id = id,
     name = name,
@@ -16,6 +19,7 @@ fun NetworkCollection.asDbModel(): DbCollection {
     coverFullPath = coverFullPath,
     updatedAt = lastUpdate,
     createdAt = createdAt,
+    userId = userId,
     libraryId = libraryId,
   )
 }
@@ -33,7 +37,10 @@ suspend fun NetworkCollection.asDomainModel(tokenHydrator: TokenHydrator): Colle
   )
 }
 
-fun Collection.asDbModel(libraryId: LibraryId): DbCollection {
+fun Collection.asDbModel(
+  userId: UserId,
+  libraryId: LibraryId
+): DbCollection {
   return DbCollection(
     id = id,
     name = name,
@@ -43,6 +50,7 @@ fun Collection.asDbModel(libraryId: LibraryId): DbCollection {
     updatedAt = updatedAt,
     createdAt = createdAt,
     libraryId = libraryId,
+    userId = userId,
   )
 }
 

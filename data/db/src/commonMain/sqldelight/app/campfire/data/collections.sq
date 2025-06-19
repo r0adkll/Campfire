@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS collections (
   updatedAt INTEGER NOT NULL,
   createdAt INTEGER NOT NULL,
 
-  libraryId TEXT NOT NULL
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 insert:
@@ -27,7 +30,8 @@ SET description = ?,
 WHERE id = ?;
 
 selectAll:
-SELECT * FROM collections;
+SELECT * FROM collections
+WHERE userId = ?;
 
 selectById:
 SELECT * FROM collections
@@ -35,12 +39,13 @@ WHERE id = ?;
 
 selectByLibraryId:
 SELECT * FROM collections
-WHERE libraryId = ?;
-
-deleteForLibraryId:
-DELETE FROM collections
-WHERE libraryId = ?;
+WHERE libraryId = ?
+  AND userId = ?;
 
 delete:
 DELETE FROM collections
 WHERE id = ?;
+
+deleteOld:
+DELETE FROM collections
+WHERE id NOT IN ?;

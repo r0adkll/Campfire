@@ -3,6 +3,7 @@ package app.campfire.collections.store
 import app.campfire.CampfireDatabase
 import app.campfire.collections.store.CollectionsStore.Operation
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.model.UserId
 import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
@@ -47,7 +48,7 @@ class CollectionsUpdaterFactory(
     )
 
     return if (result.isSuccess) {
-      updateLocalCreate(mutation.creationId, result.getOrThrow())
+      updateLocalCreate(mutation.userId, mutation.creationId, result.getOrThrow())
       UpdaterResult.Success.Typed(result.getOrThrow())
     } else {
       result.exceptionOrNull()?.let { UpdaterResult.Error.Exception(it) }
@@ -56,6 +57,7 @@ class CollectionsUpdaterFactory(
   }
 
   private suspend fun updateLocalCreate(
+    userId: UserId,
     creationId: Uuid,
     collection: Collection,
   ) {
@@ -66,7 +68,7 @@ class CollectionsUpdaterFactory(
     if (existing != null) {
       db.transaction {
         // Insert a copy, with the real id
-        db.collectionsQueries.insert(collection.asDbModel())
+        db.collectionsQueries.insert(collection.asDbModel(userId))
 
         // Copy over the junction entries
         collection.books.forEach { book ->

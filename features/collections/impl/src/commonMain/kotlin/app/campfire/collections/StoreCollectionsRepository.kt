@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -45,20 +44,15 @@ class StoreCollectionsRepository(
   private val collectionsStore by lazy { storeFactory.create() }
 
   override fun observeAllCollections(): Flow<List<Collection>> {
-    CollectionsStore.ibark { "start observing all collections" }
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        CollectionsStore.vbark { "User: $user" }
 
         val operation = CollectionsStore.Operation.All(user.id, user.selectedLibraryId)
         val request = StoreReadRequest.cached(operation, refresh = true)
 
         collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
-          .onEach { CollectionsStore.dbark { "observeAllCollections -> $it" } }
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
-            CollectionsStore.ibark { "response -> ${response.dataOrNull()}" }
-
             response.dataOrNull()?.let { output ->
               // If the response is empty, and from the SoT then lets just return null and wait
               // for the network request to return.
@@ -74,15 +68,12 @@ class StoreCollectionsRepository(
   }
 
   override fun observeCollection(collectionId: CollectionId): Flow<Collection> {
-    CollectionsStore.ibark { "start observing single collection: $collectionId" }
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        CollectionsStore.vbark { "User: $user" }
         val operation = CollectionsStore.Operation.Single(user.id, user.selectedLibraryId, collectionId)
         val request = StoreReadRequest.cached(operation, refresh = false)
 
         collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
-          .onEach { CollectionsStore.dbark { "observeCollection -> $it" } }
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             val output = response.dataOrNull() as? CollectionsStore.Output.Single
