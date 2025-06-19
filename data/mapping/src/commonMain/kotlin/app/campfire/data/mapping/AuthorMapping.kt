@@ -2,6 +2,7 @@ package app.campfire.data.mapping
 
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.model.Author
+import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.data.Authors as DbAuthor
 import app.campfire.data.SearchAuthors
