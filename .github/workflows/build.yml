@@ -108,7 +108,7 @@ jobs:
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
-            [Android APK]({{ steps.upload_artifact.outputs.artifact-url }})
+            [Android APK](${{ steps.upload_artifact.outputs.artifact-url }})
           comment-tag: apk_url
 
       - name: Upload reports
