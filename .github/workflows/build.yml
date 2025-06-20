@@ -82,11 +82,9 @@ jobs:
       - name: Build Android App (skipping benchmark variant)
         run: |
           ./gradlew \
-            :app:android:bundle \
-            :app:android:build \
+            :app:android:assemble \
             lint \
-            -x :app:android:assemble \
-            -x :app:android:bundle
+            -x :app:android:assemble
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -97,12 +95,21 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload build outputs
+      - name: Upload APK
+        id: upload_artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: android-build-outputs
-          path: app/android/build/outputs
+          name: android-release-apk
+          path: app/android/build/outputs/apk/release/android-release.apk
+
+      - name: Post Artifact URL to PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            [Android APK]({{ steps.upload_artifact.outputs.artifact-url }})
+          comment-tag: apk_url
 
       - name: Upload reports
         if: always()
