@@ -18,7 +18,7 @@ fun CollectionDetailTopAppBar(
   scrollBehavior: TopAppBarScrollBehavior,
   onBack: () -> Unit,
   onDelete: () -> Unit,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   CampfireTopAppBar(
     modifier = modifier,

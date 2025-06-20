@@ -1,7 +1,6 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
@@ -20,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.Circle
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard

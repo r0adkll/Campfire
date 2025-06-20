@@ -25,5 +25,5 @@ class AddBookToCollectionRequest(
 
 @Serializable
 class BatchBooksRequest(
-  val books: List<String>
+  val books: List<String>,
 )
