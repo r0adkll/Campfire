@@ -76,7 +76,7 @@ fun CollectionDetail(
   Scaffold(
     topBar = {
       CampfireTopAppBar(
-        title = { Text(state.collection?.name ?: "" /* screen.collectionName FIXME: TEST*/) },
+        title = { Text(state.collection?.name ?: screen.collectionName) },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
           IconButton(
