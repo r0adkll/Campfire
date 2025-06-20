@@ -9,6 +9,7 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.Collection as BookCollection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.UserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.dao.LibraryItemDao
@@ -113,13 +114,13 @@ object CollectionsStore : Cork {
 
       data class Add(
         override val userId: UserId,
-        val bookId: String,
+        val bookId: LibraryItemId,
         val collectionId: CollectionId,
       ) : Mutation("add")
 
       data class Remove(
         override val userId: UserId,
-        val bookId: String,
+        val bookIds: List<LibraryItemId>,
         val collectionId: CollectionId,
       ) : Mutation("remove")
     }

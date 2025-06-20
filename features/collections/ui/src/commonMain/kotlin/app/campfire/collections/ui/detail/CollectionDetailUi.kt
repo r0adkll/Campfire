@@ -1,8 +1,21 @@
 package app.campfire.collections.ui.detail
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -11,7 +24,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
@@ -28,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -40,13 +53,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSheet
+import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
+import app.campfire.collections.ui.detail.composables.EditingTopAppBar
+import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
-import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
 import campfire.features.collections.ui.generated.resources.Res
 import campfire.features.collections.ui.generated.resources.action_edit_collection
@@ -73,32 +93,70 @@ fun CollectionDetail(
 
   var showDeleteConfirmation by remember { mutableStateOf(false) }
 
+  var isItemEditing by remember { mutableStateOf(false) }
+  val selectedItems = remember { mutableStateListOf<LibraryItem>() }
+
+  LaunchedEffect(isItemEditing, selectedItems.isEmpty()) {
+    if (isItemEditing && selectedItems.isEmpty()) {
+      isItemEditing = false
+    }
+  }
+
   Scaffold(
     topBar = {
-      CampfireTopAppBar(
-        title = { Text(state.collection?.name ?: screen.collectionName) },
-        scrollBehavior = scrollBehavior,
-        navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(CollectionDetailUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+      AnimatedContent(
+        targetState = isItemEditing,
+        transitionSpec = {
+          if (targetState) {
+            slideIntoContainer(
+              towards = AnimatedContentTransitionScope.SlideDirection.Down,
+            ) togetherWith fadeOut(targetAlpha = 0.5f)
+          } else {
+            fadeIn(initialAlpha = 0.5f) togetherWith
+              slideOutOfContainer(
+                towards = AnimatedContentTransitionScope.SlideDirection.Up
+              )
           }
-        },
-        actions = {
-          IconButton(
-            onClick = {
-              showDeleteConfirmation = true
+        }
+      ) { isEditing ->
+        if (isEditing) {
+          EditingTopAppBar(
+            title = {
+              Text(
+                text = "${selectedItems.size} item${if (selectedItems.size > 1) "s" else ""}",
+              )
             },
-          ) {
-            Icon(
-              Icons.Rounded.Delete,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.error,
-            )
-          }
-        },
-      )
+            actions = {
+              IconButton(
+                onClick = {
+                  state.eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
+                  isItemEditing = false
+                  selectedItems.clear()
+                },
+              ) {
+                Icon(
+                  Icons.Rounded.Delete,
+                  contentDescription = null,
+                  tint = MaterialTheme.colorScheme.error,
+                )
+              }
+
+            },
+            onDismiss = {
+              isItemEditing = false
+              selectedItems.clear()
+            },
+            scrollBehavior = scrollBehavior,
+          )
+        } else {
+          CollectionDetailTopAppBar(
+            name = state.collection?.name ?: screen.collectionName,
+            scrollBehavior = scrollBehavior,
+            onBack = { state.eventSink(CollectionDetailUiEvent.Back) },
+            onDelete = { showDeleteConfirmation = true },
+          )
+        }
+      }
     },
     floatingActionButton = {
       val isExpanded by remember {
@@ -109,20 +167,28 @@ fun CollectionDetail(
       }
 
       val overlayHost = LocalOverlayHost.current
-      ExtendedFloatingActionButton(
-        onClick = {
-          scope.launch {
-            overlayHost.showEditCollectionBottomSheet(state.collection!!)
-          }
-        },
-        text = { Text(stringResource(Res.string.action_edit_collection)) },
-        icon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
-        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-        expanded = isExpanded,
-      )
+      AnimatedVisibility(
+        visible = !isItemEditing,
+      ) {
+        ExtendedFloatingActionButton(
+          onClick = {
+            scope.launch {
+              overlayHost.showEditCollectionBottomSheet(state.collection!!)
+            }
+          },
+          text = { Text(stringResource(Res.string.action_edit_collection)) },
+          icon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+          containerColor = MaterialTheme.colorScheme.secondaryContainer,
+          expanded = isExpanded,
+        )
+      }
     },
     floatingActionButtonPosition = FabPosition.End,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets
+      .fluentIf(LocalContentLayout.current != ContentLayout.Supporting){
+        exclude(WindowInsets.navigationBars)
+      }
   ) { paddingValues ->
     when (state.collectionContentState) {
       CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -133,8 +199,25 @@ fun CollectionDetail(
 
       is CollectionContentState.Loaded -> LoadedState(
         description = state.collection?.description,
+        isEditing = isItemEditing,
+        selectedItems = selectedItems,
         items = state.collectionContentState.items,
-        onLibraryItemClick = { state.eventSink(CollectionDetailUiEvent.LibraryItemClick(it)) },
+        onLibraryItemClick = { item ->
+          if (isItemEditing) {
+            if (selectedItems.contains(item)) {
+              selectedItems.remove(item)
+            } else {
+              selectedItems.add(item)
+            }
+          } else {
+            state.eventSink(CollectionDetailUiEvent.LibraryItemClick(item))
+          }
+        },
+        onLibraryItemLongClick = { item ->
+          isItemEditing = true
+          selectedItems.clear()
+          selectedItems.add(item)
+        },
         contentPadding = paddingValues,
         gridState = gridState,
       )
@@ -156,8 +239,11 @@ fun CollectionDetail(
 @Composable
 private fun LoadedState(
   description: String?,
+  isEditing: Boolean,
+  selectedItems: List<LibraryItem>,
   items: List<LibraryItem>,
   onLibraryItemClick: (LibraryItem) -> Unit,
+  onLibraryItemLongClick: (LibraryItem) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   gridState: LazyGridState = rememberLazyGridState(),
@@ -197,9 +283,15 @@ private fun LoadedState(
     ) { item ->
       LibraryItemCard(
         item = item,
-        modifier = Modifier.clickable {
-          onLibraryItemClick(item)
-        },
+        isSelectable = isEditing,
+        selected = selectedItems.contains(item),
+        modifier = Modifier
+          .combinedClickable(
+            onClickLabel = "View item",
+            onClick = { onLibraryItemClick(item) },
+            onLongClickLabel = "Enter item edit mode",
+            onLongClick = { onLibraryItemLongClick(item) },
+          ),
       )
     }
   }

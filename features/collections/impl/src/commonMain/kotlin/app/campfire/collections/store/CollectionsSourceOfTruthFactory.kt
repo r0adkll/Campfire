@@ -233,9 +233,9 @@ class CollectionsSourceOfTruthFactory(
   private suspend fun handleRemove(
     mutation: CollectionsStore.Operation.Mutation.Remove,
   ) = withContext(dispatcherProvider.databaseWrite) {
-    db.collectionsBookJoinQueries.deleteForItem(
+    db.collectionsBookJoinQueries.deleteForItems(
       collectionsId = mutation.collectionId,
-      libraryItemId = mutation.bookId,
+      ids = mutation.bookIds,
     )
   }
 

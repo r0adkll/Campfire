@@ -9,6 +9,7 @@ import app.campfire.core.session.userId
 import app.campfire.network.envelopes.AddBookToCollectionRequest
 import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
+import app.campfire.network.envelopes.BatchBooksRequest
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.Envelope
@@ -248,6 +249,18 @@ class KtorAudioBookShelfApi(
     return trySendRequest {
       hydratedClientRequest("/api/collections/$collectionId/book/$libraryItemId") {
         method = HttpMethod.Delete
+      }
+    }
+  }
+
+  override suspend fun removeBooksFromCollection(
+    collectionId: String,
+    libraryItemIds: List<String>,
+  ): Result<Collection> {
+    return trySendRequest {
+      hydratedClientRequest("/api/collections/$collectionId/batch/remove") {
+        method = HttpMethod.Post
+        setBody(BatchBooksRequest(libraryItemIds))
       }
     }
   }

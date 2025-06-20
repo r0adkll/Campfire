@@ -113,7 +113,7 @@ class CollectionsUpdaterFactory(
   }
 
   private suspend fun handleRemove(mutation: Operation.Mutation.Remove): UpdaterResult {
-    val result = api.removeBookFromCollection(mutation.collectionId, mutation.bookId)
+    val result = api.removeBooksFromCollection(mutation.collectionId, mutation.bookIds)
 
     return if (result.isSuccess) {
       UpdaterResult.Success.Typed(result.getOrThrow())

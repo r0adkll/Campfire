@@ -51,6 +51,15 @@ class CollectionDetailPresenter(
           navigator.pop()
         }
 
+        is CollectionDetailUiEvent.DeleteItems -> scope.launch {
+          scope.launch {
+            collectionsRepository.removeFromCollection(
+              bookIds = event.items.map { it.id },
+              collectionId = screen.collectionId,
+            )
+          }
+        }
+
         is CollectionDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
       }
     }

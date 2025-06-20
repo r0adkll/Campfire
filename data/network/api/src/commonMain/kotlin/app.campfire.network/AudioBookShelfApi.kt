@@ -166,6 +166,14 @@ interface AudioBookShelfApi {
   ): Result<Collection>
 
   /**
+   * Remove a batch of books from an existing collection
+   */
+  suspend fun removeBooksFromCollection(
+    collectionId: String,
+    libraryItemIds: List<String>,
+  ): Result<Collection>
+
+  /**
    * Delete an existing collection
    */
   suspend fun deleteCollection(collectionId: String): Result<Unit>

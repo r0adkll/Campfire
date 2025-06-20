@@ -3,6 +3,7 @@ package app.campfire.collections.api
 import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.Flow
 
 interface CollectionsRepository {
@@ -67,7 +68,7 @@ interface CollectionsRepository {
    * @return the result of the add
    */
   suspend fun addToCollection(
-    bookId: String,
+    bookId: LibraryItemId,
     collectionId: CollectionId,
   ): Result<Unit>
 
@@ -78,7 +79,7 @@ interface CollectionsRepository {
    * @return the result of the remove
    */
   suspend fun removeFromCollection(
-    bookId: String,
+    bookIds: List<LibraryItemId>,
     collectionId: CollectionId,
   ): Result<Unit>
 }

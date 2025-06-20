@@ -22,4 +22,5 @@ sealed interface CollectionDetailUiEvent : CircuitUiEvent {
   data object Delete : CollectionDetailUiEvent
 
   data class LibraryItemClick(val libraryItem: LibraryItem) : CollectionDetailUiEvent
+  data class DeleteItems(val items: List<LibraryItem>) : CollectionDetailUiEvent
 }

@@ -10,6 +10,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
@@ -175,7 +176,7 @@ class StoreCollectionsRepository(
     }
   }
 
-  override suspend fun addToCollection(bookId: String, collectionId: CollectionId): Result<Unit> {
+  override suspend fun addToCollection(bookId: LibraryItemId, collectionId: CollectionId): Result<Unit> {
     val currentUser = userRepository.getCurrentUser()
 
     val operation = CollectionsStore.Operation.Mutation.Add(
@@ -199,13 +200,13 @@ class StoreCollectionsRepository(
     }
   }
 
-  override suspend fun removeFromCollection(bookId: String, collectionId: CollectionId): Result<Unit> {
+  override suspend fun removeFromCollection(bookIds: List<LibraryItemId>, collectionId: CollectionId): Result<Unit> {
     val currentUser = userRepository.getCurrentUser()
 
     val operation = CollectionsStore.Operation.Mutation.Remove(
       userId = currentUser.id,
       collectionId = collectionId,
-      bookId = bookId,
+      bookIds = bookIds,
     )
 
     val response = collectionsStore.write(

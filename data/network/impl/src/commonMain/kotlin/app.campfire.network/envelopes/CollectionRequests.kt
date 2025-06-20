@@ -22,3 +22,8 @@ class UpdateCollectionRequest(
 class AddBookToCollectionRequest(
   val id: String,
 )
+
+@Serializable
+class BatchBooksRequest(
+  val books: List<String>
+)

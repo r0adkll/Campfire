@@ -17,7 +17,7 @@ delete:
 DELETE FROM collectionsBookJoin
 WHERE collectionsId = :collectionsId;
 
-deleteForItem:
+deleteForItems:
 DELETE FROM collectionsBookJoin
 WHERE collectionsId = :collectionsId
-AND libraryItemId = :libraryItemId;
+AND libraryItemId IN :ids;
