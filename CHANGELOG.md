@@ -11,7 +11,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Added
 
-- Ability to create new collections from root Collections screen
+- Ability to add books to collections, or create new collections
+- Ability to remove books from collections, and delete collections
 
 ### Changed
 
