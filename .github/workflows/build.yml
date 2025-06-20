@@ -81,10 +81,7 @@ jobs:
 
       - name: Build Android App (skipping benchmark variant)
         run: |
-          ./gradlew \
-            :app:android:assemble \
-            lint \
-            -x :app:android:assemble
+          ./gradlew :app:android:assemble
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -101,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
-          path: app/android/build/outputs/apk/debug/android-debug.apk
+          path: app/android/build/outputs/apk/release/android-release.apk
 
       - name: Post Artifact URL to PR
         if: ${{ github.event_name == 'pull_request' }}
