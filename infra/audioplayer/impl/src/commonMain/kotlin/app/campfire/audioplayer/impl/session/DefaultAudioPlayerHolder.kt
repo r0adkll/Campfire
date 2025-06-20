@@ -34,9 +34,9 @@ class DefaultAudioPlayerHolder(
   }
 
   override fun release() {
+    cancelSynchronizer()
     currentPlayer.value?.release()
     currentPlayer.value = null
-    cancelSynchronizer()
   }
 
   private fun cancelSynchronizer() {

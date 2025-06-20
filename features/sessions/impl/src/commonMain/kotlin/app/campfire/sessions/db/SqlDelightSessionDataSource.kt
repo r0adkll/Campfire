@@ -132,6 +132,11 @@ class SqlDelightSessionDataSource(
       }
     }
 
+    // If we DID have an old session, we'll want to re-use its time stamps instead of the passed, media progress,
+    // timestamps.
+    val newStartTime = existingSession?.currentTime ?: currentTime
+    val newCurrentTime = existingSession?.currentTime ?: currentTime
+
     // If there is no existing, or its too old. Create a new session.
     bark { "Creating new session for $libraryItemId" }
     return withContext(dispatcherProvider.databaseWrite) {
@@ -143,8 +148,8 @@ class SqlDelightSessionDataSource(
         playMethod = PlayMethod.DirectPlay,
         mediaPlayer = "campfire",
         timeListening = 0.seconds,
-        startTime = currentTime,
-        currentTime = currentTime,
+        startTime = newStartTime,
+        currentTime = newCurrentTime,
         startedAt = fatherTime.now(),
         updatedAt = fatherTime.now(),
       )
