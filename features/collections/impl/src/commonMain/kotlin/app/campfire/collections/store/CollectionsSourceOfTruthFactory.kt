@@ -226,7 +226,7 @@ class CollectionsSourceOfTruthFactory(
       CollectionsBookJoin(
         collectionsId = mutation.collectionId,
         libraryItemId = mutation.bookId,
-      )
+      ),
     )
   }
 

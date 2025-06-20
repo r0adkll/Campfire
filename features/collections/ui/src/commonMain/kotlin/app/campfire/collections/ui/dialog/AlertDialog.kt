@@ -55,7 +55,7 @@ internal fun AlertDialogContent(
             Modifier
               .padding(IconPadding)
               .padding(horizontal = 24.dp)
-              .align(Alignment.CenterHorizontally)
+              .align(Alignment.CenterHorizontally),
           ) {
             icon()
           }
@@ -64,7 +64,7 @@ internal fun AlertDialogContent(
       title?.let {
         ProvideContentColorTextStyle(
           contentColor = titleContentColor,
-          textStyle = MaterialTheme.typography.headlineSmall
+          textStyle = MaterialTheme.typography.headlineSmall,
         ) {
           Box(
             // Align the title to the center when an icon is present.
@@ -76,8 +76,8 @@ internal fun AlertDialogContent(
                   Alignment.Start
                 } else {
                   Alignment.CenterHorizontally
-                }
-              )
+                },
+              ),
           ) {
             title()
           }
@@ -87,14 +87,14 @@ internal fun AlertDialogContent(
         val textStyle = MaterialTheme.typography.bodyMedium
         ProvideContentColorTextStyle(
           contentColor = textContentColor,
-          textStyle = textStyle
+          textStyle = textStyle,
         ) {
           Box(
             Modifier
               .weight(weight = 1f, fill = false)
               .padding(TextPadding)
               .padding(horizontal = 24.dp)
-              .align(Alignment.Start)
+              .align(Alignment.Start),
           ) {
             text()
           }
@@ -105,14 +105,14 @@ internal fun AlertDialogContent(
         HorizontalDivider(
           Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.dp),
         )
 
         Box(
           Modifier
             .weight(weight = 1f, fill = false)
             .padding(horizontal = 8.dp)
-            .align(Alignment.Start)
+            .align(Alignment.Start),
         ) {
           content()
         }
@@ -120,20 +120,20 @@ internal fun AlertDialogContent(
         HorizontalDivider(
           Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 24.dp),
         )
       }
 
       Box(
         modifier = Modifier
           .padding(horizontal = 24.dp)
-          .align(Alignment.End)
+          .align(Alignment.End),
       ) {
         val textStyle = MaterialTheme.typography.labelLarge
         ProvideContentColorTextStyle(
           contentColor = buttonContentColor,
           textStyle = textStyle,
-          content = buttons
+          content = buttons,
         )
       }
     }
@@ -148,7 +148,7 @@ internal fun AlertDialogContent(
 internal fun AlertDialogFlowRow(
   mainAxisSpacing: Dp,
   crossAxisSpacing: Dp,
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) {
   Layout(content) { measurables, constraints ->
     val sequences = mutableListOf<List<Placeable>>()
@@ -174,7 +174,8 @@ internal fun AlertDialogFlowRow(
         crossAxisSpace += crossAxisSpacing.roundToPx()
       }
       // Ensures that confirming actions appear above dismissive actions.
-      @Suppress("ListIterator") sequences.add(0, currentSequence.toList())
+      @Suppress("ListIterator")
+      sequences.add(0, currentSequence.toList())
       crossAxisSizes += currentCrossAxisSize
       crossAxisPositions += crossAxisSpace
 
@@ -226,7 +227,7 @@ internal fun AlertDialogFlowRow(
             mainAxisLayoutSize,
             childrenMainAxisSizes,
             layoutDirection,
-            mainAxisPositions
+            mainAxisPositions,
           )
         }
         placeables.fastForEachIndexed { j, placeable ->
@@ -241,13 +242,13 @@ internal fun AlertDialogFlowRow(
 internal fun ProvideContentColorTextStyle(
   contentColor: Color,
   textStyle: TextStyle,
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) {
   val mergedStyle = LocalTextStyle.current.merge(textStyle)
   CompositionLocalProvider(
     LocalContentColor provides contentColor,
     LocalTextStyle provides mergedStyle,
-    content = content
+    content = content,
   )
 }
 

@@ -9,7 +9,6 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.Collection as BookCollection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
-import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.dao.LibraryItemDao

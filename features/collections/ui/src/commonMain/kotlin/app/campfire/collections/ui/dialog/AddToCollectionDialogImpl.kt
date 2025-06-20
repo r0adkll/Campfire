@@ -8,19 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Error
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -31,10 +27,8 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -181,7 +175,6 @@ class AddToCollectionDialogImpl(
         vertical = 8.dp,
       ),
     ) {
-
       items(
         items = collections,
         key = { it.id },
@@ -228,7 +221,7 @@ class AddToCollectionDialogImpl(
             .padding(
               horizontal = 16.dp,
               vertical = 8.dp,
-            )
+            ),
         )
       }
 
@@ -236,7 +229,7 @@ class AddToCollectionDialogImpl(
         NewCollectionListItem(
           onCreate = { collectionName ->
             viewState.eventSink(AddToCollectionViewEvent.CreateCollection(collectionName))
-          }
+          },
         )
       }
     }
@@ -262,7 +255,7 @@ class AddToCollectionDialogImpl(
   ) {
     Row(
       verticalAlignment = Alignment.CenterVertically,
-      modifier = modifier.padding(horizontal = 16.dp)
+      modifier = modifier.padding(horizontal = 16.dp),
     ) {
       var collectionName by rememberSaveable { mutableStateOf("") }
       OutlinedTextField(
@@ -290,21 +283,21 @@ class AddToCollectionDialogImpl(
     Column(
       modifier = modifier
         .fillMaxWidth()
-        .padding(horizontal = 16.dp)
+        .padding(horizontal = 16.dp),
     ) {
       var collectionName by rememberSaveable { mutableStateOf("") }
       OutlinedTextField(
         value = collectionName,
         onValueChange = { collectionName = it },
         label = { Text(stringResource(Res.string.dialog_add_collection_name_label)) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
       )
 
       Spacer(Modifier.height(8.dp))
 
       Button(
         onClick = { onCreate(collectionName) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
       ) {
         Text(stringResource(Res.string.dialog_add_collection_action_create))
       }

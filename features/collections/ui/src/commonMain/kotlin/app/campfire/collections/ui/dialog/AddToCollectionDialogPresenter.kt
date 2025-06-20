@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.model.Collection
 import app.campfire.core.model.LibraryItem
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -55,7 +54,7 @@ class AddToCollectionDialogPresenter(
               collectionsRepository.createCollection(
                 name = event.collectionName,
                 description = null,
-                bookIds = listOf(libraryItem.id)
+                bookIds = listOf(libraryItem.id),
               )
 
               onDismiss()

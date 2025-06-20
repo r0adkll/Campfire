@@ -155,7 +155,7 @@ interface AudioBookShelfApi {
   suspend fun addBookToCollection(
     collectionId: String,
     libraryItemId: String,
-  ) : Result<Collection>
+  ): Result<Collection>
 
   /**
    * Remove a book from an existing collection
@@ -163,7 +163,7 @@ interface AudioBookShelfApi {
   suspend fun removeBookFromCollection(
     collectionId: String,
     libraryItemId: String,
-  ) : Result<Collection>
+  ): Result<Collection>
 
   /**
    * Delete an existing collection
