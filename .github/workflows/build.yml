@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-release-apk
-          path: app/android/build/outputs/apk/release/android-release.apk
+          path: app/android/build/outputs/apk/debug/android-debug.apk
 
       - name: Post Artifact URL to PR
         if: ${{ github.event_name == 'pull_request' }}
