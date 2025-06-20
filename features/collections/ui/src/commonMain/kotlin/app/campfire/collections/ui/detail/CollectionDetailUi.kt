@@ -2,14 +2,10 @@ package app.campfire.collections.ui.detail
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection.*
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -56,11 +52,9 @@ import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSh
 import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
 import app.campfire.collections.ui.detail.composables.EditingTopAppBar
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
-import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
@@ -114,10 +108,10 @@ fun CollectionDetail(
           } else {
             fadeIn(initialAlpha = 0.5f) togetherWith
               slideOutOfContainer(
-                towards = AnimatedContentTransitionScope.SlideDirection.Up
+                towards = AnimatedContentTransitionScope.SlideDirection.Up,
               )
           }
-        }
+        },
       ) { isEditing ->
         if (isEditing) {
           EditingTopAppBar(
@@ -140,7 +134,6 @@ fun CollectionDetail(
                   tint = MaterialTheme.colorScheme.error,
                 )
               }
-
             },
             onDismiss = {
               isItemEditing = false
@@ -186,9 +179,9 @@ fun CollectionDetail(
     floatingActionButtonPosition = FabPosition.End,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets
-      .fluentIf(LocalContentLayout.current != ContentLayout.Supporting){
+      .fluentIf(LocalContentLayout.current != ContentLayout.Supporting) {
         exclude(WindowInsets.navigationBars)
-      }
+      },
   ) { paddingValues ->
     when (state.collectionContentState) {
       CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
