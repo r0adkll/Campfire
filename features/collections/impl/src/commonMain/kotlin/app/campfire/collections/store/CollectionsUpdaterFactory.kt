@@ -27,6 +27,8 @@ class CollectionsUpdaterFactory(
         when (operation) {
           is Operation.Mutation.Create -> handleCreate(operation)
           is Operation.Mutation.Update -> handleUpdate(operation)
+          is Operation.Mutation.Add -> handleAdd(operation)
+          is Operation.Mutation.Remove -> handleRemove(operation)
           is Operation.Mutation.Delete -> handleDelete(operation)
         }
       },
@@ -96,6 +98,28 @@ class CollectionsUpdaterFactory(
     } else {
       result.exceptionOrNull()?.let { UpdaterResult.Error.Exception(it) }
         ?: UpdaterResult.Error.Message("Unable to update the collection")
+    }
+  }
+
+  private suspend fun handleAdd(mutation: Operation.Mutation.Add): UpdaterResult {
+    val result = api.addBookToCollection(mutation.collectionId, mutation.bookId)
+
+    return if (result.isSuccess) {
+      UpdaterResult.Success.Typed(result.getOrThrow())
+    } else {
+      result.exceptionOrNull()?.let { UpdaterResult.Error.Exception(it) }
+        ?: UpdaterResult.Error.Message("Unable to add the book to the collection")
+    }
+  }
+
+  private suspend fun handleRemove(mutation: Operation.Mutation.Remove): UpdaterResult {
+    val result = api.removeBookFromCollection(mutation.collectionId, mutation.bookId)
+
+    return if (result.isSuccess) {
+      UpdaterResult.Success.Typed(result.getOrThrow())
+    } else {
+      result.exceptionOrNull()?.let { UpdaterResult.Error.Exception(it) }
+        ?: UpdaterResult.Error.Message("Unable to add the book to the collection")
     }
   }
 

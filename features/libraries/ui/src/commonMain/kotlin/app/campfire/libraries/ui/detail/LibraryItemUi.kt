@@ -29,6 +29,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -77,9 +82,11 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun LibraryItem(
   state: LibraryItemUiState,
+  addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier = Modifier,
 ) {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  var showAddToCollectionDialog by remember { mutableStateOf(false) }
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -143,6 +150,7 @@ fun LibraryItem(
         onAddToPlaylist = {
         },
         onAddToCollection = {
+          showAddToCollectionDialog = true
         },
         onMarkFinished = {
           state.eventSink(LibraryItemUiEvent.MarkFinished(contentState.data))
@@ -155,6 +163,14 @@ fun LibraryItem(
         },
       )
     }
+  }
+
+  if (showAddToCollectionDialog) {
+    addToCollectionDialog.Content(
+      item = state.libraryItemContentState.dataOrNull!!,
+      onDismiss = { showAddToCollectionDialog = false },
+      modifier = Modifier,
+    )
   }
 }
 

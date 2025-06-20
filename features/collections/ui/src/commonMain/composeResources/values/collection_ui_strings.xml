@@ -16,4 +16,11 @@
   <string name="edit_collection_bottomsheet_input_description_label">Description</string>
   <string name="edit_collection_bottomsheet_action_creating">Updating</string>
   <string name="edit_collection_bottomsheet_action_create">Update</string>
+
+  <string name="dialog_add_collection_action_dismiss">Cancel</string>
+  <string name="dialog_add_collection_action_create">Create</string>
+  <string name="dialog_add_collection_name_label">New collection name</string>
+  <string name="dialog_add_collection_title">Add to a collection</string>
+  <string name="dialog_add_collection_text">Choose an existing collection or create a new one to add </string>
+  <string name="dialog_add_collection_error_message">Something went wrong when trying to load your collections</string>
 </resources>

@@ -11,6 +11,7 @@ kotlin {
         implementation(projects.features.series.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
+        implementation(projects.features.collections.api)
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)

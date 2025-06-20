@@ -99,6 +99,8 @@ class CollectionsSourceOfTruthFactory(
       is CollectionsStore.Operation.Single -> writeSingle(operation.userId, operation.libraryId, collections.first())
       is CollectionsStore.Operation.Mutation.Create -> writeCreate(operation)
       is CollectionsStore.Operation.Mutation.Update -> writeUpdate(operation)
+      is CollectionsStore.Operation.Mutation.Add -> handleAdd(operation)
+      is CollectionsStore.Operation.Mutation.Remove -> handleRemove(operation)
       is CollectionsStore.Operation.Mutation.Delete -> handleDelete(operation)
     }
   }
@@ -215,6 +217,26 @@ class CollectionsSourceOfTruthFactory(
         )
       }
     }
+  }
+
+  private suspend fun handleAdd(
+    mutation: CollectionsStore.Operation.Mutation.Add,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    db.collectionsBookJoinQueries.insert(
+      CollectionsBookJoin(
+        collectionsId = mutation.collectionId,
+        libraryItemId = mutation.bookId,
+      )
+    )
+  }
+
+  private suspend fun handleRemove(
+    mutation: CollectionsStore.Operation.Mutation.Remove,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    db.collectionsBookJoinQueries.deleteForItem(
+      collectionsId = mutation.collectionId,
+      libraryItemId = mutation.bookId,
+    )
   }
 
   private suspend fun handleDelete(

@@ -49,9 +49,15 @@ class CollectionsBookKeeperFactory(
         db.collectionsBookkeepingQueries
           .getLastFailedSync(operation.collectionId, operation.userId)
           .executeAsOneOrNull()
+          ?.MAX
       }
 
-      else -> null
+      is Operation.Mutation -> {
+        db.collectionsBookkeepingQueries
+          .getLastFailedSyncForOperation(operation.key, operation.userId)
+          .executeAsOneOrNull()
+          ?.MAX
+      }
     }
   }
 
@@ -66,6 +72,7 @@ class CollectionsBookKeeperFactory(
             CollectionsBookkeeping(
               userId = mutation.userId,
               collectionId = mutation.id,
+              operation = mutation.key,
               timestamp = time,
             ),
           )
@@ -77,6 +84,7 @@ class CollectionsBookKeeperFactory(
             CollectionsBookkeeping(
               userId = mutation.userId,
               collectionId = mutation.id,
+              operation = mutation.key,
               timestamp = time,
             ),
           )
@@ -88,6 +96,31 @@ class CollectionsBookKeeperFactory(
             CollectionsBookkeeping(
               userId = mutation.userId,
               collectionId = mutation.creationId.toHexDashString(),
+              operation = mutation.key,
+              timestamp = time,
+            ),
+          )
+      }
+
+      is Operation.Mutation.Add -> {
+        db.collectionsBookkeepingQueries
+          .insertFailedSync(
+            CollectionsBookkeeping(
+              userId = mutation.userId,
+              collectionId = mutation.collectionId,
+              operation = mutation.key,
+              timestamp = time,
+            ),
+          )
+      }
+
+      is Operation.Mutation.Remove -> {
+        db.collectionsBookkeepingQueries
+          .insertFailedSync(
+            CollectionsBookkeeping(
+              userId = mutation.userId,
+              collectionId = mutation.collectionId,
+              operation = mutation.key,
               timestamp = time,
             ),
           )

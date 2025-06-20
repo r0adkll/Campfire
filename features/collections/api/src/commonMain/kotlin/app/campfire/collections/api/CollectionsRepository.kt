@@ -59,4 +59,26 @@ interface CollectionsRepository {
   suspend fun deleteCollection(
     collectionId: CollectionId,
   ): Result<Unit>
+
+  /**
+   * Add a book to a collection
+   * @param bookId the id of the book to add
+   * @param collectionId the id of the collection to add the book to
+   * @return the result of the add
+   */
+  suspend fun addToCollection(
+    bookId: String,
+    collectionId: CollectionId,
+  ): Result<Unit>
+
+  /**
+   * Remove a book from a collection
+   * @param bookId the id of the book to remove
+   * @param collectionId the id of the collection to remove the book from
+   * @return the result of the remove
+   */
+  suspend fun removeFromCollection(
+    bookId: String,
+    collectionId: CollectionId,
+  ): Result<Unit>
 }

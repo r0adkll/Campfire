@@ -174,4 +174,52 @@ class StoreCollectionsRepository(
       is StoreWriteResponse.Error.Exception -> Result.failure(response.error)
     }
   }
+
+  override suspend fun addToCollection(bookId: String, collectionId: CollectionId): Result<Unit> {
+    val currentUser = userRepository.getCurrentUser()
+
+    val operation = CollectionsStore.Operation.Mutation.Add(
+      userId = currentUser.id,
+      collectionId = collectionId,
+      bookId = bookId,
+    )
+
+    val response = collectionsStore.write(
+      request = StoreWriteRequest.of(operation, CollectionsStore.Output.Collection(emptyList())),
+    )
+
+    return when (response) {
+      is StoreWriteResponse.Success -> {
+        CollectionsStore.ibark { "Book Added -> $response" }
+        Result.success(Unit)
+      }
+
+      is StoreWriteResponse.Error.Message -> Result.failure(Exception(response.message))
+      is StoreWriteResponse.Error.Exception -> Result.failure(response.error)
+    }
+  }
+
+  override suspend fun removeFromCollection(bookId: String, collectionId: CollectionId): Result<Unit> {
+    val currentUser = userRepository.getCurrentUser()
+
+    val operation = CollectionsStore.Operation.Mutation.Remove(
+      userId = currentUser.id,
+      collectionId = collectionId,
+      bookId = bookId,
+    )
+
+    val response = collectionsStore.write(
+      request = StoreWriteRequest.of(operation, CollectionsStore.Output.Collection(emptyList())),
+    )
+
+    return when (response) {
+      is StoreWriteResponse.Success -> {
+        CollectionsStore.ibark { "Book Removed -> $response" }
+        Result.success(Unit)
+      }
+
+      is StoreWriteResponse.Error.Message -> Result.failure(Exception(response.message))
+      is StoreWriteResponse.Error.Exception -> Result.failure(response.error)
+    }
+  }
 }

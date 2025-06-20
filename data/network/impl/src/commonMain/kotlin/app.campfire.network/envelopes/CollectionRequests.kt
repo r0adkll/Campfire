@@ -17,3 +17,8 @@ class UpdateCollectionRequest(
   val description: String? = null,
   val books: List<String>? = null,
 )
+
+@Serializable
+class AddBookToCollectionRequest(
+  val id: String,
+)

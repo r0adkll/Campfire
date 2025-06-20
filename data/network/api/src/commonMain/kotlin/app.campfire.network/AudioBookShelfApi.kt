@@ -150,6 +150,22 @@ interface AudioBookShelfApi {
   ): Result<Collection>
 
   /**
+   * Add a book to an existing collection
+   */
+  suspend fun addBookToCollection(
+    collectionId: String,
+    libraryItemId: String,
+  ) : Result<Collection>
+
+  /**
+   * Remove a book from an existing collection
+   */
+  suspend fun removeBookFromCollection(
+    collectionId: String,
+    libraryItemId: String,
+  ) : Result<Collection>
+
+  /**
    * Delete an existing collection
    */
   suspend fun deleteCollection(collectionId: String): Result<Unit>

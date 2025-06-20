@@ -16,9 +16,12 @@ import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.outline.Autoplay
@@ -87,8 +91,6 @@ internal fun ControlBar(
         )
       }
 
-      Spacer(Modifier.width(4.dp))
-
       ControlsDropdownButton(
         onDownloadClick = onDownloadClick,
         onAddToPlaylist = onAddToPlaylist,
@@ -137,7 +139,7 @@ private fun ControlsDropdownButton(
 ) {
   Box(modifier) {
     var expanded by remember { mutableStateOf(false) }
-    FilledTonalIconButton(
+    FilledIconButton(
       onClick = {
         expanded = true
       },
@@ -150,6 +152,7 @@ private fun ControlsDropdownButton(
 
     DropdownMenu(
       expanded = expanded,
+      shape = MaterialTheme.shapes.medium,
       onDismissRequest = { expanded = false },
     ) {
       DropdownMenuItem(

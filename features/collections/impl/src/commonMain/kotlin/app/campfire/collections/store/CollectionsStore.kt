@@ -9,6 +9,7 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.Collection as BookCollection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.dao.LibraryItemDao
@@ -85,27 +86,43 @@ object CollectionsStore : Cork {
       val collectionId: CollectionId,
     ) : Operation
 
-    sealed interface Mutation : Operation {
+    sealed class Mutation(
+      val key: String,
+    ) : Operation {
+      abstract val userId: UserId
+
       data class Create(
-        val userId: UserId,
+        override val userId: UserId,
         val name: String,
         val description: String?,
         val libraryId: LibraryId,
         val bookIds: List<String>,
         val creationId: Uuid = Uuid.random(),
-      ) : Mutation
+      ) : Mutation("create")
 
       data class Update(
-        val userId: UserId,
+        override val userId: UserId,
         val id: CollectionId,
         val name: String?,
         val description: String?,
-      ) : Mutation
+      ) : Mutation("update")
 
       data class Delete(
-        val userId: UserId,
+        override val userId: UserId,
         val id: CollectionId,
-      ) : Mutation
+      ) : Mutation("delete")
+
+      data class Add(
+        override val userId: UserId,
+        val bookId: String,
+        val collectionId: CollectionId,
+      ) : Mutation("add")
+
+      data class Remove(
+        override val userId: UserId,
+        val bookId: String,
+        val collectionId: CollectionId,
+      ) : Mutation("remove")
     }
   }
 
