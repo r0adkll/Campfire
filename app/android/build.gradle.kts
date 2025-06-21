@@ -5,6 +5,7 @@ import com.android.build.api.instrumentation.ClassContext
 import com.android.build.api.instrumentation.ClassData
 import com.android.build.api.instrumentation.InstrumentationParameters
 import com.android.build.api.instrumentation.InstrumentationScope
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.FieldVisitor
 
@@ -18,6 +19,7 @@ plugins {
   alias(libs.plugins.baselineprofile)
   alias(libs.plugins.google.services)
   alias(libs.plugins.firebase.crashlytics)
+  alias(libs.plugins.firebase.appdistribution)
 }
 
 ksp {
@@ -95,6 +97,11 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
+
+      firebaseAppDistribution {
+        artifactType = "APK"
+        groups = "internal"
+      }
     }
 
     create("nonMinifiedRelease") {

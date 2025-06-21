@@ -11,10 +11,6 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Added
 
-- Ability to add books to collections, or create new collections
-- Ability to remove books from collections, and delete collections
-- Offline download support for Android
-
 ### Changed
 
 ### Deprecated
@@ -23,13 +19,26 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Fixed
 
+### Other Notes & Contributions
+
+## [0.2.0-alpha] - 2025-06-21
+
+### Added
+
+- Ability to add books to collections, or create new collections
+- Ability to remove books from collections, and delete collections
+- Offline download support for Android
+
+### Fixed
+
 - Loading indicators not showing on series/collections screens for initial load
 - Crash on the 'Statistics' page when previous week didn't have any data
-
-### Other Notes & Contributions
 
 ## [0.1.0-alpha] - 2025-06-15
 
 ### Added
 
 - Initial Alpha Release.
+
+[0.2.0-alpha]: https://github.com/r0adkll/Campfire/compare/v0.1.0-alpha...v0.2.0-alpha
+[0.1.0-alpha]: https://github.com/r0adkll/Campfire/releases/tag/v0.1.0

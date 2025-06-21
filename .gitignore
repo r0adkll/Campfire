@@ -5,6 +5,7 @@ build/
 # Signing information
 app/signing/campfire.keystore
 app/android/google-services.json
+app/android/campfire-app-distribution-service-account.json
 
 captures
 

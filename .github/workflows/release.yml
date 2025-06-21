@@ -28,11 +28,13 @@ jobs:
         run: |
           echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
 
-      - name: Download Google Services JSON
+      - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
       # TODO: Run baseline profile generator
 
@@ -44,6 +46,16 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
           CI: true
+
+      - name: Parse Changelog
+        id: changelog
+        uses: coditory/changelog-parser@v1
+
+      - name: Firebase App Distribution
+        run: |
+          ./gradlew :app:android:appDistributionUploadRelease \
+            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+            --releaseNotes="${{ steps.changelog.outputs.description }}"
 
       - name: Upload build outputs
         if: always()
