@@ -13,6 +13,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 - Ability to add books to collections, or create new collections
 - Ability to remove books from collections, and delete collections
+- Offline download support for Android
 
 ### Changed
 
