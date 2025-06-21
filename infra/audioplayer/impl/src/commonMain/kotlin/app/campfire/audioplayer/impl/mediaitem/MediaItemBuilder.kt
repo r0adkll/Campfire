@@ -3,13 +3,16 @@ package app.campfire.audioplayer.impl.mediaitem
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.Session
 import kotlin.math.abs
 
 object MediaItemBuilder {
 
-  fun build(session: Session): List<MediaItem> = with(session.libraryItem) {
+  fun build(session: Session): List<MediaItem> = build(session.libraryItem)
+
+  fun build(item: LibraryItem): List<MediaItem> = with(item) {
     val chapters = media.chapters
     val audioTracks = media.tracks
 

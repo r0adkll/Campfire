@@ -4,9 +4,13 @@
 
   <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
   <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
 
   <application>
+
     <service
       android:name="app.campfire.audioplayer.impl.AudioPlayerService"
       android:foregroundServiceType="mediaPlayback"
@@ -16,5 +20,16 @@
         <action android:name="androidx.media3.session.MediaSessionService"/>
       </intent-filter>
     </service>
+
+    <service android:name="app.campfire.audioplayer.impl.offline.CampfireDownloadService"
+      android:exported="false"
+      android:foregroundServiceType="dataSync"
+      >
+      <intent-filter>
+        <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
+    </service>
+
   </application>
 </manifest>

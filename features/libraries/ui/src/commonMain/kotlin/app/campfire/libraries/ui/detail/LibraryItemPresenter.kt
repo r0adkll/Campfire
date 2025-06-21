@@ -8,6 +8,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
@@ -40,6 +41,7 @@ class LibraryItemPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) : Presenter<LibraryItemUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -79,9 +81,18 @@ class LibraryItemPresenter(
         }
     }.collectAsState(LoadState.Loading)
 
+    val offlineDownloadState by remember {
+      snapshotFlow { libraryItemContentState.dataOrNull }
+        .filterNotNull()
+        .flatMapLatest { libraryItem ->
+          offlineDownloadManager.observeForItem(libraryItem)
+        }
+    }.collectAsState(null)
+
     return LibraryItemUiState(
       sessionUiState = currentSession,
       libraryItemContentState = libraryItemContentState,
+      offlineDownloadState = offlineDownloadState,
       seriesContentState = seriesContentState,
       mediaProgressState = mediaProgressState,
     ) { event ->
@@ -90,10 +101,12 @@ class LibraryItemPresenter(
         is LibraryItemUiEvent.PlayClick -> {
           playbackController.startSession(event.item.id)
         }
+
         is LibraryItemUiEvent.SeriesClick -> {
           val series = event.item.media.metadata.seriesSequence ?: return@LibraryItemUiState
           navigator.goTo(SeriesDetailScreen(series.id, series.name))
         }
+
         is LibraryItemUiEvent.DiscardProgress -> {
           playbackController.stopSession(event.item.id)
           scope.launch {
@@ -101,6 +114,7 @@ class LibraryItemPresenter(
             mediaProgressRepository.deleteProgress(event.item.id)
           }
         }
+
         is LibraryItemUiEvent.MarkFinished -> {
           playbackController.stopSession(event.item.id)
           scope.launch {
@@ -108,11 +122,13 @@ class LibraryItemPresenter(
             mediaProgressRepository.markFinished(event.item.id)
           }
         }
+
         is LibraryItemUiEvent.MarkNotFinished -> {
           scope.launch {
             mediaProgressRepository.markNotFinished(event.item.id)
           }
         }
+
         is LibraryItemUiEvent.ChapterClick -> {
           val session = (currentSession as? SessionUiState.Current)?.session
           val currentPlayer = audioPlayerHolder.currentPlayer.value
@@ -123,6 +139,24 @@ class LibraryItemPresenter(
           } else {
             // Start a new session for the item at the given chapter
             playbackController.startSession(event.item.id, true, event.chapter.id)
+          }
+        }
+
+        LibraryItemUiEvent.DownloadClick -> {
+          libraryItemContentState.dataOrNull?.let {
+            offlineDownloadManager.download(it)
+          }
+        }
+
+        LibraryItemUiEvent.RemoveDownloadClick -> {
+          libraryItemContentState.dataOrNull?.let {
+            offlineDownloadManager.delete(it)
+          }
+        }
+
+        LibraryItemUiEvent.StopDownloadClick -> {
+          libraryItemContentState.dataOrNull?.let {
+            offlineDownloadManager.stop(it)
           }
         }
       }

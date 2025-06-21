@@ -9,6 +9,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -18,6 +19,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
 import java.io.File
+import java.util.concurrent.Executors
 import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
@@ -43,6 +45,26 @@ interface ExoPlayerComponent {
       NoOpCacheEvictor(),
       databaseProvider,
     )
+  }
+
+  @OptIn(UnstableApi::class)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideExoPlayerDownloadManager(
+    application: Application,
+    databaseProvider: DatabaseProvider,
+    simpleCache: SimpleCache,
+  ): DownloadManager {
+    val numCpus = Runtime.getRuntime().availableProcessors()
+    return DownloadManager(
+      application,
+      databaseProvider,
+      simpleCache,
+      DefaultHttpDataSource.Factory(),
+      Executors.newFixedThreadPool(numCpus),
+    ).apply {
+      maxParallelDownloads = numCpus
+    }
   }
 
   @OptIn(UnstableApi::class)

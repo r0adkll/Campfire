@@ -38,4 +38,7 @@
   </plurals>
 
   <string name="header_chapters">Chapters</string>
+
+  <string name="action_delete_offline">Delete</string>
+  <string name="action_stop_downloading">Stop downloading</string>
 </resources>

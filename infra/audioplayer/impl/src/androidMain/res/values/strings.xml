@@ -6,6 +6,11 @@
     to the controller</string>
   <string name="notification_channel_name">Audio Playback Notifications</string>
 
+  <string name="download_notification_channel_name">Offline Download Notifications</string>
+  <string name="download_notification_channel_description">Notifications about downloading media for
+    offline playback will appear in this channel</string>
+  <string name="download_notification_message">Downloading %1$d items</string>
+
   <string name="exo_controls_skip_backward">Skip backward</string>
   <string name="exo_controls_skip_forward">Skip forward</string>
 </resources>

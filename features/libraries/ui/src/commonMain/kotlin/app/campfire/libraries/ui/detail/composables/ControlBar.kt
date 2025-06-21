@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.MarkFinished
@@ -46,6 +47,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun ControlBar(
   mediaProgress: MediaProgress?,
+  offlineDownload: OfflineDownload?,
   isCurrentListening: Boolean,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
@@ -89,6 +91,7 @@ internal fun ControlBar(
       }
 
       ControlsDropdownButton(
+        isDownloadEnabled = offlineDownload?.state == null || offlineDownload.state == OfflineDownload.State.None,
         onDownloadClick = onDownloadClick,
         onAddToPlaylist = onAddToPlaylist,
         onAddToCollection = onAddToCollection,
@@ -129,6 +132,7 @@ internal fun ControlBar(
 
 @Composable
 private fun ControlsDropdownButton(
+  isDownloadEnabled: Boolean,
   onDownloadClick: () -> Unit,
   onAddToPlaylist: () -> Unit,
   onAddToCollection: () -> Unit,
@@ -152,14 +156,16 @@ private fun ControlsDropdownButton(
       shape = MaterialTheme.shapes.medium,
       onDismissRequest = { expanded = false },
     ) {
-      DropdownMenuItem(
-        leadingIcon = { Icon(Icons.Rounded.DownloadForOffline, contentDescription = null) },
-        text = { Text(stringResource(Res.string.menu_item_download)) },
-        onClick = {
-          onDownloadClick()
-          expanded = false
-        },
-      )
+      if (isDownloadEnabled) {
+        DropdownMenuItem(
+          leadingIcon = { Icon(Icons.Rounded.DownloadForOffline, contentDescription = null) },
+          text = { Text(stringResource(Res.string.menu_item_download)) },
+          onClick = {
+            onDownloadClick()
+            expanded = false
+          },
+        )
+      }
       DropdownMenuItem(
         leadingIcon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) },
         text = { Text(stringResource(Res.string.menu_item_add_playlist)) },

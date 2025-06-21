@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.readoutFormat
@@ -67,6 +68,7 @@ import app.campfire.libraries.ui.detail.composables.DurationListItem
 import app.campfire.libraries.ui.detail.composables.GenreChips
 import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
+import app.campfire.libraries.ui.detail.composables.OfflineStatusCard
 import app.campfire.libraries.ui.detail.composables.SeriesMetadata
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
@@ -134,6 +136,7 @@ fun LibraryItem(
         item = contentState.data,
         seriesContentState = state.seriesContentState,
         mediaProgressState = state.mediaProgressState,
+        offlineDownload = state.offlineDownloadState,
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
@@ -143,6 +146,13 @@ fun LibraryItem(
           state.eventSink(LibraryItemUiEvent.PlayClick(contentState.data))
         },
         onDownloadClick = {
+          state.eventSink(LibraryItemUiEvent.DownloadClick)
+        },
+        onRemoveDownloadClick = {
+          state.eventSink(LibraryItemUiEvent.RemoveDownloadClick)
+        },
+        onStopDownloadClick = {
+          state.eventSink(LibraryItemUiEvent.StopDownloadClick)
         },
         onSeriesClick = {
           state.eventSink(LibraryItemUiEvent.SeriesClick(contentState.data))
@@ -179,9 +189,12 @@ fun LoadedState(
   item: LibraryItem,
   seriesContentState: LoadState<out List<LibraryItem>>,
   mediaProgressState: LoadState<out MediaProgress?>,
+  offlineDownload: OfflineDownload?,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
+  onRemoveDownloadClick: () -> Unit,
+  onStopDownloadClick: () -> Unit,
   onMarkFinished: () -> Unit,
   onMarkNotFinished: () -> Unit,
   onDiscardProgress: () -> Unit,
@@ -279,6 +292,7 @@ fun LoadedState(
     }
 
     ControlBar(
+      offlineDownload = offlineDownload,
       mediaProgress = mediaProgressState.dataOrNull,
       isCurrentListening = false,
       onPlayClick = onPlayClick,
@@ -291,6 +305,22 @@ fun LoadedState(
       modifier = Modifier
         .padding(horizontal = 16.dp),
     )
+
+    Spacer(Modifier.height(16.dp))
+
+    if (offlineDownload != null && offlineDownload.state != OfflineDownload.State.None) {
+      OfflineStatusCard(
+        offlineDownload = offlineDownload,
+        onDeleteClick = onRemoveDownloadClick,
+        onStopClick = onStopDownloadClick,
+        modifier = Modifier
+          .padding(
+            horizontal = 16.dp,
+          ),
+      )
+
+      Spacer(Modifier.height(16.dp))
+    }
 
     if (item.media.metadata.publisher != null && item.media.metadata.publishedYear != null) {
       Text(
@@ -309,9 +339,10 @@ fun LoadedState(
           .fillMaxWidth()
           .padding(
             horizontal = 16.dp,
-            vertical = 16.dp,
           ),
       )
+
+      Spacer(Modifier.height(16.dp))
     }
 
     GenreChips(item.media.metadata.genres)

@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail
 
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
@@ -11,6 +12,7 @@ import com.slack.circuit.runtime.CircuitUiState
 data class LibraryItemUiState(
   val sessionUiState: SessionUiState,
   val libraryItemContentState: LoadState<out LibraryItem>,
+  val offlineDownloadState: OfflineDownload?,
   val seriesContentState: LoadState<out List<LibraryItem>>,
   val mediaProgressState: LoadState<out MediaProgress?>,
   val eventSink: (LibraryItemUiEvent) -> Unit,
@@ -30,6 +32,10 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
+
+  data object DownloadClick : LibraryItemUiEvent
+  data object RemoveDownloadClick : LibraryItemUiEvent
+  data object StopDownloadClick : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }
