@@ -23,6 +23,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 ### Fixed
 
 - Loading indicators not showing on series/collections screens for initial load
+- Crash on the 'Statistics' page when previous week didn't have any data
 
 ### Other Notes & Contributions
 
