@@ -234,13 +234,16 @@ private fun SettingsRootPane(
         CampfireTopAppBar(
           title = { Text(stringResource(Res.string.settings_title)) },
           navigationIcon = {
-            IconButton(
-              onClick = onBackClick,
-            ) {
-              Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
-                contentDescription = null,
-              )
+            val windowSizeClass = LocalWindowSizeClass.current
+            if (!windowSizeClass.isSupportingPaneEnabled) {
+              IconButton(
+                onClick = onBackClick,
+              ) {
+                Icon(
+                  Icons.AutoMirrored.Rounded.ArrowBack,
+                  contentDescription = null,
+                )
+              }
             }
           },
         )

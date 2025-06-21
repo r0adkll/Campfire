@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.SupportingContentElevation
@@ -32,7 +33,7 @@ fun CampfireTopAppBar(
   navigationIcon: @Composable () -> Unit = {},
   actions: @Composable RowScope.() -> Unit = {},
   expandedHeight: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
-  windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+  windowInsets: WindowInsets = CampfireTopAppBarInsets,
   scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   val currentContentLayout = LocalContentLayout.current

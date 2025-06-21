@@ -9,7 +9,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.script.theme.primaryDark
 import app.campfire.script.theme.secondaryDark
 import app.campfire.script.ui.composables.BorderedTitledBox
-import com.jakewharton.mosaic.LocalTerminal
+import com.jakewharton.mosaic.LocalTerminalState
 import com.jakewharton.mosaic.layout.KeyEvent
 import com.jakewharton.mosaic.layout.background
 import com.jakewharton.mosaic.layout.height
@@ -51,7 +51,7 @@ fun SingleOptionPicker(
   borderColor: Color = secondaryDark,
   backgroundColor: Color = DefaultBackgroundColor,
 ) {
-  val terminal = LocalTerminal.current
+  val terminal = LocalTerminalState.current
   var isExit by remember { mutableStateOf(false) }
 
   var query by remember { mutableStateOf("") }

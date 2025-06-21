@@ -19,6 +19,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 
 enum class PaneState {
@@ -45,7 +46,7 @@ internal fun SettingPaneLayout(
     CampfireTopAppBar(
       title = title,
       scrollBehavior = scrollBehavior,
-      windowInsets = TopAppBarDefaults.windowInsets
+      windowInsets = CampfireTopAppBarInsets
         .takeIf { paneState == PaneState.Single }
         ?: WindowInsets(0.dp),
       navigationIcon = {
