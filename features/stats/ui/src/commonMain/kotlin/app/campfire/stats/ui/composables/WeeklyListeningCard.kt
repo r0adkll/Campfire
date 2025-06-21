@@ -167,7 +167,12 @@ private fun WeeklyGraph(
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
   // Calculate axis information
-  val maxDuration = remember(thisWeek, lastWeek) { maxOf(thisWeek.values.max(), lastWeek.values.max()) }
+  val maxDuration = remember(thisWeek, lastWeek) {
+    maxOf(
+      thisWeek.values.maxOrNull() ?: Duration.ZERO,
+      lastWeek.values.maxOrNull() ?: Duration.ZERO,
+    )
+  }
   val largestUnit = remember(maxDuration) { maxDuration.largestDurationUnit() }
   val yAxisValue = remember(maxDuration, largestUnit) { ceil(maxDuration.toDouble(largestUnit)) }
 
