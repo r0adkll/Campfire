@@ -66,4 +66,6 @@ deleteAll {
 
   DELETE FROM bookmarkFailedDelete
   WHERE userId = :userId;
+
+  SELECT 0;
 }

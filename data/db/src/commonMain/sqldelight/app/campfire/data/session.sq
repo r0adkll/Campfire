@@ -51,6 +51,8 @@ activate {
   SET isActive = 1
   WHERE libraryItemId = :libraryItemId
     AND userId = :userId;
+
+  SELECT 0;
 }
 
 delete:
