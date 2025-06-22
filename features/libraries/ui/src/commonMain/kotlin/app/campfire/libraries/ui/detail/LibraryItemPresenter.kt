@@ -16,6 +16,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -42,6 +43,7 @@ class LibraryItemPresenter(
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val settings: CampfireSettings,
 ) : Presenter<LibraryItemUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,12 +91,17 @@ class LibraryItemPresenter(
         }
     }.collectAsState(null)
 
+    val showConfirmDownloadDialog by remember {
+      settings.observeShowConfirmDownload()
+    }.collectAsState(true)
+
     return LibraryItemUiState(
       sessionUiState = currentSession,
       libraryItemContentState = libraryItemContentState,
       offlineDownloadState = offlineDownloadState,
       seriesContentState = seriesContentState,
       mediaProgressState = mediaProgressState,
+      showConfirmDownloadDialog = showConfirmDownloadDialog,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -142,7 +149,9 @@ class LibraryItemPresenter(
           }
         }
 
-        LibraryItemUiEvent.DownloadClick -> {
+        is LibraryItemUiEvent.DownloadClick -> {
+          settings.showConfirmDownload = !event.doNotShowAgain
+
           libraryItemContentState.dataOrNull?.let {
             offlineDownloadManager.download(it)
           }

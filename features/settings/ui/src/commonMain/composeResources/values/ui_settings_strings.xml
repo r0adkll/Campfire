@@ -6,6 +6,8 @@
   <string name="setting_account_subtitle">Name, tent, and other campsite settings</string>
   <string name="setting_appearance_title">Appearance</string>
   <string name="setting_appearance_subtitle">Theme, look and feel</string>
+  <string name="setting_downloads_title">Downloads</string>
+  <string name="setting_downloads_subtitle">Storage, location, and settings</string>
   <string name="setting_playback_title">Playback</string>
   <string name="setting_playback_subtitle">Time jumps, and other playback settings</string>
   <string name="setting_sleep_title">Sleep</string>
@@ -31,6 +33,10 @@
 
   <string name="setting_dynamic_colors_title">Use Dynamic Colors</string>
   <string name="setting_dynamic_colors_description">Enable dynamic colors on Android 12+ devices</string>
+
+  <!-- Downloads setting strings-->
+  <string name="setting_show_download_confirmation_title">Show download confirmation dialog</string>
+  <string name="setting_show_download_confirmation_description">Show a dialog to confirm each item download for offline listening</string>
 
   <!-- Playback setting strings -->
   <string name="setting_playback_forward_title">Forward time</string>

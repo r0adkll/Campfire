@@ -101,6 +101,7 @@ data class SettingsScreen(
     Root,
     Account,
     Appearance,
+    Downloads,
     Playback,
     Sleep,
     About,

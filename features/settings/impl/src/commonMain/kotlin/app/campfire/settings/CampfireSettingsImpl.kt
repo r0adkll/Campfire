@@ -61,6 +61,11 @@ class CampfireSettingsImpl(
   override fun observeCurrentUserId(): Flow<UserId?> {
     return flowSettings.getStringOrNullFlow(KEY_CURRENT_USER_ID)
   }
+
+  override var showConfirmDownload: Boolean by booleanSetting(KEY_SHOW_CONFIRM_DOWNLOAD, true)
+  override fun observeShowConfirmDownload(): Flow<Boolean> {
+    return flowSettings.getBooleanFlow(KEY_SHOW_CONFIRM_DOWNLOAD, true)
+  }
 }
 
 internal const val KEY_DEVICE_ID = "pref_device_id"
@@ -70,3 +75,4 @@ internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_s
 internal const val KEY_SORT_MODE = "pref_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
 internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
+internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"

@@ -70,6 +70,9 @@ import app.campfire.libraries.ui.detail.composables.ItemDescription
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.OfflineStatusCard
 import app.campfire.libraries.ui.detail.composables.SeriesMetadata
+import app.campfire.libraries.ui.detail.dialog.ConfirmDownloadDialog
+import app.campfire.libraries.ui.detail.permission.PermissionState
+import app.campfire.libraries.ui.detail.permission.rememberPostNotificationPermissionState
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.header_chapters
@@ -88,7 +91,10 @@ fun LibraryItem(
   modifier: Modifier = Modifier,
 ) {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
   var showAddToCollectionDialog by remember { mutableStateOf(false) }
+  var showConfirmDownloadDialog by remember { mutableStateOf(false) }
+
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -146,7 +152,8 @@ fun LibraryItem(
           state.eventSink(LibraryItemUiEvent.PlayClick(contentState.data))
         },
         onDownloadClick = {
-          state.eventSink(LibraryItemUiEvent.DownloadClick)
+          // state.eventSink(LibraryItemUiEvent.DownloadClick)
+          showConfirmDownloadDialog = true
         },
         onRemoveDownloadClick = {
           state.eventSink(LibraryItemUiEvent.RemoveDownloadClick)
@@ -180,6 +187,30 @@ fun LibraryItem(
       item = state.libraryItemContentState.dataOrNull!!,
       onDismiss = { showAddToCollectionDialog = false },
       modifier = Modifier,
+    )
+  }
+
+  var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
+  val postNotificationPermissionState = rememberPostNotificationPermissionState {
+    if (it) {
+      state.eventSink(LibraryItemUiEvent.DownloadClick(doNotShowDownloadConfirmationAgain))
+      showConfirmDownloadDialog = false
+    }
+  }
+
+  if (showConfirmDownloadDialog) {
+    ConfirmDownloadDialog(
+      item = state.libraryItemContentState.dataOrNull!!,
+      onConfirm = { doNotShowAgain ->
+        if (postNotificationPermissionState is PermissionState.Granted) {
+          state.eventSink(LibraryItemUiEvent.DownloadClick(doNotShowAgain))
+          showConfirmDownloadDialog = false
+        } else {
+          doNotShowDownloadConfirmationAgain = doNotShowAgain
+          postNotificationPermissionState.launchPermissionRequest()
+        }
+      },
+      onDismissRequest = { showConfirmDownloadDialog = false },
     )
   }
 }

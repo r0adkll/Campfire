@@ -30,6 +30,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
+import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
@@ -87,6 +88,10 @@ class SettingsPresenter(
     val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState()
     val mp3IndexSeeking by remember { playbackSettings.observeMp3IndexSeeking() }.collectAsState()
 
+    // Downloads Settings
+    val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
+      .collectAsState(settings.showConfirmDownload)
+
     // Sleep Settings
     val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
     val shakeSensitivity by remember { sleepSettings.observeShakeSensitivity() }.collectAsState()
@@ -106,6 +111,9 @@ class SettingsPresenter(
       isShakingAvailable = remember { shakeDetector.isAvailable },
       useDynamicColors = useDynamicColors,
       applicationInfo = applicationInfo,
+      downloadsSettings = DownloadsSettingsInfo(
+        showDownloadConfirmation = showDownloadConfirmation,
+      ),
       playbackSettings = PlaybackSettingsInfo(
         forwardTime = forwardTime.milliseconds,
         backwardTime = backwardTime.milliseconds,
@@ -152,6 +160,10 @@ class SettingsPresenter(
         is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
           is Theme -> settings.theme = event.theme
           is UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors
+        }
+
+        is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
+          is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {

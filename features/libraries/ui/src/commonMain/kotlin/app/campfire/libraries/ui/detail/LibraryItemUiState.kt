@@ -15,6 +15,7 @@ data class LibraryItemUiState(
   val offlineDownloadState: OfflineDownload?,
   val seriesContentState: LoadState<out List<LibraryItem>>,
   val mediaProgressState: LoadState<out MediaProgress?>,
+  val showConfirmDownloadDialog: Boolean,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -33,7 +34,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
 
-  data object DownloadClick : LibraryItemUiEvent
+  data class DownloadClick(val doNotShowAgain: Boolean) : LibraryItemUiEvent
   data object RemoveDownloadClick : LibraryItemUiEvent
   data object StopDownloadClick : LibraryItemUiEvent
 

@@ -56,10 +56,11 @@ class DownloadTracker(
   fun observe(): SharedFlow<Event> = events.asSharedFlow()
 
   fun getOfflineDownload(item: LibraryItem): OfflineDownload {
-    val mediaItems = MediaItemBuilder.build(item)
-    if (mediaItems.isEmpty()) return OfflineDownload(item)
+    if (item.media.tracks.isEmpty()) return OfflineDownload(item)
 
-    val itemDownloads = mediaItems.map { downloads[it.uri.toUri()] }
+    val itemDownloads = item.media.tracks.map {
+      downloads[it.contentUrlWithToken.toUri()]
+    }
 
     // Condense the collective set of states
     val states = itemDownloads

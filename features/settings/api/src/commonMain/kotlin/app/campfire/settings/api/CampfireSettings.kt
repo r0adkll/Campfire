@@ -30,6 +30,9 @@ interface CampfireSettings {
   var currentUserId: UserId?
   fun observeCurrentUserId(): Flow<UserId?>
 
+  var showConfirmDownload: Boolean
+  fun observeShowConfirmDownload(): Flow<Boolean>
+
   enum class Theme(override val storageKey: String) : EnumSetting {
     LIGHT("light"),
     DARK("dark"),

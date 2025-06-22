@@ -5,7 +5,7 @@ import app.campfire.core.model.LibraryItem
 /**
  * Represents the download state of a [LibraryItem].
  */
-class OfflineDownload(
+data class OfflineDownload(
   val libraryItem: LibraryItem,
   val state: State = State.None,
   val startTimeMs: Long = -1L,

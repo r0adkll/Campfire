@@ -14,8 +14,8 @@ enum class MediaType(val value: String) {
   @SerialName(value = "book")
   Book("book"),
 
-  @SerialName(value = "podcast")
-  Podcast("podcast"),
+  @SerialName(value = "podcastEpisode")
+  Podcast("podcastEpisode"),
   ;
 
   /**

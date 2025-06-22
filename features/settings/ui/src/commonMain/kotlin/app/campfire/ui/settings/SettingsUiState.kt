@@ -22,11 +22,17 @@ data class SettingsUiState(
   val isShakingAvailable: Boolean,
   val useDynamicColors: Boolean,
   val applicationInfo: ApplicationInfo,
+  val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
+
+@Immutable
+data class DownloadsSettingsInfo(
+  val showDownloadConfirmation: Boolean,
+)
 
 @Immutable
 data class PlaybackSettingsInfo(
@@ -61,6 +67,7 @@ data class DeveloperSettingsInfo(
 enum class SettingsPane {
   Account,
   Appearance,
+  Downloads,
   Playback,
   Sleep,
   About,
@@ -70,6 +77,7 @@ enum class SettingsPane {
   val screenPage: SettingsScreen.Page get() = when (this) {
     Account -> SettingsScreen.Page.Account
     Appearance -> SettingsScreen.Page.Appearance
+    Downloads -> SettingsScreen.Page.Downloads
     Playback -> SettingsScreen.Page.Playback
     Sleep -> SettingsScreen.Page.Sleep
     About -> SettingsScreen.Page.About
@@ -92,6 +100,11 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface AppearanceSettingEvent : SettingsUiEvent {
     data class Theme(val theme: CampfireSettings.Theme) : AppearanceSettingEvent
     data class UseDynamicColors(val useDynamicColors: Boolean) : AppearanceSettingEvent
+  }
+
+  // Downloads Pane Events
+  sealed interface DownloadsSettingEvent : SettingsUiEvent {
+    data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
   }
 
   // Playback Setting Events

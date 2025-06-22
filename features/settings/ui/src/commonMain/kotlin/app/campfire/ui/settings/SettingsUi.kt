@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.DeveloperMode
+import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsPaused
 import androidx.compose.material.icons.rounded.Palette
@@ -52,6 +53,7 @@ import app.campfire.ui.settings.panes.AboutPane
 import app.campfire.ui.settings.panes.AccountPane
 import app.campfire.ui.settings.panes.AppearancePane
 import app.campfire.ui.settings.panes.DeveloperPane
+import app.campfire.ui.settings.panes.DownloadsPane
 import app.campfire.ui.settings.panes.LocalPaneState
 import app.campfire.ui.settings.panes.PaneState
 import app.campfire.ui.settings.panes.PlaybackPane
@@ -65,6 +67,8 @@ import campfire.features.settings.ui.generated.resources.setting_appearance_subt
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
 import campfire.features.settings.ui.generated.resources.setting_developer_subtitle
 import campfire.features.settings.ui.generated.resources.setting_developer_title
+import campfire.features.settings.ui.generated.resources.setting_downloads_subtitle
+import campfire.features.settings.ui.generated.resources.setting_downloads_title
 import campfire.features.settings.ui.generated.resources.setting_playback_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_title
 import campfire.features.settings.ui.generated.resources.setting_sleep_subtitle
@@ -94,6 +98,7 @@ fun SettingsUi(
         SettingsScreen.Page.Root -> null
         SettingsScreen.Page.Account -> SettingsPane.Account
         SettingsScreen.Page.Appearance -> SettingsPane.Appearance
+        SettingsScreen.Page.Downloads -> SettingsPane.Downloads
         SettingsScreen.Page.Playback -> SettingsPane.Playback
         SettingsScreen.Page.Sleep -> SettingsPane.Sleep
         SettingsScreen.Page.About -> SettingsPane.About
@@ -290,6 +295,22 @@ private fun SettingsRootPane(
         },
       )
 
+      // Appearance
+      SettingPaneListItem(
+        selected = pane == SettingsPane.Downloads && hideTopBar,
+        icon = {
+          Icon(
+            Icons.Rounded.Download,
+            contentDescription = null,
+          )
+        },
+        title = { Text(stringResource(Res.string.setting_downloads_title)) },
+        subtitle = { Text(stringResource(Res.string.setting_downloads_subtitle)) },
+        onClick = {
+          onPaneClick(SettingsPane.Downloads)
+        },
+      )
+
       // Playback
       SettingPaneListItem(
         selected = pane == SettingsPane.Playback && hideTopBar,
@@ -374,6 +395,12 @@ private fun SettingPaneContent(
     )
 
     SettingsPane.Appearance -> AppearancePane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.Downloads -> DownloadsPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,

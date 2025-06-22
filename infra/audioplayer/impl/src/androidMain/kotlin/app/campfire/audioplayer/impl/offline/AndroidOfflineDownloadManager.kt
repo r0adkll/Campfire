@@ -3,9 +3,11 @@ package app.campfire.audioplayer.impl.offline
 import android.app.Application
 import android.widget.Toast
 import androidx.annotation.OptIn
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadHelper
+import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import app.campfire.audioplayer.impl.asPlatformMediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
@@ -52,24 +54,25 @@ class AndroidOfflineDownloadManager(
   }
 
   override fun download(item: LibraryItem) {
-    val mediaItems = MediaItemBuilder.build(item)
-      .map { it.asPlatformMediaItem() }
+    item.media.tracks.forEach { track ->
+      val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrlWithToken.toUri())
+        .build()
 
-    mediaItems.forEach { mediaItem ->
-      val helper = DownloadHelper.forMediaItem(application, mediaItem)
-      helper.prepare(MediaItemDownloadHelperCallback(mediaItem))
+      DownloadService.sendAddDownload(
+        application,
+        CampfireDownloadService::class.java,
+        request,
+        true,
+      )
     }
   }
 
   override fun delete(item: LibraryItem) {
-    val mediaItems = MediaItemBuilder.build(item)
-      .map { it.asPlatformMediaItem() }
-
-    mediaItems.forEach { mediaItem ->
+    item.media.tracks.forEach { track ->
       DownloadService.sendRemoveDownload(
         application,
         CampfireDownloadService::class.java,
-        mediaItem.localConfiguration!!.uri.toString(),
+        track.metadata.filename,
         true,
       )
     }
@@ -77,35 +80,5 @@ class AndroidOfflineDownloadManager(
 
   override fun stop(item: LibraryItem) {
     delete(item)
-  }
-
-  inner class MediaItemDownloadHelperCallback(
-    private val mediaItem: MediaItem,
-  ) : DownloadHelper.Callback {
-
-    override fun onPrepared(helper: DownloadHelper) {
-      val request = helper.getDownloadRequest(mediaItem.mediaId.toByteArray())
-      DownloadService.sendAddDownload(
-        application,
-        CampfireDownloadService::class.java,
-        request,
-        true,
-      )
-      helper.release()
-    }
-
-    override fun onPrepareError(helper: DownloadHelper, e: IOException) {
-      // TODO: Register this error in this class in a way that is observable
-      //  so that listening UIs can give feedback to the user about what downloaded
-      //  and what failed.
-      bark(LogPriority.ERROR, throwable = e) {
-        "Something went wrong when trying to prepare ${mediaItem.mediaId} for download"
-      }
-
-      // Temporary?
-      Toast.makeText(application, "Failed to start download [${mediaItem.mediaId}]", Toast.LENGTH_LONG).show()
-
-      helper.release()
-    }
   }
 }

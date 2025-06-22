@@ -11,6 +11,10 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Added
 
+- Download confirmation dialog
+- Download settings panel
+- Android permissions check for download notification
+
 ### Changed
 
 ### Deprecated
@@ -18,6 +22,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 ### Removed
 
 ### Fixed
+
+- Fixed crash, [#237](https://github.com/r0adkll/Campfire/issues/237), whens syncing media progress after login
 
 ### Other Notes & Contributions
 
