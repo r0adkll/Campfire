@@ -27,6 +27,18 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Other Notes & Contributions
 
+## [0.2.1-alpha] - 2025-06-22
+
+### Added
+
+- Download confirmation dialog
+- Download settings panel
+- Android permissions check for download notification
+-
+### Fixed
+
+- Fixed [#237](https://github.com/r0adkll/Campfire/issues/237) whens syncing media progress after login
+
 ## [0.2.0-alpha] - 2025-06-21
 
 ### Added
