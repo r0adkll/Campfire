@@ -24,6 +24,7 @@ fun Project.configureSpotless() {
       target("src/**/*.kt")
       targetExclude("src/**/impl/**/*PagingSource.kt")
       ktlint(ktlintVersion)
+        .setEditorConfigPath(rootProject.file(".editorconfig"))
       licenseHeaderFile(rootProject.file("spotless/google-copyright.txt"))
         .named("google")
         .onlyIfContentMatches("Copyright \\d+,* Google")

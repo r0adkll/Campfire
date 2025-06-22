@@ -15,6 +15,7 @@ ij_continuation_indent_size = 2
 ij_kotlin_imports_layout = *
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+ktlint_standard_filename = disabled
 
 [*.df.kts]
 ktlint_standard_no-wildcard-imports = disabled

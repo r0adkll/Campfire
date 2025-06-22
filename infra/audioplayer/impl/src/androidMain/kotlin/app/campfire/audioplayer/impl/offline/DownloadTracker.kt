@@ -7,7 +7,6 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
-import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn

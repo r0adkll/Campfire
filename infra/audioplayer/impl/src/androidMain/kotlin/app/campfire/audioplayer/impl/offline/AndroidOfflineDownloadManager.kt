@@ -1,25 +1,17 @@
 package app.campfire.audioplayer.impl.offline
 
 import android.app.Application
-import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.DownloadHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import app.campfire.audioplayer.impl.asPlatformMediaItem
-import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import java.io.IOException
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
