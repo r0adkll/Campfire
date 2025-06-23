@@ -83,3 +83,8 @@ SET
   librariesAccessible = ?,
   itemTagsAccessible = ?
 WHERE id = ?;
+
+updateSelectedLibrary:
+UPDATE user
+SET selectedLibraryId = :libraryId
+WHERE id = :userId;

@@ -1,12 +1,14 @@
 package app.campfire.data.mapping
 
 import app.campfire.core.model.Library
+import app.campfire.core.model.UserId
 import app.campfire.data.Library as DbLibrary
 import app.campfire.network.models.Library as NetworkLibrary
 
-fun NetworkLibrary.asDbModel(): DbLibrary {
+fun NetworkLibrary.asDbModel(userId: UserId): DbLibrary {
   return DbLibrary(
     id = id,
+    userId = userId,
     name = name,
     displayOrder = displayOrder,
     icon = icon,

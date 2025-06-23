@@ -15,6 +15,7 @@ kotlin {
         api(projects.features.libraries.api)
 
         implementation(projects.features.settings.api)
+        implementation(projects.features.user.api)
         implementation(projects.core)
         implementation(projects.data.db)
         implementation(projects.data.network.api)

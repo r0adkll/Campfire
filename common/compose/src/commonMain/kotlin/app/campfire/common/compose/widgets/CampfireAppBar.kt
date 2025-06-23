@@ -6,10 +6,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,6 +41,8 @@ import app.campfire.core.model.Server
 data class AppBarState(
   val library: LibraryState,
   val server: ServerState,
+  val allLibraries: List<Library>,
+  val eventSink: (AppBarViewEvent) -> Unit,
 ) {
   sealed interface LibraryState {
     data object Loading : LibraryState
@@ -59,12 +64,17 @@ data class AppBarState(
   }
 }
 
+sealed interface AppBarViewEvent {
+  data class LibrarySelected(val library: Library) : AppBarViewEvent
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CampfireAppBar(
   state: AppBarState,
   onNavigationClick: () -> Unit,
   onSearchClick: () -> Unit,
+  onTitleClick: () -> Unit,
   modifier: Modifier = Modifier,
   scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -72,7 +82,32 @@ fun CampfireAppBar(
     title = {
       when (state.library) {
         AppBarState.LibraryState.Loading -> CircularProgressIndicator(Modifier.size(16.dp))
-        is AppBarState.LibraryState.Loaded -> Text(state.library.library.name)
+        is AppBarState.LibraryState.Loaded -> {
+          val canTitleClick = state.allLibraries.isNotEmpty()
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+              .fillMaxHeight()
+              .padding(vertical = 12.dp, horizontal = 8.dp)
+              .clip(CircleShape)
+              .clickable(
+                enabled = canTitleClick,
+                onClick = onTitleClick,
+              ),
+          ) {
+            Spacer(Modifier.size(18.dp))
+            Text(state.library.library.name)
+            if (canTitleClick) {
+              Icon(
+                Icons.Rounded.KeyboardArrowDown,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+              )
+            } else {
+              Spacer(Modifier.size(18.dp))
+            }
+          }
+        }
       }
     },
     navigationIcon = {

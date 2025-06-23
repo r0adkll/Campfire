@@ -11,26 +11,19 @@ CREATE TABLE IF NOT EXISTS library (
   createdAt INTEGER NOT NULL,
   lastUpdate INTEGER NOT NULL,
   coverAspectRatio INTEGER AS Int NOT NULL,
-  audiobooksOnly INTEGER AS Boolean NOT NULL
+  audiobooksOnly INTEGER AS Boolean NOT NULL,
+
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 insert:
-INSERT OR REPLACE INTO library(
-  id,
-  name,
-  displayOrder,
-  icon,
-  mediaType,
-  provider,
-  createdAt,
-  lastUpdate,
-  coverAspectRatio,
-  audiobooksOnly
-)
+INSERT OR REPLACE INTO library
 VALUES ?;
 
 selectAll:
-SELECT * FROM library;
+SELECT * FROM library
+WHERE userId = ?;
 
 selectById:
 SELECT * FROM library
@@ -39,3 +32,7 @@ WHERE id = ?;
 deleteById:
 DELETE FROM library
 WHERE id = ?;
+
+deleteAll:
+DELETE FROM library
+WHERE userId = ?;

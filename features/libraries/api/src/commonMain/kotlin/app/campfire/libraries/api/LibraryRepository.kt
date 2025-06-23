@@ -22,4 +22,9 @@ interface LibraryRepository {
    * @return a [Flow] that will emit the list of [LibraryItem] for the given [LibraryId]
    */
   fun observeLibraryItems(): Flow<List<LibraryItem>>
+
+  /**
+   * Set a library as the currently selected one
+   */
+  suspend fun setCurrentLibrary(library: Library)
 }
