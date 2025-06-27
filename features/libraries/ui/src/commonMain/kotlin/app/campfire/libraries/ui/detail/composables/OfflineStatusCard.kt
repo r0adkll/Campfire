@@ -77,10 +77,10 @@ fun OfflineStatusCard(
         Text(
           when (offlineDownload.state) {
             OfflineDownload.State.None,
-            OfflineDownload.State.Queued,
             OfflineDownload.State.Downloading,
             -> "Downloading"
 
+            OfflineDownload.State.Queued -> "Queued"
             OfflineDownload.State.Stopped -> "Stopped"
             OfflineDownload.State.Failed -> "Failed"
             OfflineDownload.State.Completed -> "Available for offline"
@@ -187,20 +187,24 @@ private fun OfflineProgressBar(
 
     Spacer(Modifier.height(4.dp))
 
-    Row(
-      Modifier.fillMaxWidth(),
+    AnimatedVisibility(
+      visible = !isIndeterminate
     ) {
-      Text(
-        text = bytesDownloaded.asReadableBytes(),
-        style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.weight(1f),
-      )
-      Text(
-        text = contentLength.asReadableBytes(),
-        textAlign = TextAlign.End,
-        style = MaterialTheme.typography.labelSmall,
-        modifier = Modifier.weight(1f),
-      )
+      Row(
+        Modifier.fillMaxWidth(),
+      ) {
+        Text(
+          text = bytesDownloaded.asReadableBytes(),
+          style = MaterialTheme.typography.labelSmall,
+          modifier = Modifier.weight(1f),
+        )
+        Text(
+          text = contentLength.asReadableBytes(),
+          textAlign = TextAlign.End,
+          style = MaterialTheme.typography.labelSmall,
+          modifier = Modifier.weight(1f),
+        )
+      }
     }
 
     Spacer(Modifier.height(4.dp))

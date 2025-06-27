@@ -152,8 +152,11 @@ fun LibraryItem(
           state.eventSink(LibraryItemUiEvent.PlayClick(contentState.data))
         },
         onDownloadClick = {
-          // state.eventSink(LibraryItemUiEvent.DownloadClick)
-          showConfirmDownloadDialog = true
+          if (state.showConfirmDownloadDialog) {
+            showConfirmDownloadDialog = true
+          } else {
+            state.eventSink(LibraryItemUiEvent.DownloadClick())
+          }
         },
         onRemoveDownloadClick = {
           state.eventSink(LibraryItemUiEvent.RemoveDownloadClick)

@@ -59,7 +59,9 @@ fun ConfirmDownloadDialog(
           buildAnnotatedString {
             append(stringResource(Res.string.dialog_download_message_prefix))
             append(" ")
-            append(item.media.sizeInBytes.asReadableBytes())
+            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+              append(item.media.sizeInBytes.asReadableBytes())
+            }
             append(" ")
             append(stringResource(Res.string.dialog_download_message_suffix))
           },

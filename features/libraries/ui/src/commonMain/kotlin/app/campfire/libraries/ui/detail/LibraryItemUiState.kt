@@ -34,7 +34,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
 
-  data class DownloadClick(val doNotShowAgain: Boolean) : LibraryItemUiEvent
+  data class DownloadClick(val doNotShowAgain: Boolean = true) : LibraryItemUiEvent
   data object RemoveDownloadClick : LibraryItemUiEvent
   data object StopDownloadClick : LibraryItemUiEvent
 
