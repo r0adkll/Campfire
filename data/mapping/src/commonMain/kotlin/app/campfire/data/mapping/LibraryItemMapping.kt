@@ -53,6 +53,7 @@ fun LibraryItemBase.asDbModel(
     mediaType = when (mediaType) {
       NetworkMediaType.Book -> DomainMediaType.Book
       NetworkMediaType.Podcast -> DomainMediaType.Podcast
+      NetworkMediaType.Podcast2 -> DomainMediaType.Podcast
     },
     numFiles = numFiles ?: -1,
     size = size ?: -1,
@@ -236,6 +237,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
     mediaType = when (mediaType) {
       NetworkMediaType.Book -> DomainMediaType.Book
       NetworkMediaType.Podcast -> DomainMediaType.Podcast
+      NetworkMediaType.Podcast2 -> DomainMediaType.Podcast
     },
     numFiles = numFiles ?: -1,
     sizeInBytes = size ?: -1,

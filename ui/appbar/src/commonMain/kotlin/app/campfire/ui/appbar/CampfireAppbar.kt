@@ -3,14 +3,20 @@ package app.campfire.ui.appbar
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -23,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,7 +39,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -193,17 +202,21 @@ private fun LibraryPickerCard(
 
     Spacer(Modifier.height(8.dp))
 
-    libraries.forEach { library ->
+    libraries.forEachIndexed { index, library ->
       val selected = library.id == currentLibrary?.id
       LibraryListItem(
         library = library,
         selected = selected,
-        modifier = Modifier
-          .clickable(
-            enabled = !selected,
-            onClick = { onLibraryClick(library) },
-          ),
+        shape = when (index) {
+          0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+          libraries.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+          else -> RoundedCornerShape(4.dp)
+        },
+        onClick = {
+          onLibraryClick(library)
+        }
       )
+      if (index != libraries.lastIndex) Spacer(Modifier.height(4.dp))
     }
     Spacer(Modifier.height(16.dp))
   }
@@ -213,30 +226,44 @@ private fun LibraryPickerCard(
 private fun LibraryListItem(
   library: Library,
   selected: Boolean,
+  shape: Shape,
+  onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Box(
+  Row(
     modifier = modifier
+      .clip(shape)
+
       .fillMaxWidth()
-      .height(48.dp)
-      .padding(horizontal = 16.dp),
-    contentAlignment = Alignment.Center,
+      .height(56.dp)
+      .padding(horizontal = 16.dp)
+      .background(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = shape,
+      )
+      .clickable(
+        enabled = !selected,
+        onClick = onClick,
+      ),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
+
+    Spacer(Modifier.size(24.dp).padding(start = 16.dp))
+
     Text(
       text = library.name,
       textAlign = TextAlign.Center,
       style = MaterialTheme.typography.titleLarge,
       fontFamily = PaytoneOneFontFamily,
-      color = if (selected) MaterialTheme.colorScheme.secondary else LocalContentColor.current,
+      color = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+      modifier = Modifier.weight(1f)
     )
 
-    if (selected) {
-      Icon(
-        Icons.Rounded.Check,
-        contentDescription = null,
-        modifier = Modifier
-          .align(Alignment.CenterEnd),
-      )
-    }
+    Icon(
+      if (selected) Icons.Rounded.CheckCircle else Icons.Outlined.Circle,
+      contentDescription = null,
+      modifier = Modifier.padding(end = 16.dp),
+      tint = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
+    )
   }
 }

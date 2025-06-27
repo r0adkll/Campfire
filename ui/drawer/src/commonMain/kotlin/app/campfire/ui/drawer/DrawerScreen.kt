@@ -159,17 +159,16 @@ private fun DrawerSheet(
 private fun buildDrawerItems(): List<HomeNavigationItem> {
   val navigationType = LocalWindowSizeClass.current.navigationType
   return buildList {
-    add(
-      HomeNavigationItem(
-        screen = HomeScreen,
-        label = stringResource(Res.string.nav_home_label),
-        contentDescription = stringResource(Res.string.nav_home_content_description),
-        iconImageVector = Icons.Rounded.Home,
-        selectedImageVector = Icons.Filled.Home,
-      ),
-    )
-
     if (navigationType == NavigationType.Drawer) {
+      add(
+        HomeNavigationItem(
+          screen = HomeScreen,
+          label = stringResource(Res.string.nav_home_label),
+          contentDescription = stringResource(Res.string.nav_home_content_description),
+          iconImageVector = Icons.Rounded.Home,
+          selectedImageVector = Icons.Filled.Home,
+        ),
+      )
       add(
         HomeNavigationItem(
           screen = LibraryScreen,
@@ -217,15 +216,15 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
         selectedImageVector = Icons.Filled.QueryStats,
       ),
     )
-    add(
-      HomeNavigationItem(
-        screen = StorageScreen,
-        label = stringResource(Res.string.nav_storage_label),
-        contentDescription = stringResource(Res.string.nav_storage_content_description),
-        iconImageVector = Icons.Rounded.Folder,
-        selectedImageVector = Icons.Filled.Folder,
-      ),
-    )
+//    add(
+//      HomeNavigationItem(
+//        screen = StorageScreen,
+//        label = stringResource(Res.string.nav_storage_label),
+//        contentDescription = stringResource(Res.string.nav_storage_content_description),
+//        iconImageVector = Icons.Rounded.Folder,
+//        selectedImageVector = Icons.Filled.Folder,
+//      ),
+//    )
     add(
       HomeNavigationItem(
         screen = SettingsScreen(),

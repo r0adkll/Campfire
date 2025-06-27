@@ -19,6 +19,7 @@ fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
     mediaItemType = when (mediaItemType) {
       NetworkMediaType.Book -> MediaType.Book
       NetworkMediaType.Podcast -> MediaType.Podcast
+      NetworkMediaType.Podcast2 -> MediaType.Podcast
     },
     duration = duration.toDouble(),
     progress = progress.toDouble(),
@@ -79,6 +80,7 @@ fun NetworkMediaProgress.asDomainModel(): MediaProgress {
     mediaItemType = when (mediaItemType) {
       NetworkMediaType.Book -> MediaType.Book
       NetworkMediaType.Podcast -> MediaType.Podcast
+      NetworkMediaType.Podcast2 -> MediaType.Podcast
     },
     duration = duration,
     progress = progress,

@@ -57,6 +57,7 @@ suspend fun LibraryItemMinified<*>.asDomainModel(
     mediaType = when (mediaType) {
       NetworkMediaType.Book -> MediaType.Book
       NetworkMediaType.Podcast -> MediaType.Podcast
+      NetworkMediaType.Podcast2 -> MediaType.Podcast
     },
     numFiles = numFiles ?: libraryFiles?.size ?: -1,
     sizeInBytes = size,
