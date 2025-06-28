@@ -23,6 +23,7 @@ private val ThumbnailCornerSize = 8.dp
 fun LibraryListItem(
   item: LibraryItem,
   modifier: Modifier = Modifier,
+  trailingContent: (@Composable () -> Unit)? = null,
 ) {
   ListItem(
     leadingContent = {
@@ -43,6 +44,7 @@ fun LibraryListItem(
     supportingContent = {
       Text(stringResource(Res.string.added_time_ago, item.addedAtMillis.timeAgo))
     },
+    trailingContent = trailingContent,
     modifier = modifier,
   )
 }

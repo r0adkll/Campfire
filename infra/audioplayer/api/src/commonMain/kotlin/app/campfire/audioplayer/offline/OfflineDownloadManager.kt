@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.offline
 
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.Flow
 
 interface OfflineDownloadManager {
@@ -11,6 +12,13 @@ interface OfflineDownloadManager {
    * @return A [Flow] of the [OfflineDownload] for the given item.
    */
   fun observeForItem(item: LibraryItem): Flow<OfflineDownload>
+
+  /**
+   * Observe the current download status for a list of items
+   * @param items The list of [LibraryItem]s to observe.
+   * @return A [Flow] of a map of [LibraryItemId] to [OfflineDownload] for the given items.
+   */
+  fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>>
 
   /**
    * Download a [LibraryItem] for offline playback.

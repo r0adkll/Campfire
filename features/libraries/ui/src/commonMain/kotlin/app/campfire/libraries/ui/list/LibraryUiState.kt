@@ -1,7 +1,9 @@
 package app.campfire.libraries.ui.list
 
 import androidx.compose.runtime.Immutable
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -12,6 +14,7 @@ data class LibraryUiState(
   val contentState: LibraryContentState,
   val itemDisplayState: ItemDisplayState,
   val sort: LibrarySort,
+  val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
 

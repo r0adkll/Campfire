@@ -11,6 +11,7 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,6 +42,30 @@ class AndroidOfflineDownloadManager(
             delay(1.seconds)
             download = downloadTracker.getOfflineDownload(item)
           } while (isActive && download.state != OfflineDownload.State.Completed)
+        }
+      }
+  }
+
+  @kotlin.OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>> {
+    return downloadTracker.observe()
+      .flatMapLatest {
+        channelFlow {
+          var downloads = items.associate { item ->
+            val download = downloadTracker.getOfflineDownload(item)
+            item.id to download
+          }
+          send(downloads)
+
+          // If any of the download values are not completed then wait 5 seconds and loop
+          while (isActive && downloads.values.any { it.state != OfflineDownload.State.Completed }){
+            delay(5.seconds)
+            downloads = items.associate { item ->
+              val download = downloadTracker.getOfflineDownload(item)
+              item.id to download
+            }
+            send(downloads)
+          }
         }
       }
   }

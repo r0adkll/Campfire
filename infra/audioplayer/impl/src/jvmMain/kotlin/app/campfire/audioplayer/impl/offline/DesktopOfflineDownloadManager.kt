@@ -6,6 +6,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -17,6 +18,10 @@ import me.tatarka.inject.annotations.Inject
 class DesktopOfflineDownloadManager : OfflineDownloadManager {
   override fun observeForItem(item: LibraryItem): Flow<OfflineDownload> {
     return emptyFlow()
+  }
+
+  override fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>> {
+    TODO("Not yet implemented")
   }
 
   override fun download(item: LibraryItem) {
