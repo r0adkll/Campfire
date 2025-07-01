@@ -4,14 +4,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -22,18 +28,29 @@ class SeriesDetailPresenter(
   @Assisted private val screen: SeriesDetailScreen,
   @Assisted private val navigator: Navigator,
   private val repository: SeriesRepository,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) : Presenter<SeriesDetailUiState> {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): SeriesDetailUiState {
     val seriesContentState by remember {
       repository.observeSeriesLibraryItems(seriesId = screen.seriesId)
-        .map { SeriesContentState.Loaded(it) }
-        .catch { SeriesContentState.Error }
-    }.collectAsState(SeriesContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
+
+    val offlineDownloads by remember {
+      snapshotFlow { seriesContentState.dataOrNull }
+        .filterNotNull()
+        .flatMapLatest { items ->
+          offlineDownloadManager.observeForItems(items)
+        }
+    }.collectAsState(emptyMap())
 
     return SeriesDetailUiState(
       seriesContentState = seriesContentState,
+      offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
         SeriesDetailUiEvent.Back -> navigator.pop()

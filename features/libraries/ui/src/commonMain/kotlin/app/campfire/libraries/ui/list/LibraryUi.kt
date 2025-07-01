@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -29,12 +28,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownload.State.Completed
-import app.campfire.audioplayer.offline.OfflineDownload.State.Downloading
-import app.campfire.audioplayer.offline.OfflineDownload.State.Failed
-import app.campfire.audioplayer.offline.OfflineDownload.State.None
-import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
-import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
@@ -46,13 +40,14 @@ import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryListItem
 import app.campfire.common.compose.widgets.LoadingListState
-import app.campfire.common.compose.widgets.OfflineStatus
 import app.campfire.common.compose.widgets.OfflineStatusIndicator
 import app.campfire.common.screens.LibraryScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.offline.OfflineStatus
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -97,14 +92,14 @@ fun LibraryUi(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.contentState) {
-      LibraryContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LibraryContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_library_items_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is LibraryContentState.Loaded -> LoadedContent(
-        items = state.contentState.items,
+      is LoadState.Loaded -> LoadedContent(
+        items = state.contentState.data,
         offlineStates = state.offlineStates,
         onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
         itemDisplayState = state.itemDisplayState,
@@ -314,19 +309,7 @@ private fun OfflineStatusRow(
 
     OfflineStatusIndicator(
       status = status,
+      tint = MaterialTheme.colorScheme.onSurface,
     )
-  }
-}
-
-fun OfflineDownload?.asWidgetStatus(): OfflineStatus = when {
-  this == null -> OfflineStatus.None
-  else -> when (state) {
-    None -> OfflineStatus.None
-    Queued -> OfflineStatus.Queued
-    Downloading -> OfflineStatus.Downloading(progress.percent)
-    Completed -> OfflineStatus.Available
-    Stopped,
-    Failed,
-      -> OfflineStatus.Failed
   }
 }

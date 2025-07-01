@@ -5,14 +5,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
@@ -24,8 +30,10 @@ class CollectionDetailPresenter(
   @Assisted private val screen: CollectionDetailScreen,
   @Assisted private val navigator: Navigator,
   private val collectionsRepository: CollectionsRepository,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) : Presenter<CollectionDetailUiState> {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): CollectionDetailUiState {
     val scope = rememberCoroutineScope()
@@ -36,13 +44,22 @@ class CollectionDetailPresenter(
 
     val collectionContentState by remember {
       collectionsRepository.observeCollectionItems(screen.collectionId)
-        .map { CollectionContentState.Loaded(it) }
-        .catch { CollectionContentState.Error }
-    }.collectAsState(CollectionContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
+
+    val offlineDownloads by remember {
+      snapshotFlow { collectionContentState.dataOrNull }
+        .filterNotNull()
+        .flatMapLatest { items ->
+          offlineDownloadManager.observeForItems(items)
+        }
+    }.collectAsState(emptyMap())
 
     return CollectionDetailUiState(
       collection = collection,
       collectionContentState = collectionContentState,
+      offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
         CollectionDetailUiEvent.Back -> navigator.pop()

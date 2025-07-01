@@ -20,8 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Circle
-import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +44,7 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.cardElevation
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.offline.OfflineStatus
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.placeholder_book
 import campfire.common.compose.generated.resources.unknown_author_name
@@ -55,21 +55,13 @@ import org.jetbrains.compose.resources.stringResource
 private val CardMaxWidth = 400.dp
 private val ThumbnailCornerSize = 12.dp
 
-sealed interface OfflineStatus {
-  data object None : OfflineStatus
-  data object Queued : OfflineStatus
-  data class Downloading(val progress: Float) : OfflineStatus
-  data object Available : OfflineStatus
-  data object Failed : OfflineStatus
-}
-
 @Composable
 fun LibraryItemCard(
   item: LibraryItem,
   modifier: Modifier = Modifier,
   isSelectable: Boolean = false,
   selected: Boolean = false,
-  offlineStatus: OfflineStatus = OfflineStatus.None
+  offlineStatus: OfflineStatus = OfflineStatus.None,
 ) {
   val contentLayout = LocalContentLayout.current
 
@@ -128,11 +120,11 @@ private fun LibraryItemCardImage(
       OfflineStatusIndicator(
         status = offlineStatus,
         modifier = Modifier
-          .align(Alignment.TopStart)
+          .align(Alignment.TopEnd)
           .padding(
-            start = 16.dp,
-            top = 16.dp,
-          )
+            end = 8.dp,
+            top = 8.dp,
+          ),
       )
     }
   }
@@ -255,14 +247,14 @@ fun OfflineStatusIndicator(
   status: OfflineStatus,
   modifier: Modifier = Modifier,
   size: Dp = 18.dp,
-  tint: Color = MaterialTheme.colorScheme.secondary,
+  tint: Color = Color.White,
 ) {
   when (status) {
     OfflineStatus.None -> Unit
     is OfflineStatus.Downloading -> {
       CircularProgressIndicator(
         progress = { status.progress },
-        strokeWidth = 1.dp,
+        strokeWidth = 3.dp,
         color = tint,
         modifier = modifier
           .size(size),
@@ -270,7 +262,7 @@ fun OfflineStatusIndicator(
     }
     OfflineStatus.Queued -> {
       CircularProgressIndicator(
-        strokeWidth = 1.dp,
+        strokeWidth = 3.dp,
         color = tint,
         modifier = modifier
           .size(size),
@@ -278,7 +270,7 @@ fun OfflineStatusIndicator(
     }
     OfflineStatus.Available -> {
       Icon(
-        Icons.Rounded.DownloadDone,
+        Icons.Rounded.CloudDone,
         contentDescription = null,
         tint = tint,
         modifier = modifier

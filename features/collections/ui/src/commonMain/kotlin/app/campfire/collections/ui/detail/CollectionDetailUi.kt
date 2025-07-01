@@ -48,6 +48,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSheet
 import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
 import app.campfire.collections.ui.detail.composables.EditingTopAppBar
@@ -59,9 +60,12 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionDetailScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
+import app.campfire.core.offline.OfflineStatus
 import campfire.features.collections.ui.generated.resources.Res
 import campfire.features.collections.ui.generated.resources.action_edit_collection
 import campfire.features.collections.ui.generated.resources.dialog_confirm_delete_action_cancel
@@ -184,17 +188,18 @@ fun CollectionDetail(
       },
   ) { paddingValues ->
     when (state.collectionContentState) {
-      CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      CollectionContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_collection_detail_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is CollectionContentState.Loaded -> LoadedState(
+      is LoadState.Loaded -> LoadedState(
         description = state.collection?.description,
         isEditing = isItemEditing,
         selectedItems = selectedItems,
-        items = state.collectionContentState.items,
+        items = state.collectionContentState.data,
+        offlineStatus = { state.offlineStates[it].asWidgetStatus() },
         onLibraryItemClick = { item ->
           if (isItemEditing) {
             if (selectedItems.contains(item)) {
@@ -235,6 +240,7 @@ private fun LoadedState(
   isEditing: Boolean,
   selectedItems: List<LibraryItem>,
   items: List<LibraryItem>,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
   onLibraryItemLongClick: (LibraryItem) -> Unit,
   modifier: Modifier = Modifier,
@@ -276,6 +282,7 @@ private fun LoadedState(
     ) { item ->
       LibraryItemCard(
         item = item,
+        offlineStatus = offlineStatus(item.id),
         isSelectable = isEditing,
         selected = selectedItems.contains(item),
         modifier = Modifier

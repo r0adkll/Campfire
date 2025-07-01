@@ -1,6 +1,13 @@
 package app.campfire.audioplayer.offline
 
+import app.campfire.audioplayer.offline.OfflineDownload.State.Completed
+import app.campfire.audioplayer.offline.OfflineDownload.State.Downloading
+import app.campfire.audioplayer.offline.OfflineDownload.State.Failed
+import app.campfire.audioplayer.offline.OfflineDownload.State.None
+import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
+import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.offline.OfflineStatus
 
 /**
  * Represents the download state of a [LibraryItem].
@@ -16,6 +23,9 @@ data class OfflineDownload(
 
   val isCompleted: Boolean
     get() = state == State.Completed
+
+  val isActive: Boolean
+    get() = state != State.Completed && state != State.None
 
   enum class State {
     /**
@@ -56,4 +66,20 @@ data class OfflineDownload(
     val percent: Float,
     val indeterminate: Boolean = false,
   )
+}
+
+/**
+ * Converts [OfflineDownload] into a UI friendly model for rendering
+ */
+fun OfflineDownload?.asWidgetStatus(): OfflineStatus = when {
+  this == null -> OfflineStatus.None
+  else -> when (state) {
+    None -> OfflineStatus.None
+    Queued -> OfflineStatus.Queued
+    Downloading -> OfflineStatus.Downloading(progress.percent)
+    Completed -> OfflineStatus.Available
+    Stopped,
+    Failed,
+    -> OfflineStatus.Failed
+  }
 }

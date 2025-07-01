@@ -33,6 +33,7 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Collection
@@ -71,14 +72,14 @@ fun Collections(
     contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.collectionContentState) {
-      CollectionContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      CollectionContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_collection_items_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is CollectionContentState.Loaded -> LoadedState(
-        items = state.collectionContentState.collections,
+      is LoadState.Loaded -> LoadedState(
+        items = state.collectionContentState.data,
         onCollectionClick = { state.eventSink(CollectionsUiEvent.CollectionClick(it)) },
         contentPadding = paddingValues,
         state = gridState,

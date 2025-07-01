@@ -16,7 +16,9 @@ import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
+import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.model.Shelf
 
 private val LibraryCardWidth = 180.dp
@@ -25,6 +27,7 @@ private val SeriesCardWidth = 300.dp
 @Composable
 fun ShelfContent(
   shelf: Shelf<*>,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   state: LazyListState = rememberLazyListState(),
@@ -39,6 +42,7 @@ fun ShelfContent(
       when (entity) {
         is LibraryItem -> LibraryItemCard(
           item = entity,
+          offlineStatus = offlineStatus(entity.id),
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)

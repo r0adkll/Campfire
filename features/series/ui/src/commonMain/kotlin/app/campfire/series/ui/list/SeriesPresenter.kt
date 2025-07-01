@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.SeriesScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -27,9 +28,9 @@ class SeriesPresenter(
   override fun present(): SeriesUiState {
     val seriesContentState by remember {
       seriesRepository.observeAllSeries()
-        .map { SeriesContentState.Loaded(it) }
-        .catch { SeriesContentState.Error }
-    }.collectAsState(SeriesContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
 
     return SeriesUiState(
       seriesContentState = seriesContentState,

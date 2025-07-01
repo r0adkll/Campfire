@@ -6,6 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.LibraryItemScreen
@@ -15,7 +17,10 @@ import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Assisted
@@ -23,11 +28,13 @@ import me.tatarka.inject.annotations.Inject
 
 typealias SearchPresenterFactory = (navigator: Navigator, requestDismiss: () -> Unit) -> SearchPresenter
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Inject
 class SearchPresenter(
   private val searchRepository: SearchRepository,
   @Assisted private val navigator: Navigator,
   @Assisted private val requestDismiss: () -> Unit,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) : Presenter<SearchUiState> {
 
   @Composable
@@ -47,9 +54,18 @@ class SearchPresenter(
       }
     }.collectAsState(SearchResult.Empty)
 
+    val offlineDownloads by remember {
+      snapshotFlow { (searchResult as? SearchResult.Success)?.books }
+        .filterNotNull()
+        .flatMapLatest { items ->
+          offlineDownloadManager.observeForItems(items)
+        }
+    }.collectAsState(emptyMap())
+
     return SearchUiState(
       query = query,
       searchResult = searchResult,
+      offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
         SearchUiEvent.ClearQuery -> query = ""

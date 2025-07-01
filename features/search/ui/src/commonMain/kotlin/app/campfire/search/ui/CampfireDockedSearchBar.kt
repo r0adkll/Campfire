@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.search.ui.composables.SearchResultContent
 import app.campfire.search.ui.di.SearchUiComponent
@@ -106,6 +107,7 @@ private fun CampfireDockedSearchBar(
     SearchResultContent(
       query = state.query,
       results = state.searchResult,
+      offlineStatus = { state.offlineStates[it].asWidgetStatus() },
       onBookClick = { book -> eventSink(SearchUiEvent.OnBookClick(book)) },
       onNarratorClick = { narrator -> eventSink(SearchUiEvent.OnNarratorClick(narrator)) },
       onAuthorClick = { author -> eventSink(SearchUiEvent.OnAuthorClick(author)) },

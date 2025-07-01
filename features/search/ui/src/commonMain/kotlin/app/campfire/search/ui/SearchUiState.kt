@@ -1,8 +1,10 @@
 package app.campfire.search.ui
 
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.Author
 import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
 import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -11,6 +13,7 @@ import com.slack.circuit.runtime.CircuitUiState
 data class SearchUiState(
   val query: String,
   val searchResult: SearchResult,
+  val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (SearchUiEvent) -> Unit,
 ) : CircuitUiState
 

@@ -24,6 +24,7 @@ import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
@@ -60,14 +61,14 @@ fun Authors(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.authorContentState) {
-      AuthorsContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      AuthorsContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_authors_items_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is AuthorsContentState.Loaded -> LoadedState(
-        items = state.authorContentState.authors,
+      is LoadState.Loaded -> LoadedState(
+        items = state.authorContentState.data,
         onAuthorClick = { state.eventSink(AuthorsUiEvent.AuthorClick(it)) },
         contentPadding = paddingValues,
       )

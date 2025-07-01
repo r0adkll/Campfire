@@ -31,6 +31,7 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.SeriesScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Series
@@ -68,14 +69,14 @@ fun Series(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.seriesContentState) {
-      SeriesContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      SeriesContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_series_items_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is SeriesContentState.Loaded -> LoadedState(
-        items = state.seriesContentState.series,
+      is LoadState.Loaded -> LoadedState(
+        items = state.seriesContentState.data,
         onSeriesClick = { state.eventSink(SeriesUiEvent.SeriesClicked(it)) },
         contentPadding = paddingValues,
       )

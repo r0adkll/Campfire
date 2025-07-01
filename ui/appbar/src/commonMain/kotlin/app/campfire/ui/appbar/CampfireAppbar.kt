@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CardDefaults
@@ -29,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -209,12 +207,17 @@ private fun LibraryPickerCard(
         selected = selected,
         shape = when (index) {
           0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-          libraries.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
+          libraries.lastIndex -> RoundedCornerShape(
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomStart = 16.dp,
+            bottomEnd = 16.dp,
+          )
           else -> RoundedCornerShape(4.dp)
         },
         onClick = {
           onLibraryClick(library)
-        }
+        },
       )
       if (index != libraries.lastIndex) Spacer(Modifier.height(4.dp))
     }
@@ -233,7 +236,6 @@ private fun LibraryListItem(
   Row(
     modifier = modifier
       .clip(shape)
-
       .fillMaxWidth()
       .height(56.dp)
       .padding(horizontal = 16.dp)
@@ -247,7 +249,6 @@ private fun LibraryListItem(
       ),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-
     Spacer(Modifier.size(24.dp).padding(start = 16.dp))
 
     Text(
@@ -256,14 +257,14 @@ private fun LibraryListItem(
       style = MaterialTheme.typography.titleLarge,
       fontFamily = PaytoneOneFontFamily,
       color = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-      modifier = Modifier.weight(1f)
+      modifier = Modifier.weight(1f),
     )
 
     Icon(
       if (selected) Icons.Rounded.CheckCircle else Icons.Outlined.Circle,
       contentDescription = null,
       modifier = Modifier.padding(end = 16.dp),
-      tint = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current
+      tint = if (selected) MaterialTheme.colorScheme.primary else LocalContentColor.current,
     )
   }
 }

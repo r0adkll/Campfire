@@ -16,17 +16,21 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.HomeScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
+import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
@@ -64,14 +68,17 @@ fun HomeScreen(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.homeFeed) {
-      HomeFeed.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      HomeFeed.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         stringResource(Res.string.home_feed_load_error),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is HomeFeed.Loaded -> LoadedState(
-        shelves = state.homeFeed.shelves,
+      is LoadState.Loaded -> LoadedState(
+        shelves = state.homeFeed.data,
+        offlineStatus = { libraryItemId ->
+          state.offlineStates[libraryItemId].asWidgetStatus()
+        },
         contentPadding = paddingValues,
         onItemClick = { item ->
           when (item) {
@@ -89,6 +96,7 @@ fun HomeScreen(
 @Composable
 private fun LoadedState(
   shelves: List<Shelf<*>>,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -104,6 +112,7 @@ private fun LoadedState(
       ShelfListItem(
         shelf = shelf,
         onItemClick = onItemClick,
+        offlineStatus = offlineStatus,
       )
     }
   }

@@ -20,14 +20,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
+import app.campfire.core.offline.OfflineStatus
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -58,14 +62,15 @@ fun SeriesDetail(
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (state.seriesContentState) {
-      SeriesContentState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      SeriesContentState.Error -> ErrorListState(
+      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      LoadState.Error -> ErrorListState(
         message = stringResource(Res.string.error_series_detail_message),
         modifier = Modifier.padding(paddingValues),
       )
 
-      is SeriesContentState.Loaded -> LoadedState(
-        items = state.seriesContentState.items,
+      is LoadState.Loaded -> LoadedState(
+        items = state.seriesContentState.data,
+        offlineStatus = { state.offlineStates[it].asWidgetStatus() },
         onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
         contentPadding = paddingValues,
       )
@@ -76,6 +81,7 @@ fun SeriesDetail(
 @Composable
 private fun LoadedState(
   items: List<LibraryItem>,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -95,6 +101,7 @@ private fun LoadedState(
     ) { item ->
       LibraryItemCard(
         item = item,
+        offlineStatus = offlineStatus(item.id),
         modifier = Modifier.clickable {
           onLibraryItemClick(item)
         },

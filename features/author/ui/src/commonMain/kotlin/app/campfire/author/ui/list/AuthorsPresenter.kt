@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import app.campfire.author.api.AuthorRepository
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.AuthorsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -27,9 +28,9 @@ class AuthorsPresenter(
   override fun present(): AuthorsUiState {
     val authorContentState by remember {
       authorRepository.observeAuthors()
-        .map { AuthorsContentState.Loaded(it) }
-        .catch { AuthorsContentState.Error }
-    }.collectAsState(AuthorsContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
 
     return AuthorsUiState(
       authorContentState = authorContentState,

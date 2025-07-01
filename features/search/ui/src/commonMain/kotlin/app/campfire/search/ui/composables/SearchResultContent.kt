@@ -35,7 +35,9 @@ import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.model.Author
 import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
+import app.campfire.core.offline.OfflineStatus
 import app.campfire.search.api.SearchResult
 import campfire.features.search.ui.generated.resources.Res
 import campfire.features.search.ui.generated.resources.header_authors
@@ -56,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun SearchResultContent(
   query: String,
   results: SearchResult,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onBookClick: (LibraryItem) -> Unit,
   onAuthorClick: (Author) -> Unit,
   onSeriesClick: (Series) -> Unit,
@@ -95,6 +98,7 @@ internal fun SearchResultContent(
       ) {
         SuccessContent(
           result = results,
+          offlineStatus = offlineStatus,
           onBookClick = onBookClick,
           onNarratorClick = onNarratorClick,
           onAuthorClick = onAuthorClick,
@@ -112,6 +116,7 @@ internal fun SearchResultContent(
 @Composable
 private fun SuccessContent(
   result: SearchResult.Success,
+  offlineStatus: (LibraryItemId) -> OfflineStatus,
   onBookClick: (LibraryItem) -> Unit,
   onAuthorClick: (Author) -> Unit,
   onSeriesClick: (Series) -> Unit,
@@ -139,6 +144,7 @@ private fun SuccessContent(
       ) { book ->
         LibraryItemCard(
           item = book,
+          offlineStatus = offlineStatus(book.id),
           modifier = Modifier
             .animateItem()
             .clickable {

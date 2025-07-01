@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.search.ui.composables.SearchResultContent
 import app.campfire.search.ui.di.SearchUiComponent
@@ -158,6 +159,7 @@ class SearchOverlay(
               modifier = Modifier.imePadding(),
               query = state.query,
               results = state.searchResult,
+              offlineStatus = { state.offlineStates[it].asWidgetStatus() },
               onBookClick = { book -> eventSink(SearchUiEvent.OnBookClick(book)) },
               onNarratorClick = { narrator -> eventSink(SearchUiEvent.OnNarratorClick(narrator)) },
               onAuthorClick = { author -> eventSink(SearchUiEvent.OnAuthorClick(author)) },

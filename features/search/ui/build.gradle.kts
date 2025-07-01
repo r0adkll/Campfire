@@ -7,6 +7,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.search.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)

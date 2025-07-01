@@ -9,6 +9,8 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.LibraryScreen
+import app.campfire.core.coroutines.LoadState
+import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.util.LibraryItemComparator
@@ -19,7 +21,7 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
@@ -47,9 +49,9 @@ class LibraryPresenter(
 
     val contentState by remember {
       repository.observeLibraryItems()
-        .map { LibraryContentState.Loaded(it) }
-        .catch { LibraryContentState.Error }
-    }.collectAsState(LibraryContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
 
     val itemDisplayState by settings.observeLibraryItemDisplayState()
       .collectAsState(ItemDisplayState.List)
@@ -64,11 +66,10 @@ class LibraryPresenter(
     }
 
     val offlineDownloads by remember {
-      snapshotFlow { (contentState as? LibraryContentState.Loaded)?.items }
-        .flatMapLatest { maybeItems ->
-          maybeItems?.let { items ->
-            offlineDownloadManager.observeForItems(items)
-          } ?: emptyFlow()
+      snapshotFlow { contentState.dataOrNull }
+        .filterNotNull()
+        .flatMapLatest { items ->
+          offlineDownloadManager.observeForItems(items)
         }
     }.collectAsState(emptyMap())
 

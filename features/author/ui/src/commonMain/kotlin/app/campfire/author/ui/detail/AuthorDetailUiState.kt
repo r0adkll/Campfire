@@ -1,20 +1,18 @@
 package app.campfire.author.ui.detail
 
+import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class AuthorDetailUiState(
-  val authorContentState: AuthorContentState,
+  val authorContentState: LoadState<out Author>,
+  val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (AuthorDetailUiEvent) -> Unit,
 ) : CircuitUiState
-
-sealed interface AuthorContentState {
-  data object Loading : AuthorContentState
-  data class Loaded(val author: Author) : AuthorContentState
-  data object Error : AuthorContentState
-}
 
 sealed interface AuthorDetailUiEvent : CircuitUiEvent {
   data object Back : AuthorDetailUiEvent

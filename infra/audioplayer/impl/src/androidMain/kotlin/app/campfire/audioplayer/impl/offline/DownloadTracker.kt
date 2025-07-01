@@ -55,11 +55,19 @@ class DownloadTracker(
   fun observe(): SharedFlow<Event> = events.asSharedFlow()
 
   fun getOfflineDownload(item: LibraryItem): OfflineDownload {
-    if (item.media.tracks.isEmpty()) return OfflineDownload(item)
-
-    val itemDownloads = item.media.tracks.map {
-      downloads[it.contentUrlWithToken.toUri()]
+    val itemDownloads = if (item.media.tracks.isNotEmpty()) {
+      item.media.tracks.map {
+        downloads[it.contentUrlWithToken.toUri()]
+      }
+    } else {
+      // Find all the downloads by the items associated metadata id. Due to API design restraints, the
+      // tracks meta is not always guaranteed on the LibraryItems
+      downloads.values
+        .filter { it.request.data.decodeToString() == item.id }
     }
+
+    // If we don't have any active downloads for an item, just return the default
+    if (itemDownloads.isEmpty()) return OfflineDownload(item)
 
     // Condense the collective set of states
     val states = itemDownloads

@@ -188,7 +188,7 @@ private fun OfflineProgressBar(
     Spacer(Modifier.height(4.dp))
 
     AnimatedVisibility(
-      visible = !isIndeterminate
+      visible = !isIndeterminate,
     ) {
       Row(
         Modifier.fillMaxWidth(),

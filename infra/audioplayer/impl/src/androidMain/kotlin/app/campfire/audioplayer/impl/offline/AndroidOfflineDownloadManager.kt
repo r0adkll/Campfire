@@ -58,7 +58,7 @@ class AndroidOfflineDownloadManager(
           send(downloads)
 
           // If any of the download values are not completed then wait 5 seconds and loop
-          while (isActive && downloads.values.any { it.state != OfflineDownload.State.Completed }){
+          while (isActive && downloads.values.any { it.isActive }) {
             delay(5.seconds)
             downloads = items.associate { item ->
               val download = downloadTracker.getOfflineDownload(item)
@@ -73,6 +73,7 @@ class AndroidOfflineDownloadManager(
   override fun download(item: LibraryItem) {
     item.media.tracks.forEach { track ->
       val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrlWithToken.toUri())
+        .setData(item.id.encodeToByteArray())
         .build()
 
       DownloadService.sendAddDownload(

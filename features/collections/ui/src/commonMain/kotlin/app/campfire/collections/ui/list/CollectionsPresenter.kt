@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -27,9 +28,9 @@ class CollectionsPresenter(
   override fun present(): CollectionsUiState {
     val collectionContentState by remember {
       repository.observeAllCollections()
-        .map { CollectionContentState.Loaded(it) }
-        .catch { CollectionContentState.Error }
-    }.collectAsState(CollectionContentState.Loading)
+        .map { LoadState.Loaded(it) }
+        .catch { LoadState.Error }
+    }.collectAsState(LoadState.Loading)
 
     return CollectionsUiState(
       collectionContentState = collectionContentState,
