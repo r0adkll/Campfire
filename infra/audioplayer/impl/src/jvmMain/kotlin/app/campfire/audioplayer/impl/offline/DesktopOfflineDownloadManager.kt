@@ -21,7 +21,7 @@ class DesktopOfflineDownloadManager : OfflineDownloadManager {
   }
 
   override fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>> {
-    TODO("Not yet implemented")
+    return emptyFlow()
   }
 
   override fun download(item: LibraryItem) {
