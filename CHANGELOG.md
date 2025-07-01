@@ -19,6 +19,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Fixed
 
+- Fix issue with non-ssl traffic for self-hosted servers not behind https
+
 ### Other Notes & Contributions
 
 ## [0.2.1-alpha] - 2025-06-22
