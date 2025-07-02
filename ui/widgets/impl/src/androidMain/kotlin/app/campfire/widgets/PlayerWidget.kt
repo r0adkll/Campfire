@@ -270,12 +270,12 @@ class PlayerWidget : GlanceAppWidget() {
                 AudioPlayer.State.Buffering -> error("This state should never be reached")
 
                 AudioPlayer.State.Playing,
-                  -> R.drawable.ic_media_pause
+                -> R.drawable.ic_media_pause
 
                 AudioPlayer.State.Paused,
                 AudioPlayer.State.Disabled,
                 AudioPlayer.State.Finished,
-                  -> R.drawable.ic_media_play
+                -> R.drawable.ic_media_play
               },
             ),
             contentDescription = null,
