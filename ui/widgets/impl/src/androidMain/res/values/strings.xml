@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="player_widget_label">Playback Controller</string>
+  <string name="player_widget_description">Control the playback of your audio content</string>
+  <string name="player_widget_title_default">Open Campfire</string>
+  <string name="player_widget_subtitle_default">to listen to your next tale</string>
+</resources>

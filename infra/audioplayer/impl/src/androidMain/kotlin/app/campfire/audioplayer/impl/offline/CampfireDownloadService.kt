@@ -10,7 +10,7 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
-import app.campfire.audioplayer.impl.SessionActivityIntentProvider
+import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.infra.audioplayer.impl.R
@@ -20,7 +20,7 @@ import com.r0adkll.kimchi.annotations.ContributesTo
 @ContributesTo(AppScope::class)
 interface CampfireDownloadServiceComponent {
   val downloadManager: DownloadManager
-  val sessionActivityIntentProvider: SessionActivityIntentProvider
+  val activityIntentProvider: ActivityIntentProvider
 }
 
 @OptIn(UnstableApi::class)
@@ -66,7 +66,7 @@ class CampfireDownloadService : DownloadService(
       PendingIntent.getActivity(
         this,
         0,
-        component.sessionActivityIntentProvider.provide(),
+        component.activityIntentProvider.provide(),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
       ),
       message,

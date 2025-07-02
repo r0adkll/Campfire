@@ -1,20 +1,21 @@
 [versions]
 agp = "8.11.0"
+about-libraries = "12.2.4"
+accompanist = "0.37.3"
 androidxlifecycle = "2.9.1"
 androidxactivity = "1.10.1"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-beta01"
-about-libraries = "12.2.4"
-accompanist = "0.37.3"
+appcompat = "1.7.1"
 clikt = "5.0.3"
 core-ktx = "1.16.0"
 coroutines = "1.10.2"
-# This is used in the build logic
 compose-multiplatform = "1.8.2"
 connectivity = "2.1.0"
 coil = "3.2.0"
 circuit = "0.29.1"
-media3 = "1.7.1"
+glance = "1.1.1"
+junit = "4.13.2"
 kimchi = "0.6.0"
 kotlin = "2.2.0"
 kotlin-inject = "0.8.0"
@@ -23,14 +24,13 @@ ksoup = "0.6.0"
 ksp = "2.2.0-2.0.2"
 ktlint = "0.49.1"
 ktor = "3.2.0"
+media3 = "1.7.1"
 mosaic = "0.17.0"
-multiplatformsettings = "1.3.0"
 molecule = "2.1.0"
+multiplatformsettings = "1.3.0"
 okhttp = "4.12.0"
 paging = "3.3.6"
-junit = "4.13.2"
 espresso-core = "3.6.1"
-appcompat = "1.7.1"
 spotless = "7.0.4"
 sqldelight = "2.1.0"
 serialization = "1.9.0"
@@ -42,6 +42,7 @@ uiautomator = "2.4.0-alpha05"
 benchmark-macro-junit4 = "1.3.4"
 baselineprofile = "1.3.4"
 profileinstaller = "1.4.1"
+material = "1.10.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -57,7 +58,7 @@ kotlin-core = { id = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = 
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin"}
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = "com.google.gms.google-services:4.4.3"
 firebase-crashlytics = "com.google.firebase.crashlytics:3.0.4"
@@ -84,9 +85,12 @@ androidx-paging-compose = { module = "androidx.paging:paging-compose", version.r
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 androidx-preferences = "androidx.preference:preference:1.2.1"
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
-androidx-security-crypto = { module =  "androidx.security:security-crypto", version.ref = "androidxsecuritycrypto" }
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxsecuritycrypto" }
 
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist"}
+androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
+androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
+
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 
 #CLI
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
@@ -160,10 +164,10 @@ ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", version.ref = "connectivity"}
-connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity"}
-connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity"}
-connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity"}
+connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", version.ref = "connectivity" }
+connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity" }
+connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity" }
+connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 store = "org.mobilenativefoundation.store:store5:5.0.0"
@@ -185,7 +189,7 @@ media3-exoplayer-hls = { module = "androidx.media3:media3-exoplayer-hls", versio
 media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 
-vlcj = { module = "uk.co.caprica:vlcj", version.ref="vlcj" }
+vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -208,5 +212,6 @@ androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [bundles]

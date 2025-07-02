@@ -62,6 +62,7 @@ data class SleepSettingsInfo(
 @Immutable
 data class DeveloperSettingsInfo(
   val sessionAge: Duration,
+  val showWidgetPinningPrompt: Boolean,
 )
 
 enum class SettingsPane {
@@ -137,5 +138,6 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
+    data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
   }
 }

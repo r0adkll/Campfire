@@ -61,6 +61,7 @@ kotlin {
 
         api(projects.ui.drawer)
         api(projects.ui.attribution)
+        api(projects.ui.widgets.impl)
 
         api(compose.runtime)
         api(compose.foundation)

@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
-import app.campfire.audioplayer.impl.SessionActivityIntentProvider
+import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
@@ -78,7 +78,7 @@ private fun backDispatcherRootPop(): () -> Unit {
 @Inject
 class MainActivityIntentProvider(
   private val application: Application,
-) : SessionActivityIntentProvider {
+) : ActivityIntentProvider {
 
   override fun provide(): Intent {
     return Intent(application, MainActivity::class.java)

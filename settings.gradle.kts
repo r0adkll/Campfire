@@ -146,8 +146,9 @@ include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:attribution",
+  ":ui:widgets:api",
+  ":ui:widgets:impl",
 )
-
 include(":scripts:app")
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

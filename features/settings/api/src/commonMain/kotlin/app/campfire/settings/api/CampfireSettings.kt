@@ -33,6 +33,9 @@ interface CampfireSettings {
   var showConfirmDownload: Boolean
   fun observeShowConfirmDownload(): Flow<Boolean>
 
+  var hasShownWidgetPinning: Boolean
+  fun observeHasShownWidgetPinning(): Flow<Boolean>
+
   enum class Theme(override val storageKey: String) : EnumSetting {
     LIGHT("light"),
     DARK("dark"),

@@ -21,6 +21,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.LogPriority
@@ -40,7 +41,7 @@ interface AudioPlayerComponent {
   val audioPlayerHolder: AudioPlayerHolder // AppScope
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope
   val playbackSettings: PlaybackSettings // AppScope
-  val sessionActivityIntentProvider: SessionActivityIntentProvider
+  val activityIntentProvider: ActivityIntentProvider // AppScope
 }
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -68,7 +69,7 @@ class AudioPlayerService : MediaSessionService() {
         PendingIntent.getActivity(
           this,
           0,
-          component.sessionActivityIntentProvider.provide(),
+          component.activityIntentProvider.provide(),
           PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         ),
       )
@@ -150,7 +151,7 @@ class AudioPlayerService : MediaSessionService() {
             PendingIntent.getActivity(
               this@AudioPlayerService,
               0,
-              component.sessionActivityIntentProvider.provide(),
+              component.activityIntentProvider.provide(),
               PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             ),
           )

@@ -104,6 +104,7 @@ class SettingsPresenter(
 
     // Developer Settings
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
+    val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState(false)
 
     return SettingsUiState(
       server = server,
@@ -137,6 +138,7 @@ class SettingsPresenter(
       ),
       developerSettings = DeveloperSettingsInfo(
         sessionAge = sessionAge,
+        showWidgetPinningPrompt = showWidgetPinningPrompt,
       ),
     ) { event ->
       when (event) {
@@ -198,6 +200,8 @@ class SettingsPresenter(
 
         is SettingsUiEvent.DeveloperSettingEvent -> when (event) {
           is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.sessionAge = event.sessionAge
+          is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
+            settings.hasShownWidgetPinning = event.enabled
         }
       }
     }
