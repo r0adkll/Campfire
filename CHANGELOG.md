@@ -13,6 +13,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 - Library switcher UI for changing your selected library.
 - Offline status indicators on all surfaces that show library items.
+- Android home screen widget to control playback
 
 ### Changed
 
