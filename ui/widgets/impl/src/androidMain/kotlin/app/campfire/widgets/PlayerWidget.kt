@@ -1,5 +1,6 @@
 package app.campfire.widgets
 
+import android.content.ComponentName
 import android.content.Context
 import android.graphics.Bitmap
 import android.os.Build
@@ -23,6 +24,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.Action
+import androidx.glance.action.actionStartActivity
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
@@ -67,6 +69,7 @@ import coil3.toBitmap
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.withContext
 
 @ContributesTo(UserScope::class)
@@ -114,14 +117,26 @@ class PlayerWidget : GlanceAppWidget() {
     size: WidgetSize,
     modifier: GlanceModifier = GlanceModifier,
   ) {
-    val component = remember { ComponentHolder.component<PlayerWidgetComponent>() }
+    // Widgets are …weird… so we must subscribe to component / component changes or going from an app state
+    // of Force Stopped, or completely dead, to active won't cause existing widgets to update...for some reason.
+    val component by remember {
+      ComponentHolder.subscribe<PlayerWidgetComponent>()
+    }.collectAsState(null)
+
+    val mainActivityAction: Action = if (component != null) {
+      actionStartActivity(component!!.activityIntentProgression.provide())
+    } else {
+      // NOTE: This works since we have a proguard rule to keep the MainActivity name
+      //  from being obfuscated
+      actionStartActivity(ComponentName("app.campfire.android", "app.campfire.android.MainActivity"))
+    }
 
     val currentSession by remember(component) {
-      component.sessionsRepository.observeCurrentSession()
+      component?.sessionsRepository?.observeCurrentSession() ?: emptyFlow()
     }.collectAsState(null)
 
     val audioPlayer by remember(component) {
-      component.audioPlayerHolder.currentPlayer
+      component?.audioPlayerHolder?.currentPlayer ?: MutableStateFlow(null)
     }.collectAsState()
 
     if (currentSession != null) {
@@ -138,7 +153,7 @@ class PlayerWidget : GlanceAppWidget() {
         subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
         artworkUrl = currentMetadata.artworkUri ?: currentSession!!.libraryItem.media.coverImageUrl,
         playbackState = state,
-        onClick = actionStartActivity(component.activityIntentProgression.provide()),
+        onClick = mainActivityAction,
         size = size,
         modifier = modifier,
       )
@@ -149,7 +164,7 @@ class PlayerWidget : GlanceAppWidget() {
         subtitle = context.getString(R.string.player_widget_subtitle_default),
         artworkUrl = null,
         playbackState = AudioPlayer.State.Disabled,
-        onClick = actionStartActivity(component.activityIntentProgression.provide()),
+        onClick = mainActivityAction,
         size = size,
         modifier = modifier,
       )
@@ -255,12 +270,12 @@ class PlayerWidget : GlanceAppWidget() {
                 AudioPlayer.State.Buffering -> error("This state should never be reached")
 
                 AudioPlayer.State.Playing,
-                -> R.drawable.ic_media_pause
+                  -> R.drawable.ic_media_pause
 
                 AudioPlayer.State.Paused,
                 AudioPlayer.State.Disabled,
                 AudioPlayer.State.Finished,
-                -> R.drawable.ic_media_play
+                  -> R.drawable.ic_media_play
               },
             ),
             contentDescription = null,
