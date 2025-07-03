@@ -45,11 +45,18 @@ kotlin {
     androidMain {
       dependencies {
         api(libs.media3.exoplayer)
+
+        implementation(projects.features.home.api)
+        implementation(projects.features.series.api)
+        implementation(projects.features.collections.api)
+        implementation(projects.features.author.api)
+
         implementation(libs.media3.exoplayer.hls)
         implementation(libs.media3.session)
         implementation(libs.media3.cast)
         implementation(libs.androidx.lifecycle.runtime)
         implementation(libs.androidx.activity.compose)
+        implementation(libs.kotlinx.coroutines.guava)
       }
     }
 
