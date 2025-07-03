@@ -15,7 +15,6 @@
 
 package app.campfire.network.models
 
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
