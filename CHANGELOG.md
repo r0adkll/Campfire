@@ -26,6 +26,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 ### Fixed
 
 - HTML is no rendered properly on the item detail page description
+- Fixed sleep timer fading-to-pause when set as "End of Chapter"
 
 ### Other Notes & Contributions
 
