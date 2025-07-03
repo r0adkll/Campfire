@@ -14,6 +14,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
 import app.campfire.account.ui.rememberCurrentTent
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -52,9 +54,18 @@ fun CampfireContentWithInsets(
   userSessionManager: UserSessionManager,
   @Assisted modifier: Modifier = Modifier,
 ) {
+  val appUriHandler = remember(onOpenUrl) {
+    object : UriHandler {
+      override fun openUri(uri: String) {
+        onOpenUrl(uri)
+      }
+    }
+  }
+
   CompositionLocalProvider(
     LocalWindowSizeClass provides calculateWindowSizeClass(),
     LocalRetainedStateRegistry provides continuityRetainedStateRegistry(),
+    LocalUriHandler provides appUriHandler,
   ) {
     // TODO: We are re-shifting scopes, so this will need to be reworked
     UserComponentContent(

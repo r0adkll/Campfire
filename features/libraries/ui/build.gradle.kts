@@ -17,6 +17,7 @@ kotlin {
         implementation(compose.components.resources)
 
         implementation(libs.circuitx.overlays)
+        implementation(libs.compose.rich.text)
       }
     }
 
