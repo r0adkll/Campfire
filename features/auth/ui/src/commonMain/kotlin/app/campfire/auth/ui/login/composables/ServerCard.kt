@@ -43,11 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.autofill.AutofillType
+import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -170,58 +172,55 @@ internal fun ServerCard(
           bottom = 16.dp,
         ),
       ) {
-        Autofill(
-          autofillTypes = listOf(AutofillType.Username),
-          onFill = { onUsernameChange(it) },
-        ) {
-          OutlinedTextField(
-            value = username,
-            onValueChange = onUsernameChange,
-            label = { Text(stringResource(Res.string.label_username)) },
-            leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
-            keyboardOptions = KeyboardOptions(
-              keyboardType = KeyboardType.Email,
-              imeAction = ImeAction.Next,
-            ),
-            modifier = Modifier.fillMaxWidth(),
-          )
-        }
+        OutlinedTextField(
+          value = username,
+          onValueChange = onUsernameChange,
+          label = { Text(stringResource(Res.string.label_username)) },
+          leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Email,
+            imeAction = ImeAction.Next,
+          ),
+          modifier = Modifier
+            .fillMaxWidth()
+            .semantics {
+              contentType = ContentType.Username
+            },
+        )
 
         Spacer(Modifier.height(8.dp))
 
-        Autofill(
-          autofillTypes = listOf(AutofillType.Password),
-          onFill = { onPasswordChange(it) },
-        ) {
-          var showPassword by remember { mutableStateOf(false) }
-          OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            label = { Text(stringResource(Res.string.label_password)) },
-            leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
-            trailingIcon = {
-              IconButton(
-                onClick = { showPassword = !showPassword },
-              ) {
-                Icon(
-                  if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                  contentDescription = null,
-                )
-              }
+        var showPassword by remember { mutableStateOf(false) }
+        OutlinedTextField(
+          value = password,
+          onValueChange = onPasswordChange,
+          label = { Text(stringResource(Res.string.label_password)) },
+          leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
+          trailingIcon = {
+            IconButton(
+              onClick = { showPassword = !showPassword },
+            ) {
+              Icon(
+                if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                contentDescription = null,
+              )
+            }
+          },
+          visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+          keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Password,
+            imeAction = ImeAction.Go,
+          ),
+          keyboardActions = KeyboardActions(
+            onGo = { onGo() },
+          ),
+          modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focusRequester)
+            .semantics {
+              contentType = ContentType.Password
             },
-            visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(
-              keyboardType = KeyboardType.Password,
-              imeAction = ImeAction.Go,
-            ),
-            keyboardActions = KeyboardActions(
-              onGo = { onGo() },
-            ),
-            modifier = Modifier
-              .fillMaxWidth()
-              .focusRequester(focusRequester),
-          )
-        }
+        )
 
         if (authError != null) {
           Spacer(Modifier.height(16.dp))
