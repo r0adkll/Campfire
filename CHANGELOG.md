@@ -24,6 +24,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Fixed
 
+- HTML is no rendered properly on the item detail page description
+
 ### Other Notes & Contributions
 
 ## [0.3.0-alpha] - 2025-07-02
