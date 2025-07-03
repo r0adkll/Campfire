@@ -28,6 +28,7 @@ fun RunningTimerAction(
   runningTimer: RunningTimer?,
   currentTime: Duration,
   currentDuration: Duration,
+  playbackSpeed: Float,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -57,8 +58,7 @@ fun RunningTimerAction(
         .clickable(onClick = onClick),
       contentAlignment = Alignment.Center,
     ) {
-      val remaining = currentDuration - currentTime
-
+      val remaining = (currentDuration - currentTime).div(playbackSpeed.toDouble())
       Text(
         text = remaining.readoutFormat(largestOnly = true),
         fontSize = 18.sp,

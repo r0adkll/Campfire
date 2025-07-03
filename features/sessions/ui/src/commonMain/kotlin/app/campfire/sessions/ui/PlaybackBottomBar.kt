@@ -1,6 +1,7 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -28,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.outlined.Timer
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
@@ -55,11 +57,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -71,6 +75,7 @@ import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -245,6 +250,7 @@ private fun PlaybackBottomBar(
           state = state,
           currentTime = currentTime,
           currentDuration = currentDuration,
+          playbackSpeed = playbackSpeed,
           onSeek = onSeek,
           modifier = Modifier
             .padding(horizontal = 24.dp),
@@ -429,6 +435,7 @@ private fun PlaybackSeekBar(
   state: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
+  playbackSpeed: Float,
   onSeek: (Float) -> Unit,
   modifier: Modifier = Modifier,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -503,11 +510,30 @@ private fun PlaybackSeekBar(
         .padding(horizontal = 24.dp),
     )
 
-    val currentRemainingDuration = currentDuration - currentTime
+    val isAccelerated = playbackSpeed != 1f
+    AnimatedVisibility(
+      visible = isAccelerated,
+    ) {
+      Icon(
+        Icons.Rounded.KeyboardDoubleArrowRight,
+        contentDescription = null,
+        modifier = Modifier.size(16.dp),
+        tint = MaterialTheme.colorScheme.secondary,
+      )
+    }
+
+    val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
     Text(
       text = currentRemainingDuration.readoutFormat(),
       textAlign = TextAlign.Start,
-      style = MaterialTheme.typography.labelSmall,
+      style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
+        copy(
+          fontWeight = FontWeight.Bold,
+          fontStyle = FontStyle.Italic,
+          color = MaterialTheme.colorScheme.secondary,
+          fontSize = 12.sp,
+        )
+      },
       fontFamily = FontFamily.Monospace,
       modifier = Modifier
         .width(100.dp),

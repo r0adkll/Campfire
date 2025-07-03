@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
@@ -61,10 +62,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -345,6 +348,7 @@ internal fun ExpandedPlaybackBar(
           state = state,
           currentTime = currentTime,
           currentDuration = currentDuration,
+          playbackSpeed = playbackSpeed,
           onSeek = onSeek,
           interactionSource = interactionSource,
         )
@@ -388,6 +392,7 @@ internal fun ExpandedPlaybackBar(
             runningTimer = runningTimer,
             currentTime = currentTime,
             currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
             onClick = {
               scope.launch {
                 when (val result = overlayHost.showTimerBottomSheet(runningTimer)) {
@@ -482,6 +487,7 @@ private fun PlaybackSeekBar(
   state: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
+  playbackSpeed: Float,
   onSeek: (Float) -> Unit,
   modifier: Modifier = Modifier,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -548,10 +554,29 @@ private fun PlaybackSeekBar(
 
       Spacer(Modifier.weight(1f))
 
-      val currentRemainingDuration = currentDuration - currentTime
+      val isAccelerated = playbackSpeed != 1f
+      AnimatedVisibility(
+        visible = isAccelerated,
+      ) {
+        Icon(
+          Icons.Rounded.KeyboardDoubleArrowRight,
+          contentDescription = null,
+          modifier = Modifier.size(16.dp),
+          tint = MaterialTheme.colorScheme.secondary,
+        )
+      }
+
+      val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
       Text(
         text = currentRemainingDuration.readoutFormat(),
-        style = MaterialTheme.typography.labelSmall,
+        style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
+          copy(
+            fontWeight = FontWeight.Bold,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 12.sp,
+          )
+        },
       )
     }
   }

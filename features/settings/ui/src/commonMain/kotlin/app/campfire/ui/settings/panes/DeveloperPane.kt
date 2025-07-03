@@ -3,6 +3,8 @@ package app.campfire.ui.settings.panes
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.ui.settings.SettingsUiEvent.DeveloperSettingEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.DurationInputSetting
@@ -31,13 +33,17 @@ internal fun DeveloperPane(
       supportingContent = { Text(stringResource(Res.string.developer_settings_session_age_subtitle)) },
     )
 
-    SwitchSetting(
-      value = !state.developerSettings.showWidgetPinningPrompt,
-      onValueChange = {
-        state.eventSink(DeveloperSettingEvent.ShowWidgetPinningChange(!it))
-      },
-      headlineContent = { Text("Show widget pinning dialog") },
-      supportingContent = { Text("Next time content is played, the user will be prompted to pin the playback widget") },
-    )
+    if (currentPlatform == Platform.ANDROID) {
+      SwitchSetting(
+        value = !state.developerSettings.showWidgetPinningPrompt,
+        onValueChange = {
+          state.eventSink(DeveloperSettingEvent.ShowWidgetPinningChange(!it))
+        },
+        headlineContent = { Text("Show widget pinning dialog") },
+        supportingContent = {
+          Text("Next time content is played, the user will be prompted to pin the playback widget")
+        },
+      )
+    }
   }
 }
