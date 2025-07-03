@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalTime::class)
+
 package app.campfire.core.extensions
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
@@ -14,7 +17,7 @@ val LocalDateTime.readableFormat: String
     return if (now.date == date) {
       "$hourAdjusted:$minute $amPM"
     } else {
-      "${month.name.capitalized()} $dayOfMonth, $year $hourAdjusted:${minute.withSignificantZero()} $amPM"
+      "${month.name.capitalized()} $day, $year $hourAdjusted:${minute.withSignificantZero()} $amPM"
     }
   }
 

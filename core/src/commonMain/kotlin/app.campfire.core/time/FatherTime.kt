@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalTime::class)
+
 package app.campfire.core.time
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

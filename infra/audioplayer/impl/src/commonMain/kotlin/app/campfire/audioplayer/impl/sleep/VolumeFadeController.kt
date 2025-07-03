@@ -1,14 +1,16 @@
 package app.campfire.audioplayer.impl.sleep
 
 import app.campfire.core.extensions.asSeconds
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 
+@OptIn(ExperimentalTime::class)
 object VolumeFadeController {
 
   fun fade(

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package app.campfire.sessions.ui.composables
 
 import androidx.compose.material3.LocalContentColor
@@ -20,10 +22,11 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.clockFormat
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.timer_end_of_chapter
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

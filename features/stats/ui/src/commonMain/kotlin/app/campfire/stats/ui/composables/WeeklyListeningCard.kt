@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalTime::class)
+
 package app.campfire.stats.ui.composables
 
 import androidx.compose.foundation.Canvas
@@ -45,10 +47,11 @@ import app.campfire.stats.ui.StatsUiModel.WeeklyListening
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.weekly_listening_card_title
 import kotlin.math.ceil
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 import kotlin.time.toDuration
 import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
