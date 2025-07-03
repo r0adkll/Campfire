@@ -95,6 +95,10 @@ class LibraryItemPresenter(
       settings.observeShowConfirmDownload()
     }.collectAsState(true)
 
+    val showTimeInBook by remember {
+      settings.observeShowTimeInBook()
+    }.collectAsState(true)
+
     return LibraryItemUiState(
       sessionUiState = currentSession,
       libraryItemContentState = libraryItemContentState,
@@ -102,6 +106,7 @@ class LibraryItemPresenter(
       seriesContentState = seriesContentState,
       mediaProgressState = mediaProgressState,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
+      showTimeInBook = showTimeInBook,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -167,6 +172,10 @@ class LibraryItemPresenter(
           libraryItemContentState.dataOrNull?.let {
             offlineDownloadManager.stop(it)
           }
+        }
+
+        is LibraryItemUiEvent.TimeInBookChange -> {
+          settings.showTimeInBook = event.enabled
         }
       }
     }

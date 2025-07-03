@@ -16,6 +16,7 @@ data class LibraryItemUiState(
   val seriesContentState: LoadState<out List<LibraryItem>>,
   val mediaProgressState: LoadState<out MediaProgress?>,
   val showConfirmDownloadDialog: Boolean,
+  val showTimeInBook: Boolean,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -33,6 +34,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
+  data class TimeInBookChange(val item: LibraryItem, val enabled: Boolean) : LibraryItemUiEvent
 
   data class DownloadClick(val doNotShowAgain: Boolean = true) : LibraryItemUiEvent
   data object RemoveDownloadClick : LibraryItemUiEvent

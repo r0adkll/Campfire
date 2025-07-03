@@ -36,6 +36,9 @@ interface CampfireSettings {
   var hasShownWidgetPinning: Boolean
   fun observeHasShownWidgetPinning(): Flow<Boolean>
 
+  var showTimeInBook: Boolean
+  fun observeShowTimeInBook(): Flow<Boolean>
+
   enum class Theme(override val storageKey: String) : EnumSetting {
     LIGHT("light"),
     DARK("dark"),

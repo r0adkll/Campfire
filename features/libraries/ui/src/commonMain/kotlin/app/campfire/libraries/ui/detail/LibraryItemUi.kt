@@ -21,11 +21,14 @@ import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.QueuePlayNext
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -48,6 +51,8 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.CoverImage
@@ -143,6 +148,7 @@ fun LibraryItem(
         seriesContentState = state.seriesContentState,
         mediaProgressState = state.mediaProgressState,
         offlineDownload = state.offlineDownloadState,
+        showTimeInBook = state.showTimeInBook,
         modifier = modifier,
         contentPadding = paddingValues,
         onChapterClick = { chapter ->
@@ -180,6 +186,9 @@ fun LibraryItem(
         },
         onDiscardProgress = {
           state.eventSink(LibraryItemUiEvent.DiscardProgress(contentState.data))
+        },
+        onTimeInBookChange = { enabled ->
+          state.eventSink(LibraryItemUiEvent.TimeInBookChange(contentState.data, enabled))
         },
       )
     }
@@ -223,6 +232,7 @@ fun LoadedState(
   item: LibraryItem,
   seriesContentState: LoadState<out List<LibraryItem>>,
   mediaProgressState: LoadState<out MediaProgress?>,
+  showTimeInBook: Boolean,
   offlineDownload: OfflineDownload?,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
@@ -235,6 +245,7 @@ fun LoadedState(
   onAddToPlaylist: () -> Unit,
   onAddToCollection: () -> Unit,
   onSeriesClick: () -> Unit,
+  onTimeInBookChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   scrollState: ScrollState = rememberScrollState(),
@@ -423,10 +434,24 @@ fun LoadedState(
       HorizontalDivider(Modifier.fillMaxWidth())
       MetadataHeader(
         title = stringResource(Res.string.header_chapters),
-        modifier = Modifier.padding(
-          horizontal = 16.dp,
-          vertical = 16.dp,
-        ),
+        modifier = Modifier
+          .height(56.dp)
+          .padding(
+            horizontal = 16.dp,
+          ),
+        trailingContent = {
+          Switch(
+            checked = showTimeInBook,
+            onCheckedChange = onTimeInBookChange,
+            thumbContent = {
+              Icon(
+                if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else Icons.Rounded.Timer,
+                contentDescription = null,
+                modifier = Modifier.size(SwitchDefaults.IconSize),
+              )
+            },
+          )
+        },
       )
 
       item.media.chapters.forEach { chapter ->
@@ -436,7 +461,11 @@ fun LoadedState(
 
         DurationListItem(
           title = chapter.title,
-          duration = chapter.start.seconds,
+          duration = if (showTimeInBook) {
+            chapter.start.seconds
+          } else {
+            chapter.duration
+          },
           progress = progress,
           modifier = Modifier
             .clickable {

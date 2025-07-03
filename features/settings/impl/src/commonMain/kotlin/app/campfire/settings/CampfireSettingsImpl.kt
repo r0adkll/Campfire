@@ -71,6 +71,11 @@ class CampfireSettingsImpl(
   override fun observeHasShownWidgetPinning(): Flow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_SHOW_WIDGET_PINNING, false)
   }
+
+  override var showTimeInBook: Boolean by booleanSetting(KEY_SHOW_TIME_IN_BOOK, true)
+  override fun observeShowTimeInBook(): Flow<Boolean> {
+    return flowSettings.getBooleanFlow(KEY_SHOW_TIME_IN_BOOK, true)
+  }
 }
 
 internal const val KEY_DEVICE_ID = "pref_device_id"
@@ -82,3 +87,4 @@ internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
 internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"
+internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
