@@ -142,10 +142,9 @@ class CoroutineSleepTimerManager(
   private fun endTimer() {
     ibark { "endTimer($playbackTimer)" }
 
-    // Pause playback and clear the timer
-    player.fadeToPause().invokeOnCompletion {
-      // If the autoRewind and timer are enabled and the playbackTimer that just finished
-      // then rewind by the configured amount
+    // If the autoRewind and timer are enabled and the playbackTimer that just finished
+    // then rewind by the configured amount
+    val onPauseComplete: () -> Unit = {
       if (
         playbackTimer?.isAutoSleepTimer == true &&
         sleepSettings.autoRewindEnabled &&
@@ -154,6 +153,16 @@ class CoroutineSleepTimerManager(
         val newTime = player.overallTime.value - sleepSettings.autoRewindAmount
         player.seekTo(newTime)
         dbark { "Auto-sleep timer ended with rewind enabled, seeking to $newTime" }
+      }
+    }
+
+    if (playbackTimer is PlaybackTimer.EndOfChapter) {
+      player.pause()
+      onPauseComplete()
+    } else {
+      // Pause playback and clear the timer
+      player.fadeToPause().invokeOnCompletion {
+        onPauseComplete()
       }
     }
 
