@@ -15,7 +15,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Changed
 
-A- When playback speed is not 1x, display the actual speed in the actions bar
+- When playback speed is not 1x, display the actual speed in the actions bar
+- Dynamic timer icon when timer is enabled in playback UI
 
 ### Deprecated
 
