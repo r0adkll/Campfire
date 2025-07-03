@@ -33,7 +33,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -90,6 +89,7 @@ import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.ForwardIcon
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RewindIcon
+import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -383,14 +383,21 @@ internal fun ExpandedPlaybackBar(
             },
           )
         },
-        onTimerClick = {
-          scope.launch {
-            when (val result = overlayHost.showTimerBottomSheet(runningTimer)) {
-              is TimerResult.Selected -> onTimerSelected(result.timer)
-              TimerResult.Cleared -> onTimerCleared()
-              else -> Unit
-            }
-          }
+        timerContent = {
+          RunningTimerAction(
+            runningTimer = runningTimer,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            onClick = {
+              scope.launch {
+                when (val result = overlayHost.showTimerBottomSheet(runningTimer)) {
+                  is TimerResult.Selected -> onTimerSelected(result.timer)
+                  TimerResult.Cleared -> onTimerCleared()
+                  else -> Unit
+                }
+              }
+            },
+          )
         },
         onChapterListClick = {
           scope.launch {
@@ -654,35 +661,52 @@ private fun PlaybackActions(
 private fun ActionRow(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
-  onTimerClick: () -> Unit,
+  timerContent: @Composable () -> Unit,
   onChapterListClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .height(72.dp),
+      .height(72.dp)
+      .padding(horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceEvenly,
   ) {
-    IconButton(
-      onClick = onBookmarksClick,
+    Box(
+      modifier = Modifier.weight(1f),
+      contentAlignment = Alignment.Center,
     ) {
-      Icon(Icons.Rounded.Bookmarks, contentDescription = null)
+      IconButton(
+        onClick = onBookmarksClick,
+      ) {
+        Icon(Icons.Rounded.Bookmarks, contentDescription = null)
+      }
     }
 
-    speedContent()
-
-    IconButton(
-      onClick = onTimerClick,
+    Box(
+      modifier = Modifier.weight(1f),
+      contentAlignment = Alignment.Center,
     ) {
-      Icon(Icons.Outlined.Timer, contentDescription = null)
+      speedContent()
     }
 
-    IconButton(
-      onClick = onChapterListClick,
+    Box(
+      modifier = Modifier.weight(1f),
+      contentAlignment = Alignment.Center,
     ) {
-      Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+      timerContent()
+    }
+
+    Box(
+      modifier = Modifier.weight(1f),
+      contentAlignment = Alignment.Center,
+    ) {
+      IconButton(
+        onClick = onChapterListClick,
+      ) {
+        Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+      }
     }
   }
 }

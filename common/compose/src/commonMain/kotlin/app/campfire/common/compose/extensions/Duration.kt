@@ -31,15 +31,27 @@ fun Duration.readoutAtMost(
   }
 }
 
-fun Duration.readoutFormat(style: ReadoutStyle = ReadoutStyle.Short): String {
+fun Duration.readoutFormat(
+  style: ReadoutStyle = ReadoutStyle.Short,
+  largestOnly: Boolean = false,
+): String {
   val hours = inWholeHours
   val minutes = inWholeMinutes % 60
   val seconds = inWholeSeconds % 60
 
   return buildString {
-    if (hours > 0) append("$hours${style.formatForStyle("h", "hours")} ")
-    if (minutes > 0) append("$minutes${style.formatForStyle("m", "minutes")} ")
-    if (seconds > 0) append("$seconds${style.formatForStyle("s", "seconds")}")
+    if (hours > 0) {
+      append("$hours${style.formatForStyle("h", "hours")} ")
+      if (largestOnly) return@buildString
+    }
+    if (minutes > 0) {
+      append("$minutes${style.formatForStyle("m", "minutes")} ")
+      if (largestOnly) return@buildString
+    }
+    if (seconds > 0) {
+      append("$seconds${style.formatForStyle("s", "seconds")}")
+      if (largestOnly) return@buildString
+    }
     if (hours == 0L && minutes == 0L && seconds == 0L) append("--")
   }
 }
