@@ -171,7 +171,7 @@ private fun PlaybackSpeedBottomSheet(
   }
 }
 
-private val Float.readable: String
+internal val Float.readable: String
   get() {
     val asInt = roundToInt()
     val isWhole = this == asInt.toFloat()

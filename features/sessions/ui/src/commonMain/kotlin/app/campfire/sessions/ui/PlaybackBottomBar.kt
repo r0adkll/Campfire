@@ -32,7 +32,6 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +75,7 @@ import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.ForwardIcon
+import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
@@ -265,10 +265,15 @@ private fun PlaybackBottomBar(
             }
           }
         },
-        onSpeedClick = {
-          scope.launch {
-            overlayHost.showPlaybackSpeedBottomSheet(playbackSpeed)
-          }
+        speedContent = {
+          PlaybackSpeedAction(
+            playbackSpeed = playbackSpeed,
+            onClick = {
+              scope.launch {
+                overlayHost.showPlaybackSpeedBottomSheet(playbackSpeed)
+              }
+            },
+          )
         },
         onTimerClick = {
           if (session == null) return@ActionRow
@@ -514,7 +519,7 @@ private fun PlaybackSeekBar(
 private fun ActionRow(
   runningTimer: RunningTimer?,
   onBookmarkAddClick: () -> Unit,
-  onSpeedClick: () -> Unit,
+  speedContent: @Composable () -> Unit,
   onTimerClick: () -> Unit,
   onChapterListClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -532,11 +537,7 @@ private fun ActionRow(
       Icon(Icons.Rounded.Bookmarks, contentDescription = null)
     }
 
-    IconButton(
-      onClick = onSpeedClick,
-    ) {
-      Icon(Icons.Rounded.Speed, contentDescription = null)
-    }
+    speedContent()
 
     AnimatedContent(
       targetState = runningTimer,
