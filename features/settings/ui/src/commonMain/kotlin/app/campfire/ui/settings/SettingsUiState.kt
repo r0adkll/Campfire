@@ -61,6 +61,7 @@ data class SleepSettingsInfo(
 
 @Immutable
 data class DeveloperSettingsInfo(
+  val developerModeEnabled: Boolean,
   val sessionAge: Duration,
   val showWidgetPinningPrompt: Boolean,
 )
@@ -137,6 +138,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   }
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {
+    data object EnableDeveloperMode : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
   }

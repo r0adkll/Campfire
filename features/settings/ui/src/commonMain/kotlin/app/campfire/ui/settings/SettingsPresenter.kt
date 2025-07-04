@@ -103,6 +103,7 @@ class SettingsPresenter(
     val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState()
 
     // Developer Settings
+    val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState(false)
 
@@ -137,6 +138,7 @@ class SettingsPresenter(
         },
       ),
       developerSettings = DeveloperSettingsInfo(
+        developerModeEnabled = developerModeEnabled,
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
       ),
@@ -202,6 +204,7 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.sessionAge = event.sessionAge
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
             settings.hasShownWidgetPinning = event.enabled
+          is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
         }
       }
     }

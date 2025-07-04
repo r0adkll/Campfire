@@ -2,17 +2,20 @@ package app.campfire.android
 
 import android.app.Application
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
+import app.campfire.android.toast.AndroidToast
+import app.campfire.common.compose.toast.LocalToast
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -36,15 +39,21 @@ class MainActivity : ComponentActivity() {
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
+    val toaster = AndroidToast(this)
+
     setContent {
-      component.campfireContent(
-        backDispatcherRootPop(),
-        { url: String ->
-          val intent = CustomTabsIntent.Builder().build()
-          intent.launchUrl(this@MainActivity, Uri.parse(url))
-        },
-        Modifier,
-      )
+      CompositionLocalProvider(
+        LocalToast provides toaster,
+      ) {
+        component.campfireContent(
+          backDispatcherRootPop(),
+          { url: String ->
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(this@MainActivity, url.toUri())
+          },
+          Modifier,
+        )
+      }
     }
   }
 

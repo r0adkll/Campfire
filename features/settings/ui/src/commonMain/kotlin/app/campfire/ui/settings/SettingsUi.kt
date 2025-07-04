@@ -146,6 +146,7 @@ private fun TwoPaneLayout(
       pane = forcedPane,
       onPaneClick = onPaneClick,
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
+      showDeveloperPane = isDebug || state.developerSettings.developerModeEnabled,
       modifier = Modifier
         .padding(top = 16.dp)
         .fillMaxHeight()
@@ -200,6 +201,7 @@ private fun OnePaneLayout(
     pane = pane,
     onPaneClick = onPaneClick,
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
+    showDeveloperPane = isDebug || state.developerSettings.developerModeEnabled,
     modifier = modifier
       .fillMaxSize(),
   )
@@ -230,6 +232,7 @@ private fun SettingsRootPane(
   pane: SettingsPane?,
   onPaneClick: (SettingsPane) -> Unit,
   onBackClick: () -> Unit,
+  showDeveloperPane: Boolean,
   modifier: Modifier = Modifier,
   hideTopBar: Boolean = false,
 ) {
@@ -360,7 +363,7 @@ private fun SettingsRootPane(
       )
 
       // Developer - DEBUG ONLY
-      if (isDebug) {
+      if (showDeveloperPane) {
         SettingPaneListItem(
           selected = pane == SettingsPane.Developer && hideTopBar,
           icon = {

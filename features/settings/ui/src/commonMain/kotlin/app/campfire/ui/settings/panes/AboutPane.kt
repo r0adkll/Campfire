@@ -6,11 +6,20 @@ import androidx.compose.material.icons.rounded.Copyright
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Github
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
+import app.campfire.common.compose.toast.LocalToast
+import app.campfire.common.compose.toast.Toast
+import app.campfire.common.compose.toast.ToastHandle
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.ui.settings.SettingsUiEvent
@@ -34,6 +43,7 @@ import campfire.features.settings.ui.generated.resources.about_privacy_policy_ti
 import campfire.features.settings.ui.generated.resources.about_tos_title
 import campfire.features.settings.ui.generated.resources.about_version_title
 import campfire.features.settings.ui.generated.resources.setting_about_title
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -91,12 +101,41 @@ internal fun AboutPane(
       onClick = { sendEvent(AttributionsClick) },
     )
 
+    val toast = LocalToast.current
+    var versionClickCount by remember { mutableIntStateOf(0) }
+    var priorToast by remember { mutableStateOf<ToastHandle?>(null) }
+    LaunchedEffect(versionClickCount) {
+      if (versionClickCount == 0) return@LaunchedEffect
+      priorToast?.cancel()
+      priorToast = null
+
+      if (versionClickCount >= DEVELOPER_MODE_CLICKS) {
+        state.eventSink(SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode)
+        versionClickCount = 0
+        toast.show("Developer mode enabled!", Toast.Duration.SHORT)
+        return@LaunchedEffect
+      }
+
+      val remainingClicks = DEVELOPER_MODE_CLICKS - versionClickCount
+      priorToast = toast.show("$remainingClicks more clicks to enable developer mode!", Toast.Duration.SHORT)
+
+      delay(DEVELOPER_MODE_CLICK_TIMEOUT)
+      versionClickCount = 0
+    }
+
     ActionSetting(
       headlineContent = { Text(stringResource(Res.string.about_version_title)) },
       supportingContent = { Text(state.applicationInfo.settingsReadableVersionName) },
+      onClick = {
+        versionClickCount++
+        Unit
+      }.takeIf { !state.developerSettings.developerModeEnabled },
     )
   }
 }
+
+internal const val DEVELOPER_MODE_CLICKS = 6
+internal const val DEVELOPER_MODE_CLICK_TIMEOUT = 1500L
 
 private val ApplicationInfo.settingsReadableVersionName: String get() {
   return buildString {
