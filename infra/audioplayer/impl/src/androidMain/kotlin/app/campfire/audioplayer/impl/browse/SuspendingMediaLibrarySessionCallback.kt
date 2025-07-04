@@ -67,6 +67,49 @@ abstract class SuspendingMediaLibrarySessionCallback(
     mediaId: String,
   ): LibraryResult<MediaItem>
 
+  @SuppressLint("UnsafeOptInUsageError")
+  override fun onSetMediaItems(
+    mediaSession: MediaSession,
+    controller: MediaSession.ControllerInfo,
+    mediaItems: List<MediaItem>,
+    startIndex: Int,
+    startPositionMs: Long,
+  ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+    return serviceScope.future {
+      onSetMediaItemsInternal(
+        mediaSession = mediaSession,
+        controller = controller,
+        mediaItems = mediaItems,
+        startIndex = startIndex,
+        startPositionMs = startPositionMs,
+      )
+    }
+  }
+
+  /**
+   * default implementation of onAddMediaItems that sets the URI from the requestMetadata
+   * if present.
+   */
+  @SuppressLint("UnsafeOptInUsageError")
+  protected open suspend fun onSetMediaItemsInternal(
+    mediaSession: MediaSession,
+    controller: MediaSession.ControllerInfo,
+    mediaItems: List<MediaItem>,
+    startIndex: Int,
+    startPositionMs: Long,
+  ): MediaSession.MediaItemsWithStartPosition {
+    val items = mediaItems.map {
+      if (it.requestMetadata.mediaUri != null) {
+        it.buildUpon()
+          .setUri(it.requestMetadata.mediaUri)
+          .build()
+      } else {
+        it
+      }
+    }.toMutableList()
+    return MediaSession.MediaItemsWithStartPosition(items, startIndex, startPositionMs)
+  }
+
   override fun onAddMediaItems(
     mediaSession: MediaSession,
     controller: MediaSession.ControllerInfo,
@@ -124,4 +167,44 @@ abstract class SuspendingMediaLibrarySessionCallback(
     pageSize: Int,
     params: MediaLibraryService.LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>>
+
+  override fun onGetSearchResult(
+    session: MediaLibrarySession,
+    browser: MediaSession.ControllerInfo,
+    query: String,
+    page: Int,
+    pageSize: Int,
+    params: MediaLibraryService.LibraryParams?,
+  ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+    return serviceScope.future {
+      onGetSearchResultInternal(session, browser, query, page, pageSize, params)
+    }
+  }
+
+  protected abstract suspend fun onGetSearchResultInternal(
+    session: MediaLibrarySession,
+    browser: MediaSession.ControllerInfo,
+    query: String,
+    page: Int,
+    pageSize: Int,
+    params: MediaLibraryService.LibraryParams?,
+  ): LibraryResult<ImmutableList<MediaItem>>
+
+  override fun onSearch(
+    session: MediaLibrarySession,
+    browser: MediaSession.ControllerInfo,
+    query: String,
+    params: MediaLibraryService.LibraryParams?,
+  ): ListenableFuture<LibraryResult<Void>> {
+    return serviceScope.future {
+      onSearchInternal(session, browser, query, params)
+    }
+  }
+
+  protected abstract suspend fun onSearchInternal(
+    session: MediaLibrarySession,
+    browser: MediaSession.ControllerInfo,
+    query: String,
+    params: MediaLibraryService.LibraryParams?,
+  ): LibraryResult<Void>
 }

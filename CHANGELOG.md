@@ -11,6 +11,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Added
 
+- Android Auto Support
 - Toggle on item detail to switch between time in book, and chapter length
 
 ### Changed

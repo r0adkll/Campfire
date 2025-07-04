@@ -121,7 +121,10 @@ class SqlDelightSessionDataSource(
             "returning it."
         }
         withContext(dispatcherProvider.databaseWrite) {
-          db.sessionQueries.activate(currentUserId, libraryItemId)
+          db.sessionQueries.transaction {
+            db.sessionQueries.deactivateAll(currentUserId)
+            db.sessionQueries.activateOnly(libraryItemId, currentUserId)
+          }
         }
         return hydrateSession(existingSession)
       } else {
@@ -144,6 +147,8 @@ class SqlDelightSessionDataSource(
         id = Uuid.random(),
         userId = currentUserId,
         libraryItemId = libraryItemId,
+        // Important! We deactivate all prior sessions before inserting this,
+        // and this MUST be true for the change to be picked up
         isActive = true,
         playMethod = PlayMethod.DirectPlay,
         mediaPlayer = "campfire",
@@ -156,8 +161,8 @@ class SqlDelightSessionDataSource(
 
       // Insert, replacing any existing session and disable any other active sessions
       db.transaction {
+        db.sessionQueries.deactivateAll(currentUserId)
         db.sessionQueries.insert(dbSession)
-        db.sessionQueries.activate(currentUserId, libraryItemId)
       }
 
       // Hydrate with latest item
