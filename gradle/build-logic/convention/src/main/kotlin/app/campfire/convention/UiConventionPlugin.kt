@@ -52,7 +52,7 @@ class UiConventionPlugin : Plugin<Project> {
     }
 
     // Add DI / Kimchi KSP compilers
-    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForCommon(it) }
-    libs.findLibrary("kimchi-circuit-compiler").ifPresent { addKspDependencyForCommon(it) }
+    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForAllTargets(it) }
+    libs.findLibrary("kimchi-circuit-compiler").ifPresent { addKspDependencyForAllTargets(it) }
   }
 }

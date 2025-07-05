@@ -43,6 +43,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimer
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerStart
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivity
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
+import app.campfire.ui.settings.auto.AndroidAuto
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -66,6 +67,7 @@ class SettingsPresenter(
   private val serverRepository: ServerRepository,
   private val accountManager: AccountManager,
   private val shakeDetector: ShakeDetector,
+  private val androidAuto: AndroidAuto,
 ) : Presenter<SettingsUiState> {
 
   @Composable
@@ -106,6 +108,7 @@ class SettingsPresenter(
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState(false)
+    val isAndroidAutoAvailable = remember { androidAuto.isAvailable() }
 
     return SettingsUiState(
       server = server,
@@ -141,6 +144,7 @@ class SettingsPresenter(
         developerModeEnabled = developerModeEnabled,
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
+        isAndroidAutoAvailable = isAndroidAutoAvailable,
       ),
     ) { event ->
       when (event) {
@@ -205,6 +209,7 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
             settings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
+          is SettingsUiEvent.DeveloperSettingEvent.OpenAndroidAutoSettings -> androidAuto.openSettings()
         }
       }
     }
