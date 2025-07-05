@@ -7,6 +7,7 @@ androidxactivity = "1.10.1"
 androidx-test-ext-junit = "1.2.1"
 androidxsecuritycrypto = "1.1.0-beta01"
 appcompat = "1.7.1"
+appdistribution = "16.0.0-beta15"
 clikt = "5.0.3"
 core-ktx = "1.16.0"
 coroutines = "1.10.2"
@@ -116,6 +117,8 @@ google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref
 google-firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
 google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
 google-firebase-perf = { module = "com.google.firebase:firebase-perf-ktx" }
+google-firebase-appdistribution-api = { module = "com.google.firebase:firebase-appdistribution-api-ktx", version.ref = "appdistribution" }
+google-firebase-appdistribution = { module = "com.google.firebase:firebase-appdistribution", version.ref = "appdistribution" }
 
 # Settings
 multiplatformsettings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformsettings" }

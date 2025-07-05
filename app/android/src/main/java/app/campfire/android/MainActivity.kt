@@ -20,6 +20,8 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
+import com.google.firebase.appdistribution.FirebaseAppDistribution
+import com.google.firebase.appdistribution.FirebaseAppDistributionException
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
@@ -61,6 +63,30 @@ class MainActivity : ComponentActivity() {
     super.onStart()
     bark { "MainActivity::onStart()" }
     component.mediaControllerConnector.connect()
+  }
+
+  override fun onResume() {
+    super.onResume()
+
+    val firebaseAppDistribution = FirebaseAppDistribution.getInstance()
+    firebaseAppDistribution.updateIfNewReleaseAvailable()
+      .addOnProgressListener { updateProgress ->
+        // (Optional) Implement custom progress updates in addition to
+        // automatic NotificationManager updates.
+      }
+      .addOnFailureListener { e ->
+        // (Optional) Handle errors.
+        if (e is FirebaseAppDistributionException) {
+          when (e.errorCode) {
+            FirebaseAppDistributionException.Status.NOT_IMPLEMENTED -> {
+              // SDK did nothing. This is expected when building for Play.
+            }
+            else -> {
+              bark { "Error updating to a new release: ${e.message}" }
+            }
+          }
+        }
+      }
   }
 
   override fun onStop() {

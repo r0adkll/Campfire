@@ -118,6 +118,7 @@ dependencies {
   implementation(platform(libs.google.firebase.bom))
   implementation(libs.google.firebase.analytics)
   implementation(libs.google.firebase.crashlytics)
+  implementation(libs.google.firebase.appdistribution.api)
 
   implementation(projects.app.common)
   implementation(projects.common.screens)
@@ -134,6 +135,8 @@ dependencies {
   baselineProfile(projects.app.baselineprofile)
 
   debugImplementation(projects.infra.debug)
+
+  "betaImplementation"(libs.google.firebase.appdistribution)
 
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
