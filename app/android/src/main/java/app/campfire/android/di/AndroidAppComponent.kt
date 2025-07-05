@@ -26,7 +26,11 @@ abstract class AndroidAppComponent(
     return ApplicationInfo(
       packageName = application.packageName,
       debugBuild = BuildConfig.DEBUG,
-      flavor = Flavor.Standard,
+      flavor = when (BuildConfig.FLAVOR) {
+        "standard" -> Flavor.Standard
+        "beta" -> Flavor.Beta
+        else -> Flavor.Alpha
+      },
       versionName = packageInfo.versionName ?: "unknown",
       versionCode = packageInfo.versionCode,
       osName = "Android",

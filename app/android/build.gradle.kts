@@ -30,7 +30,7 @@ android {
   defaultConfig {
     applicationId = "app.campfire.android"
     versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 999999999
-    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString() ?: "1.0.0"
+    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString() ?: "0.0.1"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -55,6 +55,18 @@ android {
       // Exclude Kotlin unused files
       "META-INF/**/previous-compilation-data.bin",
     )
+  }
+
+  flavorDimensions += "default"
+
+  productFlavors {
+    create("standard")
+    create("beta") {
+      firebaseAppDistribution {
+        artifactType = "APK"
+        groups = "internal,external-public"
+      }
+    }
   }
 
   signingConfigs {
@@ -89,11 +101,6 @@ android {
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "proguard-rules.pro",
       )
-
-      firebaseAppDistribution {
-        artifactType = "APK"
-        groups = "internal,external-public"
-      }
     }
 
     create("nonMinifiedRelease") {

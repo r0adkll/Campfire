@@ -38,8 +38,8 @@ jobs:
 
       # TODO: Run baseline profile generator
 
-      - name: Assemble Release APK
-        run: ./gradlew :app:android:assembleRelease :app:android:bundleRelease
+      - name: Assemble Beta Release APK
+        run: ./gradlew :app:android:assembleBetaRelease
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
@@ -76,16 +76,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: app/android/build/outputs/apk/release/android-release.apk
-          asset_name: campfire-release.apk
+          asset_path: app/android/build/outputs/apk/beta/release/android-beta-release.apk
+          asset_name: campfire-beta-release.apk
           asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload AAB to release
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: app/android/build/outputs/bundle/release/android-release.aab
-          asset_name: campfire-release.aab
-          asset_content_type: application/octet-stream
