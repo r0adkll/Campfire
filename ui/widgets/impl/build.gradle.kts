@@ -33,6 +33,8 @@ kotlin {
 
     androidMain {
       dependencies {
+        implementation(projects.features.home.api)
+
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.glance.appwidget)
         implementation(libs.androidx.glance.material3)

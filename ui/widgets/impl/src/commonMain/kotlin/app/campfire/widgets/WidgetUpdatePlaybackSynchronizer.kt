@@ -6,6 +6,7 @@ import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import kotlin.time.Duration
 import me.tatarka.inject.annotations.Inject
 
 @ContributesMultibinding(AppScope::class)
@@ -31,6 +32,20 @@ class WidgetUpdatePlaybackSynchronizer(
   override suspend fun onMetadataChanged(
     libraryItemId: LibraryItemId,
     metadata: Metadata,
+  ) {
+    widgetUpdater.updatePlayerWidget()
+  }
+
+  override suspend fun onCurrentTimeChanged(
+    libraryItemId: LibraryItemId,
+    currentTime: Duration,
+  ) {
+    widgetUpdater.updatePlayerWidget()
+  }
+
+  override suspend fun onCurrentDurationChanged(
+    libraryItemId: LibraryItemId,
+    currentDuration: Duration,
   ) {
     widgetUpdater.updatePlayerWidget()
   }

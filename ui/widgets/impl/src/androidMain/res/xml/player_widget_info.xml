@@ -9,7 +9,7 @@
   android:minHeight="40dp"
   android:minResizeWidth="40dp"
   android:updatePeriodMillis="300000"
-  android:resizeMode="horizontal"
+  android:resizeMode="horizontal|vertical"
   android:widgetCategory="home_screen"
   android:description="@string/player_widget_description"
   tools:targetApi="31">
