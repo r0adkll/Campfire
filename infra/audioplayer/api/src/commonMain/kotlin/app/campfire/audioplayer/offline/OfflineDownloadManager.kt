@@ -14,6 +14,13 @@ interface OfflineDownloadManager {
   fun observeForItem(item: LibraryItem): Flow<OfflineDownload>
 
   /**
+   * Get the current download status for a given item
+   * @param item The [LibraryItem] to get the download status for.
+   * @return The [OfflineDownload] for the given item, or null if there is no download.
+   */
+  fun getForItem(item: LibraryItem): OfflineDownload
+
+  /**
    * Observe the current download status for a list of items
    * @param items The list of [LibraryItem]s to observe.
    * @return A [Flow] of a map of [LibraryItemId] to [OfflineDownload] for the given items.

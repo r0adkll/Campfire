@@ -1,5 +1,6 @@
 package app.campfire.sessions
 
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
@@ -25,6 +26,7 @@ class DefaultSessionsRepository(
   private val fatherTime: FatherTime,
   private val libraryItemRepository: LibraryItemRepository,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val offlineDownloadManager: OfflineDownloadManager,
   private val dataSource: SessionDataSource,
 ) : SessionsRepository {
 
@@ -44,10 +46,15 @@ class DefaultSessionsRepository(
     val startedAt = fatherTime.now()
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     val progress = mediaProgressRepository.getProgress(libraryItemId)
+    val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
 
     return dataSource.createOrStartSession(
       libraryItemId = libraryItemId,
-      playMethod = PlayMethod.DirectPlay,
+      playMethod = if (offlineDownload.isCompleted) {
+        PlayMethod.Local
+      } else {
+        PlayMethod.DirectPlay
+      },
       mediaPlayer = "campfire",
       duration = libraryItem.media.durationInMillis.milliseconds,
       currentTime = progress?.currentTime?.seconds ?: 0.seconds,

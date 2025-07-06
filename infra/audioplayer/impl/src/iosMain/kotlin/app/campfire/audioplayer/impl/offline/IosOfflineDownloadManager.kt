@@ -20,6 +20,10 @@ class IosOfflineDownloadManager : OfflineDownloadManager {
     return emptyFlow()
   }
 
+  override fun getForItem(item: LibraryItem): OfflineDownload {
+    return OfflineDownload(item)
+  }
+
   override fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>> {
     return emptyFlow()
   }

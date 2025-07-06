@@ -46,6 +46,10 @@ class AndroidOfflineDownloadManager(
       }
   }
 
+  override fun getForItem(item: LibraryItem): OfflineDownload {
+    return downloadTracker.getOfflineDownload(item)
+  }
+
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   override fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>> {
     return downloadTracker.observe()
