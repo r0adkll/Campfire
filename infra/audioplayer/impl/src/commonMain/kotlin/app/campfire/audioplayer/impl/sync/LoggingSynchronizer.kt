@@ -26,7 +26,7 @@ object LoggingSynchronizer : PlaybackSynchronizer, Cork {
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
-    dbark { "onStateChanged(sessionId=${sessionId}, id=$libraryItemId, state=$state, previousState=$previousState)" }
+    dbark { "onStateChanged(sessionId=$sessionId, id=$libraryItemId, state=$state, previousState=$previousState)" }
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
