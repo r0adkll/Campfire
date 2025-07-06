@@ -38,7 +38,8 @@ import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.widgets.composables.ChapterListContent
-import app.campfire.widgets.composables.PlaybackContent
+import app.campfire.widgets.composables.ConstrainedPlaybackContent
+import app.campfire.widgets.composables.FullPlaybackContent
 import app.campfire.widgets.composables.PlaybackInfo
 import app.campfire.widgets.composables.WidgetHeightClass
 import app.campfire.widgets.composables.WidgetScaffold
@@ -183,15 +184,30 @@ class PlayerWidget : GlanceAppWidget() {
       onClick = onClick,
       modifier = modifier,
       playbackContent = {
-        PlaybackContent(
-          title = title,
-          subtitle = subtitle,
-          playbackState = playbackState,
-          currentTime = currentTime,
-          currentDuration = currentDuration,
-          playbackSpeed = playbackSpeed,
-          widthSizeClass = widgetSizeClass.widthSizeClass,
-        )
+        if (
+          widgetSizeClass.heightSizeClass == WidgetHeightClass.Single ||
+          widgetSizeClass.widthSizeClass != WidgetWidthClass.Expanded
+        ) {
+          FullPlaybackContent(
+            title = title,
+            subtitle = subtitle,
+            playbackState = playbackState,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
+            widthSizeClass = widgetSizeClass.widthSizeClass,
+          )
+        } else {
+          ConstrainedPlaybackContent(
+            title = title,
+            subtitle = subtitle,
+            playbackState = playbackState,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
+            widthSizeClass = widgetSizeClass.widthSizeClass,
+          )
+        }
       },
       content = {
         if (libraryItem != null) {
@@ -230,17 +246,27 @@ class PlayerWidget : GlanceAppWidget() {
       } else {
         ImageProvider(R.drawable.default_background)
       },
-      expandedPlaybackBackgroundColor = null,
-      expandedPlaybackContentColor = GlanceTheme.colors.onSecondary,
       onClick = onClick,
       modifier = modifier,
       playbackContent = {
         if (widgetSizeClass.widthSizeClass == WidgetWidthClass.Expanded) {
-          PlaybackInfo(
+          ConstrainedPlaybackContent(
             title = title,
             subtitle = subtitle,
-            modifier = GlanceModifier.defaultWeight(),
-          )
+            playbackState = AudioPlayer.State.Disabled,
+            currentTime = 0.seconds,
+            currentDuration = 0.seconds,
+            playbackSpeed = 1f,
+            widthSizeClass = widgetSizeClass.widthSizeClass,
+            backgroundColor = null,
+            contentColor = GlanceTheme.colors.onSecondary,
+          ) {
+            PlaybackInfo(
+              title = title,
+              subtitle = subtitle,
+              modifier = GlanceModifier.defaultWeight(),
+            )
+          }
         }
       },
       content = {
