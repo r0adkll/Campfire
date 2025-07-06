@@ -72,6 +72,8 @@ include(
   ":infra:audioplayer:public-ui",
   ":infra:shake",
   ":infra:debug",
+  ":infra:updates:api",
+  ":infra:updates:impl",
 )
 include(
   ":common:screens",

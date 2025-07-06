@@ -9,6 +9,7 @@ kotlin {
         api(projects.common.compose)
         api(projects.data.account.api)
         api(projects.data.account.ui)
+        api(projects.infra.updates.api)
 
         implementation(compose.components.resources)
       }

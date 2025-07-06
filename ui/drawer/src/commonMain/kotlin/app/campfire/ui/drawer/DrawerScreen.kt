@@ -2,6 +2,7 @@ package app.campfire.ui.drawer
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.account.ui.picker.AccountPickerResult
@@ -51,6 +53,7 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.isDebug
+import app.campfire.updates.AppUpdateWidget
 import campfire.ui.drawer.generated.resources.Res
 import campfire.ui.drawer.generated.resources.nav_authors_content_description
 import campfire.ui.drawer.generated.resources.nav_authors_label
@@ -75,6 +78,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun Drawer(
   state: DrawerUiState,
+  appUpdateWidget: AppUpdateWidget,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -128,6 +132,13 @@ fun Drawer(
           ),
       )
     }
+
+    Spacer(Modifier.weight(1f))
+
+    appUpdateWidget.Content(
+      Modifier
+        .fillMaxWidth()
+    )
   }
 }
 

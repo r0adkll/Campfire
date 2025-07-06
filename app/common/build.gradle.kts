@@ -25,6 +25,7 @@ kotlin {
         // Infra Modules
         api(projects.infra.audioplayer.impl)
         api(projects.infra.audioplayer.publicUi)
+        api(projects.infra.updates.impl)
 
         // Feature Modules
         api(projects.features.home.impl)
