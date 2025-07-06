@@ -19,6 +19,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 - When playback speed is not 1x, display the actual speed in the actions bar
 - Dynamic timer icon when timer is enabled in playback UI
 - Time remaining in the playback UI now adjusts based on playback speed
+- Improved the homescreen widget appearance and actions
+- Widget can now expand vertically showing the list of chapters for the current item.
 
 ### Deprecated
 
