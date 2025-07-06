@@ -95,7 +95,7 @@ class AppUpdateWidgetImpl(
           appUpdateSource.signIn()
           invalidator++
         }
-      }
+      },
     ) {
       TitleBar(
         title = "Sign-in required",
@@ -122,7 +122,7 @@ class AppUpdateWidgetImpl(
           appUpdateSource.installUpdate()
           invalidator++
         }
-      }
+      },
     ) {
       TitleBar(
         title = "New version is available!",
@@ -163,12 +163,12 @@ class AppUpdateWidgetImpl(
         .height(48.dp)
         .padding(horizontal = 16.dp),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
       Icon(
         icon,
         contentDescription = null,
-        modifier = Modifier.size(18.dp)
+        modifier = Modifier.size(18.dp),
       )
       Text(
         text = title,
@@ -190,7 +190,7 @@ class AppUpdateWidgetImpl(
         .padding(
           start = 16.dp,
           end = 16.dp,
-        )
+        ),
     )
 
     Spacer(Modifier.height(16.dp))
@@ -201,7 +201,7 @@ class AppUpdateWidgetImpl(
       fontWeight = FontWeight.SemiBold,
       modifier = Modifier
         .align(Alignment.Start)
-        .padding(horizontal = 16.dp)
+        .padding(horizontal = 16.dp),
     )
 
     Spacer(Modifier.height(16.dp))
