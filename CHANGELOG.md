@@ -30,6 +30,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 - HTML is no rendered properly on the item detail page description
 - Fixed sleep timer fading-to-pause when set as "End of Chapter"
+- Fixed how PlayMethod not reporting offline play correctly
 
 ### Other Notes & Contributions
 
