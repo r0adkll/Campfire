@@ -8,6 +8,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
@@ -20,12 +21,13 @@ class CompositePlaybackSynchronizer(
   private val sortedSynchros = synchros.sortedBy { it.rank }
 
   override suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
     sortedSynchros.forEach { s ->
-      s.onStateChanged(libraryItemId, state, previousState)
+      s.onStateChanged(sessionId, libraryItemId, state, previousState)
     }
   }
 

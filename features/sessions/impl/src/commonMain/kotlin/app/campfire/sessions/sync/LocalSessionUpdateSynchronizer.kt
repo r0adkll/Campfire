@@ -4,6 +4,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
@@ -13,6 +14,7 @@ import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.uuid.Uuid
 import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
@@ -22,6 +24,7 @@ interface LocalSessionComponent {
 }
 
 @Inject
+@SingleIn(AppScope::class)
 @ContributesMultibinding(AppScope::class)
 class LocalSessionUpdateSynchronizer(
   private val fatherTime: FatherTime,
@@ -36,21 +39,22 @@ class LocalSessionUpdateSynchronizer(
   private var lastPlayedTime = mutableMapOf<String, Long>()
 
   override suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
     if (state == AudioPlayer.State.Playing) {
-      lastPlayedTime[libraryItemId] = fatherTime.nowInEpochMillis()
+      lastPlayedTime[sessionId.toHexString()] = fatherTime.nowInEpochMillis()
     } else if (
       state == AudioPlayer.State.Paused ||
       state == AudioPlayer.State.Disabled ||
       state == AudioPlayer.State.Finished
     ) {
-      val lastPlayed = lastPlayedTime[libraryItemId]
+      val lastPlayed = lastPlayedTime[sessionId.toHexString()]
       if (lastPlayed != null) {
         val elapsed = (fatherTime.nowInEpochMillis() - lastPlayed).milliseconds
-        ibark { "Adding $elapsed time listening to $libraryItemId" }
+        ibark { "Adding $elapsed time listening to $libraryItemId for ${sessionId.toHexDashString()})" }
         component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
         component.remoteSessionsUpdater.update(skipInterval = true)
       }

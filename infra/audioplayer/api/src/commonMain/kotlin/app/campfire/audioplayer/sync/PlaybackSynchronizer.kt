@@ -5,11 +5,13 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 
 interface PlaybackSynchronizer {
   val rank: Int get() = RANK_DEFAULT
 
   suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,

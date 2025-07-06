@@ -7,6 +7,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 import me.tatarka.inject.annotations.Inject
 
 @ContributesMultibinding(AppScope::class)
@@ -17,6 +18,7 @@ class WidgetUpdatePlaybackSynchronizer(
 ) : PlaybackSynchronizer {
 
   override suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,

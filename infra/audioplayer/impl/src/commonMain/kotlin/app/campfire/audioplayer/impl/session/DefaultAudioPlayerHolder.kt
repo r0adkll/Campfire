@@ -6,7 +6,10 @@ import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,8 +49,14 @@ class DefaultAudioPlayerHolder(
   private fun registerSynchronizer(player: AudioPlayer) {
     synchronizerJobs += player.state
       .scan(player.state.value) { lastState, state ->
-        val libraryItemId = player.preparedSession?.libraryItem?.id ?: return@scan state
-        synchronizer.onStateChanged(libraryItemId, state, lastState)
+        val session = player.preparedSession ?: return@scan state
+        val libraryItemId = session.libraryItem.id
+        try {
+          synchronizer.onStateChanged(session.id, libraryItemId, state, lastState)
+        } catch (e: Exception) {
+          if (e is CancellationException) throw e
+          bark(LogPriority.ERROR, throwable = e) { "Unable to update with synchronizer" }
+        }
         state
       }
       .launchIn(scope)

@@ -8,6 +8,7 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 
 @ContributesMultibinding(AppScope::class, boundType = PlaybackSynchronizer::class)
 object LoggingSynchronizer : PlaybackSynchronizer, Cork {
@@ -20,11 +21,12 @@ object LoggingSynchronizer : PlaybackSynchronizer, Cork {
   override val enabled: Boolean = false
 
   override suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
-    dbark { "onStateChanged(id=$libraryItemId, state=$state, previousState=$previousState)" }
+    dbark { "onStateChanged(sessionId=${sessionId}, id=$libraryItemId, state=$state, previousState=$previousState)" }
   }
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {

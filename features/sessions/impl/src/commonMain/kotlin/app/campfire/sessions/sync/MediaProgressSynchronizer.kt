@@ -14,6 +14,7 @@ import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.time.Duration
+import kotlin.uuid.Uuid
 import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
@@ -39,6 +40,7 @@ class MediaProgressSynchronizer(
   }
 
   override suspend fun onStateChanged(
+    sessionId: Uuid,
     libraryItemId: LibraryItemId,
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,

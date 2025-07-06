@@ -150,8 +150,8 @@ class SqlDelightSessionDataSource(
         // Important! We deactivate all prior sessions before inserting this,
         // and this MUST be true for the change to be picked up
         isActive = true,
-        playMethod = PlayMethod.DirectPlay,
-        mediaPlayer = "campfire",
+        playMethod = playMethod,
+        mediaPlayer = mediaPlayer,
         timeListening = 0.seconds,
         startTime = newStartTime,
         currentTime = newCurrentTime,
