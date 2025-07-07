@@ -24,7 +24,7 @@ internal fun ColumnScope.ChapterListContent(
       .defaultWeight(),
   ) {
     items(
-      items = item.media.chapters,
+      items = item.media.chapters.take(13),
       itemId = { it.title.hashCode().toLong() },
     ) { chapter ->
       ChapterListItem(

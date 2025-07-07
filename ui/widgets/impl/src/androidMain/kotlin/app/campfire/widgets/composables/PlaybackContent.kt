@@ -186,7 +186,7 @@ internal fun RowScope.PlaybackContent(
         if (currentDuration > Duration.ZERO) {
           val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
           Text(
-            text = currentRemainingDuration.readoutFormat() + " remaining",
+            text = currentRemainingDuration.readoutFormat(largestOnly = true) + " remaining",
             style = TextStyle(
               color = LocalContentColorProvider.current,
               fontSize = 11.sp,
@@ -220,7 +220,7 @@ internal fun RowScope.PlaybackContent(
 
       val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
       Text(
-        text = currentRemainingDuration.readoutFormat() + " remaining",
+        text = currentRemainingDuration.readoutFormat(largestOnly = true) + " remaining",
         style = TextStyle(
           color = LocalContentColorProvider.current,
           fontSize = 11.sp,

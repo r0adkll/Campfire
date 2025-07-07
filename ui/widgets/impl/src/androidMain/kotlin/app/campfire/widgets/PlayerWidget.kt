@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -33,6 +33,7 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
@@ -63,12 +64,17 @@ interface PlayerWidgetComponent {
 
 class PlayerWidget : GlanceAppWidget() {
 
+  companion object {
+    val KEY_CURRENT_TIME get() = floatPreferencesKey("current-time")
+    val KEY_CURRENT_DURATION get() = floatPreferencesKey("current-duration")
+    val KEY_PLAYBACK_SPEED get() = floatPreferencesKey("playback-speed")
+  }
+
   override val sizeMode: SizeMode = SizeMode.Exact
   override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
     provideContent {
-      val now = currentState<Long>(longPreferencesKey("now"))
       GlanceTheme(
         colors = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
           GlanceTheme.colors
@@ -119,31 +125,23 @@ class PlayerWidget : GlanceAppWidget() {
         audioPlayer?.state ?: MutableStateFlow(AudioPlayer.State.Disabled)
       }.collectAsState()
 
-      val currentTime = remember(audioPlayer) {
-        audioPlayer?.currentTime ?: emptyFlow()
-      }.collectAsState(0.seconds)
-
-      val currentDuration = remember(audioPlayer) {
-        audioPlayer?.currentDuration ?: emptyFlow()
-      }.collectAsState(0.seconds)
-
-      val playbackSpeed = remember(audioPlayer) {
-        audioPlayer?.playbackSpeed ?: emptyFlow()
-      }.collectAsState(1f)
-
       val showTimeInBook = remember(component) {
         component?.settings?.observeShowTimeInBook() ?: emptyFlow()
       }.collectAsState(true)
+
+      val currentTime = currentState(KEY_CURRENT_TIME)?.seconds ?: Duration.ZERO
+      val currentDuration = currentState(KEY_CURRENT_DURATION)?.seconds ?: Duration.ZERO
+      val playbackSpeed = currentState(KEY_PLAYBACK_SPEED) ?: 1f
 
       ActiveWidgetContent(
         title = currentMetadata.value.title ?: currentSession!!.chapter.title,
         subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
         artworkUrl = currentMetadata.value.artworkUri ?: currentSession!!.libraryItem.media.coverImageUrl,
         playbackState = state.value,
-        currentTime = currentTime.value,
-        currentDuration = currentDuration.value,
-        currentPlayingChapterId = currentSession?.chapter?.id ?: -1,
-        playbackSpeed = playbackSpeed.value,
+        currentTime = currentTime,
+        currentDuration = currentDuration,
+        currentPlayingChapterId = -1,
+        playbackSpeed = playbackSpeed,
         libraryItem = currentSession?.libraryItem,
         showTimeInBook = showTimeInBook.value,
         onClick = mainActivityAction,
