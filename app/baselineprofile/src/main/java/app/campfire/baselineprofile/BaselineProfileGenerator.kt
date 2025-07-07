@@ -54,10 +54,15 @@ class BaselineProfileGenerator {
       uiAutomator {
         startApp(packageName = packageName)
 
-        // Login, assuming default credentials
-        onElement { textAsString() == "Add a campsite" }.click()
-        waitForStableInActiveWindow()
-        onElement { textAsString() == "Add campsite" }.click()
+        // Log the user in, if the are not already
+        onElementOrNull { textAsString() == "Add a campsite" }?.run {
+          click()
+          waitForStableInActiveWindow()
+          onElement { textAsString() == "Add campsite" }.click()
+        }
+
+        // Find and click an item out of the home feed to open the detail page
+        onElement { contentDescription == "HomeLibraryItem" }.click()
       }
     }
   }

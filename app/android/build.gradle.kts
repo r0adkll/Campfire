@@ -109,6 +109,12 @@ android {
   }
 }
 
+baselineProfile {
+  dexLayoutOptimization = true
+  saveInSrc = true
+  mergeIntoMain = true
+}
+
 aboutLibraries {
   android.registerAndroidTasks = false
   export.prettyPrint = true

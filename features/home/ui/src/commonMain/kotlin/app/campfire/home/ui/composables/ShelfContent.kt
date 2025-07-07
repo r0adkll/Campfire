@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ItemCollectionCard
@@ -46,7 +48,10 @@ fun ShelfContent(
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)
-            .animateItem(),
+            .animateItem()
+            .semantics {
+              contentDescription = "HomeLibraryItem"
+            },
         )
 
         is Author -> AuthorCard(

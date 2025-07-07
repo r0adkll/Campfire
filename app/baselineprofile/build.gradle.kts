@@ -13,6 +13,12 @@ android {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
+  flavorDimensions += "default"
+  productFlavors {
+    create("standard") { dimension = "default" }
+    create("beta") { dimension = "default" }
+  }
+
   targetProjectPath = ":app:android"
 
   // This code creates the gradle managed device used to generate baseline profiles.
@@ -33,6 +39,8 @@ android {
 baselineProfile {
   managedDevices += "pixel6Api34"
   useConnectedDevices = false
+  // Uncomment this to enable the emulator display for testing
+  //enableEmulatorDisplay = true
 }
 
 dependencies {
