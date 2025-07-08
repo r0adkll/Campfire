@@ -40,7 +40,7 @@ baselineProfile {
   managedDevices += "pixel6Api34"
   useConnectedDevices = false
   // Uncomment this to enable the emulator display for testing
-  //enableEmulatorDisplay = true
+  // enableEmulatorDisplay = true
 }
 
 dependencies {
