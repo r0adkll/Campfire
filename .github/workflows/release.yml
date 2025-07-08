@@ -36,7 +36,13 @@ jobs:
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
           echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
-      # TODO: Run baseline profile generator
+      - name: Generate Baseline Profiles
+        run: |
+          ./gradlew generateBaselineProfile \
+            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
+            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
+            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
+            --no-configuration-cache
 
       - name: Assemble Beta Release APK
         run: ./gradlew :app:android:assembleBetaRelease
