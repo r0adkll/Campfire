@@ -11,7 +11,9 @@ class CampfireApplication : Application() {
 
   override fun onCreate() {
     super.onCreate()
-    Heartwood.grow(AndroidBark())
+    if (BuildConfig.DEBUG) {
+      Heartwood.grow(AndroidBark())
+    }
 
     val component = AndroidAppComponent.createAndroidAppComponent(this).also {
       ComponentHolder.components += it

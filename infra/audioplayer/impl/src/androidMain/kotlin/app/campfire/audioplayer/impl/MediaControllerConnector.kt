@@ -9,6 +9,8 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.CancellationException
+import java.util.concurrent.ExecutionException
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
 
@@ -34,8 +36,16 @@ class MediaControllerConnector(private val application: Application) {
     controllerFuture = MediaController.Builder(application, sessionToken).buildAsync()
     controllerFuture!!.addListener(
       {
-        mediaControllerFlow.value = controllerFuture!!.get().also {
-          ibark { "<-- Acquired MediaController ($it)" }
+        try {
+          mediaControllerFlow.value = controllerFuture!!.get().also {
+            ibark { "<-- Acquired MediaController ($it)" }
+          }
+        } catch (e: CancellationException) {
+          ebark(throwable = e) { "MediaController connection was cancelled" }
+        } catch (e: ExecutionException) {
+          ebark(throwable = e) { "MediaController connection threw an exception" }
+        } catch (e: InterruptedException) {
+          ebark(throwable = e) { "MediaController connection was interrupted" }
         }
       },
       ContextCompat.getMainExecutor(application),
