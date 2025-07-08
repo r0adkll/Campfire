@@ -5,7 +5,11 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.LogPriority.*
+import app.campfire.core.logging.LogPriority.DEBUG
+import app.campfire.core.logging.LogPriority.ERROR
+import app.campfire.core.logging.LogPriority.INFO
+import app.campfire.core.logging.LogPriority.VERBOSE
+import app.campfire.core.logging.LogPriority.WARN
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import me.tatarka.inject.annotations.Inject
@@ -48,12 +52,11 @@ object FirebaseBark : Heartwood.Bark {
             INFO -> "I: "
             WARN -> "W: "
             ERROR -> "E: "
-          }
+          },
         )
 
         append(message)
-      }
+      },
     )
   }
-
 }
