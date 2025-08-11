@@ -16,7 +16,7 @@ jobs:
     container:
       image: docker://ghcr.io/r0adkll/danger-kotlin:2.0.8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run Danger
         run: danger-kotlin ci --failOnErrors --no-publish-check
         env:
@@ -27,7 +27,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: echo "ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE=$(( $GITHUB_RUN_NUMBER + 10000 ))" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
@@ -130,7 +130,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
@@ -177,7 +177,7 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
