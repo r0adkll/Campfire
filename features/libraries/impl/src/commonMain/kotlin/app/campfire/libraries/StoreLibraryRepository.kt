@@ -63,10 +63,10 @@ class StoreLibraryRepository(
             .asFlow()
             .mapToList(dispatcherProvider.databaseRead)
         },
-        writer = { _, data ->
+        writer = { _, page ->
           withContext(dispatcherProvider.databaseWrite) {
             db.transaction {
-              data.forEach { item ->
+              page.data.forEach { item ->
                 // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
 //                libraryItemDao.insert(
 //                  item = item,

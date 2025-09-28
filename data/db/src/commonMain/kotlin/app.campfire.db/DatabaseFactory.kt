@@ -1,6 +1,7 @@
 package app.campfire.db
 
 import app.campfire.CampfireDatabase
+import app.campfire.core.di.AppScope
 import app.campfire.data.Authors
 import app.campfire.data.BookmarkFailedCreate
 import app.campfire.data.BookmarkFailedDelete
@@ -21,12 +22,34 @@ import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
 import app.cash.sqldelight.db.SqlDriver
+import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
+@ContributesBinding(AppScope::class)
 @Inject
 class DatabaseFactory(
   private val driver: SqlDriver,
-) {
+) : DatabaseAdapters {
+
+  override val libraryItemAdapter: LibraryItem.Adapter
+    get() = LibraryItem.Adapter(
+      mediaTypeAdapter = EnumColumnAdapter(),
+      numFilesAdapter = IntColumnAdapter,
+    )
+
+  override val mediaAdapter: Media.Adapter
+    get() = Media.Adapter(
+      tagsAdapter = StringListAdapter,
+      numTracksAdapter = IntColumnAdapter,
+      numChaptersAdapter = IntColumnAdapter,
+      numAudioFilesAdapter = IntColumnAdapter,
+      numMissingPartsAdapter = IntColumnAdapter,
+      numInvalidAudioFilesAdapter = IntColumnAdapter,
+      propertySizeAdapter = IntColumnAdapter,
+      metadata_genresAdapter = StringListAdapter,
+      metadata_series_sequenceAdapter = IntColumnAdapter,
+    )
+
   fun build(): CampfireDatabase = CampfireDatabase(
     driver = driver,
     serverAdapter = Server.Adapter(
@@ -51,21 +74,8 @@ class DatabaseFactory(
       displayOrderAdapter = IntColumnAdapter,
       coverAspectRatioAdapter = IntColumnAdapter,
     ),
-    libraryItemAdapter = LibraryItem.Adapter(
-      mediaTypeAdapter = EnumColumnAdapter(),
-      numFilesAdapter = IntColumnAdapter,
-    ),
-    mediaAdapter = Media.Adapter(
-      tagsAdapter = StringListAdapter,
-      numTracksAdapter = IntColumnAdapter,
-      numChaptersAdapter = IntColumnAdapter,
-      numAudioFilesAdapter = IntColumnAdapter,
-      numMissingPartsAdapter = IntColumnAdapter,
-      numInvalidAudioFilesAdapter = IntColumnAdapter,
-      propertySizeAdapter = IntColumnAdapter,
-      metadata_genresAdapter = StringListAdapter,
-      metadata_series_sequenceAdapter = IntColumnAdapter,
-    ),
+    libraryItemAdapter = libraryItemAdapter,
+    mediaAdapter = mediaAdapter,
     authorsAdapter = Authors.Adapter(
       numBooksAdapter = IntColumnAdapter,
     ),
