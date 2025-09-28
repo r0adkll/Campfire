@@ -68,3 +68,11 @@ WHERE libraryId = ?;
 deleteForId:
 DELETE FROM libraryItem
 WHERE id = ?;
+
+-- Filterable - Count Queries
+
+countForLibrary:
+SELECT count(*) FROM libraryItem
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE libraryItem.libraryId = ?;
+

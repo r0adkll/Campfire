@@ -1,13 +1,16 @@
 package app.campfire.core.settings
 
-enum class SortMode(override val storageKey: String) : EnumSetting {
-  Title("title"),
-  AuthorFL("author-first-last"),
-  AuthorLF("author-last-first"),
-  PublishYear("publish-year"),
-  AddedAt("added-at"),
-  Size("size"),
-  Duration("duration"),
+enum class SortMode(
+  override val storageKey: String,
+  val networkKey: String,
+) : EnumSetting {
+  Title("title", "media.metadata.title"),
+  AuthorFL("author-first-last", "media.metadata.authorName"),
+  AuthorLF("author-last-first", "media.metadata.authorNameLF"),
+  PublishYear("publish-year", "media.metadata.publishedYear"),
+  AddedAt("added-at", "addedAt"),
+  Size("size", "media.size"),
+  Duration("duration", "media.duration"),
   ;
 
   companion object : EnumSettingProvider<SortMode> {

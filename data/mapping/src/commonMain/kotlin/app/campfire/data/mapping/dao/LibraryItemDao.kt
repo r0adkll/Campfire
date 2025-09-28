@@ -201,7 +201,6 @@ class SqlDelightLibraryItemDao(
       }
 
       // 3) Insert relations
-
       item.userMediaProgress?.let { progress ->
         // Only insert the media progress if the one we have locally isn't newer
         val existing = db.mediaProgressQueries.selectForLibraryItem(

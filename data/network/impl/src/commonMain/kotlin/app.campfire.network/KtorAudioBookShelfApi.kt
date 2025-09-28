@@ -29,6 +29,7 @@ import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
+import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
@@ -65,6 +66,7 @@ import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.encodeBase64
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
@@ -121,13 +123,24 @@ class KtorAudioBookShelfApi(
 
   override suspend fun getLibraryItems(
     libraryId: String,
-    filter: String?,
+    filter: LibraryItemFilter?,
+    sortMode: String?,
+    sortDescending: Boolean,
+    page: Int,
+    limit: Int,
   ): Result<List<LibraryItemExpanded>> {
     return trySendRequest<LibraryItemsResponse> {
       hydratedClientRequest({
         appendPathSegments("api", "libraries", libraryId, "items")
         parameters.append("minified", "0")
-        filter?.let { f -> parameters.append("filter", f) }
+        filter?.let { f ->
+          val filterValue = "${f.group}.${f.value.encodeBase64().encodeURLQueryComponent()}"
+          parameters.append("filter", filterValue)
+        }
+        sortMode?.let { parameters.append("sort", it) }
+        if (sortDescending) parameters.append("sort_desc", "1")
+        parameters.append("page", page.toString())
+        parameters.append("limit", limit.toString())
       })
     }.map { it.results }
   }
@@ -138,15 +151,34 @@ class KtorAudioBookShelfApi(
   )
   override suspend fun getLibraryItemsMinified(
     libraryId: String,
-    filter: String?,
-  ): Result<List<LibraryItemMinified<MinifiedBookMetadata>>> {
+    filter: LibraryItemFilter?,
+    sortMode: String?,
+    sortDescending: Boolean,
+    page: Int,
+    limit: Int,
+  ): Result<PagedResponse<LibraryItemMinified<MinifiedBookMetadata>>> {
     return trySendRequest<MinifiedLibraryItemsResponse> {
       hydratedClientRequest({
         appendPathSegments("api", "libraries", libraryId, "items")
         parameters.append("minified", "1")
-        filter?.let { f -> parameters.append("filter", f) }
+        filter?.let { f ->
+          val filterValue = "${f.group}.${f.value.encodeBase64().encodeURLQueryComponent()}"
+          parameters.append("filter", filterValue)
+        }
+        sortMode?.let { parameters.append("sort", it) }
+        if (sortDescending) parameters.append("sort_desc", "1")
+        if (page != INVALID) parameters.append("page", page.toString())
+        if (limit != INVALID) parameters.append("limit", limit.toString())
       })
-    }.map { it.results }
+    }.map {
+      PagedResponse(
+        data = it.results,
+        page = it.page,
+        limit = it.limit,
+        total = it.total,
+        offset = it.offset,
+      )
+    }
   }
 
   override suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded> {
