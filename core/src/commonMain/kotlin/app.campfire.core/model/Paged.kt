@@ -7,7 +7,6 @@ class Paged<Data>(
   val data: List<Data>,
 )
 
-
 inline fun <T, R> Paged<T>.map(transform: (T) -> R): Paged<R> {
   return Paged(
     page = page,
