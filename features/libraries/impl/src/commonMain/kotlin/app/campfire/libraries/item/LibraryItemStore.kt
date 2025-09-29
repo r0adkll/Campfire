@@ -1,4 +1,4 @@
-package app.campfire.libraries.items
+package app.campfire.libraries.item
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider

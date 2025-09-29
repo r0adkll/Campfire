@@ -1,0 +1,178 @@
+import kotlin.Int;
+
+CREATE TABLE filterData (
+  libraryId TEXT NOT NULL PRIMARY KEY,
+  bookCount INTEGER AS Int NOT NULL,
+  authorCount INTEGER AS Int NOT NULL,
+  seriesCount INTEGER AS Int NOT NULL,
+  podcastCount INTEGER AS Int NOT NULL,
+  numIssues INTEGER AS Int NOT NULL,
+  lastUpdated INTEGER NOT NULL
+);
+
+CREATE TABLE filterAuthors (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterGenres (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterTags (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterSeries (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterNarrators (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterLanguages (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterPublishers (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+CREATE TABLE filterPublishedDecades (
+  text TEXT NOT NULL PRIMARY KEY,
+
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES filterData(libraryId) ON DELETE CASCADE
+);
+
+-- Mutations
+
+insertFilterData:
+INSERT OR REPLACE INTO filterData
+VALUES ?;
+
+delete:
+DELETE FROM filterData
+WHERE libraryId = ?;
+
+clearFilteredData {
+  DELETE FROM filterAuthors
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterGenres
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterTags
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterSeries
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterNarrators
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterLanguages
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterPublishers
+  WHERE libraryId = :libraryId;
+
+  DELETE FROM filterPublishedDecades
+  WHERE libraryId = :libraryId;
+
+  -- Hack to until 2.1.1 of sqldelight is released
+  SELECT 0;
+}
+
+insertAuthors:
+INSERT INTO filterAuthors
+VALUES (:id, :name, :libraryId);
+
+insertGenres:
+INSERT INTO filterGenres
+VALUES (:text, :libraryId);
+
+insertTags:
+INSERT INTO filterTags
+VALUES (:text, :libraryId);
+
+insertSeries:
+INSERT INTO filterSeries
+VALUES (:id, :name, :libraryId);
+
+insertNarrators:
+INSERT INTO filterNarrators
+VALUES (:text, :libraryId);
+
+insertLanguages:
+INSERT INTO filterLanguages
+VALUES (:text, :libraryId);
+
+insertPublishers:
+INSERT INTO filterPublishers
+VALUES (:text, :libraryId);
+
+insertPublishedDecades:
+INSERT INTO filterPublishedDecades
+VALUES (:text, :libraryId);
+
+-- Queries
+
+getFilterData:
+SELECT * FROM filterData
+WHERE libraryId = ?;
+
+getFilterAuthors:
+SELECT id, name FROM filterAuthors
+WHERE libraryId = ?;
+
+getFilterGenres:
+SELECT text FROM filterGenres
+WHERE libraryId = ?;
+
+getFilterTags:
+SELECT text FROM filterTags
+WHERE libraryId = ?;
+
+getFilterSeries:
+SELECT id, name FROM filterSeries
+WHERE libraryId = ?;
+
+getFilterNarrators:
+SELECT text FROM filterNarrators
+WHERE libraryId = ?;
+
+getFilterLanguages:
+SELECT text FROM filterLanguages
+WHERE libraryId = ?;
+
+getFilterPublishers:
+SELECT text FROM filterPublishers
+WHERE libraryId = ?;
+
+getFilterPublishedDecades:
+SELECT text FROM filterPublishedDecades
+WHERE libraryId = ?;

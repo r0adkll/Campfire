@@ -1,6 +1,5 @@
 package app.campfire.libraries.api
 
-import app.campfire.core.model.Author
 import app.campfire.core.model.AuthorId
 import app.campfire.core.model.SeriesId
 
@@ -22,14 +21,16 @@ sealed interface LibraryItemFilter {
 
   class Series(
     override val value: SeriesId,
+    val seriesName: String,
   ) : LibraryItemFilter {
     override val group: String = "series"
   }
 
   class Authors(
-    val author: Author,
+    val authorId: AuthorId,
+    val authorName: String,
   ) : LibraryItemFilter {
-    override val value: String = author.id
+    override val value: String = authorId
     override val group: String = "authors"
   }
 

@@ -6,6 +6,7 @@ import app.campfire.data.Authors
 import app.campfire.data.BookmarkFailedCreate
 import app.campfire.data.BookmarkFailedDelete
 import app.campfire.data.Bookmarks
+import app.campfire.data.FilterData
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
 import app.campfire.data.Media
@@ -124,5 +125,18 @@ class DatabaseFactory(
     search_genresAdapter = Search_genres.Adapter(
       genresAdapter = BasicSearchResultListAdapter,
     ),
-  )
+    filterDataAdapter = FilterData.Adapter(
+      bookCountAdapter = IntColumnAdapter,
+      authorCountAdapter = IntColumnAdapter,
+      seriesCountAdapter = IntColumnAdapter,
+      podcastCountAdapter = IntColumnAdapter,
+      numIssuesAdapter = IntColumnAdapter,
+    ),
+  ).also {
+    CampfireDatabase.Schema.migrate(
+      driver = driver,
+      oldVersion = 0,
+      newVersion = CampfireDatabase.Schema.version,
+    )
+  }
 }

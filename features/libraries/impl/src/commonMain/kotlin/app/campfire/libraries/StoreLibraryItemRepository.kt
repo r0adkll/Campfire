@@ -10,7 +10,7 @@ import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MetadataAuthor
 import app.campfire.libraries.api.LibraryItemRepository
-import app.campfire.libraries.items.LibraryItemStore
+import app.campfire.libraries.item.LibraryItemStore
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot

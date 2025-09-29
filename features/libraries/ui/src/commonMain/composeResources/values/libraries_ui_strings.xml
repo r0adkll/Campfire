@@ -47,4 +47,36 @@
   <string name="dialog_download_do_not_show_label">Do not show again</string>
   <string name="dialog_download_action_confirm">Download</string>
   <string name="dialog_download_action_dismiss">Cancel</string>
+
+  <string name="filter_category_genre">Genre</string>
+  <string name="filter_category_tag">Tag</string>
+  <string name="filter_category_series">Series</string>
+  <string name="filter_category_author">Author</string>
+  <string name="filter_category_narrator">Narrator</string>
+  <string name="filter_category_language">Language</string>
+  <string name="filter_category_progress">Progress</string>
+  <string name="filter_category_missing">Missing</string>
+  <string name="filter_category_tracks">Tracks</string>
+
+  <string name="filter_value_progress_finished">Finished</string>
+  <string name="filter_value_progress_not_started">Not Started</string>
+  <string name="filter_value_progress_not_finished">Not Finished</string>
+  <string name="filter_value_progress_in_progress">In Progress</string>
+
+  <string name="filter_value_missing_asin">ASIN</string>
+  <string name="filter_value_missing_isbn">ISBN</string>
+  <string name="filter_value_missing_subtitle">Subtitle</string>
+  <string name="filter_value_missing_authors">Author</string>
+  <string name="filter_value_missing_publishedYear">Publish year</string>
+  <string name="filter_value_missing_series">Series</string>
+  <string name="filter_value_missing_description">Description</string>
+  <string name="filter_value_missing_genres">Genres</string>
+  <string name="filter_value_missing_tags">Tags</string>
+  <string name="filter_value_missing_narrators">Narrator</string>
+  <string name="filter_value_missing_publisher">Publisher</string>
+  <string name="filter_value_missing_language">Language</string>
+
+  <string name="filter_value_tracks_single">Single-track</string>
+  <string name="filter_value_tracks_multi">Multi-track</string>
+
 </resources>

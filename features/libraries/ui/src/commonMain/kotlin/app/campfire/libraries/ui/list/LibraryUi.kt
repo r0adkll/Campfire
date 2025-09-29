@@ -51,8 +51,10 @@ import app.campfire.core.offline.OfflineStatus
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
-import app.campfire.libraries.ui.sort.SortModeResult
-import app.campfire.libraries.ui.sort.showSortModeBottomSheet
+import app.campfire.libraries.ui.list.sheets.filters.LibraryItemFilterResult
+import app.campfire.libraries.ui.list.sheets.filters.showItemFilterOverlay
+import app.campfire.libraries.ui.list.sheets.sort.SortModeResult
+import app.campfire.libraries.ui.list.sheets.sort.showSortModeBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
@@ -104,7 +106,17 @@ fun LibraryUi(
         onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
         itemDisplayState = state.itemDisplayState,
         onDisplayStateClick = { state.eventSink(LibraryUiEvent.ToggleItemDisplayState) },
-        onFilterClick = { state.eventSink(LibraryUiEvent.FilterClick) },
+        onFilterClick = {
+          coroutineScope.launch {
+            val result = overlayHost.showItemFilterOverlay(
+              filter = state.filter,
+            )
+
+            if (result is LibraryItemFilterResult.Selected) {
+              state.eventSink(LibraryUiEvent.ItemFilterSelected(result.filter))
+            }
+          }
+        },
         sortMode = state.sort.mode,
         sortDirection = state.sort.direction,
         onSortClick = {

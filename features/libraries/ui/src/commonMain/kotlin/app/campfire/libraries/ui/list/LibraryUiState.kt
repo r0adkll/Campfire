@@ -8,6 +8,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
+import app.campfire.libraries.api.LibraryItemFilter
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
@@ -15,6 +16,7 @@ data class LibraryUiState(
   val contentState: LoadState<out List<LibraryItem>>,
   val itemDisplayState: ItemDisplayState,
   val sort: LibrarySort,
+  val filter: LibraryItemFilter?,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (LibraryUiEvent) -> Unit,
 ) : CircuitUiState
@@ -27,7 +29,7 @@ data class LibrarySort(
 
 sealed interface LibraryUiEvent : CircuitUiEvent {
   data object ToggleItemDisplayState : LibraryUiEvent
-  data object FilterClick : LibraryUiEvent
   data class SortModeSelected(val mode: SortMode) : LibraryUiEvent
+  data class ItemFilterSelected(val filter: LibraryItemFilter?) : LibraryUiEvent
   data class ItemClick(val libraryItem: LibraryItem) : LibraryUiEvent
 }

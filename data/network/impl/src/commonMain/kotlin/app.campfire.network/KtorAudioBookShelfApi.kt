@@ -27,6 +27,7 @@ import app.campfire.network.envelopes.UpdateCollectionRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
+import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemFilter
@@ -392,6 +393,12 @@ class KtorAudioBookShelfApi(
       ?: throw IllegalStateException("You must be logged in to perform this request")
     return trySendRequest {
       hydratedClientRequest("api/users/$currentUserId/listening-stats")
+    }
+  }
+
+  override suspend fun getFilterData(libraryId: String): Result<FilterData> {
+    return trySendRequest {
+      hydratedClientRequest("api/libraries/$libraryId/filterdata")
     }
   }
 

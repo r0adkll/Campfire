@@ -6,6 +6,7 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
+import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemFilter
@@ -239,6 +240,11 @@ interface AudioBookShelfApi {
    * This endpoint retrieves a user's listening statistics.
    */
   suspend fun getListeningStats(): Result<ListeningStats>
+
+  /**
+   * Get all the data that the user can filter the list of library items with
+   */
+  suspend fun getFilterData(libraryId: String): Result<FilterData>
 }
 
 const val INVALID = -1

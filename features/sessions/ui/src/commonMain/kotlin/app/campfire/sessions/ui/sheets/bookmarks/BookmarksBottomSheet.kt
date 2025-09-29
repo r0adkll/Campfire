@@ -62,6 +62,7 @@ import app.campfire.common.compose.icons.rounded.Bookmark
 import app.campfire.common.compose.icons.rounded.BookmarkStar
 import app.campfire.common.compose.widgets.FilledTonalIconButton
 import app.campfire.common.compose.widgets.SizedIcon
+import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.common.compose.widgets.circularReveal
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onError
@@ -120,10 +121,7 @@ suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): 
     BottomSheetOverlay<LibraryItemId, BookmarkResult>(
       model = libraryItemId,
       onDismiss = { BookmarkResult.None },
-      sheetShape = RoundedCornerShape(
-        topStart = 32.dp,
-        topEnd = 32.dp,
-      ),
+      sheetShape = bottomSheetShape,
       skipPartiallyExpandedState = true,
     ) { id, overlayNavigator ->
       SessionSheetLayout(

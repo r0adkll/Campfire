@@ -10,15 +10,16 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.serverUrl
 import app.campfire.core.session.userId
+import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortMode
 import app.campfire.data.Library as DbLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
-import app.campfire.data.mapping.model.LibraryItemWithMedia
-import app.campfire.data.mapping.model.mapToLibraryItem
+import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.libraries.items.LibraryItemsStore
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
@@ -49,53 +50,13 @@ class StoreLibraryRepository(
   private val db: CampfireDatabase,
   private val userRepository: UserRepository,
   private val tokenHydrator: TokenHydrator,
+  private val libraryItemsStoreFactory: LibraryItemsStore.Factory,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
 
-  private val libraryItemStore = StoreBuilder
-    .from(
-      fetcher = Fetcher.ofResult { libraryId: LibraryId ->
-        api.getLibraryItemsMinified(libraryId).asFetcherResult()
-      },
-      sourceOfTruth = SourceOfTruth.of(
-        reader = { libraryId: LibraryId ->
-          db.libraryItemsQueries.selectForLibrary(libraryId, ::mapToLibraryItem)
-            .asFlow()
-            .mapToList(dispatcherProvider.databaseRead)
-        },
-        writer = { _, page ->
-          withContext(dispatcherProvider.databaseWrite) {
-            db.transaction {
-              page.data.forEach { item ->
-                // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
-//                libraryItemDao.insert(
-//                  item = item,
-//                  asTransaction = false,
-//                )
-
-                val libraryItem = item.asDbModel(userSession.serverUrl!!)
-                val media = item.media.asDbModel(item.id)
-
-                db.libraryItemsQueries.insertOrIgnore(libraryItem)
-                db.mediaQueries.insertOrIgnore(media)
-              }
-            }
-          }
-        },
-        delete = { libraryId: LibraryId ->
-          withContext(dispatcherProvider.databaseWrite) {
-            db.libraryItemsQueries.deleteForLibrary(libraryId)
-          }
-        },
-      ),
-    )
-    .cachePolicy(
-      MemoryPolicy.builder<LibraryId, List<LibraryItemWithMedia>>()
-        .setMaxSize(10)
-        .setExpireAfterAccess(15.minutes)
-        .build(),
-    )
-    .build()
+  private val libraryItemStore by lazy {
+    libraryItemsStoreFactory.create()
+  }
 
   data class SingleLibraryRequest(val userId: UserId, val libraryId: LibraryId)
 
@@ -179,11 +140,25 @@ class StoreLibraryRepository(
       }
   }
 
-  override fun observeLibraryItems(): Flow<List<LibraryItem>> {
+  override fun observeLibraryItems(
+    filter: LibraryItemFilter?,
+    sortMode: SortMode,
+    sortDirection: SortDirection,
+  ): Flow<List<LibraryItem>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         libraryItemStore
-          .stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+          .stream(
+            StoreReadRequest.cached(
+              LibraryItemsStore.Query(
+                libraryId = user.selectedLibraryId,
+                filter = filter,
+                sortMode = sortMode,
+                sortDirection = sortDirection,
+              ),
+              refresh = true,
+            ),
+          )
           .mapNotNull {
             it.dataOrNull()?.map { it.asDomainModel(tokenHydrator) }
           }

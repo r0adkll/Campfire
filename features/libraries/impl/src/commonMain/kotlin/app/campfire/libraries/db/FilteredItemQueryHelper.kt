@@ -42,16 +42,14 @@ class FilteredItemQueryHelper(
     sortMode: SortMode,
     sortDirection: SortDirection,
     libraryId: LibraryId,
-    offset: Int,
-    limit: Int,
+    page: Page? = null,
   ): Query<LibraryItemWithMedia> {
     return SelectFilteredItemQuery(
       filter = filter,
       sortMode = sortMode,
       sortDirection = sortDirection,
       libraryId = libraryId,
-      offset = offset,
-      limit = limit,
+      page = page,
       mapper = { cursor ->
         mapCursorToLibraryItem(
           cursor = cursor,
@@ -186,8 +184,7 @@ class FilteredItemQueryHelper(
     val sortMode: SortMode,
     val sortDirection: SortDirection,
     val libraryId: LibraryId,
-    val offset: Int,
-    val limit: Int,
+    val page: Page? = null,
     mapper: (SqlCursor) -> T,
   ) : Query<T>(mapper) {
 
@@ -207,14 +204,21 @@ class FilteredItemQueryHelper(
           |INNER JOIN media ON media.libraryItemId = libraryItem.id
           |LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
           |WHERE libraryItem.libraryId = ?
-          """.trimMargin(),
+        """.trimMargin(),
         filter,
         sortMode,
         sortDirection,
-        Page(limit, offset),
+        page,
       )
+      bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
-      return sqlDriver.executeQuery(100, query, mapper, numParameters.also { bark { "SelectFilteredItemQuery: $it" } }) {
+      return sqlDriver.executeQuery(
+        100,
+        query,
+        mapper,
+        numParameters
+          .also { bark { "SelectFilteredItemQuery: $it" } },
+      ) {
         bindString(0, libraryId)
         binderBuilder.apply(this)
       }.also { qr ->
@@ -251,13 +255,20 @@ class FilteredItemQueryHelper(
           |INNER JOIN media ON media.libraryItemId = libraryItem.id
           |LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
           |WHERE libraryItem.libraryId = ?
-          """.trimMargin(),
+        """.trimMargin(),
         filter,
         sortMode,
         sortDirection,
       )
+      bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
-      return sqlDriver.executeQuery(200, query, mapper, numParameters.also { bark { "CountForFilteredItemQuery: $it" } }) {
+      return sqlDriver.executeQuery(
+        200,
+        query,
+        mapper,
+        numParameters
+          .also { bark { "CountForFilteredItemQuery: $it" } },
+      ) {
         bindString(0, libraryId)
         binderBuilder.apply(this)
       }
@@ -282,7 +293,7 @@ class FilteredItemQueryHelper(
         is LibraryItemFilter.Authors -> {
           appendLine("AND media.metadata_authorName = ?")
           bind {
-            bindString(filter.author.name)
+            bindString(filter.authorName)
           }
         }
 
@@ -454,4 +465,3 @@ class PreparedSqlStatementBinderBuilder(initialIndex: Int = 0) {
     binders.forEach { it(statement) }
   }
 }
-

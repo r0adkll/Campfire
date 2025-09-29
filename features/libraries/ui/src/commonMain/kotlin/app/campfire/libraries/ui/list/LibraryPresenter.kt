@@ -2,18 +2,18 @@ package app.campfire.libraries.ui.list
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.LibraryScreen
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.settings.ItemDisplayState
-import app.campfire.core.util.LibraryItemComparator
+import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -39,6 +39,12 @@ class LibraryPresenter(
 
   @Composable
   override fun present(): LibraryUiState {
+    // TODO: We should store this in user preferences so it persists
+    //  between UI and process changes
+    var itemFilter by remember {
+      mutableStateOf<LibraryItemFilter?>(null)
+    }
+
     val sortMode by remember {
       settings.observeSortMode()
     }.collectAsState(settings.sortMode)
@@ -47,23 +53,18 @@ class LibraryPresenter(
       settings.observeSortDirection()
     }.collectAsState(settings.sortDirection)
 
-    val contentState by remember {
-      repository.observeLibraryItems()
+    val contentState by remember(sortMode, sortDirection, itemFilter) {
+      repository.observeLibraryItems(
+        filter = itemFilter,
+        sortMode = sortMode,
+        sortDirection = sortDirection,
+      )
         .map { LoadState.Loaded(it) }
         .catch { LoadState.Error }
     }.collectAsState(LoadState.Loading)
 
     val itemDisplayState by settings.observeLibraryItemDisplayState()
       .collectAsState(ItemDisplayState.List)
-
-    // TODO: Keep filter state and filter the above loaded content
-    val filteredContentState by remember {
-      derivedStateOf {
-        contentState.map { items ->
-          items.sortedWith(LibraryItemComparator(sortMode, sortDirection))
-        }
-      }
-    }
 
     val offlineDownloads by remember {
       snapshotFlow { contentState.dataOrNull }
@@ -74,16 +75,13 @@ class LibraryPresenter(
     }.collectAsState(emptyMap())
 
     return LibraryUiState(
-      contentState = filteredContentState,
+      contentState = contentState,
       sort = LibrarySort(sortMode, sortDirection),
+      filter = null,
       offlineStates = offlineDownloads,
       itemDisplayState = itemDisplayState,
     ) { event ->
       when (event) {
-        LibraryUiEvent.FilterClick -> {
-          // TODO: Navigate to bottom sheet filter, with result
-        }
-
         LibraryUiEvent.ToggleItemDisplayState -> {
           settings.libraryItemDisplayState = when (itemDisplayState) {
             ItemDisplayState.List -> ItemDisplayState.Grid
@@ -96,6 +94,10 @@ class LibraryPresenter(
             settings.sortDirection = sortDirection.flip()
           }
           settings.sortMode = event.mode
+        }
+
+        is LibraryUiEvent.ItemFilterSelected -> {
+          itemFilter = event.filter
         }
 
         is LibraryUiEvent.ItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
