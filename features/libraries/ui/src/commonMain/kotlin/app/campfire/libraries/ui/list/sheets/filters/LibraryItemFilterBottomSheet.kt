@@ -3,6 +3,7 @@ package app.campfire.libraries.ui.list.sheets.filters
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -138,11 +139,13 @@ private fun LibraryItemFilterBottomSheet(
     AnimatedContent(
       targetState = selectedFilter,
       transitionSpec = {
-        (
-          fadeIn(animationSpec = tween(220, delayMillis = 90)) +
-            slideInHorizontally(animationSpec = tween(220, delayMillis = 90)) { it }
-          )
-          .togetherWith(slideOutHorizontally(animationSpec = tween(90)) { it })
+        if (targetState == null) {
+          (fadeIn() + slideInHorizontally { -it })
+            .togetherWith(slideOutHorizontally { it })
+        } else {
+          slideInHorizontally { it }
+            .togetherWith(fadeOut() + slideOutHorizontally { -it })
+        }
       },
     ) { state ->
       if (state == null) {
@@ -362,7 +365,7 @@ private fun filterValueLabel(
   is LibraryItemFilter.Languages,
   is LibraryItemFilter.Narrators,
   is LibraryItemFilter.Tags,
-  -> filter.value
+    -> filter.value
 
   is LibraryItemFilter.Missing -> when (filter.type) {
     LibraryItemFilter.Missing.Type.ASIN -> stringResource(Res.string.filter_value_missing_asin)
