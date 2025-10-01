@@ -2,6 +2,8 @@ package app.campfire.libraries.items
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDbModel
@@ -11,6 +13,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MinifiedBookMetadata
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 
@@ -29,6 +32,9 @@ class LibraryItemsSourceOfTruthFactory(
         sortDirection = query.sortDirection,
         libraryId = query.libraryId,
       ).asFlow()
+        .catch {
+          bark(LogPriority.ERROR, throwable = it) { "Error while reading library items" }
+        }
         .mapToList(dispatcherProvider.databaseRead)
     },
     writer = { query, networkItems: List<LibraryItemMinified<MinifiedBookMetadata>> ->

@@ -97,8 +97,9 @@ fun FilterBar(
         modifier = Modifier.offset(x = 12.dp),
       ) {
         Icon(
-          if (isFiltered) Icons.Rounded.FilterAltOff else Icons.Rounded.FilterAlt,
+          if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
           contentDescription = null,
+          tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
         )
       }
     }

@@ -77,7 +77,7 @@ class LibraryPresenter(
     return LibraryUiState(
       contentState = contentState,
       sort = LibrarySort(sortMode, sortDirection),
-      filter = null,
+      filter = itemFilter,
       offlineStates = offlineDownloads,
       itemDisplayState = itemDisplayState,
     ) { event ->

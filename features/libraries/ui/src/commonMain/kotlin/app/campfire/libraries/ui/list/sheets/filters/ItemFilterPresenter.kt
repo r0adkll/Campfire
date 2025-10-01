@@ -72,6 +72,8 @@ class ItemFilterPresenter(
           }
           onFilterSelected(newFilter)
         }
+
+        ItemFilterUiEvent.ClearFilter -> onFilterSelected(null)
       }
     }
   }

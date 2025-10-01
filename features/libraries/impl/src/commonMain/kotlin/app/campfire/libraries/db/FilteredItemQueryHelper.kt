@@ -213,11 +213,10 @@ class FilteredItemQueryHelper(
       bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
       return sqlDriver.executeQuery(
-        100,
+        query.hashCode(),
         query,
         mapper,
-        numParameters
-          .also { bark { "SelectFilteredItemQuery: $it" } },
+        numParameters,
       ) {
         bindString(0, libraryId)
         binderBuilder.apply(this)
@@ -263,7 +262,7 @@ class FilteredItemQueryHelper(
       bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
       return sqlDriver.executeQuery(
-        200,
+        query.hashCode(),
         query,
         mapper,
         numParameters
@@ -298,9 +297,9 @@ class FilteredItemQueryHelper(
         }
 
         is LibraryItemFilter.Genres -> {
-          appendLine("AND media.metadata_genres LIKE ?")
+          appendLine("AND media.metadata_genres = ?")
           bind {
-            bindString("%${filter.value}%")
+            bindString(filter.value)
           }
         }
 

@@ -19,18 +19,18 @@ class AutoIncrementingSqlPreparedStatement(
   }
 
   fun bindLong(long: Long?) {
-    bindLong(loggingGetAndIncrement("bindLong"), long)
+    bindLong(loggingGetAndIncrement("bindLong($long)"), long)
   }
 
   fun bindDouble(double: Double?) {
-    bindDouble(loggingGetAndIncrement("bindDouble"), double)
+    bindDouble(loggingGetAndIncrement("bindDouble($double)"), double)
   }
 
   fun bindString(string: String?) {
-    bindString(loggingGetAndIncrement("bindString"), string)
+    bindString(loggingGetAndIncrement("bindString($string)"), string)
   }
 
   fun bindBoolean(boolean: Boolean?) {
-    bindBoolean(loggingGetAndIncrement("bindBoolean"), boolean)
+    bindBoolean(loggingGetAndIncrement("bindBoolean($boolean)"), boolean)
   }
 }
