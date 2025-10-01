@@ -1,7 +1,6 @@
 package app.campfire.libraries.ui.list.sheets.filters
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -365,7 +364,7 @@ private fun filterValueLabel(
   is LibraryItemFilter.Languages,
   is LibraryItemFilter.Narrators,
   is LibraryItemFilter.Tags,
-    -> filter.value
+  -> filter.value
 
   is LibraryItemFilter.Missing -> when (filter.type) {
     LibraryItemFilter.Missing.Type.ASIN -> stringResource(Res.string.filter_value_missing_asin)
