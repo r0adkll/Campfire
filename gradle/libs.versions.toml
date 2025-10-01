@@ -41,7 +41,7 @@ core = "1.17.0"
 vlcj = "4.11.0"
 uiautomator = "2.4.0-alpha06"
 benchmark-macro-junit4 = "1.4.0"
-baselineprofile = "1.4.0"
+baselineprofile = "1.4.1"
 profileinstaller = "1.4.1"
 material = "1.13.0"
 
