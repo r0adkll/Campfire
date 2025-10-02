@@ -81,5 +81,10 @@ gradlePlugin {
       id = "app.campfire.android.test"
       implementationClass = "app.campfire.convention.AndroidTestConventionPlugin"
     }
+
+    register("parcelize") {
+      id = "app.campfire.parcelize"
+      implementationClass = "app.campfire.convention.ParcelizeConventionPlugin"
+    }
   }
 }

@@ -57,13 +57,13 @@ import app.campfire.common.screens.CollectionsScreen
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.HomeScreen
-import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.logging.bark
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.ui.CampfireDockedSearchBar
 import app.campfire.search.ui.showSearchOverlay
 import app.campfire.sessions.ui.PlaybackBar
@@ -91,6 +91,7 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
+import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -255,7 +256,7 @@ private fun HomeNavigationBar(
         icon = {
           HomeNavigationItemIcon(
             item = item,
-            selected = selectedNavigation == item.screen,
+            selected = item.screen.instanceOf(selectedNavigation::class),
           )
         },
         label = { Text(text = item.label) },
@@ -297,7 +298,7 @@ private fun HomeNavigationRail(
         icon = {
           HomeNavigationItemIcon(
             item = item,
-            selected = selectedNavigation == item.screen,
+            selected = item.screen.instanceOf(selectedNavigation::class)
           )
         },
         alwaysShowLabel = false,
@@ -361,7 +362,7 @@ private fun buildNavigationItems(): List<HomeNavigationItem> {
       selectedImageVector = Icons.Filled.Home,
     ),
     HomeNavigationItem(
-      screen = LibraryScreen,
+      screen = LibraryScreen(),
       label = stringResource(Res.string.nav_library_label),
       contentDescription = stringResource(Res.string.nav_library_content_description),
       iconImageVector = Icons.Outlined.Library,

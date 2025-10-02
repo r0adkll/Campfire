@@ -41,7 +41,6 @@ import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryListItem
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.OfflineStatusIndicator
-import app.campfire.common.screens.LibraryScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
@@ -52,6 +51,7 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
 import app.campfire.libraries.api.LibraryItemFilter
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.libraries.ui.list.sheets.filters.LibraryItemFilterResult
 import app.campfire.libraries.ui.list.sheets.filters.showItemFilterOverlay
 import app.campfire.libraries.ui.list.sheets.sort.SortModeResult

@@ -9,12 +9,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.LibraryItemScreen
-import app.campfire.common.screens.LibraryScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -31,6 +31,7 @@ import me.tatarka.inject.annotations.Inject
 @CircuitInject(LibraryScreen::class, UserScope::class)
 @Inject
 class LibraryPresenter(
+  @Assisted private val screen: LibraryScreen,
   @Assisted private val navigator: Navigator,
   private val repository: LibraryRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
@@ -41,9 +42,7 @@ class LibraryPresenter(
   override fun present(): LibraryUiState {
     // TODO: We should store this in user preferences so it persists
     //  between UI and process changes
-    var itemFilter by remember {
-      mutableStateOf<LibraryItemFilter?>(null)
-    }
+    var itemFilter by remember { mutableStateOf(screen.filter) }
 
     val sortMode by remember {
       settings.observeSortMode()

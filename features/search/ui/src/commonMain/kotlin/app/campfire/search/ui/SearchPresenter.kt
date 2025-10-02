@@ -12,10 +12,13 @@ import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.libraries.api.LibraryItemFilter
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import com.slack.circuit.runtime.resetRoot
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -80,8 +83,11 @@ class SearchPresenter(
         )
 
         is SearchUiEvent.OnBookClick -> navigateTo(LibraryItemScreen(event.book.id))
-        is SearchUiEvent.OnGenreClick -> TODO("Navigate to LibraryItemScreen with filter information")
-        is SearchUiEvent.OnNarratorClick -> TODO("Navigate to LibraryItemScreen with filter information")
+        is SearchUiEvent.OnGenreClick -> navigateTo(LibraryScreen(LibraryItemFilter.Genres(event.genre.name)), true)
+        is SearchUiEvent.OnNarratorClick -> navigateTo(
+          screen = LibraryScreen(LibraryItemFilter.Narrators(event.narrator.name)),
+          resetRoot = true
+        )
         is SearchUiEvent.OnSeriesClick -> navigateTo(
           SeriesDetailScreen(
             event.series.id,
@@ -89,13 +95,13 @@ class SearchPresenter(
           ),
         )
 
-        is SearchUiEvent.OnTagClick -> TODO("Navigate to LibraryItemScreen with filter information")
+        is SearchUiEvent.OnTagClick -> navigateTo(LibraryScreen(LibraryItemFilter.Tags(event.tag.name)), true)
       }
     }
   }
 
-  private fun navigateTo(screen: BaseScreen) {
-    navigator.goTo(screen)
+  private fun navigateTo(screen: BaseScreen, resetRoot: Boolean = false) {
+    if (resetRoot) navigator.resetRoot(screen) else navigator.goTo(screen)
     requestDismiss()
   }
 }

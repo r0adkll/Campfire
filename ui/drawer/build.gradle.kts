@@ -10,6 +10,7 @@ kotlin {
         api(projects.data.account.api)
         api(projects.data.account.ui)
         api(projects.infra.updates.api)
+        api(projects.features.libraries.api)
 
         implementation(compose.components.resources)
       }

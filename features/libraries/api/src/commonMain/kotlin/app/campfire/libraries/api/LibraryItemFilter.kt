@@ -2,23 +2,29 @@ package app.campfire.libraries.api
 
 import app.campfire.core.model.AuthorId
 import app.campfire.core.model.SeriesId
+import app.campfire.core.parcelize.Parcelable
+import app.campfire.core.parcelize.Parcelize
 
-sealed interface LibraryItemFilter {
+@Parcelize
+sealed interface LibraryItemFilter : Parcelable {
   val group: String
   val value: String
 
+  @Parcelize
   class Genres(
     override val value: String,
   ) : LibraryItemFilter {
     override val group: String = "genres"
   }
 
+  @Parcelize
   class Tags(
     override val value: String,
   ) : LibraryItemFilter {
     override val group: String = "tags"
   }
 
+  @Parcelize
   class Series(
     override val value: SeriesId,
     val seriesName: String,
@@ -26,6 +32,7 @@ sealed interface LibraryItemFilter {
     override val group: String = "series"
   }
 
+  @Parcelize
   class Authors(
     val authorId: AuthorId,
     val authorName: String,
@@ -34,6 +41,7 @@ sealed interface LibraryItemFilter {
     override val group: String = "authors"
   }
 
+  @Parcelize
   class Progress(
     val type: Type,
   ) : LibraryItemFilter {
@@ -48,12 +56,14 @@ sealed interface LibraryItemFilter {
     }
   }
 
+  @Parcelize
   class Narrators(
     override val value: String,
   ) : LibraryItemFilter {
     override val group: String = "narrators"
   }
 
+  @Parcelize
   class Missing(
     val type: Type,
   ) : LibraryItemFilter {
@@ -76,12 +86,14 @@ sealed interface LibraryItemFilter {
     }
   }
 
+  @Parcelize
   class Languages(
     override val value: String,
   ) : LibraryItemFilter {
     override val group: String = "languages"
   }
 
+  @Parcelize
   class Tracks(
     val type: Type,
   ) : LibraryItemFilter {

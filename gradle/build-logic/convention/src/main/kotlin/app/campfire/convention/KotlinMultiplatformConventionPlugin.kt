@@ -28,7 +28,10 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
 
     extensions.configure<KotlinMultiplatformExtension> {
       compilerOptions {
-        freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
+        freeCompilerArgs.addAll(
+          "-opt-in=kotlin.uuid.ExperimentalUuidApi",
+          "-Xexpect-actual-classe"
+        )
       }
 
       applyDefaultHierarchyTemplate()

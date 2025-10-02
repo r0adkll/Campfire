@@ -46,12 +46,12 @@ import app.campfire.common.screens.CollectionsScreen
 import app.campfire.common.screens.DebugScreen
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.HomeScreen
-import app.campfire.common.screens.LibraryScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.isDebug
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.updates.AppUpdateWidget
 import campfire.ui.drawer.generated.resources.Res
 import campfire.ui.drawer.generated.resources.nav_authors_content_description
@@ -176,7 +176,7 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
       )
       add(
         HomeNavigationItem(
-          screen = LibraryScreen,
+          screen = LibraryScreen(),
           label = stringResource(Res.string.nav_library_label),
           contentDescription = stringResource(Res.string.nav_library_content_description),
           iconImageVector = Icons.Outlined.Library,
