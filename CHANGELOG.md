@@ -21,6 +21,8 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 ### Fixed
 
+- Navigating from search for Narrators, Genres, and Tags now works
+
 ### Other Notes & Contributions
 
 ## [0.4.0-alpha] - 2025-07-07
