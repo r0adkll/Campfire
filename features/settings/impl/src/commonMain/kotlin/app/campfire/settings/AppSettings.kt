@@ -38,6 +38,16 @@ abstract class AppSettings {
     }
   }
 
+  fun floatSetting(key: String, defaultValue: Float) = object : ReadWriteProperty<AppSettings, Float> {
+    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Float {
+      return settings.getFloat(key, defaultValue)
+    }
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Float) {
+      settings.putFloat(key, value)
+    }
+  }
+
   fun durationSetting(key: String, defaultValue: Duration) = object : ReadWriteProperty<AppSettings, Duration> {
     override fun getValue(thisRef: AppSettings, property: KProperty<*>): Duration {
       return settings.getDoubleOrNull(key)?.seconds ?: defaultValue

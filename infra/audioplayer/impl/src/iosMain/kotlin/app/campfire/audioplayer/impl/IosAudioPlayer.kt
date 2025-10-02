@@ -60,7 +60,7 @@ class IosAudioPlayer(
   private var finishedListener: OnFinishedListener? = null
 
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(1f)
+  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
 
@@ -122,6 +122,8 @@ class IosAudioPlayer(
     // Build the media items and adapt them to the platform
     val mediaItems = IosMediaItemBuilder.build(session)
     player.setMediaItems(mediaItems)
+
+    player.setPlaybackSpeed(playbackSpeed.value)
 
     // Seek the media player
     var startTimeInChapterMs = 0L
@@ -274,6 +276,7 @@ class IosAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
+    settings.playbackSpeed = speed
     player.setPlaybackSpeed(speed)
   }
 

@@ -47,7 +47,7 @@ class VlcAudioPlayer(
   override val currentTime = MutableStateFlow(0.seconds)
   override val currentDuration = MutableStateFlow(0.seconds)
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(1f)
+  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
 
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
@@ -68,6 +68,8 @@ class VlcAudioPlayer(
     // Build and set media items for the current session
     val mediaItems = MediaItemBuilder.build(session)
     mediaPlayer.setMediaItems(mediaItems)
+
+    mediaPlayer.setPlaybackSpeed(playbackSpeed.value)
 
     // Seek the media player
     var startTimeInChapterMs = 0L
@@ -227,6 +229,7 @@ class VlcAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
+    settings.playbackSpeed = speed
     mediaPlayer.setPlaybackSpeed(speed)
   }
 

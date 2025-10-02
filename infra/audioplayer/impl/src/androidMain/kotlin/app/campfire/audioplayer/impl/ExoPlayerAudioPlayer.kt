@@ -119,7 +119,7 @@ class ExoPlayerAudioPlayer(
   override val currentTime = MutableStateFlow(0.seconds)
   override val currentDuration = MutableStateFlow(0.seconds)
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(1f)
+  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
 
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
@@ -152,6 +152,9 @@ class ExoPlayerAudioPlayer(
     exoPlayer.run {
       // Set the media list
       setMediaItems(mediaItems, true)
+
+      // Set the playback speed
+      setPlaybackSpeed(playbackSpeed.value)
 
       // Seek the media player
       if (chapterId != null) {
@@ -304,6 +307,7 @@ class ExoPlayerAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
+    settings.playbackSpeed = speed
     exoPlayer.setPlaybackSpeed(speed)
   }
 

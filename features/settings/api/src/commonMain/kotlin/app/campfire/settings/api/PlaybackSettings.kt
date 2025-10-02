@@ -18,4 +18,6 @@ interface PlaybackSettings {
 
   var playbackRates: List<Float>
   fun observePlaybackRates(): StateFlow<List<Float>>
+
+  var playbackSpeed: Float
 }
