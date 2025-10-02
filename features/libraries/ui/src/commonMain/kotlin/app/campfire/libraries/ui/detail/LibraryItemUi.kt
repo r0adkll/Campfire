@@ -59,7 +59,6 @@ import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MetadataHeader
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
@@ -67,6 +66,7 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import app.campfire.libraries.ui.detail.composables.ControlBar
 import app.campfire.libraries.ui.detail.composables.DurationListItem

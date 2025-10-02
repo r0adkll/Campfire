@@ -1,3 +1,6 @@
+// Copyright 2025, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: Apache-2.0
+
 package app.campfire.convention
 
 import org.gradle.api.Plugin

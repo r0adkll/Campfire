@@ -3,9 +3,9 @@ package app.campfire.common.screens
 import app.campfire.core.model.AuthorId
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.SeriesId
+import app.campfire.core.parcelize.Parcelize
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuit.runtime.screen.StaticScreen
-import app.campfire.core.parcelize.Parcelize
 
 //region App Screens
 

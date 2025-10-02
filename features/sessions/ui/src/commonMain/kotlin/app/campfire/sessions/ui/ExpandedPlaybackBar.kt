@@ -84,11 +84,11 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.sessions.ui.composables.ForwardIcon
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RewindIcon

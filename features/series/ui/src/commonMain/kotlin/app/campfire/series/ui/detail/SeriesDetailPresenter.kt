@@ -6,10 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator

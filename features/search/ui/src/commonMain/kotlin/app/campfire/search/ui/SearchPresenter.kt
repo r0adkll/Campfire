@@ -10,9 +10,9 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.libraries.api.LibraryItemFilter
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
@@ -85,7 +85,7 @@ class SearchPresenter(
         is SearchUiEvent.OnGenreClick -> navigateTo(LibraryScreen(LibraryItemFilter.Genres(event.genre.name)), true)
         is SearchUiEvent.OnNarratorClick -> navigateTo(
           screen = LibraryScreen(LibraryItemFilter.Narrators(event.narrator.name)),
-          resetRoot = true
+          resetRoot = true,
         )
         is SearchUiEvent.OnSeriesClick -> navigateTo(
           SeriesDetailScreen(

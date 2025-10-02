@@ -298,7 +298,7 @@ private fun HomeNavigationRail(
         icon = {
           HomeNavigationItemIcon(
             item = item,
-            selected = item.screen.instanceOf(selectedNavigation::class)
+            selected = item.screen.instanceOf(selectedNavigation::class),
           )
         },
         alwaysShowLabel = false,

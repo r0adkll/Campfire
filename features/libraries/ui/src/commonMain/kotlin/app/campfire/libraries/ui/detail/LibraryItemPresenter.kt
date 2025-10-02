@@ -9,11 +9,11 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings

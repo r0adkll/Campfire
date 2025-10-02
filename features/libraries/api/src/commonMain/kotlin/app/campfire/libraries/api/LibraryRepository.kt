@@ -3,7 +3,6 @@ package app.campfire.libraries.api
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
-import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
 import kotlinx.coroutines.flow.Flow
