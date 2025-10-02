@@ -12,6 +12,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 ### Added
 
 - Library item filtering
+- Save playback speed across listening sessions
 
 ### Changed
 
