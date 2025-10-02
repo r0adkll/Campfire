@@ -10,7 +10,7 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
-import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.screen.LibraryScreen
@@ -18,7 +18,6 @@ import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import com.slack.circuit.runtime.resetRoot
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay

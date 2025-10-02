@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope

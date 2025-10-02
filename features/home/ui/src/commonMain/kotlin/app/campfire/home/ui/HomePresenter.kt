@@ -8,7 +8,7 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
-import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope

@@ -5,7 +5,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.common.screens.AuthorDetailScreen
-import app.campfire.common.screens.LibraryItemScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
@@ -13,6 +12,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryStats
 import app.campfire.core.model.ListeningStats
 import app.campfire.core.time.FatherTime
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.stats.api.StatsRepository
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.user_stats_recent_sessions_header

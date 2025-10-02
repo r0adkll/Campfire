@@ -8,7 +8,7 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.author.api.AuthorRepository
 import app.campfire.common.screens.AuthorDetailScreen
-import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject

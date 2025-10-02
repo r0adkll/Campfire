@@ -59,7 +59,7 @@ import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MetadataHeader
-import app.campfire.common.screens.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope

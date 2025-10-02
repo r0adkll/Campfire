@@ -30,7 +30,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
       compilerOptions {
         freeCompilerArgs.addAll(
           "-opt-in=kotlin.uuid.ExperimentalUuidApi",
-          "-Xexpect-actual-classe"
+          "-Xexpect-actual-classes"
         )
       }
 
