@@ -72,11 +72,6 @@ object ComponentHolder {
       componentSharedFlow.emit(component)
       bark("ComponentHolder") { "updateComponent($component) - Success" }
     }
-//    if (!componentSharedFlow.tryEmit(component)) {
-//      bark("ComponentHolder") { "updateComponent($component) - emission failed" }
-//    } else {
-//      bark("ComponentHolder") { "updateComponent($component) - Success" }
-//    }
   }
 
   inline fun <reified T> subscribe(): Flow<T> {

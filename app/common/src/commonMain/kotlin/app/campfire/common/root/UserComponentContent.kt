@@ -9,54 +9,34 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.di.UserComponent
-import app.campfire.common.di.UserComponentManager
-import app.campfire.common.di.rememberUserComponentManager
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.session.UserSession
 
-sealed interface ServerUrlState {
-  data object Loading : ServerUrlState
-  data class Loaded(val serverUrl: String?) : ServerUrlState
-}
-
 @Composable
 fun UserComponentContent(
-  userSessionManager: UserSessionManager,
-  userComponentManager: UserComponentManager = rememberUserComponentManager(),
   content: @Composable (UserComponent) -> Unit,
 ) {
-  val scope = rememberCoroutineScope()
+  val userComponent by remember {
+    ComponentHolder.subscribe<UserComponent>()
+  }.collectAsState(null)
 
-  val userSession by remember {
-    userSessionManager.observe()
-  }.collectAsState()
+  val userSession = userComponent?.currentUserSession
 
   when (userSession) {
     is UserSession.LoggedIn,
     is UserSession.LoggedOut,
     -> {
-      val userComponent = remember(userSession.key) {
-        // Fetch a cached graph object, or create a new one for the current session
-        userComponentManager.getOrCreateUserComponent(userSession)
-          .also { component ->
-            // Be sure to update the current instance of [UserComponent] in the holder
-            ComponentHolder.updateComponent(scope, component)
-          }
-      }
-
       CompositionLocalProvider(
-        LocalUserSession provides userComponent.currentUserSession,
+        LocalUserSession provides userSession,
       ) {
-        content(userComponent)
+        content(userComponent!!)
       }
     }
 

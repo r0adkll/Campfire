@@ -1,5 +1,6 @@
 package app.campfire.common.di
 
+import app.campfire.account.api.UserSessionManager
 import app.campfire.common.initializer.StartupInitializer
 import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.DispatcherProvider
@@ -19,6 +20,8 @@ interface SharedAppComponent : CoreComponent
 interface CoreComponent {
 
   val startupInitializer: StartupInitializer
+  val sessionManager: UserSessionManager
+  val userComponentManager: UserComponentManager
 
   @SingleIn(AppScope::class)
   @Provides

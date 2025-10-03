@@ -1,14 +1,10 @@
 package app.campfire.common.di
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
-import com.r0adkll.kimchi.annotations.ContributesTo
 import me.tatarka.inject.annotations.Inject
 
 typealias UserSessionKey = String
@@ -61,14 +57,4 @@ class UserComponentManager(
 
   private val UserSession.cacheKey: UserSessionKey
     get() = key.toString()
-}
-
-@ContributesTo(AppScope::class)
-interface UserComponentManagerComponent {
-  val userComponentManager: UserComponentManager
-}
-
-@Composable
-internal fun rememberUserComponentManager(): UserComponentManager {
-  return remember { ComponentHolder.component<UserComponentManagerComponent>().userComponentManager }
 }
