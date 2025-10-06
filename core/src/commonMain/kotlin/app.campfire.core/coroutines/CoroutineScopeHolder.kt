@@ -14,7 +14,7 @@ class CoroutineScopeHolder(val initializer: () -> CoroutineScope) {
     return coroutineScope
   }
 
-  fun cancel() {
-    coroutineScope.cancel()
+  fun cancel(reason: String) {
+    coroutineScope.cancel(reason)
   }
 }

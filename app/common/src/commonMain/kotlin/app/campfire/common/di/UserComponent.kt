@@ -4,6 +4,7 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.rootScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.Scoped
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
@@ -23,6 +24,8 @@ import me.tatarka.inject.annotations.Provides
   parentScope = AppScope::class,
 )
 interface UserComponent {
+  val scopedDependencies: Lazy<Set<Scoped>>
+
   val currentUserSession: UserSession
   val circuit: Circuit
 

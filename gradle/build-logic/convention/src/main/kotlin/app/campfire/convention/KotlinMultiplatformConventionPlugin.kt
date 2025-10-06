@@ -75,7 +75,10 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
         compilations.configureEach {
           compileTaskProvider.configure {
             compilerOptions {
-              freeCompilerArgs.add("-Xexpect-actual-classes")
+              freeCompilerArgs.addAll(
+                "-Xexpect-actual-classes",
+                "-Xannotation-default-target=param-property",
+              )
             }
           }
         }

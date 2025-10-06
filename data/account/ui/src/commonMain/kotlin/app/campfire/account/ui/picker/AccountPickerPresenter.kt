@@ -14,15 +14,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias AccountPickerPresenterFactory = () -> AccountPickerPresenter
+typealias AccountPickerPresenterFactory = (() -> Unit) -> AccountPickerPresenter
 
 @Inject
 class AccountPickerPresenter(
+  @Assisted private val requestDismiss: () -> Unit,
   private val serverRepository: ServerRepository,
   private val accountManager: AccountManager,
-//  @Assisted private val navigator: Navigator,
 ) : Presenter<AccountPickerUiState> {
 
   @Composable
@@ -52,6 +53,7 @@ class AccountPickerPresenter(
         is AccountPickerUiEvent.Logout -> {
           scope.launch {
             accountManager.logout(event.server)
+            requestDismiss()
           }
         }
       }

@@ -3,8 +3,10 @@
 
 package app.campfire.convention
 
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
 
 class AndroidApplicationConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
@@ -16,6 +18,29 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
       configureAndroid(computeNamespace = false)
       configureLauncherTasks()
+
+      // Add resource exclusions to just release builds
+      androidComponents {
+        onVariants(selector().withBuildType("release")) {
+          it.packaging.resources.excludes.addAll(
+            // Exclude AndroidX version files
+            "META-INF/*.version",
+            // Exclude consumer proguard files
+            "META-INF/proguard/*",
+            // Exclude the Firebase/Fabric/other random properties files
+            "/*.properties",
+            "fabric/*.properties",
+            "META-INF/*.properties",
+            // License files
+            "LICENSE*",
+            // Exclude Kotlin unused files
+            "META-INF/**/previous-compilation-data.bin",
+          )
+        }
+      }
     }
   }
 }
+
+private fun Project.androidComponents(action: ApplicationAndroidComponentsExtension.() -> Unit) =
+  extensions.configure<ApplicationAndroidComponentsExtension>(action)

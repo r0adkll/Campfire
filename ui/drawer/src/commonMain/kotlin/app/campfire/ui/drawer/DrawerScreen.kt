@@ -70,6 +70,7 @@ import campfire.ui.drawer.generated.resources.nav_statistics_content_description
 import campfire.ui.drawer.generated.resources.nav_statistics_label
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -93,6 +94,9 @@ fun Drawer(
     AccountSwitcher(
       {
         coroutineScope.launch {
+          async {
+            drawerState?.close()
+          }
           when (val result = overlayHost.showAccountPicker()) {
             AccountPickerResult.AddAccount -> {
               state.eventSink(DrawerUiEvent.AddAccount)

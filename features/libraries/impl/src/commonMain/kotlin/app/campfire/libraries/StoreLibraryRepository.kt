@@ -30,6 +30,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -130,13 +131,11 @@ class StoreLibraryRepository(
   }
 
   override fun observeAllLibraries(): Flow<List<Library>> {
-    return userRepository.observeCurrentUser()
-      .flatMapLatest { user ->
-        allLibrariesStore
-          .stream(StoreReadRequest.cached(user.id, refresh = true))
-          .mapNotNull {
-            it.dataOrNull()?.map { it.asDomainModel() }
-          }
+    val userId = userSession.userId ?: return flowOf(emptyList())
+    return allLibrariesStore
+      .stream(StoreReadRequest.cached(userId, refresh = true))
+      .mapNotNull {
+        it.dataOrNull()?.map { it.asDomainModel() }
       }
   }
 

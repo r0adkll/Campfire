@@ -4,6 +4,7 @@ about-libraries = "12.2.4"
 accompanist = "0.37.3"
 androidxlifecycle = "2.9.4"
 androidxactivity = "1.10.1"
+androidxcomposeui = "1.9.2"
 androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 appcompat = "1.7.1"
@@ -79,8 +80,9 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "androidxlifecycle" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-archCoreTesting = "androidx.arch.core:core-testing:2.2.0"
-androidx-browser = "androidx.browser:browser:1.8.0"
+androidx-browser = "androidx.browser:browser:1.9.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }

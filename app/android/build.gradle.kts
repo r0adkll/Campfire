@@ -40,23 +40,6 @@ android {
     buildConfig = true
   }
 
-  packaging {
-    resources.excludes += setOf(
-      // Exclude AndroidX version files
-      "META-INF/*.version",
-      // Exclude consumer proguard files
-      "META-INF/proguard/*",
-      // Exclude the Firebase/Fabric/other random properties files
-      "/*.properties",
-      "fabric/*.properties",
-      "META-INF/*.properties",
-      // License files
-      "LICENSE*",
-      // Exclude Kotlin unused files
-      "META-INF/**/previous-compilation-data.bin",
-    )
-  }
-
   flavorDimensions += "default"
 
   productFlavors {
@@ -132,6 +115,7 @@ dependencies {
 
   implementation(libs.androidx.activity.compose)
   implementation(libs.androidx.browser)
+  implementation(libs.androidx.compose.ui)
 
   implementation(libs.circuit.runtime)
   implementation(libs.circuit.foundation)

@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.navigation.LocalUserSession
@@ -21,22 +22,25 @@ import app.campfire.core.session.UserSession
 
 @Composable
 fun UserComponentContent(
+  userSessionManager: UserSessionManager,
   content: @Composable (UserComponent) -> Unit,
 ) {
-  val userComponent by remember {
-    ComponentHolder.subscribe<UserComponent>()
-  }.collectAsState(null)
-
-  val userSession = userComponent?.currentUserSession
+  val userSession by remember {
+    userSessionManager.observe()
+  }.collectAsState()
 
   when (userSession) {
     is UserSession.LoggedIn,
     is UserSession.LoggedOut,
     -> {
+      val userComponent = remember(userSession) {
+        ComponentHolder.component<UserComponent>()
+      }
+
       CompositionLocalProvider(
         LocalUserSession provides userSession,
       ) {
-        content(userComponent!!)
+        content(userComponent)
       }
     }
 

@@ -11,7 +11,9 @@ import app.campfire.common.compose.widgets.AppBarState
 import app.campfire.common.compose.widgets.AppBarState.LibraryState
 import app.campfire.common.compose.widgets.AppBarState.ServerState
 import app.campfire.common.compose.widgets.AppBarViewEvent
+import app.campfire.core.model.Library
 import app.campfire.libraries.api.LibraryRepository
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
@@ -32,11 +34,13 @@ class CampfireAppbarPresenter(
 
     val library by remember {
       libraryRepository.observeCurrentLibrary()
+        .catch { null }
     }.collectAsState(null)
 
     val libraries by remember {
       libraryRepository.observeAllLibraries()
         .map { it.sortedBy { it.displayOrder } }
+        .catch { emptyList<Library>() }
     }.collectAsState(emptyList())
 
     // TODO: Observe this from some socket repository that can broadcast

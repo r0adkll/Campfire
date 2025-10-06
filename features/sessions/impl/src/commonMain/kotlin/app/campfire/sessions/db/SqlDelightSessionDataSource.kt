@@ -1,7 +1,6 @@
 package app.campfire.sessions.db
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -29,8 +28,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
@@ -43,7 +41,6 @@ class SqlDelightSessionDataSource(
   private val userSession: UserSession,
   private val db: CampfireDatabase,
   private val fatherTime: FatherTime,
-  private val userSessionManager: UserSessionManager,
   private val libraryItemRepository: LibraryItemRepository,
   private val devSettings: DevSettings,
   private val dispatcherProvider: DispatcherProvider,
@@ -51,21 +48,18 @@ class SqlDelightSessionDataSource(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentSession(): Flow<Session?> {
-    return userSessionManager.observe()
-      .filterIsInstance<UserSession.LoggedIn>()
-      .flatMapLatest { userSession ->
-        db.sessionQueries
-          .getActive(userSession.user.id)
-          .asFlow()
-          .mapToOneOrNull(dispatcherProvider.databaseRead)
-          .map {
-            it?.let { model -> hydrateSession(model) }
-          }
+    val userId = userSession.userId ?: return flowOf(null)
+    return db.sessionQueries
+      .getActive(userId)
+      .asFlow()
+      .mapToOneOrNull(dispatcherProvider.databaseRead)
+      .map {
+        it?.let { model -> hydrateSession(model) }
       }
   }
 
   override suspend fun getCurrentSession(): Session? {
-    val currentUserId = userSessionManager.current.userId ?: return null
+    val currentUserId = userSession.userId ?: return null
     return db.sessionQueries.getActive(currentUserId)
       .awaitAsOneOrNull()
       ?.let { hydrateSession(it) }

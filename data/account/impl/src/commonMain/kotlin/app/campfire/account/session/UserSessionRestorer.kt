@@ -7,7 +7,7 @@ import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.settings.api.CampfireSettings
-import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.withContext
@@ -31,8 +31,13 @@ class DatabaseUserSessionRestorer(
 
     val user = withContext(dispatcherProvider.databaseRead) {
       db.usersQueries.selectById(currentUserId)
-        .awaitAsOne()
-        .asDomainModel()
+        .awaitAsOneOrNull()
+        ?.asDomainModel()
+    }
+
+    if (user == null) {
+      settings.currentUserId = null
+      return@measureTimedValue UserSession.LoggedOut
     }
 
     return@measureTimedValue UserSession.LoggedIn(user)

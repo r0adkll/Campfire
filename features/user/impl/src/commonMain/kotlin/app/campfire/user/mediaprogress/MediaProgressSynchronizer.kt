@@ -2,8 +2,8 @@ package app.campfire.user.mediaprogress
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.MediaProgress
@@ -21,8 +21,8 @@ interface MediaProgressSynchronizer {
   suspend fun sync(mediaProgress: MediaProgress, force: Boolean = false)
 }
 
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class)
 @Inject
 class DefaultMediaProgressSynchronizer(
   private val api: AudioBookShelfApi,

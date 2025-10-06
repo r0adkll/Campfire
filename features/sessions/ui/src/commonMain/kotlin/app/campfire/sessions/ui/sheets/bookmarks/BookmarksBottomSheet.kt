@@ -68,8 +68,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
@@ -103,7 +103,7 @@ sealed interface BookmarkResult {
   data class Selected(val bookmark: Bookmark) : BookmarkResult
 }
 
-@ContributesTo(AppScope::class)
+@ContributesTo(UserScope::class)
 interface BookmarksBottomSheetComponent {
   val audioPlayerHolder: AudioPlayerHolder
   val bookmarkRepository: BookmarkRepository

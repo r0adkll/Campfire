@@ -51,6 +51,7 @@ fun CampfireContentWithInsets(
   @Assisted onOpenUrl: (String) -> Unit,
   @Assisted windowInsets: WindowInsets,
   settings: CampfireSettings,
+  userSessionManager: UserSessionManager,
   @Assisted modifier: Modifier = Modifier,
 ) {
   val appUriHandler = remember(onOpenUrl) {
@@ -66,7 +67,7 @@ fun CampfireContentWithInsets(
     LocalRetainedStateRegistry provides continuityRetainedStateRegistry(),
     LocalUriHandler provides appUriHandler,
   ) {
-    UserComponentContent { userComponent ->
+    UserComponentContent(userSessionManager) { userComponent ->
       val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
       val navigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
 
@@ -134,11 +135,13 @@ fun CampfireContent(
   @Assisted onRootPop: () -> Unit,
   @Assisted onOpenUrl: (String) -> Unit,
   settings: CampfireSettings,
+  userSessionManager: UserSessionManager,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
     onRootPop = onRootPop,
     settings = settings,
+    userSessionManager = userSessionManager,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars),
     modifier = modifier,

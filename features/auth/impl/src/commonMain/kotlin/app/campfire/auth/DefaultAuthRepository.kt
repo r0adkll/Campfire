@@ -2,26 +2,22 @@ package app.campfire.auth
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
-import app.campfire.account.api.UserSessionManager
 import app.campfire.auth.api.AuthRepository
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.Tent
 import app.campfire.data.mapping.asDatabaseModel
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
-import app.campfire.network.AudioBookShelfApi
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.network.AuthAudioBookShelfApi
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAuthRepository(
-  private val api: AudioBookShelfApi,
+  private val api: AuthAudioBookShelfApi,
   private val db: CampfireDatabase,
   private val accountManager: AccountManager,
-  private val settings: CampfireSettings,
-  private val userSessionManager: UserSessionManager,
 ) : AuthRepository {
 
   override suspend fun ping(serverUrl: String): Boolean {

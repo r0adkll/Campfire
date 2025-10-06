@@ -1,60 +1,57 @@
 package app.campfire.common.di
 
+import app.campfire.account.api.di.UserGraphManager
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
+import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
 
-typealias UserSessionKey = String
-
 @SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class UserComponentManager(
   private val userComponentFactory: UserComponent.Factory,
-) {
+  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
+) : UserGraphManager {
 
-  /**
-   * Containing cache of generated [UserComponent] graph objects. Due to the use
-   * of switching UserComponent graph/states in the Compose layer configuration changes on
-   * Android and anything else that causes the the entire composition to be destroyed / recreated
-   * from caches will result in graph re-creations and relation breaking assumptions in other uses
-   * and injections. i.e. in Services and so on. So we cache graph creations here that can be easily retrieved
-   *
-   */
-  private val componentCache = mutableMapOf<UserSessionKey, UserComponent>()
-
-  private var lastUserSession: UserSession? = null
-
-  /**
-   * Get the current cached [UserComponent] for a given session, or create a new
-   * one if it doesn't exist.
-   * @param userSession the user session that would key a [UserComponent]
-   * @return the generated or cached [UserComponent] object graph
-   */
-  fun getOrCreateUserComponent(userSession: UserSession): UserComponent {
-    cancelCurrentScope()
-    lastUserSession = userSession
-    val cached = componentCache[userSession.cacheKey]
-    if (cached != null) {
-      bark(LogPriority.INFO) { "Cached UserComponent for $userSession found" }
-      return cached
-    } else {
-      bark(LogPriority.INFO) { "No cached UserComponent found for $userSession" }
-      val newUserComponent = userComponentFactory.create(userSession)
-      componentCache[userSession.cacheKey] = newUserComponent
-      return newUserComponent
-    }
+  private val coroutineExceptionHandler = CoroutineExceptionHandler { context, throwable ->
+    bark(LogPriority.ERROR, throwable = throwable) { "Coroutine Exception in UserComponentManager" }
   }
 
-  private fun cancelCurrentScope() {
-    lastUserSession?.let { session ->
-      bark { "Cancelling UserComponent scope for $session" }
-      componentCache[session.key]?.coroutineScopeHolder?.cancel()
-    }
+  override fun create(userSession: UserSession) {
+    val newUserComponent = userComponentFactory.create(userSession)
+    ComponentHolder.updateComponent(applicationScope, newUserComponent)
   }
 
-  private val UserSession.cacheKey: UserSessionKey
-    get() = key.toString()
+  override suspend fun destroy() {
+    val userComponent = ComponentHolder.component<UserComponent>()
+
+    withContext(applicationScope.coroutineContext + coroutineExceptionHandler) {
+      userComponent.scopedDependencies.value
+        .map { scoped ->
+          bark { "Destroying: $scoped" }
+          async {
+            withTimeoutOrNull(150L) {
+              scoped.onDestroy()
+            }
+          }
+        }
+        .awaitAll()
+    }
+
+    // Cancel the scope!
+    bark { "Tearing down UserScope coroutine scope" }
+    userComponent.coroutineScopeHolder.cancel("UserScope destroyed")
+  }
 }

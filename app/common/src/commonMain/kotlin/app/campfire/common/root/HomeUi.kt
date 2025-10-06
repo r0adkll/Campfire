@@ -142,7 +142,6 @@ internal fun HomeUi(
   PlatformBackHandler(playbackBarExpanded) { playbackBarExpanded = false }
 
   // Search View wiring
-
   AdaptiveCampfireLayout(
     overlayHost = overlayHost,
     drawerState = drawerState,

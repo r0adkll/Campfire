@@ -1,13 +1,13 @@
 package app.campfire.user
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
@@ -22,9 +22,8 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
@@ -35,11 +34,11 @@ import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStoreApi::class)
-@ContributesBinding(AppScope::class)
-@SingleIn(AppScope::class)
+@ContributesBinding(UserScope::class)
+@SingleIn(UserScope::class)
 @Inject
 class StoreMediaProgressRepository(
-  private val userSessionManager: UserSessionManager,
+  private val userSession: UserSession,
   private val storeFactory: MediaProgressStore.Factory,
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
@@ -51,39 +50,32 @@ class StoreMediaProgressRepository(
   private val store: Store<Operation, Output> by lazy { storeFactory.create() }
 
   override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress?> {
-    return userSessionManager.observe()
-      .filterIsInstance<UserSession.LoggedIn>()
-      .flatMapLatest { session ->
-        val request = StoreReadRequest.cached(Operation.Query.One(session.user.id, libraryItemId), false)
-        store.stream(request)
-          .onEach { response ->
-            MediaProgressStore.ibark { "observeProgress --> $response" }
-          }
-          .map { it.dataOrNull() }
-          .filterNotNull()
-          .map { it.requireSingle() }
+    val request = StoreReadRequest.cached(Operation.Query.One(userSession.requiredUserId, libraryItemId), false)
+    return store.stream(request)
+      .onEach { response ->
+        MediaProgressStore.ibark { "observeProgress --> $response" }
       }
+      .map { it.dataOrNull() }
+      .filterNotNull()
+      .map { it.requireSingle() }
   }
 
   override suspend fun getProgress(libraryItemId: LibraryItemId): MediaProgress? {
-    val user = (userSessionManager.current as? UserSession.LoggedIn)?.user ?: return null
-    val operation = Operation.Query.One(user.id, libraryItemId)
+    val userId = userSession.userId ?: return null
+    val operation = Operation.Query.One(userId, libraryItemId)
     return store.get(operation).requireSingle()
   }
 
   override fun observeAllProgress(): Flow<List<MediaProgress>> {
-    return userSessionManager.observe()
-      .filterIsInstance<UserSession.LoggedIn>()
-      .flatMapLatest { session ->
-        val request = StoreReadRequest.cached(Operation.Query.All(session.user.id), false)
-        store.stream(request)
-          .onEach { response ->
-            MediaProgressStore.ibark { "observeAllProgress --> $response" }
-          }
-          .map { it.dataOrNull() }
-          .filterNotNull()
-          .map { it.requireCollection() }
+    val userId = userSession.userId ?: return emptyFlow()
+    val request = StoreReadRequest.cached(Operation.Query.All(userId), false)
+    return store.stream(request)
+      .onEach { response ->
+        MediaProgressStore.ibark { "observeAllProgress --> $response" }
       }
+      .map { it.dataOrNull() }
+      .filterNotNull()
+      .map { it.requireCollection() }
   }
 
   override suspend fun updateProgress(newProgress: MediaProgress, force: Boolean) {
@@ -112,7 +104,7 @@ class StoreMediaProgressRepository(
   }
 
   override suspend fun deleteProgress(libraryItemId: LibraryItemId) {
-    val currentUserId = userSessionManager.current.userId!!
+    val currentUserId = userSession.requiredUserId
     val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
       .requireSingle()
     if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
@@ -137,7 +129,7 @@ class StoreMediaProgressRepository(
         finishedAt = fatherTime.nowInEpochMillis(),
       ),
     ).onSuccess {
-      val currentUserId = userSessionManager.current.userId!!
+      val currentUserId = userSession.requiredUserId
       val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
         .requireSingle()
       if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
@@ -164,7 +156,7 @@ class StoreMediaProgressRepository(
         isFinished = false,
       ),
     ).onSuccess {
-      val currentUserId = userSessionManager.current.userId!!
+      val currentUserId = userSession.requiredUserId
       val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
         .requireSingle()
       if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {

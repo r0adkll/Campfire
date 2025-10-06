@@ -117,7 +117,11 @@ private fun AccountPickerContent(
       }
     }
 
-    val presenter = remember(component) { component.accountPickerPresenterFactory() }
+    val presenter = remember(component) {
+      component.accountPickerPresenterFactory {
+        overlayNavigator.finish(AccountPickerResult.None)
+      }
+    }
     val state = presenter.present()
 
     AccountPickerContent(
