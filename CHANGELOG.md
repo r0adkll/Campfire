@@ -13,6 +13,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 
 - Library item filtering
 - Save playback speed across listening sessions
+- Toggle between time in book and chapter length in Now Playing chapter list
 
 ### Changed
 
@@ -23,6 +24,7 @@ TODO: Use https://github.com/ffurrer2/extract-release-notes when crafting a rele
 ### Fixed
 
 - Navigating from search for Narrators, Genres, and Tags now works
+- Logging out & Changing accounts
 
 ### Other Notes & Contributions
 

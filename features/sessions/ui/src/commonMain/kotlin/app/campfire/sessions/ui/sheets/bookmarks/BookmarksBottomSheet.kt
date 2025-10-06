@@ -57,6 +57,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.Bookmark
 import app.campfire.common.compose.icons.rounded.BookmarkStar
@@ -68,7 +69,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
-import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
@@ -76,6 +76,7 @@ import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.user.api.BookmarkRepository
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_action_create
+import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_empty_message
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_error_message
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_title
 import campfire.features.sessions.ui.generated.resources.bookmark_delete_action_cancel
@@ -107,13 +108,6 @@ sealed interface BookmarkResult {
 interface BookmarksBottomSheetComponent {
   val audioPlayerHolder: AudioPlayerHolder
   val bookmarkRepository: BookmarkRepository
-}
-
-@Composable
-private fun rememberComponent(): BookmarksBottomSheetComponent {
-  return remember {
-    ComponentHolder.component<BookmarksBottomSheetComponent>()
-  }
 }
 
 suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): BookmarkResult {
@@ -180,6 +174,22 @@ private fun BookmarksBottomSheet(
               },
               modifier = Modifier.animateItem(),
             )
+          }
+
+          if (bookmarks.isEmpty()) {
+            item {
+              Box(
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .height(100.dp),
+                contentAlignment = Alignment.Center,
+              ) {
+                Text(
+                  text = stringResource(Res.string.bookmark_bottomsheet_empty_message),
+                  style = MaterialTheme.typography.bodyLarge,
+                )
+              }
+            }
           }
         }
         .onLoading {

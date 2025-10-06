@@ -2,30 +2,47 @@ package app.campfire.sessions.ui.sheets.chapters
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.clockFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.BookRibbon
+import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
+import app.campfire.settings.api.CampfireSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.chapters_bottomsheet_title
+import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import org.jetbrains.compose.resources.stringResource
@@ -33,6 +50,11 @@ import org.jetbrains.compose.resources.stringResource
 sealed interface ChapterResult {
   data object None : ChapterResult
   data class Selected(val chapter: Chapter) : ChapterResult
+}
+
+@ContributesTo(UserScope::class)
+interface ChapterListBottomSheetComponent {
+  val settings: CampfireSettings
 }
 
 suspend fun OverlayHost.showChapterBottomSheet(
@@ -68,10 +90,34 @@ private fun ChapterListBottomSheet(
   modifier: Modifier = Modifier,
   progressColor: Color = MaterialTheme.colorScheme.primaryContainer,
   selectedColor: Color = MaterialTheme.colorScheme.primary,
+  component: ChapterListBottomSheetComponent = rememberComponent(),
 ) {
+  val showTimeInBook by remember {
+    component.settings.observeShowTimeInBook()
+  }.collectAsState(true)
+
   SessionSheetLayout(
     modifier = modifier,
-    title = { Text(stringResource(Res.string.chapters_bottomsheet_title)) },
+    title = {
+      Text(
+        stringResource(Res.string.chapters_bottomsheet_title),
+      )
+    },
+    trailingContent = {
+      Switch(
+        checked = showTimeInBook,
+        onCheckedChange = { component.settings.showTimeInBook = it },
+        thumbContent = {
+          Icon(
+            if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else Icons.Rounded.Timer,
+            contentDescription = null,
+            modifier = Modifier.size(SwitchDefaults.IconSize),
+          )
+        },
+        modifier = Modifier
+          .align(Alignment.CenterEnd),
+      )
+    },
   ) {
     val lazyListState = rememberLazyListState(
       initialFirstVisibleItemIndex = chapters
@@ -97,9 +143,14 @@ private fun ChapterListBottomSheet(
           },
           trailingContent = {
             Text(
-              text = chapter.start.seconds.clockFormat(),
+              text = if (showTimeInBook) {
+                chapter.start.seconds.clockFormat()
+              } else {
+                chapter.duration.clockFormat()
+              },
               style = MaterialTheme.typography.labelLarge,
-              fontWeight = if (isCurrentChapter) FontWeight.Bold else null,
+              fontWeight = if (isCurrentChapter) FontWeight.Bold else FontWeight.SemiBold,
+              fontFamily = FontFamily.Monospace,
             )
           },
           modifier = Modifier

@@ -15,6 +15,7 @@
   <string name="bookmark_bottomsheet_title">Bookmarks</string>
   <string name="bookmark_bottomsheet_action_create">Create new bookmark @ %1$s</string>
   <string name="bookmark_bottomsheet_error_message">Uh-oh, something went wrong loading bookmarks for this item.</string>
+  <string name="bookmark_bottomsheet_empty_message">No bookmarks found</string>
   <string name="bookmark_delete_title">Are you sure?</string>
   <string name="bookmark_delete_action_cancel">Cancel</string>
   <string name="bookmark_delete_action_delete">Delete</string>
