@@ -1,7 +1,6 @@
 package app.campfire.common.compose.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import app.campfire.core.model.Tent
@@ -15,7 +14,7 @@ fun CampfireTheme(
 ) {
   val colorPalette = tent.colorPalette
   val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
-  ApplyStatusBar(useDarkColors, colorScheme)
+  ApplyStatusBar(useDarkColors)
   MaterialTheme(
     colorScheme = colorScheme,
     typography = CampfireTypography,
@@ -25,4 +24,4 @@ fun CampfireTheme(
 }
 
 @Composable
-expect fun ApplyStatusBar(useDarkColors: Boolean, colorScheme: ColorScheme)
+expect fun ApplyStatusBar(useDarkColors: Boolean)
