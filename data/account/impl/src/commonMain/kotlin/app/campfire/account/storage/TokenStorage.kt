@@ -8,6 +8,7 @@ import app.campfire.core.model.UserId
  */
 interface TokenStorage {
 
+  fun hasToken(userId: UserId): Boolean
   suspend fun get(userId: UserId): AbsToken?
   suspend fun put(userId: UserId, token: AbsToken)
   suspend fun remove(userId: UserId)

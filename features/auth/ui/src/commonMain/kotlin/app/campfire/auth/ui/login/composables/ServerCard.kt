@@ -74,6 +74,7 @@ import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.invalid_server_url
 import campfire.features.auth.ui.generated.resources.label_login_error_auth
 import campfire.features.auth.ui.generated.resources.label_login_error_network
+import campfire.features.auth.ui.generated.resources.label_login_error_oauth
 import campfire.features.auth.ui.generated.resources.label_password
 import campfire.features.auth.ui.generated.resources.label_server_name_placeholder
 import campfire.features.auth.ui.generated.resources.label_server_url
@@ -152,8 +153,8 @@ internal fun ServerCard(
           Text(
             when (connectionState) {
               ConnectionState.Loading -> stringResource(Res.string.loading_server_url)
-              ConnectionState.Error -> stringResource(Res.string.invalid_server_url)
-              ConnectionState.Success -> stringResource(Res.string.valid_server_url)
+              is ConnectionState.Error -> stringResource(Res.string.invalid_server_url)
+              is ConnectionState.Success -> stringResource(Res.string.valid_server_url)
             },
           )
         }
@@ -188,7 +189,7 @@ internal fun ServerCard(
     )
 
     AnimatedVisibility(
-      visible = connectionState == ConnectionState.Success,
+      visible = connectionState is ConnectionState.Success,
     ) {
       Column(
         Modifier.padding(
@@ -260,6 +261,7 @@ internal fun ServerCard(
               when (authError) {
                 AuthError.InvalidCredentials -> Res.string.label_login_error_auth
                 AuthError.NetworkError -> Res.string.label_login_error_network
+                AuthError.OAuthError -> Res.string.label_login_error_oauth
               },
             ),
             style = MaterialTheme.typography.labelMedium,

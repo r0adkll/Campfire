@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.Build
 import app.campfire.android.BuildConfig
 import app.campfire.common.di.SharedAppComponent
+import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
@@ -16,6 +17,8 @@ import me.tatarka.inject.annotations.Provides
 abstract class AndroidAppComponent(
   @get:Provides val application: Application,
 ) : SharedAppComponent {
+
+  abstract val componentActivityPlugins: Set<ComponentActivityPlugin>
 
   @Suppress("DEPRECATION")
   @SingleIn(AppScope::class)

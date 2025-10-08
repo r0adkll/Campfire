@@ -11,10 +11,12 @@
   <string name="label_username">Username</string>
   <string name="label_password">Password</string>
   <string name="action_add_campsite">Add campsite</string>
+  <string name="action_login_openid">Login with OpenID</string>
 
   <string name="label_authenticating_loading_message">Logging in…</string>
   <string name="label_login_error_network">A network error has occurred. Please try again.</string>
   <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
+  <string name="label_login_error_oauth">Something went wrong with the OpenID provider.</string>
 
   <string name="login_add_account_title">Add campsites</string>
   <string name="action_finish_analytics_consent">Finish</string>

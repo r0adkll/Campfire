@@ -49,4 +49,12 @@ interface AccountManager {
    * Update the set of tokens for a given user
    */
   suspend fun updateToken(userId: UserId, newToken: AbsToken)
+
+  /**
+   * Return whether or not we have a stored token for the given
+   * user.
+   * @param userId the id of the user to check for a token
+   * @return whether or not we have a stored token for the given user
+   */
+  fun hasToken(userId: UserId): Boolean`
 }

@@ -109,6 +109,10 @@ class DefaultAccountManager(
     tokenStorage.put(userId, newToken)
   }
 
+  override fun hasToken(userId: UserId): Boolean {
+    return tokenStorage.hasToken(userId)
+  }
+
   private suspend inline fun changeSession(block: suspend () -> UserSession) {
     // Force the UI into a loading state, making sure to pull all usages of the current graph
     // out of composition.

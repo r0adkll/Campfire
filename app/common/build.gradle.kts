@@ -19,6 +19,7 @@ kotlin {
         // Data Modules
         api(projects.data.db.core)
         api(projects.data.network.impl)
+        api(projects.data.network.oidc)
         api(projects.data.account.impl)
         api(projects.data.account.ui)
         api(projects.data.analytics.impl)

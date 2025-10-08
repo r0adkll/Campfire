@@ -31,6 +31,12 @@ kotlin {
       }
     }
 
+    androidMain {
+      dependencies {
+        implementation(libs.androidx.activity.activity)
+      }
+    }
+
     jvmTest {
       dependencies {
         implementation(libs.strikt.core)

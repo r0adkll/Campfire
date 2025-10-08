@@ -32,6 +32,10 @@ class SecureTokenStorage(
     return AbsToken(accessToken, refreshToken)
   }
 
+  override fun hasToken(userId: UserId): Boolean {
+    return tokenSettings.hasKey(tokenStorageKey(userId))
+  }
+
   override suspend fun put(userId: UserId, token: AbsToken) {
     settings.putString(
       key = accessTokenStorageKey(userId),

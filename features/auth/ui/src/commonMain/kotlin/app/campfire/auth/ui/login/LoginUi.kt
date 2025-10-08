@@ -2,6 +2,7 @@ package app.campfire.auth.ui.login
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,8 +18,11 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,16 +33,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.IdBadge
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
+import campfire.features.auth.ui.generated.resources.action_login_openid
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -160,6 +168,48 @@ internal fun LoginUiContent(
         Text(stringResource(Res.string.action_add_campsite))
       } else {
         Text(stringResource(Res.string.label_authenticating_loading_message))
+      }
+    }
+
+    state.openIdState?.let { openId ->
+      Row(
+        modifier = Modifier
+          .widthIn(max = 500.dp)
+          .padding(vertical = 16.dp)
+          .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        HorizontalDivider(
+          Modifier.weight(1f),
+        )
+
+        Text(
+          text = "OR",
+          style = MaterialTheme.typography.labelMedium,
+          fontWeight = FontWeight.Bold,
+          modifier = Modifier.padding(horizontal = 16.dp),
+          color = MaterialTheme.colorScheme.outlineVariant,
+        )
+
+        HorizontalDivider(
+          Modifier.weight(1f),
+        )
+      }
+
+      FilledTonalButton(
+        onClick = {
+          eventSink(LoginUiEvent.StartOpenIdAuth)
+        },
+        modifier = Modifier
+          .widthIn(max = 500.dp)
+          .fillMaxWidth(),
+      ) {
+        Icon(
+          CampfireIcons.Rounded.IdBadge,
+          contentDescription = null,
+        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(openId.text ?: stringResource(Res.string.action_login_openid))
       }
     }
 

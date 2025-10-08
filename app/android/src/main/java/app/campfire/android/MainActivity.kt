@@ -30,7 +30,6 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     bark { "MainActivity::onCreate()" }
-
     component = ComponentHolder.component<ActivityComponent.Factory>()
       .create(this)
       .also {
@@ -40,6 +39,11 @@ class MainActivity : ComponentActivity() {
     // Initialize the CastContext used for Google Cast
     // https://developers.google.com/cast/docs/android_sender/integrate#kotlin
     component.mediaRouterCastController.initialize()
+
+    // Register all flow launchers
+    component.componentActivityPlugins.forEach { launcher ->
+      launcher.register(this)
+    }
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -83,6 +87,9 @@ class MainActivity : ComponentActivity() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
     component.mediaRouterCastController.destroy()
+    component.componentActivityPlugins.forEach { launcher ->
+      launcher.unregister()
+    }
   }
 }
 

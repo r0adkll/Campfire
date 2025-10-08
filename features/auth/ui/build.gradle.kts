@@ -15,6 +15,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(projects.data.network.oidc)
         implementation(projects.features.auth.api)
         implementation(projects.data.account.api)
 

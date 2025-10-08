@@ -132,6 +132,7 @@ include(
 include(
   ":data:network:api",
   ":data:network:impl",
+  ":data:network:oidc",
   ":data:network:test",
 )
 include(
