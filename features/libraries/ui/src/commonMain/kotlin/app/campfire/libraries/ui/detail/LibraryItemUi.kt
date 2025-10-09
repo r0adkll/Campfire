@@ -118,11 +118,6 @@ fun LibraryItem(
           IconButton(
             onClick = {},
           ) {
-            Icon(Icons.Rounded.QueuePlayNext, contentDescription = null)
-          }
-          IconButton(
-            onClick = {},
-          ) {
             Icon(Icons.Rounded.Cast, contentDescription = null)
           }
           IconButton(

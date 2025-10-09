@@ -32,6 +32,7 @@ import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingState
+import app.campfire.common.compose.widgets.randomEmptyMessage
 import app.campfire.core.model.Author
 import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
@@ -52,6 +53,7 @@ import campfire.features.search.ui.generated.resources.search_results_error_mess
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -89,7 +91,7 @@ internal fun SearchResultContent(
       )
     } else if (results.isEmpty && query.isBlank()) {
       EmptyState(
-        message = stringResource(Res.string.search_empty_message),
+        message = "Your next adventure is just a \nsearch away!",
         modifier = modifier,
       )
     } else {

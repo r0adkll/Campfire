@@ -18,4 +18,20 @@
 
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
+
+  <string-array name="empty_screen_quotes">
+    <item>May your compass always point to adventure.</item>
+    <item>Leave a trail of footprints and a heart full of stories.</item>
+    <item>The road less traveled is calling.</item>
+    <item>Let's get wonderfully lost.</item>
+    <item>Find your next adventure on the turn of a page.</item>
+    <item>Reading the world, one story at a time.</item>
+    <item>The best journeys happen with a book in your hand.</item>
+    <item>My favorite travel companion is a good story.</item>
+    <item>Lost in a book, and happy to be.</item>
+    <item>Let a book be your map.</item>
+    <item>Where will this story take you?</item>
+    <item>On a journey to find the edges of the world and the depths of a good book.</item>
+    <item>Every book is a new beginning.</item>
+  </string-array>
 </resources>
