@@ -2,7 +2,10 @@ package app.campfire.author.ui.detail
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -18,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -38,6 +42,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 import campfire.features.author.ui.generated.resources.Res
+import campfire.features.author.ui.generated.resources.author_books_empty_message
 import campfire.features.author.ui.generated.resources.author_books_header
 import campfire.features.author.ui.generated.resources.error_author_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -98,7 +103,7 @@ private fun LoadedState(
     columns = GridCells.Fixed(2),
     state = gridState,
     contentPadding = contentPadding + PaddingValues(16.dp),
-    modifier = modifier,
+    modifier = modifier.fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
@@ -128,6 +133,25 @@ private fun LoadedState(
         modifier = Modifier
           .clickable { onLibraryItemClick(item) },
       )
+    }
+
+    if (author.libraryItems.isEmpty()) {
+      item(
+        span = { GridItemSpan(maxLineSpan) }
+      ) {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(128.dp),
+          contentAlignment = Alignment.Center,
+        ) {
+          Text(
+            text = stringResource(Res.string.author_books_empty_message),
+            modifier = Modifier
+              .padding(16.dp),
+          )
+        }
+      }
     }
   }
 }

@@ -23,12 +23,14 @@ import androidx.compose.ui.unit.dp
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.filter_bar_book_count
 import campfire.common.compose.generated.resources.placeholder_man
 import campfire.common.compose.generated.resources.placeholder_woman
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 
 private val CardMaxWidth = 400.dp
 private val ThumbnailCornerSize = 12.dp
@@ -90,14 +92,12 @@ fun AuthorCard(
         text = author.name,
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
-//        modifier = Modifier.basicMarquee(),
       )
-      author.description?.let {
+      author.numBooks?.let {
         Text(
-          text = it,
+          text = pluralStringResource(Res.plurals.filter_bar_book_count, it, it),
           style = MaterialTheme.typography.bodySmall,
           maxLines = 1,
-//          modifier = Modifier.basicMarquee(),
         )
       }
     }

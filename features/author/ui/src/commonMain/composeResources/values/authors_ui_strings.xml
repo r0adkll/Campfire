@@ -5,6 +5,9 @@
   <string name="author_books_header">Books</string>
   <string name="author_description_header">Summary</string>
 
+  <string name="author_books_empty_message">This author has no books in your library</string>
+  <string name="author_summary_empty_message">This author has no summary</string>
+
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
 </resources>

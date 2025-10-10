@@ -1,9 +1,12 @@
 package app.campfire.author.ui.detail.composables
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -12,6 +15,7 @@ import app.campfire.common.compose.widgets.AuthorCoverImage
 import app.campfire.core.model.Author
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.author_description_header
+import campfire.features.author.ui.generated.resources.author_summary_empty_message
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -36,6 +40,18 @@ internal fun AuthorHeader(
 
     author.description?.let { description ->
       AuthorDescription(description)
+    } ?: run {
+      Box(
+        modifier = Modifier
+          .height(88.dp)
+          .fillMaxWidth(),
+        contentAlignment = Alignment.Center
+      ) {
+        Text(
+          text = stringResource(Res.string.author_summary_empty_message),
+          style = MaterialTheme.typography.bodyLarge,
+        )
+      }
     }
   }
 }
