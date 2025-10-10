@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalSharedTransitionApi::class)
+
 package app.campfire.common.root
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -90,6 +93,7 @@ import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
+import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
 import io.ktor.util.reflect.instanceOf
 import kotlinx.coroutines.launch
@@ -200,13 +204,15 @@ internal fun HomeUi(
     },
 
     content = {
-      NavigableCircuitContent(
-        navigator = homeNavigator,
-        backStack = backstack,
-        decoratorFactory = GestureNavigationDecorationFactory(
-          onBackInvoked = navigator::pop,
-        ),
-      )
+      SharedElementTransitionLayout {
+        NavigableCircuitContent(
+          navigator = homeNavigator,
+          backStack = backstack,
+          decoratorFactory = GestureNavigationDecorationFactory(
+            onBackInvoked = navigator::pop,
+          ),
+        )
+      }
     },
     playbackBarContent = {
       if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.ExtraLarge) {
@@ -230,10 +236,12 @@ internal fun HomeUi(
     },
     showSupportingContent = detailRootScreen !is EmptyScreen,
     supportingContent = {
-      NavigableCircuitContent(
-        navigator = detailNavigator,
-        backStack = detailBackStack,
-      )
+      SharedElementTransitionLayout {
+        NavigableCircuitContent(
+          navigator = detailNavigator,
+          backStack = detailBackStack,
+        )
+      }
     },
     modifier = modifier,
   )

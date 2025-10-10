@@ -125,16 +125,16 @@ private fun Trees(
     targetValue = 1.05f,
     animationSpec = infiniteRepeatable(
       animation = tween(2_000, easing = EaseInOutCubic),
-      repeatMode = RepeatMode.Reverse
-    )
+      repeatMode = RepeatMode.Reverse,
+    ),
   )
   val scaleY by infiniteTransition.animateFloat(
     initialValue = 1.02f,
     targetValue = 0.98f,
     animationSpec = infiniteRepeatable(
       animation = tween(2_000, easing = EaseInOutCubic),
-      repeatMode = RepeatMode.Reverse
-    )
+      repeatMode = RepeatMode.Reverse,
+    ),
   )
 
   Group(
@@ -240,7 +240,6 @@ private fun Trees(
     }
   }
 
-
   val scale2Time = 2_500
   val scale2Offset = 500
   val scaleX2 by infiniteTransition.animateFloat(
@@ -250,7 +249,7 @@ private fun Trees(
       animation = tween(scale2Time, easing = EaseInOutCubic),
       repeatMode = RepeatMode.Reverse,
       initialStartOffset = StartOffset(scale2Offset),
-    )
+    ),
   )
   val scaleY2 by infiniteTransition.animateFloat(
     initialValue = 1.05f,
@@ -259,7 +258,7 @@ private fun Trees(
       animation = tween(scale2Time, easing = EaseInOutCubic),
       repeatMode = RepeatMode.Reverse,
       initialStartOffset = StartOffset(scale2Offset),
-    )
+    ),
   )
   Group(
     name = "Tree2",
@@ -411,7 +410,7 @@ private fun Sun(
     targetValue = 360f,
     animationSpec = infiniteRepeatable(
       animation = tween(15_000, easing = LinearEasing),
-    )
+    ),
   )
 
   Group(
@@ -514,7 +513,7 @@ private fun Road(
   infiniteTransition: InfiniteTransition,
 ) {
   Group(
-    name = "Road"
+    name = "Road",
   ) {
     Path(fill = SolidColor(Color(0xFF2D2D2D))) {
       moveTo(40f, 284f)
@@ -544,7 +543,6 @@ private fun Road(
       arcTo(12f, 12f, 0f, isMoreThanHalf = false, isPositiveArc = true, 24f, 236f)
       close()
     }
-
 
     val lineOn = 16f
     val lineOff = 24f
@@ -607,10 +605,10 @@ private fun Camper(
     ),
   )
 
-  val darkPrimary = MaterialTheme.colorScheme.primary //Color(0xFF008AA9)
+  val darkPrimary = MaterialTheme.colorScheme.primary // Color(0xFF008AA9)
   val lightPrimary = MaterialTheme.colorScheme.primaryContainer
     .copy(alpha = 0.95f)
-    .compositeOver(MaterialTheme.colorScheme.inverseSurface) //Color(0xFF37D0EE)
+    .compositeOver(MaterialTheme.colorScheme.inverseSurface) // Color(0xFF37D0EE)
 
   Group(
     name = "Camper",
@@ -750,7 +748,7 @@ private fun Camper(
   }
 
   Group(
-    name = "Tires"
+    name = "Tires",
   ) {
     Path(fill = SolidColor(darkPrimary)) {
       moveTo(164f, 256.5f)

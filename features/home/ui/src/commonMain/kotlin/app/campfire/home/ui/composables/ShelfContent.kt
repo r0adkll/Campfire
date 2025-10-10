@@ -44,6 +44,10 @@ fun ShelfContent(
       when (entity) {
         is LibraryItem -> LibraryItemCard(
           item = entity,
+          // This is needed since this view can have duplicates of this LibraryItem
+          // and can cause the shared transition stuff to glitch out. So lets key it
+          // to the specific shelf
+          sharedTransitionKey = entity.id + shelf.id,
           offlineStatus = offlineStatus(entity.id),
           modifier = Modifier
             .clickable { onItemClick(entity) }

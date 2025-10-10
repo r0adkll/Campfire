@@ -137,7 +137,7 @@ private fun LoadedState(
 
     if (author.libraryItems.isEmpty()) {
       item(
-        span = { GridItemSpan(maxLineSpan) }
+        span = { GridItemSpan(maxLineSpan) },
       ) {
         Box(
           modifier = Modifier

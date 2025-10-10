@@ -30,16 +30,18 @@ import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
 
 val CoverImageSize = 256.dp
-private val CoverImageCornerRadius = 32.dp
+val CoverImageCornerRadius = 32.dp
+val CoverImageShape = RoundedCornerShape(CoverImageCornerRadius)
 
 @Composable
 fun CoverImage(
   imageUrl: String,
   contentDescription: String?,
   modifier: Modifier = Modifier,
+  sharedElementModifier: Modifier = Modifier,
   placeholder: Painter? = null,
   size: Dp = CoverImageSize,
-  shape: Shape = RoundedCornerShape(CoverImageCornerRadius),
+  shape: Shape = CoverImageShape,
 ) {
   Box(
     modifier = modifier,
@@ -56,7 +58,7 @@ fun CoverImage(
       painter = painter,
       contentDescription = contentDescription,
       contentScale = ContentScale.Crop,
-      modifier = Modifier
+      modifier = sharedElementModifier
         .size(size)
         .clip(shape),
     )

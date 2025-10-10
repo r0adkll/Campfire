@@ -29,7 +29,7 @@ fun EmptyStatePainterPreview() {
       Image(
         painter = rememberAnimatedEmptyState(),
         contentDescription = null,
-        modifier = Modifier.size(200.dp)
+        modifier = Modifier.size(200.dp),
       )
     }
   }

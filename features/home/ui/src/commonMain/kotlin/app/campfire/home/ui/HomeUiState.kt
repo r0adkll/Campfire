@@ -17,7 +17,10 @@ data class HomeUiState(
 ) : CircuitUiState
 
 sealed interface HomeUiEvent : CircuitUiEvent {
-  data class OpenLibraryItem(val item: LibraryItem) : HomeUiEvent
+  data class OpenLibraryItem(
+    val item: LibraryItem,
+    val sharedTransitionKey: String,
+  ) : HomeUiEvent
   data class OpenSeries(val series: Series) : HomeUiEvent
   data class OpenAuthor(val author: Author) : HomeUiEvent
 }

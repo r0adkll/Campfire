@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -28,13 +29,15 @@ import app.campfire.core.model.Media
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun AuthorNarratorBar(
   metadata: Media.Metadata,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   Row(
     modifier = modifier
       .fillMaxWidth()

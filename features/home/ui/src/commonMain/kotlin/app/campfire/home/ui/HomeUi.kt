@@ -80,9 +80,11 @@ fun HomeScreen(
           state.offlineStates[libraryItemId].asWidgetStatus()
         },
         contentPadding = paddingValues,
-        onItemClick = { item ->
+        onItemClick = { shelf, item ->
           when (item) {
-            is LibraryItem -> state.eventSink(HomeUiEvent.OpenLibraryItem(item))
+            is LibraryItem -> state.eventSink(
+              HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
+            )
             is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
             is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
             else -> Unit
@@ -97,7 +99,7 @@ fun HomeScreen(
 private fun LoadedState(
   shelves: List<Shelf<*>>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
-  onItemClick: (Any) -> Unit,
+  onItemClick: (Shelf<*>, Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -111,7 +113,7 @@ private fun LoadedState(
     items(shelves) { shelf ->
       ShelfListItem(
         shelf = shelf,
-        onItemClick = onItemClick,
+        onItemClick = { onItemClick(shelf, it) },
         offlineStatus = offlineStatus,
       )
     }

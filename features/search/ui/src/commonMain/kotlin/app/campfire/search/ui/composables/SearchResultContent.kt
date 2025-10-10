@@ -32,7 +32,6 @@ import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingState
-import app.campfire.common.compose.widgets.randomEmptyMessage
 import app.campfire.core.model.Author
 import app.campfire.core.model.BasicSearchResult
 import app.campfire.core.model.LibraryItem
@@ -47,13 +46,11 @@ import campfire.features.search.ui.generated.resources.header_genres
 import campfire.features.search.ui.generated.resources.header_narrators
 import campfire.features.search.ui.generated.resources.header_series
 import campfire.features.search.ui.generated.resources.header_tags
-import campfire.features.search.ui.generated.resources.search_empty_message
 import campfire.features.search.ui.generated.resources.search_results_empty_message
 import campfire.features.search.ui.generated.resources.search_results_error_message
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable

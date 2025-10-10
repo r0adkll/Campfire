@@ -412,23 +412,30 @@ class FilteredItemQueryHelper(
         null -> Unit
       }
 
-      append("ORDER BY ")
-      when (sortMode) {
-        SortMode.Title -> append("media.metadata_title")
-        SortMode.AuthorFL -> append("media.metadata_authorName")
-        SortMode.AuthorLF -> append("media.metadata_authorNameLF")
-        SortMode.PublishYear -> append("media.metadata_publishedYear")
-        SortMode.AddedAt -> append("libraryItem.addedAt")
-        SortMode.Size -> append("libraryItem.size")
-        SortMode.Duration -> append("media.durationInMillis")
-      }
-      append(" ")
-      appendLine(
+      fun StringBuilder.appendDirection(): StringBuilder = append(
         when (sortDirection) {
           SortDirection.Ascending -> "ASC"
           SortDirection.Descending -> "DESC"
         },
       )
+
+      fun StringBuilder.appendOrderBy(vararg element: String) {
+        element.forEachIndexed { i, e ->
+          append(e).append(" ").appendDirection()
+          if (i < element.lastIndex) append(", ")
+        }
+      }
+
+      append("ORDER BY ")
+      when (sortMode) {
+        SortMode.Title -> appendOrderBy("media.metadata_title")
+        SortMode.AuthorFL -> appendOrderBy("media.metadata_authorName", "media.metadata_title")
+        SortMode.AuthorLF -> appendOrderBy("media.metadata_authorNameLF", "media.metadata_title")
+        SortMode.PublishYear -> appendOrderBy("media.metadata_publishedYear", "media.metadata_title")
+        SortMode.AddedAt -> appendOrderBy("libraryItem.addedAt")
+        SortMode.Size -> appendOrderBy("libraryItem.size")
+        SortMode.Duration -> appendOrderBy("media.durationInMillis")
+      }
 
       page?.let {
         appendLine("LIMIT ? OFFSET ?")
@@ -446,7 +453,7 @@ class Page(
   val offset: Int,
 )
 
-class PreparedSqlStatementBinderBuilder(initialIndex: Int = 0) {
+internal class PreparedSqlStatementBinderBuilder(initialIndex: Int = 0) {
   private val binders = mutableListOf<SqlPreparedStatement.() -> Unit>()
   private var currentIndex = initialIndex
 

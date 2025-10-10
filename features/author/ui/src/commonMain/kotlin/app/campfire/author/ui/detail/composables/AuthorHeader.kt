@@ -45,7 +45,7 @@ internal fun AuthorHeader(
         modifier = Modifier
           .height(88.dp)
           .fillMaxWidth(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
       ) {
         Text(
           text = stringResource(Res.string.author_summary_empty_message),

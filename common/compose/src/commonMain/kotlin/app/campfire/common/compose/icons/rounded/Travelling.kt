@@ -1,7 +1,5 @@
 package app.campfire.common.compose.icons.rounded
 
-import androidx.compose.animation.core.EaseInOutCubic
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
@@ -13,32 +11,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.DefaultFillType
-import androidx.compose.ui.graphics.vector.DefaultPathName
-import androidx.compose.ui.graphics.vector.DefaultStrokeLineCap
-import androidx.compose.ui.graphics.vector.DefaultStrokeLineJoin
-import androidx.compose.ui.graphics.vector.DefaultStrokeLineMiter
-import androidx.compose.ui.graphics.vector.DefaultStrokeLineWidth
 import androidx.compose.ui.graphics.vector.Group
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.Path
-import androidx.compose.ui.graphics.vector.PathBuilder
-import androidx.compose.ui.graphics.vector.PathData
-import androidx.compose.ui.graphics.vector.VectorComposable
-import androidx.compose.ui.graphics.vector.group
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.CampfireIcons
 
 @Composable
 fun rememberAnimatingTravellingIcon(): Painter {
@@ -142,10 +123,10 @@ fun rememberAnimatingTravellingIcon(): Painter {
       ),
     )
 
-    val darkPrimary = MaterialTheme.colorScheme.primary //Color(0xFF008AA9)
+    val darkPrimary = MaterialTheme.colorScheme.primary // Color(0xFF008AA9)
     val lightPrimary = MaterialTheme.colorScheme.primaryContainer
       .copy(alpha = 0.95f)
-      .compositeOver(MaterialTheme.colorScheme.inverseSurface) //Color(0xFF37D0EE)
+      .compositeOver(MaterialTheme.colorScheme.inverseSurface) // Color(0xFF37D0EE)
 
     Group(
       name = "camper",

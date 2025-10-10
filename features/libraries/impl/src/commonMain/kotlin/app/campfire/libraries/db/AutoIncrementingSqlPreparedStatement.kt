@@ -3,7 +3,7 @@ package app.campfire.libraries.db
 import app.campfire.core.logging.bark
 import app.cash.sqldelight.db.SqlPreparedStatement
 
-class AutoIncrementingSqlPreparedStatement(
+internal class AutoIncrementingSqlPreparedStatement(
   val delegate: SqlPreparedStatement,
   val getAndIncrement: () -> Int,
 ) : SqlPreparedStatement by delegate {

@@ -58,7 +58,7 @@ class HomePresenter(
       offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
-        is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id))
+        is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id, event.sharedTransitionKey))
         is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
         is HomeUiEvent.OpenSeries -> navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
       }
