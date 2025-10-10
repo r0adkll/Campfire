@@ -1,5 +1,6 @@
 package app.campfire.common.compose.widgets
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -22,11 +23,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
-import campfire.common.compose.generated.resources.placeholder_man
-import campfire.common.compose.generated.resources.placeholder_woman
+import campfire.common.compose.generated.resources.placeholder_person
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import kotlin.random.Random
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.painterResource
 
 val CoverImageSize = 256.dp
@@ -74,23 +74,30 @@ fun CoverImage(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AuthorCoverImage(
   author: Author,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   val placeHolderResource = remember {
-    if (Random.nextBoolean()) {
-      Res.drawable.placeholder_man
-    } else {
-      Res.drawable.placeholder_woman
-    }
+    Res.drawable.placeholder_person
   }
   CoverImage(
     imageUrl = author.imagePath ?: "",
     contentDescription = author.name,
     placeholder = painterResource(placeHolderResource),
     modifier = modifier,
+    sharedElementModifier = Modifier
+      .sharedElement(
+        sharedContentState = rememberSharedContentState(
+          AuthorSharedTransitionKey(
+            id = author.id,
+            type = AuthorSharedTransitionKey.ElementType.Image,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+      ),
   )
 }
 

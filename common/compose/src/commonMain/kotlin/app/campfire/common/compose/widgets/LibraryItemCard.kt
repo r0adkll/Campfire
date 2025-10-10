@@ -64,8 +64,6 @@ data class LibraryItemSharedTransitionKey(
 ) {
   enum class ElementType {
     Image,
-    Title,
-    Author,
   }
 }
 
@@ -75,6 +73,7 @@ fun LibraryItemCard(
   item: LibraryItem,
   modifier: Modifier = Modifier,
   sharedTransitionKey: String = item.id,
+  sharedTransitionZIndex: Float = 0f,
   isSelectable: Boolean = false,
   selected: Boolean = false,
   offlineStatus: OfflineStatus = OfflineStatus.None,
@@ -87,7 +86,12 @@ fun LibraryItemCard(
   ) {
     Box {
       Column {
-        LibraryItemCardImage(item, sharedTransitionKey, offlineStatus)
+        LibraryItemCardImage(
+          item = item,
+          sharedTransitionKey = sharedTransitionKey,
+          sharedTransitionZIndex = sharedTransitionZIndex,
+          offlineStatus = offlineStatus,
+        )
         LibraryItemCardInformation(item)
       }
 
@@ -104,6 +108,7 @@ fun LibraryItemCard(
 private fun LibraryItemCardImage(
   item: LibraryItem,
   sharedTransitionKey: String,
+  sharedTransitionZIndex: Float,
   offlineStatus: OfflineStatus,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
@@ -131,6 +136,7 @@ private fun LibraryItemCardImage(
             ),
           ),
           animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+          zIndexInOverlay = sharedTransitionZIndex,
         ),
     )
 

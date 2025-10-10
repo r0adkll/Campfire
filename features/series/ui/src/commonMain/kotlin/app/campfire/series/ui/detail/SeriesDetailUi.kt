@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -69,6 +70,7 @@ fun SeriesDetail(
       )
 
       is LoadState.Loaded -> LoadedState(
+        seriesName = screen.seriesName,
         items = state.seriesContentState.data,
         offlineStatus = { state.offlineStates[it].asWidgetStatus() },
         onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
@@ -80,6 +82,7 @@ fun SeriesDetail(
 
 @Composable
 private fun LoadedState(
+  seriesName: String,
   items: List<LibraryItem>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
@@ -95,12 +98,14 @@ private fun LoadedState(
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    items(
+    itemsIndexed(
       items = items,
-      key = { it.id },
-    ) { item ->
+      key = { _, item -> item.id },
+    ) { index, item ->
       LibraryItemCard(
         item = item,
+        sharedTransitionKey = item.id + seriesName,
+        sharedTransitionZIndex = -(index + 1f),
         offlineStatus = offlineStatus(item.id),
         modifier = Modifier.clickable {
           onLibraryItemClick(item)

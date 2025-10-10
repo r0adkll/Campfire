@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Delete
@@ -195,6 +196,7 @@ fun CollectionDetail(
       )
 
       is LoadState.Loaded -> LoadedState(
+        collectionName = screen.collectionName,
         description = state.collection?.description,
         isEditing = isItemEditing,
         selectedItems = selectedItems,
@@ -236,6 +238,7 @@ fun CollectionDetail(
 
 @Composable
 private fun LoadedState(
+  collectionName: String,
   description: String?,
   isEditing: Boolean,
   selectedItems: List<LibraryItem>,
@@ -276,12 +279,14 @@ private fun LoadedState(
       }
     }
 
-    items(
+    itemsIndexed(
       items = items,
-      key = { it.id },
-    ) { item ->
+      key = { _, item -> item.id },
+    ) { index, item ->
       LibraryItemCard(
         item = item,
+        sharedTransitionKey = item.id + collectionName,
+        sharedTransitionZIndex = -(index + 1f),
         offlineStatus = offlineStatus(item.id),
         isSelectable = isEditing,
         selected = selectedItems.contains(item),

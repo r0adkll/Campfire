@@ -77,7 +77,12 @@ class CollectionDetailPresenter(
           }
         }
 
-        is CollectionDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        is CollectionDetailUiEvent.LibraryItemClick -> navigator.goTo(
+          LibraryItemScreen(
+            libraryItemId = event.libraryItem.id,
+            sharedTransitionKey = event.libraryItem.id + screen.collectionName,
+          ),
+        )
       }
     }
   }

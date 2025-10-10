@@ -1,5 +1,6 @@
 package app.campfire.common.compose.widgets
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,22 +25,31 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.filter_bar_book_count
-import campfire.common.compose.generated.resources.placeholder_man
-import campfire.common.compose.generated.resources.placeholder_woman
+import campfire.common.compose.generated.resources.placeholder_person
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import kotlin.random.Random
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 
 private val CardMaxWidth = 400.dp
 private val ThumbnailCornerSize = 12.dp
 
+data class AuthorSharedTransitionKey(
+  val id: String,
+  val type: ElementType,
+) {
+  enum class ElementType {
+    Image,
+  }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AuthorCard(
   author: Author,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   ElevatedCard(
     modifier = modifier,
   ) {
@@ -51,11 +61,7 @@ fun AuthorCard(
         .clip(RoundedCornerShape(ThumbnailCornerSize)),
     ) {
       val placeHolderResource = remember {
-        if (Random.nextBoolean()) {
-          Res.drawable.placeholder_man
-        } else {
-          Res.drawable.placeholder_woman
-        }
+        Res.drawable.placeholder_person
       }
 
       val painter = rememberAsyncImagePainter(
@@ -79,7 +85,17 @@ fun AuthorCard(
         contentDescription = author.name,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-          .fillMaxSize(),
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(
+              AuthorSharedTransitionKey(
+                id = author.id,
+                type = AuthorSharedTransitionKey.ElementType.Image,
+              ),
+            ),
+            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+          )
+          .fillMaxSize()
+          .clip(RoundedCornerShape(ThumbnailCornerSize)),
       )
     }
     Column(
@@ -113,11 +129,7 @@ private fun PlaceholderImage(
       .fillMaxSize(),
   ) {
     val placeHolderResource = remember {
-      if (Random.nextBoolean()) {
-        Res.drawable.placeholder_man
-      } else {
-        Res.drawable.placeholder_woman
-      }
+      Res.drawable.placeholder_person
     }
     Image(
       painterResource(placeHolderResource),

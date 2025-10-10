@@ -1,5 +1,6 @@
 package app.campfire.common.compose.widgets
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMaxBy
 import androidx.compose.ui.util.fastSumBy
 import app.campfire.core.model.LibraryItem
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 
 private val BookImageSize = 180.dp
 private val BookCornerSize = 12.dp
@@ -40,6 +42,7 @@ fun ItemCollectionCard(
   ) {
     MultiBookLayout(
       items = items,
+      sharedTransitionKeyModifier = name,
       itemSize = itemSize,
       modifier = Modifier
         .background(MaterialTheme.colorScheme.primaryContainer)
@@ -72,23 +75,36 @@ fun ItemCollectionCard(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun MultiBookLayout(
   items: List<LibraryItem>,
   modifier: Modifier = Modifier,
+  sharedTransitionKeyModifier: String = "",
   itemSize: Dp = Dp.Unspecified,
-) {
+) = SharedElementTransitionScope {
   val bookImageSize = itemSize.takeIf { it != Dp.Unspecified } ?: BookImageSize
   Layout(
     content = {
       items
         .sortedBy { it.media.metadata.seriesSequence?.sequence }
         .take(MaxBookDisplay)
-        .forEach { item ->
+        .forEachIndexed { i, item ->
           ItemImage(
             imageUrl = item.media.coverImageUrl,
             contentDescription = item.media.metadata.title,
-            modifier = Modifier.size(bookImageSize),
+            modifier = Modifier
+              .sharedElement(
+                sharedContentState = rememberSharedContentState(
+                  LibraryItemSharedTransitionKey(
+                    id = item.id + sharedTransitionKeyModifier,
+                    type = LibraryItemSharedTransitionKey.ElementType.Image,
+                  ),
+                ),
+                animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+                zIndexInOverlay = -(i + 1f),
+              )
+              .size(bookImageSize),
           )
         }
     },

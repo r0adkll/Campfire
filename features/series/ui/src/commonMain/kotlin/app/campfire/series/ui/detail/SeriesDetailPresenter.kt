@@ -54,7 +54,12 @@ class SeriesDetailPresenter(
     ) { event ->
       when (event) {
         SeriesDetailUiEvent.Back -> navigator.pop()
-        is SeriesDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        is SeriesDetailUiEvent.LibraryItemClick -> navigator.goTo(
+          LibraryItemScreen(
+            libraryItemId = event.libraryItem.id,
+            sharedTransitionKey = event.libraryItem.id + screen.seriesName,
+          ),
+        )
       }
     }
   }
