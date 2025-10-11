@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS seriesBookJoin (
 
   PRIMARY KEY (seriesId, libraryItemId),
   FOREIGN KEY (seriesId) REFERENCES series(id) ON UPDATE NO ACTION ON DELETE CASCADE,
-  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS index_series_book_join_libraryItemId ON seriesBookJoin(libraryItemId);

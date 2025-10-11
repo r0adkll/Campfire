@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS series (
 --   hideFromContinueListening INTEGER AS Boolean NOT NULL,
 --   bookInProgressLastUpdate INTEGER NOT NULL,
 
-  libraryId TEXT NOT NULL
+  libraryId TEXT NOT NULL,
+  FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
 );
 
 insert:
