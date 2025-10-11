@@ -1,6 +1,7 @@
 package app.campfire.auth.ui.login.composables
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -58,6 +59,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.AuthError
 import app.campfire.auth.ui.login.ConnectionState
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Logo
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Title
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.model.Tent
@@ -71,9 +77,11 @@ import campfire.features.auth.ui.generated.resources.label_server_url
 import campfire.features.auth.ui.generated.resources.label_username
 import campfire.features.auth.ui.generated.resources.loading_server_url
 import campfire.features.auth.ui.generated.resources.valid_server_url
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import com.slack.circuit.sharedelements.SharedElementTransitionScope.AnimatedScope.Navigation
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ServerCard(
   tent: Tent,
@@ -91,7 +99,7 @@ internal fun ServerCard(
   authError: AuthError?,
   isAuthenticating: Boolean,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   val focusRequester = remember { FocusRequester() }
 
   LaunchedEffect(isAuthenticating) {
@@ -104,7 +112,11 @@ internal fun ServerCard(
     colors = CardDefaults.elevatedCardColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ),
-    modifier = modifier,
+    modifier = modifier
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
+        animatedVisibilityScope = requireAnimatedScope(Navigation),
+      ),
   ) {
     ServerNameAndIcon(
       tent = tent,
@@ -241,6 +253,7 @@ internal fun ServerCard(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun ServerNameAndIcon(
   tent: Tent,
@@ -248,7 +261,7 @@ private fun ServerNameAndIcon(
   name: String,
   onNameChange: (String) -> Unit,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   Row(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
@@ -264,6 +277,11 @@ private fun ServerNameAndIcon(
       Image(
         tent.icon,
         contentDescription = null,
+        modifier = Modifier
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(ElementType.Tent)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          )
       )
       Box(
         modifier = Modifier

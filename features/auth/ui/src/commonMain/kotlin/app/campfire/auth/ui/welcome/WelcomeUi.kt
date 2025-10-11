@@ -1,5 +1,6 @@
 package app.campfire.auth.ui.welcome
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.login.LoginUiContent
 import app.campfire.auth.ui.login.LoginUiState
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Logo
+import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Title
 import app.campfire.auth.ui.welcome.composables.AddCampsiteCard
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.NoisyCampfireIcon
@@ -32,6 +37,8 @@ import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import com.slack.circuit.sharedelements.SharedElementTransitionScope.AnimatedScope.Navigation
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(WelcomeScreen::class, UserScope::class)
@@ -60,11 +67,12 @@ fun Welcome(
   }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun SinglePaneLayout(
   onEvent: (WelcomeUiEvent) -> Unit,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   Column(modifier.fillMaxSize()) {
     Column(
       modifier = Modifier
@@ -74,7 +82,12 @@ private fun SinglePaneLayout(
       verticalArrangement = Arrangement.Bottom,
     ) {
       NoisyCampfireIcon(
-        modifier = Modifier.size(236.dp),
+        modifier = Modifier
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          )
+          .size(236.dp),
       )
 
       Spacer(Modifier.height(16.dp))
@@ -83,6 +96,11 @@ private fun SinglePaneLayout(
         text = stringResource(Res.string.welcome_title),
         style = MaterialTheme.typography.displayLarge,
         fontFamily = PaytoneOneFontFamily,
+        modifier = Modifier
+          .sharedBounds(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          )
       )
     }
     Column(
@@ -95,6 +113,10 @@ private fun SinglePaneLayout(
       AddCampsiteCard(
         onClick = { onEvent(WelcomeUiEvent.AddCampsite) },
         modifier = Modifier
+          .sharedBounds(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          )
           .widthIn(max = 500.dp)
           .fillMaxWidth()
           .padding(
