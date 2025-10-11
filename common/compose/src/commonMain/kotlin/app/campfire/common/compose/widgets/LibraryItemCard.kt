@@ -3,6 +3,7 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -39,11 +40,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.cardElevation
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.offline.OfflineStatus
@@ -128,16 +131,18 @@ private fun LibraryItemCardImage(
         .widthIn(max = CardMaxWidth)
         .clip(shape),
       sharedElementModifier = Modifier
-        .sharedElement(
-          sharedContentState = rememberSharedContentState(
-            LibraryItemSharedTransitionKey(
-              id = sharedTransitionKey,
-              type = LibraryItemSharedTransitionKey.ElementType.Image,
+        .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+          sharedElement(
+            sharedContentState = rememberSharedContentState(
+              LibraryItemSharedTransitionKey(
+                id = sharedTransitionKey,
+                type = LibraryItemSharedTransitionKey.ElementType.Image,
+              ),
             ),
-          ),
-          animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-          zIndexInOverlay = sharedTransitionZIndex,
-        ),
+            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+            zIndexInOverlay = sharedTransitionZIndex,
+          )
+        },
     )
 
     item.userMediaProgress?.let { mediaProgress ->

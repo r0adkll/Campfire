@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
@@ -85,15 +86,17 @@ fun AuthorCard(
         contentDescription = author.name,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-          .sharedElement(
-            sharedContentState = rememberSharedContentState(
-              AuthorSharedTransitionKey(
-                id = author.id,
-                type = AuthorSharedTransitionKey.ElementType.Image,
+          .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+            sharedElement(
+              sharedContentState = rememberSharedContentState(
+                AuthorSharedTransitionKey(
+                  id = author.id,
+                  type = AuthorSharedTransitionKey.ElementType.Image,
+                ),
               ),
-            ),
-            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-          )
+              animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+            )
+          }
           .fillMaxSize()
           .clip(RoundedCornerShape(ThumbnailCornerSize)),
       )
