@@ -33,6 +33,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent
+  data class AuthorClick(val item: LibraryItem) : LibraryItemUiEvent
+  data class NarratorClick(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
   data class TimeInBookChange(val item: LibraryItem, val enabled: Boolean) : LibraryItemUiEvent
 

@@ -224,7 +224,7 @@ class SqlDelightLibraryItemDao(
         db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId))
       }
 
-      item.media.metadata.authors?.forEach { authorMeta ->
+      item.media.metadata.authors.forEach { authorMeta ->
         db.metadataAuthorQueries.insert(authorMeta.asDbModel(media.mediaId))
       }
 

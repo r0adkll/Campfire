@@ -2,7 +2,7 @@ package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +36,8 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AuthorNarratorBar(
   metadata: Media.Metadata,
+  onAuthorClick: () -> Unit,
+  onNarratorClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   Row(
@@ -48,6 +50,7 @@ internal fun AuthorNarratorBar(
       title = { Text(stringResource(Res.string.by_author_line)) },
       content = { Text(metadata.authorName ?: "--") },
       modifier = Modifier
+        .clickable(onClick = onAuthorClick)
         .align(Alignment.Top)
         .weight(1f)
         .padding(horizontal = 8.dp),
@@ -57,23 +60,28 @@ internal fun AuthorNarratorBar(
       modifier = Modifier.height(32.dp),
     )
 
+    var isOverflowed by remember { mutableStateOf(true) }
+    var isExpanded by remember { mutableStateOf(false) }
     var maxLines by remember { mutableStateOf(DefaultMaxLines) }
     ByLine(
       title = { Text(stringResource(Res.string.by_narrator_line)) },
       content = {
         Text(
           text = metadata.narratorName ?: "--",
-          maxLines = maxLines,
+          maxLines = if (isExpanded) Int.MAX_VALUE else maxLines,
           overflow = TextOverflow.Ellipsis,
-          modifier = Modifier.clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-          ) {
-            maxLines = if (maxLines == DefaultMaxLines) Int.MAX_VALUE else DefaultMaxLines
+          onTextLayout = { result ->
+            isOverflowed = result.didOverflowHeight || isExpanded
           },
         )
       },
       modifier = Modifier
+        .combinedClickable(
+          onClick = onNarratorClick,
+          onLongClick = {
+            isExpanded = !isExpanded
+          },
+        )
         .align(Alignment.Top)
         .weight(1f)
         .padding(horizontal = 8.dp),

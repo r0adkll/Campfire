@@ -1,45 +1,38 @@
 package app.campfire.libraries.ui.detail.composables
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.rounded.DownloadForOffline
-import androidx.compose.material.icons.rounded.LibraryAdd
-import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.DownloadDone
+import androidx.compose.material.icons.rounded.Downloading
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.outline.Autoplay
+import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_play
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
-import campfire.features.libraries.ui.generated.resources.menu_item_add_collection
-import campfire.features.libraries.ui.generated.resources.menu_item_add_playlist
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress
-import campfire.features.libraries.ui.generated.resources.menu_item_download
 import campfire.features.libraries.ui.generated.resources.menu_item_mark_finished
 import campfire.features.libraries.ui.generated.resources.menu_item_mark_not_finished
 import org.jetbrains.compose.resources.stringResource
@@ -54,8 +47,6 @@ internal fun ControlBar(
   onMarkFinished: () -> Unit,
   onMarkNotFinished: () -> Unit,
   onDiscardProgress: () -> Unit,
-  onAddToPlaylist: () -> Unit,
-  onAddToCollection: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val hasProgress = mediaProgress != null &&
@@ -74,10 +65,18 @@ internal fun ControlBar(
         Icons.Rounded.PlayArrow
       }
 
+      val splitButtonRadius = 4.dp
+
       Button(
         onClick = onPlayClick,
         enabled = !isCurrentListening,
         modifier = Modifier.weight(1f),
+        shape = RoundedCornerShape(
+          topStart = CornerSize(50),
+          bottomStart = CornerSize(50),
+          topEnd = CornerSize(splitButtonRadius),
+          bottomEnd = CornerSize(splitButtonRadius),
+        ),
       ) {
         Icon(playButtonIcon, contentDescription = null)
         Spacer(Modifier.width(8.dp))
@@ -90,12 +89,42 @@ internal fun ControlBar(
         )
       }
 
-      ControlsDropdownButton(
-        isDownloadEnabled = offlineDownload?.state == null || offlineDownload.state == OfflineDownload.State.None,
-        onDownloadClick = onDownloadClick,
-        onAddToPlaylist = onAddToPlaylist,
-        onAddToCollection = onAddToCollection,
-      )
+      Spacer(Modifier.width(2.dp))
+
+      Button(
+        enabled = offlineDownload?.state == null || offlineDownload.state == OfflineDownload.State.None,
+        onClick = onDownloadClick,
+        shape = RoundedCornerShape(
+          topStart = CornerSize(splitButtonRadius),
+          bottomStart = CornerSize(splitButtonRadius),
+          topEnd = CornerSize(50),
+          bottomEnd = CornerSize(50),
+        ),
+        contentPadding = PaddingValues(
+          start = 12.dp,
+          end = 14.dp,
+          top = 8.dp,
+          bottom = 8.dp,
+        ),
+      ) {
+        Icon(
+          when (offlineDownload?.state) {
+            null -> CampfireIcons.Rounded.Download
+            OfflineDownload.State.Stopped,
+            OfflineDownload.State.None,
+            -> CampfireIcons.Rounded.Download
+
+            OfflineDownload.State.Queued,
+            OfflineDownload.State.Downloading,
+            -> Icons.Rounded.Downloading
+
+            OfflineDownload.State.Failed -> Icons.Rounded.ErrorOutline
+            OfflineDownload.State.Completed -> Icons.Rounded.DownloadDone
+          },
+          contentDescription = null,
+          modifier = Modifier.size(22.dp),
+        )
+      }
     }
 
     if (hasProgress) {
@@ -126,62 +155,6 @@ internal fun ControlBar(
         Spacer(Modifier.width(8.dp))
         Text(stringResource(Res.string.menu_item_mark_not_finished))
       }
-    }
-  }
-}
-
-@Composable
-private fun ControlsDropdownButton(
-  isDownloadEnabled: Boolean,
-  onDownloadClick: () -> Unit,
-  onAddToPlaylist: () -> Unit,
-  onAddToCollection: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Box(modifier) {
-    var expanded by remember { mutableStateOf(false) }
-    FilledIconButton(
-      onClick = {
-        expanded = true
-      },
-    ) {
-      Icon(
-        Icons.Rounded.MoreVert,
-        contentDescription = null,
-      )
-    }
-
-    DropdownMenu(
-      expanded = expanded,
-      shape = MaterialTheme.shapes.medium,
-      onDismissRequest = { expanded = false },
-    ) {
-      if (isDownloadEnabled) {
-        DropdownMenuItem(
-          leadingIcon = { Icon(Icons.Rounded.DownloadForOffline, contentDescription = null) },
-          text = { Text(stringResource(Res.string.menu_item_download)) },
-          onClick = {
-            onDownloadClick()
-            expanded = false
-          },
-        )
-      }
-      DropdownMenuItem(
-        leadingIcon = { Icon(Icons.AutoMirrored.Rounded.PlaylistAdd, contentDescription = null) },
-        text = { Text(stringResource(Res.string.menu_item_add_playlist)) },
-        onClick = {
-          onAddToPlaylist()
-          expanded = false
-        },
-      )
-      DropdownMenuItem(
-        leadingIcon = { Icon(Icons.Rounded.LibraryAdd, contentDescription = null) },
-        text = { Text(stringResource(Res.string.menu_item_add_collection)) },
-        onClick = {
-          onAddToCollection()
-          expanded = false
-        },
-      )
     }
   }
 }

@@ -9,11 +9,14 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
@@ -112,6 +115,18 @@ class LibraryItemPresenter(
         LibraryItemUiEvent.OnBack -> navigator.pop()
         is LibraryItemUiEvent.PlayClick -> {
           playbackController.startSession(event.item.id)
+        }
+
+        is LibraryItemUiEvent.AuthorClick -> {
+          event.item.media.metadata.authors.firstOrNull()?.let { author ->
+            navigator.goTo(AuthorDetailScreen(author.id, author.name))
+          }
+        }
+
+        is LibraryItemUiEvent.NarratorClick -> {
+          event.item.media.metadata.narratorName?.let { narrator ->
+            navigator.goTo(LibraryScreen(LibraryItemFilter.Narrators(narrator)))
+          }
         }
 
         is LibraryItemUiEvent.SeriesClick -> {

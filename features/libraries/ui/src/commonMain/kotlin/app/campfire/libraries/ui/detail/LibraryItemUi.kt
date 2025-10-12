@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material.icons.rounded.Cast
+import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.HorizontalDivider
@@ -60,8 +61,10 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MetadataHeader
+import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
+import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
@@ -119,10 +122,21 @@ fun LibraryItem(
           }
         },
         actions = {
+          if (currentPlatform == Platform.ANDROID) {
+            IconButton(
+              onClick = {
+                // TODO: Implement ChromeCast integration
+              },
+            ) {
+              Icon(Icons.Rounded.Cast, contentDescription = null)
+            }
+          }
           IconButton(
-            onClick = {},
+            onClick = {
+              showAddToCollectionDialog = true
+            },
           ) {
-            Icon(Icons.Rounded.Cast, contentDescription = null)
+            Icon(Icons.Rounded.LibraryAdd, contentDescription = null)
           }
           IconButton(
             onClick = {},
@@ -151,6 +165,12 @@ fun LibraryItem(
         showTimeInBook = state.showTimeInBook,
         modifier = modifier,
         contentPadding = paddingValues,
+        onAuthorClick = {
+          state.eventSink(LibraryItemUiEvent.AuthorClick(contentState.data))
+        },
+        onNarratorClick = {
+          state.eventSink(LibraryItemUiEvent.NarratorClick(contentState.data))
+        },
         onChapterClick = { chapter ->
           state.eventSink(LibraryItemUiEvent.ChapterClick(contentState.data, chapter))
         },
@@ -172,11 +192,6 @@ fun LibraryItem(
         },
         onSeriesClick = {
           state.eventSink(LibraryItemUiEvent.SeriesClick(contentState.data))
-        },
-        onAddToPlaylist = {
-        },
-        onAddToCollection = {
-          showAddToCollectionDialog = true
         },
         onMarkFinished = {
           state.eventSink(LibraryItemUiEvent.MarkFinished(contentState.data))
@@ -236,6 +251,8 @@ fun LoadedState(
   mediaProgressState: LoadState<out MediaProgress?>,
   showTimeInBook: Boolean,
   offlineDownload: OfflineDownload?,
+  onAuthorClick: () -> Unit,
+  onNarratorClick: () -> Unit,
   onChapterClick: (Chapter) -> Unit,
   onPlayClick: () -> Unit,
   onDownloadClick: () -> Unit,
@@ -244,8 +261,6 @@ fun LoadedState(
   onMarkFinished: () -> Unit,
   onMarkNotFinished: () -> Unit,
   onDiscardProgress: () -> Unit,
-  onAddToPlaylist: () -> Unit,
-  onAddToCollection: () -> Unit,
   onSeriesClick: () -> Unit,
   onTimeInBookChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
@@ -332,6 +347,8 @@ fun LoadedState(
 
     AuthorNarratorBar(
       metadata = item.media.metadata,
+      onAuthorClick = onAuthorClick,
+      onNarratorClick = onNarratorClick,
     )
 
     Spacer(Modifier.height(24.dp))
@@ -357,8 +374,6 @@ fun LoadedState(
       onMarkFinished = onMarkFinished,
       onMarkNotFinished = onMarkNotFinished,
       onDiscardProgress = onDiscardProgress,
-      onAddToPlaylist = onAddToPlaylist,
-      onAddToCollection = onAddToCollection,
       modifier = Modifier
         .padding(horizontal = 16.dp),
     )
