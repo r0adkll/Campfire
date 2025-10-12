@@ -62,8 +62,6 @@ import app.campfire.auth.ui.login.ConnectionState
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
-import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Logo
-import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Title
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.model.Tent
@@ -281,7 +279,7 @@ private fun ServerNameAndIcon(
           .sharedElement(
             sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(ElementType.Tent)),
             animatedVisibilityScope = requireAnimatedScope(Navigation),
-          )
+          ),
       )
       Box(
         modifier = Modifier

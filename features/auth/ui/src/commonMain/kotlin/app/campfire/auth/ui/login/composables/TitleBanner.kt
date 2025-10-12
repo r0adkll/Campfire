@@ -51,7 +51,7 @@ internal fun TitleBanner(
         .sharedBounds(
           sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
           animatedVisibilityScope = requireAnimatedScope(Navigation),
-        )
+        ),
     )
   }
 }

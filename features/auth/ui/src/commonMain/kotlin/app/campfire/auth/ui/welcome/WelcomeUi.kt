@@ -100,7 +100,7 @@ private fun SinglePaneLayout(
           .sharedBounds(
             sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
             animatedVisibilityScope = requireAnimatedScope(Navigation),
-          )
+          ),
       )
     }
     Column(

@@ -10,4 +10,6 @@
   <string name="account_picker_logout_text_format">Are you sure you want to sign out of "%1$s"?</string>
   <string name="account_picker_logout_action_confirm">Sign out</string>
   <string name="account_picker_logout_action_dismiss">Cancel</string>
+
+  <string name="libraries_error_message">Uh-oh! Something went wrong trying to load your libraries.</string>
 </resources>

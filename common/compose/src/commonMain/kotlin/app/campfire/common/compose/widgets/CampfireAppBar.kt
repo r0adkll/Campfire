@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
@@ -95,16 +95,15 @@ fun CampfireAppBar(
                 onClick = onTitleClick,
               ),
           ) {
-            Spacer(Modifier.size(18.dp))
+            Spacer(Modifier.size(24.dp))
             Text(state.library.library.name)
             if (canTitleClick) {
               Icon(
-                Icons.Rounded.KeyboardArrowDown,
+                Icons.Rounded.ArrowDropDown,
                 contentDescription = null,
-                modifier = Modifier.size(18.dp),
               )
             } else {
-              Spacer(Modifier.size(18.dp))
+              Spacer(Modifier.size(24.dp))
             }
           }
         }

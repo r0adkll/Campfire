@@ -26,7 +26,7 @@ fun DbLibrary.asDomainModel(): Library {
     id = id,
     name = name,
     displayOrder = displayOrder,
-    icon = icon,
+    icon = Library.Icon.from(icon),
     mediaType = mediaType,
     provider = provider,
     coverAspectRatio = coverAspectRatio,

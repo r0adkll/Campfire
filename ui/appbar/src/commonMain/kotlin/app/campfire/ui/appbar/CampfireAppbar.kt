@@ -104,6 +104,7 @@ fun CampfireAppBar(
   }
 }
 
+// TODO: Commonize this so we can re-use it elsewhere
 @Composable
 private fun LibrariesPopup(
   currentLibrary: Library?,

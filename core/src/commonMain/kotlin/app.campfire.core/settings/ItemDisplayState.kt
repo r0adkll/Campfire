@@ -6,8 +6,10 @@ enum class ItemDisplayState(override val storageKey: String) : EnumSetting {
   ;
 
   companion object : EnumSettingProvider<ItemDisplayState> {
+    val Default get() = Grid
+
     override fun fromStorageKey(key: String?): ItemDisplayState {
-      return entries.find { it.storageKey == key } ?: List
+      return entries.find { it.storageKey == key } ?: Default
     }
   }
 }

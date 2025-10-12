@@ -8,6 +8,7 @@ kotlin {
       dependencies {
         implementation(projects.data.account.api)
         implementation(projects.features.user.api)
+        implementation(projects.features.libraries.api)
 
         implementation(compose.components.resources)
 

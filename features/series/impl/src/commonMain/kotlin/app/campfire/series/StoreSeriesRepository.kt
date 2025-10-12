@@ -15,13 +15,12 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
-import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
-import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.series.api.SeriesRepository
+import app.campfire.series.store.SeriesStore
 import app.campfire.user.api.UserRepository
-import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -32,6 +31,7 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
@@ -48,10 +48,10 @@ class StoreSeriesRepository(
   private val userSession: UserSession,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
-  private val libraryItemDao: LibraryItemDao,
   private val userRepository: UserRepository,
   private val tokenHydrator: TokenHydrator,
   private val dispatcherProvider: DispatcherProvider,
+  private val seriesStoreFactory: SeriesStore.Factory,
 ) : SeriesRepository {
 
   private val serverUrl by lazy {
@@ -59,57 +59,7 @@ class StoreSeriesRepository(
       ?: throw IllegalStateException("Only logged-in users can fetch the list of series")
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  private val seriesStore = StoreBuilder.from(
-    fetcher = Fetcher.ofResult { libraryId: LibraryId -> api.getSeries(libraryId).asFetcherResult() },
-    sourceOfTruth = SourceOfTruth.of(
-      reader = { libraryId: LibraryId ->
-        db.seriesQueries.selectByLibraryId(libraryId)
-          .asFlow()
-          .mapToList(dispatcherProvider.databaseRead)
-          .mapLatest { series ->
-            series.associateWith { s ->
-              db.libraryItemsQueries
-                .selectForSeries(s.id)
-                .awaitAsList()
-            }
-          }
-      },
-      writer = { libraryId, series: List<NetworkSeries> ->
-        withContext(dispatcherProvider.databaseWrite) {
-          db.transaction {
-            series.forEach { series ->
-              // Insert Series
-              db.seriesQueries.insert(series.asDbModel(libraryId))
-
-              // Insert the series books
-              series.books?.forEach { book ->
-                val libraryItem = book.asDbModel(serverUrl)
-                val media = book.media.asDbModel(book.id)
-
-                // If these items exist, lets not overwrite their metadata
-                db.libraryItemsQueries.insertOrIgnore(libraryItem)
-                db.mediaQueries.insertOrIgnore(media)
-
-                // Insert junction entry
-                db.seriesBookJoinQueries.insert(
-                  SeriesBookJoin(
-                    seriesId = series.id,
-                    libraryItemId = book.id,
-                  ),
-                )
-              }
-            }
-          }
-        }
-      },
-      delete = { libraryId: LibraryId ->
-        withContext(dispatcherProvider.databaseWrite) {
-          db.seriesQueries.deleteForLibraryId(libraryId)
-        }
-      },
-    ),
-  ).build()
+  private val seriesStore by lazy { seriesStoreFactory.create() }
 
   data class SeriesItems(
     val libraryId: LibraryId,
@@ -173,6 +123,7 @@ class StoreSeriesRepository(
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         seriesStore.stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+          .debugLogging("Series")
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             response.dataOrNull()?.let { series ->
