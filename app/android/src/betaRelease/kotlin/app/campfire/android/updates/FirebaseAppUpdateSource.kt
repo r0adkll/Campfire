@@ -1,23 +1,27 @@
 package app.campfire.android.updates
 
+import android.app.Application
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.updates.source.AppUpdateSource
+import com.google.firebase.FirebaseApp
 import com.google.firebase.appdistribution.FirebaseAppDistribution
 import com.google.firebase.appdistribution.FirebaseAppDistributionException
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.tasks.await
 import me.tatarka.inject.annotations.Inject
 
-@ContributesBinding(AppScope::class)
+@ContributesBinding(AppScope::class, replaces = [NoOpUpdateSource::class])
 @Inject
 class FirebaseAppUpdateSource(
+  private val application: Application,
   private val appInfo: ApplicationInfo,
 ) : AppUpdateSource {
 
   private val appDistribution by lazy {
+    FirebaseApp.initializeApp(application)
     FirebaseAppDistribution.getInstance()
   }
 

@@ -26,5 +26,12 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+
+    <!-- Disable Firebase's built-in provider initializer so we can control when we initialize FB  -->
+    <provider
+      android:name="com.google.firebase.provider.FirebaseInitProvider"
+      android:authorities="${applicationId}.firebaseinitprovider"
+      tools:node="remove" />
+
   </application>
 </manifest>
