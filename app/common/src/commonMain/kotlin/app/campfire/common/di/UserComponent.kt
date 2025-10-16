@@ -1,7 +1,9 @@
 package app.campfire.common.di
 
+import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.common.screens.BaseScreen
-import app.campfire.common.screens.rootScreen
+import app.campfire.common.screens.HomeScreen
+import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
@@ -40,7 +42,10 @@ interface UserComponent {
   @Provides @RootScreen
   @SingleIn(UserScope::class)
   fun provideRootScreen(userSession: UserSession): BaseScreen {
-    return userSession.rootScreen
+    return when (userSession) {
+      is UserSession.LoggedIn -> if (userSession.showAnalyticsConsent) AnalyticConsentScreen else HomeScreen
+      else -> WelcomeScreen
+    }
   }
 
   @Provides

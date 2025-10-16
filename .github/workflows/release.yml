@@ -50,6 +50,7 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
           CI: true

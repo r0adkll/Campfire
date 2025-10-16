@@ -18,6 +18,7 @@ import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Logo
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Title
 import app.campfire.common.compose.icons.NoisyCampfireIcon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.core.extensions.fluentIf
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
@@ -29,6 +30,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun TitleBanner(
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  val animatedVisibilityScope = findAnimatedScope(Navigation)
   Row(
     modifier = modifier.fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
@@ -36,10 +38,12 @@ internal fun TitleBanner(
   ) {
     NoisyCampfireIcon(
       modifier = Modifier
-        .sharedElement(
-          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
-          animatedVisibilityScope = requireAnimatedScope(Navigation),
-        )
+        .fluentIf<Modifier>(animatedVisibilityScope != null) {
+          sharedElement(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
+            animatedVisibilityScope = animatedVisibilityScope!!,
+          )
+        }
         .size(96.dp),
     )
     Spacer(Modifier.width(16.dp))
@@ -48,10 +52,12 @@ internal fun TitleBanner(
       style = MaterialTheme.typography.displayMedium,
       fontFamily = PaytoneOneFontFamily,
       modifier = Modifier
-        .sharedBounds(
-          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
-          animatedVisibilityScope = requireAnimatedScope(Navigation),
-        ),
+        .fluentIf<Modifier>(animatedVisibilityScope != null) {
+          sharedBounds(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
+            animatedVisibilityScope = animatedVisibilityScope!!,
+          )
+        },
     )
   }
 }

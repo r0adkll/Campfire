@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
+import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.TitleBanner
 import app.campfire.common.compose.theme.CampfireTheme
@@ -133,7 +134,7 @@ internal fun LoginUiContent(
       isAuthenticating = state.isAuthenticating,
       modifier = Modifier.onFocusChanged {
         hasFocus = it.hasFocus
-      }.widthIn(max = 500.dp),
+      }.widthIn(max = MaxContentWidth),
     )
 
     Spacer(Modifier.height(16.dp))
@@ -147,7 +148,7 @@ internal fun LoginUiContent(
         eventSink(LoginUiEvent.AddCampsite)
       },
       modifier = Modifier
-        .widthIn(max = 500.dp)
+        .widthIn(max = MaxContentWidth)
         .fillMaxWidth(),
     ) {
       if (!state.isAuthenticating) {

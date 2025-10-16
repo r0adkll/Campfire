@@ -16,6 +16,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.auth.api)
+        implementation(projects.data.account.api)
 
         implementation(compose.components.resources)
       }

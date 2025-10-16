@@ -47,9 +47,12 @@ class DefaultAccountManager(
       // Store the access token
       tokenStorage.put(user.id, token)
 
+      // Check for other accounts
+      val hasOtherAccounts = serverRepository.getAllServers().any { it.user.id != user.id }
+
       // Switch the session over
       changeSession {
-        UserSession.LoggedIn(user)
+        UserSession.LoggedIn(user, showAnalyticsConsent = !hasOtherAccounts)
       }
     }
 

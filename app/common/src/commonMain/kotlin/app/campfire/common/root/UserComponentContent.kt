@@ -30,8 +30,8 @@ fun UserComponentContent(
   }.collectAsState()
 
   when (userSession) {
-    is UserSession.LoggedIn,
     is UserSession.LoggedOut,
+    is UserSession.LoggedIn,
     -> {
       val userComponent = remember(userSession) {
         ComponentHolder.component<UserComponent>()

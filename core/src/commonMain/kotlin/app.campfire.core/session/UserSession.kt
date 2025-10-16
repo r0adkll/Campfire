@@ -6,7 +6,10 @@ import app.campfire.core.model.UserId
 sealed class UserSession {
   open val key: Any get() = this
 
-  data class LoggedIn(val user: User) : UserSession() {
+  data class LoggedIn(
+    val user: User,
+    val showAnalyticsConsent: Boolean = false,
+  ) : UserSession() {
     /**
      * A unique key to use for composition purposes where we want user/serverUrl combos to only cause composition
      * but other data on a `User` object to not.
@@ -34,4 +37,4 @@ val UserSession.userId: UserId? get() = when (this) {
 val UserSession.requiredUserId: UserId get() = requireNotNull(userId)
 
 val UserSession.isLoggedIn: Boolean
-  get() = this is UserSession.LoggedIn
+  get() = this is UserSession.LoggedIn && !this.showAnalyticsConsent

@@ -15,7 +15,12 @@ class UserSessionInitializer(
   private val userGraphManager: UserGraphManager,
 ) : AppInitializer {
 
-  override val priority: Int = AppInitializer.HIGHEST_PRIORITY
+  // We limit the default max priority to [Int.MAX_VALUE - 10] by default
+  // so the top 10 values are reserved system priorities. This initializer
+  // should ALWAYS be the first to execute.
+  // TODO: Write an integration test to ensure this is always true OR rewrite how these integrate in the
+  //   main application to make it impossible.
+  override val priority: Int = Int.MAX_VALUE
 
   override suspend fun onInitialize() {
     val userSession = userSessionRestorer.restore()

@@ -27,6 +27,7 @@ ksp = "2.3.0"
 ktlint = "0.49.1"
 ktor = "3.3.1"
 media3 = "1.8.0"
+mixpanel = "8.2.4"
 mosaic = "0.18.0"
 molecule = "2.2.0"
 multiplatformsettings = "1.3.0"
@@ -198,6 +199,9 @@ media3-session = { module = "androidx.media3:media3-session", version.ref = "med
 
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
+# Analytics
+mixpanel-android = { module = "com.mixpanel.android:mixpanel-android", version.ref = "mixpanel" }
+
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
@@ -205,6 +209,7 @@ turbine = "app.cash.turbine:turbine:1.2.1"
 leakCanary = "com.squareup.leakcanary:leakcanary-android:2.14"
 robolectric = "org.robolectric:robolectric:4.16"
 strikt-core = "io.strikt:strikt-core:0.35.1"
+assertk = "com.willowtreeapps.assertk:assertk:0.28.1"
 
 # Build logic dependencies
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "agp" }

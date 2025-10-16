@@ -85,6 +85,11 @@ include(
   ":data:account:ui",
 )
 include(
+  ":data:analytics:api",
+  ":data:analytics:impl",
+  ":data:analytics:mixpanel",
+)
+include(
   ":data:network:api",
   ":data:network:impl",
   ":data:db",
