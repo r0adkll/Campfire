@@ -81,6 +81,12 @@
   <string name="about_developer_oss_title">Contribute</string>
   <string name="about_developer_oss_subtitle">Campfire is open source! Join the discussion.</string>
 
+  <string name="about_header_data_collection">Data collection</string>
+  <string name="about_data_crash_reporting_title">Developer analytics</string>
+  <string name="about_data_crash_reporting_subtitle">Send crash reports and performance metrics to improve app stability</string>
+  <string name="about_data_analytic_reporting_title">Usage analytics</string>
+  <string name="about_data_analytic_reporting_subtitle">Send usage analytics to help improve the overall application experience.</string>
+
   <string name="about_header_legal">Legal &amp; Other information</string>"
   <string name="about_privacy_policy_title">Privacy policy</string>
   <string name="about_tos_title">Terms of service</string>

@@ -104,6 +104,12 @@ class SettingsPresenter(
     val autoSleepRewindEnabled by remember { sleepSettings.observeAutoRewindEnabled() }.collectAsState()
     val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState()
 
+    // About Settings
+    val crashReportingEnabled by remember { settings.observeCrashReportingEnabled() }
+      .collectAsState(settings.crashReportingEnabled)
+    val analyticReportingEnabled by remember { settings.observeAnalyticReportingEnabled() }
+      .collectAsState(settings.analyticReportingEnabled)
+
     // Developer Settings
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
@@ -139,6 +145,10 @@ class SettingsPresenter(
         } else {
           null
         },
+      ),
+      aboutSettings = AboutSettingsInfo(
+        crashReportingEnabled = crashReportingEnabled,
+        analyticReportingEnabled = analyticReportingEnabled,
       ),
       developerSettings = DeveloperSettingsInfo(
         developerModeEnabled = developerModeEnabled,
@@ -202,6 +212,12 @@ class SettingsPresenter(
           GithubClick -> navigator.goTo(UrlScreen(applicationUrls.githubDiscussion))
           PrivacyPolicyClick -> navigator.goTo(UrlScreen(applicationUrls.privacyPolicy))
           TermsOfServiceClick -> navigator.goTo(UrlScreen(applicationUrls.termsOfService))
+          is SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled -> {
+            settings.analyticReportingEnabled = event.enabled
+          }
+          is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
+            settings.crashReportingEnabled = event.enabled
+          }
         }
 
         is SettingsUiEvent.DeveloperSettingEvent -> when (event) {

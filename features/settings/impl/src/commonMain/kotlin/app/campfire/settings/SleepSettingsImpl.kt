@@ -35,13 +35,13 @@ class SleepSettingsImpl(
   override var shakeToResetEnabled: Boolean by booleanSetting(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
   override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, DefaultShakeToResetEnabled)
+      .stateIn(settingsScope, SharingStarted.Lazily, shakeToResetEnabled)
   }
 
   override var shakeSensitivity: ShakeSensitivity by enumSetting(KEY_SHAKE_SENSITIVITY, ShakeSensitivity)
   override fun observeShakeSensitivity(): StateFlow<ShakeSensitivity> {
     return flowSettings.getEnumFlow(KEY_SHAKE_SENSITIVITY, ShakeSensitivity)
-      .stateIn(settingsScope, SharingStarted.Lazily, ShakeSensitivity.Default)
+      .stateIn(settingsScope, SharingStarted.Lazily, shakeSensitivity)
   }
 
   override var autoSleepTimerEnabled: Boolean by booleanSetting(
@@ -51,7 +51,7 @@ class SleepSettingsImpl(
 
   override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_AUTO_SLEEP_TIMER_ENABLED, DefaultAutoSleepTimerEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, DefaultAutoSleepTimerEnabled)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepTimerEnabled)
   }
 
   // 10:00 PM
@@ -62,7 +62,7 @@ class SleepSettingsImpl(
   override fun observeAutoSleepStart(): StateFlow<LocalTime> {
     return flowSettings.getStringOrNullFlow(KEY_AUTO_SLEEP_START)
       .map { value -> value?.let { LocalTime.parse(it) } ?: defaultStartTime }
-      .stateIn(settingsScope, SharingStarted.Lazily, defaultStartTime)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepStart)
   }
 
   // 6:00 AM
@@ -104,19 +104,19 @@ class SleepSettingsImpl(
   override fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer> {
     return flowSettings.getStringOrNullFlow(KEY_AUTO_SLEEP_TIMER)
       .map { value -> value?.let(timerFromString) ?: AutoSleepTimer.Default }
-      .stateIn(settingsScope, SharingStarted.Lazily, AutoSleepTimer.Default)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepTimer)
   }
 
   override var autoRewindEnabled: Boolean by booleanSetting(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
   override fun observeAutoRewindEnabled(): StateFlow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, DefaultAutoRewindEnabled)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoRewindEnabled)
   }
 
   override var autoRewindAmount: Duration by durationSetting(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
   override fun observeAutoRewindAmount(): StateFlow<Duration> {
     return flowSettings.getDurationFlow(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
-      .stateIn(settingsScope, SharingStarted.Lazily, DefaultAutoRewindAmount)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoRewindAmount)
   }
 }
 

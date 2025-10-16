@@ -25,6 +25,7 @@ data class SettingsUiState(
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
+  val aboutSettings: AboutSettingsInfo,
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
@@ -58,6 +59,12 @@ data class SleepSettingsInfo(
     val rewindAmount: Duration,
   )
 }
+
+@Immutable
+data class AboutSettingsInfo(
+  val crashReportingEnabled: Boolean,
+  val analyticReportingEnabled: Boolean,
+)
 
 @Immutable
 data class DeveloperSettingsInfo(
@@ -136,6 +143,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object PrivacyPolicyClick : AboutSettingEvent
     data object TermsOfServiceClick : AboutSettingEvent
     data object AttributionsClick : AboutSettingEvent
+    data class CrashReportingEnabled(val enabled: Boolean) : AboutSettingEvent
+    data class AnalyticReportingEnabled(val enabled: Boolean) : AboutSettingEvent
   }
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {

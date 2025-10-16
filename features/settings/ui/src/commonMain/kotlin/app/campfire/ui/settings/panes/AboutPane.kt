@@ -31,12 +31,18 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfService
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
+import app.campfire.ui.settings.composables.SwitchSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.about_attributions_title
+import campfire.features.settings.ui.generated.resources.about_data_analytic_reporting_subtitle
+import campfire.features.settings.ui.generated.resources.about_data_analytic_reporting_title
+import campfire.features.settings.ui.generated.resources.about_data_crash_reporting_subtitle
+import campfire.features.settings.ui.generated.resources.about_data_crash_reporting_title
 import campfire.features.settings.ui.generated.resources.about_developer_oss_subtitle
 import campfire.features.settings.ui.generated.resources.about_developer_oss_title
 import campfire.features.settings.ui.generated.resources.about_developer_subtitle
 import campfire.features.settings.ui.generated.resources.about_developer_title
+import campfire.features.settings.ui.generated.resources.about_header_data_collection
 import campfire.features.settings.ui.generated.resources.about_header_developer
 import campfire.features.settings.ui.generated.resources.about_header_legal
 import campfire.features.settings.ui.generated.resources.about_privacy_policy_title
@@ -77,6 +83,24 @@ internal fun AboutPane(
       headlineContent = { Text(stringResource(Res.string.about_developer_oss_title)) },
       supportingContent = { Text(stringResource(Res.string.about_developer_oss_subtitle)) },
       onClick = { sendEvent(GithubClick) },
+    )
+
+    Header(
+      title = { Text(stringResource(Res.string.about_header_data_collection)) },
+    )
+
+    SwitchSetting(
+      value = state.aboutSettings.crashReportingEnabled,
+      onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled(it)) },
+      headlineContent = { Text(stringResource(Res.string.about_data_crash_reporting_title)) },
+      supportingContent = { Text(stringResource(Res.string.about_data_crash_reporting_subtitle)) },
+    )
+
+    SwitchSetting(
+      value = state.aboutSettings.analyticReportingEnabled,
+      onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled(it)) },
+      headlineContent = { Text(stringResource(Res.string.about_data_analytic_reporting_title)) },
+      supportingContent = { Text(stringResource(Res.string.about_data_analytic_reporting_subtitle)) },
     )
 
     Header(
