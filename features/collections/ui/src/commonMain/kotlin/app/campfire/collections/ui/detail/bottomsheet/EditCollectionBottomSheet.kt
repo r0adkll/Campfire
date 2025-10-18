@@ -33,7 +33,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.analytics.events.Updated
 import app.campfire.collections.api.CollectionsRepository
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
@@ -73,6 +79,10 @@ suspend fun OverlayHost.showEditCollectionBottomSheet(
       ),
       skipPartiallyExpandedState = true,
     ) { c, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("EditCollection", ScreenType.Overlay)
+      }
+
       SheetScaffold(
         title = { Text(stringResource(Res.string.edit_collection_bottomsheet_title)) },
       ) {
@@ -169,6 +179,7 @@ private fun EditCollectionBottomSheet(
         isCreating = true
         scope.launch {
           try {
+            Analytics.send(ActionEvent("collection", Updated))
             component.collectionsRepository
               .updateCollection(
                 collectionId = collection.id,

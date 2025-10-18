@@ -1,8 +1,6 @@
 package app.campfire.analytics
 
 import app.campfire.analytics.events.AnalyticEvent
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import kotlin.concurrent.Volatile
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -36,16 +34,5 @@ interface Analytics {
 
     @Volatile
     private var delegatesArray: Array<Analytics> = emptyArray()
-  }
-}
-
-object LoggingAnalytics : Analytics {
-  override fun send(event: AnalyticEvent) {
-    bark(
-      priority = LogPriority.INFO,
-      tag = "Analytics",
-    ) {
-      "Event[${event.eventName}]: ${event.params}"
-    }
   }
 }

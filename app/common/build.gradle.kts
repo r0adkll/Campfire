@@ -21,6 +21,9 @@ kotlin {
         api(projects.data.network.impl)
         api(projects.data.account.impl)
         api(projects.data.account.ui)
+        api(projects.data.analytics.impl)
+        api(projects.data.analytics.mixpanel)
+        api(projects.data.crashreporting.impl)
 
         // Infra Modules
         api(projects.infra.audioplayer.impl)
@@ -78,6 +81,7 @@ kotlin {
         api(libs.circuit.overlay)
         api(libs.circuit.runtime)
         api(libs.circuitx.gesturenav)
+        api(libs.circuitx.navigation)
 
         implementation(libs.kotlininject.runtime)
         implementation(libs.kimchi.annotations)

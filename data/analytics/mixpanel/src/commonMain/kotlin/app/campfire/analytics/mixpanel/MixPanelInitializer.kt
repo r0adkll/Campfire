@@ -31,6 +31,8 @@ class MixPanelInitializer(
     }
 
   override suspend fun onInitialize() {
+    if (BuildConfig.MIXPANEL_TOKEN == null) return
+
     mixPanelFacadeLazy.value.identify(
       distinctId = settings.analyticsId,
     )

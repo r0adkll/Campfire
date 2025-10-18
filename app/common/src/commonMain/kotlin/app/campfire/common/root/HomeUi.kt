@@ -28,6 +28,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.icons.filled.Author
@@ -95,7 +99,10 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
+import com.slack.circuitx.navigation.intercepting.NavigationEventListener
+import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import io.ktor.util.reflect.instanceOf
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -103,6 +110,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun HomeUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
+  navigationEventListeners: ImmutableList<NavigationEventListener>,
   windowInsets: WindowInsets,
   modifier: Modifier = Modifier,
 ) {
@@ -120,7 +128,12 @@ internal fun HomeUi(
   }
 
   val detailBackStack = rememberSaveableBackStack(EmptyScreen(stringResource(Res.string.empty_supporting_pane_message)))
-  val detailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
+  val baseDetailNavigator = rememberCircuitNavigator(detailBackStack) { /* Do Nothing */ }
+  val detailNavigator = rememberInterceptingNavigator(
+    navigator = baseDetailNavigator,
+    eventListeners = navigationEventListeners,
+    enableBackHandler = false,
+  )
 
   val detailRootScreen by remember(detailBackStack) {
     derivedStateOf { detailBackStack.topRecord?.screen }
@@ -142,6 +155,12 @@ internal fun HomeUi(
 
   val navigationItems = buildNavigationItems()
   val drawerState = rememberDrawerState(DrawerValue.Closed)
+  LaunchedEffect(drawerState.currentValue) {
+    if (drawerState.currentValue == DrawerValue.Open) {
+      Analytics.send(ScreenViewEvent("Drawer", ScreenType.Overlay))
+    }
+  }
+
   var playbackBarExpanded by remember { mutableStateOf(false) }
   PlatformBackHandler(playbackBarExpanded) { playbackBarExpanded = false }
 

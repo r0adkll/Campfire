@@ -31,6 +31,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
         freeCompilerArgs.addAll(
           "-opt-in=kotlin.uuid.ExperimentalUuidApi",
           "-Xexpect-actual-classes",
+          "-Xannotation-default-target=param-property",
         )
       }
 

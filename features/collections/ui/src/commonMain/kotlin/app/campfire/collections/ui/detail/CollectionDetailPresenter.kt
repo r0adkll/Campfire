@@ -6,6 +6,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
@@ -31,6 +35,7 @@ class CollectionDetailPresenter(
   @Assisted private val navigator: Navigator,
   private val collectionsRepository: CollectionsRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val analytics: Analytics,
 ) : Presenter<CollectionDetailUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -64,25 +69,28 @@ class CollectionDetailPresenter(
       when (event) {
         CollectionDetailUiEvent.Back -> navigator.pop()
         CollectionDetailUiEvent.Delete -> scope.launch {
+          analytics.send(ActionEvent("collection", "deleted"))
           collectionsRepository.deleteCollection(screen.collectionId)
           navigator.pop()
         }
 
         is CollectionDetailUiEvent.DeleteItems -> scope.launch {
-          scope.launch {
-            collectionsRepository.removeFromCollection(
-              bookIds = event.items.map { it.id },
-              collectionId = screen.collectionId,
-            )
-          }
+          analytics.send(ActionEvent("collection_item", "deleted"))
+          collectionsRepository.removeFromCollection(
+            bookIds = event.items.map { it.id },
+            collectionId = screen.collectionId,
+          )
         }
 
-        is CollectionDetailUiEvent.LibraryItemClick -> navigator.goTo(
-          LibraryItemScreen(
-            libraryItemId = event.libraryItem.id,
-            sharedTransitionKey = event.libraryItem.id + screen.collectionName,
-          ),
-        )
+        is CollectionDetailUiEvent.LibraryItemClick -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(
+            LibraryItemScreen(
+              libraryItemId = event.libraryItem.id,
+              sharedTransitionKey = event.libraryItem.id + screen.collectionName,
+            ),
+          )
+        }
       }
     }
   }

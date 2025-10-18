@@ -17,6 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
 import app.campfire.common.compose.widgets.ShowMoreLessButton
 
 @Composable
@@ -45,14 +47,20 @@ internal fun AuthorDescription(
       overflow = TextOverflow.Ellipsis,
       onTextLayout = { textLayout = it },
       modifier = Modifier
-        .clickable { isExpanded = !isExpanded },
+        .clickable {
+          Analytics.send(ActionEvent("author_description", "toggled", if (!isExpandable) "Expand" else "Collapse"))
+          isExpanded = !isExpanded
+        },
     )
 
     if (isExpandable) {
       Spacer(Modifier.height(8.dp))
       ShowMoreLessButton(
         expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
+        onExpandedChange = {
+          Analytics.send(ActionEvent("author_description", "toggled", if (it) "Expand" else "Collapse"))
+          isExpanded = it
+        },
       )
     }
   }

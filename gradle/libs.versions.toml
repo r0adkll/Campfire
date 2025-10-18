@@ -15,7 +15,7 @@ coroutines = "1.10.2"
 compose-multiplatform = "1.9.0"
 connectivity = "2.3.0"
 coil = "3.3.0"
-circuit = "0.29.1"
+circuit = "0.30.0"
 glance = "1.1.1"
 junit = "4.13.2"
 kimchi = "0.6.0"
@@ -107,6 +107,7 @@ circuit-runtime = { module = "com.slack.circuit:circuit-runtime", version.ref = 
 circuit-retained = { module = "com.slack.circuit:circuit-retained", version.ref = "circuit" }
 circuitx-gesturenav = { module = "com.slack.circuit:circuitx-gesture-navigation", version.ref = "circuit" }
 circuitx-overlays = { module = "com.slack.circuit:circuitx-overlays", version.ref = "circuit" }
+circuitx-navigation = { module = "com.slack.circuit:circuitx-navigation", version.ref = "circuit" }
 
 #Coil - Image Loading
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }

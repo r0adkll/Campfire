@@ -1,6 +1,6 @@
 package app.campfire.analytics
 
-import app.campfire.analytics.events.ScreenView
+import app.campfire.analytics.events.ScreenViewEvent
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import kotlin.test.Test
@@ -11,7 +11,7 @@ class AnalyticsDelegateTest {
   fun `adding delegate receives events`() {
     // given
     val delegate = FakeAnalytics()
-    val event = ScreenView("TestScreen")
+    val event = ScreenViewEvent("TestScreen")
     Analytics.Delegator += delegate
 
     // when
@@ -25,8 +25,8 @@ class AnalyticsDelegateTest {
   fun `removing delegate stops receiving events`() {
     // given
     val delegate = FakeAnalytics()
-    val event1 = ScreenView("TestScreen1")
-    val event2 = ScreenView("TestScreen2")
+    val event1 = ScreenViewEvent("TestScreen1")
+    val event2 = ScreenViewEvent("TestScreen2")
     Analytics.Delegator += delegate
 
     // when

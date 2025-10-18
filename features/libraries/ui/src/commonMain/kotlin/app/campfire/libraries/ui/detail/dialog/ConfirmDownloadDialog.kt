@@ -22,6 +22,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
 import campfire.features.libraries.ui.generated.resources.Res
@@ -39,6 +45,10 @@ fun ConfirmDownloadDialog(
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  Impression {
+    ScreenViewEvent("ConfirmDownload", ScreenType.Dialog)
+  }
+
   var doNotShowAgain by remember { mutableStateOf(false) }
   AlertDialog(
     modifier = modifier,
@@ -88,6 +98,9 @@ fun ConfirmDownloadDialog(
     confirmButton = {
       TextButton(
         onClick = {
+          Analytics.send(
+            ActionEvent("confirm_download", Click, if (doNotShowAgain) "do_not_show_again" else "show_again"),
+          )
           onConfirm(doNotShowAgain)
         },
       ) {
@@ -96,7 +109,10 @@ fun ConfirmDownloadDialog(
     },
     dismissButton = {
       TextButton(
-        onClick = onDismissRequest,
+        onClick = {
+          Analytics.send(ActionEvent("cancel_download", Click))
+          onDismissRequest()
+        },
       ) {
         Text(stringResource(Res.string.dialog_download_action_dismiss))
       }

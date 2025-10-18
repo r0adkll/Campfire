@@ -41,6 +41,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.filled.PersonAdd
 import app.campfire.common.compose.icons.icon
@@ -85,6 +88,10 @@ suspend fun OverlayHost.showAccountPicker(): AccountPickerResult {
       ),
       skipPartiallyExpandedState = true,
     ) { _, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("AccountPicker", ScreenType.Overlay)
+      }
+
       AccountPickerContent(
         title = { Text(stringResource(Res.string.account_picker_sheet_title)) },
         overlayNavigator = overlayNavigator,

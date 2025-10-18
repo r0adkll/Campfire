@@ -5,6 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
@@ -31,6 +34,7 @@ class HomePresenter(
   @Assisted private val navigator: Navigator,
   private val homeRepository: HomeRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val analytics: Analytics,
 ) : Presenter<HomeUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -58,9 +62,18 @@ class HomePresenter(
       offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
-        is HomeUiEvent.OpenLibraryItem -> navigator.goTo(LibraryItemScreen(event.item.id, event.sharedTransitionKey))
-        is HomeUiEvent.OpenAuthor -> navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
-        is HomeUiEvent.OpenSeries -> navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
+        is HomeUiEvent.OpenLibraryItem -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(LibraryItemScreen(event.item.id, event.sharedTransitionKey))
+        }
+        is HomeUiEvent.OpenAuthor -> {
+          analytics.send(ContentSelected(ContentType.Author))
+          navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
+        }
+        is HomeUiEvent.OpenSeries -> {
+          analytics.send(ContentSelected(ContentType.Series))
+          navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
+        }
       }
     }
   }

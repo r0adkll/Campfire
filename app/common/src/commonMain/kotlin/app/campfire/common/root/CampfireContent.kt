@@ -18,7 +18,6 @@ import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
 import app.campfire.account.ui.rememberCurrentTent
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.session.LocalPlaybackSession
@@ -29,8 +28,9 @@ import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.retained.LocalRetainedStateRegistry
-import com.slack.circuit.retained.continuityRetainedStateRegistry
+import com.slack.circuit.retained.lifecycleRetainedStateRegistry
 import com.slack.circuit.runtime.Navigator
+import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -62,27 +62,31 @@ fun CampfireContentWithInsets(
 
   CompositionLocalProvider(
     LocalWindowSizeClass provides calculateWindowSizeClass(),
-    LocalRetainedStateRegistry provides continuityRetainedStateRegistry(),
+    LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
     LocalUriHandler provides appUriHandler,
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
       val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
-      val navigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
+      val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
+      val navigator = rememberInterceptingNavigator(
+        navigator = baseNavigator,
+        eventListeners = userComponent.navigationEventListeners,
+      )
 
       // Observe Current Session
       val currentSession by remember(userComponent) {
         userComponent.sessionsRepository.observeCurrentSession()
       }.collectAsState(null)
 
-      PlatformBackHandler(
-        enabled = backStack.size > 1,
-        onBack = {
-          // Check the backStack on each call as the `BackHandler` enabled state only updates on composition
-          if (backStack.size > 1) {
-            navigator.pop()
-          }
-        },
-      )
+//      PlatformBackHandler(
+//        enabled = backStack.size > 1,
+//        onBack = {
+//          // Check the backStack on each call as the `BackHandler` enabled state only updates on composition
+//          if (backStack.size > 1) {
+//            navigator.pop()
+//          }
+//        },
+//      )
 
       val urlNavigator: Navigator = remember(navigator) {
         OpenUrlNavigator(navigator, onOpenUrl)
@@ -101,6 +105,7 @@ fun CampfireContentWithInsets(
               backstack = backStack,
               navigator = urlNavigator,
               windowInsets = windowInsets,
+              navigationEventListeners = userComponent.navigationEventListeners,
               modifier = modifier,
             )
           }

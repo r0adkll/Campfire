@@ -15,6 +15,8 @@ import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
+import com.slack.circuitx.navigation.intercepting.NavigationEventListener
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,7 +31,10 @@ interface UserComponent {
   val scopedDependencies: Lazy<Set<Scoped>>
 
   val currentUserSession: UserSession
+
+  // Expose the circuit information for UiScope
   val circuit: Circuit
+  val navigationEventListeners: ImmutableList<NavigationEventListener>
 
   @get:RootScreen
   val rootScreen: BaseScreen

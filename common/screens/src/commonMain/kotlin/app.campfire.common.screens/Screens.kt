@@ -18,7 +18,7 @@ import com.slack.circuit.runtime.screen.StaticScreen
 data object RootScreen : BaseScreen(name = "Root")
 
 @Parcelize
-data object DebugScreen : BaseScreen(name = "Debug()")
+data object DebugScreen : BaseScreen(name = "Debug")
 
 @Parcelize
 data class EmptyScreen(
@@ -26,7 +26,7 @@ data class EmptyScreen(
 ) : StaticScreen
 
 @Parcelize
-data object WelcomeScreen : BaseScreen(name = "Welcome()") {
+data object WelcomeScreen : BaseScreen(name = "Welcome") {
   override val presentation: Presentation
     get() = Presentation(hideBottomNav = true)
 }
@@ -34,7 +34,7 @@ data object WelcomeScreen : BaseScreen(name = "Welcome()") {
 @Parcelize
 data class LoginScreen(
   val isAddingAccount: Boolean = false,
-) : BaseScreen(name = "Login()") {
+) : BaseScreen(name = "Login") {
   override val arguments = mapOf(
     "isAddingAccount" to isAddingAccount,
   )
@@ -44,48 +44,48 @@ data class LoginScreen(
 }
 
 @Parcelize
-data object HomeScreen : BaseScreen(name = "Home()")
+data object HomeScreen : BaseScreen(name = "Home")
 
 @Parcelize
 data object DrawerScreen : StaticScreen
 
 @Parcelize
-data object SeriesScreen : BaseScreen(name = "Series()")
+data object SeriesScreen : BaseScreen(name = "Series")
 
 @Parcelize
 data class SeriesDetailScreen(
   val seriesId: SeriesId,
   val seriesName: String,
-) : DetailScreen(name = "SeriesDetail()")
+) : DetailScreen(name = "SeriesDetail")
 
 @Parcelize
-data object CollectionsScreen : BaseScreen(name = "Collections()")
+data object CollectionsScreen : BaseScreen(name = "Collections")
 
 @Parcelize
 data class CollectionDetailScreen(
   val collectionId: CollectionId,
   val collectionName: String,
-) : DetailScreen(name = "CollectionDetail()")
+) : DetailScreen(name = "CollectionDetail")
 
 @Parcelize
-data object AuthorsScreen : BaseScreen(name = "Authors()")
+data object AuthorsScreen : BaseScreen(name = "Authors")
 
 @Parcelize
 data class AuthorDetailScreen(
   val authorId: AuthorId,
   val authorName: String,
-) : DetailScreen(name = "AuthorDetailScreen()")
+) : DetailScreen(name = "AuthorDetailScreen")
 
 @Parcelize
-data object StatisticsScreen : BaseScreen(name = "Statistics()")
+data object StatisticsScreen : BaseScreen(name = "Statistics")
 
 @Parcelize
-data object StorageScreen : BaseScreen(name = "Storage()")
+data object StorageScreen : BaseScreen(name = "Storage")
 
 @Parcelize
 data class SettingsScreen(
   val page: Page = Page.Root,
-) : BaseScreen(name = "Settings($page)") {
+) : BaseScreen(name = "Settings.$page") {
 
   override val arguments get() = mapOf("page" to page)
 
@@ -102,14 +102,14 @@ data class SettingsScreen(
 }
 
 @Parcelize
-data object AttributionScreen : BaseScreen(name = "Attributions()")
+data object AttributionScreen : BaseScreen(name = "Attributions")
 
 //endregion
 
 //region Utility Screens
 
 @Parcelize
-data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen()") {
+data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen") {
   override val arguments get() = mapOf("url" to url)
 }
 

@@ -44,6 +44,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.analytics.events.Selected
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.navigation.LocalSearchView
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -94,6 +100,7 @@ fun CampfireAppBar(
       currentLibrary = (state.library as? AppBarState.LibraryState.Loaded)?.library,
       libraries = state.allLibraries,
       onLibraryClick = {
+        Analytics.send(ActionEvent("library", Selected))
         state.eventSink(AppBarViewEvent.LibrarySelected(it))
         showLibrariesPopup = false
       },
@@ -104,7 +111,6 @@ fun CampfireAppBar(
   }
 }
 
-// TODO: Commonize this so we can re-use it elsewhere
 @Composable
 private fun LibrariesPopup(
   currentLibrary: Library?,
@@ -117,6 +123,10 @@ private fun LibrariesPopup(
 
   LaunchedEffect(Unit) {
     visible = true
+  }
+
+  Impression {
+    ScreenViewEvent("LibrariesPopup", ScreenType.Dialog)
   }
 
   val dismissPopup: () -> Unit = {

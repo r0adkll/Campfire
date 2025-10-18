@@ -90,6 +90,10 @@ include(
   ":data:analytics:mixpanel",
 )
 include(
+  ":data:crashreporting:api",
+  ":data:crashreporting:impl",
+)
+include(
   ":data:network:api",
   ":data:network:impl",
   ":data:db",

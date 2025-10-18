@@ -5,6 +5,6 @@ import app.campfire.common.screens.Presentation
 import app.campfire.core.parcelize.Parcelize
 
 @Parcelize
-data object AnalyticConsentScreen : BaseScreen("AnalyticConsent()") {
+data object AnalyticConsentScreen : BaseScreen("AnalyticConsent") {
   override val presentation: Presentation = Presentation.Fullscreen
 }

@@ -33,7 +33,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.traversalIndex
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.audioplayer.offline.asWidgetStatus
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.search.ui.composables.SearchResultContent
 import app.campfire.search.ui.di.SearchUiComponent
@@ -67,6 +70,10 @@ class SearchOverlay(
       component.searchPresenterFactory(homeNavigator) {
         navigator.finish(Unit)
       }
+    }
+
+    Impression {
+      ScreenViewEvent("Search", ScreenType.Overlay)
     }
 
     val uiState = presenter.present()

@@ -46,8 +46,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -77,6 +80,10 @@ class AddToCollectionDialogImpl(
     onDismiss: () -> Unit,
     modifier: Modifier,
   ) {
+    Impression {
+      ScreenViewEvent("AddToCollection", ScreenType.Dialog)
+    }
+
     val presenter = remember(item, onDismiss) {
       presenterFactory(item, onDismiss)
     }

@@ -13,6 +13,8 @@ import app.campfire.core.logging.LogPriority.INFO
 import app.campfire.core.logging.LogPriority.VERBOSE
 import app.campfire.core.logging.LogPriority.WARN
 import app.campfire.core.logging.bark
+import app.campfire.crashreporting.CrashReporter
+import app.campfire.crashreporting.impl.FirebaseCrashReporter
 import app.campfire.settings.api.CampfireSettings
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -45,6 +47,9 @@ class FirebaseInitializer(
 
     // Setup logging
     Heartwood.grow(FirebaseBark)
+
+    // Setup Crash Reporting
+    CrashReporter.Delegator += FirebaseCrashReporter
 
     // Start the observer for firebase crash reporting setting to enable/disable
     observeFirebaseSetting()

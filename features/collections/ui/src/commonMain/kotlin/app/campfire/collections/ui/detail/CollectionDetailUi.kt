@@ -49,6 +49,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.collections.ui.detail.bottomsheet.showEditCollectionBottomSheet
 import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
@@ -171,6 +174,7 @@ fun CollectionDetail(
         ExtendedFloatingActionButton(
           onClick = {
             scope.launch {
+              Analytics.send(ActionEvent("edit_collection", Click))
               overlayHost.showEditCollectionBottomSheet(state.collection!!)
             }
           },

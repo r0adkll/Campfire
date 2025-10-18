@@ -17,6 +17,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
 import app.campfire.common.compose.widgets.ShowMoreLessButton
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
@@ -49,7 +51,16 @@ internal fun ItemDescription(
       modifier = Modifier
         .clickable(
           enabled = isOverflowed && !isExpanded,
-          onClick = { isExpanded = !isExpanded },
+          onClick = {
+            Analytics.send(
+              ActionEvent(
+                "item_description",
+                "toggled",
+                if (!isExpanded) "Expand" else "Collapse",
+              ),
+            )
+            isExpanded = !isExpanded
+          },
         )
         .padding(horizontal = 16.dp),
     )
@@ -61,7 +72,10 @@ internal fun ItemDescription(
     ) {
       ShowMoreLessButton(
         expanded = isExpanded,
-        onExpandedChange = { isExpanded = it },
+        onExpandedChange = {
+          Analytics.send(ActionEvent("item_description", "toggled", if (it) "Expand" else "Collapse"))
+          isExpanded = it
+        },
         modifier = Modifier.padding(horizontal = 16.dp),
       )
     }

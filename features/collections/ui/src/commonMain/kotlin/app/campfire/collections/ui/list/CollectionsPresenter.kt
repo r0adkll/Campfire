@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.CollectionsScreen
@@ -22,6 +25,7 @@ import me.tatarka.inject.annotations.Inject
 class CollectionsPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: CollectionsRepository,
+  private val analytics: Analytics,
 ) : Presenter<CollectionsUiState> {
 
   @Composable
@@ -36,12 +40,15 @@ class CollectionsPresenter(
       collectionContentState = collectionContentState,
     ) { event ->
       when (event) {
-        is CollectionsUiEvent.CollectionClick -> navigator.goTo(
-          CollectionDetailScreen(
-            event.collection.id,
-            event.collection.name,
-          ),
-        )
+        is CollectionsUiEvent.CollectionClick -> {
+          analytics.send(ContentSelected(ContentType.Collection))
+          navigator.goTo(
+            CollectionDetailScreen(
+              event.collection.id,
+              event.collection.name,
+            ),
+          )
+        }
       }
     }
   }

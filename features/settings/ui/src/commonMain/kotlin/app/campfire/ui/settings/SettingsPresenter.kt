@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
+import app.campfire.analytics.Analytics
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.SettingsScreen
@@ -43,6 +44,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimer
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerStart
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivity
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
+import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -58,6 +60,8 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class SettingsPresenter(
   @Assisted private val navigator: Navigator,
+  private val analytics: Analytics,
+  private val analyticUiEventHandler: SettingsAnalyticUiEventHandler,
   private val applicationInfo: ApplicationInfo,
   private val applicationUrls: ApplicationUrls,
   private val settings: CampfireSettings,
@@ -157,6 +161,7 @@ class SettingsPresenter(
         isAndroidAutoAvailable = isAndroidAutoAvailable,
       ),
     ) { event ->
+      analyticUiEventHandler.handle(event)
       when (event) {
         SettingsUiEvent.Back -> navigator.pop()
         is SettingsUiEvent.SettingsPaneClick -> navigator.goTo(SettingsScreen(event.pane.screenPage))

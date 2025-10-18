@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -35,6 +39,7 @@ class LibraryPresenter(
   private val repository: LibraryRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
+  private val analytics: Analytics,
 ) : Presenter<LibraryUiState> {
 
   @Composable
@@ -84,10 +89,13 @@ class LibraryPresenter(
           settings.libraryItemDisplayState = when (itemDisplayState) {
             ItemDisplayState.List -> ItemDisplayState.Grid
             ItemDisplayState.Grid -> ItemDisplayState.List
+          }.also {
+            analytics.send(ActionEvent("item_display", "toggled", it.storageKey))
           }
         }
 
         is LibraryUiEvent.SortModeSelected -> {
+          analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
             settings.sortDirection = sortDirection.flip()
           }
@@ -95,10 +103,14 @@ class LibraryPresenter(
         }
 
         is LibraryUiEvent.ItemFilterSelected -> {
+          analytics.send(ActionEvent("item_filter", "selected"))
           itemFilter = event.filter
         }
 
-        is LibraryUiEvent.ItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        is LibraryUiEvent.ItemClick -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        }
       }
     }
   }

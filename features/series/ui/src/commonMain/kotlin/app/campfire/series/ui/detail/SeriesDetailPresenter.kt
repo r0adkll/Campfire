@@ -5,6 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
@@ -29,6 +32,7 @@ class SeriesDetailPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: SeriesRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val analytics: Analytics,
 ) : Presenter<SeriesDetailUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -54,12 +58,15 @@ class SeriesDetailPresenter(
     ) { event ->
       when (event) {
         SeriesDetailUiEvent.Back -> navigator.pop()
-        is SeriesDetailUiEvent.LibraryItemClick -> navigator.goTo(
-          LibraryItemScreen(
-            libraryItemId = event.libraryItem.id,
-            sharedTransitionKey = event.libraryItem.id + screen.seriesName,
-          ),
-        )
+        is SeriesDetailUiEvent.LibraryItemClick -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(
+            LibraryItemScreen(
+              libraryItemId = event.libraryItem.id,
+              sharedTransitionKey = event.libraryItem.id + screen.seriesName,
+            ),
+          )
+        }
       }
     }
   }

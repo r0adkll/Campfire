@@ -43,6 +43,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.core.di.UserScope
@@ -106,6 +109,10 @@ suspend fun OverlayHost.showItemFilterOverlay(
       sheetShape = bottomSheetShape,
       skipPartiallyExpandedState = true,
     ) { filter, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("LibraryItemFilter", ScreenType.Overlay)
+      }
+
       LibraryItemFilterBottomSheet(
         filter = (filter as? ItemFilter.Current)?.filter,
         onSelected = {

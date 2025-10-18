@@ -56,7 +56,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.Bookmark
@@ -118,6 +121,10 @@ suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): 
       sheetShape = bottomSheetShape,
       skipPartiallyExpandedState = true,
     ) { id, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("Bookmarks", ScreenType.Overlay)
+      }
+
       SessionSheetLayout(
         title = { Text(stringResource(Res.string.bookmark_bottomsheet_title)) },
       ) {

@@ -5,6 +5,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.author.api.AuthorRepository
 import app.campfire.common.screens.AuthorDetailScreen
@@ -30,6 +33,7 @@ class AuthorDetailPresenter(
   @Assisted private val navigator: Navigator,
   private val authorRepository: AuthorRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val analytics: Analytics,
 ) : Presenter<AuthorDetailUiState> {
 
   @Composable
@@ -53,7 +57,10 @@ class AuthorDetailPresenter(
       offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
-        is AuthorDetailUiEvent.LibraryItemClick -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        is AuthorDetailUiEvent.LibraryItemClick -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        }
         AuthorDetailUiEvent.Back -> navigator.pop()
       }
     }

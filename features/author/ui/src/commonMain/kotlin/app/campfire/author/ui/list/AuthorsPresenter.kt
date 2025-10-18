@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.author.api.AuthorRepository
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.AuthorsScreen
@@ -22,6 +25,7 @@ import me.tatarka.inject.annotations.Inject
 class AuthorsPresenter(
   @Assisted private val navigator: Navigator,
   private val authorRepository: AuthorRepository,
+  private val analytics: Analytics,
 ) : Presenter<AuthorsUiState> {
 
   @Composable
@@ -36,7 +40,10 @@ class AuthorsPresenter(
       authorContentState = authorContentState,
     ) { event ->
       when (event) {
-        is AuthorsUiEvent.AuthorClick -> navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
+        is AuthorsUiEvent.AuthorClick -> {
+          analytics.send(ContentSelected(ContentType.Author))
+          navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))
+        }
       }
     }
   }

@@ -17,6 +17,8 @@ kotlin {
         api(libs.kotlinx.immutable)
         api(libs.uuid)
 
+        api(projects.data.analytics.api)
+
         implementation(libs.kotlinx.serialization.json)
       }
     }

@@ -8,4 +8,4 @@ import app.campfire.core.parcelize.Parcelize
 data class LibraryItemScreen(
   val libraryItemId: LibraryItemId,
   val sharedTransitionKey: String = libraryItemId,
-) : DetailScreen(name = "LibraryItem()")
+) : DetailScreen(name = "LibraryItem")

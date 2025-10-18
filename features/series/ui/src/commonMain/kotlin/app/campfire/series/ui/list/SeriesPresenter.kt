@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.coroutines.LoadState
@@ -22,6 +25,7 @@ import me.tatarka.inject.annotations.Inject
 class SeriesPresenter(
   @Assisted private val navigator: Navigator,
   private val seriesRepository: SeriesRepository,
+  private val analytics: Analytics,
 ) : Presenter<SeriesUiState> {
 
   @Composable
@@ -36,7 +40,10 @@ class SeriesPresenter(
       seriesContentState = seriesContentState,
     ) { event ->
       when (event) {
-        is SeriesUiEvent.SeriesClicked -> navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
+        is SeriesUiEvent.SeriesClicked -> {
+          analytics.send(ContentSelected(ContentType.Series))
+          navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
+        }
       }
     }
   }

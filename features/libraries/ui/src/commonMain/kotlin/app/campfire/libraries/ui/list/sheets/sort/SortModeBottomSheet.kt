@@ -15,6 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.widgets.SortIcon
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -52,6 +55,10 @@ suspend fun OverlayHost.showSortModeBottomSheet(
       },
       skipPartiallyExpandedState = true,
     ) { modes, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("SortMode", ScreenType.Overlay)
+      }
+
       SortModeBottomSheet(
         modes = modes,
         currentMode = currentMode,

@@ -7,6 +7,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ContentSelected
+import app.campfire.analytics.events.ContentType
+import app.campfire.analytics.events.SearchEvent
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
@@ -37,6 +41,7 @@ class SearchPresenter(
   @Assisted private val navigator: Navigator,
   @Assisted private val requestDismiss: () -> Unit,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val analytics: Analytics,
 ) : Presenter<SearchUiState> {
 
   @Composable
@@ -52,6 +57,7 @@ class SearchPresenter(
           .onStart {
             emit(SearchResult.Loading)
             delay(400.milliseconds)
+            analytics.send(SearchEvent())
           }
       }
     }.collectAsState(SearchResult.Empty)
@@ -74,27 +80,45 @@ class SearchPresenter(
         SearchUiEvent.Dismiss -> requestDismiss()
         is SearchUiEvent.QueryChanged -> query = event.query
 
-        is SearchUiEvent.OnAuthorClick -> navigateTo(
-          AuthorDetailScreen(
-            event.author.id,
-            event.author.name,
-          ),
-        )
+        is SearchUiEvent.OnAuthorClick -> {
+          analytics.send(ContentSelected(ContentType.Author))
+          navigateTo(
+            AuthorDetailScreen(
+              event.author.id,
+              event.author.name,
+            ),
+          )
+        }
 
-        is SearchUiEvent.OnBookClick -> navigateTo(LibraryItemScreen(event.book.id))
-        is SearchUiEvent.OnGenreClick -> navigateTo(LibraryScreen(LibraryItemFilter.Genres(event.genre.name)), true)
-        is SearchUiEvent.OnNarratorClick -> navigateTo(
-          screen = LibraryScreen(LibraryItemFilter.Narrators(event.narrator.name)),
-          resetRoot = true,
-        )
-        is SearchUiEvent.OnSeriesClick -> navigateTo(
-          SeriesDetailScreen(
-            event.series.id,
-            event.series.name,
-          ),
-        )
+        is SearchUiEvent.OnBookClick -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigateTo(LibraryItemScreen(event.book.id))
+        }
+        is SearchUiEvent.OnGenreClick -> {
+          analytics.send(ContentSelected(ContentType.Genre))
+          navigateTo(LibraryScreen(LibraryItemFilter.Genres(event.genre.name)), true)
+        }
+        is SearchUiEvent.OnNarratorClick -> {
+          analytics.send(ContentSelected(ContentType.Narrator))
+          navigateTo(
+            screen = LibraryScreen(LibraryItemFilter.Narrators(event.narrator.name)),
+            resetRoot = true,
+          )
+        }
+        is SearchUiEvent.OnSeriesClick -> {
+          analytics.send(ContentSelected(ContentType.Series))
+          navigateTo(
+            SeriesDetailScreen(
+              event.series.id,
+              event.series.name,
+            ),
+          )
+        }
 
-        is SearchUiEvent.OnTagClick -> navigateTo(LibraryScreen(LibraryItemFilter.Tags(event.tag.name)), true)
+        is SearchUiEvent.OnTagClick -> {
+          analytics.send(ContentSelected(ContentType.Tag))
+          navigateTo(LibraryScreen(LibraryItemFilter.Tags(event.tag.name)), true)
+        }
       }
     }
   }

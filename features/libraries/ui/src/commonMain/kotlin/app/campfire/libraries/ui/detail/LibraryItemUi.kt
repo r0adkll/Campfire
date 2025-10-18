@@ -48,6 +48,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
@@ -133,6 +136,7 @@ fun LibraryItem(
           }
           IconButton(
             onClick = {
+              Analytics.send(ActionEvent("add_to_collection", Click))
               showAddToCollectionDialog = true
             },
           ) {

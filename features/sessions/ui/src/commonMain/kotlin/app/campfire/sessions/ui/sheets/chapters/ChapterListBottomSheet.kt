@@ -30,6 +30,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.icons.CampfireIcons
@@ -70,6 +73,10 @@ suspend fun OverlayHost.showChapterBottomSheet(
         topEnd = 32.dp,
       ),
     ) { models, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("Chapters", ScreenType.Overlay)
+      }
+
       ChapterListBottomSheet(
         chapters = models,
         currentChapter = currentChapter,

@@ -6,6 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.offline.OfflineDownloadManager
@@ -47,6 +50,7 @@ class LibraryItemPresenter(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
+  private val analytics: Analytics,
 ) : Presenter<LibraryItemUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -114,27 +118,32 @@ class LibraryItemPresenter(
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
         is LibraryItemUiEvent.PlayClick -> {
+          analytics.send(ActionEvent("add_to_collection", Click))
           playbackController.startSession(event.item.id)
         }
 
         is LibraryItemUiEvent.AuthorClick -> {
+          analytics.send(ActionEvent("author", Click))
           event.item.media.metadata.authors.firstOrNull()?.let { author ->
             navigator.goTo(AuthorDetailScreen(author.id, author.name))
           }
         }
 
         is LibraryItemUiEvent.NarratorClick -> {
+          analytics.send(ActionEvent("narrator", Click))
           event.item.media.metadata.narratorName?.let { narrator ->
             navigator.goTo(LibraryScreen(LibraryItemFilter.Narrators(narrator)))
           }
         }
 
         is LibraryItemUiEvent.SeriesClick -> {
+          analytics.send(ActionEvent("series", Click))
           val series = event.item.media.metadata.seriesSequence ?: return@LibraryItemUiState
           navigator.goTo(SeriesDetailScreen(series.id, series.name))
         }
 
         is LibraryItemUiEvent.DiscardProgress -> {
+          analytics.send(ActionEvent("discard_progress", Click))
           playbackController.stopSession(event.item.id)
           scope.launch {
             sessionsRepository.deleteSession(event.item.id)
@@ -143,6 +152,7 @@ class LibraryItemPresenter(
         }
 
         is LibraryItemUiEvent.MarkFinished -> {
+          analytics.send(ActionEvent("mark_finished", Click))
           playbackController.stopSession(event.item.id)
           scope.launch {
             sessionsRepository.deleteSession(event.item.id)
@@ -151,12 +161,14 @@ class LibraryItemPresenter(
         }
 
         is LibraryItemUiEvent.MarkNotFinished -> {
+          analytics.send(ActionEvent("mark_not_finished", Click))
           scope.launch {
             mediaProgressRepository.markNotFinished(event.item.id)
           }
         }
 
         is LibraryItemUiEvent.ChapterClick -> {
+          analytics.send(ActionEvent("chapter", Click))
           val session = (currentSession as? SessionUiState.Current)?.session
           val currentPlayer = audioPlayerHolder.currentPlayer.value
           if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
@@ -170,6 +182,7 @@ class LibraryItemPresenter(
         }
 
         is LibraryItemUiEvent.DownloadClick -> {
+          analytics.send(ActionEvent("download", Click))
           settings.showConfirmDownload = !event.doNotShowAgain
 
           libraryItemContentState.dataOrNull?.let {
@@ -178,18 +191,22 @@ class LibraryItemPresenter(
         }
 
         LibraryItemUiEvent.RemoveDownloadClick -> {
+          analytics.send(ActionEvent("delete_download", Click))
+
           libraryItemContentState.dataOrNull?.let {
             offlineDownloadManager.delete(it)
           }
         }
 
         LibraryItemUiEvent.StopDownloadClick -> {
+          analytics.send(ActionEvent("stop_download", Click))
           libraryItemContentState.dataOrNull?.let {
             offlineDownloadManager.stop(it)
           }
         }
 
         is LibraryItemUiEvent.TimeInBookChange -> {
+          analytics.send(ActionEvent("time_in_book", Click))
           settings.showTimeInBook = event.enabled
         }
       }

@@ -29,10 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import app.campfire.analytics.events.ScreenType
+import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.audioplayer.ui.composables.RunningTimerCard
 import app.campfire.audioplayer.ui.composables.SessionSheetLayout
+import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.core.isDebug
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
@@ -72,6 +75,10 @@ suspend fun OverlayHost.showTimerBottomSheet(
       ),
       skipPartiallyExpandedState = true,
     ) { model, overlayNavigator ->
+      Impression {
+        ScreenViewEvent("SleepTimer", ScreenType.Overlay)
+      }
+
       TimerBottomSheet(
         runningTimer = (model as? TimerModel.Running)?.timer,
         onTimerSelected = { timer ->

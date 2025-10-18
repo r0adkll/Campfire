@@ -7,4 +7,4 @@ import app.campfire.libraries.api.LibraryItemFilter
 @Parcelize
 data class LibraryScreen(
   val filter: LibraryItemFilter? = null,
-) : BaseScreen(name = "Library()")
+) : BaseScreen(name = "Library")
