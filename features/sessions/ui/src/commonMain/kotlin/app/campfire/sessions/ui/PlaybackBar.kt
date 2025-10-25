@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.core.extensions.progressOver
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
 import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 
 enum class PlaybackBarState {
   Hidden,
@@ -46,7 +48,13 @@ fun PlaybackBar(
   SessionHostLayout { currentSession, audioPlayer, clearSession ->
 
     val currentTime = remember(audioPlayer) {
-      audioPlayer?.currentTime ?: emptyFlow()
+      audioPlayer?.currentTime
+        ?.map {
+          // This can be updated with sub-second precision, but we only care to present it
+          // to second based granularity so trim the object to prevent unnecessary recompositions
+          it.inWholeSeconds.seconds
+        }
+        ?: emptyFlow()
     }.collectAsState(0.seconds)
 
     val currentDuration = remember(audioPlayer) {
@@ -95,8 +103,9 @@ fun PlaybackBar(
             CollapsedPlaybackBar(
               session = currentSession,
               state = playerState.value,
-              currentTime = currentTime.value,
-              currentDuration = currentDuration.value,
+              progress = {
+                currentTime.value progressOver currentDuration.value
+              },
               currentMetadata = currentMetadata.value,
               runningTimer = runningTimer.value,
               onClick = { onExpansionChange(!expanded) },

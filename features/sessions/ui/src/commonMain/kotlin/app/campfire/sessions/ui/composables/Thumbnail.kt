@@ -1,6 +1,5 @@
 package app.campfire.sessions.ui.composables
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,7 +10,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import coil3.compose.rememberAsyncImagePainter
+import coil3.compose.AsyncImage
 
 @Composable
 internal fun Thumbnail(
@@ -23,10 +22,9 @@ internal fun Thumbnail(
   borderWidth: Dp = BorderWidth,
   borderColor: Color = MaterialTheme.colorScheme.secondary,
 ) {
-  val painter = rememberAsyncImagePainter(imageUrl)
   val shape = RoundedCornerShape(cornerRadius)
-  Image(
-    painter = painter,
+  AsyncImage(
+    model = imageUrl,
     contentDescription = contentDescription,
     modifier = modifier
       .size(size)

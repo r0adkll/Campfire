@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,14 +49,23 @@ fun SessionHostLayout(
   val audioPlayer by remember {
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
+  
+  val currentSessionId by remember { derivedStateOf { currentSession?.id } }
+  val audioPlayerMiniState by remember {
+    derivedStateOf {
+      audioPlayer?.preparedSession?.id?.let { preparedSessionId ->
+        preparedSessionId to audioPlayer!!.state.value
+      }
+    }
+  }
 
-  LaunchedEffect(currentSession, audioPlayer) {
+  LaunchedEffect(currentSessionId, audioPlayerMiniState) {
     if (
-      currentSession != null &&
+      currentSessionId != null &&
       (
-        (audioPlayer == null) ||
-          currentSession!!.id != audioPlayer!!.preparedSession?.id ||
-          audioPlayer!!.state.value == AudioPlayer.State.Disabled
+        (audioPlayerMiniState == null) ||
+          currentSessionId != audioPlayerMiniState?.first ||
+          audioPlayerMiniState?.second == AudioPlayer.State.Disabled
         )
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it

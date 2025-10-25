@@ -1,6 +1,5 @@
 package app.campfire.sessions.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -93,8 +92,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun CollapsedPlaybackBar(
   session: Session,
   state: AudioPlayer.State,
-  currentTime: Duration,
-  currentDuration: Duration,
+  progress: () -> Float,
   currentMetadata: Metadata,
   runningTimer: RunningTimer?,
   onClick: () -> Unit,
@@ -142,13 +140,30 @@ internal fun CollapsedPlaybackBar(
       Dispose -> BorderStroke(2.dp, MaterialTheme.colorScheme.error)
     },
   ) {
+    val title by remember {
+      derivedStateOf { currentMetadata.title ?: session.chapter.title }
+    }
+
+    val thumbnailUrl by remember {
+      derivedStateOf {
+        currentMetadata.artworkUri ?: session.libraryItem.media.coverImageUrl
+      }
+    }
+
+    val thumbnailContentDescription by remember {
+      derivedStateOf { session.libraryItem.media.metadata.title }
+    }
+
+    val timeRemaining = session.timeRemaining.readoutFormat()
+
     CollapsedPlaybackBarContent(
       dragState = dragState,
-      session = session,
+      title = title,
+      thumbnailUrl = thumbnailUrl,
+      thumbnailContentDescription = thumbnailContentDescription,
       state = state,
-      currentTime = currentTime,
-      currentDuration = currentDuration,
-      currentMetadata = currentMetadata,
+      progress = progress,
+      timeRemaining = timeRemaining,
       runningTimer = runningTimer,
       onClick = onClick,
       onPlayPauseClick = onPlayPauseClick,
@@ -163,11 +178,12 @@ internal fun CollapsedPlaybackBar(
 @Composable
 private fun CollapsedPlaybackBarContent(
   dragState: PlaybackBarDragState,
-  session: Session,
+  title: String,
+  thumbnailUrl: String,
+  thumbnailContentDescription: String?,
   state: AudioPlayer.State,
-  currentTime: Duration,
-  currentDuration: Duration,
-  currentMetadata: Metadata,
+  progress: () -> Float,
+  timeRemaining: String,
   runningTimer: RunningTimer?,
   onClick: () -> Unit,
   onPlayPauseClick: () -> Unit,
@@ -192,11 +208,9 @@ private fun CollapsedPlaybackBarContent(
         modifier = Modifier.padding(4.dp),
         contentAlignment = Alignment.Center,
       ) {
-        val mediaUrl = currentMetadata.artworkUri
-          ?: session.libraryItem.media.coverImageUrl
         Thumbnail(
-          imageUrl = mediaUrl,
-          contentDescription = session.libraryItem.media.metadata.title,
+          imageUrl = thumbnailUrl,
+          contentDescription = thumbnailContentDescription,
           modifier = Modifier
             .sharedElement(
               rememberSharedContentState(SharedImage),
@@ -270,13 +284,13 @@ private fun CollapsedPlaybackBarContent(
       Column(
         modifier = Modifier.weight(1f),
       ) {
-        val title = when (dragState.actionState) {
+        val playbackBarTitle = when (dragState.actionState) {
           Dispose -> "Clear session"
-          else -> currentMetadata.title ?: session.chapter.title
+          else -> title
         }
 
         Text(
-          text = title,
+          text = playbackBarTitle,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Medium,
           fontFamily = PaytoneOneFontFamily,
@@ -286,7 +300,7 @@ private fun CollapsedPlaybackBarContent(
 
         val subtitle = when (dragState.actionState) {
           Dispose -> "Stop playback?"
-          else -> stringResource(Res.string.time_remaining, session.timeRemaining.readoutFormat())
+          else -> stringResource(Res.string.time_remaining, timeRemaining)
         }
 
         Text(
@@ -341,9 +355,7 @@ private fun CollapsedPlaybackBarContent(
     }
 
     LinearProgressIndicator(
-      progress = {
-        currentTime progressOver currentDuration
-      },
+      progress = progress,
       modifier = Modifier
         .align(Alignment.BottomStart)
         .padding(
