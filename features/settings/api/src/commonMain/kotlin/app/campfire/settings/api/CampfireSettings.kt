@@ -13,6 +13,8 @@ interface CampfireSettings {
   var deviceId: String
   var analyticsId: String
 
+  var hasEverConsented: Boolean
+
   var crashReportingEnabled: Boolean
   fun observeCrashReportingEnabled(): Flow<Boolean>
 

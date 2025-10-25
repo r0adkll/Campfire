@@ -40,7 +40,10 @@ class DatabaseUserSessionRestorer(
       return@measureTimedValue UserSession.LoggedOut
     }
 
-    return@measureTimedValue UserSession.LoggedIn(user)
+    return@measureTimedValue UserSession.LoggedIn(
+      user = user,
+      showAnalyticsConsent = !settings.hasEverConsented,
+    )
   }.let { timedValue ->
     bark("UserSessionRestorer") { "Restored ${timedValue.value} in ${timedValue.duration}" }
     timedValue.value

@@ -44,6 +44,7 @@ class AnalyticConsentPresenter(
           analyticReportingEnabled = event.enabled
         }
         is AnalyticConsentUiEvent.ApplyConsent -> {
+          settings.hasEverConsented = true
           settings.crashReportingEnabled = crashReportingEnabled
           settings.analyticReportingEnabled = analyticReportingEnabled
           if (userSession is UserSession.LoggedIn) {
