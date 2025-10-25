@@ -1,5 +1,7 @@
 package app.campfire.analytics.events
 
+import kotlin.jvm.JvmInline
+
 /**
  * When the user clicks a button, or action, in the app fire this event
  * @param obj the source of the action. i.e. "Author"
@@ -38,6 +40,7 @@ fun SettingActionEvent(
   ),
 )
 
+@JvmInline
 value class Verb(val value: String)
 
 val Viewed get() = Verb("viewed")

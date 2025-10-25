@@ -3,7 +3,7 @@ package app.campfire.analytics.mixpanel
 actual class MixPanelFacade {
 
   actual val isOptOut: Boolean
-    get() = TODO("Not yet implemented")
+    get() = false
 
   actual fun optIn() {
   }
