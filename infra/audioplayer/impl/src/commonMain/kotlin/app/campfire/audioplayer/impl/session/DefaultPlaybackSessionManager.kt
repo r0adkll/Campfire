@@ -6,6 +6,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
