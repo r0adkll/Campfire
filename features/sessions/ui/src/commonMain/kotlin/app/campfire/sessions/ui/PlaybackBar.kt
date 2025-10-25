@@ -107,7 +107,7 @@ fun PlaybackBar(
           when {
             (initialState == Hidden && targetState == Collapsed) ||
               (initialState == Collapsed && targetState == Hidden)
-              -> slideInVertically { it } togetherWith slideOutVertically { it }
+            -> slideInVertically { it } togetherWith slideOutVertically { it }
 
             else -> scaleIn() togetherWith scaleOut()
           }

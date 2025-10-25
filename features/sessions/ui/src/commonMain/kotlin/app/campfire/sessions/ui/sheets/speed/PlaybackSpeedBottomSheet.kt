@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.lerp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.Changed
 import app.campfire.analytics.events.PlaybackActionEvent
-import app.campfire.analytics.events.PlaybackBar
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.analytics.events.Speed
