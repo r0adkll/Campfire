@@ -74,7 +74,6 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.ActionState.Dispose
 import app.campfire.sessions.ui.ActionState.None
@@ -84,7 +83,6 @@ import app.campfire.sessions.ui.composables.Thumbnail
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
-import kotlin.time.Duration
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalSharedTransitionApi::class)

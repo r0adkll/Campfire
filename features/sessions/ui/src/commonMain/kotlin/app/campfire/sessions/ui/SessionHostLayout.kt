@@ -49,7 +49,7 @@ fun SessionHostLayout(
   val audioPlayer by remember {
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
-  
+
   val currentSessionId by remember { derivedStateOf { currentSession?.id } }
   val audioPlayerMiniState by remember {
     derivedStateOf {

@@ -86,7 +86,7 @@ android {
       )
     }
 
-    create("benchmarkRelease"){
+    create("benchmarkRelease") {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
     }
 
