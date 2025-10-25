@@ -9,13 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Usage analytics via MixPanel (Android Only)
+- Reporting consent screen to opt-out of developer and usage reporting
+
 ### Changed
+
+- Disabled Firebase in debug builds
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Improved UI performance during playback
 
 ### Other Notes & Contributions
 
