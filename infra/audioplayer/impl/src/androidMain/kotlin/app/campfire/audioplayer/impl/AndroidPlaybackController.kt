@@ -42,12 +42,12 @@ class AndroidPlaybackController(
       return
     }
 
-    ibark { "[$this] ~~> startSession($itemId, playImmediately=$playImmediately, chapterId=$chapterId)" }
+    ibark { "[$this] ~~> startSession(playImmediately=$playImmediately)" }
     mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
       .take(1)
       .onEach { mediaController ->
-        ibark { "$mediaController <-- starting for $itemId, playImmediately=$playImmediately" }
+        ibark { "$mediaController <-- starting for item, playImmediately=$playImmediately" }
         currentSessionId = itemId
         playbackSessionManager.startSession(itemId, playImmediately, chapterId)
       }

@@ -43,3 +43,10 @@ data class LibraryItem(
     } ?: error("Unable to find chapter for duration $durationMs")
   }
 }
+
+/**
+ * Take only the last 5 characters of an ID so that way we can log and associate without
+ * exposing local user data.
+ */
+val LibraryItemId.loggableId: String
+  get() = takeLast(5)

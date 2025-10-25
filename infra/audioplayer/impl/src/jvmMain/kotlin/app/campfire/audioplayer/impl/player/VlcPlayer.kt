@@ -363,7 +363,7 @@ class VlcPlayer {
 
   companion object : Cork {
     override val tag: String = "VlcPlayer"
-    override val enabled: Boolean = true
+    override val enabled: Boolean = false
   }
 }
 

@@ -15,7 +15,6 @@ class MediaProgressFetcherFactory(
 
   fun create(): Fetcher<Operation, Output> {
     return Fetcher.ofResult { operation ->
-      MediaProgressStore.ibark { "Fetcher: $operation" }
       require(operation is Operation.Query)
       when (operation) {
         is Operation.Query.All -> fetchAll()

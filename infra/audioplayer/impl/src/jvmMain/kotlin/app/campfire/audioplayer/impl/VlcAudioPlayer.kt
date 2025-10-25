@@ -13,6 +13,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
+import app.campfire.core.model.loggableId
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -280,7 +281,7 @@ class VlcAudioPlayer(
 
     override fun onFinished() {
       scope.launch {
-        bark { "onFinished($finishedListener, ${preparedSession?.libraryItem?.id})" }
+        bark { "onFinished($finishedListener, ${preparedSession?.libraryItem?.id?.loggableId})" }
         finishedListener?.invoke(preparedSession?.libraryItem?.id ?: return@launch)
       }
     }

@@ -70,7 +70,6 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
-import app.campfire.core.logging.bark
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.ui.CampfireDockedSearchBar
 import app.campfire.search.ui.showSearchOverlay
@@ -142,7 +141,6 @@ internal fun HomeUi(
 
   val overlayHost = rememberOverlayHost()
   PlatformBackHandler(overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen) {
-    bark("OverlayHost") { "onBackHandler(${overlayHost.currentOverlayData})" }
     overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
   }
 

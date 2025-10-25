@@ -20,6 +20,7 @@ import org.mobilenativefoundation.store.store5.MutableStoreBuilder
 object BookmarkStore : Cork {
 
   override val tag: String = "BookmarkStore"
+  override val enabled: Boolean = false
 
   @Inject
   class Factory(

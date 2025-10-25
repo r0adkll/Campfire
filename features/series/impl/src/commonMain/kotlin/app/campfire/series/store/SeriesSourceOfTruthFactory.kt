@@ -2,7 +2,6 @@ package app.campfire.series.store
 
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
@@ -36,7 +35,6 @@ internal class SeriesSourceOfTruthFactory(
         }
     },
     writer = { libraryId, series: List<NetworkSeries> ->
-      bark { "Writing Series: $series" }
       withContext(dispatcherProvider.databaseWrite) {
         db.transaction {
           series.forEach { series ->

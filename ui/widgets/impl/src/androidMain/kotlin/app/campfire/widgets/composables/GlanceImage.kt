@@ -17,7 +17,6 @@ import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
-import app.campfire.core.logging.bark
 import app.campfire.widgets.theme.withAlpha
 import coil3.imageLoader
 import coil3.request.ErrorResult
@@ -44,7 +43,6 @@ internal fun GlanceImage(
       bitmap = when (val result = context.imageLoader.execute(request)) {
         is ErrorResult -> null
         is SuccessResult -> {
-          bark { "Successfully loaded: $url from ${result.dataSource}" }
           result.image.toBitmap()
         }
       }

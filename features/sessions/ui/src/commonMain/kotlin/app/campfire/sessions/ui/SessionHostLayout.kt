@@ -75,7 +75,7 @@ fun SessionHostLayout(
             currentSession = ${currentSession?.id},
             audioPlayer = $audioPlayer,
             audioPlayer.state = ${audioPlayer?.state?.value},
-            audioPlayer.session = ${audioPlayer?.preparedSession},
+            audioPlayer.session = ${audioPlayer?.preparedSession?.id},
           ) found, but media player not initialized, starting
         """.trimIndent()
       }

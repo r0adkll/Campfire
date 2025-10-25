@@ -2,7 +2,6 @@ package app.campfire.libraries.ui.list.sheets.filters
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import app.campfire.core.logging.bark
 import app.campfire.core.model.FilterData
 import app.campfire.libraries.api.LibraryItemFilter
 import campfire.features.libraries.ui.generated.resources.Res
@@ -66,7 +65,6 @@ sealed interface UiItemFilter<Value : Any> {
     override fun isValueSelectedFor(filter: LibraryItemFilter, value: String): Boolean {
       return when (filter) {
         is LibraryItemFilter.Genres -> {
-          bark { "${filter.value} == $value" }
           value == filter.value
         }
         else -> false

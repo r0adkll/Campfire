@@ -12,11 +12,7 @@ class BookmarkFetcherFactory(
   fun create(): Fetcher<BookmarkStore.Operation, User> {
     return Fetcher.ofResult { operation ->
       require(operation is BookmarkStore.Operation.Item)
-      api.getCurrentUser()
-        .also {
-          BookmarkStore.dbark { "Fetcher Result(${it.getOrNull()?.bookmarks})" }
-        }
-        .asFetcherResult()
+      api.getCurrentUser().asFetcherResult()
     }
   }
 }

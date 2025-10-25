@@ -3,7 +3,6 @@ package app.campfire.search.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.logging.bark
 import app.campfire.data.Search
 import app.campfire.data.Search_authors
 import app.campfire.data.Search_books
@@ -105,7 +104,7 @@ class SearchSourceOfTruthFactory(
     query: Query,
     result: NetworkSearchResult,
   ) = withContext(dispatcherProvider.databaseWrite) {
-    bark { "Writing Search Result: ${result.toShortString()}" }
+    SearchStore.vbark { "Writing Search Result: ${result.toShortString()}" }
 
     db.transaction {
       // Setup transaction notifications

@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.loggableId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.data.MediaAudioFiles
@@ -163,13 +164,13 @@ class SqlDelightLibraryItemDao(
 
       afterCommit {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id}] inserted"
+          "LibraryItemExpanded[${item.id.loggableId}] inserted"
         }
       }
 
       afterRollback {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id}] insert failed, rolling back"
+          "LibraryItemExpanded[${item.id.loggableId}] insert failed, rolling back"
         }
       }
     }
@@ -230,13 +231,13 @@ class SqlDelightLibraryItemDao(
 
       afterCommit {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id}] inserted"
+          "LibraryItemExpanded[${item.id.loggableId}] inserted"
         }
       }
 
       afterRollback {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id}] insert failed, rolling back"
+          "LibraryItemExpanded[${item.id.loggableId}] insert failed, rolling back"
         }
       }
     }

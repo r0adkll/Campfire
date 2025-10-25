@@ -3,7 +3,6 @@ package app.campfire.db
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
-import app.campfire.core.logging.bark
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
@@ -23,7 +22,7 @@ actual interface SqlDelightDatabasePlatformComponent {
     val appDir = File(userDir, ".config/Campfire").apply { mkdirs() }
     val databaseFile = File(appDir, "campfire.db")
 
-    bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
+//    bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
 
     val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
 //    DestructiveMigrationSchema.perform(driver)

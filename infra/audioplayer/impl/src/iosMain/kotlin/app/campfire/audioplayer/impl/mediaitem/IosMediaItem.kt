@@ -1,6 +1,5 @@
 package app.campfire.audioplayer.impl.mediaitem
 
-import app.campfire.core.logging.bark
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import platform.AVFoundation.AVPlayerItem
@@ -45,7 +44,6 @@ data class IosMediaItem(
    */
   fun asAVPlayerItem(): AVPlayerItem {
     // TODO: Only supporting streaming at this time. Add support for local offline playback.
-    bark { "--> Preparing: $uri" }
     val url = URLWithString(uri)!!
     return AVPlayerItem(url)
   }

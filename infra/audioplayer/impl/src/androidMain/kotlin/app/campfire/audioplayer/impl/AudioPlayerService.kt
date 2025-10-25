@@ -114,7 +114,7 @@ class AudioPlayerService : MediaLibraryService() {
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = session
 
   override fun onTaskRemoved(rootIntent: Intent?) {
-    bark(LogPriority.INFO) { "AudioPlayerService::onTaskRemoved($rootIntent)" }
+    bark(LogPriority.INFO) { "AudioPlayerService::onTaskRemoved()" }
     val player = session?.player!!
     if (
       !player.playWhenReady ||

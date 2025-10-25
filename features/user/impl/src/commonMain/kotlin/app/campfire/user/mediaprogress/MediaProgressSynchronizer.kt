@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.loggableId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asNetworkUpdate
@@ -41,7 +42,9 @@ class DefaultMediaProgressSynchronizer(
 
     if (force || mediaProgress.id == MediaProgress.UNKNOWN_ID || elapsed > MIN_SYNC_TIME) {
       val duration = syncInternal(mediaProgress)
-      bark(LogPriority.INFO) { "Syncing MediaProgress(${mediaProgress.libraryItemId}) took $duration" }
+      bark(LogPriority.INFO) {
+        "Syncing MediaProgress(${mediaProgress.libraryItemId.loggableId}) took $duration"
+      }
     }
   }
 
@@ -65,7 +68,7 @@ class DefaultMediaProgressSynchronizer(
           }
 
           bark(LogPriority.DEBUG) {
-            "New MediaProgress Id ${updatedMediaProgress.libraryItemId} " +
+            "New MediaProgress Id ${updatedMediaProgress.libraryItemId.loggableId} " +
               "--> ${updatedMediaProgress.id}"
           }
           lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()

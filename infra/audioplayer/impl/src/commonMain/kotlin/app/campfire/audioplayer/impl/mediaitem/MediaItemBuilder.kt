@@ -20,15 +20,12 @@ object MediaItemBuilder {
     // then this item is file segmented by chapter and we can assume a 1:1 relationship
     val likelyTrackPerChapter = chapters.size == audioTracks.size
 
-//    bark { "Building MediaItems for ${item.media.metadata.title}, likelyTrackPerChapter=$likelyTrackPerChapter" }
-
     return chapters.mapIndexed { index, chapter ->
       if (likelyTrackPerChapter) {
         val track = audioTracks[index]
         val trackStart = track.startOffset.seconds.inWholeSeconds
         val trackEnd = (track.startOffset + track.duration).seconds.inWholeSeconds
         val diff = chapter.start.seconds.inWholeSeconds in trackStart.rangeUntil(trackEnd)
-//        bark { "MediaItem[~${diff}s](chapter=$chapter, track=$track)" }
         return@mapIndexed createMediaItem(chapter, track, false, media)
       }
 
@@ -42,8 +39,6 @@ object MediaItemBuilder {
 
       // Determine now if the audio track needs to be clipped for this item\
       val diff = computerChapterTrackDiffInSeconds(chapter, track)
-
-//      bark { "MediaItem[~${diff}s](chapter=$chapter, track=$track)" }
 
       createMediaItem(chapter, track, true, media)
     }

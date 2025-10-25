@@ -24,6 +24,7 @@ import org.mobilenativefoundation.store.store5.MutableStoreBuilder
 object CollectionsStore : Cork {
 
   override val tag: String = "CollectionsStore"
+  override val enabled: Boolean = false
 
   @Inject
   class Factory(

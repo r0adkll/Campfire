@@ -26,6 +26,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.loggableId
 import app.campfire.home.api.HomeRepository
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.libraries.api.LibraryItemRepository
@@ -88,7 +89,9 @@ class MediaTree(
       val item = libraryItemRepository.getLibraryItem(libraryItemId)
       MediaItemBuilder.build(item).map { it.asPlatformMediaItem() }
     } catch (e: Throwable) {
-      bark(LogPriority.ERROR, throwable = e) { "Unable to find item for $libraryItemId" }
+      bark(LogPriority.ERROR, throwable = e) {
+        "Unable to find item for ${libraryItemId.loggableId}"
+      }
       emptyList()
     }
   }
@@ -180,7 +183,9 @@ class MediaTree(
     try {
       return libraryItemRepository.getLibraryItem(mediaId).asBrowsableMediaItem()
     } catch (e: Throwable) {
-      bark(LogPriority.ERROR, throwable = e) { "Error getting item for $mediaId" }
+      bark(LogPriority.ERROR, throwable = e) {
+        "Error getting item for ${mediaId.loggableId}"
+      }
     }
     return null
   }

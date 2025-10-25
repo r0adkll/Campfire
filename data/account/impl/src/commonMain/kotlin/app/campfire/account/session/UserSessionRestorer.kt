@@ -45,7 +45,9 @@ class DatabaseUserSessionRestorer(
       showAnalyticsConsent = !settings.hasEverConsented,
     )
   }.let { timedValue ->
-    bark("UserSessionRestorer") { "Restored ${timedValue.value} in ${timedValue.duration}" }
+    bark("UserSessionRestorer") {
+      "Restored ${timedValue.value::class.simpleName} in ${timedValue.duration}"
+    }
     timedValue.value
   }
 }

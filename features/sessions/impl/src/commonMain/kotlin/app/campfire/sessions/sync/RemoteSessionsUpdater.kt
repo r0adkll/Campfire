@@ -86,13 +86,13 @@ class NetworkRemoteSessionsUpdater(
       val result = api.syncLocalSessions(networkPlaybackSessions)
       result
         .onSuccess { r ->
-          ibark { "Local Session Sync for User($currentUserId) Successful!" }
+          ibark { "Local Session Sync Successful!" }
           r.results.forEach {
             dbark { "--> Sync Result $it" }
           }
         }
         .onFailure { t ->
-          ebark(t) { "Failed to sync for User($currentUserId)" }
+          ebark(t) { "Failed to sync for user" }
         }
     } else {
       dbark { "Local sessions empty, skipping sync" }

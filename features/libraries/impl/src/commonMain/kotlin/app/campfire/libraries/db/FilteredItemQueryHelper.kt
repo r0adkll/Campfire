@@ -1,6 +1,5 @@
 package app.campfire.libraries.db
 
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.MediaType
 import app.campfire.core.settings.SortDirection
@@ -210,7 +209,6 @@ class FilteredItemQueryHelper(
         sortDirection,
         page,
       )
-      bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
       return sqlDriver.executeQuery(
         query.hashCode(),
@@ -220,8 +218,6 @@ class FilteredItemQueryHelper(
       ) {
         bindString(0, libraryId)
         binderBuilder.apply(this)
-      }.also { qr ->
-        bark { "SelectFilteredItemQuery Result: \n${qr.value}" }
       }
     }
 
@@ -259,14 +255,12 @@ class FilteredItemQueryHelper(
         sortMode,
         sortDirection,
       )
-      bark { "Querying:\n$query" }
       val numParameters = query.count { it == '?' }
       return sqlDriver.executeQuery(
         query.hashCode(),
         query,
         mapper,
-        numParameters
-          .also { bark { "CountForFilteredItemQuery: $it" } },
+        numParameters,
       ) {
         bindString(0, libraryId)
         binderBuilder.apply(this)

@@ -41,7 +41,11 @@ interface HttpClientModule {
       install(HttpCache)
 
       install(Logging) {
-        level = LogLevel.INFO
+        level = when {
+          applicationInfo.debugBuild -> LogLevel.HEADERS
+          applicationInfo.flavor == Flavor.Alpha -> LogLevel.INFO
+          else -> LogLevel.NONE
+        }
         logger = object : Logger {
           override fun log(message: String) {
             bark(

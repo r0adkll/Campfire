@@ -135,7 +135,7 @@ class SqlDelightSessionDataSource(
     val newCurrentTime = existingSession?.currentTime ?: currentTime
 
     // If there is no existing, or its too old. Create a new session.
-    bark { "Creating new session for $libraryItemId" }
+    bark { "Creating new session for library item" }
     return withContext(dispatcherProvider.databaseWrite) {
       val dbSession = DbSession(
         id = Uuid.random(),

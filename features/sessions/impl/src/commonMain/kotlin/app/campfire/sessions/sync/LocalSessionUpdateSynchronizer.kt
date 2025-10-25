@@ -47,7 +47,7 @@ class LocalSessionUpdateSynchronizer(
   ) {
     if (state == AudioPlayer.State.Playing) {
       lastPlayedTime = fatherTime.nowInEpochMillis()
-      ibark { "Setting lastPlayedTime to $lastPlayedTime for $libraryItemId" }
+      ibark { "Setting lastPlayedTime to $lastPlayedTime" }
     } else if (
       state == AudioPlayer.State.Paused ||
       state == AudioPlayer.State.Disabled ||
@@ -55,7 +55,7 @@ class LocalSessionUpdateSynchronizer(
     ) {
       if (lastPlayedTime != null) {
         val elapsed = (fatherTime.nowInEpochMillis() - lastPlayedTime!!).milliseconds
-        ibark { "Adding $elapsed time listening to $libraryItemId for ${sessionId.toHexDashString()})" }
+        ibark { "Adding $elapsed time listening for ${sessionId.toHexDashString()})" }
         component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
         component.remoteSessionsUpdater.update(skipInterval = true)
         lastPlayedTime = null
@@ -70,7 +70,7 @@ class LocalSessionUpdateSynchronizer(
     if (lastPlayedTime != null) {
       val elapsed = (fatherTime.nowInEpochMillis() - lastPlayedTime!!).milliseconds
       if (elapsed > MAX_TIME_LISTENING_INTERVAL) {
-        ibark { "Timeout adding $elapsed time listening to $libraryItemId)" }
+        ibark { "Timeout adding $elapsed time listening)" }
         component.sessionsRepository.addTimeListening(libraryItemId, elapsed)
         lastPlayedTime = fatherTime.nowInEpochMillis()
       }

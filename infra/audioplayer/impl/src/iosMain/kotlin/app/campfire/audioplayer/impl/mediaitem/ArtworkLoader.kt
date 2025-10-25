@@ -38,7 +38,7 @@ class NetworkArtworkLoader(
         val nsData = response.bodyAsBytes().toNSData()
         MPMediaItemArtwork(UIImage(nsData))
       } catch (e: Exception) {
-        bark(LogPriority.ERROR, throwable = e) { "Error loading artwork for $url" }
+        bark(LogPriority.ERROR, throwable = e) { "Error loading artwork" }
         null
       }
     } else {

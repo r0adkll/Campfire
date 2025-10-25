@@ -1,16 +1,19 @@
 package app.campfire.libraries.db
 
-import app.campfire.core.logging.bark
+import app.campfire.core.logging.Cork
 import app.cash.sqldelight.db.SqlPreparedStatement
 
 internal class AutoIncrementingSqlPreparedStatement(
   val delegate: SqlPreparedStatement,
   val getAndIncrement: () -> Int,
-) : SqlPreparedStatement by delegate {
+) : SqlPreparedStatement by delegate, Cork {
+
+  override val tag = "AutoIncrementingSqlPreparedStatement"
+  override val enabled: Boolean = false
 
   private val loggingGetAndIncrement = { method: String ->
     getAndIncrement().also {
-      bark { "~~ getAndIncrement($method) => $it" }
+      dbark { "~~ getAndIncrement($method) => $it" }
     }
   }
 

@@ -37,7 +37,6 @@ class StoreLibraryItemRepository(
           bark(throwable = resp.error) { " Library Item Store Response Error " }
         }
 
-        bark { "Library Item Store Response ($resp)" }
         resp.dataOrNull()
       }
   }

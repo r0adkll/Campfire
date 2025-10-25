@@ -18,6 +18,7 @@ import org.mobilenativefoundation.store.store5.StoreBuilder
 object SearchStore : Cork {
 
   override val tag: String = "SearchStore"
+  override val enabled: Boolean = false
 
   @Inject
   class Factory(

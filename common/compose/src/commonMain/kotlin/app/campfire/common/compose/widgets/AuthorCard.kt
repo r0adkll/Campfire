@@ -70,7 +70,7 @@ fun AuthorCard(
         placeholder = painterResource(placeHolderResource),
         error = painterResource(placeHolderResource),
         onError = {
-          bark(throwable = it.result.throwable) { "Author image loading error: ${it.result.request.data}" }
+          bark(throwable = it.result.throwable) { "Author image loading error" }
         },
       )
 
