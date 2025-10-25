@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -162,7 +163,10 @@ internal fun HomeUi(
   }
 
   var playbackBarExpanded by remember { mutableStateOf(false) }
-  PlatformBackHandler(playbackBarExpanded) { playbackBarExpanded = false }
+  PlatformBackHandler(playbackBarExpanded) {
+    Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
+    playbackBarExpanded = false
+  }
 
   // Search View wiring
   AdaptiveCampfireLayout(
@@ -237,7 +241,10 @@ internal fun HomeUi(
       if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.ExtraLarge) {
         PlaybackBar(
           expanded = playbackBarExpanded,
-          onExpansionChange = { playbackBarExpanded = it },
+          onExpansionChange = {
+            Analytics.send(ActionEvent("playback_bar", if (it) "expanded" else "collapsed"))
+            playbackBarExpanded = it
+          },
           navigator = homeNavigator,
           modifier = Modifier
             .align(Alignment.BottomStart)

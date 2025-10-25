@@ -27,26 +27,16 @@ fun ActionEvent(
   extras: Map<String, Any>? = null,
 ) = ActionEvent(obj, verb.value, noun, extras)
 
-fun SettingActionEvent(
-  obj: String,
-  verb: Verb,
-  noun: Any? = null,
-) = ActionEvent(
-  obj = obj,
-  verb = verb,
-  noun = noun,
-  extras = mapOf(
-    "source" to "settings",
-  ),
-)
-
 @JvmInline
 value class Verb(val value: String)
 
 val Viewed get() = Verb("viewed")
 val Selected get() = Verb("selected")
 val Click get() = Verb("clicked")
+
+val Created get() = Verb("created")
 val Updated get() = Verb("updated")
+val Deleted get() = Verb("deleted")
 
 @Suppress("FunctionName")
 fun ContentSelected(
