@@ -86,6 +86,10 @@ android {
       )
     }
 
+    create("benchmarkRelease"){
+      signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+    }
+
     create("nonMinifiedRelease") {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
     }
@@ -122,10 +126,13 @@ dependencies {
   implementation(libs.androidx.profileinstaller)
 
   baselineProfile(projects.app.baselineprofile)
+  implementation(libs.androidx.compose.runtime.tracing)
 
   debugImplementation(projects.infra.debug)
 
   "betaImplementation"(libs.google.firebase.appdistribution)
+  "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto)
+  "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto.binary)
 
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)

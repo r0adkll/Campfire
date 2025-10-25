@@ -5,6 +5,7 @@ accompanist = "0.37.3"
 androidxlifecycle = "2.9.4"
 androidxactivity = "1.11.0"
 androidxcomposeui = "1.9.4"
+androidxtracing = "1.0.0"
 androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 appcompat = "1.7.1"
@@ -12,6 +13,7 @@ appdistribution = "16.0.0-beta17"
 clikt = "5.0.3"
 core-ktx = "1.17.0"
 coroutines = "1.10.2"
+# TODO: 1.9.1+ breaks Wavy Slider - TODO: Update to support M3 Expressive
 compose-multiplatform = "1.9.0"
 connectivity = "2.3.0"
 coil = "3.3.0"
@@ -84,10 +86,13 @@ androidx-archCoreTesting = "androidx.arch.core:core-testing:2.2.0"
 androidx-browser = "androidx.browser:browser:1.9.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
+androidx-compose-runtime-tracing = { module = "androidx.compose.runtime:runtime-tracing", version.ref = "androidxcomposeui" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
 androidx-preferences = "androidx.preference:preference:1.2.1"
+androidx-tracing-perfetto = { module = "androidx.tracing:tracing-perfetto", version.ref = "androidxtracing" }
+androidx-tracing-perfetto-binary = { module = "androidx.tracing:tracing-perfetto-binary", version.ref = "androidxtracing" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxsecuritycrypto" }
 
@@ -150,17 +155,12 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 
 molecule = { module = "app.cash.molecule:molecule-runtime", version.ref = "molecule" }
 
-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
-kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
-
 kotlininject-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
 kotlininject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
 kimchi-circuit-annotations = { module = "com.r0adkll.kimchi:kimchi-circuit-annotations", version.ref = "kimchi" }
 kimchi-circuit-compiler = { module = "com.r0adkll.kimchi:kimchi-circuit-compiler", version.ref = "kimchi" }
 kimchi-annotations = { module = "com.r0adkll.kimchi:kimchi-annotations", version.ref = "kimchi" }
 kimchi-compiler = { module = "com.r0adkll.kimchi:kimchi-compiler", version.ref = "kimchi" }
-
-ksoup-html = { module = "com.mohamedrejeb.ksoup:ksoup-html", version.ref = "ksoup" }
 
 #Networking
 okhttp-okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
