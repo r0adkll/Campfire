@@ -62,17 +62,38 @@ These are very few and lightweight modules meant to be shared with ALL other mod
 ### Feature Modules
 This group of modules contains the bulk of all the application feature code. From authentication and sign-in to library item list and detail pages. MOST user facing code subsides in these modules. e.g.
 
-- `:features:auth` - This contains the welcome, sign-in, and analytic consent collection screens
+- `:features:auth` - This contains the welcome, sign-in, and analytic consent collection screens.
 - `:feautres:libraries` - This contains the library item detail and list screens, as well as the apis for interacting with libraries and their items.
-- `:features:sessions` - This contains the playback session apis and playback bar UIs
+- `:features:sessions` - This contains the playback session apis and playback bar UIs.
 
 _Check out the code in the other `:features` modules for tons of more examples._
 
 ### Data Modules
+This group of modules contains a set of infra tool modules for driving data through the app. This includes:
+
+- `:data:account` - Set of modules for managing user accounts, user sessions, authentication tokens, and UI elements for switching and picking accounts.
+- `:data:analytics` - Set of modules for managing usage analytics.
+- `:data:crashreporting` - Set of modules for crash reporting and other developer related metrics through Firebase.
+- `:data:db` - Central database and its related modules and functions.
+- `:data:mapping` - Module for mapping between DB types and domain types.
+- `:data:network` - Central networking layer for communicating with the audiobookshelf APIs.
 
 ### Infra Modules
+This group of modules contains the set of core infrastructure modules that provide utility and function to non-feature
+specific functions of the app. This includes:
+
+- `:infra:audioplayer` - Provides a central interface for interacting with the audio player for all platforms. (`ExoPlayer` for Android, `AVPlayer` for iOS, and `VLC` for Desktop).
+- `:infra:shake` - Provides "Shake" detection for all mobile platforms.
+- `:infra:updates` - Provides a central interface for in-app updates.
+- `:infra:debug` - Provides in-app debug UI and functionality for the app.
 
 ### UI modules
+Lastly this contains a set of modules for providing independent re-usable UI elements for the application. Such as:
+
+- `:ui:appbar` - Provides the top-level common `CampfireAppBar` implementation that includes its own presenter/logic.
+- `:ui:attribution` - Provides the in-app UI solution to `aboutlibraries` library for providing attributions per open source legal policy.
+- `:ui:drawer` - Provides the navigation drawer implementation.
+- `:ui:widgets` - Provides the homescreen widget implementations for the app.
 
 ## Feature Graph Structure
 
