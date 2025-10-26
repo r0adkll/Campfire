@@ -6,6 +6,40 @@
 
 **Campfire** is an unofficial app for [Audiobookshelf](https://www.audiobookshelf.org/) built in Kotlin/Compose Multiplatform for a more native experience than the official app.
 
+# Architecture
+
+## Module Types
+
+### Standalone
+
+```
+module-name/
+└── src/
+    └── …
+```
+
+These are modules that are very self-contained and serve a singular purpose / concern.
+
+### Split
+
+```
+module-name/
+├── api/
+│   └── src/
+│       └── …
+├── impl/
+│   └── src/
+│       └── …
+└── ui/
+    └── src/
+        └── …
+```
+
+These are a group of modules for building features that provide function to other features/modules and ui/screens.
+* `:api` - A lightweight module that can only depend on `:core` or other infra modules without other dependencies.
+* `:impl` - The implementation module that provides the implementations and bindings for `:api`. This is only implemented by the `:app` module(s)
+* `:ui` - This module consumes `:api` and any other feature `:api` modules to provide Circuit screen implementations _(more on this later)_. This is only implemented by the `:app` module.
+
 ## This is a **WIP** project and no timeline will be given at this point in time
 
 * [Kotlin Multiplatform][kotlin-multiplatform]
