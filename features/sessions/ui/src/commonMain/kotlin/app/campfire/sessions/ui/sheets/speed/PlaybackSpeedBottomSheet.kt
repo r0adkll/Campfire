@@ -170,13 +170,13 @@ private fun PlaybackSpeedBottomSheet(
       )
 
       Text(
-        text = "${sliderValue.readable}x",
+        text = "${sliderValue.readableHundredths}x",
         textAlign = TextAlign.Right,
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.ExtraBold,
         modifier = Modifier
-          .padding(horizontal = 24.dp)
-          .width(32.dp),
+          .padding(horizontal = 22.dp)
+          .width(36.dp),
       )
     }
 
@@ -192,6 +192,20 @@ internal val Float.readable: String
     return if (isWhole) {
       "$asInt"
     } else if (hasHalf) {
+      toString(2)
+    } else {
+      toString(1)
+    }
+  }
+
+internal val Float.readableHundredths: String
+  get() {
+    val asInt = roundToInt()
+    val isWhole = this == asInt.toFloat()
+    val hasFraction = (this * 10) % 1 != 0.0f
+    return if (isWhole) {
+      "$asInt"
+    } else if (hasFraction) {
       toString(2)
     } else {
       toString(1)

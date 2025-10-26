@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.sessions.ui.sheets.speed.readable
+import app.campfire.sessions.ui.sheets.speed.readableHundredths
 
 @Composable
 fun PlaybackSpeedAction(
@@ -42,7 +43,7 @@ fun PlaybackSpeedAction(
       contentAlignment = Alignment.Center,
     ) {
       Text(
-        text = "${playbackSpeed.readable}x",
+        text = "${playbackSpeed.readableHundredths}x",
         fontSize = 18.sp,
         fontWeight = FontWeight.ExtraBold,
       )
