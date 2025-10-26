@@ -297,6 +297,7 @@ private fun PlaybackBottomBar(
             val result = overlayHost.showChapterBottomSheet(
               chapters = session.libraryItem.media.chapters,
               currentChapter = session.chapter,
+              playbackSpeed = playbackSpeed,
             )
             if (result is ChapterResult.Selected) {
               onChapterSelected(result.chapter)

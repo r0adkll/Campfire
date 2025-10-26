@@ -28,6 +28,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.events.ScreenType
@@ -60,26 +61,38 @@ interface ChapterListBottomSheetComponent {
   val settings: CampfireSettings
 }
 
+data class ChapterSheetModel(
+  val chapters: List<Chapter>,
+  val currentChapter: Chapter? = null,
+  val playbackSpeed: Float = 1f,
+)
+
 suspend fun OverlayHost.showChapterBottomSheet(
   chapters: List<Chapter>,
   currentChapter: Chapter? = null,
+  playbackSpeed: Float = 1f,
 ): ChapterResult {
   return show(
-    BottomSheetOverlay<List<Chapter>, ChapterResult>(
-      model = chapters,
+    BottomSheetOverlay<ChapterSheetModel, ChapterResult>(
+      model = ChapterSheetModel(
+        chapters = chapters,
+        currentChapter = currentChapter,
+        playbackSpeed = playbackSpeed,
+      ),
       onDismiss = { ChapterResult.None },
       sheetShape = RoundedCornerShape(
         topStart = 32.dp,
         topEnd = 32.dp,
       ),
-    ) { models, overlayNavigator ->
+    ) { model, overlayNavigator ->
       Impression {
         ScreenViewEvent("Chapters", ScreenType.Overlay)
       }
 
       ChapterListBottomSheet(
-        chapters = models,
-        currentChapter = currentChapter,
+        chapters = model.chapters,
+        currentChapter = model.currentChapter,
+        playbackSpeed = playbackSpeed,
         onChapterClicked = { chapter ->
           overlayNavigator.finish(ChapterResult.Selected(chapter))
         },
@@ -92,7 +105,8 @@ suspend fun OverlayHost.showChapterBottomSheet(
 @Composable
 private fun ChapterListBottomSheet(
   chapters: List<Chapter>,
-  currentChapter: Chapter? = null,
+  currentChapter: Chapter?,
+  playbackSpeed: Float,
   onChapterClicked: (Chapter) -> Unit,
   modifier: Modifier = Modifier,
   progressColor: Color = MaterialTheme.colorScheme.primaryContainer,
@@ -149,15 +163,19 @@ private fun ChapterListBottomSheet(
             )
           },
           trailingContent = {
+            val isAccelerated = playbackSpeed != 1f
+            val displayDuration = if (showTimeInBook) {
+              chapter.start.seconds
+            } else {
+              chapter.duration
+            }.div(playbackSpeed.toDouble())
             Text(
-              text = if (showTimeInBook) {
-                chapter.start.seconds.clockFormat()
-              } else {
-                chapter.duration.clockFormat()
-              },
+              text = displayDuration.clockFormat(),
               style = MaterialTheme.typography.labelLarge,
               fontWeight = if (isCurrentChapter) FontWeight.Bold else FontWeight.SemiBold,
               fontFamily = FontFamily.Monospace,
+              fontStyle = if (isAccelerated) FontStyle.Italic else null,
+              color = if (isAccelerated) MaterialTheme.colorScheme.secondary else Color.Unspecified,
             )
           },
           modifier = Modifier
