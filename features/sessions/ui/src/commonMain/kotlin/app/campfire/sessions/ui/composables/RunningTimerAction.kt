@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
-import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.animated.AnimatedTimerPainter
 import kotlin.time.Duration
 
@@ -60,7 +60,7 @@ fun RunningTimerAction(
     ) {
       val remaining = (currentDuration - currentTime).div(playbackSpeed.toDouble())
       Text(
-        text = remaining.readoutFormat(largestOnly = true),
+        text = remaining.thresholdReadoutFormat(),
         fontSize = 18.sp,
         fontWeight = FontWeight.ExtraBold,
       )
