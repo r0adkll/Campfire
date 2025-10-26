@@ -6,41 +6,10 @@
 
 **Campfire** is an unofficial app for [Audiobookshelf](https://www.audiobookshelf.org/) built in Kotlin/Compose Multiplatform for a more native experience than the official app.
 
-# Architecture
+> [!IMPORTANT]
+> This is a **WIP** project and no timeline will be given at this point in time
 
-## Module Types
-
-### Standalone
-
-```
-module-name/
-└── src/
-    └── …
-```
-
-These are modules that are very self-contained and serve a singular purpose / concern.
-
-### Split
-
-```
-module-name/
-├── api/
-│   └── src/
-│       └── …
-├── impl/
-│   └── src/
-│       └── …
-└── ui/
-    └── src/
-        └── …
-```
-
-These are a group of modules for building features that provide function to other features/modules and ui/screens.
-* `:api` - A lightweight module that can only depend on `:core` or other infra modules without other dependencies.
-* `:impl` - The implementation module that provides the implementations and bindings for `:api`. This is only implemented by the `:app` module(s)
-* `:ui` - This module consumes `:api` and any other feature `:api` modules to provide Circuit screen implementations _(more on this later)_. This is only implemented by the `:app` module.
-
-## This is a **WIP** project and no timeline will be given at this point in time
+## Tech Stack
 
 * [Kotlin Multiplatform][kotlin-multiplatform]
 * [Jetbrains Compose Multiplatform][compose-multiplatform]
@@ -52,6 +21,9 @@ These are a group of modules for building features that provide function to othe
 * Dependency Injection
   * [kotlin-inject][kinject]
   * [kimchi][kimchi]
+* Analytics
+  * [MixPanel][mix-panel]
+  * [Firebase][firebase]
 
 [kotlin-multiplatform]: https://kotlinlang.org/docs/multiplatform.html
 [compose-multiplatform]: https://www.jetbrains.com/lp/compose-multiplatform/
@@ -61,6 +33,11 @@ These are a group of modules for building features that provide function to othe
 [store]: https://github.com/MobileNativeFoundation/Store
 [kinject]: https://github.com/evant/kotlin-inject
 [kimchi]: https://github.com/r0adkll/kimchi
+[mix-panel]: https://docs.mixpanel.com/docs/tracking-methods/sdks/android
+[firebase]: https://firebase.google.com/
+
+## Architecture
+Head over to [Architecture](docs/Architecture.md) for more detailed information on the architecture of this project.
 
 ## Contributing
 

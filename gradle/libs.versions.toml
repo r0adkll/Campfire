@@ -71,6 +71,7 @@ firebase-appdistribution = "com.google.firebase.appdistribution:5.1.1"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.13.0" }
 
 [libraries]
 # About Libraries

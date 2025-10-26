@@ -20,9 +20,15 @@ plugins {
   alias(libs.plugins.sqldelight) apply false
   alias(libs.plugins.about.libraries) apply false
   alias(libs.plugins.baselineprofile) apply false
+  alias(libs.plugins.modulegraph)
 }
 
 tasks.register<Copy>("bootstrap") {
   from(file("scripts/pre-push"))
   into(file(".git/hooks"))
+}
+
+moduleGraphConfig {
+  readmePath.set("${rootDir}/docs/Architecture.md")
+  heading.set("## Graph Structure")
 }
