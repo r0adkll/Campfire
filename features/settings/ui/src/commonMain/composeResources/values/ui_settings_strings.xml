@@ -68,7 +68,7 @@
   <string name="setting_auto_sleep_auto_rewind_amount_title">Auto rewind time</string>
 
   <string name="timer_bottomsheet_title">Timer</string>
-  <string name="timer_end_of_chapter">End of chapter</string>
+  <string name="timer_end_of_chapter">End of Chapter</string>
   <string name="timer_custom">Custom</string>
   <string name="label_current_timer">Current timer</string>
   <string name="action_set_timer">Set timer</string>

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Disabled Firebase in debug builds
+- Capitalize "Chapter" in all "End of Chapter" text
 
 ### Deprecated
 

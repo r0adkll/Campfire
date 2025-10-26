@@ -7,7 +7,7 @@
 
   <string name="speed_bottomsheet_title">Playback speed</string>
   <string name="timer_bottomsheet_title">Timer</string>
-  <string name="timer_end_of_chapter">End of chapter</string>
+  <string name="timer_end_of_chapter">End of Chapter</string>
   <string name="timer_custom">Custom</string>
   <string name="label_current_timer">Current timer</string>
   <string name="label_end_of_chapter_short">EoC</string>
