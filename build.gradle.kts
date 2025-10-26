@@ -30,7 +30,7 @@ tasks.register<Copy>("bootstrap") {
 
 moduleGraphConfig {
   readmePath.set("$rootDir/docs/Architecture.md")
-  heading.set("## Graph Structure")
+  heading.set("## Feature Graph Structure")
   nestingEnabled.set(true)
   rootModulesRegex.set(":features:.*")
   excludedModulesRegex.set(".*(common|core|infra|data|ui).*")
