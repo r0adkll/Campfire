@@ -31,8 +31,12 @@ class ParseChangelogCommand : SuspendingCliktCommand(
   override suspend fun run() {
     // Find CHANGELOG.md
     val changelogFile = File("CHANGELOG.md")
-    if (!changelogFile.exists()) throw IllegalArgumentException("Unable to find 'CHANGELOG.md'. " +
-      "Make sure you are executing this in the project directory")
+    if (!changelogFile.exists()) {
+      throw IllegalArgumentException(
+        "Unable to find 'CHANGELOG.md'. " +
+          "Make sure you are executing this in the project directory",
+      )
+    }
 
     // Read file, and scan contents
     val changelog = ChangelogParser.parse(changelogFile)
@@ -140,15 +144,15 @@ object ChangelogParser {
               buildString {
                 val nonEmptyChanges = versionChanges.changes.filter { it.changes.isNotEmpty() }
                 nonEmptyChanges.forEachIndexed { index, (name, changes) ->
-                    appendLine("### $name")
-                    appendLine()
-                    changes.forEach { change ->
-                      appendLine(change)
-                    }
-                    if (index != nonEmptyChanges.lastIndex) {
-                      appendLine()
-                    }
+                  appendLine("### $name")
+                  appendLine()
+                  changes.forEach { change ->
+                    appendLine(change)
                   }
+                  if (index != nonEmptyChanges.lastIndex) {
+                    appendLine()
+                  }
+                }
               }
             } else {
               json.encodeToString(versionChanges)
@@ -162,7 +166,7 @@ object ChangelogParser {
 
 @Serializable
 data class Changelog(
-  val changes: List<Changes>
+  val changes: List<Changes>,
 ) {
 
   @Serializable
