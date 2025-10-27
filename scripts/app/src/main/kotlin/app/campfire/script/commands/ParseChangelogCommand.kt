@@ -145,12 +145,12 @@ object ChangelogParser {
                 val nonEmptyChanges = versionChanges.changes.filter { it.changes.isNotEmpty() }
                 nonEmptyChanges.forEachIndexed { index, (name, changes) ->
                   appendLine("### $name")
-                  appendLine()
+                  appendLine("  ")
                   changes.forEach { change ->
                     appendLine(change)
                   }
                   if (index != nonEmptyChanges.lastIndex) {
-                    appendLine()
+                    appendLine("  ")
                   }
                 }
               }

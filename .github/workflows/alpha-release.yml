@@ -5,8 +5,9 @@ on:
     branches:
       - main
 
-  # TODO: Remove after testing
   pull_request:
+    paths:
+      - '.github/workflows/alpha-release.yml'
 
 jobs:
   android-release:
@@ -16,15 +17,15 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v3
-
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: 17
           cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Decode Keystore
         env:
@@ -52,14 +53,14 @@ jobs:
       - name: Create Release Notes
         run: |
           ./campfire -v changelog --version Unreleased --markdown > app/android/release-notes.txt
+          echo " "
           cat app/android/release-notes.txt
 
-# TODO: Uncomment when ready
-#      - name: Firebase App Distribution
-#        run: |
-#          ./gradlew :app:android:appDistributionUploadAlphaRelease \
-#            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
-#            --releaseNotesFile="app/android/release-notes.txt"
+      - name: Firebase App Distribution
+        run: |
+          ./gradlew :app:android:appDistributionUploadAlphaRelease \
+            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+            --releaseNotesFile="app/android/release-notes.txt"
 
       - name: Upload build outputs
         if: always()
