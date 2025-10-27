@@ -16,12 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Enable KVM
-        run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
-
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v3
 
@@ -45,14 +39,6 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
           echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
-
-      - name: Generate Baseline Profiles
-        run: |
-          ./gradlew generateBaselineProfile \
-            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
-            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
-            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
-            --no-configuration-cache
 
       - name: Assemble Alpha Release APK
         run: ./gradlew :app:android:assembleAlphaRelease
