@@ -1,0 +1,89 @@
+name: Alpha Release
+
+on:
+  push:
+    branches:
+      - main
+
+  # TODO: Remove after testing
+  pull_request:
+
+jobs:
+  android-release:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          cache: gradle
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
+        run: |
+          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
+
+      - name: Download Service Accounts
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
+
+      - name: Generate Baseline Profiles
+        run: |
+          ./gradlew generateBaselineProfile \
+            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
+            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
+            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
+            --no-configuration-cache
+
+      - name: Assemble Alpha Release APK
+        run: ./gradlew :app:android:assembleAlphaRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
+          CI: true
+
+      - name: Parse Changelog
+        id: changelog
+        uses: coditory/changelog-parser@v1
+        with:
+          version: "Unreleased"
+
+      - name: Create Release Notes
+        run: |
+          echo "${{ steps.changelog.outputs.description }}" >> app/android/release-notes.txt
+          cat app/android/release-notes.txt
+
+# TODO: Uncomment when ready
+#      - name: Firebase App Distribution
+#        run: |
+#          ./gradlew :app:android:appDistributionUploadAlphaRelease \
+#            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+#            --releaseNotesFile="app/android/release-notes.txt"
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: android-build-outputs
+          path: app/android/build/outputs

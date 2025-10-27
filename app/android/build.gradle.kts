@@ -29,8 +29,10 @@ android {
 
   defaultConfig {
     applicationId = "app.campfire.android"
+
     versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 999999999
-    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString() ?: "0.0.1"
+    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString()
+      ?: providers.gradleProperty("campfire.version").get()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -44,6 +46,15 @@ android {
 
   productFlavors {
     create("standard")
+
+    create("alpha") {
+      applicationIdSuffix = ".alpha"
+      firebaseAppDistribution {
+        artifactType = "APK"
+        groups = "internal"
+      }
+    }
+
     create("beta") {
       firebaseAppDistribution {
         artifactType = "APK"
@@ -130,6 +141,8 @@ dependencies {
   debugImplementation(projects.infra.debug)
 
   "betaImplementation"(libs.google.firebase.appdistribution)
+  "alphaImplementation"(libs.google.firebase.appdistribution)
+
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto)
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto.binary)
 

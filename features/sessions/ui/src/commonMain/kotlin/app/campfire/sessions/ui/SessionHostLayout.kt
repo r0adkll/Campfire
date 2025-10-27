@@ -50,13 +50,9 @@ fun SessionHostLayout(
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
-  val currentSessionId by remember { derivedStateOf { currentSession?.id } }
-  val audioPlayerMiniState by remember {
-    derivedStateOf {
-      audioPlayer?.preparedSession?.id?.let { preparedSessionId ->
-        preparedSessionId to audioPlayer!!.state.value
-      }
-    }
+  val currentSessionId = currentSession?.id
+  val audioPlayerMiniState = audioPlayer?.preparedSession?.id?.let { preparedSessionId ->
+    preparedSessionId to audioPlayer!!.state.value
   }
 
   LaunchedEffect(currentSessionId, audioPlayerMiniState) {
@@ -64,8 +60,8 @@ fun SessionHostLayout(
       currentSessionId != null &&
       (
         (audioPlayerMiniState == null) ||
-          currentSessionId != audioPlayerMiniState?.first ||
-          audioPlayerMiniState?.second == AudioPlayer.State.Disabled
+          currentSessionId != audioPlayerMiniState.first ||
+          audioPlayerMiniState.second == AudioPlayer.State.Disabled
         )
     ) {
       // If the current session exists but the audio player is not initialized yet, initialize it
