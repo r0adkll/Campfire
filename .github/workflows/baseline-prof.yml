@@ -39,7 +39,7 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Accept Android SDK licenses
+      - name: Accept Android SDK license
         run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Download Service Accounts

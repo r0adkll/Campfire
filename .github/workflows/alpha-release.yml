@@ -49,15 +49,9 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
           CI: true
 
-      - name: Parse Changelog
-        id: changelog
-        uses: coditory/changelog-parser@v1
-        with:
-          version: "Unreleased"
-
       - name: Create Release Notes
         run: |
-          echo "${{ steps.changelog.outputs.description }}" >> app/android/release-notes.txt
+          ./campfire -v changelog --version Unreleased --markdown > app/android/release-notes.txt
           cat app/android/release-notes.txt
 
 # TODO: Uncomment when ready

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -eou pipefail
 
 ########################################################################
 ##
@@ -23,12 +24,12 @@ set -- "${filtered_args[@]}"
 # Install the scripts app by running gradle
 install_app() {
     ./gradlew :scripts:app:installDist --quiet
-    echo "Successfully installed scripts app"
+    echo "Successfully installed scripts app" >&2
 }
 
 # Check if scripts app has been installed already,
 if [[ ! -f "$APP_BINARY" || "$do_rebuild" == 1 ]] ; then
-    echo "Building script application, Please wait…"
+    echo "Building script application, Please wait…" >&2
     install_app
 fi
 

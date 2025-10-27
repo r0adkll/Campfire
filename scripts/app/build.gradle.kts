@@ -4,6 +4,7 @@ plugins {
   application
   alias(libs.plugins.ksp)
   alias(libs.plugins.compose.compiler)
+  alias(libs.plugins.kotlin.serialization)
 }
 
 application {
@@ -18,6 +19,7 @@ dependencies {
   implementation(libs.kotlininject.runtime)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.kotlinx.immutable)
+  implementation(libs.kotlinx.serialization.json)
 
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
