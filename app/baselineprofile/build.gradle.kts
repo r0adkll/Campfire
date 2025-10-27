@@ -16,6 +16,7 @@ android {
   flavorDimensions += "default"
   productFlavors {
     create("standard") { dimension = "default" }
+    create("alpha") { dimension = "default" }
     create("beta") { dimension = "default" }
   }
 

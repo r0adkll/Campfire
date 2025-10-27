@@ -4,6 +4,8 @@ import androidx.benchmark.macro.junit4.BaselineProfileRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.uiautomator.UiAutomatorTestScope
+import androidx.test.uiautomator.onElement
 import androidx.test.uiautomator.textAsString
 import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
@@ -41,29 +43,45 @@ class BaselineProfileGenerator {
   val rule = BaselineProfileRule()
 
   @Test
-  fun generate() {
-    // The application id for the running build variant is read from the instrumentation arguments.
+  fun startup() {
     rule.collect(
       packageName = InstrumentationRegistry.getArguments().getString("targetAppId")
         ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
-
-      // See: https://d.android.com/topic/performance/baselineprofiles/dex-layout-optimizations
-      stableIterations = 3,
       includeInStartupProfile = true,
+    ) {
+      uiAutomator {
+        startApp(packageName = packageName)
+        handleSignIn()
+      }
+    }
+  }
+
+  @Test
+  fun itemDetail() {
+    rule.collect(
+      packageName = InstrumentationRegistry.getArguments().getString("targetAppId")
+        ?: throw Exception("targetAppId not passed as instrumentation runner arg"),
     ) {
       uiAutomator {
         startApp(packageName = packageName)
 
         // Log the user in, if the are not already
-        onElementOrNull { textAsString() == "Add a campsite" }?.run {
-          click()
-          waitForStableInActiveWindow()
-          onElement { textAsString() == "Add campsite" }.click()
-        }
+        handleSignIn()
 
         // Find and click an item out of the home feed to open the detail page
         onElement { contentDescription == "HomeLibraryItem" }.click()
       }
     }
+  }
+}
+
+fun UiAutomatorTestScope.handleSignIn() {
+  val welcomeScreenElement = onElementOrNull { textAsString() == "Add a campsite" }
+  if (welcomeScreenElement != null) {
+    welcomeScreenElement.click()
+    waitForStableInActiveWindow()
+    onElement { textAsString() == "Add campsite" }.click()
+    waitForStableInActiveWindow()
+    onElement { contentDescription == "Apply analytics consent" }.click()
   }
 }

@@ -17,4 +17,5 @@
   <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
 
   <string name="login_add_account_title">Add campsites</string>
+  <string name="action_finish_analytics_consent">Finish</string>
 </resources>

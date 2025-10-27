@@ -37,6 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -58,7 +60,10 @@ import app.campfire.common.compose.icons.rounded.AreaChartFilled
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.CrashFilled
 import app.campfire.core.di.UserScope
+import campfire.features.auth.ui.generated.resources.Res
+import campfire.features.auth.ui.generated.resources.action_finish_analytics_consent
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(AnalyticConsentScreen::class, UserScope::class)
 @Composable
@@ -136,13 +141,17 @@ private fun AnalyticConsentContent(
 
     ExtendedFloatingActionButton(
       modifier = Modifier
+        .semantics {
+          // This is required for uiAutomator to detect and find this button
+          contentDescription = "Apply analytics consent"
+        }
         .align(Alignment.BottomCenter)
         .padding(bottom = 16.dp),
       icon = {
         Icon(Icons.Rounded.DoneOutline, contentDescription = null)
       },
       text = {
-        Text("Finish")
+        Text(stringResource(Res.string.action_finish_analytics_consent))
       },
       onClick = {
         state.eventSink(AnalyticConsentUiEvent.ApplyConsent)
