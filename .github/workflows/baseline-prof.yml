@@ -50,17 +50,56 @@ jobs:
 
       - name: Build app and benchmark
         run: ./gradlew assembleNonMinifiedRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
-      - name: Clear Gradle Managed Devices
-        run: ./gradlew cleanManagedDevices
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-34
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
 
       - name: Generate Baseline Profiles
-        run: |
-          ./gradlew generateBaselineProfile \
-            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
-            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
-            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
-            --no-configuration-cache
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            ./gradlew generateBaselineProfile \
+              -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+#
+#      - name: Generate Baseline Profiles
+#        run: |
+#          ./gradlew generateBaselineProfile \
+#            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
+#            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
+#            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
+#            --no-configuration-cache
+#        env:
+#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       # If we're on main branch, copy over the baseline profile and
       # commit it to the repository (if changed)
