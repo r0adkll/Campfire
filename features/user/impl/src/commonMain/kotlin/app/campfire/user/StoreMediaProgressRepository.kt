@@ -11,6 +11,7 @@ import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
+import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.user.api.MediaProgressRepository
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
@@ -52,9 +52,7 @@ class StoreMediaProgressRepository(
   override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress?> {
     val request = StoreReadRequest.cached(Operation.Query.One(userSession.requiredUserId, libraryItemId), false)
     return store.stream(request)
-      .onEach { response ->
-        MediaProgressStore.ibark { "observeProgress --> $response" }
-      }
+      .debugLogging("MediaProgressStore::observeProgress")
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireSingle() }
@@ -70,9 +68,7 @@ class StoreMediaProgressRepository(
     val userId = userSession.userId ?: return emptyFlow()
     val request = StoreReadRequest.cached(Operation.Query.All(userId), false)
     return store.stream(request)
-      .onEach { response ->
-        MediaProgressStore.ibark { "observeAllProgress --> $response" }
-      }
+      .debugLogging("MediaProgressStore::observeAllProgress")
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireCollection() }

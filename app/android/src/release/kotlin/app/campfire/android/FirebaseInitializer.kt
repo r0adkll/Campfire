@@ -81,6 +81,8 @@ object FirebaseBark : Heartwood.Bark {
     extras: Extras?,
     message: String,
   ) {
+    if (priority == LogPriority.VERBOSE) return
+
     crashlytics.log(
       buildString {
         // Tag

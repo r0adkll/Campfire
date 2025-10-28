@@ -148,16 +148,17 @@ class StoreSeriesRepository(
   override fun observeSeriesLibraryItems(seriesId: String): Flow<List<LibraryItem>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        libraryItemStore.stream(
-          StoreReadRequest.cached(
-            SeriesItems(user.selectedLibraryId, seriesId),
-            refresh = true,
-          ),
-        ).mapNotNull { response ->
-          response.dataOrNull()
-        }.mapLatest { items ->
-          items.sortedBy { it.media.metadata.seriesSequence?.sequence }
-        }
+        val request = StoreReadRequest.cached(
+          SeriesItems(user.selectedLibraryId, seriesId),
+          refresh = true,
+        )
+        libraryItemStore.stream(request)
+          .debugLogging("LibraryItemStore::series")
+          .mapNotNull { response ->
+            response.dataOrNull()
+          }.mapLatest { items ->
+            items.sortedBy { it.media.metadata.seriesSequence?.sequence }
+          }
       }
   }
 }

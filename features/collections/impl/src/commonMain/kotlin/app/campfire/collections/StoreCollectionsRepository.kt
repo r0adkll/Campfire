@@ -12,6 +12,7 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.store.debugLogging
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -52,6 +53,7 @@ class StoreCollectionsRepository(
         val request = StoreReadRequest.cached(operation, refresh = true)
 
         collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
+          .debugLogging("CollectionsStore::observeAllCollections")
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             response.dataOrNull()?.let { output ->
@@ -75,6 +77,7 @@ class StoreCollectionsRepository(
         val request = StoreReadRequest.cached(operation, refresh = false)
 
         collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(request)
+          .debugLogging("CollectionsStore::observeCollection")
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             val output = response.dataOrNull() as? CollectionsStore.Output.Single

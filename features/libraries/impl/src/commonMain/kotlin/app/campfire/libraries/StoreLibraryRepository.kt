@@ -17,6 +17,7 @@ import app.campfire.data.Library as DbLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.store.debugLogging
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.items.LibraryItemsStore
@@ -124,6 +125,7 @@ class StoreLibraryRepository(
         val request = SingleLibraryRequest(user.id, user.selectedLibraryId)
         singleLibraryStore
           .stream(StoreReadRequest.cached(request, refresh = true))
+          .debugLogging("SingleLibraryStore")
           .mapNotNull {
             it.dataOrNull()?.asDomainModel()
           }
@@ -134,6 +136,7 @@ class StoreLibraryRepository(
     val userId = userSession.userId ?: return flowOf(emptyList())
     return allLibrariesStore
       .stream(StoreReadRequest.cached(userId, refresh = true))
+      .debugLogging("AllLibrariesStore")
       .mapNotNull {
         it.dataOrNull()?.map { it.asDomainModel() }
       }
@@ -158,6 +161,7 @@ class StoreLibraryRepository(
               refresh = true,
             ),
           )
+          .debugLogging("LibraryItemStore")
           .mapNotNull {
             it.dataOrNull()?.map { it.asDomainModel(tokenHydrator) }
           }

@@ -48,7 +48,8 @@ selectForSeries:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN seriesBookJoin ON seriesBookJoin.libraryItemId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
-WHERE seriesBookJoin.seriesId = ?;
+WHERE seriesBookJoin.seriesId = ?
+ORDER BY media.metadata_series_sequence ASC;
 
 selectForCollection:
 SELECT libraryItem.*,media.* FROM libraryItem

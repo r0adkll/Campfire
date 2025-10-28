@@ -87,8 +87,16 @@ fun LibraryItem.asDbModel(
   )
 }
 
+/*
+ * LibraryItems will commonly come down with a 'seriesName' value
+ * of "Some Book Series #5". We should be able to reasonably determine the
+ * sequence # for ordering from this, or fallback onto another value if available.
+ */
+private val SERIES_SEQUENCE_REGEX = ".*#([0-9]+)".toRegex()
+
 fun <T : Media> T.asDbModel(
   libraryItemId: String,
+  fallbackSeriesSequence: Int? = null,
 ): DatabaseMedia {
   val metadata = when (this) {
     is NetworkMediaMinified<*> -> metadata
@@ -104,6 +112,15 @@ fun <T : Media> T.asDbModel(
 
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
     ?: (metadata as? ExpandedBookMetadata)?.series?.firstOrNull()
+
+  val metadataSeriesSequence = metadataSeries?.sequence ?: run {
+    // This is super-duper hacky, but the API does not have a great way to
+    // interpret the sequence int for books in a series. So if the data doesn't have any
+    // then let's try to determine based on seriesName
+    metadata.seriesName?.let { seriesName ->
+      SERIES_SEQUENCE_REGEX.find(seriesName)?.groupValues?.getOrNull(1)?.toIntOrNull()
+    } ?: fallbackSeriesSequence
+  }
 
   return DatabaseMedia(
     libraryItemId = libraryItemId,
@@ -155,7 +172,7 @@ fun <T : Media> T.asDbModel(
 
     metadata_series_id = metadataSeries?.id,
     metadata_series_name = metadataSeries?.name,
-    metadata_series_sequence = metadataSeries?.sequence,
+    metadata_series_sequence = metadataSeriesSequence,
   )
 }
 
