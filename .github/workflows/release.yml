@@ -36,15 +36,6 @@ jobs:
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
           echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
-#      FIXME: Disable for now as we need more CI setup for this to work
-#      - name: Generate Baseline Profiles
-#        run: |
-#          ./gradlew generateBaselineProfile \
-#            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
-#            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
-#            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
-#            --no-configuration-cache
-
       - name: Assemble Beta Release APK
         run: ./gradlew :app:android:assembleBetaRelease
         env:
@@ -55,13 +46,11 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
           CI: true
 
-      - name: Parse Changelog
-        id: changelog
-        uses: coditory/changelog-parser@v1
-
       - name: Create Release Notes
         run: |
-          echo "${{ steps.changelog.outputs.description }}" >> app/android/release-notes.txt
+          ./campfire changelog > app/android/release-notes.txt
+          echo " "
+          cat app/android/release-notes.txt
 
       - name: Firebase App Distribution
         run: |

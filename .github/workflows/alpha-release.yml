@@ -52,7 +52,7 @@ jobs:
 
       - name: Create Release Notes
         run: |
-          ./campfire -v changelog --version Unreleased --markdown > app/android/release-notes.txt
+          ./campfire changelog --version Unreleased > app/android/release-notes.txt
           echo " "
           cat app/android/release-notes.txt
 

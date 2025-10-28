@@ -23,8 +23,11 @@ class ParseChangelogCommand : SuspendingCliktCommand(
   name = "changelog",
 ) {
 
-  private val version by option("--version", help = "Output the changes ONLY for this version")
-  private val markdown by option("-m", "--markdown", help = "Output the requested version in Markdown format").flag()
+  private val version by option(
+    "--version",
+    help = "Output the changes ONLY for this version. Otherwise prints latest version",
+  )
+  private val json by option("-j", "--json", help = "Output the requested version in JSON format").flag()
 
   private val config by requireObject<CampfireConfig>()
 
@@ -45,7 +48,7 @@ class ParseChangelogCommand : SuspendingCliktCommand(
     val output = ChangelogParser.format(
       changelog = changelog,
       verbose = config.verbose,
-      markdown = markdown,
+      jsonFormat = json,
       version = version,
     )
     echo(output)
@@ -127,39 +130,38 @@ object ChangelogParser {
   fun format(
     changelog: Changelog,
     verbose: Boolean = false,
-    markdown: Boolean = false,
+    jsonFormat: Boolean = false,
     version: String? = null,
   ): String? {
-    val json = Json {
-      prettyPrint = verbose
-      prettyPrintIndent = "  "
+    val changes =  when {
+      version != null -> changelog.changes.find { it.version == version }
+      else -> changelog.changes.firstOrNull { it.version != "Unreleased" }
     }
 
-    return when {
-      version != null -> {
-        changelog.changes
-          .find { it.version == version }
-          ?.let { versionChanges ->
-            if (markdown) {
-              buildString {
-                val nonEmptyChanges = versionChanges.changes.filter { it.changes.isNotEmpty() }
-                nonEmptyChanges.forEachIndexed { index, (name, changes) ->
-                  appendLine("### $name")
-                  appendLine("  ")
-                  changes.forEach { change ->
-                    appendLine(change)
-                  }
-                  if (index != nonEmptyChanges.lastIndex) {
-                    appendLine("  ")
-                  }
-                }
-              }
-            } else {
-              json.encodeToString(versionChanges)
-            }
-          }
+    return changes?.let { versionChanges ->
+      if (jsonFormat) {
+        val json = Json {
+          prettyPrint = verbose
+          prettyPrintIndent = "  "
+        }
+        json.encodeToString(versionChanges)
+      } else {
+        versionChanges.asMarkdownString()
       }
-      else -> json.encodeToString(changelog)
+    }
+  }
+
+  private fun Changelog.Changes.asMarkdownString(): String = buildString {
+    val nonEmptyChanges = changes.filter { it.changes.isNotEmpty() }
+    nonEmptyChanges.forEachIndexed { index, (name, changes) ->
+      appendLine("### $name")
+      appendLine("  ")
+      changes.forEach { change ->
+        appendLine(change)
+      }
+      if (index != nonEmptyChanges.lastIndex) {
+        appendLine("  ")
+      }
     }
   }
 }
