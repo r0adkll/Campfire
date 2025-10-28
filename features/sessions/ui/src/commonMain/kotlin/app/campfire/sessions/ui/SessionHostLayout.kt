@@ -36,7 +36,12 @@ private fun rememberSessionHostComponent(): State<SessionHostComponent> {
 @Composable
 fun SessionHostLayout(
   component: State<SessionHostComponent> = rememberSessionHostComponent(),
-  content: @Composable (session: Session?, player: AudioPlayer?, clearSession: () -> Unit) -> Unit,
+  content: @Composable (
+    session: Session?,
+    player: AudioPlayer?,
+    clearSession: () -> Unit,
+    startSession: () -> Unit,
+  ) -> Unit,
 ) {
   val scope = rememberCoroutineScope()
   val comp by component
@@ -91,5 +96,15 @@ fun SessionHostLayout(
     }
   }
 
-  content(currentSession, audioPlayer, clearSession)
+  val startSession: () -> Unit = remember {
+    {
+      currentSession?.let { s ->
+        scope.launch {
+          comp.playbackController.startSession(s.libraryItem.id)
+        }
+      }
+    }
+  }
+
+  content(currentSession, audioPlayer, clearSession, startSession)
 }

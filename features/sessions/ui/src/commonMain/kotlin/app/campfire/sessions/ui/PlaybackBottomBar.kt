@@ -103,7 +103,7 @@ import org.jetbrains.compose.resources.stringResource
 fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
 ) {
-  SessionHostLayout { currentSession, audioPlayer, clearSession ->
+  SessionHostLayout { currentSession, audioPlayer, clearSession, startSession ->
     val currentTime = remember(audioPlayer) {
       audioPlayer?.currentTime ?: emptyFlow()
     }.collectAsState(0.seconds)
@@ -136,7 +136,13 @@ fun PlaybackBottomBar(
       currentDuration = currentDuration.value,
       currentMetadata = currentMetadata.value,
       runningTimer = runningTimer.value,
-      onPlayPauseClick = { audioPlayer?.playPause() },
+      onPlayPauseClick = {
+        if (playerState.value == AudioPlayer.State.Disabled) {
+          startSession()
+        } else {
+          audioPlayer?.playPause()
+        }
+      },
       onRewindClick = { audioPlayer?.seekBackward() },
       onForwardClick = { audioPlayer?.seekForward() },
       onSkipPreviousClick = { audioPlayer?.skipToPrevious() },
@@ -364,8 +370,7 @@ private fun PlaybackActions(
       )
     }
 
-    val isPlayPauseEnabled = state != AudioPlayer.State.Disabled &&
-      state != AudioPlayer.State.Finished &&
+    val isPlayPauseEnabled = state != AudioPlayer.State.Finished &&
       state != AudioPlayer.State.Buffering &&
       !isInteracting
 

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved sleep timer display of long chapters
 - Chapter time in the playback UI scales with playback speed
 - Series books are now more consistently sorted in the correct order
+- Issue where Play/Pause would become disabled when session is loaded
 
 ### Other Notes & Contributions
 

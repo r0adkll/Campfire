@@ -314,7 +314,6 @@ private fun CollapsedPlaybackBarContent(
       ) {
         Box {
           IconButton(
-            enabled = state != AudioPlayer.State.Disabled,
             onClick = onPlayPauseClick,
           ) {
             Icon(
