@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Usage analytics via MixPanel (Android Only)
 - Reporting consent screen to opt-out of developer and usage reporting
+- More debugging to help diagnose infinite loading screens
 
 ### Changed
 
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Playback speed now displays down to the hundredth place
 - Improved sleep timer display of long chapters
 - Chapter time in the playback UI scales with playback speed
+- Series books are now more consistently sorted in the correct order
 
 ### Other Notes & Contributions
 
