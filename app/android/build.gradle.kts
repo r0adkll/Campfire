@@ -49,6 +49,7 @@ android {
 
     create("alpha") {
       applicationIdSuffix = ".alpha"
+      versionNameSuffix = "-alpha"
       firebaseAppDistribution {
         artifactType = "APK"
         groups = "internal"
