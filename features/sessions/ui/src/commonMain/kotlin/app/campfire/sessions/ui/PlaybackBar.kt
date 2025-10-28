@@ -62,7 +62,7 @@ fun PlaybackBar(
   navigator: Navigator,
   modifier: Modifier = Modifier,
 ) {
-  SessionHostLayout { currentSession, audioPlayer, clearSession ->
+  SessionHostLayout { currentSession, audioPlayer, clearSession, startSession ->
 
     val currentTime = remember(audioPlayer) {
       audioPlayer?.currentTime
@@ -128,7 +128,11 @@ fun PlaybackBar(
               onClick = { onExpansionChange(!expanded) },
               onPlayPauseClick = {
                 Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
-                audioPlayer?.playPause()
+                if (playerState.value == AudioPlayer.State.Disabled) {
+                  startSession()
+                } else {
+                  audioPlayer?.playPause()
+                }
               },
               onRewindClick = {
                 Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
@@ -155,7 +159,11 @@ fun PlaybackBar(
               animatedVisibilityScope = this,
               onPlayPauseClick = {
                 Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
-                audioPlayer?.playPause()
+                if (playerState.value == AudioPlayer.State.Disabled) {
+                  startSession()
+                } else {
+                  audioPlayer?.playPause()
+                }
               },
               onRewindClick = {
                 Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
