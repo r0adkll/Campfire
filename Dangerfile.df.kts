@@ -2,8 +2,12 @@
 
 import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import com.gianluz.dangerkotlin.androidlint.androidLint
+import java.io.File
 import systems.danger.kotlin.*
 import systems.danger.kotlin.models.github.GitHubUserType
+
+private val MIGRATION_VERSION_REGEX = "([0-9]+)\\.sqm\$".toRegex()
+private val OLD_DB_VERSION_REGEX = "OLD_DB_VERSION = (\\d+)\$".toRegex(RegexOption.MULTILINE)
 
 Danger register AndroidLint
 
@@ -30,7 +34,7 @@ danger(args) {
     // Changelog
     if (!isTrivial && !changelogChanged && sourceChanges != null) {
       warn(
-        "any changes to library code should be reflected in the Changelog.\n\n" +
+        "Any changes to library code should be reflected in the Changelog.\n\n" +
           "Please consider adding a note there and adhere to the " +
           "[Changelog Guidelines](https://github.com/Moya/contributors/blob/master/Changelog%20Guidelines.md).",
       )
@@ -48,6 +52,40 @@ danger(args) {
 
     if (git.linesOfCode > 500) {
       warn("This PR is original Xbox Huge! Consider breaking into smaller PRs")
+    }
+
+    // Check if the user has made any DB schema modifications
+    val ignoreDbChanges = issue.labels.any { it.name == "ignore-db-change" }
+    val hasSchemaChanges = allSourceFiles.any { it.endsWith(".sq") }
+    if (hasSchemaChanges && !ignoreDbChanges) {
+      // Check for Migration
+      val migration = git.createdFiles.find { it.endsWith(".sqm") }
+      if (migration == null) {
+        fail(
+          "Changes have been made to the DB schema, but no migration has been found. " +
+            "Please create one using the [SQDelight Migration Documentation]" +
+            "(https://sqldelight.github.io/sqldelight/2.0.2/multiplatform_sqlite/migrations/)",
+        )
+      } else {
+        val oldVersion = MIGRATION_VERSION_REGEX.find(migration)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        if (oldVersion != null) {
+          message("ℹ\uFE0F Migrating Database from `$oldVersion` to `${oldVersion + 1}`")
+        }
+
+        // Check if the user has updated the migration code
+        val databaseFactory = File(".", "data/db/src/commonMain/kotlin/app/campfire/db/DatabaseFactory.kt")
+        val dbFactoryContent = databaseFactory.readText()
+
+        val oldDbVersion = OLD_DB_VERSION_REGEX.find(dbFactoryContent)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        if (oldDbVersion == null || oldDbVersion != oldVersion) {
+          // Either we failed to find the old version, or it doesn't match the schema migration
+          fail(
+            "Migration version not updated in `DatabaseFactory.kt`: Found [$oldDbVersion] but expected [$oldVersion]",
+          )
+        }
+      }
+    } else if (ignoreDbChanges) {
+      warn("Ignoring DB schema changes due to `ignore-db-change` label")
     }
   }
 

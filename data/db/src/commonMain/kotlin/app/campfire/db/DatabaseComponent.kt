@@ -14,5 +14,8 @@ interface DatabaseComponent : SqlDelightDatabasePlatformComponent {
   @Provides
   fun provideSqlDelightDatabase(
     factory: DatabaseFactory,
-  ): CampfireDatabase = factory.build()
+  ): CampfireDatabase {
+    factory.migrate()
+    return factory.build()
+  }
 }
