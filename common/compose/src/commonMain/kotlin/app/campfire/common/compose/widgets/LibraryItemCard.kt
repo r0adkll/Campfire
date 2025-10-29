@@ -78,6 +78,7 @@ fun LibraryItemCard(
   isSelectable: Boolean = false,
   selected: Boolean = false,
   offlineStatus: OfflineStatus = OfflineStatus.None,
+  progress: MediaProgress? = item.userMediaProgress,
 ) {
   val contentLayout = LocalContentLayout.current
 
@@ -92,6 +93,7 @@ fun LibraryItemCard(
           sharedTransitionKey = sharedTransitionKey,
           sharedTransitionZIndex = sharedTransitionZIndex,
           offlineStatus = offlineStatus,
+          progress = progress,
         )
         LibraryItemCardInformation(item)
       }
@@ -111,6 +113,7 @@ private fun LibraryItemCardImage(
   sharedTransitionKey: String,
   sharedTransitionZIndex: Float,
   offlineStatus: OfflineStatus,
+  progress: MediaProgress?,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   val shape = RoundedCornerShape(ThumbnailCornerSize)
@@ -143,7 +146,7 @@ private fun LibraryItemCardImage(
         },
     )
 
-    item.userMediaProgress?.let { mediaProgress ->
+    progress?.let { mediaProgress ->
       MediaProgressBar(
         mediaProgress = mediaProgress,
         modifier = Modifier

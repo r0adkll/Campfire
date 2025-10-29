@@ -44,6 +44,12 @@ class HomeSourceOfTruthFactory(
                 libraryItemDao = libraryItemDao,
               )
             }
+          }.map {
+            // Store REALLY doesn't like empty lists as a state from the database
+            // and can cause some odd emissions in certain circumstances and breaking
+            // of the state machine as an empty list will appear as a valid return from
+            // the SoT and then not load from network, etc.
+            it.takeIf { it.isNotEmpty() }
           }
       },
       writer = { key, shelves ->

@@ -67,6 +67,11 @@ SELECT * FROM mediaProgress
 WHERE userId = ?
   AND libraryItemId = ?;
 
+selectForLibraryItems:
+SELECT * FROM mediaProgress
+WHERE userId = ?
+  AND libraryItemId IN ?;
+
 selectForUser:
 SELECT * FROM mediaProgress
 WHERE userId = ?;

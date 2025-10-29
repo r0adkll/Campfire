@@ -30,6 +30,7 @@ import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Series
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.HomeFeedResponse
@@ -93,6 +94,9 @@ fun HomeScreen(
           offlineStatus = { libraryItemId ->
             state.offlineStates[libraryItemId].asWidgetStatus()
           },
+          progressStatus = { libraryItemId ->
+            state.progressStates[libraryItemId]
+          },
           contentPadding = paddingValues,
           onItemClick = { shelf, item ->
             when (item) {
@@ -114,6 +118,7 @@ fun HomeScreen(
 private fun LoadedState(
   shelves: List<Shelf<*>>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
+  progressStatus: (LibraryItemId) -> MediaProgress?,
   onItemClick: (Shelf<*>, Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -130,6 +135,7 @@ private fun LoadedState(
         shelf = shelf,
         onItemClick = { onItemClick(shelf, it) },
         offlineStatus = offlineStatus,
+        progressStatus = progressStatus,
       )
     }
   }

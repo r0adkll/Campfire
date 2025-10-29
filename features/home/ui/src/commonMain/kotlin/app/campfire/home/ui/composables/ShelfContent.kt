@@ -19,6 +19,7 @@ import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Series
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.model.Shelf
@@ -30,6 +31,7 @@ private val SeriesCardWidth = 300.dp
 fun ShelfContent(
   shelf: Shelf<*>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
+  progressStatus: (LibraryItemId) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   state: LazyListState = rememberLazyListState(),
@@ -49,6 +51,7 @@ fun ShelfContent(
           // to the specific shelf
           sharedTransitionKey = entity.id + shelf.id,
           offlineStatus = offlineStatus(entity.id),
+          progress = progressStatus(entity.id),
           modifier = Modifier
             .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)

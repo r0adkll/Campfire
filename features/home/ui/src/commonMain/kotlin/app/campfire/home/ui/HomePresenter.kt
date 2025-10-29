@@ -20,9 +20,12 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -42,6 +45,20 @@ class HomePresenter(
       homeRepository.observeHomeFeed()
     }.collectAsState(HomeFeedResponse.Loading)
 
+    val userMediaProgress by remember {
+      snapshotFlow { feed.dataOrNull }
+        .filterNotNull()
+        .flatMapLatest { shelves ->
+          val libraryItemIds = shelves
+            .flatMap { it.entities }
+            .filterIsInstance<LibraryItem>()
+            .map { it.id }
+
+          homeRepository.observeMediaProgress(libraryItemIds)
+            .map { it.toPersistentMap() }
+        }
+    }.collectAsState(persistentMapOf())
+
     val offlineDownloads by remember {
       snapshotFlow { feed.dataOrNull }
         .filterNotNull()
@@ -50,12 +67,14 @@ class HomePresenter(
             .flatMap { it.entities }
             .filterIsInstance<LibraryItem>()
           offlineDownloadManager.observeForItems(libraryItems)
+            .map { it.toPersistentMap() }
         }
-    }.collectAsState(emptyMap())
+    }.collectAsState(persistentMapOf())
 
     return HomeUiState(
       homeFeed = feed,
       offlineStates = offlineDownloads,
+      progressStates = userMediaProgress,
     ) { event ->
       when (event) {
         is HomeUiEvent.OpenLibraryItem -> {
