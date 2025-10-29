@@ -27,6 +27,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.loggableId
+import app.campfire.home.api.HomeFeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.libraries.api.LibraryItemRepository
@@ -34,6 +35,7 @@ import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.series.api.SeriesRepository
 import kotlin.collections.firstOrNull
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
 import me.tatarka.inject.annotations.Inject
 
@@ -97,9 +99,12 @@ class MediaTree(
   }
 
   private suspend fun loadHome(): List<MediaItem> {
-    val homeFeed = homeRepository.observeHomeFeed().firstOrNull() ?: return emptyList()
-    return homeFeed
-      .flatMap {
+    val homeFeed = homeRepository.observeHomeFeed()
+      .filterNot { it is HomeFeedResponse.Loading }
+      .firstOrNull()
+      ?: return emptyList()
+    return homeFeed.dataOrNull
+      ?.flatMap {
         it.entities.mapNotNull { item ->
           when (item) {
             is LibraryItem -> item.asBrowsableMediaItem(titleHint = it.label)
@@ -108,7 +113,7 @@ class MediaTree(
             else -> null
           }
         }
-      }
+      } ?: emptyList()
   }
 
   private suspend fun loadSeries(): List<MediaItem> {

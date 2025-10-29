@@ -20,10 +20,11 @@ import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.randomEmptyMessage
 import app.campfire.common.screens.HomeScreen
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
@@ -31,6 +32,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.home.api.HomeFeedResponse
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
@@ -67,30 +69,43 @@ fun HomeScreen(
       },
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
-    when (state.homeFeed) {
-      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LoadState.Error -> ErrorListState(
-        stringResource(Res.string.home_feed_load_error),
-        modifier = Modifier.padding(paddingValues),
-      )
+    when (val feed = state.homeFeed) {
+      HomeFeedResponse.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      is HomeFeedResponse.Error -> {
+        val reason = when (feed) {
+          is HomeFeedResponse.Error.Exception ->
+            feed.error.message
+              ?: feed.error::class.simpleName
+              ?: "<Unknown error>"
+          is HomeFeedResponse.Error.Message -> feed.message
+        }
+        ErrorListState(
+          stringResource(Res.string.home_feed_load_error, reason),
+          modifier = Modifier.padding(paddingValues),
+        )
+      }
 
-      is LoadState.Loaded -> LoadedState(
-        shelves = state.homeFeed.data,
-        offlineStatus = { libraryItemId ->
-          state.offlineStates[libraryItemId].asWidgetStatus()
-        },
-        contentPadding = paddingValues,
-        onItemClick = { shelf, item ->
-          when (item) {
-            is LibraryItem -> state.eventSink(
-              HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
-            )
-            is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
-            is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
-            else -> Unit
-          }
-        },
-      )
+      is HomeFeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
+        EmptyState(randomEmptyMessage())
+      } else {
+        LoadedState(
+          shelves = state.homeFeed.data,
+          offlineStatus = { libraryItemId ->
+            state.offlineStates[libraryItemId].asWidgetStatus()
+          },
+          contentPadding = paddingValues,
+          onItemClick = { shelf, item ->
+            when (item) {
+              is LibraryItem -> state.eventSink(
+                HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
+              )
+              is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
+              is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+              else -> Unit
+            }
+          },
+        )
+      }
     }
   }
 }

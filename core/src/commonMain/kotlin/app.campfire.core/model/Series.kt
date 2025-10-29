@@ -20,5 +20,5 @@ data class Series(
   val hasActiveBook: Boolean = false,
   val hideFromContinueListening: Boolean = false,
   val bookInProgressLastUpdate: Long? = null,
-  val firstBookUnread: LibraryItem? = null,
+  val firstBookUnreadId: LibraryItemId? = null,
 )

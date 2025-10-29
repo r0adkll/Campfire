@@ -1,14 +1,23 @@
 package app.campfire.network.models
 
+import app.campfire.network.envelopes.Envelope
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class Shelf {
+sealed class Shelf : Envelope() {
   abstract val id: String
   abstract val label: String
   abstract val labelStringKey: String
   abstract val total: Int
+
+  override fun applyPostage() = when (this) {
+    is AuthorShelf -> entities.forEach { it.origin = origin }
+    is BookShelf -> entities.forEach { it.origin = origin }
+    is EpisodeShelf -> entities.forEach { it.origin = origin }
+    is PodcastShelf -> entities.forEach { it.origin = origin }
+    is SeriesShelf -> entities.forEach { it.origin = origin }
+  }
 
   @Serializable
   @SerialName("book")

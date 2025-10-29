@@ -21,6 +21,11 @@ selectForLibrary:
 SELECT * FROM authors
 WHERE libraryId = ?;
 
+selectForShelf:
+SELECT * FROM authors
+INNER JOIN shelfJoin ON shelfJoin.entityId = authors.id
+WHERE shelfJoin.shelfId = ?;
+
 selectForId:
 SELECT * FROM authors
 WHERE id = ?;

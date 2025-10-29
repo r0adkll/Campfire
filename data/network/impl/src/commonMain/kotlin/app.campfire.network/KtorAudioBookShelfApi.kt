@@ -398,6 +398,20 @@ class KtorAudioBookShelfApi(
           body.applyPostage()
         }
 
+        // If our response is an iterable, check each item to attach
+        // metadata.
+        if (body is Iterable<*> && originServerUrl != null) {
+          val originUrl = RequestOrigin.Url(originServerUrl)
+          body.forEach {
+            if (it is Envelope) {
+              it.origin = originUrl
+              it.applyPostage()
+            } else if (it is NetworkModel) {
+              it.origin = originUrl
+            }
+          }
+        }
+
         Result.success(body)
       } else {
         Result.failure(ApiException(response.status.value, response.bodyAsText()))

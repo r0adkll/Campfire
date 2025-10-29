@@ -11,6 +11,7 @@ import app.campfire.network.models.Series as NetworkSeries
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.SourceOfTruth
@@ -21,6 +22,7 @@ internal class SeriesSourceOfTruthFactory(
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   fun create() = SourceOfTruth.of(
     reader = { libraryId: LibraryId ->
       db.seriesQueries.selectByLibraryId(libraryId)

@@ -1,144 +1,76 @@
 package app.campfire.home.mapping
 
+import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
-import app.campfire.core.model.Author as DomainAuthor
-import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.Media
-import app.campfire.core.model.MediaType
-import app.campfire.core.model.Series
-import app.campfire.core.model.SeriesSequence
+import app.campfire.core.model.LibraryId
+import app.campfire.core.model.ShelfType
+import app.campfire.data.Shelf as DbShelf
+import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.home.api.model.Shelf as DomainShelf
-import app.campfire.home.progress.MediaProgressDataSource
-import app.campfire.network.models.Author as NetworkAuthor
-import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MediaType as NetworkMediaType
-import app.campfire.network.models.MinifiedBookMetadata
-import app.campfire.network.models.SeriesPersonalized
-import app.campfire.network.models.Shelf
 import app.campfire.network.models.Shelf as NetworkShelf
-import kotlin.time.Duration.Companion.seconds
+import app.cash.sqldelight.async.coroutines.awaitAsList
 
-suspend fun NetworkShelf.asDomainModel(
-  imageHydrator: TokenHydrator,
-  mediaProgressDataSource: MediaProgressDataSource,
+suspend fun DbShelf.asDomainModel(
+  db: CampfireDatabase,
+  tokenHydrator: TokenHydrator,
+  libraryItemDao: LibraryItemDao,
 ): DomainShelf<*> {
   return DomainShelf(
     id = id,
     label = label,
     total = total,
-    entities = when (this) {
-      is Shelf.BookShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
-      is Shelf.EpisodeShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
-      is Shelf.PodcastShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
-      is Shelf.SeriesShelf -> entities.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) }
-      is Shelf.AuthorShelf -> entities.map { it.asDomainModel(imageHydrator) }
+    entities = when (type) {
+      ShelfType.BOOK,
+      ShelfType.EPISODE,
+      ShelfType.PODCAST,
+      -> {
+        db.libraryItemsQueries.selectForShelf(id, ::mapToLibraryItem)
+          .awaitAsList()
+          .map { libraryItemDao.hydrateItem(it) } as List<*>
+      }
+
+      ShelfType.SERIES -> {
+        val series = db.seriesQueries
+          .selectByShelfId(id)
+          .awaitAsList()
+          .associateWith { s ->
+            db.libraryItemsQueries
+              .selectForSeries(s.id)
+              .awaitAsList()
+          }
+
+        series.entries.map { (s, books) ->
+          val sortedBooks = books
+            .map { it.asDomainModel(tokenHydrator) }
+            .sortedBy { it.media.metadata.seriesSequence?.sequence }
+          s.asDomainModel(sortedBooks)
+        }
+      }
+
+      ShelfType.AUTHOR -> {
+        db.authorsQueries.selectForShelf(id)
+          .awaitAsList()
+          .map { it.asDomainModel() }
+      }
     },
   )
 }
 
-suspend fun LibraryItemMinified<*>.asDomainModel(
-  imageHydrator: TokenHydrator,
-  mediaProgressDataSource: MediaProgressDataSource,
-): LibraryItem {
-  return LibraryItem(
+fun NetworkShelf.asDbModel(libraryId: LibraryId): DbShelf {
+  return DbShelf(
     id = id,
-    ino = ino,
     libraryId = libraryId,
-    oldLibraryId = oldLibraryItemId,
-    folderId = folderId,
-    path = path,
-    relPath = relPath,
-    isFile = isFile,
-    mtimeMs = mtimeMs,
-    ctimeMs = ctimeMs,
-    birthtimeMs = birthtimeMs,
-    isMissing = isMissing,
-    isInvalid = isInvalid,
-    mediaType = when (mediaType) {
-      NetworkMediaType.Book -> MediaType.Book
-      NetworkMediaType.Podcast -> MediaType.Podcast
-      NetworkMediaType.Podcast2 -> MediaType.Podcast
+    label = label,
+    labelStringKey = labelStringKey,
+    total = total,
+    type = when (this) {
+      is NetworkShelf.AuthorShelf -> ShelfType.AUTHOR
+      is NetworkShelf.BookShelf -> ShelfType.BOOK
+      is NetworkShelf.EpisodeShelf -> ShelfType.EPISODE
+      is NetworkShelf.PodcastShelf -> ShelfType.PODCAST
+      is NetworkShelf.SeriesShelf -> ShelfType.SERIES
     },
-    numFiles = numFiles ?: libraryFiles?.size ?: -1,
-    sizeInBytes = size,
-    addedAtMillis = addedAt,
-    updatedAtMillis = updatedAt,
-    // TODO: We should probably not be doing this and instead be pulling this separately in the presenter
-    //  logic so we can observe the media progress and keep it separate
-    userMediaProgress = mediaProgressDataSource.getMediaProgress(id),
-    media = Media(
-      id = media.id,
-      coverImageUrl = imageHydrator.hydrateLibraryItem(id),
-      coverPath = media.coverPath,
-      tags = media.tags ?: emptyList(),
-      numTracks = media.numTracks,
-      numChapters = media.numChapters,
-      numMissingParts = media.numMissingParts,
-      numInvalidAudioFiles = media.numInvalidAudioFiles,
-      numAudioFiles = media.numAudioFiles,
-      durationInMillis = media.duration.seconds.inWholeMilliseconds,
-      sizeInBytes = media.size,
-      ebookFormat = media.ebookFormat,
-      metadata = Media.Metadata(
-        title = media.metadata.title,
-        titleIgnorePrefix = media.metadata.titleIgnorePrefix,
-        subtitle = media.metadata.subtitle,
-        authorName = media.metadata.authorName,
-        authorNameLastFirst = media.metadata.authorNameLF,
-        narratorName = media.metadata.narratorName,
-        seriesName = media.metadata.seriesName,
-        genres = media.metadata.genres ?: emptyList(),
-        publishedYear = media.metadata.publishedYear,
-        publishedDate = media.metadata.publishedDate,
-        publisher = media.metadata.publisher,
-        description = media.metadata.description,
-        ISBN = media.metadata.isbn,
-        ASIN = media.metadata.asin,
-        language = media.metadata.language,
-        isExplicit = media.metadata.explicit,
-        isAbridged = media.metadata.abridged,
-        seriesSequence = (media.metadata as? MinifiedBookMetadata)?.series?.let {
-          SeriesSequence(
-            id = it.id,
-            name = it.name,
-            sequence = it.sequence,
-          )
-        },
-      ),
-    ),
-  )
-}
-
-suspend fun SeriesPersonalized.asDomainModel(
-  imageHydrator: TokenHydrator,
-  mediaProgressDataSource: MediaProgressDataSource,
-): Series {
-  return Series(
-    id = id,
-    name = name,
-    description = description,
-    addedAt = addedAt,
-    updatedAt = updatedAt,
-    books = books?.map { it.asDomainModel(imageHydrator, mediaProgressDataSource) },
-    inProgress = inProgress == true,
-    hasActiveBook = hasActiveBook == true,
-    hideFromContinueListening = hideFromContinueListening == true,
-    bookInProgressLastUpdate = bookInProgressLastUpdate,
-    firstBookUnread = firstBookUnread?.asDomainModel(imageHydrator, mediaProgressDataSource),
-  )
-}
-
-suspend fun NetworkAuthor.asDomainModel(
-  imageHydrator: TokenHydrator,
-): DomainAuthor {
-  return DomainAuthor(
-    id = id,
-    asin = asin,
-    name = name,
-    description = description,
-    imagePath = imageHydrator.hydrateAuthor(id),
-    addedAt = addedAt,
-    updatedAt = updatedAt,
-    numBooks = numBooks,
   )
 }

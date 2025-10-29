@@ -1,17 +1,16 @@
 package app.campfire.home.ui
 
 import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
-import app.campfire.home.api.model.Shelf
+import app.campfire.home.api.HomeFeedResponse
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class HomeUiState(
-  val homeFeed: LoadState<out List<Shelf<*>>>,
+  val homeFeed: HomeFeedResponse,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (HomeUiEvent) -> Unit,
 ) : CircuitUiState

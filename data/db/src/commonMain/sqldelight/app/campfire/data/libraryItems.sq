@@ -51,6 +51,12 @@ INNER JOIN media ON media.libraryItemId = libraryItem.id
 WHERE seriesBookJoin.seriesId = ?
 ORDER BY media.metadata_series_sequence ASC;
 
+selectForShelf:
+SELECT libraryItem.*,media.* FROM libraryItem
+INNER JOIN shelfJoin ON shelfJoin.entityId = libraryItem.id
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE shelfJoin.shelfId = ?;
+
 selectForCollection:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN collectionsBookJoin ON collectionsBookJoin.libraryItemId = libraryItem.id

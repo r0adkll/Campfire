@@ -19,6 +19,7 @@ import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
 import app.campfire.data.Server
 import app.campfire.data.Session
+import app.campfire.data.Shelf
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
@@ -132,11 +133,16 @@ class DatabaseFactory(
       podcastCountAdapter = IntColumnAdapter,
       numIssuesAdapter = IntColumnAdapter,
     ),
+    shelfAdapter = Shelf.Adapter(
+      totalAdapter = IntColumnAdapter,
+      typeAdapter = EnumColumnAdapter(),
+    ),
   ).also {
-    CampfireDatabase.Schema.migrate(
-      driver = driver,
-      oldVersion = 0,
-      newVersion = CampfireDatabase.Schema.version,
-    )
+    Unit
+//    CampfireDatabase.Schema.migrate(
+//      driver = driver,
+//      oldVersion = 1,
+//      newVersion = CampfireDatabase.Schema.version,
+//    )
   }
 }

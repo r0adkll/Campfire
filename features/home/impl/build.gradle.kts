@@ -20,6 +20,8 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.features.user.api)
 
+        implementation(libs.store)
+
         api(projects.features.home.api)
       }
     }

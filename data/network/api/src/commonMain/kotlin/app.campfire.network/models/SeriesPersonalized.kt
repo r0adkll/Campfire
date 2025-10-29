@@ -25,4 +25,4 @@ data class SeriesPersonalized(
   val hideFromContinueListening: Boolean? = null,
   val bookInProgressLastUpdate: Long? = null,
   val firstBookUnread: LibraryItemMinified<MinifiedBookMetadata>? = null,
-)
+) : NetworkModel()

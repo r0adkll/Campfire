@@ -1,0 +1,39 @@
+import app.campfire.core.model.ShelfType;
+import kotlin.Int;
+
+CREATE TABLE IF NOT EXISTS shelf (
+  id TEXT NOT NULL PRIMARY KEY,
+  libraryId TEXT NOT NULL,
+  label TEXT NOT NULL,
+  labelStringKey TEXT NOT NULL,
+  total INTEGER AS Int NOT NULL,
+  type TEXT AS ShelfType NOT NULL,
+
+  FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS shelfJoin(
+  shelfId TEXT NOT NULL,
+  entityId TEXT NOT NULL,
+
+  PRIMARY KEY (shelfId, entityId),
+  FOREIGN KEY (shelfId) REFERENCES shelf(id) ON DELETE CASCADE
+);
+
+-- Queries
+
+insert:
+INSERT OR REPLACE INTO shelf
+VALUES ?;
+
+insertJoins:
+INSERT OR REPLACE INTO shelfJoin
+VALUES ?;
+
+delete:
+DELETE FROM shelf
+WHERE libraryId = ?;
+
+select:
+SELECT * FROM shelf
+WHERE libraryId = ?;

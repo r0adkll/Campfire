@@ -6,28 +6,20 @@ CREATE TABLE IF NOT EXISTS series (
   description TEXT,
   addedAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL,
---   inProgress INTEGER AS Boolean NOT NULL,
---   hasActiveBook INTEGER AS Boolean NOT NULL,
---   hideFromContinueListening INTEGER AS Boolean NOT NULL,
---   bookInProgressLastUpdate INTEGER NOT NULL,
+
+  inProgress INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hasActiveBook INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hideFromContinueListening INTEGER AS Boolean NOT NULL DEFAULT 0,
+  bookInProgressLastUpdate INTEGER,
+  firstBookUnreadId TEXT,
 
   libraryId TEXT NOT NULL,
   FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
 );
 
 insert:
-INSERT OR REPLACE INTO series(
-  id,
-  name,
-  description,
-  addedAt,
-  updatedAt,
---   inProgress,
---   hasActiveBook,
---   hideFromContinueListening,
---   bookInProgressLastUpdate,
-  libraryId
-) VALUES ?;
+INSERT OR REPLACE INTO series
+VALUES ?;
 
 selectAll:
 SELECT * FROM series;
@@ -39,6 +31,11 @@ WHERE id = ?;
 selectByLibraryId:
 SELECT * FROM series
 WHERE libraryId = ?;
+
+selectByShelfId:
+SELECT * FROM series
+INNER JOIN shelfJoin ON shelfJoin.entityId = series.id
+WHERE shelfJoin.shelfId = ?;
 
 deleteForLibraryId:
 DELETE FROM series
