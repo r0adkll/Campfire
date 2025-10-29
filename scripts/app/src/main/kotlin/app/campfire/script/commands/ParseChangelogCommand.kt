@@ -133,7 +133,7 @@ object ChangelogParser {
     jsonFormat: Boolean = false,
     version: String? = null,
   ): String? {
-    val changes =  when {
+    val changes = when {
       version != null -> changelog.changes.find { it.version == version }
       else -> changelog.changes.firstOrNull { it.version != "Unreleased" }
     }
