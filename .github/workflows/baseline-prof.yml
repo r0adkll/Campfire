@@ -64,13 +64,12 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
-# TODO: Uncomment this
-#      - name: Build app and benchmark
-#        run: ./gradlew assembleNonMinifiedRelease
-#        env:
-#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+      - name: Build app and benchmark
+        run: ./gradlew assembleNonMinifiedRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: AVD cache
         uses: actions/cache@v4
@@ -89,8 +88,7 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           script: |
-            ./gradlew generateBaselineProfile \
-              -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+            ./gradlew generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
           ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
