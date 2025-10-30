@@ -108,8 +108,10 @@ class AppUpdateWidgetImpl(
       )
       CardContent(
         text = buildAnnotatedString {
-          append("Automatic app updates require you to be signed into the Firebase " +
-            "AppTester platform.")
+          append(
+            "Automatic app updates require you to be signed into the Firebase " +
+              "AppTester platform.",
+          )
         },
         action = "Sign in",
       )
