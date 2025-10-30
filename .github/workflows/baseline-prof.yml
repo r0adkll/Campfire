@@ -16,6 +16,16 @@ jobs:
     timeout-minutes: 45
 
     steps:
+      - name: Setup swap because we're cheap
+        run: |
+          sudo swapon --show
+          sudo swapoff -a
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
       - uses: actions/checkout@v5
         with:
           # We need to use a Personal Access Token from an admin to be able to commit to main,
