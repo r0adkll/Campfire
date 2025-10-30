@@ -67,7 +67,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 google-services = "com.google.gms.google-services:4.4.4"
 firebase-crashlytics = "com.google.firebase.crashlytics:3.0.6"
-firebase-appdistribution = "com.google.firebase.appdistribution:5.1.1"
+firebase-appdistribution = "com.google.firebase.appdistribution:5.2.0"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
