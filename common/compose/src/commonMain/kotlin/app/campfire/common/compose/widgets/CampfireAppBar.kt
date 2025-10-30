@@ -36,6 +36,7 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connected
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connecting
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnected
+import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
 import app.campfire.core.model.Library
 import app.campfire.core.model.Server
 
@@ -62,6 +63,7 @@ data class AppBarState(
     Disconnected,
     Connecting,
     Connected,
+    None,
   }
 }
 
@@ -184,18 +186,21 @@ private fun ServerIcon(
           contentDescription = null,
           modifier = Modifier.size(32.dp),
         )
-        Box(
-          modifier = Modifier
-            .size(8.dp)
-            .background(
-              when (serverState.connectionState) {
-                Disconnected -> MaterialTheme.colorScheme.error
-                Connecting -> Color.Yellow
-                Connected -> Color.Green
-              },
-              CircleShape,
-            ),
-        )
+        if (serverState.connectionState != None) {
+          Box(
+            modifier = Modifier
+              .size(8.dp)
+              .background(
+                when (serverState.connectionState) {
+                  Disconnected -> MaterialTheme.colorScheme.error
+                  Connecting -> Color.Yellow
+                  Connected -> Color.Green
+                  None -> Color.Transparent
+                },
+                CircleShape,
+              ),
+          )
+        }
       }
     }
   }

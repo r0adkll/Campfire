@@ -14,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AreaChart
+import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.Github
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
@@ -93,6 +95,7 @@ internal fun AboutPane(
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_crash_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_crash_reporting_subtitle)) },
+      leadingContent = { Icon(CampfireIcons.Rounded.Crash, contentDescription = null) },
     )
 
     SwitchSetting(
@@ -100,6 +103,7 @@ internal fun AboutPane(
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_analytic_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_analytic_reporting_subtitle)) },
+      leadingContent = { Icon(CampfireIcons.Rounded.AreaChart, contentDescription = null) },
     )
 
     Header(

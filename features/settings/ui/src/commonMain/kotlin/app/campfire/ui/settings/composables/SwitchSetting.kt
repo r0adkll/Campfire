@@ -14,10 +14,12 @@ internal fun SwitchSetting(
   headlineContent: @Composable () -> Unit,
   supportingContent: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  leadingContent: @Composable (() -> Unit)? = null,
 ) {
   SettingListItem(
     headlineContent = headlineContent,
     supportingContent = supportingContent,
+    leadingContent = leadingContent,
     trailingContent = {
       Switch(
         checked = value,

@@ -46,7 +46,7 @@ class CampfireAppbarPresenter(
     // TODO: Observe this from some socket repository that can broadcast
     //  the socket connection state when that feature is built
     val connectionState by remember {
-      mutableStateOf(AppBarState.ConnectionState.Connected)
+      mutableStateOf(AppBarState.ConnectionState.None)
     }
 
     return AppBarState(
