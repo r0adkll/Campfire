@@ -73,6 +73,7 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.audioplayer.ui.TimerResult
+import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.audioplayer.ui.showTimerBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
@@ -273,6 +274,9 @@ internal fun ExpandedPlaybackBar(
           ) {
             Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
           }
+        },
+        actions = {
+          CastButton()
         },
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,

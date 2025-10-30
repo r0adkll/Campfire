@@ -30,6 +30,9 @@
       <SelectionState runConfigName="BaselineProfileGenerator">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="CastConnectingIconPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

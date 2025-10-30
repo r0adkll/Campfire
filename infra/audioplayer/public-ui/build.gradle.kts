@@ -25,6 +25,7 @@ kotlin {
     androidMain {
       dependencies {
         implementation(compose.preview)
+        implementation(libs.play.services.cast.framework)
       }
     }
   }

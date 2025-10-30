@@ -17,6 +17,9 @@ import androidx.media3.extractor.mp3.Mp3Extractor
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.PlaybackSettings
+import com.google.android.gms.cast.Cast
+import com.google.android.gms.cast.framework.CastOptions
+import com.google.android.gms.cast.framework.media.CastMediaOptions
 import com.r0adkll.kimchi.annotations.ContributesTo
 import java.io.File
 import java.util.concurrent.Executors

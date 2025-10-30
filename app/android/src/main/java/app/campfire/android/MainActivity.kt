@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
 import app.campfire.android.toast.AndroidToast
@@ -21,7 +22,7 @@ import app.campfire.core.logging.bark
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
 
   private lateinit var component: ActivityComponent
 
@@ -34,6 +35,10 @@ class MainActivity : ComponentActivity() {
       .also {
         ComponentHolder.updateComponent(lifecycleScope, it)
       }
+
+    // Initialize the CastContext used for Google Cast
+    // https://developers.google.com/cast/docs/android_sender/integrate#kotlin
+    component.castContextController.initialize()
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 

@@ -3,6 +3,7 @@ package app.campfire.android.di
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
 import app.campfire.audioplayer.impl.MediaControllerConnector
+import app.campfire.audioplayer.impl.cast.CastContextController
 import app.campfire.common.root.CampfireContent
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -19,6 +20,7 @@ import me.tatarka.inject.annotations.Provides
 interface ActivityComponent {
   val campfireContent: CampfireContent
   val mediaControllerConnector: MediaControllerConnector
+  val castContextController: CastContextController
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {

@@ -2,6 +2,8 @@ package app.campfire.audioplayer.impl
 
 import android.content.Context
 import androidx.annotation.OptIn
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaMetadata
@@ -19,6 +21,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
+import app.campfire.audioplayer.impl.cast.CastContextController
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
@@ -31,6 +34,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.settings.api.PlaybackSettings
+import com.google.android.gms.cast.framework.CastButtonFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -52,13 +56,15 @@ class ExoPlayerAudioPlayer(
   private val context: Context,
   private val settings: PlaybackSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
+  private val castContextController: CastContextController,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
-) : AudioPlayer, Player.Listener {
+) : AudioPlayer, Player.Listener, SessionAvailabilityListener {
 
   @Inject
   class Factory(
     private val settings: PlaybackSettings,
     private val mediaSourceFactory: MediaSource.Factory,
+    private val castContextController: CastContextController,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   ) {
 
@@ -67,6 +73,7 @@ class ExoPlayerAudioPlayer(
         context = context,
         settings = settings,
         mediaSourceFactory = mediaSourceFactory,
+        castContextController = castContextController,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
       )
     }
@@ -106,6 +113,13 @@ class ExoPlayerAudioPlayer(
     .apply {
       addListener(this@ExoPlayerAudioPlayer)
     }
+
+  internal val castPlayer: CastPlayer? = castContextController.castContext.contextOrNull?.let { castContext ->
+    CastPlayer(castContext).apply {
+      addListener(this@ExoPlayerAudioPlayer)
+      setSessionAvailabilityListener(this@ExoPlayerAudioPlayer)
+    }
+  }
 
   private var progressJob: Job? = null
   private var fadeJob: Job? = null
@@ -404,5 +418,17 @@ class ExoPlayerAudioPlayer(
     }
 
     overallTime.value = (timelineOffsetMs + player.currentPosition).milliseconds
+  }
+
+  /*
+   * Cast Player Callbacks
+   */
+
+  override fun onCastSessionAvailable() {
+    TODO("Not yet implemented")
+  }
+
+  override fun onCastSessionUnavailable() {
+    TODO("Not yet implemented")
   }
 }

@@ -1,0 +1,122 @@
+package app.campfire.common.compose.icons.rounded
+
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.VectorPainter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+
+private val disabledColor = Color.Black.copy(alpha = 0.15f)
+
+val CampfireIcons.Rounded.CastConnecting: VectorPainter
+  @Composable
+  get() = rememberVectorPainter(
+    name = "Rounded.CastConnecting",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 960f,
+    viewportHeight = 960f,
+    autoMirror = false,
+  ) { _, _ ->
+    // The Rect Outline
+    Path(fill = SolidColor(Color.Black)) {
+      moveTo(880f, 240f)
+      verticalLineToRelative(480f)
+      quadToRelative(0f, 33f, -23.5f, 56.5f)
+      reflectiveQuadTo(800f, 800f)
+      lineTo(638f, 800f)
+      quadToRelative(-17f, 0f, -28.5f, -11.5f)
+      reflectiveQuadTo(598f, 760f)
+      quadToRelative(0f, -17f, 11.5f, -28.5f)
+      reflectiveQuadTo(638f, 720f)
+      horizontalLineToRelative(162f)
+      verticalLineToRelative(-480f)
+      lineTo(160f, 240f)
+      verticalLineToRelative(6f)
+      quadToRelative(0f, 17f, -11.5f, 28.5f)
+      reflectiveQuadTo(120f, 286f)
+      quadToRelative(-17f, 0f, -28.5f, -11.5f)
+      reflectiveQuadTo(80f, 246f)
+      verticalLineToRelative(-6f)
+      quadToRelative(0f, -33f, 23.5f, -56.5f)
+      reflectiveQuadTo(160f, 160f)
+      horizontalLineToRelative(640f)
+      quadToRelative(33f, 0f, 56.5f, 23.5f)
+      reflectiveQuadTo(880f, 240f)
+      close()
+    }
+
+    var activeSignalLayer by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+      while (isActive) {
+        activeSignalLayer = (activeSignalLayer + 1) % 3
+        delay(500L)
+      }
+    }
+
+    // Inner Signal
+    val innerColor by animateColorAsState(if (activeSignalLayer == 0) Color.Black else disabledColor)
+    Path(fill = SolidColor(innerColor)) {
+      moveTo(130f, 800f)
+      quadToRelative(-21f, 0f, -35.5f, -14.5f)
+      reflectiveQuadTo(80f, 750f)
+      quadToRelative(0f, -21f, 14.5f, -35.5f)
+      reflectiveQuadTo(130f, 700f)
+      quadToRelative(21f, 0f, 35.5f, 14.5f)
+      reflectiveQuadTo(180f, 750f)
+      quadToRelative(0f, 21f, -14.5f, 35.5f)
+      reflectiveQuadTo(130f, 800f)
+      close()
+    }
+
+    // Middle Signal
+    val middleColor by animateColorAsState(if (activeSignalLayer == 1) Color.Black else disabledColor)
+    Path(fill = SolidColor(middleColor)) {
+      moveTo(320f, 800f)
+      quadToRelative(-16f, 0f, -28f, -9.5f)
+      reflectiveQuadTo(277f, 765f)
+      quadToRelative(-11f, -63f, -56.5f, -107f)
+      reflectiveQuadTo(112f, 603f)
+      quadToRelative(-15f, -2f, -23.5f, -14.5f)
+      reflectiveQuadTo(80f, 560f)
+      quadToRelative(0f, -17f, 11f, -28.5f)
+      reflectiveQuadToRelative(26f, -9.5f)
+      quadToRelative(94f, 12f, 160.5f, 79f)
+      reflectiveQuadTo(357f, 762f)
+      quadToRelative(2f, 16f, -9f, 27f)
+      reflectiveQuadToRelative(-28f, 11f)
+      close()
+    }
+
+    // Outer Signal
+    val outerColor by animateColorAsState(if (activeSignalLayer == 2) Color.Black else disabledColor)
+    Path(fill = SolidColor(outerColor)) {
+      moveTo(480f, 480f)
+      close()
+      moveTo(480f, 800f)
+      quadToRelative(-17f, 0f, -28.5f, -11f)
+      reflectiveQuadTo(438f, 761f)
+      quadToRelative(-14f, -128f, -104.5f, -217f)
+      reflectiveQuadTo(115f, 442f)
+      quadToRelative(-16f, -2f, -25.5f, -14f)
+      reflectiveQuadTo(80f, 400f)
+      quadToRelative(0f, -17f, 10.5f, -29f)
+      reflectiveQuadToRelative(25.5f, -10f)
+      quadToRelative(161f, 13f, 274f, 125f)
+      reflectiveQuadToRelative(128f, 273f)
+      quadToRelative(2f, 17f, -9.5f, 29f)
+      reflectiveQuadTo(480f, 800f)
+      close()
+    }
+  }
