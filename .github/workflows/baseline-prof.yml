@@ -55,8 +55,8 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Accept Android SDK license
-        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+#      - name: Accept Android SDK license
+#        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Download Service Accounts
         env:
@@ -64,12 +64,12 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
-      - name: Build app and benchmark
-        run: ./gradlew assembleNonMinifiedRelease
-        env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+#      - name: Build app and benchmark
+#        run: ./gradlew assembleNonMinifiedRelease
+#        env:
+#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: AVD cache
         uses: actions/cache@v4
