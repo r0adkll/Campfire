@@ -1,6 +1,7 @@
 package app.campfire.android.updates
 
 import app.campfire.core.di.AppScope
+import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateSource
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
@@ -17,6 +18,10 @@ class GooglePlayAppUpdateSource : AppUpdateSource {
 
   override suspend fun isUpdateAvailable(): Boolean {
     return false
+  }
+
+  override suspend fun getAvailableUpdate(): AppUpdate? {
+    return null
   }
 
   override suspend fun installUpdate() {

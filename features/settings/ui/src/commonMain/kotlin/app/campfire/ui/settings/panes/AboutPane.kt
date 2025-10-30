@@ -163,10 +163,7 @@ internal const val DEVELOPER_MODE_CLICK_TIMEOUT = 1500L
 
 private val ApplicationInfo.settingsReadableVersionName: String get() {
   return buildString {
-    append(versionName).append(".")
-    append(versionCode.toString())
-    if (flavor != Flavor.Standard) {
-      append("-${flavor.name}")
-    }
+    append(versionName).append(" ")
+    append("(${versionCode})")
   }
 }
