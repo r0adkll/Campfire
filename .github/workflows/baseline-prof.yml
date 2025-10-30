@@ -11,7 +11,7 @@ on:
       - '.github/workflows/baseline-profile.yml'
 
 env:
-  ANDROID_PROFILE: Pixel 7
+  ANDROID_PROFILE: pixel_7
   ANDROID_TARGET: google_apis
   ANDROID_API_LEVEL: 35
   ANDROID_ARCH: x86_64
