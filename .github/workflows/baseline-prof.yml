@@ -10,6 +10,12 @@ on:
       - 'app/baselineprofile/**'
       - '.github/workflows/baseline-profile.yml'
 
+env:
+  ANDROID_PROFILE: Pixel 7
+  ANDROID_TARGET: google_apis
+  ANDROID_API_LEVEL: 35
+  ANDROID_ARCH: x86_64
+
 jobs:
   baseline-profile:
     runs-on: ubuntu-latest
@@ -58,12 +64,13 @@ jobs:
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
-      - name: Build app and benchmark
-        run: ./gradlew assembleNonMinifiedRelease
-        env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+# TODO: Uncomment this
+#      - name: Build app and benchmark
+#        run: ./gradlew assembleNonMinifiedRelease
+#        env:
+#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: AVD cache
         uses: actions/cache@v4
@@ -72,18 +79,15 @@ jobs:
           path: |
             ~/.android/avd/*
             ~/.android/adb*
-          key: avd-36
+          key: avd-${{ env.ANDROID_API_LEVEL }}
 
       - name: Generate Baseline Profiles
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 36
-          target: google_apis
-          arch: x86_64
-          profile: pixel_7
-          ram-size: 4096M
-          disk-size: 6000M
-          heap-size: 600M
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          target: ${{ env.ANDROID_TARGET }}
+          arch: ${{ env.ANDROID_ARCH }}
+          profile: ${{ env.ANDROID_PROFILE }}
           script: |
             ./gradlew generateBaselineProfile \
               -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
