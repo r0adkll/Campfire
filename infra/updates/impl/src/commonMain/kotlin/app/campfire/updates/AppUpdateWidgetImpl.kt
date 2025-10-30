@@ -26,9 +26,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.core.di.AppScope
+import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateSource
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.flow
@@ -52,15 +57,15 @@ class AppUpdateWidgetImpl(
           emit(
             AppUpdateState(
               isSignedIn = false,
-              isUpdateAvailable = false,
+              appUpdate = null,
             ),
           )
         } else {
-          val isUpdateAvailable = appUpdateSource.isUpdateAvailable()
+          val update = appUpdateSource.getAvailableUpdate()
           emit(
             AppUpdateState(
               isSignedIn = true,
-              isUpdateAvailable = isUpdateAvailable,
+              appUpdate = update,
             ),
           )
         }
@@ -76,7 +81,7 @@ class AppUpdateWidgetImpl(
     modifier: Modifier = Modifier,
   ) {
     when {
-      state.isSignedIn && state.isUpdateAvailable -> UpdateContent(modifier)
+      state.isSignedIn && state.appUpdate != null -> UpdateContent(state.appUpdate, modifier)
       !state.isSignedIn -> SignInContent(modifier)
       else -> Unit
     }
@@ -102,8 +107,10 @@ class AppUpdateWidgetImpl(
         icon = Icons.AutoMirrored.Rounded.Login,
       )
       CardContent(
-        text = "Automatic app updates require you to be signed into the Firebase " +
-          "AppTester platform.",
+        text = buildAnnotatedString {
+          append("Automatic app updates require you to be signed into the Firebase " +
+            "AppTester platform.")
+        },
         action = "Sign in",
       )
     }
@@ -111,6 +118,7 @@ class AppUpdateWidgetImpl(
 
   @Composable
   private fun UpdateContent(
+    appUpdate: AppUpdate,
     modifier: Modifier = Modifier,
   ) {
     val scope = rememberCoroutineScope()
@@ -129,7 +137,12 @@ class AppUpdateWidgetImpl(
         icon = Icons.Rounded.SystemUpdate,
       )
       CardContent(
-        text = "A new version of the app is available to update",
+        text = buildAnnotatedString {
+          withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+            append("${appUpdate.versionName} (${appUpdate.versionCode})")
+          }
+          append(" is available to update")
+        },
         action = "Update now",
       )
     }
@@ -180,7 +193,7 @@ class AppUpdateWidgetImpl(
 
   @Composable
   private fun ColumnScope.CardContent(
-    text: String,
+    text: AnnotatedString,
     action: String,
   ) {
     Text(
@@ -210,5 +223,5 @@ class AppUpdateWidgetImpl(
 
 data class AppUpdateState(
   val isSignedIn: Boolean = false,
-  val isUpdateAvailable: Boolean = false,
+  val appUpdate: AppUpdate? = null,
 )

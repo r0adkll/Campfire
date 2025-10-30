@@ -5,6 +5,7 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateSource
 import com.google.firebase.FirebaseApp
 import com.google.firebase.appdistribution.FirebaseAppDistribution
@@ -47,7 +48,24 @@ class FirebaseAppUpdateSource(
     }
   }
 
+  override suspend fun getAvailableUpdate(): AppUpdate? {
+    try {
+      val release = appDistribution.checkForNewRelease().await()
+      return AppUpdate(
+        versionName = release.displayVersion,
+        versionCode = release.versionCode,
+        releaseNotes = release.releaseNotes,
+      )
+    } catch (_: FirebaseAppDistributionException) {
+      return null
+    }
+  }
+
   override suspend fun installUpdate() {
-    appDistribution.updateApp().await()
+    try {
+      appDistribution.updateApp().await()
+    } catch (e: FirebaseAppDistributionException) {
+      e.printStackTrace()
+    }
   }
 }

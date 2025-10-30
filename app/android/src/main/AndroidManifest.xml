@@ -27,6 +27,15 @@
       </intent-filter>
     </activity>
 
+    <!-- Override this activity from app distribution to fix theme issue -->
+    <activity
+      android:name="com.google.firebase.appdistribution.impl.InstallActivity"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:theme="@style/Theme.AppCompat.DayNight"
+      tools:node="replace"
+      />
+
     <!-- Disable Firebase's built-in provider initializer so we can control when we initialize FB  -->
     <provider
       android:name="com.google.firebase.provider.FirebaseInitProvider"

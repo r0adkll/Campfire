@@ -22,7 +22,18 @@ interface AppUpdateSource {
   suspend fun isUpdateAvailable(): Boolean
 
   /**
+   * Get the latest available update
+   */
+  suspend fun getAvailableUpdate(): AppUpdate?
+
+  /**
    * Kick of the update installation process
    */
   suspend fun installUpdate()
 }
+
+data class AppUpdate(
+  val versionName: String,
+  val versionCode: Long,
+  val releaseNotes: String? = null,
+)
