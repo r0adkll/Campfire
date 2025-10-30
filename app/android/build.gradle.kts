@@ -64,6 +64,14 @@ android {
     }
   }
 
+  sourceSets {
+    matching {
+      listOf("alphaRelease", "betaRelease").contains(it.name)
+    }.configureEach {
+      kotlin.srcDir("src/preRelease/kotlin")
+    }
+  }
+
   signingConfigs {
     getByName("debug") {
       storeFile = rootProject.file("app/signing/debug.keystore")

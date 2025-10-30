@@ -5,8 +5,10 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateSource
 import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseException
 import com.google.firebase.appdistribution.FirebaseAppDistribution
 import com.google.firebase.appdistribution.FirebaseAppDistributionException
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -44,6 +46,19 @@ class FirebaseAppUpdateSource(
       return update.versionCode > appInfo.versionCode
     } catch (e: Exception) {
       return false
+    }
+  }
+
+  override suspend fun getAvailableUpdate(): AppUpdate? {
+    try {
+      val release = appDistribution.checkForNewRelease().await() ?: return null
+      return AppUpdate(
+        versionName = release.displayVersion,
+        versionCode = release.versionCode,
+        releaseNotes = release.releaseNotes,
+      )
+    } catch (_: FirebaseException) {
+      return null
     }
   }
 
