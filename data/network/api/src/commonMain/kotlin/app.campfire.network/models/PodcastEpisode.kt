@@ -32,7 +32,7 @@ data class PodcastEpisode(
   val libraryItemId: String,
   val podcastId: String,
   val id: String,
-  val oldEpisodeId: String,
+  val oldEpisodeId: String? = null,
   val index: Int,
   val season: String,
   val episode: String,

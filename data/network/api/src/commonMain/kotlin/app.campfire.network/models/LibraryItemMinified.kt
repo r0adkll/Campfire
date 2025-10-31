@@ -82,6 +82,8 @@ data class LibraryItemMinified<Metadata : BookMetadata>(
    * When returned from the personalized library endpoint, and its shelf has an id of
    * `continue-listening`, `listen-again`, or `episodes-recently-added`
    * then this field will be non-null.
+   *
+   * See #244 - Add Podcast Support
    */
-  val recentEpisode: PodcastEpisode? = null,
+  // val recentEpisode: PodcastEpisode? = null,
 ) : LibraryItemBase()

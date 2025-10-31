@@ -21,6 +21,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.features.user.api)
         implementation(projects.features.sessions.api)
+        implementation(projects.data.crashreporting.api)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.multiplatformsettings.core)
         implementation(libs.multiplatformsettings.coroutines)

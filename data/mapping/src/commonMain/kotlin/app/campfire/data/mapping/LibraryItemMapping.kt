@@ -29,6 +29,7 @@ import app.campfire.network.models.MediaExpanded
 import app.campfire.network.models.MediaMinified as NetworkMediaMinified
 import app.campfire.network.models.MediaType as NetworkMediaType
 import app.campfire.network.models.MinifiedBookMetadata
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 fun LibraryItemBase.asDbModel(
@@ -139,7 +140,9 @@ fun <T : Media> T.asDbModel(
         it.audioFiles
           .sumOf { it.duration.toDouble() }
           .seconds
-      } ?: error("Unable to compute duration, breaking to debug")
+      } ?: (this as? NetworkMediaMinified<*>)?.let {
+        it.duration?.seconds
+      } ?: Duration.ZERO
       computedDuration.inWholeMilliseconds
     },
     sizeInBytes = size ?: run {
@@ -147,7 +150,7 @@ fun <T : Media> T.asDbModel(
         it.audioFiles
           .sumOf { it.metadata.size }
           .toLong()
-      } ?: error("Unable to compute size, breaking to debug")
+      } ?: 0L
     },
     propertySize = propertySize,
     ebookFormat = ebookFormat,

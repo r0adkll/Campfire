@@ -11,6 +11,7 @@ import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
+import app.campfire.crashreporting.CrashReporter
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +46,11 @@ class StoreServerRepository(
           serverStore
             .stream(StoreReadRequest.cached(key, false))
             .mapLatest { it.dataOrNull() as? ServerStore.Output.Single }
-            .map { it?.server }
+            .map {
+              it?.server?.also { server ->
+                CrashReporter.tag("server_version", server.settings.version)
+              }
+            }
             .filterNotNull()
         } else {
           emptyFlow()
