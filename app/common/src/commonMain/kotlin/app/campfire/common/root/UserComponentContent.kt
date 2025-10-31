@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -19,6 +20,7 @@ import app.campfire.common.compose.navigation.LocalUserSession
 import app.campfire.common.di.UserComponent
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.session.UserSession
+import kotlinx.coroutines.delay
 
 @Composable
 fun UserComponentContent(
@@ -52,6 +54,11 @@ fun UserComponentContent(
 private fun SplashScreen(
   modifier: Modifier = Modifier,
 ) {
+  LaunchedEffect(Unit) {
+    delay(10_000L)
+    error("Splash screen timed out. It's taking too long to load the main UI(s)")
+  }
+
   Box(
     modifier = modifier
       .fillMaxSize(),

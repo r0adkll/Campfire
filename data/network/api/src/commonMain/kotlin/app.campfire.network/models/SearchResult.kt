@@ -16,7 +16,7 @@ data class SearchResult(
   override fun applyPostage() {
     book.forEach { b -> b.libraryItem.applyOrigin(origin) }
     authors.forEach { a -> a.applyOrigin(origin) }
-    series.forEach { s -> s.books.forEach { sb -> sb.applyOrigin(origin)} }
+    series.forEach { s -> s.books.forEach { sb -> sb.applyOrigin(origin) } }
   }
 
   fun toShortString(): String {

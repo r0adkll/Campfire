@@ -2,9 +2,7 @@ package app.campfire.common.navigator
 
 import app.campfire.common.screens.UrlScreen
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.screen.PopResult
 import com.slack.circuit.runtime.screen.Screen
-import kotlinx.collections.immutable.ImmutableList
 
 class OpenUrlNavigator(
   private val navigator: Navigator,
