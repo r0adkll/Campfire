@@ -1,5 +1,6 @@
 package app.campfire.audioplayer.ui.cast
 
+import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,15 +21,28 @@ enum class CastButtonState {
 @Composable
 fun CastButton(
   modifier: Modifier = Modifier,
+) {
+  // TODO: Populate this from a cast controller
+  val state = CastButtonState.Unavailable
+  CastButton(
+    state = state,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun CastButton(
+  modifier: Modifier = Modifier,
   state: CastButtonState = CastButtonState.Unavailable,
 ) {
   if (state == CastButtonState.Unavailable) return
 
   IconButton(
-    onClick = {},
+    onClick = { /* TODO: Show popup/dialog of cast devices */ },
+    enabled = state == CastButtonState.Connected || state == CastButtonState.Disconnected,
     modifier = modifier,
   ) {
-    when (state) {
+    val iconPainter = when (state) {
       CastButtonState.Unavailable -> error("Invalid state for cast button")
       CastButtonState.Disconnected -> rememberVectorPainter(CampfireIcons.Rounded.Cast)
 
@@ -37,6 +51,8 @@ fun CastButton(
 
       CastButtonState.Connected -> rememberVectorPainter(CampfireIcons.Rounded.CastConnected)
     }
+
+    Icon(iconPainter, contentDescription = null)
   }
 }
 

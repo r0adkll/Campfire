@@ -32,6 +32,11 @@
       </intent-filter>
     </service>
 
+    <receiver
+      android:name="androidx.mediarouter.media.MediaTransferReceiver"
+      android:exported="true">
+    </receiver>
+
     <meta-data android:name="com.google.android.gms.car.application"
       android:resource="@xml/automotive_app_desc"/>
 

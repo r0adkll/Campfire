@@ -45,6 +45,7 @@ kotlin {
     androidMain {
       dependencies {
         api(libs.media3.exoplayer)
+        api(libs.play.services.cast.framework)
 
         // These are used in the AudiPlayerService to facilitate
         // Android Auto support via the MediaLibraryService

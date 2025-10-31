@@ -10,7 +10,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
 import app.campfire.android.toast.AndroidToast
@@ -22,7 +21,7 @@ import app.campfire.core.logging.bark
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
-class MainActivity : FragmentActivity() {
+class MainActivity : ComponentActivity() {
 
   private lateinit var component: ActivityComponent
 
@@ -75,6 +74,7 @@ class MainActivity : FragmentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
+    component.castContextController.destroy()
   }
 }
 
