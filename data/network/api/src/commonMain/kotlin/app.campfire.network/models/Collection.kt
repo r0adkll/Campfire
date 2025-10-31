@@ -1,5 +1,6 @@
 package app.campfire.network.models
 
+import app.campfire.network.envelopes.Envelope
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,4 +14,8 @@ data class Collection(
   val books: List<LibraryItemExpanded>,
   val lastUpdate: Long,
   val createdAt: Long,
-) : NetworkModel()
+) : Envelope() {
+  override fun applyPostage() {
+    books.forEach { it.applyOrigin(origin) }
+  }
+}

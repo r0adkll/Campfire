@@ -3,7 +3,6 @@ package app.campfire.network
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.network.KtorAudioBookShelfApi.Companion.HEADER_SERVER_URL
-import app.campfire.network.envelopes.Envelope
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
@@ -74,13 +73,7 @@ class KtorAuthAudioBookShelfApi(
         val originServerUrl = response.call.request.headers[HEADER_SERVER_URL]
         val body = responseMapper(response)
         if (body is NetworkModel && originServerUrl != null) {
-          body.origin = RequestOrigin.Url(originServerUrl)
-        }
-
-        // If our response model is an [Envelope] be sure to apply
-        // its postage.
-        if (body is Envelope) {
-          body.applyPostage()
+          body.applyOrigin(RequestOrigin.Url(originServerUrl))
         }
 
         Result.success(body)

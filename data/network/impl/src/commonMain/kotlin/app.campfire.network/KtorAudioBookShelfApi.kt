@@ -12,7 +12,6 @@ import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.BatchBooksRequest
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
-import app.campfire.network.envelopes.Envelope
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
@@ -45,7 +44,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -56,7 +54,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.URLBuilder
-import io.ktor.http.Url
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.encodeURLQueryComponent
@@ -389,13 +386,7 @@ class KtorAudioBookShelfApi(
         val originServerUrl = response.call.request.headers[HEADER_SERVER_URL]
         val body = responseMapper(response)
         if (body is NetworkModel && originServerUrl != null) {
-          body.origin = RequestOrigin.Url(originServerUrl)
-        }
-
-        // If our response model is an [Envelope] be sure to apply
-        // its postage.
-        if (body is Envelope) {
-          body.applyPostage()
+          body.applyOrigin(RequestOrigin.Url(originServerUrl))
         }
 
         // If our response is an iterable, check each item to attach
@@ -403,11 +394,8 @@ class KtorAudioBookShelfApi(
         if (body is Iterable<*> && originServerUrl != null) {
           val originUrl = RequestOrigin.Url(originServerUrl)
           body.forEach {
-            if (it is Envelope) {
-              it.origin = originUrl
-              it.applyPostage()
-            } else if (it is NetworkModel) {
-              it.origin = originUrl
+            if (it is NetworkModel) {
+              it.applyOrigin(originUrl)
             }
           }
         }

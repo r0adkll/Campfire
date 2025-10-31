@@ -13,7 +13,7 @@ class AllLibrariesResponse(
 ) : Envelope() {
 
   override fun applyPostage() {
-    libraries.forEach { it.origin = origin }
+    libraries.forEach { it.applyOrigin(origin) }
   }
 }
 
@@ -32,7 +32,7 @@ class LibraryItemsResponse(
 ) : Envelope() {
 
   override fun applyPostage() {
-    results.forEach { it.origin = origin }
+    results.forEach { it.applyOrigin(origin) }
   }
 }
 
@@ -51,6 +51,6 @@ class MinifiedLibraryItemsResponse(
 ) : Envelope() {
 
   override fun applyPostage() {
-    results.forEach { it.origin = origin }
+    results.forEach { it.applyOrigin(origin) }
   }
 }

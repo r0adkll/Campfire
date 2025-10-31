@@ -9,4 +9,13 @@ import app.campfire.network.RequestOrigin
 abstract class NetworkModel {
 
   var origin: RequestOrigin = RequestOrigin.None
+    private set
+
+  /**
+   * Apply an [origin] to this model.
+   * @param origin the [RequestOrigin] for this network model
+   */
+  open fun applyOrigin(origin: RequestOrigin) {
+    this.origin = origin
+  }
 }

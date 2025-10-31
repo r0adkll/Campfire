@@ -13,5 +13,15 @@ abstract class Envelope : NetworkModel() {
    * in this envelope. This is necessary for parts of our setup that use this field to relate what [serverUrl]
    * the request came from.
    */
-  abstract fun applyPostage()
+  protected abstract fun applyPostage()
+
+  /**
+   * Set the [origin] for this [NetworkModel] and then call [applyPostage] so that the envelope model
+   * call apply it's [origin] to its children
+   */
+  override fun applyOrigin(origin: RequestOrigin) {
+    // Must be called to apply the [origin] var
+    super.applyOrigin(origin)
+    applyPostage()
+  }
 }

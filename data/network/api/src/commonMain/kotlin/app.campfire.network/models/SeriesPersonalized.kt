@@ -1,5 +1,6 @@
 package app.campfire.network.models
 
+import app.campfire.network.envelopes.Envelope
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,4 +26,10 @@ data class SeriesPersonalized(
   val hideFromContinueListening: Boolean? = null,
   val bookInProgressLastUpdate: Long? = null,
   val firstBookUnread: LibraryItemMinified<MinifiedBookMetadata>? = null,
-) : NetworkModel()
+) : Envelope() {
+
+  override fun applyPostage() {
+    books?.forEach { it.applyOrigin(origin) }
+    firstBookUnread?.applyOrigin(origin)
+  }
+}

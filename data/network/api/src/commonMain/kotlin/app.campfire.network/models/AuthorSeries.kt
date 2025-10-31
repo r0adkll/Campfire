@@ -1,5 +1,6 @@
 package app.campfire.network.models
 
+import app.campfire.network.envelopes.Envelope
 import kotlinx.serialization.Serializable
 
 /**
@@ -14,4 +15,8 @@ data class AuthorSeries(
   val id: String,
   val name: String,
   val items: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
-)
+) : Envelope() {
+  override fun applyPostage() {
+    items?.forEach { it.applyOrigin(origin) }
+  }
+}

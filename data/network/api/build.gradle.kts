@@ -15,5 +15,12 @@ kotlin {
         api(libs.connectivity.core)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.kotlin.test)
+        implementation(libs.assertk)
+      }
+    }
   }
 }

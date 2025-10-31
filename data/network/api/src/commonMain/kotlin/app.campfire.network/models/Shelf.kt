@@ -12,11 +12,11 @@ sealed class Shelf : Envelope() {
   abstract val total: Int
 
   override fun applyPostage() = when (this) {
-    is AuthorShelf -> entities.forEach { it.origin = origin }
-    is BookShelf -> entities.forEach { it.origin = origin }
-    is EpisodeShelf -> entities.forEach { it.origin = origin }
-    is PodcastShelf -> entities.forEach { it.origin = origin }
-    is SeriesShelf -> entities.forEach { it.origin = origin }
+    is AuthorShelf -> entities.forEach { it.applyOrigin(origin) }
+    is BookShelf -> entities.forEach { it.applyOrigin(origin) }
+    is EpisodeShelf -> entities.forEach { it.applyOrigin(origin) }
+    is PodcastShelf -> entities.forEach { it.applyOrigin(origin) }
+    is SeriesShelf -> entities.forEach { it.applyOrigin(origin) }
   }
 
   @Serializable

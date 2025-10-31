@@ -10,10 +10,7 @@ class CollectionsResponse(
 
   override fun applyPostage() {
     results.forEach { collection ->
-      collection.origin = origin
-      collection.books.forEach { book ->
-        book.origin = origin
-      }
+      collection.applyOrigin(origin)
     }
   }
 }
