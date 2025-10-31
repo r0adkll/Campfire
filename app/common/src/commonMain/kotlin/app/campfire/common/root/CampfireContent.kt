@@ -78,16 +78,6 @@ fun CampfireContentWithInsets(
         userComponent.sessionsRepository.observeCurrentSession()
       }.collectAsState(null)
 
-//      PlatformBackHandler(
-//        enabled = backStack.size > 1,
-//        onBack = {
-//          // Check the backStack on each call as the `BackHandler` enabled state only updates on composition
-//          if (backStack.size > 1) {
-//            navigator.pop()
-//          }
-//        },
-//      )
-
       val urlNavigator: Navigator = remember(navigator) {
         OpenUrlNavigator(navigator, onOpenUrl)
       }

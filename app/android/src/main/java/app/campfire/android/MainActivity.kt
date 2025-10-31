@@ -4,10 +4,8 @@ import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
@@ -46,7 +44,7 @@ class MainActivity : ComponentActivity() {
         LocalToast provides toaster,
       ) {
         component.campfireContent(
-          backDispatcherRootPop(),
+          ::finish,
           { url: String ->
             val intent = CustomTabsIntent.Builder().build()
             intent.launchUrl(this@MainActivity, url.toUri())
@@ -73,14 +71,6 @@ class MainActivity : ComponentActivity() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
   }
-}
-
-@Composable
-private fun backDispatcherRootPop(): () -> Unit {
-  val onBackPressedDispatcher =
-    LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-      ?: error("No OnBackPressedDispatcherOwner found, unable to handle root navigation pops.")
-  return { onBackPressedDispatcher.onBackPressed() }
 }
 
 @ContributesBinding(AppScope::class)
