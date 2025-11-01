@@ -19,4 +19,11 @@ enum class CastState {
 data class CastDevice(
   val id: String,
   val name: String,
-)
+  val description: String?,
+  val iconUri: String?,
+) {
+
+  companion object {
+    const val DEFAULT_ID = "DEFAULT_ROUTE"
+  }
+}

@@ -10,6 +10,7 @@ import app.campfire.audioplayer.cast.CastDevice
 import app.campfire.audioplayer.cast.CastState
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.logging.Cork
 import app.campfire.core.logging.bark
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastSession
@@ -28,13 +29,17 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class CastContextController(
   private val application: Application,
-) : CastController, CastStateListener, MediaRouter.Callback() {
+) : CastController, CastStateListener, MediaRouter.Callback(), Cork {
+
+  override val tag: String = "CastContextController"
 
   var castContext: CastContextState = CastContextState.Unavailable
     private set
 
   override val state = MutableStateFlow(CastState.Unavailable)
-  override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
+
+  private var devices = mutableListOf<CastDevice>()
+  override val availableDevices = MutableStateFlow<List<CastDevice>>(devices)
 
   @MainThread
   fun initialize() {
@@ -46,6 +51,8 @@ class CastContextController(
 
       // Emit the current state, if any
       state.value = context.castState.asDomain()
+
+      ibark { "CastController:initialize(state = ${context.castState.asDomain()})" }
 
       // Start scanning for devices
       scanForDevices()
@@ -71,7 +78,7 @@ class CastContextController(
   }
 
   @MainThread
-  fun scanForDevices() {
+  private fun scanForDevices() {
     try {
       val selector = MediaRouteSelector.Builder()
         .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
@@ -81,20 +88,21 @@ class CastContextController(
       val mediaRouter = MediaRouter.getInstance(application)
 
       mediaRouter.addCallback(selector, this, MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN)
-    } catch (e: Exception) {
 
+      ibark { "CastController:scanForDevices()" }
+    } catch (e: Exception) {
+      ebark(throwable = e) { "Failed to start device scan" }
     }
   }
 
   @MainThread
-  fun stopScanningForDevices() {
+  private fun stopScanningForDevices() {
     try {
       val mediaRouter = MediaRouter.getInstance(application)
       mediaRouter.removeCallback(this)
+      ibark { "Stop scanning for devices" }
     } catch (e: Exception) {
-
-    } finally {
-
+      ebark(throwable = e) { "Failed to stop scanning for devices" }
     }
   }
 
@@ -104,6 +112,7 @@ class CastContextController(
 
   override fun onCastStateChanged(castState: Int) {
     state.value = castState.asDomain()
+    ibark { "CastController:onCastStateChanged(state = ${castState.asDomain()})" }
   }
 
   /*
@@ -114,21 +123,46 @@ class CastContextController(
     router: MediaRouter,
     route: MediaRouter.RouteInfo,
   ) {
-    route.playbackType
+    val newDevice = CastDevice(
+      id = route.id,
+      name = route.name,
+      description = route.description,
+      iconUri = route.iconUri?.toString(),
+    )
+
+    ibark { "CastController:onRouteAdded(device = $newDevice)" }
+
+    devices += newDevice
+    availableDevices.value = devices
   }
 
   override fun onRouteRemoved(
     router: MediaRouter,
     route: MediaRouter.RouteInfo,
   ) {
-    super.onRouteRemoved(router, route)
+    ibark { "CastController:onRouteRemoved(device = $route)" }
+    devices.removeIf { it.id == route.id }
+    availableDevices.value = devices
   }
 
   override fun onRouteChanged(
     router: MediaRouter,
     route: MediaRouter.RouteInfo,
   ) {
-    super.onRouteChanged(router, route)
+    val updatedDevice = CastDevice(
+      id = route.id,
+      name = route.name,
+      description = route.description,
+      iconUri = route.iconUri?.toString()
+    )
+
+    ibark { "CastController:onRouteChanged(device = $updatedDevice)" }
+
+    val existingIndex = devices.indexOfFirst { it.id == route.id }
+    if (existingIndex != -1) {
+      devices[existingIndex] = updatedDevice
+      availableDevices.value = devices
+    }
   }
 }
 
