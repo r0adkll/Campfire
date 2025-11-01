@@ -55,7 +55,7 @@ private fun SplashScreen(
   modifier: Modifier = Modifier,
 ) {
   LaunchedEffect(Unit) {
-    delay(10_000L)
+    delay(5_000L)
     error("Splash screen timed out. It's taking too long to load the main UI(s)")
   }
 

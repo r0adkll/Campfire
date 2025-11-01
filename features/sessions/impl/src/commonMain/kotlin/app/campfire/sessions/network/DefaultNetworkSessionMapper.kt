@@ -75,7 +75,7 @@ class DefaultNetworkSessionMapper(
               SeriesSequence(
                 id = it.id,
                 name = it.name,
-                sequence = it.sequence,
+                sequence = it.sequence.toString(),
               ),
             )
           },

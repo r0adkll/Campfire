@@ -117,5 +117,5 @@ data class ExpandedBookMetadata(
 data class SeriesSequence(
   val id: String,
   val name: String,
-  val sequence: Int,
+  val sequence: String? = null,
 )

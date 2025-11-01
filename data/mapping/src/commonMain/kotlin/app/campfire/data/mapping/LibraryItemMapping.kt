@@ -114,7 +114,7 @@ fun <T : Media> T.asDbModel(
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
     ?: (metadata as? ExpandedBookMetadata)?.series?.firstOrNull()
 
-  val metadataSeriesSequence = metadataSeries?.sequence ?: run {
+  val metadataSeriesSequence = metadataSeries?.sequence?.toIntOrNull() ?: run {
     // This is super-duper hacky, but the API does not have a great way to
     // interpret the sequence int for books in a series. So if the data doesn't have any
     // then let's try to determine based on seriesName

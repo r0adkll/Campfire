@@ -8,3 +8,7 @@ fun String.capitalized(): String {
 inline fun String?.ifNullOrBlank(defaultValue: () -> String): String {
   return if (isNullOrBlank()) defaultValue() else this
 }
+
+inline fun String?.toIntOrElse(defaultValue: () -> Int): Int {
+  return this?.toIntOrNull() ?: defaultValue()
+}

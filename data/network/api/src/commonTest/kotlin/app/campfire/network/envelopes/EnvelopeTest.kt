@@ -1,7 +1,6 @@
-package app.campfire.network.models.envelopes
+package app.campfire.network.envelopes
 
 import app.campfire.network.RequestOrigin
-import app.campfire.network.envelopes.Envelope
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlin.test.Test
@@ -9,7 +8,7 @@ import kotlin.test.Test
 class EnvelopeTest {
 
   @Test
-  fun `applyTo will invoke an Envelopes applyPostage() method`() {
+  fun applyToShouldInvokeApplyPostage() {
     // given
     val origin = RequestOrigin.Url("test")
     val model = TestEnvelope()
