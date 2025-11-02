@@ -14,6 +14,8 @@ import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.LibraryItemsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.envelopes.MediaShareRequest
+import app.campfire.network.envelopes.MediaShareResponse
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
 import app.campfire.network.envelopes.SeriesResponse
@@ -31,6 +33,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.MediaType
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
@@ -373,6 +376,29 @@ class KtorAudioBookShelfApi(
   override suspend fun getFilterData(libraryId: String): Result<FilterData> {
     return trySendRequest {
       hydratedClientRequest("api/libraries/$libraryId/filterdata")
+    }
+  }
+
+  override suspend fun shareItem(
+    slug: String,
+    mediaItemType: MediaType,
+    mediaItemId: String,
+    expiresAtEpochMs: Long,
+    isDownloadable: Boolean,
+  ): Result<MediaShareResponse> {
+    return trySendRequest {
+      hydratedClientRequest("api/share/mediaitem") {
+        method = HttpMethod.Post
+        setBody(
+          MediaShareRequest(
+            slug = slug,
+            mediaItemType = mediaItemType,
+            mediaItemId = mediaItemId,
+            expiresAt = expiresAtEpochMs,
+            isDownloadable = isDownloadable,
+          ),
+        )
+      }
     }
   }
 

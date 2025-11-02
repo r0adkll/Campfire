@@ -1,6 +1,8 @@
 package app.campfire.network
 
+import app.campfire.network.annotations.RequiresServer
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.network.envelopes.MediaShareResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
@@ -13,6 +15,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.MediaType
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SearchResult
@@ -227,6 +230,19 @@ interface AudioBookShelfApi {
    * Get all the data that the user can filter the list of library items with
    */
   suspend fun getFilterData(libraryId: String): Result<FilterData>
+
+  /**
+   * Create a shareable instance of a given [mediaItemId] that an un-authenticated user
+   * can view.
+   */
+  @RequiresServer("2.11.0")
+  suspend fun shareItem(
+    slug: String,
+    mediaItemType: MediaType,
+    mediaItemId: String,
+    expiresAtEpochMs: Long,
+    isDownloadable: Boolean,
+  ): Result<MediaShareResponse>
 }
 
 const val INVALID = -1
