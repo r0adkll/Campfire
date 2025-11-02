@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Refactored how the Home screen observes its data
+- Release notes display in in-app update card
+- In-app update now shows progress
 
 ### Deprecated
 
