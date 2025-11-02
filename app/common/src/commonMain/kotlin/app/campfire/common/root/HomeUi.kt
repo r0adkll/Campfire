@@ -62,6 +62,7 @@ import app.campfire.common.navigator.HomeNavigator
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.CollectionsScreen
+import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.HomeScreen
@@ -134,6 +135,23 @@ internal fun HomeUi(
     eventListeners = navigationEventListeners,
     enableBackHandler = false,
   )
+
+  // If the user is switching between form factors, i.e. opening/closing a foldable
+  // then we'll want to re-orientate the root and detail back stacks so the content
+  // isn't rendered oddly.
+  LaunchedEffect(windowSizeClass.isSupportingPaneEnabled) {
+    if (windowSizeClass.isSupportingPaneEnabled) {
+      val detailScreens = backstack.popUntil { it.screen !is DetailScreen }
+      detailScreens.asReversed().forEach {
+        detailBackStack.push(it)
+      }
+    } else {
+      val detailScreens = detailBackStack.popUntil { it.screen is EmptyScreen }
+      detailScreens.asReversed().forEach {
+        backstack.push(it)
+      }
+    }
+  }
 
   val detailRootScreen by remember(detailBackStack) {
     derivedStateOf { detailBackStack.topRecord?.screen }

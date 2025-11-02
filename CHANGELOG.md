@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Opening/Closing foldables no properly manages detail screens.
+
 ### Other Notes & Contributions
 
 ## [0.6.2-beta] - 2025-10-31
