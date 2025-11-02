@@ -23,11 +23,11 @@ CREATE TABLE IF NOT EXISTS shelfJoin(
 -- Queries
 
 insert:
-INSERT OR REPLACE INTO shelf
+INSERT OR IGNORE INTO shelf
 VALUES ?;
 
 insertJoins:
-INSERT OR REPLACE INTO shelfJoin
+INSERT OR IGNORE INTO shelfJoin
 VALUES ?;
 
 delete:
