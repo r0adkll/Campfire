@@ -89,11 +89,36 @@ interface AudioPlayer {
   fun clearTimer()
 
   enum class State {
+    /**
+     * The [AudioPlayer] is in a limited resource state and requires prepare() to be called
+     * in order to play audio.
+     */
     Disabled,
+
+    /**
+     * The [AudioPlayer] is preparing to play audio and is not in a state that can be interacted with
+     */
     Initializing,
+
+    /**
+     * The [AudioPlayer] is currently buffering audio, or loading between states of a current session
+     */
     Buffering,
+
+    /**
+     * The [AudioPlayer] is currently playing audio
+     */
     Playing,
+
+    /**
+     * The [AudioPlayer] is currently paused
+     */
     Paused,
+
+    /**
+     * The [AudioPlayer] has finished its current session and is in a finalized state. It should be
+     * re-prepared in order to interact with again.
+     */
     Finished,
   }
 }

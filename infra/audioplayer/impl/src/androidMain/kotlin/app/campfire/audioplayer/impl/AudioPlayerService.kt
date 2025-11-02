@@ -81,7 +81,7 @@ class AudioPlayerService : MediaLibraryService() {
     // Create ExoPlayer instance and MediaSession instance that encapsulates the background
     // playback on Android.
     player = component.exoPlayerFactory.create(this)
-    session = MediaLibrarySession.Builder(this, player.exoPlayer, MediaSessionCallback())
+    session = MediaLibrarySession.Builder(this, player.player, MediaSessionCallback())
       .setSessionActivity(
         PendingIntent.getActivity(
           this,

@@ -523,6 +523,7 @@ private fun PlaybackSeekBar(
     val waveThickness = if (state == AudioPlayer.State.Playing) 12.dp else 16.dp
 
     WavySlider(
+      enabled = state == AudioPlayer.State.Playing || state == AudioPlayer.State.Paused,
       value = softSliderValue,
       onValueChange = { sliderValue = it },
       onValueChangeFinished = {

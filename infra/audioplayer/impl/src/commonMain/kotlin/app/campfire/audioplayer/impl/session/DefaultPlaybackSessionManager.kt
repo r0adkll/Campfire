@@ -31,7 +31,7 @@ class DefaultPlaybackSessionManager(
     withContext(dispatcherProvider.io) {
       val session = sessionsRepository.createSession(libraryItemId)
       bark("AudioPlayer") {
-        "Preparing playback session for ${libraryItemId.loggableId}: $session"
+        "Preparing playback session for ${libraryItemId.loggableId}: ${session.id}"
       }
 
       val player = audioPlayerHolder.currentPlayer.value

@@ -3,11 +3,12 @@ package app.campfire.audioplayer.impl
 import android.content.Context
 import androidx.annotation.OptIn
 import androidx.media3.cast.CastPlayer
-import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Player.EVENT_DEVICE_INFO_CHANGED
 import androidx.media3.common.Player.EVENT_IS_PLAYING_CHANGED
 import androidx.media3.common.Player.EVENT_MEDIA_ITEM_TRANSITION
 import androidx.media3.common.Player.EVENT_PLAYBACK_STATE_CHANGED
@@ -21,20 +22,21 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
-import app.campfire.audioplayer.impl.cast.CastContextController
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
+import app.campfire.audioplayer.impl.util.eventAsDebugLog
+import app.campfire.audioplayer.impl.util.playbackStateAsDebugLog
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
+import app.campfire.core.logging.Cork
+import app.campfire.core.logging.Corked
 import app.campfire.core.model.Session
+import app.campfire.core.model.loggableId
 import app.campfire.settings.api.PlaybackSettings
-import com.google.android.gms.cast.framework.CastButtonFactory
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -56,15 +58,19 @@ class ExoPlayerAudioPlayer(
   private val context: Context,
   private val settings: PlaybackSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
-  private val castContextController: CastContextController,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
-) : AudioPlayer, Player.Listener, SessionAvailabilityListener {
+) : AudioPlayer, Player.Listener, Cork {
+
+  override val tag: String = AUDIO_TAG
+
+  // Re-enable to emit verbose logging around Player.Listener events for
+  // debugging.
+  private val eventLogger = Corked("Player.Listener.Event", enabled = false)
 
   @Inject
   class Factory(
     private val settings: PlaybackSettings,
     private val mediaSourceFactory: MediaSource.Factory,
-    private val castContextController: CastContextController,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   ) {
 
@@ -73,7 +79,6 @@ class ExoPlayerAudioPlayer(
         context = context,
         settings = settings,
         mediaSourceFactory = mediaSourceFactory,
-        castContextController = castContextController,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
       )
     }
@@ -83,7 +88,7 @@ class ExoPlayerAudioPlayer(
 
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-  internal val exoPlayer = ExoPlayer.Builder(context)
+  private val exoPlayer = ExoPlayer.Builder(context)
     .setSeekForwardIncrementMs(settings.forwardTimeMs)
     .setSeekBackIncrementMs(settings.backwardTimeMs)
     .setHandleAudioBecomingNoisy(true)
@@ -110,16 +115,21 @@ class ExoPlayerAudioPlayer(
     )
     .setMediaSourceFactory(mediaSourceFactory)
     .build()
+
+  private val castPlayer: CastPlayer = CastPlayer.Builder(context)
+    .setLocalPlayer(exoPlayer)
+    .build()
     .apply {
       addListener(this@ExoPlayerAudioPlayer)
     }
 
-  internal val castPlayer: CastPlayer? = castContextController.castContext.contextOrNull?.let { castContext ->
-    CastPlayer(castContext).apply {
-      addListener(this@ExoPlayerAudioPlayer)
-      setSessionAvailabilityListener(this@ExoPlayerAudioPlayer)
-    }
-  }
+  /**
+   * A proxy accessor for the correct player client. All listener and access goes through the
+   * [castPlayer] which configures the [exoPlayer] as the local player to use when a MediaRoute
+   * is not directed at remote playback.
+   */
+  internal val player: Player
+    get() = castPlayer
 
   private var progressJob: Job? = null
   private var fadeJob: Job? = null
@@ -150,20 +160,19 @@ class ExoPlayerAudioPlayer(
 
     val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems()
 
-    bark(AUDIO_TAG, LogPriority.INFO) {
+    ibark {
       """
         Prepare Session(
-          itemId = ${session.libraryItem.id},
-          title = ${session.libraryItem.media.metadata.title},
+          itemId = ${session.libraryItem.id.loggableId},
           playMethod = ${session.playMethod},
           mediaPlayer = ${session.mediaPlayer},
           currentTime = ${session.currentTime},
-          chapterId = $chapterId
+          chapterId = $chapterId,
         )
       """.trimIndent()
     }
 
-    exoPlayer.run {
+    player.run {
       // Set the media list
       setMediaItems(mediaItems, true)
 
@@ -227,56 +236,55 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun pause() {
-    bark("CoroutineSleepTimerManager") { "Pausing player: isPlaying=${exoPlayer.isPlaying}" }
-    exoPlayer.pause()
+    player.pause()
   }
 
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    previousVolumeLevel = exoPlayer.volume
+    previousVolumeLevel = player.volume
     fadeJob?.cancel()
 
     return VolumeFadeController.fade(
       scope = scope,
       duration = duration,
       tickRate = tickRate,
-      getVolume = { exoPlayer.volume },
-      setVolume = { exoPlayer.volume = it },
-      onPause = { exoPlayer.pause() },
+      getVolume = { player.volume },
+      setVolume = { player.volume = it },
+      onPause = { player.pause() },
     ).also { fadeJob = it }
   }
 
   override fun playPause() {
-    if (exoPlayer.isPlaying) {
-      exoPlayer.pause()
+    if (player.isPlaying) {
+      player.pause()
     } else {
       // Potentially trigger the auto sleep timer
       sleepTimerManager.onSessionStart()
 
       // Reset volume if stored
-      if (exoPlayer.volume == 0f && previousVolumeLevel > 0f) {
-        exoPlayer.volume = previousVolumeLevel
-      } else if (exoPlayer.volume == 0f) {
-        exoPlayer.volume = 1f
+      if (player.volume == 0f && previousVolumeLevel > 0f) {
+        player.volume = previousVolumeLevel
+      } else if (player.volume == 0f) {
+        player.volume = 1f
       }
 
-      exoPlayer.play()
+      player.play()
     }
   }
 
   override fun stop() {
     preparedSession = null
     finishedListener = null
-    exoPlayer.stop()
+    player.stop()
   }
 
   override fun seekTo(itemIndex: Int) {
-    exoPlayer.seekToDefaultPosition(itemIndex)
-    exoPlayer.play()
+    player.seekToDefaultPosition(itemIndex)
+    player.play()
   }
 
   override fun seekTo(progress: Float) {
-    val positionMs = (progress * exoPlayer.duration).toLong()
-    exoPlayer.seekTo(positionMs)
+    val positionMs = (progress * player.duration).toLong()
+    player.seekTo(positionMs)
     currentTime.value = positionMs.milliseconds
   }
 
@@ -284,14 +292,14 @@ class ExoPlayerAudioPlayer(
     val timestampInMillis = timestamp.inWholeMilliseconds
     var mediaItemOffsetMs = 0L
 
-    for (index in 0 until exoPlayer.mediaItemCount) {
-      val mediaItem = exoPlayer.getMediaItemAt(index)
+    for (index in 0 until player.mediaItemCount) {
+      val mediaItem = player.getMediaItemAt(index)
       val mediaItemDuration = mediaItem.mediaMetadata.durationMs ?: error("Media Metadata Corrupted")
       val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
       if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
         val progressInMediaItem = timestampInMillis - mediaItemOffsetMs
-        exoPlayer.seekTo(index, progressInMediaItem)
-        exoPlayer.play()
+        player.seekTo(index, progressInMediaItem)
+        player.play()
         return
       }
       mediaItemOffsetMs = mediaItemEnd
@@ -299,30 +307,30 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun skipToNext() {
-    exoPlayer.seekToNextMediaItem()
+    player.seekToNextMediaItem()
   }
 
   override fun skipToPrevious() {
-    if (exoPlayer.currentPosition.milliseconds > settings.trackResetThreshold) {
-      exoPlayer.seekToDefaultPosition()
-      exoPlayer.play()
+    if (player.currentPosition.milliseconds > settings.trackResetThreshold) {
+      player.seekToDefaultPosition()
+      player.play()
     } else {
-      exoPlayer.seekToPreviousMediaItem()
+      player.seekToPreviousMediaItem()
     }
   }
 
   override fun seekForward() {
-    exoPlayer.seekForward()
+    player.seekForward()
   }
 
   override fun seekBackward() {
-    exoPlayer.seekBack()
+    player.seekBack()
   }
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
     settings.playbackSpeed = speed
-    exoPlayer.setPlaybackSpeed(speed)
+    player.setPlaybackSpeed(speed)
   }
 
   override fun setTimer(timer: PlaybackTimer) {
@@ -337,21 +345,36 @@ class ExoPlayerAudioPlayer(
    * Player Listener Callbacks
    */
 
+  override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
+    if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+      dbark { "onDeviceInfoChanged: Local Player" }
+    } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
+      dbark { "onDeviceInfoChanged: Remote Player" }
+    }
+  }
+
   override fun onPlaybackStateChanged(playbackState: Int) {
     if (playbackState == Player.STATE_ENDED) {
-      bark(AUDIO_TAG) { "Playback has ended! Mark the item as finished" }
+      dbark { "Playback has ended! Mark the item as finished" }
       scope.launch {
         finishedListener?.invoke(preparedSession?.libraryItem?.id ?: return@launch)
       }
+    } else if (
+      playbackState == Player.STATE_READY &&
+      player.deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE
+    ) {
+      // Ensure that our remote cast player has up-to-date playback speed set
+      // See: https://github.com/androidx/media/issues/889
+      player.setPlaybackSpeed(settings.playbackSpeed)
     }
   }
 
   override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-    currentDuration.value = exoPlayer.duration.milliseconds
+    currentDuration.value = player.duration.milliseconds
   }
 
   override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-    currentDuration.value = exoPlayer.duration.milliseconds
+    currentDuration.value = player.duration.milliseconds
     currentMetadata.value = Metadata(
       title = mediaMetadata.title?.toString(),
       artworkUri = mediaMetadata.artworkUri?.toString(),
@@ -359,6 +382,16 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun onEvents(player: Player, events: Player.Events) {
+    eventLogger.vbark {
+      buildString {
+        appendLine("onEvents {")
+        for (i in 0 until events.size()) {
+          appendLine("  ${events.get(i).eventAsDebugLog()}")
+        }
+        appendLine("}")
+      }
+    }
+
     if (events.containsAny(
         EVENT_PLAYBACK_STATE_CHANGED,
         EVENT_PLAY_WHEN_READY_CHANGED,
@@ -371,10 +404,20 @@ class ExoPlayerAudioPlayer(
           true -> AudioPlayer.State.Playing
           false -> AudioPlayer.State.Paused
         }
+
         Player.STATE_ENDED -> AudioPlayer.State.Finished
 
-        else -> AudioPlayer.State.Disabled
+        else -> if (events.contains(EVENT_DEVICE_INFO_CHANGED)) {
+          // This is likely due to changing media routes, i.e. Google Cast, and we should
+          // just update the state as buffering and assume that future events will update the
+          // state appropriately
+          AudioPlayer.State.Buffering
+        } else {
+          AudioPlayer.State.Disabled
+        }
       }
+
+      eventLogger.vbark { "PlaybackState[${player.playbackStateAsDebugLog}] Changed: ${state.value}" }
 
       if (player.isPlaying) {
         observeProgress(player)
@@ -393,14 +436,14 @@ class ExoPlayerAudioPlayer(
   private fun observeProgress(player: Player) {
     progressJob?.cancel()
     progressJob = scope.launch {
-      bark(AUDIO_TAG) { "Starting Progress Observer" }
+      dbark { "Starting Progress Observer" }
       while (isActive) {
         updateProgress(player)
         delay(500L)
       }
     }
     progressJob?.invokeOnCompletion {
-      bark(AUDIO_TAG) { "Finished Progress Observer" }
+      dbark { "Finished Progress Observer" }
     }
   }
 
@@ -418,17 +461,5 @@ class ExoPlayerAudioPlayer(
     }
 
     overallTime.value = (timelineOffsetMs + player.currentPosition).milliseconds
-  }
-
-  /*
-   * Cast Player Callbacks
-   */
-
-  override fun onCastSessionAvailable() {
-    TODO("Not yet implemented")
-  }
-
-  override fun onCastSessionUnavailable() {
-    TODO("Not yet implemented")
   }
 }

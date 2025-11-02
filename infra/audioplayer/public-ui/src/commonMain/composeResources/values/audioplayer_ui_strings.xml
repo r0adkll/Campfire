@@ -5,4 +5,7 @@
   <string name="label_current_timer">Current timer</string>
   <string name="action_set_timer">Set timer</string>
   <string name="action_clear_timer">Clear</string>
+  <string name="label_this_phone">This phone</string>
+  <string name="label_connecting">Connecting…</string>
+  <string name="media_route_dialog_title">Devices</string>
 </resources>

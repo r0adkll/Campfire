@@ -1,7 +1,7 @@
 package app.campfire.common.compose.icons.rounded
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,16 +57,22 @@ val CampfireIcons.Rounded.CastConnecting: VectorPainter
       close()
     }
 
+    val signalChangeMs = 300L
+    val colorChangeMs = 600
+
     var activeSignalLayer by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) {
       while (isActive) {
         activeSignalLayer = (activeSignalLayer + 1) % 3
-        delay(500L)
+        delay(signalChangeMs)
       }
     }
 
     // Inner Signal
-    val innerColor by animateColorAsState(if (activeSignalLayer == 0) Color.Black else disabledColor)
+    val innerColor by animateColorAsState(
+      if (activeSignalLayer == 0) Color.Black else disabledColor,
+      animationSpec = tween(colorChangeMs),
+    )
     Path(fill = SolidColor(innerColor)) {
       moveTo(130f, 800f)
       quadToRelative(-21f, 0f, -35.5f, -14.5f)
@@ -81,7 +87,10 @@ val CampfireIcons.Rounded.CastConnecting: VectorPainter
     }
 
     // Middle Signal
-    val middleColor by animateColorAsState(if (activeSignalLayer == 1) Color.Black else disabledColor)
+    val middleColor by animateColorAsState(
+      if (activeSignalLayer == 1) Color.Black else disabledColor,
+      animationSpec = tween(colorChangeMs),
+    )
     Path(fill = SolidColor(middleColor)) {
       moveTo(320f, 800f)
       quadToRelative(-16f, 0f, -28f, -9.5f)
@@ -100,7 +109,10 @@ val CampfireIcons.Rounded.CastConnecting: VectorPainter
     }
 
     // Outer Signal
-    val outerColor by animateColorAsState(if (activeSignalLayer == 2) Color.Black else disabledColor)
+    val outerColor by animateColorAsState(
+      if (activeSignalLayer == 2) Color.Black else disabledColor,
+      animationSpec = tween(colorChangeMs),
+    )
     Path(fill = SolidColor(outerColor)) {
       moveTo(480f, 480f)
       close()

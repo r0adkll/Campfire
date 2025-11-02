@@ -54,3 +54,12 @@ interface Cork {
     message: () -> String,
   ) = if (enabled) bark(LogPriority.ERROR, throwable, extras, message) else Unit
 }
+
+/**
+ * A concrete implementation of [Cork] so you can
+ * instantiate multiple tagged loggers in a single class/file
+ */
+class Corked(
+  override val tag: String,
+  override val enabled: Boolean = true,
+) : Cork

@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
 
     // Initialize the CastContext used for Google Cast
     // https://developers.google.com/cast/docs/android_sender/integrate#kotlin
-    component.castContextController.initialize()
+    component.mediaRouterCastController.initialize()
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
@@ -74,7 +74,7 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
-    component.castContextController.destroy()
+    component.mediaRouterCastController.destroy()
   }
 }
 

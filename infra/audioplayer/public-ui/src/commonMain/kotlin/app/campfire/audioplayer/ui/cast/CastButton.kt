@@ -1,15 +1,17 @@
 package app.campfire.audioplayer.ui.cast
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkOut
-import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,25 +19,29 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeviceUnknown
-import androidx.compose.material.icons.rounded.PhoneAndroid
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -64,10 +70,15 @@ import app.campfire.common.compose.icons.rounded.CastConnecting
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.util.withDensity
 import app.campfire.core.di.AppScope
+import app.campfire.core.extensions.fluentIf
+import campfire.infra.audioplayer.public_ui.generated.resources.Res
+import campfire.infra.audioplayer.public_ui.generated.resources.label_connecting
+import campfire.infra.audioplayer.public_ui.generated.resources.media_route_dialog_title
 import coil3.compose.AsyncImage
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(AppScope::class)
 interface CastButtonComponent {
@@ -87,17 +98,32 @@ fun CastButton(
     component.castController.availableDevices
   }.collectAsState()
 
+  val currentDevice = devices.find { it.isSelected }
+
   var showDevices by remember { mutableStateOf(false) }
 
-  CastButton(
-    state = state,
-    onClick = { showDevices = !showDevices },
-    modifier = modifier,
-  )
+  if (currentDevice != null) {
+    CurrentDeviceButton(
+      state = state,
+      device = currentDevice,
+      onClick = { showDevices = !showDevices },
+      modifier = modifier,
+    )
+  } else {
+    CastButton(
+      state = state,
+      onClick = { showDevices = !showDevices },
+      modifier = modifier,
+    )
+  }
 
   if (showDevices) {
     CastDevices(
       devices = devices,
+      onDeviceClick = { device ->
+        component.castController.connect(device)
+        showDevices = false
+      },
       onDismissRequest = { showDevices = false },
     )
   }
@@ -113,7 +139,6 @@ private fun CastButton(
 
   IconButton(
     onClick = onClick,
-//    enabled = state == CastState.Connected || state == CastState.NotConnected,
     modifier = modifier,
   ) {
     val iconPainter = when (state) {
@@ -121,7 +146,7 @@ private fun CastButton(
 
       CastState.NoDevicesAvailable,
       CastState.NotConnected,
-        -> rememberVectorPainter(CampfireIcons.Rounded.Cast)
+      -> rememberVectorPainter(CampfireIcons.Rounded.Cast)
 
       CastState.Connecting -> CampfireIcons.Rounded.CastConnecting
       CastState.Connected -> rememberVectorPainter(CampfireIcons.Rounded.CastConnected)
@@ -132,8 +157,66 @@ private fun CastButton(
 }
 
 @Composable
+private fun CurrentDeviceButton(
+  state: CastState,
+  device: CastDevice,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  OutlinedButton(
+    onClick = onClick,
+    modifier = modifier.padding(horizontal = 8.dp),
+    colors = ButtonDefaults.outlinedButtonColors(
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ),
+    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+  ) {
+    AnimatedContent(
+      targetState = state == CastState.Connecting,
+    ) { isConnecting ->
+      if (isConnecting) {
+        CircularProgressIndicator(
+          modifier = Modifier.size(ButtonDefaults.IconSize),
+          color = LocalContentColor.current,
+          strokeWidth = 3.dp,
+        )
+      } else {
+        Icon(
+          device.asIcon(),
+          contentDescription = null,
+          modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+      }
+    }
+    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+    AnimatedContent(
+      targetState = state == CastState.Connecting,
+      transitionSpec = {
+        val enter = fadeIn(animationSpec = tween(220, delayMillis = 90)) +
+          slideInVertically(animationSpec = tween(220, delayMillis = 90)) {
+            -it / 2
+          }
+        val exit = fadeOut(animationSpec = tween(90)) +
+          slideOutVertically(animationSpec = tween(90)) {
+            it / 2
+          }
+        enter togetherWith exit
+      },
+    ) { isConnecting ->
+      if (isConnecting) {
+        Text(stringResource(Res.string.label_connecting))
+      } else {
+        Text(device.displayName)
+      }
+    }
+  }
+}
+
+@Composable
 private fun CastDevices(
   devices: List<CastDevice>,
+  onDeviceClick: (CastDevice) -> Unit,
   onDismissRequest: () -> Unit,
 ) {
   val scope = rememberCoroutineScope()
@@ -185,9 +268,7 @@ private fun CastDevices(
       ) {
         CastDevicesCard(
           devices = devices,
-          onDeviceClick = { device ->
-
-          },
+          onDeviceClick = onDeviceClick,
           onDismissRequest = onDismissRequest,
         )
       }
@@ -214,7 +295,7 @@ private fun CastDevicesCard(
       contentAlignment = Alignment.Center,
     ) {
       Text(
-        text = "Devices",
+        text = stringResource(Res.string.media_route_dialog_title),
         style = MaterialTheme.typography.titleLarge,
         fontFamily = PaytoneOneFontFamily,
       )
@@ -250,60 +331,75 @@ private fun CastDeviceListItem(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val shape = RoundedCornerShape(16.dp)
+  val shape = if (device.isSelected) {
+    CircleShape
+  } else {
+    RoundedCornerShape(16.dp)
+  }
+  val containerColor = if (device.isSelected) {
+    MaterialTheme.colorScheme.primaryContainer
+  } else {
+    MaterialTheme.colorScheme.secondaryContainer
+  }
+  val contentColor = if (device.isSelected) {
+    MaterialTheme.colorScheme.primary
+  } else {
+    MaterialTheme.colorScheme.onSecondaryContainer
+  }
   Row(
     modifier = modifier
       .fillMaxWidth()
       .clip(shape)
       .background(
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = containerColor,
         shape = shape,
       )
+      .fluentIf(device.isSelected) {
+        border(
+          width = 1.dp,
+          color = MaterialTheme.colorScheme.primary,
+          shape = shape,
+        )
+      }
       .clickable(onClick = onClick),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    Box(
-      modifier = Modifier
-        .padding(16.dp),
+    CompositionLocalProvider(
+      LocalContentColor provides contentColor,
     ) {
-      device.iconUri?.let { uri ->
-        AsyncImage(
-          model = uri,
-          contentDescription = null,
-          modifier = Modifier
-            .size(24.dp),
-        )
-      } ?: run {
-        val icon = if (device.id == CastDevice.DEFAULT_ID) {
-          Icons.Rounded.PhoneAndroid
-        } else {
-          Icons.Rounded.DeviceUnknown
+      Box(
+        modifier = Modifier
+          .padding(16.dp),
+      ) {
+        device.iconUri?.let { uri ->
+          AsyncImage(
+            model = uri,
+            contentDescription = null,
+            modifier = Modifier
+              .size(24.dp),
+          )
+        } ?: run {
+          Icon(
+            device.asIcon(),
+            contentDescription = null,
+          )
         }
-        Icon(
-          icon,
-          contentDescription = null,
-        )
       }
-    }
 
-    Column(
-      modifier = Modifier.weight(1f),
-      verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-      Text(
-        text = if (device.id == CastDevice.DEFAULT_ID) {
-          "This phone"
-        } else {
-          device.name
-        },
-        style = MaterialTheme.typography.titleSmall,
-      )
-
-      device.description?.let { desc ->
+      Column(
+        modifier = Modifier.weight(1f),
+      ) {
         Text(
-          text = desc,
-          style = MaterialTheme.typography.labelMedium,
+          text = device.displayName,
+          style = MaterialTheme.typography.titleSmall,
         )
+
+        device.description?.let { desc ->
+          Text(
+            text = desc,
+            style = MaterialTheme.typography.labelMedium,
+          )
+        }
       }
     }
   }
