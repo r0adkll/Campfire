@@ -14,6 +14,7 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
+import app.campfire.data.MediaShare
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
@@ -151,6 +152,11 @@ class DatabaseFactory(
     shelfAdapter = Shelf.Adapter(
       totalAdapter = IntColumnAdapter,
       typeAdapter = EnumColumnAdapter(),
+    ),
+    mediaShareAdapter = MediaShare.Adapter(
+      expiresAtAdapter = LocalDateTimeAdapter,
+      createdAtAdapter = LocalDateTimeAdapter,
+      updatedAtAdapter = LocalDateTimeAdapter,
     ),
   )
 }

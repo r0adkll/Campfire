@@ -1,0 +1,17 @@
+import kotlin.Boolean;
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE IF NOT EXISTS mediaShare (
+  id TEXT NOT NULL PRIMARY KEY,
+  slug TEXT NOT NULL,
+  url TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  downloadable INTEGER AS Boolean NOT NULL,
+  expiresAt TEXT AS LocalDateTime NOT NULL,
+  createdAt TEXT AS LocalDateTime NOT NULL,
+  updatedAt TEXT AS LocalDateTime NOT NULL,
+
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id)
+);
