@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.LibraryAdd
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Timer
@@ -64,10 +63,8 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MetadataHeader
-import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
-import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
@@ -125,15 +122,6 @@ fun LibraryItem(
           }
         },
         actions = {
-          if (currentPlatform == Platform.ANDROID) {
-            IconButton(
-              onClick = {
-                // TODO: Implement ChromeCast integration
-              },
-            ) {
-              Icon(Icons.Rounded.Cast, contentDescription = null)
-            }
-          }
           IconButton(
             onClick = {
               Analytics.send(ActionEvent("add_to_collection", Click))
