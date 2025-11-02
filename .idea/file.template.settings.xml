@@ -8,6 +8,12 @@
       </template>
       <template name="Circuit Screen.kt.child.0.kt" file-name="${NAME}UiState" reformat="true" live-template-enabled="false" />
       <template name="Circuit Screen.kt.child.1.kt" file-name="${NAME}Presenter" reformat="true" live-template-enabled="false" />
+      <template name="Store Object.kt" file-name="${NAME}Store" reformat="true" live-template-enabled="false">
+        <template name="Store Object.kt.child.0.kt" file-name="${NAME}SourceOfTruthFactory" reformat="true" live-template-enabled="false" />
+        <template name="Store Object.kt.child.1.kt" file-name="${NAME}FetcherFactory" reformat="true" live-template-enabled="false" />
+      </template>
+      <template name="Store Object.kt.child.0.kt" file-name="${NAME}SourceOfTruthFactory" reformat="true" live-template-enabled="false" />
+      <template name="Store Object.kt.child.1.kt" file-name="${NAME}FetcherFactory" reformat="true" live-template-enabled="false" />
     </default_templates>
   </component>
 </project>
