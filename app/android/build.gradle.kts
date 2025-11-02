@@ -30,7 +30,7 @@ android {
   defaultConfig {
     applicationId = "app.campfire.android"
 
-    versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 999999999
+    versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 1 // 999999999
     versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString()
       ?: providers.gradleProperty("campfire.version").get()
 

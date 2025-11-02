@@ -1,5 +1,7 @@
 package app.campfire.updates.source
 
+import kotlinx.coroutines.flow.Flow
+
 /**
  * Implementations for this will live in the respective app platform modules
  */
@@ -29,7 +31,7 @@ interface AppUpdateSource {
   /**
    * Kick of the update installation process
    */
-  suspend fun installUpdate()
+  suspend fun installUpdate(): Flow<AppUpdateProgress>
 }
 
 data class AppUpdate(
@@ -37,3 +39,21 @@ data class AppUpdate(
   val versionCode: Long,
   val releaseNotes: String? = null,
 )
+
+data class AppUpdateProgress(
+  val bytes: Long,
+  val totalBytes: Long,
+  val status: Status,
+) {
+
+  val progress: Float
+    get() = if (bytes == -1L || totalBytes == -1L) 0f else bytes.toFloat() / totalBytes.toFloat()
+
+  enum class Status {
+    Pending,
+    Downloading,
+    Downloaded,
+    Failed,
+    Canceled,
+  }
+}
