@@ -21,4 +21,4 @@ data class Series(
   val hideFromContinueListening: Boolean = false,
   val bookInProgressLastUpdate: Long? = null,
   val firstBookUnreadId: LibraryItemId? = null,
-)
+) : ShelfEntity

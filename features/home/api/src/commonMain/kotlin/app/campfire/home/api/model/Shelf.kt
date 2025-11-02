@@ -1,16 +1,16 @@
 package app.campfire.home.api.model
 
+import app.campfire.core.model.ShelfType
+
+typealias ShelfId = String
+
 /**
- * A shelf of items or recommendations for the user's home screen.
- *
- * Entities can be:
- * * LibraryItemMinified
- * * Series
- * * Author
+ * Represents a "shelf" of items in the user's personalized home feed.
+ * https://api.audiobookshelf.org/#get-a-library-39-s-personalized-view
  */
-data class Shelf<EntityT>(
-  val id: String,
+data class Shelf(
+  val id: ShelfId,
   val label: String,
   val total: Int,
-  val entities: List<EntityT>,
+  val type: ShelfType,
 )

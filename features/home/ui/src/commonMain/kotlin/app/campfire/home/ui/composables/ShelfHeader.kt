@@ -9,11 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.home.api.model.Shelf
+import app.campfire.home.ui.UiShelf
 
 @Composable
 fun ShelfHeader(
-  shelf: Shelf<*>,
+  shelf: UiShelf<*>,
   modifier: Modifier = Modifier,
 ) {
   Box(

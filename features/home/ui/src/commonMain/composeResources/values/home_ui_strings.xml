@@ -1,3 +1,4 @@
 <resources>
   <string name="home_feed_load_error">Unable to load your home feed.\n%1$s</string>
+  <string name="shelf_content_error_message">Unable to load content for "%1$s"</string>
 </resources>

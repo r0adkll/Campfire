@@ -1,4 +1,4 @@
-package app.campfire.home.store
+package app.campfire.home.store.home
 
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi

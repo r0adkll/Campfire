@@ -27,7 +27,7 @@ data class LibraryItem(
 
   val libraryFiles: List<LibraryFile> = emptyList(),
   val userMediaProgress: MediaProgress? = null,
-) {
+) : ShelfEntity {
 
   /**
    * Get the current chapter for the total duration of time passed in the

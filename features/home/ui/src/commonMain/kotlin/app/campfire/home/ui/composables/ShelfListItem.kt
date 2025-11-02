@@ -5,12 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
-import app.campfire.home.api.model.Shelf
+import app.campfire.home.ui.UiShelf
 
 @Composable
 fun ShelfListItem(
-  shelf: Shelf<*>,
+  shelf: UiShelf<ShelfEntity>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId) -> MediaProgress?,
   onItemClick: (Any) -> Unit,

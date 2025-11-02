@@ -32,9 +32,9 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Series
+import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
-import app.campfire.home.api.HomeFeedResponse
-import app.campfire.home.api.model.Shelf
+import app.campfire.home.api.FeedResponse
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
 import campfire.features.home.ui.generated.resources.Res
@@ -71,14 +71,14 @@ fun HomeScreen(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (val feed = state.homeFeed) {
-      HomeFeedResponse.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      is HomeFeedResponse.Error -> {
+      FeedResponse.Loading -> LoadingListState(Modifier.padding(paddingValues))
+      is FeedResponse.Error -> {
         val reason = when (feed) {
-          is HomeFeedResponse.Error.Exception ->
+          is FeedResponse.Error.Exception ->
             feed.error.message
               ?: feed.error::class.simpleName
               ?: "<Unknown error>"
-          is HomeFeedResponse.Error.Message -> feed.message
+          is FeedResponse.Error.Message -> feed.message
         }
         ErrorListState(
           stringResource(Res.string.home_feed_load_error, reason),
@@ -86,7 +86,7 @@ fun HomeScreen(
         )
       }
 
-      is HomeFeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
+      is FeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
         EmptyState(randomEmptyMessage())
       } else {
         LoadedState(
@@ -116,10 +116,10 @@ fun HomeScreen(
 
 @Composable
 private fun LoadedState(
-  shelves: List<Shelf<*>>,
+  shelves: List<UiShelf<ShelfEntity>>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId) -> MediaProgress?,
-  onItemClick: (Shelf<*>, Any) -> Unit,
+  onItemClick: (UiShelf<*>, Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),

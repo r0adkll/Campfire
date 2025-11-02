@@ -27,7 +27,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.loggableId
-import app.campfire.home.api.HomeFeedResponse
+import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.libraries.api.LibraryItemRepository
@@ -35,8 +35,11 @@ import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.series.api.SeriesRepository
 import kotlin.collections.firstOrNull
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import me.tatarka.inject.annotations.Inject
 
 @Inject
@@ -98,22 +101,31 @@ class MediaTree(
     }
   }
 
+  @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   private suspend fun loadHome(): List<MediaItem> {
     val homeFeed = homeRepository.observeHomeFeed()
-      .filterNot { it is HomeFeedResponse.Loading }
+      .filterNot { it is FeedResponse.Loading }
+      .mapLatest {
+        val shelves = it.dataOrNull ?: emptyList()
+        shelves.associateWith { shelf ->
+          homeRepository.observeShelf(shelf.id, shelf.type)
+            .firstOrNull()
+            ?: emptyList()
+        }
+      }
       .firstOrNull()
       ?: return emptyList()
-    return homeFeed.dataOrNull
-      ?.flatMap {
-        it.entities.mapNotNull { item ->
+
+    return homeFeed
+      .flatMap { (shelf, items) ->
+        items.map { item ->
           when (item) {
-            is LibraryItem -> item.asBrowsableMediaItem(titleHint = it.label)
-            is Series -> item.asBrowsableMediaItem(titleHint = it.label)
-            is Author -> item.asBrowsableMediaItem(titleHint = it.label)
-            else -> null
+            is LibraryItem -> item.asBrowsableMediaItem(titleHint = shelf.label)
+            is Series -> item.asBrowsableMediaItem(titleHint = shelf.label)
+            is Author -> item.asBrowsableMediaItem(titleHint = shelf.label)
           }
         }
-      } ?: emptyList()
+      }
   }
 
   private suspend fun loadSeries(): List<MediaItem> {

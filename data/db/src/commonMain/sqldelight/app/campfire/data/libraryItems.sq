@@ -52,9 +52,10 @@ WHERE seriesBookJoin.seriesId = ?
 ORDER BY media.metadata_series_sequence ASC;
 
 selectForShelf:
-SELECT libraryItem.*,media.* FROM libraryItem
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
 INNER JOIN shelfJoin ON shelfJoin.entityId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
 WHERE shelfJoin.shelfId = ?;
 
 selectForCollection:

@@ -14,4 +14,4 @@ data class Author(
 
   val libraryItems: List<LibraryItem> = emptyList(),
   val series: List<Series> = emptyList(),
-)
+) : ShelfEntity

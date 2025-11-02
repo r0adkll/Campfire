@@ -1,4 +1,4 @@
-package app.campfire.home.store
+package app.campfire.home.store.home
 
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
@@ -7,7 +7,6 @@ import app.campfire.core.model.LibraryId
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.ShelfJoin
 import app.campfire.data.mapping.asDbModel
-import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDbModel
 import app.campfire.home.mapping.asDomainModel
@@ -26,24 +25,17 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 class HomeSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val imageHydrator: TokenHydrator,
-  private val libraryItemDao: LibraryItemDao,
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
-  fun create(): SourceOfTruth<HomeStore.Key, List<NetworkShelf>, List<Shelf<*>>> {
+  fun create(): SourceOfTruth<HomeStore.Key, List<NetworkShelf>, List<Shelf>> {
     return SourceOfTruth.of(
       reader = { key ->
         db.shelfQueries.select(key.libraryId)
           .asFlow()
           .mapToList(dispatcherProvider.databaseRead)
           .map { shelves ->
-            shelves.map { shelf ->
-              shelf.asDomainModel(
-                db = db,
-                tokenHydrator = imageHydrator,
-                libraryItemDao = libraryItemDao,
-              )
-            }
+            shelves.map { it.asDomainModel() }
           }.map {
             // Store REALLY doesn't like empty lists as a state from the database
             // and can cause some odd emissions in certain circumstances and breaking

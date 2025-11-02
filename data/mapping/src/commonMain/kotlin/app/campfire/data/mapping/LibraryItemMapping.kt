@@ -7,6 +7,7 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media as DomainMedia
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.util.createIfNotNull
@@ -19,6 +20,7 @@ import app.campfire.data.MetadataAuthor
 import app.campfire.data.SelectForAuthorName
 import app.campfire.data.SelectForCollection
 import app.campfire.data.SelectForSeries
+import app.campfire.data.mapping.model.LibraryItemProgress
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.network.RequestOrigin
 import app.campfire.network.models.ExpandedBookMetadata
@@ -226,16 +228,17 @@ fun DomainMedia.asDbModel(
   )
 }
 
-private val String.lastFirst: String get() {
-  val parts = split(" ")
-  return if (parts.size > 1) {
-    val firstName = parts.subList(0, parts.lastIndex).joinToString(" ")
-    val lastName = parts.last()
-    "$lastName, $firstName"
-  } else {
-    this
+private val String.lastFirst: String
+  get() {
+    val parts = split(" ")
+    return if (parts.size > 1) {
+      val firstName = parts.subList(0, parts.lastIndex).joinToString(" ")
+      val lastName = parts.last()
+      "$lastName, $firstName"
+    } else {
+      this
+    }
   }
-}
 
 suspend fun LibraryItemExpanded.asDomainModel(
   tokenHydrator: TokenHydrator,
@@ -634,6 +637,27 @@ suspend fun LibraryItemWithMedia.asDomainModel(
       sizeInBytes = sizeInBytes,
       ebookFormat = ebookFormat,
     ),
-    userMediaProgress = null,
+    userMediaProgress = userMediaProgress?.asDomainModel(),
+  )
+}
+
+fun LibraryItemProgress.asDomainModel(): MediaProgress {
+  return MediaProgress(
+    id = id,
+    userId = userId,
+    libraryItemId = libraryItemId,
+    episodeId = episodeId,
+    mediaItemId = mediaItemId,
+    mediaItemType = mediaItemType,
+    duration = duration.toFloat(),
+    progress = progress.toFloat(),
+    currentTime = currentTime.toFloat(),
+    isFinished = isFinished,
+    hideFromContinueListening = hideFromContinueListening,
+    ebookLocation = ebookLocation,
+    ebookProgress = ebookProgress?.toFloat(),
+    lastUpdate = lastUpdate,
+    startedAt = startedAt,
+    finishedAt = finishedAt,
   )
 }
