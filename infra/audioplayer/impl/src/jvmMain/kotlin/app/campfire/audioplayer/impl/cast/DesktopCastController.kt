@@ -15,4 +15,6 @@ import me.tatarka.inject.annotations.Inject
 class DesktopCastController() : CastController {
   override val state = MutableStateFlow(CastState.Unavailable)
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
+  override fun connect(device: CastDevice) {
+  }
 }
