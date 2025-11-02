@@ -154,6 +154,11 @@ include(
   ":features:stats:ui",
 )
 include(
+  ":features:sharing:api",
+  ":features:sharing:impl",
+  ":features:sharing:public-ui",
+)
+include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:attribution",

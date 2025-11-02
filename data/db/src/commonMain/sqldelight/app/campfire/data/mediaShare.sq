@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS mediaShare (
   slug TEXT NOT NULL,
   url TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
-  downloadable INTEGER AS Boolean NOT NULL,
+  isDownloadable INTEGER AS Boolean NOT NULL,
   expiresAt TEXT AS LocalDateTime NOT NULL,
   createdAt TEXT AS LocalDateTime NOT NULL,
   updatedAt TEXT AS LocalDateTime NOT NULL,

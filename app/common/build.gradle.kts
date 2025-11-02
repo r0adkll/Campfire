@@ -63,6 +63,9 @@ kotlin {
         api(projects.features.stats.impl)
         api(projects.features.stats.ui)
 
+        api(projects.features.sharing.impl)
+        api(projects.features.sharing.publicUi)
+
         api(projects.ui.drawer)
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)

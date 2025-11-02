@@ -402,6 +402,14 @@ class KtorAudioBookShelfApi(
     }
   }
 
+  override suspend fun deleteShareItem(shareId: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("api/share/mediaitem/$shareId") {
+        method = HttpMethod.Delete
+      }
+    }
+  }
+
   private suspend inline fun <reified T> trySendRequest(
     noinline responseMapper: suspend (HttpResponse) -> T = { it.body<T>() },
     crossinline request: suspend () -> HttpResponse,

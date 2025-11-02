@@ -243,6 +243,12 @@ interface AudioBookShelfApi {
     expiresAtEpochMs: Long,
     isDownloadable: Boolean,
   ): Result<MediaShareResponse>
+
+  /**
+   * Delete a shared item by its id
+   */
+  @RequiresServer("2.11.0")
+  suspend fun deleteShareItem(shareId: String): Result<Unit>
 }
 
 const val INVALID = -1
