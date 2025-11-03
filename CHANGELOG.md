@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Opening/Closing foldables no properly manages detail screens.
+- Screen jank when app widget is present and playing a book
+- How the homescreen loads its data leading to blank / flickering items
 
 ### Other Notes & Contributions
 
