@@ -35,7 +35,6 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
@@ -88,7 +87,7 @@ class PlayerWidget : GlanceAppWidget() {
       ) {
         val size = LocalSize.current
         val sizeClass = WidgetSizeClass.from(size)
-        PlayerWidgetContent(sizeClass, id)
+        PlayerWidgetContent(sizeClass)
       }
     }
   }
@@ -103,7 +102,6 @@ class PlayerWidget : GlanceAppWidget() {
   @Composable
   private fun PlayerWidgetContent(
     widgetSizeClass: WidgetSizeClass,
-    id: GlanceId,
     modifier: GlanceModifier = GlanceModifier,
   ) {
     // Widgets are …weird… so we must subscribe to component / component changes or going from an app state
@@ -155,8 +153,6 @@ class PlayerWidget : GlanceAppWidget() {
       val currentTime = currentState(KEY_CURRENT_TIME)?.seconds ?: Duration.ZERO
       val currentDuration = currentState(KEY_CURRENT_DURATION)?.seconds ?: Duration.ZERO
       val playbackSpeed = currentState(KEY_PLAYBACK_SPEED) ?: 1f
-
-      bark { "Composing Widget Content[$id]" }
 
       ActiveWidgetContent(
         title = currentMetadata.value.title ?: currentSession!!.title,
