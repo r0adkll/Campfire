@@ -37,7 +37,7 @@ fun <T> Flow<StoreReadResponse<T>>.debugLogging(
       }
       is StoreReadResponse.Loading -> bark(tag, VERBOSE) { "$messagePrefix Loading" }
       is StoreReadResponse.NoNewData -> bark(tag, VERBOSE) { "$messagePrefix NoNewData" }
-      is StoreReadResponse.Data<*> -> bark(tag, VERBOSE) { "$messagePrefix Data" }
+      is StoreReadResponse.Data<*> -> bark(tag, VERBOSE) { "$messagePrefix Data(${response.dataOrNull()})" }
     }
   }.onCompletion {
     bark(tag, VERBOSE) { "Store[$tag] onCompletion($it)" }

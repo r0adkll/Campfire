@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.os.Build
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
@@ -51,7 +53,9 @@ import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.mapNotNull
 
 @ContributesTo(UserScope::class)
 interface PlayerWidgetComponent {
@@ -84,14 +88,22 @@ class PlayerWidget : GlanceAppWidget() {
       ) {
         val size = LocalSize.current
         val sizeClass = WidgetSizeClass.from(size)
-        PlayerWidgetContent(sizeClass)
+        PlayerWidgetContent(sizeClass, id)
       }
     }
   }
 
+  @Immutable
+  data class SessionLite(
+    val id: String,
+    val title: String,
+    val libraryItem: LibraryItem,
+  )
+
   @Composable
   private fun PlayerWidgetContent(
     widgetSizeClass: WidgetSizeClass,
+    id: GlanceId,
     modifier: GlanceModifier = GlanceModifier,
   ) {
     // Widgets are …weird… so we must subscribe to component / component changes or going from an app state
@@ -109,7 +121,18 @@ class PlayerWidget : GlanceAppWidget() {
     }
 
     val currentSession by remember(component) {
-      component?.sessionsRepository?.observeCurrentSession() ?: emptyFlow()
+      component?.sessionsRepository?.observeCurrentSession()
+        ?.mapNotNull { session ->
+          session?.let { s ->
+            SessionLite(
+              id = s.id.toHexDashString(),
+              title = s.chapter.title,
+              libraryItem = s.libraryItem,
+            )
+          }
+        }
+        ?.distinctUntilChanged()
+        ?: emptyFlow()
     }.collectAsState(null)
 
     val audioPlayer by remember(component) {
@@ -133,8 +156,10 @@ class PlayerWidget : GlanceAppWidget() {
       val currentDuration = currentState(KEY_CURRENT_DURATION)?.seconds ?: Duration.ZERO
       val playbackSpeed = currentState(KEY_PLAYBACK_SPEED) ?: 1f
 
+      bark { "Composing Widget Content[$id]" }
+
       ActiveWidgetContent(
-        title = currentMetadata.value.title ?: currentSession!!.chapter.title,
+        title = currentMetadata.value.title ?: currentSession!!.title,
         subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
         artworkUrl = currentMetadata.value.artworkUri ?: currentSession!!.libraryItem.media.coverImageUrl,
         playbackState = state.value,

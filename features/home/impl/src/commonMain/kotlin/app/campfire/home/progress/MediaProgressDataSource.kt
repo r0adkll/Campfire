@@ -6,5 +6,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface MediaProgressDataSource {
 
-  fun observeMediaProgress(ids: List<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>>
+  fun observeMediaProgress(ids: Set<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>>
 }

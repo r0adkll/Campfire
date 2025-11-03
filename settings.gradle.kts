@@ -74,6 +74,7 @@ include(
   ":infra:debug",
   ":infra:updates:api",
   ":infra:updates:impl",
+  ":infra:tracing",
 )
 include(
   ":common:screens",

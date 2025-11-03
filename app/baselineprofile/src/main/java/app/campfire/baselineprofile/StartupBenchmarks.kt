@@ -73,6 +73,7 @@ class StartupBenchmarks {
       measureBlock = {
         uiAutomator {
           startApp(packageName = packageName)
+          handleSignIn()
         }
       },
     )

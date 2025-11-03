@@ -12,16 +12,21 @@ fun DbShelf.asDomainModel(): DomainShelf {
     label = label,
     total = total,
     type = type,
+    order = homeOrder,
   )
 }
 
-fun NetworkShelf.asDbModel(libraryId: LibraryId): DbShelf {
+fun NetworkShelf.asDbModel(
+  index: Int,
+  libraryId: LibraryId,
+): DbShelf {
   return DbShelf(
     id = id,
     libraryId = libraryId,
     label = label,
     labelStringKey = labelStringKey,
     total = total,
+    homeOrder = index,
     type = when (this) {
       is NetworkShelf.AuthorShelf -> ShelfType.AUTHOR
       is NetworkShelf.BookShelf -> ShelfType.BOOK

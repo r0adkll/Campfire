@@ -18,7 +18,7 @@ interface HomeRepository {
   /**
    * Observe the [MediaProgress] for each libraryItemId passed to the function
    */
-  fun observeMediaProgress(libraryItemIds: List<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>>
+  fun observeMediaProgress(libraryItemIds: Set<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>>
 
   /**
    * Observe the contents of a single [Shelf] by its id.

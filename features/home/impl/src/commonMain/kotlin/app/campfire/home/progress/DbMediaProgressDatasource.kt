@@ -23,7 +23,7 @@ class DbMediaProgressDatasource(
   private val dispatcherProvider: DispatcherProvider,
 ) : MediaProgressDataSource {
 
-  override fun observeMediaProgress(ids: List<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>> {
+  override fun observeMediaProgress(ids: Set<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>> {
     return db.mediaProgressQueries
       .selectForLibraryItems(userSession.requiredUserId, ids)
       .asFlow()

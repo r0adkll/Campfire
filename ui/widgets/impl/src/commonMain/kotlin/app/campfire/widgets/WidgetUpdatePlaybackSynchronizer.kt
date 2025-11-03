@@ -4,6 +4,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
@@ -25,6 +26,7 @@ class WidgetUpdatePlaybackSynchronizer(
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
+    bark { "onStateChanged: $state" }
     widgetUpdater.updatePlayerWidget()
 
     // Prompt the user to pin the playback widget if they haven't seen it yet
@@ -37,6 +39,7 @@ class WidgetUpdatePlaybackSynchronizer(
     libraryItemId: LibraryItemId,
     metadata: Metadata,
   ) {
+    bark { "onMetadataChanged: $metadata" }
     widgetUpdater.updatePlayerWidget()
   }
 
@@ -49,6 +52,7 @@ class WidgetUpdatePlaybackSynchronizer(
     // Limit this update to every 2 seconds
     val elapsed = (fatherTime.nowInEpochMillis() - lastCurrentTimeUpdate)
     if (elapsed > TIME_UPDATE_INTERVAL_MS) {
+      bark { "onCurrentTimeChanged: $currentTime" }
       widgetUpdater.updatePlayerWidget(currentTime = currentTime)
       lastCurrentTimeUpdate = fatherTime.nowInEpochMillis()
     }
@@ -58,6 +62,7 @@ class WidgetUpdatePlaybackSynchronizer(
     libraryItemId: LibraryItemId,
     currentDuration: Duration,
   ) {
+    bark { "onCurrentDurationChanged: $currentDuration" }
     widgetUpdater.updatePlayerWidget(
       currentDuration = currentDuration.takeIf { it.isFinite() } ?: Duration.ZERO,
     )
@@ -67,6 +72,7 @@ class WidgetUpdatePlaybackSynchronizer(
     libraryItemId: LibraryItemId,
     playbackSpeed: Float,
   ) {
+    bark { "onPlaybackSpeedChanged: $playbackSpeed" }
     widgetUpdater.updatePlayerWidget(playbackSpeed = playbackSpeed)
   }
 

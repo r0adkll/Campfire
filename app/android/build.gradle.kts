@@ -102,12 +102,19 @@ android {
       isShrinkResources = true
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
-        "proguard-rules.pro",
+        "base-proguard-rules.pro",
+        "prod-proguard-rules.pro",
       )
     }
 
     create("benchmarkRelease") {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+      setProguardFiles(
+        listOf(
+          getDefaultProguardFile("proguard-android-optimize.txt"),
+          "base-proguard-rules.pro",
+        ),
+      )
     }
 
     create("nonMinifiedRelease") {

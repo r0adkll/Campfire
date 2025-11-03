@@ -151,6 +151,7 @@ class DatabaseFactory(
     shelfAdapter = Shelf.Adapter(
       totalAdapter = IntColumnAdapter,
       typeAdapter = EnumColumnAdapter(),
+      homeOrderAdapter = IntColumnAdapter,
     ),
   )
 }

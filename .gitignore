@@ -8,6 +8,7 @@ app/android/google-services.json
 app/android/campfire-app-distribution-service-account.json
 
 captures
+traces/
 
 /local.properties
 

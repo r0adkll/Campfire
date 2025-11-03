@@ -48,11 +48,11 @@ class HomeSourceOfTruthFactory(
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             // Persist all the entities within a shelf
-            shelves.forEach { shelf ->
+            shelves.forEachIndexed { index, shelf ->
               writeEntities(key.libraryId, shelf)
 
               // Persist shelf metadata
-              val dbShelf = shelf.asDbModel(key.libraryId)
+              val dbShelf = shelf.asDbModel(index, key.libraryId)
               db.shelfQueries.insert(dbShelf)
               writeEntityJoins(shelf)
             }

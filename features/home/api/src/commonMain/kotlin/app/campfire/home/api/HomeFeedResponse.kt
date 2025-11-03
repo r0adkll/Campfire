@@ -22,6 +22,17 @@ sealed interface FeedResponse<DataT> {
   }
 }
 
+inline fun <Data : Any, Result : Any> FeedResponse<Data>.map(
+  mapper: (Data) -> Result,
+): FeedResponse<Result> {
+  @Suppress("UNCHECKED_CAST")
+  return when (this) {
+    FeedResponse.Loading -> this as FeedResponse<Result>
+    is FeedResponse.Error -> this as FeedResponse<Result>
+    is FeedResponse.Success<Data> -> FeedResponse.Success(mapper(data))
+  }
+}
+
 @Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalCoroutinesApi::class)
 inline fun <Data, Result> Flow<FeedResponse<Data>>.flatMapLatestSuccess(

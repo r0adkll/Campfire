@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS shelf (
   labelStringKey TEXT NOT NULL,
   total INTEGER AS Int NOT NULL,
   type TEXT AS ShelfType NOT NULL,
+  homeOrder INTEGER AS Int NOT NULL DEFAULT 0,
 
   FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
 );
@@ -36,4 +37,5 @@ WHERE libraryId = ?;
 
 select:
 SELECT * FROM shelf
-WHERE libraryId = ?;
+WHERE libraryId = ?
+ORDER BY homeOrder ASC;

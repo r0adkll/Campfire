@@ -13,4 +13,5 @@ data class Shelf(
   val label: String,
   val total: Int,
   val type: ShelfType,
+  val order: Int,
 )

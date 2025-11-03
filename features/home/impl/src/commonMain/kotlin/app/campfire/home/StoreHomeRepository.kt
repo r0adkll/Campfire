@@ -20,7 +20,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -76,7 +75,7 @@ class StoreHomeRepository(
       }
   }
 
-  override fun observeMediaProgress(libraryItemIds: List<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>> {
+  override fun observeMediaProgress(libraryItemIds: Set<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>> {
     return mediaProgressDataSource.observeMediaProgress(libraryItemIds)
   }
 
@@ -85,6 +84,12 @@ class StoreHomeRepository(
     return shelfStore.stream(request)
       .debugLogging(ShelfStore.tag)
       .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
-      .map { it.dataOrNull() ?: emptyList() }
+      .mapNotNull { response ->
+        val output = response.dataOrNull() ?: emptyList()
+        if (output.isEmpty() && response.origin == StoreReadResponseOrigin.SourceOfTruth) {
+          return@mapNotNull null
+        }
+        output
+      }
   }
 }

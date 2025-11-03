@@ -2,6 +2,7 @@ package app.campfire.home.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
@@ -18,7 +19,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.ShelfEntity
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
-import app.campfire.home.api.flatMapLatestSuccess
+import app.campfire.home.api.map
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -29,9 +30,11 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -45,55 +48,82 @@ class HomePresenter(
   private val analytics: Analytics,
 ) : Presenter<HomeUiState> {
 
+  @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): HomeUiState {
-    // Observe JUST the [Shelf] themselves and not the containing
-    // entities themselves. Those will be observed separately
-    @Suppress("UNCHECKED_CAST")
-    val feed by remember {
+    // Observe just the shelf information. We will use this to compose the remaining elements
+    val domainFeed by remember {
       homeRepository.observeHomeFeed()
-        .flatMapLatestSuccess { shelves ->
+    }.collectAsState(FeedResponse.Loading)
+
+    // We want to make sure we are constantly and consistently observing the items for each shelf
+    // so we are not constantly restarting the observations unless the root shelves themselves change
+    val shelfEntities by remember {
+      snapshotFlow { domainFeed.dataOrNull }
+        .filterNotNull()
+        .distinctUntilChanged()
+        .flatMapLatest { shelves ->
           val shelfFlows = shelves.map { shelf ->
             homeRepository.observeShelf(shelf.id, shelf.type)
               .map { LoadState.Loaded(it) as LoadState<List<ShelfEntity>> }
               .onStart { emit(LoadState.Loading as LoadState<List<ShelfEntity>>) }
               .catch { emit(LoadState.Error as LoadState<List<ShelfEntity>>) }
               .map { entityLoadState ->
-                UiShelf(shelf, entityLoadState)
+                shelf.id to entityLoadState
               }
           }
 
           combine(
             flows = shelfFlows,
             transform = { shelfFlows ->
-              shelfFlows.toPersistentList()
+              persistentMapOf(*shelfFlows)
             },
           )
         }
-    }.collectAsState(FeedResponse.Loading)
+    }.collectAsState(persistentMapOf())
+
+    // Now combine both the shelves and entities into the final set of UiShelf to render
+    // in the UI.
+    val feed by remember {
+      derivedStateOf {
+        domainFeed.map { shelves ->
+          shelves.map { shelf ->
+            UiShelf(
+              shelf,
+              shelfEntities[shelf.id]
+                ?: LoadState.Loading as LoadState<List<ShelfEntity>>,
+            )
+          }.toPersistentList()
+        }
+      }
+    }
 
     val userMediaProgress by remember {
-      snapshotFlow { feed.dataOrNull }
-        .filterNotNull()
-        .flatMapLatest { shelves ->
-          val libraryItemIds = shelves
-            .flatMap { it.entities.dataOrNull ?: emptyList() }
+      snapshotFlow { shelfEntities.values }
+        .map { responses ->
+          responses
+            .mapNotNull { it.dataOrNull }
+            .flatten()
             .filterIsInstance<LibraryItem>()
             .map { it.id }
-
-          homeRepository.observeMediaProgress(libraryItemIds)
+            .toSet()
+        }
+        .flatMapLatest { itemIds ->
+          homeRepository.observeMediaProgress(itemIds)
             .map { it.toPersistentMap() }
         }
     }.collectAsState(persistentMapOf())
 
     val offlineDownloads by remember {
-      snapshotFlow { feed.dataOrNull }
-        .filterNotNull()
-        .flatMapLatest { items ->
-          val libraryItems = items
-            .flatMap { it.entities.dataOrNull ?: emptyList() }
+      snapshotFlow { shelfEntities.values }
+        .map { responses ->
+          responses
+            .mapNotNull { it.dataOrNull }
+            .flatten()
             .filterIsInstance<LibraryItem>()
+        }
+        .flatMapLatest { libraryItems ->
           offlineDownloadManager.observeForItems(libraryItems)
             .map { it.toPersistentMap() }
         }

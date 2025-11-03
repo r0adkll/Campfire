@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="android">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-11-01T15:20:11.883320Z">
+        <DropdownSelection timestamp="2025-11-03T21:14:34.853916Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/r0adkll/.android/avd/Pixel_9_Pro_Fold.avd" />
@@ -27,9 +27,6 @@
       <SelectionState runConfigName="generate()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="BaselineProfileGenerator">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
       <SelectionState runConfigName="CastConnectingIconPreview">
         <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2025-11-01T14:37:43.599599Z">
@@ -37,6 +34,17 @@
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/r0adkll/.android/avd/Pixel_9_Pro_Fold.avd" />
             </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="startupCompilationBaselineProfiles()">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-11-03T17:09:35.165236Z">
+          <Target type="DEFAULT_BOOT">
+            <template>
+              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=comet/34" />
+            </template>
           </Target>
         </DropdownSelection>
         <DialogSelection />

@@ -1,5 +1,7 @@
 package app.campfire.script.util
 
+import java.io.InputStream
+import java.io.OutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.withContext
@@ -56,3 +58,7 @@ private class ProcessScopeImpl(
       .collect { line -> block(line) }
   }
 }
+
+val Process.stdin: OutputStream get() = outputStream
+val Process.stdout: InputStream get() = inputStream
+val Process.stderr: InputStream get() = errorStream
