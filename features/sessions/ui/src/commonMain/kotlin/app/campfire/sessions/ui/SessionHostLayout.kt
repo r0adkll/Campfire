@@ -46,11 +46,11 @@ fun SessionHostLayout(
   val scope = rememberCoroutineScope()
   val comp by component
 
-  val currentSession by remember {
+  val currentSession by remember(comp) {
     comp.sessionsRepository.observeCurrentSession()
   }.collectAsState(null)
 
-  val audioPlayer by remember {
+  val audioPlayer by remember(comp) {
     comp.audioPlayerHolder.currentPlayer
   }.collectAsState()
 
