@@ -12,6 +12,8 @@ import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.Collection
+import app.campfire.crashreporting.CrashReporter
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -28,12 +30,16 @@ class CollectionsPresenter(
   private val analytics: Analytics,
 ) : Presenter<CollectionsUiState> {
 
+  @Suppress("UNCHECKED_CAST")
   @Composable
   override fun present(): CollectionsUiState {
     val collectionContentState by remember {
       repository.observeAllCollections()
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<List<Collection>> }
+        .catch { e ->
+          CrashReporter.record(CollectionsObservationError(e))
+          emit(LoadState.Error as LoadState<List<Collection>>)
+        }
     }.collectAsState(LoadState.Loading)
 
     return CollectionsUiState(
@@ -53,3 +59,5 @@ class CollectionsPresenter(
     }
   }
 }
+
+class CollectionsObservationError(cause: Throwable) : Exception(cause)
