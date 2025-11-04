@@ -13,6 +13,7 @@ kotlin {
 
         implementation(projects.infra.audioplayer.api)
         implementation(projects.features.settings.api)
+        implementation(projects.features.libraries.api)
         implementation(projects.infra.shake)
 
         implementation(libs.circuitx.overlays)

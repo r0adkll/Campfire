@@ -37,6 +37,11 @@
   <!-- Downloads setting strings-->
   <string name="setting_show_download_confirmation_title">Show download confirmation dialog</string>
   <string name="setting_show_download_confirmation_description">Show a dialog to confirm each item download for offline listening</string>
+  <string name="download_header_downloads">Downloads</string>
+  <string name="action_delete_download">Delete</string>
+  <string name="action_stop_download">Stop</string>
+  <string name="label_confirm_download_delete">Are you sure you want to delete this download?</string>
+  <string name="label_confirm_download_stop">Are you sure you want to stop this download?</string>
 
   <!-- Playback setting strings -->
   <string name="setting_playback_forward_title">Forward time</string>

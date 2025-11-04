@@ -4,6 +4,7 @@ import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ fun Modifier.circularReveal(
   durationMillis: Int = 250,
   easing: Easing = EaseInOutSine,
   size: MutableState<IntSize> = mutableStateOf(IntSize(0, 0)),
+  onAnimationFinish: () -> Unit = { },
 ): Modifier =
   onGloballyPositioned {
     size.value = it.size
@@ -53,6 +55,12 @@ fun Modifier.circularReveal(
         animationSpec = tween(durationMillis = durationMillis, easing = easing),
         label = "",
       )
+
+      LaunchedEffect(animationProgress.value) {
+        if (animationProgress.value == if (isVisible) 1f else 0f) {
+          onAnimationFinish()
+        }
+      }
 
       circularReveal(animationProgress, revealFrom / size.value.toSize())
     },

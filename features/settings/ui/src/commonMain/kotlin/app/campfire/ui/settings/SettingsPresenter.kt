@@ -2,13 +2,16 @@ package app.campfire.ui.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.analytics.Analytics
 import app.campfire.audioplayer.model.PlaybackTimer
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
@@ -16,6 +19,9 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.Server
+import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
@@ -31,6 +37,8 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
+import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
+import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
@@ -50,12 +58,15 @@ import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(SettingsScreen::class, UserScope::class)
 @Inject
 class SettingsPresenter(
@@ -69,6 +80,8 @@ class SettingsPresenter(
   private val sleepSettings: SleepSettings,
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
+  private val offlineDownloadManager: OfflineDownloadManager,
+  private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
@@ -79,9 +92,10 @@ class SettingsPresenter(
     val scope = rememberCoroutineScope()
 
     val server by remember {
+      @Suppress("UNCHECKED_CAST")
       serverRepository.observeCurrentServer()
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<Server> }
+        .catch { emit(LoadState.Error as LoadState<Server>) }
     }.collectAsState(LoadState.Loading)
 
     // Appearance Settings
@@ -97,6 +111,26 @@ class SettingsPresenter(
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
       .collectAsState(settings.showConfirmDownload)
+
+    val downloads by remember {
+      offlineDownloadManager.observeAll()
+    }.collectAsState(emptyList())
+
+    val downloadItemIds by remember {
+      derivedStateOf {
+        downloads.map { it.libraryItemId }.toSet()
+      }
+    }
+
+    val downloadedLibraryItems by remember {
+      snapshotFlow { downloadItemIds }
+        .mapLatest { itemIds ->
+          itemIds.associate { itemId ->
+            libraryItemRepository.getLibraryItem(itemId) to
+              downloads.first { it.libraryItemId == itemId }
+          }
+        }
+    }.collectAsState(emptyMap())
 
     // Sleep Settings
     val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
@@ -128,6 +162,7 @@ class SettingsPresenter(
       applicationInfo = applicationInfo,
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
+        downloads = downloadedLibraryItems,
       ),
       playbackSettings = PlaybackSettingsInfo(
         forwardTime = forwardTime.milliseconds,
@@ -187,6 +222,8 @@ class SettingsPresenter(
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
           is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
+          is DownloadClicked -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+          is DeleteDownload -> offlineDownloadManager.delete(event.libraryItem)
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {

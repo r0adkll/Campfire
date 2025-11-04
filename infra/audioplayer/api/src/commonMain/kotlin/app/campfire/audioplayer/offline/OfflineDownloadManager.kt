@@ -7,6 +7,12 @@ import kotlinx.coroutines.flow.Flow
 interface OfflineDownloadManager {
 
   /**
+   * Observe all downloads
+   * @return A [Flow] of a list of all [OfflineDownload]s.
+   */
+  fun observeAll(): Flow<List<OfflineDownload>>
+
+  /**
    * Observe the current download status for a given item
    * @param item The [LibraryItem] to observe.
    * @return A [Flow] of the [OfflineDownload] for the given item.
@@ -44,4 +50,10 @@ interface OfflineDownloadManager {
    * @param item The [LibraryItem] to stop the download for.
    */
   fun stop(item: LibraryItem)
+
+  /**
+   * Resume any paused downloads due to process death or other events
+   * where they might not automatically resume.
+   */
+  fun resumeDownloads()
 }

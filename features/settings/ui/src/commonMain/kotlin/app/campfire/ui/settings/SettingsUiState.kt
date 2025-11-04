@@ -2,9 +2,11 @@ package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
 import app.campfire.audioplayer.model.PlaybackTimer
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 import app.campfire.settings.api.CampfireSettings
@@ -33,6 +35,7 @@ data class SettingsUiState(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
+  val downloads: Map<LibraryItem, OfflineDownload>,
 )
 
 @Immutable
@@ -115,6 +118,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Downloads Pane Events
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
+    data class DownloadClicked(val libraryItem: LibraryItem) : DownloadsSettingEvent
+    data class DeleteDownload(val libraryItem: LibraryItem) : DownloadsSettingEvent
   }
 
   // Playback Setting Events

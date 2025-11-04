@@ -7,14 +7,15 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.None
 import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
 import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 
 /**
  * Represents the download state of a [LibraryItem].
  */
 data class OfflineDownload(
-  val libraryItem: LibraryItem,
-  val state: State = State.None,
+  val libraryItemId: LibraryItemId,
+  val state: State = None,
   val startTimeMs: Long = -1L,
   val updateTimeMs: Long = -1L,
   val contentLength: Long = -1L,
@@ -22,10 +23,10 @@ data class OfflineDownload(
 ) {
 
   val isCompleted: Boolean
-    get() = state == State.Completed
+    get() = state == Completed
 
   val isActive: Boolean
-    get() = state != State.Completed && state != State.None
+    get() = state != Completed && state != None
 
   enum class State {
     /**

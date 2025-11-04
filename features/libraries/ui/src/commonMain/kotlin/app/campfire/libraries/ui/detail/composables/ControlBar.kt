@@ -110,7 +110,7 @@ internal fun ControlBar(
         ),
         colors = ButtonDefaults.buttonColors(
           disabledContentColor = MaterialTheme.colorScheme.primary,
-        )
+        ),
       ) {
         Icon(
           when (offlineDownload?.state) {

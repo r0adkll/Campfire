@@ -17,6 +17,8 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
+import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
+import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
@@ -58,6 +60,8 @@ class SettingsAnalyticUiEventHandler(
 
     is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
       is ShowDownloadConfirmation -> send("show_confirm_download", Updated, event.enabled.toString())
+      is DeleteDownload -> send("delete_download", Click)
+      is DownloadClicked -> send("download", Click)
     }
 
     is SettingsUiEvent.PlaybackSettingEvent -> when (event) {

@@ -16,6 +16,10 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(AppScope::class)
 @Inject
 class IosOfflineDownloadManager : OfflineDownloadManager {
+  override fun observeAll(): Flow<List<OfflineDownload>> {
+    return emptyFlow()
+  }
+
   override fun observeForItem(item: LibraryItem): Flow<OfflineDownload> {
     return emptyFlow()
   }
@@ -37,6 +41,10 @@ class IosOfflineDownloadManager : OfflineDownloadManager {
   }
 
   override fun stop(item: LibraryItem) {
+    bark { "Not implemented yet!" }
+  }
+
+  override fun resumeDownloads() {
     bark { "Not implemented yet!" }
   }
 }

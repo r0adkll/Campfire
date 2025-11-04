@@ -14,11 +14,15 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
@@ -52,11 +56,23 @@ class DownloadTracker(
     loadAllDownloads()
   }
 
-  fun observe(): SharedFlow<Event> = events.asSharedFlow()
+  fun observeEvents(): SharedFlow<Event> = events.asSharedFlow()
+
+  @kotlin.OptIn(ExperimentalCoroutinesApi::class)
+  fun observeDownloads(): Flow<List<OfflineDownload>> = events
+    .mapLatest {
+      val itemIds = downloads.values
+        .map { it.request.data.decodeToString() }
+        .toSet()
+
+      itemIds.map { itemId ->
+        getOfflineDownload(itemId)
+      }
+    }
 
   fun getOfflineDownload(item: LibraryItem): OfflineDownload {
     val itemDownloads = if (item.media.tracks.isNotEmpty()) {
-      item.media.tracks.map {
+      item.media.tracks.mapNotNull {
         downloads[it.contentUrlWithToken.toUri()]
       }
     } else {
@@ -67,23 +83,48 @@ class DownloadTracker(
     }
 
     // If we don't have any active downloads for an item, just return the default
-    if (itemDownloads.isEmpty()) return OfflineDownload(item)
+    if (itemDownloads.isEmpty()) return OfflineDownload(item.id)
 
+    return computeOfflineDownload(
+      itemId = item.id,
+      itemDownloads = itemDownloads,
+    )
+  }
+
+  fun getOfflineDownload(itemId: LibraryItemId): OfflineDownload {
+    // Find all the downloads by the items associated metadata id. Due to API design restraints, the
+    // tracks meta is not always guaranteed on the LibraryItems
+    val itemDownloads = downloads.values
+      .filter { it.request.data.decodeToString() == itemId }
+
+    // If we don't have any active downloads for an item, just return the default
+    if (itemDownloads.isEmpty()) return OfflineDownload(itemId)
+
+    return computeOfflineDownload(
+      itemId = itemId,
+      itemDownloads = itemDownloads,
+    )
+  }
+
+  private fun computeOfflineDownload(
+    itemId: LibraryItemId,
+    itemDownloads: List<Download>,
+  ): OfflineDownload {
     // Condense the collective set of states
     val states = itemDownloads
-      .map { it?.state ?: STATE_NONE }
+      .map { it.state }
       .distinct()
 
-    val startTimeMs = itemDownloads.minOf { it?.startTimeMs ?: Long.MAX_VALUE }
-    val updateTimeMs = itemDownloads.maxOf { it?.updateTimeMs ?: -1L }
-    val contentLength = itemDownloads.sumOf { it?.contentLength ?: 0 }
+    val startTimeMs = itemDownloads.minOf { it.startTimeMs }
+    val updateTimeMs = itemDownloads.maxOf { it.updateTimeMs }
+    val contentLength = itemDownloads.sumOf { it.contentLength }
 
     var allDownloadPercentagesUnknown = true
     var haveDownloadingTasks = false
     var downloadTaskCount = 0
     var totalPercentage = 0f
     var downloadedBytes = 0L
-    itemDownloads.filterNotNull().forEach { download ->
+    itemDownloads.forEach { download ->
       when (download.state) {
         Download.STATE_DOWNLOADING -> {
           haveDownloadingTasks = true
@@ -103,7 +144,7 @@ class DownloadTracker(
     val isIndeterminate = !haveDownloadingTasks || (allDownloadPercentagesUnknown && downloadedBytes > 0L)
 
     return OfflineDownload(
-      libraryItem = item,
+      libraryItemId = itemId,
       state = when {
         states.contains(Download.STATE_FAILED) -> OfflineDownload.State.Failed
         states.contains(Download.STATE_STOPPED) -> OfflineDownload.State.Stopped
