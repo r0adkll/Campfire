@@ -45,6 +45,7 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.extensions.ifNotEmpty
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
@@ -142,12 +143,12 @@ private fun ConfirmDeleteListItem(
         Queued,
         Stopped,
         Downloading,
-        -> stringResource(Res.string.label_confirm_download_stop)
+          -> stringResource(Res.string.label_confirm_download_stop)
 
         Completed,
         Failed,
         None,
-        -> stringResource(Res.string.label_confirm_download_delete)
+          -> stringResource(Res.string.label_confirm_download_delete)
       },
       style = MaterialTheme.typography.bodyMedium,
       modifier = Modifier
@@ -173,7 +174,17 @@ private fun ConfirmDeleteListItem(
       contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
     ) {
       Icon(
-        Icons.Rounded.DeleteForever,
+        when (download.state) {
+          Queued,
+          Downloading,
+            -> Icons.Rounded.Dangerous
+
+          Stopped,
+          Completed,
+          Failed,
+          None,
+            -> Icons.Rounded.DeleteForever
+        },
         contentDescription = null,
         modifier = Modifier.size(ButtonDefaults.IconSize),
       )
@@ -183,12 +194,12 @@ private fun ConfirmDeleteListItem(
           Queued,
           Stopped,
           Downloading,
-          -> stringResource(Res.string.action_stop_download)
+            -> stringResource(Res.string.action_stop_download)
 
           Completed,
           Failed,
           None,
-          -> stringResource(Res.string.action_delete_download)
+            -> stringResource(Res.string.action_delete_download)
         },
       )
     }
@@ -205,7 +216,7 @@ private fun ItemDownloadListItem(
 ) {
   ActionSetting(
     headlineContent = { Text(item.media.metadata.title ?: "<unknown item>") },
-    supportingContent = item.media.metadata.authorName?.let { { Text(it) } },
+    supportingContent = { Text(item.media.sizeInBytes.asReadableBytes()) },
     leadingContent = {
       ItemDownloadImage(
         item = item,
@@ -224,13 +235,13 @@ private fun ItemDownloadListItem(
           when (download.state) {
             Queued,
             Downloading,
-            -> Icons.Rounded.Dangerous
+              -> Icons.Rounded.Dangerous
 
             Stopped,
             Completed,
             Failed,
             None,
-            -> Icons.Rounded.Delete
+              -> Icons.Rounded.Delete
           },
           contentDescription = null,
         )
@@ -276,11 +287,11 @@ private fun ItemDownloadImage(
           when (download.state) {
             Stopped,
             None,
-            -> CampfireIcons.Rounded.Download
+              -> CampfireIcons.Rounded.Download
 
             Queued,
             Downloading,
-            -> Icons.Rounded.Downloading
+              -> Icons.Rounded.Downloading
 
             Failed -> Icons.Rounded.ErrorOutline
             Completed -> Icons.Rounded.DownloadDone
