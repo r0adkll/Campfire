@@ -62,13 +62,19 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     bark { "MainActivity::onStart()" }
-    component.mediaControllerConnector.connect()
+    with(component) {
+      mediaControllerConnector.connect()
+      mediaRouterCastController.scanForDevices()
+    }
   }
 
   override fun onStop() {
     super.onStop()
     bark { "MainActivity::onStop()" }
-    component.mediaControllerConnector.disconnect()
+    with(component) {
+      mediaControllerConnector.disconnect()
+      mediaRouterCastController.stopScanningForDevices()
+    }
   }
 
   override fun onDestroy() {

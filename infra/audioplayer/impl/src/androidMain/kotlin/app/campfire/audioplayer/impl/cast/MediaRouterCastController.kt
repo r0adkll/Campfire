@@ -52,9 +52,6 @@ class MediaRouterCastController(
       state.value = context.castState.asDomain()
 
       ibark { "CastController:initialize(state = ${context.castState.asDomain()})" }
-
-      // Start scanning for devices
-      scanForDevices()
     } catch (e: IllegalStateException) {
       e.printStackTrace()
     }
@@ -69,13 +66,11 @@ class MediaRouterCastController(
       bark(throwable = e) { "Failed to destroy CastContext" }
     } finally {
       state.value = CastState.Unavailable
-
-      stopScanningForDevices()
     }
   }
 
   @MainThread
-  private fun scanForDevices() {
+  fun scanForDevices() {
     try {
       val selector = MediaRouteSelector.Builder()
         .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
@@ -94,7 +89,7 @@ class MediaRouterCastController(
   }
 
   @MainThread
-  private fun stopScanningForDevices() {
+  fun stopScanningForDevices() {
     try {
       val mediaRouter = MediaRouter.getInstance(application)
       mediaRouter.removeCallback(this)
