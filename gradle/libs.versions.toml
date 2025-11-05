@@ -124,9 +124,9 @@ coil-networking-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", versio
 
 # Firebase
 google-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
-google-firebase-analytics = { module = "com.google.firebase:firebase-analytics-ktx" }
-google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics-ktx" }
-google-firebase-perf = { module = "com.google.firebase:firebase-perf-ktx" }
+google-firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+google-firebase-perf = { module = "com.google.firebase:firebase-perf" }
 google-firebase-appdistribution-api = { module = "com.google.firebase:firebase-appdistribution-api-ktx", version.ref = "appdistribution" }
 google-firebase-appdistribution = { module = "com.google.firebase:firebase-appdistribution", version.ref = "appdistribution" }
 
