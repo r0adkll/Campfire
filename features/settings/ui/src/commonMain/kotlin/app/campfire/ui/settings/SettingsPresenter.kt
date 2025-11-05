@@ -193,6 +193,7 @@ class SettingsPresenter(
         developerModeEnabled = developerModeEnabled,
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
+        analyticsDebugState = analytics.debugState,
         isAndroidAutoAvailable = isAndroidAutoAvailable,
       ),
     ) { event ->

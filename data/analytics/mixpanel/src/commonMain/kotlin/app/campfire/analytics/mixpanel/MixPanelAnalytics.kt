@@ -7,6 +7,9 @@ class MixPanelAnalytics(
   private val mixPanelFacade: MixPanelFacade,
 ) : Analytics {
 
+  override val debugState: String
+    get() = mixPanelFacade.debugState
+
   override fun send(event: AnalyticEvent) {
     mixPanelFacade.track(event.eventName, event.params)
   }

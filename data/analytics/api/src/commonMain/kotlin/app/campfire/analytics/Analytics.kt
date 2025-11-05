@@ -10,12 +10,17 @@ import kotlinx.atomicfu.locks.synchronized
  */
 interface Analytics {
 
+  val debugState: String
+
   /**
    * Send an analytics event into the wired analytics pipeline
    */
   fun send(event: AnalyticEvent)
 
   companion object Delegator : Analytics, SynchronizedObject() {
+    override val debugState: String
+      get() = delegatesArray.joinToString("\n") { it.debugState }
+
     override fun send(event: AnalyticEvent) {
       delegatesArray.forEach { it.send(event) }
     }

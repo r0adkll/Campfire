@@ -74,6 +74,7 @@ data class DeveloperSettingsInfo(
   val developerModeEnabled: Boolean,
   val sessionAge: Duration,
   val showWidgetPinningPrompt: Boolean,
+  val analyticsDebugState: String,
   val isAndroidAutoAvailable: Boolean,
 )
 

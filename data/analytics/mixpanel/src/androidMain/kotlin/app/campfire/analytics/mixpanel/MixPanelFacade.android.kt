@@ -11,6 +11,9 @@ actual class MixPanelFacade(
    */
   private val mixpanel: MixpanelAPI?,
 ) {
+  private var _identity: String? = null
+  actual val debugState: String
+    get() = "MixPanel[optIn=${!isOptOut}, identity=$_identity]"
 
   actual val isOptOut: Boolean get() = mixpanel?.hasOptedOutTracking() == true
 
@@ -23,6 +26,7 @@ actual class MixPanelFacade(
   }
 
   actual fun identify(distinctId: String, usePeople: Boolean) {
+    _identity = distinctId
     mixpanel?.identify(distinctId, usePeople)
   }
 

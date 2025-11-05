@@ -2,6 +2,8 @@ package app.campfire.analytics.mixpanel
 
 expect class MixPanelFacade {
 
+  val debugState: String
+
   val isOptOut: Boolean
   fun optIn()
   fun optOut()

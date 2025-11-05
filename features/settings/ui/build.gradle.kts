@@ -12,6 +12,7 @@ kotlin {
         api(projects.infra.audioplayer.publicUi)
 
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.data.analytics.api)
         implementation(projects.features.settings.api)
         implementation(projects.features.libraries.api)
         implementation(projects.infra.shake)

@@ -49,6 +49,10 @@ internal fun DeveloperPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    Header(
+      title = { Text("Misc") },
+    )
+
     DurationInputSetting(
       value = state.developerSettings.sessionAge,
       onValueChange = { state.eventSink(DeveloperSettingEvent.SessionAge(it)) },
@@ -68,6 +72,15 @@ internal fun DeveloperPane(
         },
       )
     }
+
+    Header(
+      title = { Text("Analytics") },
+    )
+
+    ActionSetting(
+      headlineContent = { Text("Analytics Debug State") },
+      supportingContent = { Text(state.developerSettings.analyticsDebugState) },
+    )
 
     if (currentPlatform == Platform.ANDROID && !state.developerSettings.isAndroidAutoAvailable) {
       Header(

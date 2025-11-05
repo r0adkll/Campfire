@@ -5,6 +5,9 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 
 object LoggingAnalytics : Analytics {
+  override val debugState: String
+    get() = "LoggingAnalytics(enabled=true)"
+
   override fun send(event: AnalyticEvent) {
     bark(
       priority = LogPriority.INFO,

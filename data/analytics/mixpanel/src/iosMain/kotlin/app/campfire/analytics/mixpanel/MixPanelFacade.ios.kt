@@ -2,6 +2,9 @@ package app.campfire.analytics.mixpanel
 
 actual class MixPanelFacade {
 
+  actual val debugState: String
+    get() = "MixPanel[NO-OP]"
+
   actual val isOptOut: Boolean
     get() = false
 
