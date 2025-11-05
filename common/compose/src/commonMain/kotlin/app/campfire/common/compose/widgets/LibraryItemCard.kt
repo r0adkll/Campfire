@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.cardElevation
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.offline.OfflineStatus
@@ -167,7 +166,7 @@ private fun LibraryItemCardImage(
         enter = fadeIn(),
         exit = fadeOut(),
         modifier = Modifier
-          .align(Alignment.BottomCenter)
+          .align(Alignment.BottomCenter),
       ) {
         MediaProgressBar(
           mediaProgress = mediaProgress,
@@ -187,7 +186,7 @@ private fun LibraryItemCardImage(
           .padding(
             end = 8.dp,
             top = 8.dp,
-          )
+          ),
       ) {
         OfflineStatusIndicator(
           status = offlineStatus,

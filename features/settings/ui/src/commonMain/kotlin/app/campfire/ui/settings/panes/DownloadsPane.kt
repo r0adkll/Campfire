@@ -143,12 +143,12 @@ private fun ConfirmDeleteListItem(
         Queued,
         Stopped,
         Downloading,
-          -> stringResource(Res.string.label_confirm_download_stop)
+        -> stringResource(Res.string.label_confirm_download_stop)
 
         Completed,
         Failed,
         None,
-          -> stringResource(Res.string.label_confirm_download_delete)
+        -> stringResource(Res.string.label_confirm_download_delete)
       },
       style = MaterialTheme.typography.bodyMedium,
       modifier = Modifier
@@ -177,13 +177,13 @@ private fun ConfirmDeleteListItem(
         when (download.state) {
           Queued,
           Downloading,
-            -> Icons.Rounded.Dangerous
+          -> Icons.Rounded.Dangerous
 
           Stopped,
           Completed,
           Failed,
           None,
-            -> Icons.Rounded.DeleteForever
+          -> Icons.Rounded.DeleteForever
         },
         contentDescription = null,
         modifier = Modifier.size(ButtonDefaults.IconSize),
@@ -194,12 +194,12 @@ private fun ConfirmDeleteListItem(
           Queued,
           Stopped,
           Downloading,
-            -> stringResource(Res.string.action_stop_download)
+          -> stringResource(Res.string.action_stop_download)
 
           Completed,
           Failed,
           None,
-            -> stringResource(Res.string.action_delete_download)
+          -> stringResource(Res.string.action_delete_download)
         },
       )
     }
@@ -235,13 +235,13 @@ private fun ItemDownloadListItem(
           when (download.state) {
             Queued,
             Downloading,
-              -> Icons.Rounded.Dangerous
+            -> Icons.Rounded.Dangerous
 
             Stopped,
             Completed,
             Failed,
             None,
-              -> Icons.Rounded.Delete
+            -> Icons.Rounded.Delete
           },
           contentDescription = null,
         )
@@ -287,11 +287,11 @@ private fun ItemDownloadImage(
           when (download.state) {
             Stopped,
             None,
-              -> CampfireIcons.Rounded.Download
+            -> CampfireIcons.Rounded.Download
 
             Queued,
             Downloading,
-              -> Icons.Rounded.Downloading
+            -> Icons.Rounded.Downloading
 
             Failed -> Icons.Rounded.ErrorOutline
             Completed -> Icons.Rounded.DownloadDone
