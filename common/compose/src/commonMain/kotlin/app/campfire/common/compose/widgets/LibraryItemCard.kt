@@ -3,9 +3,12 @@
 package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -32,7 +35,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.cardElevation
 import app.campfire.core.extensions.fluentIf
@@ -116,7 +122,9 @@ private fun LibraryItemCardImage(
   progress: MediaProgress?,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
+  val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
   val shape = RoundedCornerShape(ThumbnailCornerSize)
+
   Box(
     modifier = modifier
       .clip(shape),
@@ -132,7 +140,7 @@ private fun LibraryItemCardImage(
         .widthIn(max = CardMaxWidth)
         .clip(shape),
       sharedElementModifier = Modifier
-        .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+        .thenIfNotNull(animationScope) { scope ->
           sharedElement(
             sharedContentState = rememberSharedContentState(
               LibraryItemSharedTransitionKey(
@@ -140,31 +148,51 @@ private fun LibraryItemCardImage(
                 type = LibraryItemSharedTransitionKey.ElementType.Image,
               ),
             ),
-            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+            animatedVisibilityScope = scope,
             zIndexInOverlay = sharedTransitionZIndex,
           )
         },
     )
 
+    val isTransitionVisible by remember {
+      derivedStateOf {
+        animationScope == null ||
+          animationScope.transition.currentState == EnterExitState.Visible
+      }
+    }
+
     progress?.let { mediaProgress ->
-      MediaProgressBar(
-        mediaProgress = mediaProgress,
+      AnimatedVisibility(
+        visible = isTransitionVisible,
+        enter = fadeIn(),
+        exit = fadeOut(),
         modifier = Modifier
           .align(Alignment.BottomCenter)
-          .fillMaxWidth(),
-      )
+      ) {
+        MediaProgressBar(
+          mediaProgress = mediaProgress,
+          modifier = Modifier
+            .fillMaxWidth(),
+        )
+      }
     }
 
     if (offlineStatus != OfflineStatus.None) {
-      OfflineStatusIndicator(
-        status = offlineStatus,
+      AnimatedVisibility(
+        visible = isTransitionVisible,
+        enter = fadeIn(),
+        exit = fadeOut(),
         modifier = Modifier
           .align(Alignment.TopEnd)
           .padding(
             end = 8.dp,
             top = 8.dp,
-          ),
-      )
+          )
+      ) {
+        OfflineStatusIndicator(
+          status = offlineStatus,
+        )
+      }
     }
   }
 }
