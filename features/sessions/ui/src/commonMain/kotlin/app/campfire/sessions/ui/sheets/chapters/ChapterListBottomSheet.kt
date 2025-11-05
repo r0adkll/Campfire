@@ -17,7 +17,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -43,6 +45,7 @@ import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
+import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
 import app.campfire.settings.api.CampfireSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.chapters_bottomsheet_title
@@ -84,6 +87,8 @@ suspend fun OverlayHost.showChapterBottomSheet(
         topStart = 32.dp,
         topEnd = 32.dp,
       ),
+      dragHandle = {
+      },
     ) { model, overlayNavigator ->
       Impression {
         ScreenViewEvent("Chapters", ScreenType.Overlay)
@@ -117,8 +122,17 @@ private fun ChapterListBottomSheet(
     component.settings.observeShowTimeInBook()
   }.collectAsState(true)
 
+  val sessionSheetState = rememberSessionSheetTitleState(
+    // It is likely that this list will be pre-scrolled when the sheet is open
+    // so we need to let the state know to keep
+    isAlreadyScrolled = chapters
+      .indexOfFirst { it.id == currentChapter?.id }
+      .takeIf { it != -1 } != 0,
+  )
+
   SessionSheetLayout(
     modifier = modifier,
+    state = sessionSheetState,
     title = {
       Text(
         stringResource(Res.string.chapters_bottomsheet_title),
@@ -145,6 +159,16 @@ private fun ChapterListBottomSheet(
         .indexOfFirst { it.id == currentChapter?.id }
         .takeIf { it != -1 } ?: 0,
     )
+
+    val isScrolled by remember {
+      derivedStateOf {
+        lazyListState.firstVisibleItemIndex > 0
+      }
+    }
+
+    LaunchedEffect(isScrolled) {
+      sessionSheetState.isScrolled = isScrolled
+    }
 
     LazyColumn(
       state = lazyListState,
