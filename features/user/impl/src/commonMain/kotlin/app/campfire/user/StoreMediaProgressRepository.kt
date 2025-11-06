@@ -176,7 +176,7 @@ class StoreMediaProgressRepository(
 
         withContext(dispatcherProvider.databaseWrite) {
           db.mediaProgressQueries.insert(
-            newMediaProgress
+            newMediaProgress,
           )
         }
 
