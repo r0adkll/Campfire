@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
+import app.campfire.audioplayer.impl.cast.SafeCastContext
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
@@ -116,20 +117,20 @@ class ExoPlayerAudioPlayer(
     .setMediaSourceFactory(mediaSourceFactory)
     .build()
 
-  private val castPlayer: CastPlayer = CastPlayer.Builder(context)
-    .setLocalPlayer(exoPlayer)
-    .build()
-    .apply {
-      addListener(this@ExoPlayerAudioPlayer)
-    }
+  private val castPlayer: CastPlayer? = SafeCastContext.getContext(context)?.let {
+    CastPlayer.Builder(context)
+      .setLocalPlayer(exoPlayer)
+      .build()
+  }
 
   /**
    * A proxy accessor for the correct player client. All listener and access goes through the
    * [castPlayer] which configures the [exoPlayer] as the local player to use when a MediaRoute
    * is not directed at remote playback.
    */
-  internal val player: Player
-    get() = castPlayer
+  internal val player: Player = (castPlayer ?: exoPlayer).apply {
+    addListener(this@ExoPlayerAudioPlayer)
+  }
 
   private var progressJob: Job? = null
   private var fadeJob: Job? = null

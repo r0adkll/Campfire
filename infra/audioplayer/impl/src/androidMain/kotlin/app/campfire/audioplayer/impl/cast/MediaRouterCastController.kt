@@ -13,7 +13,6 @@ import app.campfire.audioplayer.cast.CastState
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
-import app.campfire.core.logging.bark
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
@@ -52,8 +51,8 @@ class MediaRouterCastController(
       state.value = context.castState.asDomain()
 
       ibark { "CastController:initialize(state = ${context.castState.asDomain()})" }
-    } catch (e: IllegalStateException) {
-      e.printStackTrace()
+    } catch (e: Exception) {
+      wbark(throwable = e) { "Unable to initialize CastContext" }
     }
   }
 
@@ -62,8 +61,8 @@ class MediaRouterCastController(
     try {
       val context = CastContext.getSharedInstance(application)
       context.removeCastStateListener(this)
-    } catch (e: IllegalStateException) {
-      bark(throwable = e) { "Failed to destroy CastContext" }
+    } catch (e: Exception) {
+      wbark(throwable = e) { "Failed to destroy CastContext" }
     } finally {
       state.value = CastState.Unavailable
     }
@@ -84,7 +83,7 @@ class MediaRouterCastController(
 
       ibark { "CastController:scanForDevices()" }
     } catch (e: Exception) {
-      ebark(throwable = e) { "Failed to start device scan" }
+      wbark(throwable = e) { "Failed to start device scan" }
     }
   }
 
@@ -95,7 +94,7 @@ class MediaRouterCastController(
       mediaRouter.removeCallback(this)
       ibark { "Stop scanning for devices" }
     } catch (e: Exception) {
-      ebark(throwable = e) { "Failed to stop scanning for devices" }
+      wbark(throwable = e) { "Failed to stop scanning for devices" }
     }
   }
 
@@ -105,8 +104,8 @@ class MediaRouterCastController(
       val mediaRouter = MediaRouter.getInstance(application)
       ibark { "Connecting route: ${mediaRouteCastDevice.route}" }
       mediaRouter.selectRoute(mediaRouteCastDevice.route)
-    } catch (e: IllegalStateException) {
-      ebark(throwable = e) { "Failed to connect to device" }
+    } catch (e: Exception) {
+      wbark(throwable = e) { "Failed to connect to device" }
     }
   }
 
