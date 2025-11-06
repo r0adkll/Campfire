@@ -141,6 +141,10 @@ internal fun ControlBar(
         Spacer(Modifier.width(8.dp))
         Text(stringResource(Res.string.menu_item_discard_progress))
       }
+    }
+
+    // Show the mark as (not) finished buttons based on the state
+    if (mediaProgress?.isFinished != true) {
       FilledTonalButton(
         onClick = onMarkFinished,
         modifier = Modifier.fillMaxWidth(),
@@ -149,9 +153,7 @@ internal fun ControlBar(
         Spacer(Modifier.width(8.dp))
         Text(stringResource(Res.string.menu_item_mark_finished))
       }
-    }
-
-    if (mediaProgress?.isFinished == true) {
+    } else {
       FilledTonalButton(
         onClick = onMarkNotFinished,
         modifier = Modifier.fillMaxWidth(),

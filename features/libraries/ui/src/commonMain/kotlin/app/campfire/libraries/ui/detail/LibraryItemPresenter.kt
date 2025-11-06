@@ -16,6 +16,8 @@ import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -53,6 +55,7 @@ class LibraryItemPresenter(
   private val analytics: Analytics,
 ) : Presenter<LibraryItemUiState> {
 
+  @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): LibraryItemUiState {
@@ -67,14 +70,14 @@ class LibraryItemPresenter(
 
     val libraryItemContentState by remember {
       repository.observeLibraryItem(screen.libraryItemId)
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<LibraryItem> }
+        .catch { emit(LoadState.Error as LoadState<LibraryItem>) }
     }.collectAsState(LoadState.Loading)
 
     val mediaProgressState by remember {
       mediaProgressRepository.observeProgress(screen.libraryItemId)
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<MediaProgress?> }
+        .catch { emit(LoadState.Error as LoadState<MediaProgress?>) }
     }.collectAsState(LoadState.Loading)
 
     val seriesContentState by remember {

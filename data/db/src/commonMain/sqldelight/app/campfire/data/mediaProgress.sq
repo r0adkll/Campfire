@@ -56,11 +56,16 @@ UPDATE OR IGNORE mediaProgress
 SET isFinished = 0,
     progress = 0,
     currentTime = 0,
-    hideFromContinueListening = 0,
+    hideFromContinueListening = 1,
     lastUpdate = :timestamp,
     finishedAt = NULL
 WHERE userId = :userId
   AND libraryItemId = :libraryItemId;
+
+getMediaProgressId:
+SELECT id FROM mediaProgress
+WHERE userId = ?
+  AND libraryItemId = ?;
 
 selectForLibraryItem:
 SELECT * FROM mediaProgress
