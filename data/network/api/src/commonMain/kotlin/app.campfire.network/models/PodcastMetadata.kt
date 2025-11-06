@@ -52,7 +52,7 @@ data class PodcastMetadata(
 
   /* The release date of the podcast. */
   @SerialName(value = "releaseDate")
-  val releaseDate: kotlinx.datetime.Instant? = null,
+  val releaseDate: kotlin.time.Instant? = null,
 
   /* The genres of the podcast. */
   @SerialName(value = "genres")

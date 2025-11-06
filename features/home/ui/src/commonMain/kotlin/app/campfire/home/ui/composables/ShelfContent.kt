@@ -140,7 +140,6 @@ private fun LoadedShelfContent(
           is LibraryItem -> entity.id
           is Author -> entity.id
           is Series -> entity.id
-          else -> entity.hashCode().toString()
         }
       },
     ) { entity ->

@@ -9,11 +9,11 @@ import campfire.common.compose.generated.resources.time_ago_minutes
 import campfire.common.compose.generated.resources.time_ago_months
 import campfire.common.compose.generated.resources.time_ago_now
 import campfire.common.compose.generated.resources.time_ago_years
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import org.jetbrains.compose.resources.stringResource
 

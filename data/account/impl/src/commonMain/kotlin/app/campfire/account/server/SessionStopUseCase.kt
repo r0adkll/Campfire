@@ -6,6 +6,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEmpty
@@ -19,6 +20,7 @@ class SessionStopUseCase(
   private val playbackController: PlaybackController,
 ) : Scoped {
 
+  @OptIn(FlowPreview::class)
   override suspend fun onDestroy() {
     // Check for any current sessions and stop them
     val currentSession = sessionRepository.getCurrentSession()

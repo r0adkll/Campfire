@@ -27,9 +27,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.rounded.CalendarClock
 import app.campfire.stats.ui.StatsUiModel
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlinx.collections.immutable.ImmutableMap
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone

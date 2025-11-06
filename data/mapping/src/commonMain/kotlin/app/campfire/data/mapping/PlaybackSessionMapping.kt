@@ -6,7 +6,7 @@ import app.campfire.core.model.PlaybackSession
 import app.campfire.network.models.DeviceInfo as NetworkDeviceInfo
 import app.campfire.network.models.PlaybackSession as NetworkPlaybackSession
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 

@@ -20,10 +20,10 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.clockFormat
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
 import campfire.infra.audioplayer.public_ui.generated.resources.timer_end_of_chapter
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.datetime.Clock
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
