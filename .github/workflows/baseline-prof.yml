@@ -17,7 +17,39 @@ env:
   ANDROID_ARCH: x86_64
 
 jobs:
+  # Build the app and benchmark tests and cache them in the setup-gradle task
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-write-only: true
+
+      - name: Download Service Accounts
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+
+      - name: Build app and benchmark
+        run: ./gradlew assembleNonMinifiedRelease --scan
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+  # Run the baseline profile against the emulator
   baseline-profile:
+    needs: [build]
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
@@ -50,26 +82,17 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-          cache: gradle
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
-
-#      - name: Accept Android SDK license
-#        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+        with:
+          cache-read-only: true
 
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
-
-#      - name: Build app and benchmark
-#        run: ./gradlew assembleNonMinifiedRelease
-#        env:
-#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: AVD cache
         uses: actions/cache@v4
@@ -88,23 +111,11 @@ jobs:
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
           script: |
-            ./gradlew generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+            ./gradlew generateBaselineProfile --scan -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
           ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
           ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-#
-#      - name: Generate Baseline Profiles
-#        run: |
-#          ./gradlew generateBaselineProfile \
-#            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
-#            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
-#            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
-#            --no-configuration-cache
-#        env:
-#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       # If we're on main branch, copy over the baseline profile and
       # commit it to the repository (if changed)
