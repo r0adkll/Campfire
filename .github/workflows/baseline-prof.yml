@@ -56,7 +56,7 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - name: Setup swap because we're cheap
+      - name: Setup swap
         run: |
           sudo swapon --show
           sudo swapoff -a
@@ -72,7 +72,7 @@ jobs:
             firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
           sudo apt autoremove -yq
           sudo apt clean
-          sudo rm -fr /opt/ghc /opt/hostedtoolcache /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
+          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
 
       - uses: actions/checkout@v5
         with:
@@ -120,12 +120,18 @@ jobs:
           target: ${{ env.ANDROID_TARGET }}
           arch: ${{ env.ANDROID_ARCH }}
           profile: ${{ env.ANDROID_PROFILE }}
-          script: |
-            ./gradlew generateBaselineProfile --scan -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+          script: ./scripts/baseline_profiles.sh
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
           ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
           ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+
+      - name: Upload Recording
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Test Recording
+          path: testRecording.mp4
 
       # If we're on main branch, copy over the baseline profile and
       # commit it to the repository (if changed)
