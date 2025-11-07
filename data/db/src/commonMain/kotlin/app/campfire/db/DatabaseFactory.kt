@@ -108,7 +108,6 @@ class DatabaseFactory(
     mediaChaptersAdapter = MediaChapters.Adapter(IntColumnAdapter),
     mediaAudioTracksAdapter = MediaAudioTracks.Adapter(
       mediaIndexAdapter = IntColumnAdapter,
-      metadata_sizeAdapter = IntColumnAdapter,
     ),
     mediaProgressAdapter = MediaProgress.Adapter(
       mediaItemTypeAdapter = EnumColumnAdapter(),
