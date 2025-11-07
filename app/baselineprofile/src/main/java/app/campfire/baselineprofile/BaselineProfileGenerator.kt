@@ -50,7 +50,9 @@ class BaselineProfileGenerator {
         handleSignIn()
 
         // Find and click an item out of the home feed to open the detail page
-        onElement { contentDescription == "HomeLibraryItem" }.click()
+        onElement { isScrollable }
+          .onElement { isClickable }
+          .click()
       }
     }
   }

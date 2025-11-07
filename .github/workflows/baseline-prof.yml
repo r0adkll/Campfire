@@ -19,6 +19,7 @@ env:
 jobs:
   # Build the app and benchmark tests and cache them in the setup-gradle task
   build:
+    name: "Build App and Benchmark"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -49,6 +50,7 @@ jobs:
 
   # Run the baseline profile against the emulator
   baseline-profile:
+    name: "Generate Baseline Profiles"
     needs: [build]
     runs-on: ubuntu-latest
     timeout-minutes: 45
