@@ -1,5 +1,6 @@
 package app.campfire.auth.ui.consent
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -12,32 +13,37 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DoneOutline
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ParagraphStyle
@@ -59,11 +65,35 @@ import app.campfire.common.compose.icons.rounded.AreaChart
 import app.campfire.common.compose.icons.rounded.AreaChartFilled
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.CrashFilled
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_finish_analytics_consent
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalSharedTransitionApi::class)
+@Preview
+@Composable
+fun PreviewAnalyticConsent() {
+  PreviewSharedElementTransitionLayout {
+    CampfireTheme {
+      CompositionLocalProvider(
+        LocalWindowSizeClass provides calculateWindowSizeClass(),
+      ) {
+        AnalyticConsent(
+          state = AnalyticConsentUiState(
+            crashReportingEnabled = true,
+            analyticReportingEnabled = true,
+            eventSink = {},
+          ),
+        )
+      }
+    }
+  }
+}
 
 @CircuitInject(AnalyticConsentScreen::class, UserScope::class)
 @Composable
@@ -139,24 +169,50 @@ private fun AnalyticConsentContent(
       Spacer(Modifier.height(88.dp))
     }
 
-    ExtendedFloatingActionButton(
-      modifier = Modifier
-        .semantics {
-          // This is required for uiAutomator to detect and find this button
-          contentDescription = "Apply analytics consent"
-        }
-        .align(Alignment.BottomCenter)
-        .padding(bottom = 16.dp),
-      icon = {
-        Icon(Icons.Rounded.DoneOutline, contentDescription = null)
-      },
-      text = {
-        Text(stringResource(Res.string.action_finish_analytics_consent))
-      },
+    ConsentFinishButton(
+      modifier = Modifier.align(Alignment.BottomCenter),
       onClick = {
         state.eventSink(AnalyticConsentUiEvent.ApplyConsent)
       },
     )
+  }
+}
+
+@Composable
+private fun ConsentFinishButton(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    modifier = modifier
+      .semantics { role = Role.Button }
+      .padding(bottom = 16.dp),
+    color = MaterialTheme.colorScheme.primary,
+    shape = MaterialTheme.shapes.extraLarge,
+    shadowElevation = 4.dp,
+    onClick = onClick,
+  ) {
+    Row(
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Spacer(Modifier.size(48.dp))
+      Text(
+        text = stringResource(Res.string.action_finish_analytics_consent),
+        style = MaterialTheme.typography.labelLarge,
+        color = LocalContentColor.current,
+        modifier = Modifier
+          .padding(horizontal = 8.dp),
+      )
+      Box(
+        modifier = Modifier.size(48.dp),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          Icons.AutoMirrored.Rounded.ArrowForward,
+          contentDescription = stringResource(Res.string.action_finish_analytics_consent),
+        )
+      }
+    }
   }
 }
 

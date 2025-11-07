@@ -61,10 +61,15 @@ class BaselineProfileGenerator {
 fun UiAutomatorTestScope.handleSignIn() {
   val welcomeScreenElement = onElementOrNull { textAsString() == "Add a campsite" }
   if (welcomeScreenElement != null) {
+    // Click through to the Login Screen
     welcomeScreenElement.click()
     waitForStableInActiveWindow()
+
+    // Click to Login (Credentials pre-supplied via Gradle)
     onElement { textAsString() == "Add campsite" }.click()
     waitForStableInActiveWindow()
-    onElement { contentDescription == "Apply analytics consent" }.click()
+
+    // Click through the Analytics Consent Page
+    onElement { textAsString() == "Continue" }.click()
   }
 }

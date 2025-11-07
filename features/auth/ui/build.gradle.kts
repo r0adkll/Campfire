@@ -19,6 +19,7 @@ kotlin {
         implementation(projects.data.account.api)
 
         implementation(compose.components.resources)
+        implementation(compose.components.uiToolingPreview)
       }
     }
 
