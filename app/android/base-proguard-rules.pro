@@ -33,6 +33,8 @@
 
 -renamesourcefileattribute SourceFile
 
+-keep public class * extends java.lang.Exception
+
 # Strip out all Logcat calls from release builds
 -assumenosideeffects class android.util.Log {
     public static int v(...);

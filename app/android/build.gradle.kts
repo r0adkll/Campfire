@@ -1,6 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 
 plugins {
   id("app.campfire.android.application")
@@ -100,11 +101,16 @@ android {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
       isMinifyEnabled = true
       isShrinkResources = true
+
       proguardFiles(
         getDefaultProguardFile("proguard-android-optimize.txt"),
         "base-proguard-rules.pro",
         "prod-proguard-rules.pro",
       )
+
+      configure<CrashlyticsExtension> {
+        mappingFileUploadEnabled = true
+      }
     }
 
     create("benchmarkRelease") {
