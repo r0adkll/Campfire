@@ -5,7 +5,7 @@ data class FileMetadata(
   val ext: String,
   val path: String,
   val relPath: String,
-  val size: Int,
+  val size: Long,
   val mtimeMs: Long,
   val ctimeMs: Long,
   val birthtimeMs: Long,

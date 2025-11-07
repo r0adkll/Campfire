@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS mediaAudioTracks (
   metadata_ext TEXT NOT NULL,
   metadata_path TEXT NOT NULL,
   metadata_relPath TEXT NOT NULL,
-  metadata_size INTEGER AS Int NOT NULL,
+  metadata_size INTEGER NOT NULL,
   metadata_mtimeMs INTEGER NOT NULL,
   metadata_ctimeMs INTEGER NOT NULL,
   metadata_birthtimeMs INTEGER NOT NULL,
