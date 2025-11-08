@@ -89,7 +89,7 @@ class StoreHomeRepository(
 
         val doesOriginAllowNulls =
           response.origin !is StoreReadResponseOrigin.SourceOfTruth &&
-          response.origin !is StoreReadResponseOrigin.Fetcher
+            response.origin !is StoreReadResponseOrigin.Fetcher
 
         if (output.isNullOrEmpty() && doesOriginAllowNulls) {
           return@mapNotNull null

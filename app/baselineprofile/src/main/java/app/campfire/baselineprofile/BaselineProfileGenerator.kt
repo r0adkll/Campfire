@@ -1,15 +1,11 @@
 package app.campfire.baselineprofile
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
-import androidx.test.core.app.takeScreenshot
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import androidx.test.uiautomator.ResultsReporter
 import androidx.test.uiautomator.UiAutomatorTestScope
 import androidx.test.uiautomator.onElement
-import androidx.test.uiautomator.saveToFile
-import androidx.test.uiautomator.takeScreenshot
 import androidx.test.uiautomator.textAsString
 import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
