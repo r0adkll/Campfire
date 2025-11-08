@@ -6,6 +6,7 @@ import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.uiautomator.UiAutomatorTestScope
 import androidx.test.uiautomator.onElement
+import androidx.test.uiautomator.onElementOrNull
 import androidx.test.uiautomator.textAsString
 import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
@@ -52,10 +53,10 @@ class BaselineProfileGenerator {
         // Let's make sure the app is stable
         waitForStableInActiveWindow()
 
-        // Find and click an item out of the home feed to open the detail page
-        onElement { isScrollable }
-          .onElement { isClickable }
-          .click()
+        // IF the home feed loads, click on an item
+        onElementOrNull { isScrollable }
+          ?.onElementOrNull { isClickable }
+          ?.click()
       }
     }
   }
