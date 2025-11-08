@@ -42,7 +42,7 @@ interface HttpClientModule {
 
       install(Logging) {
         level = when {
-          applicationInfo.debugBuild -> LogLevel.HEADERS
+          applicationInfo.debugBuild -> LogLevel.INFO
           applicationInfo.flavor == Flavor.Alpha -> LogLevel.INFO
           else -> LogLevel.NONE
         }

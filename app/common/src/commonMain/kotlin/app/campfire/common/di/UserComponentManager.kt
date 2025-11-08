@@ -8,6 +8,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
+import app.campfire.tracing.trace
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +30,7 @@ class UserComponentManager(
     bark(LogPriority.ERROR, throwable = throwable) { "Coroutine Exception in UserComponentManager" }
   }
 
-  override fun create(userSession: UserSession) {
+  override fun create(userSession: UserSession) = trace("createUserComponent") {
     val newUserComponent = userComponentFactory.create(userSession)
     ComponentHolder.updateComponent(applicationScope, newUserComponent)
   }

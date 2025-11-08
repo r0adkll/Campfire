@@ -5,6 +5,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
+import app.campfire.tracing.Trace
 import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -23,10 +24,12 @@ class StartupInitializer(
 
   fun initialize() {
     applicationScope.launch {
+      Trace.beginSection("StartupInitializer.initialize")
       ibark { "Starting startup initialization" }
       val deferred = sortedInitializers.map { initializer ->
         async {
           dbark { "--> ${initializer::class.simpleName} is starting" }
+          Trace.beginAsyncSection("${initializer::class.simpleName}", 0)
           try {
             initializer.onInitialize()
           } catch (e: Exception) {
@@ -34,12 +37,14 @@ class StartupInitializer(
             ebark(throwable = e) { "Something went wrong initializing with ${initializer::class.qualifiedName}" }
           } finally {
             dbark { "<-- ${initializer::class.simpleName} has finished" }
+            Trace.endAsyncSection("${initializer::class.simpleName}", 0)
           }
         }
       }
 
       deferred.awaitAll()
       ibark { "Finished startup initializing" }
+      Trace.endSection()
     }
   }
 

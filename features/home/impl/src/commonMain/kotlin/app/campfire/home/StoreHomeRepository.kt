@@ -85,11 +85,17 @@ class StoreHomeRepository(
       .debugLogging(ShelfStore.tag)
       .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
       .mapNotNull { response ->
-        val output = response.dataOrNull() ?: emptyList()
-        if (output.isEmpty() && response.origin == StoreReadResponseOrigin.SourceOfTruth) {
+        val output = response.dataOrNull()
+
+        val doesOriginAllowNulls =
+          response.origin !is StoreReadResponseOrigin.SourceOfTruth &&
+          response.origin !is StoreReadResponseOrigin.Fetcher
+
+        if (output.isNullOrEmpty() && doesOriginAllowNulls) {
           return@mapNotNull null
         }
-        output
+
+        output ?: emptyList()
       }
   }
 }

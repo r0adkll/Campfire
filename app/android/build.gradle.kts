@@ -146,6 +146,7 @@ dependencies {
 
   implementation(projects.app.common)
   implementation(projects.common.screens)
+  implementation(projects.infra.tracing)
 
   implementation(libs.about.libraries.core)
 
