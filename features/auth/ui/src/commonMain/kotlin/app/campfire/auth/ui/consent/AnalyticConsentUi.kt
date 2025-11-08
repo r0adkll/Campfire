@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.composables.SinglePaneLayout
@@ -170,7 +171,9 @@ private fun AnalyticConsentContent(
     }
 
     ConsentFinishButton(
-      modifier = Modifier.align(Alignment.BottomCenter),
+      modifier = Modifier
+        .zIndex(1f)
+        .align(Alignment.BottomCenter),
       onClick = {
         state.eventSink(AnalyticConsentUiEvent.ApplyConsent)
       },

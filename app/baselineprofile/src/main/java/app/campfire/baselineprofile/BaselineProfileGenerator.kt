@@ -70,6 +70,6 @@ fun UiAutomatorTestScope.handleSignIn() {
     waitForStableInActiveWindow()
 
     // Click through the Analytics Consent Page
-    onElement { textAsString() == "Continue" }.click()
+    onElementOrNull { textAsString() == "Continue" }?.click()
   }
 }
