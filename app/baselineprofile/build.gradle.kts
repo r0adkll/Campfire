@@ -27,9 +27,9 @@ android {
   // ./gradlew :app:android:generateBaselineProfile
   testOptions.managedDevices.allDevices {
     @Suppress("UnstableApiUsage")
-    create<ManagedVirtualDevice>("pixel6Api34") {
+    create<ManagedVirtualDevice>("pixel6Api35") {
       device = "Pixel 6"
-      apiLevel = 34
+      apiLevel = 35
       systemImageSource = "aosp"
     }
   }
@@ -38,10 +38,8 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-  managedDevices += "pixel6Api34"
-  useConnectedDevices = true
-  // Uncomment this to enable the emulator display for testing
-  // enableEmulatorDisplay = true
+  managedDevices += "pixel6Api35"
+  useConnectedDevices = false
 }
 
 dependencies {

@@ -9,6 +9,7 @@ import androidx.test.uiautomator.ResultsReporter
 import androidx.test.uiautomator.UiAutomatorTestScope
 import androidx.test.uiautomator.onElement
 import androidx.test.uiautomator.saveToFile
+import androidx.test.uiautomator.takeScreenshot
 import androidx.test.uiautomator.textAsString
 import androidx.test.uiautomator.uiAutomator
 import org.junit.Rule
@@ -49,20 +50,11 @@ class BaselineProfileGenerator {
       uiAutomator {
         startApp(packageName = packageName)
 
-        val reporter = ResultsReporter("BaselineProfile.itemDetail")
-
         // Log the user in, if the are not already
         handleSignIn()
 
-        val file = reporter.addNewFile(
-          filename = "home_screenshot",
-          title = "Post-login Home Screen"
-        )
-
-        takeScreenshot()
-          .saveToFile(file)
-
-        reporter.reportToInstrumentation()
+        // Let's make sure the app is stable
+        waitForStableInActiveWindow()
 
         // Find and click an item out of the home feed to open the detail page
         onElement { isScrollable }
