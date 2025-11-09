@@ -74,6 +74,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/build/reports/kover/report.xml
           title: Code Coverage
+          token: ${{ secrets.CAMPFIRE_BOT_PAT }}
           update-comment: true
           min-coverage-overall: 50
           min-coverage-changed-files: 80
