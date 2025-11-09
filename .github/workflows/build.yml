@@ -27,6 +27,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.CAMPFIRE_BOT_PAT }}
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -39,10 +41,24 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Check convention plugins code style with Spotless
-        run: ./gradlew -p gradle/build-logic spotlessCheck
+        if: always()
+        run: ./gradlew -p gradle/build-logic spotlessApply
 
       - name: Check code style with Spotless
-        run: ./gradlew spotlessCheck
+        if: always()
+        run: ./gradlew spotlessApply
+
+      - name: Push changes to PR if exist
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          # If there are any changes from running spotlessApply, push to PR
+          if [[ $(git diff --stat .) != '' ]]; then
+            git config user.name Rotom-Bot
+            git config user.email veedubusc+deckbox@gmail.com
+            git commit -am "Automated Code Style Updates"
+            git pull --rebase
+            git push
+          fi
 
   code-coverage:
     runs-on: ubuntu-latest
