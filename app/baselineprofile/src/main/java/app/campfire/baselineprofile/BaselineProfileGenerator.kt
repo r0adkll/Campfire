@@ -53,7 +53,11 @@ class BaselineProfileGenerator {
         // Let's make sure the app is stable
         waitForStableInActiveWindow()
 
-        // IF the home feed loads, click on an item
+        // CAVEAT:
+        //   This interaction is dependent on a network interaction and content loading. This is inherently
+        //   flaky by the nature of it and can lead to this test failing periodically.
+        //
+        // IF the home feed loads, click on an item, otherwise, probably best to just ignore it
         onElementOrNull { isScrollable }
           ?.onElementOrNull { isClickable }
           ?.click()
