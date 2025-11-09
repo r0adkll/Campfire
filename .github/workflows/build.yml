@@ -23,8 +23,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   code-style:
-    runs-on: macos-latest
-    timeout-minutes: 60
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -45,9 +44,38 @@ jobs:
       - name: Check code style with Spotless
         run: ./gradlew spotlessCheck
 
+  code-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Run tests and generate coverage report
+        run: ./gradlew test allTests koverXmlReport
+
+      - name: Add coverage report to PR
+        id: kover
+        uses: mi-kas/kover-report@v1
+        with:
+          path: ${{ github.workspace }}/build/reports/kover/report.xml
+          title: Code Coverage
+          update-comment: true
+          min-coverage-overall: 50
+          min-coverage-changed-files: 80
+          coverage-counter-type: LINE
+
   android:
     needs: [code-style]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
@@ -137,7 +165,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build Desktop App
-        run: ./gradlew jvmTest :app:desktop:packageDistributionForCurrentOS
+        run: ./gradlew :app:desktop:packageDistributionForCurrentOS
 
       - name: Upload build outputs
         if: always()
@@ -153,14 +181,6 @@ jobs:
           name: desktop-reports
           path: |
             **/build/reports/*
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: desktop-test-results
-          path: |
-            **/build/test-results/*
 
   ios-test:
     needs: [code-style]
