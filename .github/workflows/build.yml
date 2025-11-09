@@ -50,20 +50,20 @@ jobs:
         run: ./gradlew spotlessApply
 
       - name: Push changes to PR if exist
-        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
         run: |
           # If there are any changes from running spotlessApply, push to PR
           if [[ $(git diff --stat .) != '' ]]; then
-            git config user.name Rotom-Bot
-            git config user.email veedubusc+deckbox@gmail.com
-            git commit -am "Automated Code Style Updates"
-            git push
-          fi
+            # We only want to push changes to the branch if we are on a pull request
+            if [[ "$IS_PULL_REQUEST" != "true" ]]; then
+              git config user.name Rotom-Bot
+              git config user.email veedubusc+deckbox@gmail.com
+              git commit -am "Automated Code Style Updates"
+              git push
+            fi
 
-      - name: Fail step if changes exist
-        run: |
-          if [[ $(git diff --stat .) != '' ]]; then
-            # If there are changes, fail this step
+            # If there are changes, always fail
             exit 1
           fi
 
