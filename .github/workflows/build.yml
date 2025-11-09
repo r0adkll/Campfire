@@ -49,15 +49,8 @@ jobs:
         if: always()
         run: ./gradlew spotlessApply
 
-      - name: Fail step if changes exist
-        run: |
-          if [[ $(git diff --stat .) != '' ]]; then
-            # If there are changes, fail this step
-            exit 1
-          fi
-
       - name: Push changes to PR if exist
-        if: always() && ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
           # If there are any changes from running spotlessApply, push to PR
           if [[ $(git diff --stat .) != '' ]]; then
@@ -65,6 +58,13 @@ jobs:
             git config user.email veedubusc+deckbox@gmail.com
             git commit -am "Automated Code Style Updates"
             git push
+          fi
+
+      - name: Fail step if changes exist
+        run: |
+          if [[ $(git diff --stat .) != '' ]]; then
+            # If there are changes, fail this step
+            exit 1
           fi
 
   code-coverage:
