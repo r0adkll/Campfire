@@ -11,6 +11,7 @@ androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 appcompat = "1.7.1"
 appdistribution = "16.0.0-beta17"
+burst = "2.10.2"
 clikt = "5.0.3"
 core-ktx = "1.17.0"
 coroutines = "1.10.2"
@@ -57,6 +58,7 @@ android-lint = { id = "com.android.lint", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "about-libraries" }
 buildConfig = "com.github.gmazzo.buildconfig:5.7.1"
+burst = { id = "app.cash.burst", version.ref = "burst" }
 cacheFixPlugin = { id = "org.gradle.android.cache-fix", version = "3.0.2" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

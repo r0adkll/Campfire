@@ -1,5 +1,6 @@
 package app.campfire.core.extensions
 
+import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.time.Duration
@@ -16,7 +17,9 @@ val Float.seconds: Duration
  * @return the String representation of the receiver up to numOfDec decimal places
  */
 fun Float.toString(numOfDec: Int): String {
-  val integerDigits = this.toInt()
-  val floatDigits = ((this - integerDigits) * 10f.pow(numOfDec)).roundToInt()
-  return "$integerDigits.$floatDigits"
+  val sign = if (this < 0f) "-" else ""
+  val thisAbs = abs(this)
+  val integerDigits = thisAbs.toInt()
+  val floatDigits = ((thisAbs - integerDigits) * 10f.pow(numOfDec)).roundToInt()
+  return "$sign$integerDigits.$floatDigits"
 }
