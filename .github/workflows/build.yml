@@ -55,8 +55,10 @@ jobs:
         run: |
           # If there are any changes from running spotlessApply, push to PR
           if [[ $(git diff --stat .) != '' ]]; then
+            echo "Changes detected…"
             # We only want to push changes to the branch if we are on a pull request
-            if [[ "$IS_PULL_REQUEST" != "true" ]]; then
+            if [[ "$IS_PULL_REQUEST" == "true" ]]; then
+              echo "Pull Request, pushing changes to branch"
               git config user.name Rotom-Bot
               git config user.email veedubusc+deckbox@gmail.com
               git commit -am "Automated Code Style Updates"
