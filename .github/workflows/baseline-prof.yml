@@ -53,7 +53,7 @@ jobs:
     name: "Generate Baseline Profiles"
     needs: [build]
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
 
     steps:
       - name: Setup swap
