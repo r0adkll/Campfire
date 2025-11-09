@@ -66,7 +66,7 @@ jobs:
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
       - name: Run tests and generate coverage report
-        run: ./gradlew test allTests koverXmlReport
+        run: ./gradlew --quiet test allTests koverXmlReport
 
       - name: Add coverage report to PR
         id: kover
@@ -110,7 +110,7 @@ jobs:
 
       - name: Build Android App
         run: |
-          ./gradlew :app:android:assembleStandardRelease
+          ./gradlew --quiet :app:android:assembleStandardRelease
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -172,7 +172,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build Desktop App
-        run: ./gradlew :app:desktop:packageDistributionForCurrentOS
+        run: ./gradlew --quiet :app:desktop:packageDistributionForCurrentOS
 
       - name: Upload build outputs
         if: always()
