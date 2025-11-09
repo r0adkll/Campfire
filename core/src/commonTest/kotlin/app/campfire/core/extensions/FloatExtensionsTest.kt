@@ -15,7 +15,7 @@ class FloatExtensionsTest {
     decimalPlaces: Int = burstValues(0, 1, 2, 3),
   ) {
     val floatString = floatValue.toString(decimalPlaces)
-    println("Float[$floatValue] ==> [${floatString}]")
+    println("Float[$floatValue] ==> [$floatString]")
     assertThat(floatString.toFloatOrNull()).isNotNull()
   }
 }
