@@ -148,7 +148,6 @@ fun authorMetadata(
   return Media.AuthorMetadata(id = id, name = name)
 }
 
-
 /**
  * Creates a fake [Media] object for use in tests.
  * Allows for overriding specific fields to suit different test scenarios.
@@ -190,4 +189,3 @@ fun media(
     tracks = tracks,
   )
 }
-
