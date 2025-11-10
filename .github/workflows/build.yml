@@ -23,8 +23,53 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   code-style:
-    runs-on: macos-latest
-    timeout-minutes: 60
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          token: ${{ secrets.CAMPFIRE_BOT_PAT }}
+          ref: ${{ github.head_ref }}
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Check convention plugins code style with Spotless
+        if: always()
+        run: ./gradlew -p gradle/build-logic spotlessApply
+
+      - name: Check code style with Spotless
+        if: always()
+        run: ./gradlew spotlessApply
+
+      - name: Push changes to PR if exist
+        env:
+          IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
+        run: |
+          # If there are any changes from running spotlessApply, push to PR
+          if [[ $(git diff --stat .) != '' ]]; then
+            echo "Changes detected…"
+            # We only want to push changes to the branch if we are on a pull request
+            if [[ "$IS_PULL_REQUEST" == "true" ]]; then
+              echo "Pull Request, pushing changes to branch"
+              git config user.name Rotom-Bot
+              git config user.email veedubusc+deckbox@gmail.com
+              git commit -am "Automated Code Style Updates"
+              git push
+            fi
+
+            # If there are changes, always fail
+            exit 1
+          fi
+
+  code-coverage:
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v5
@@ -38,15 +83,30 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Check convention plugins code style with Spotless
-        run: ./gradlew -p gradle/build-logic spotlessCheck
+      - name: Download Google Services JSON
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
-      - name: Check code style with Spotless
-        run: ./gradlew spotlessCheck
+      - name: Run tests and generate coverage report
+        run: ./gradlew --quiet test allTests koverXmlReport
+
+      - name: Add coverage report to PR
+        id: kover
+        uses: mi-kas/kover-report@v1
+        with:
+          path: ${{ github.workspace }}/build/reports/kover/report.xml
+          title: Code Coverage
+          token: ${{ secrets.CAMPFIRE_BOT_PAT }}
+          update-comment: true
+          min-coverage-overall: 50
+          min-coverage-changed-files: 80
+          coverage-counter-type: LINE
 
   android:
     needs: [code-style]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
@@ -73,7 +133,7 @@ jobs:
 
       - name: Build Android App
         run: |
-          ./gradlew :app:android:assembleStandardRelease
+          ./gradlew --quiet :app:android:assembleStandardRelease
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -134,7 +194,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build Desktop App
-        run: ./gradlew jvmTest :app:desktop:packageDistributionForCurrentOS
+        run: ./gradlew --quiet :app:desktop:packageDistributionForCurrentOS
 
       - name: Upload build outputs
         if: always()
@@ -150,14 +210,6 @@ jobs:
           name: desktop-reports
           path: |
             **/build/reports/*
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: desktop-test-results
-          path: |
-            **/build/test-results/*
 
   ios-test:
     needs: [code-style]

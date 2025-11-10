@@ -1,3 +1,6 @@
+import kotlinx.kover.gradle.aggregation.settings.dsl.KoverSettingsExtension
+import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
+
 pluginManagement {
   includeBuild("gradle/build-logic")
 
@@ -47,6 +50,24 @@ dependencyResolutionManagement {
 
     // Prerelease versions of Compose Multiplatform
     maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+  }
+}
+
+plugins {
+  id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.3"
+}
+
+extensions.configure<KoverSettingsExtension> {
+  enableCoverage()
+  reports {
+    verify {
+      rule {
+        bound {
+          minValue = 50
+          coverageUnits = CoverageUnit.LINE
+        }
+      }
+    }
   }
 }
 
