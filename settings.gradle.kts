@@ -60,6 +60,7 @@ plugins {
 extensions.configure<KoverSettingsExtension> {
   enableCoverage()
   reports {
+    excludedClasses.add("*.test.*")
     verify {
       rule {
         bound {
@@ -91,6 +92,7 @@ include(
   ":infra:audioplayer:api",
   ":infra:audioplayer:impl",
   ":infra:audioplayer:public-ui",
+  ":infra:audioplayer:test",
   ":infra:shake",
   ":infra:debug",
   ":infra:updates:api",
@@ -100,6 +102,7 @@ include(
 include(
   ":common:screens",
   ":common:compose",
+  ":common:test",
 )
 include(
   ":data:account:api",
@@ -110,6 +113,7 @@ include(
   ":data:analytics:api",
   ":data:analytics:impl",
   ":data:analytics:mixpanel",
+  ":data:analytics:test",
 )
 include(
   ":data:crashreporting:api",

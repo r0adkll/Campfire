@@ -13,8 +13,8 @@ kotlin {
 
     commonTest {
       dependencies {
-        implementation(libs.kotlin.test)
-        implementation(libs.assertk)
+        implementation(projects.data.analytics.test)
+        implementation(libs.bundles.test.common)
       }
     }
   }

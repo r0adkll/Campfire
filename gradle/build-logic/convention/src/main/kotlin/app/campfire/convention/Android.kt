@@ -26,6 +26,10 @@ fun Project.configureAndroid(computeNamespace: Boolean = true) {
       // https://developer.android.com/studio/write/java8-support
       isCoreLibraryDesugaringEnabled = true
     }
+
+    testOptions {
+      unitTests.isReturnDefaultValues = true
+    }
   }
 
   dependencies {

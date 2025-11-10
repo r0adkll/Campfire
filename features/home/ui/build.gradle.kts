@@ -15,6 +15,16 @@ kotlin {
       }
     }
 
+    commonTest {
+      dependencies {
+        implementation(projects.common.test)
+        implementation(projects.data.analytics.test)
+        implementation(projects.infra.audioplayer.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.ui)
+      }
+    }
+
     jvmMain {
       dependencies {
         implementation(compose.preview)

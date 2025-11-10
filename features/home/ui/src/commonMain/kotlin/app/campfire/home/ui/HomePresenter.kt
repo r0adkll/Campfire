@@ -111,10 +111,7 @@ class HomePresenter(
         }
         .flatMapLatest { itemIds ->
           homeRepository.observeMediaProgress(itemIds)
-            .map {
-              it.filterValues { progress -> !progress.hideFromContinueListening }
-                .toPersistentMap()
-            }
+            .map { it.toPersistentMap() }
         }
     }.collectAsState(persistentMapOf())
 

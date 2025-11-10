@@ -1,6 +1,7 @@
 package app.campfire.analytics
 
 import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.analytics.test.FakeAnalytics
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import kotlin.test.Test

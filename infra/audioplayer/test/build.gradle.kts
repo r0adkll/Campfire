@@ -1,5 +1,4 @@
 plugins {
-  id("app.campfire.android.library")
   id("app.campfire.multiplatform")
 }
 
@@ -8,7 +7,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        api(projects.core)
+        api(projects.infra.audioplayer.api)
       }
     }
   }
