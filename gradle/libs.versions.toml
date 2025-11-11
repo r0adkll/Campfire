@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.0"
+agp = "8.13.1"
 about-libraries = "13.1.0"
 accompanist = "0.37.3"
 androidxlifecycle = "2.9.4"
