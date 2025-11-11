@@ -1,6 +1,7 @@
 package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -49,6 +50,8 @@ internal fun ItemDescription(
         isOverflowed = result.didOverflowHeight || isExpanded
       },
       modifier = Modifier
+        .fillMaxWidth()
+        .animateContentSize()
         .clickable(
           enabled = isOverflowed && !isExpanded,
           onClick = {

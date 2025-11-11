@@ -37,6 +37,11 @@
     <item quantity="other">Genres</item>
   </plurals>
 
+  <plurals name="tags_title">
+    <item quantity="one">Tag</item>
+    <item quantity="other">Tags</item>
+  </plurals>
+
   <string name="header_chapters">Chapters</string>
 
   <string name="action_delete_offline">Delete</string>

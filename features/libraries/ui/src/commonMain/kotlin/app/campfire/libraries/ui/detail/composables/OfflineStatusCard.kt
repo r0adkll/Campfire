@@ -176,11 +176,13 @@ private fun OfflineProgressBar(
   ) {
     if (isIndeterminate) {
       LinearProgressIndicator(
+        trackColor = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
       )
     } else {
       LinearProgressIndicator(
         progress = { progress },
+        trackColor = MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth(),
       )
     }

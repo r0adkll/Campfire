@@ -1,22 +1,19 @@
 package app.campfire.libraries.ui.detail
 
-import app.campfire.audioplayer.offline.OfflineDownload
+import androidx.compose.runtime.Immutable
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
+import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
+@Immutable
 data class LibraryItemUiState(
-  val sessionUiState: SessionUiState,
-  val libraryItemContentState: LoadState<out LibraryItem>,
-  val offlineDownloadState: OfflineDownload?,
-  val seriesContentState: LoadState<out List<LibraryItem>>,
-  val mediaProgressState: LoadState<out MediaProgress?>,
+  val libraryItem: LibraryItem?,
+  val contentState: LoadState<out List<ContentSlot>>,
   val showConfirmDownloadDialog: Boolean,
-  val showTimeInBook: Boolean,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -36,7 +33,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class AuthorClick(val item: LibraryItem) : LibraryItemUiEvent
   data class NarratorClick(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
-  data class TimeInBookChange(val item: LibraryItem, val enabled: Boolean) : LibraryItemUiEvent
+  data class TimeInBookChange(val enabled: Boolean) : LibraryItemUiEvent
 
   data class DownloadClick(val doNotShowAgain: Boolean = true) : LibraryItemUiEvent
   data object RemoveDownloadClick : LibraryItemUiEvent

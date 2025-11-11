@@ -25,7 +25,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.campfire.core.model.Media
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
@@ -35,7 +34,8 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun AuthorNarratorBar(
-  metadata: Media.Metadata,
+  author: String?,
+  narrator: String?,
   onAuthorClick: () -> Unit,
   onNarratorClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -48,7 +48,7 @@ internal fun AuthorNarratorBar(
   ) {
     ByLine(
       title = { Text(stringResource(Res.string.by_author_line)) },
-      content = { Text(metadata.authorName ?: "--") },
+      content = { Text(author ?: "--") },
       modifier = Modifier
         .clickable(onClick = onAuthorClick)
         .align(Alignment.Top)
@@ -67,7 +67,7 @@ internal fun AuthorNarratorBar(
       title = { Text(stringResource(Res.string.by_narrator_line)) },
       content = {
         Text(
-          text = metadata.narratorName ?: "--",
+          text = narrator ?: "--",
           maxLines = if (isExpanded) Int.MAX_VALUE else maxLines,
           overflow = TextOverflow.Ellipsis,
           onTextLayout = { result ->

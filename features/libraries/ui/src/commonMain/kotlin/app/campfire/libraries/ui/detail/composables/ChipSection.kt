@@ -8,22 +8,20 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.common.compose.widgets.Tag
 import app.campfire.common.compose.widgets.TagGroup
-import campfire.features.libraries.ui.generated.resources.Res
-import campfire.features.libraries.ui.generated.resources.genres_title
-import org.jetbrains.compose.resources.pluralStringResource
 
 @Composable
-internal fun GenreChips(
-  genres: List<String>,
+internal fun ChipSection(
+  title: String,
+  items: List<String>,
   modifier: Modifier = Modifier,
 ) {
   Column(
     modifier = modifier
       .padding(horizontal = 16.dp),
   ) {
-    MetadataHeader(pluralStringResource(Res.plurals.genres_title, genres.size))
+    MetadataHeader(title)
     TagGroup(
-      tags = genres.map { Tag(it) },
+      tags = items.map { Tag(it) },
     )
   }
 }

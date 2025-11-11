@@ -16,6 +16,7 @@ kotlin {
         implementation(projects.ui.appbar)
 
         implementation(compose.components.resources)
+        implementation(compose.components.uiToolingPreview)
 
         implementation(libs.circuitx.overlays)
         implementation(libs.compose.rich.text)

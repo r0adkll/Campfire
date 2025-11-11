@@ -11,10 +11,13 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.coroutines.map
+import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -22,10 +25,27 @@ import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
+import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
+import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
+import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
+import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import app.campfire.libraries.ui.detail.composables.slots.ControlSlot
+import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
+import app.campfire.libraries.ui.detail.composables.slots.OfflineStatusSlot
+import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
+import app.campfire.libraries.ui.detail.composables.slots.PublishedSlot
+import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
+import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
+import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
+import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.MediaProgressRepository
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.genres_title
+import campfire.features.libraries.ui.generated.resources.tags_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -88,8 +108,8 @@ class LibraryItemPresenter(
         .filterNotNull()
         .flatMapLatest { seriesSequence ->
           seriesRepository.observeSeriesLibraryItems(seriesSequence.id)
-            .map { LoadState.Loaded(it) }
-            .catch { LoadState.Error }
+            .map { LoadState.Loaded(it) as LoadState<List<LibraryItem>> }
+            .catch { emit(LoadState.Error as LoadState<List<LibraryItem>>) }
         }
     }.collectAsState(LoadState.Loading)
 
@@ -109,19 +129,28 @@ class LibraryItemPresenter(
       settings.observeShowTimeInBook()
     }.collectAsState(true)
 
+    // Build the Slots
+    val slots = libraryItemContentState.map { libraryItem ->
+      buildSlots(
+        libraryItem = libraryItem,
+        sharedTransitionKey = screen.sharedTransitionKey,
+        mediaProgressState = mediaProgressState,
+        offlineDownloadState = offlineDownloadState,
+        seriesContentState = seriesContentState,
+        showTimeInBook = showTimeInBook,
+        showConfirmDownloadDialog = showConfirmDownloadDialog,
+      )
+    }
+
     return LibraryItemUiState(
-      sessionUiState = currentSession,
-      libraryItemContentState = libraryItemContentState,
-      offlineDownloadState = offlineDownloadState,
-      seriesContentState = seriesContentState,
-      mediaProgressState = mediaProgressState,
+      libraryItem = libraryItemContentState.dataOrNull,
+      contentState = slots,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
-      showTimeInBook = showTimeInBook,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
         is LibraryItemUiEvent.PlayClick -> {
-          analytics.send(ActionEvent("add_to_collection", Click))
+          analytics.send(ActionEvent("play_item", Click))
           playbackController.startSession(event.item.id)
         }
 
@@ -172,7 +201,7 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.ChapterClick -> {
           analytics.send(ActionEvent("chapter", Click))
-          val session = (currentSession as? SessionUiState.Current)?.session
+          val session = currentSession.sessionOrNull()
           val currentPlayer = audioPlayerHolder.currentPlayer.value
           if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
             // Just seek to the chapter id
@@ -212,6 +241,103 @@ class LibraryItemPresenter(
           analytics.send(ActionEvent("time_in_book", Click))
           settings.showTimeInBook = event.enabled
         }
+      }
+    }
+  }
+}
+
+@Composable
+private fun buildSlots(
+  libraryItem: LibraryItem,
+  sharedTransitionKey: String,
+  mediaProgressState: LoadState<out MediaProgress?>,
+  offlineDownloadState: OfflineDownload?,
+  seriesContentState: LoadState<out List<LibraryItem>>,
+  showTimeInBook: Boolean,
+  showConfirmDownloadDialog: Boolean,
+): List<ContentSlot> {
+  return buildList {
+    this += CoverImageSlot(
+      imageUrl = libraryItem.media.coverImageUrl,
+      contentDescription = libraryItem.media.metadata.title,
+      sharedTransitionKey = sharedTransitionKey,
+    )
+
+    this += TitleAndAuthorSlot(
+      libraryItem = libraryItem,
+    )
+
+    mediaProgressState.onLoaded { mediaProgress ->
+      if (mediaProgress != null && mediaProgress.progress > 0f) {
+        this += SpacerSlot.medium("progress_spacer")
+        this += ProgressSlot(mediaProgress)
+      }
+    }
+
+    this += SpacerSlot.medium("control_spacer")
+    this += ControlSlot(
+      libraryItem = libraryItem,
+      offlineDownload = offlineDownloadState,
+      mediaProgress = mediaProgressState.dataOrNull,
+      showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
+    )
+
+    if (offlineDownloadState != null && offlineDownloadState.state != OfflineDownload.State.None) {
+      this += SpacerSlot.medium("offline_spacer")
+      this += OfflineStatusSlot(
+        offlineDownload = offlineDownloadState,
+      )
+    }
+
+    libraryItem.media.metadata.description?.let { desc ->
+      this += SpacerSlot.medium("summary_spacer")
+      this += SummarySlot(desc)
+    }
+
+    seriesContentState.onLoaded { seriesBooks ->
+      this += SpacerSlot.medium("series_spacer")
+      this += SeriesSlot(
+        libraryItem = libraryItem,
+        seriesBooks = seriesBooks,
+      )
+    }
+
+    if (libraryItem.media.metadata.publisher != null && libraryItem.media.metadata.publishedYear != null) {
+      this += SpacerSlot.medium("publisher_spacer")
+      this += PublishedSlot(
+        publisher = libraryItem.media.metadata.publisher!!,
+        publishedYear = libraryItem.media.metadata.publishedYear!!,
+      )
+    }
+
+    libraryItem.media.metadata.genres.takeIf { it.isNotEmpty() }?.let { genres ->
+      this += SpacerSlot.medium("genres_spacer")
+      this += ChipsSlot(
+        title = ChipsTitle(Res.plurals.genres_title, genres.size),
+        chips = genres,
+      )
+    }
+
+    libraryItem.media.tags.takeIf { it.isNotEmpty() }?.let { tags ->
+      this += SpacerSlot.medium("tags_spacer")
+      this += ChipsSlot(
+        title = ChipsTitle(Res.plurals.tags_title, tags.size),
+        chips = tags,
+      )
+    }
+
+    if (libraryItem.media.chapters.isNotEmpty()) {
+      this += SpacerSlot.large("chapters_spacer")
+      this += ChapterHeaderSlot(
+        showTimeInBook = showTimeInBook,
+      )
+      libraryItem.media.chapters.forEach { chapter ->
+        this += ChapterSlot(
+          libraryItem = libraryItem,
+          chapter = chapter,
+          showTimeInBook = showTimeInBook,
+          mediaProgress = mediaProgressState.dataOrNull,
+        )
       }
     }
   }
