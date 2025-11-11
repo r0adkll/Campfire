@@ -142,7 +142,7 @@ multiplatformsettings-coroutines = { module = "com.russhwolf:multiplatform-setti
 
 compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
-wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.1.0"
+wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
 compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13"
 
 # Kotlin
