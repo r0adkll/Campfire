@@ -2,7 +2,7 @@ package app.campfire.core.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
 
-class DispatcherProvider(
+open class DispatcherProvider(
   val io: CoroutineDispatcher,
   val databaseWrite: CoroutineDispatcher,
   val databaseRead: CoroutineDispatcher,

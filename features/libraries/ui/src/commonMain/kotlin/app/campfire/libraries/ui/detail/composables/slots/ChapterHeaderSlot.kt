@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,7 +24,8 @@ import campfire.features.libraries.ui.generated.resources.header_chapters
 import org.jetbrains.compose.resources.stringResource
 
 class ChapterHeaderSlot(
-  private val showTimeInBook: Boolean,
+  @VisibleForTesting
+  val showTimeInBook: Boolean,
 ) : ContentSlot {
 
   override val id: String = "chapter_header"

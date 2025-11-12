@@ -2,8 +2,10 @@ package app.campfire.core.model.preview
 
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.SeriesSequence
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -13,9 +15,22 @@ import kotlin.time.DurationUnit
 val previewLibraryItemDuration = (13.hours + 34.minutes + 56.seconds)
 
 fun libraryItem(
+  id: LibraryItemId = "preview_item_id",
+  description: String? = "A man. His ex-girlfriend's cat. A sadistic game show unlike anything in the " +
+    "universe: a dungeon crawl where survival depends on killing your prey in the most " +
+    "entertaining way possible. In a flash, every human-erected construction on Earth - " +
+    "from Buckingham Palace to the tiniest of sheds - collapses in a heap, sinking into the ground. " +
+    "The buildings and all the people inside have all been atomized and transformed into the " +
+    "dungeon: an 18-level labyrinth filled with traps, monsters, and loot.",
   duration: Duration = previewLibraryItemDuration,
+  publisher: String? = "Soundbooth Theater",
+  publishedYear: String? = "2021",
+  genres: List<String> = listOf("Sci-fi", "LitRPG"),
+  tags: List<String> = listOf("Lit", "RPG", "NoPants", "Tootsies"),
+  seriesSequence: SeriesSequence? = null,
+  numOfChapters: Int = 20,
 ) = LibraryItem(
-  id = "preview_item_id",
+  id = id,
   ino = "",
   libraryId = "preview_library_id",
   folderId = "",
@@ -42,17 +57,12 @@ fun libraryItem(
       authorNameLastFirst = null,
       narratorName = "Jeff Hays",
       seriesName = "Dungeon Crawler Carl",
-      seriesSequence = null,
-      genres = listOf("Sci-fi", "LitRPG"),
-      publishedYear = "2021",
+      seriesSequence = seriesSequence,
+      genres = genres,
+      publishedYear = publishedYear,
       publishedDate = null,
-      publisher = "Soundbooth Theater",
-      description = "A man. His ex-girlfriend's cat. A sadistic game show unlike anything in the " +
-        "universe: a dungeon crawl where survival depends on killing your prey in the most " +
-        "entertaining way possible. In a flash, every human-erected construction on Earth - " +
-        "from Buckingham Palace to the tiniest of sheds - collapses in a heap, sinking into the ground. " +
-        "The buildings and all the people inside have all been atomized and transformed into the " +
-        "dungeon: an 18-level labyrinth filled with traps, monsters, and loot.",
+      publisher = publisher,
+      description = description,
       ISBN = null,
       language = "English",
       ASIN = null,
@@ -61,7 +71,7 @@ fun libraryItem(
     ),
     coverImageUrl = "",
     coverPath = null,
-    tags = listOf("Lit", "RPG", "NoPants", "Tootsies"),
+    tags = tags,
     numTracks = 10,
     numAudioFiles = 10,
     numChapters = 23,
@@ -69,8 +79,8 @@ fun libraryItem(
     numInvalidAudioFiles = 0,
     durationInMillis = duration.inWholeMilliseconds,
     sizeInBytes = 1L * 1024L * 1024L,
-    chapters = (0 until 20).map { chapter ->
-      val durationPerChapter = duration / 20
+    chapters = (0 until numOfChapters).map { chapter ->
+      val durationPerChapter = duration / numOfChapters
       val chapterStart = (durationPerChapter * chapter).toDouble(DurationUnit.SECONDS).toFloat()
       val chapterEnd = (chapterStart + durationPerChapter.toDouble(DurationUnit.SECONDS).toFloat())
 

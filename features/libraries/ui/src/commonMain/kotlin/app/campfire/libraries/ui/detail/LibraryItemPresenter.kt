@@ -295,18 +295,20 @@ private fun buildSlots(
     }
 
     seriesContentState.onLoaded { seriesBooks ->
-      this += SpacerSlot.medium("series_spacer")
-      this += SeriesSlot(
-        libraryItem = libraryItem,
-        seriesBooks = seriesBooks,
-      )
+      if (seriesBooks.isNotEmpty()) {
+        this += SpacerSlot.medium("series_spacer")
+        this += SeriesSlot(
+          libraryItem = libraryItem,
+          seriesBooks = seriesBooks,
+        )
+      }
     }
 
-    if (libraryItem.media.metadata.publisher != null && libraryItem.media.metadata.publishedYear != null) {
+    if (libraryItem.media.metadata.publisher != null) {
       this += SpacerSlot.medium("publisher_spacer")
       this += PublishedSlot(
         publisher = libraryItem.media.metadata.publisher!!,
-        publishedYear = libraryItem.media.metadata.publishedYear!!,
+        publishedYear = libraryItem.media.metadata.publishedYear,
       )
     }
 

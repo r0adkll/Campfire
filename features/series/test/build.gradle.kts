@@ -8,8 +8,7 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.core)
-        api(libs.assertk)
-        api(libs.kotlinx.coroutines.test)
+        api(projects.features.series.api)
       }
     }
   }

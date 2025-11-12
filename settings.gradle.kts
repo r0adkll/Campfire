@@ -133,11 +133,13 @@ include(
 include(
   ":features:user:api",
   ":features:user:impl",
+  ":features:user:test",
 )
 include(
   ":features:libraries:api",
   ":features:libraries:impl",
   ":features:libraries:ui",
+  ":features:libraries:test",
 )
 include(
   ":features:home:api",
@@ -148,6 +150,7 @@ include(
   ":features:series:api",
   ":features:series:impl",
   ":features:series:ui",
+  ":features:series:test",
 )
 include(
   ":features:collections:api",
@@ -163,6 +166,7 @@ include(
   ":features:sessions:api",
   ":features:sessions:impl",
   ":features:sessions:ui",
+  ":features:sessions:test",
 )
 include(
   ":features:search:api",
@@ -173,6 +177,7 @@ include(
   ":features:settings:api",
   ":features:settings:impl",
   ":features:settings:ui",
+  ":features:settings:test",
 )
 include(
   ":features:stats:api",

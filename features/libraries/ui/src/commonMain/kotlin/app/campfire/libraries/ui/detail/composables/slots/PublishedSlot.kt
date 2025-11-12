@@ -19,7 +19,7 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 
 class PublishedSlot(
   private val publisher: String,
-  private val publishedYear: String,
+  private val publishedYear: String?,
 ) : ContentSlot {
 
   override val id: String = "published"
@@ -41,9 +41,11 @@ class PublishedSlot(
           withStyle(SpanStyle(fontWeight = FontWeight.Medium)) {
             append(publisher)
           }
-          append(" in ")
-          withStyle(SpanStyle(fontWeight = FontWeight.Medium)) {
-            append(publishedYear)
+          if (publishedYear != null) {
+            append(" in ")
+            withStyle(SpanStyle(fontWeight = FontWeight.Medium)) {
+              append(publishedYear)
+            }
           }
         },
         style = MaterialTheme.typography.bodyMedium,

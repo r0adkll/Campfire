@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,7 +22,7 @@ class ControlSlot(
   private val libraryItem: LibraryItem,
   private val offlineDownload: OfflineDownload?,
   private val mediaProgress: MediaProgress?,
-  private val showConfirmDownloadDialogSetting: Boolean,
+  @VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
 ) : ContentSlot {
 
   override val id: String = "control_bar"

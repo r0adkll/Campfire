@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -9,7 +10,8 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 
 class ProgressSlot(
-  private val mediaProgress: MediaProgress,
+  @VisibleForTesting
+  val mediaProgress: MediaProgress,
 ) : ContentSlot {
 
   override val id: String = "media_progress"

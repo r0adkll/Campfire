@@ -1,5 +1,6 @@
 package app.campfire.home.ui
 
+import app.campfire.core.extensions.asSeconds
 import app.campfire.core.model.AudioFile
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -14,6 +15,8 @@ import app.campfire.core.model.MediaType
 import app.campfire.core.model.SeriesSequence
 import kotlin.random.Random
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Creates a fake [LibraryItem] for use in tests.
@@ -60,7 +63,7 @@ fun libraryItem(
   sizeInBytes: Long = 1024L * 1024L, // 1 MB
   addedAtMillis: Long = Clock.System.now().toEpochMilliseconds(),
   updatedAtMillis: Long = Clock.System.now().toEpochMilliseconds(),
-  media: Media = media(), // Assumes a `fakeMedia()` function exists
+  media: Media = media(),
   libraryFiles: List<LibraryFile> = emptyList(),
   userMediaProgress: MediaProgress? = null,
 ): LibraryItem {
@@ -189,3 +192,76 @@ fun media(
     tracks = tracks,
   )
 }
+
+fun chapter(
+  id: Int = 0,
+  start: Duration = Duration.ZERO,
+  end: Duration = 5.minutes,
+  title: String = "Chapter $id",
+) = Chapter(
+  id = id,
+  start = start.asSeconds(),
+  end = end.asSeconds(),
+  title = title,
+)
+
+class LibraryItemBuilder {
+
+  private var media = media()
+
+  @LibraryItemDsl
+  fun media(block: MediaBuilder.() -> Unit) {
+    val builder = MediaBuilder()
+    builder.block()
+    media = builder.build()
+  }
+
+  internal fun build(): LibraryItem {
+    return libraryItem(
+      media = media,
+    )
+  }
+}
+
+class MediaBuilder {
+
+  private var metadata = mediaMetadata()
+
+  @LibraryItemDsl
+  fun metadata(block: MetadataBuilder.() -> Unit) {
+    val builder = MetadataBuilder()
+    builder.block()
+    metadata = builder.build()
+  }
+
+  internal fun build(): Media {
+    return media(
+      metadata = metadata,
+    )
+  }
+}
+
+class MetadataBuilder {
+
+  var narratorName: String = "Voice Actor Prime"
+  var authors: List<Media.AuthorMetadata> = listOf(authorMetadata())
+  var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0)
+
+  internal fun build(): Media.Metadata {
+    return mediaMetadata(
+      narratorName = narratorName,
+      authors = authors,
+      seriesSequence = seriesSequence,
+    )
+  }
+}
+
+@LibraryItemDsl
+fun libraryItem(block: LibraryItemBuilder.() -> Unit): LibraryItem {
+  val builder = LibraryItemBuilder()
+  builder.block()
+  return builder.build()
+}
+
+@DslMarker
+annotation class LibraryItemDsl

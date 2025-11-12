@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeAudioPlayer : AudioPlayer {
 
+  val invocations = mutableListOf<Invocation>()
+
   override var preparedSession: Session? = null
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
   override val overallTime = MutableStateFlow(Duration.ZERO)
@@ -26,66 +28,89 @@ class FakeAudioPlayer : AudioPlayer {
     chapterId: Int?,
     onFinished: OnFinishedListener,
   ) {
-    TODO("Not yet implemented")
+    invocations += Invocation.Prepare(session, playImmediately, chapterId, onFinished)
   }
 
   override fun release() {
-    TODO("Not yet implemented")
+    invocations += Invocation.Release
   }
 
   override fun pause() {
-    TODO("Not yet implemented")
+    invocations += Invocation.Pause
   }
 
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    TODO("Not yet implemented")
+    invocations += Invocation.FadeToPause(duration, tickRate)
+    return Job()
   }
 
   override fun playPause() {
-    TODO("Not yet implemented")
+    invocations += Invocation.PlayPause
   }
 
   override fun stop() {
-    TODO("Not yet implemented")
+    invocations += Invocation.Stop
   }
 
   override fun seekTo(itemIndex: Int) {
-    TODO("Not yet implemented")
+    invocations += Invocation.SeekTo(itemIndex)
   }
 
   override fun seekTo(progress: Float) {
-    TODO("Not yet implemented")
+    invocations += Invocation.SeekTo(progress)
   }
 
   override fun seekTo(timestamp: Duration) {
-    TODO("Not yet implemented")
+    invocations += Invocation.SeekTo(timestamp)
   }
 
   override fun skipToNext() {
-    TODO("Not yet implemented")
+    invocations += Invocation.SkipToNext
   }
 
   override fun skipToPrevious() {
-    TODO("Not yet implemented")
+    invocations += Invocation.SkipToPrevious
   }
 
   override fun seekForward() {
-    TODO("Not yet implemented")
+    invocations += Invocation.SeekForward
   }
 
   override fun seekBackward() {
-    TODO("Not yet implemented")
+    invocations += Invocation.SeekBackward
   }
 
   override fun setPlaybackSpeed(speed: Float) {
-    TODO("Not yet implemented")
+    invocations += Invocation.SetPlaybackSpeed(speed)
   }
 
   override fun setTimer(timer: PlaybackTimer) {
-    TODO("Not yet implemented")
+    invocations += Invocation.SetTimer(timer)
   }
 
   override fun clearTimer() {
-    TODO("Not yet implemented")
+    invocations += Invocation.ClearTimer
+  }
+
+  sealed interface Invocation {
+    data class Prepare(
+      val session: Session,
+      val playImmediately: Boolean,
+      val chapterId: Int?,
+      val onFinished: OnFinishedListener,
+    ) : Invocation
+    data object Pause : Invocation
+    data object PlayPause : Invocation
+    data class FadeToPause(val duration: Duration, val tickRate: Long) : Invocation
+    data object Stop : Invocation
+    data object Release : Invocation
+    data object SkipToNext : Invocation
+    data object SkipToPrevious : Invocation
+    data object SeekForward : Invocation
+    data object SeekBackward : Invocation
+    data class SeekTo(val value: Any) : Invocation
+    data class SetPlaybackSpeed(val speed: Float) : Invocation
+    data class SetTimer(val timer: PlaybackTimer) : Invocation
+    data object ClearTimer : Invocation
   }
 }

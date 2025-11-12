@@ -139,6 +139,7 @@ google-firebase-appdistribution = { module = "com.google.firebase:firebase-appdi
 # Settings
 multiplatformsettings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformsettings" }
 multiplatformsettings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformsettings" }
+multiplatformsettings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatformsettings" }
 
 compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
