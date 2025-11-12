@@ -22,13 +22,13 @@ fun Long.asReadableBytes(): String {
   val gb = mb / 1024.0
   val tb = gb / 1024.0
 
-  return if (tb > 1.0) {
+  return if (tb >= 1.0) {
     tb.toFloat().toString(2) + " TB"
-  } else if (gb > 1.0) {
+  } else if (gb >= 1.0) {
     gb.toFloat().toString(2) + " GB"
-  } else if (mb > 1.0) {
+  } else if (mb >= 1.0) {
     mb.toFloat().toString(2) + " MB"
-  } else if (kb > 1.0) {
+  } else if (kb >= 1.0) {
     kb.toFloat().toString(2) + " KB"
   } else {
     "$this B"

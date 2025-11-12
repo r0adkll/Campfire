@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
@@ -87,6 +88,7 @@ fun OfflineStatusCard(
           },
         )
       },
+      modifier = Modifier.testTag("offline_title_bar"),
     )
 
     AnimatedVisibility(
@@ -177,13 +179,17 @@ private fun OfflineProgressBar(
     if (isIndeterminate) {
       LinearProgressIndicator(
         trackColor = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("indeterminate_progress_bar"),
       )
     } else {
       LinearProgressIndicator(
         progress = { progress },
         trackColor = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("determinate_progress_bar"),
       )
     }
 
