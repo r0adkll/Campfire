@@ -13,9 +13,8 @@ class CoverImageSlotTest {
 
   @Test
   fun contentTest() = runComposeUiTest {
-    val imageUrl = "https://test.url"
     val contentDescription = "test_content_desc"
-    val slot = CoverImageSlot(imageUrl, contentDescription, "")
+    val slot = CoverImageSlot(null, contentDescription, "")
 
     setContent {
       PreviewSharedElementTransitionLayout {

@@ -91,6 +91,8 @@ androidx-browser = "androidx.browser:browser:1.9.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
 androidx-compose-runtime-tracing = { module = "androidx.compose.runtime:runtime-tracing", version.ref = "androidxcomposeui" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "androidxcomposeui" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "androidxcomposeui" }
 androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
 androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
@@ -123,6 +125,7 @@ circuitx-navigation = { module = "com.slack.circuit:circuitx-navigation", versio
 
 #Coil - Image Loading
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
+coil-test = { module = "io.coil-kt.coil3:coil-test", version.ref = "coil" }
 coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coil" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-networking-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }

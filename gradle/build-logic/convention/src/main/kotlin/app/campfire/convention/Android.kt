@@ -29,6 +29,16 @@ fun Project.configureAndroid(computeNamespace: Boolean = true) {
 
     testOptions {
       unitTests.isReturnDefaultValues = true
+
+      unitTests {
+        isReturnDefaultValues = true
+        all {
+          // We make the assumption that any tests placed in
+          // a 'composables' package are only intended to be ran as
+          // instrumented ui tests
+          it.exclude("**/composables/**")
+        }
+      }
     }
   }
 

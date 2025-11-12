@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 class CoverImageSlot(
-  private val imageUrl: String,
+  private val imageUrl: String?,
   private val contentDescription: String?,
   private val sharedTransitionKey: String,
 ) : ContentSlot {

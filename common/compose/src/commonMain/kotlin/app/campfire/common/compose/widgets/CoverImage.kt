@@ -35,7 +35,7 @@ val CoverImageShape = RoundedCornerShape(CoverImageCornerRadius)
 
 @Composable
 fun CoverImage(
-  imageUrl: String,
+  imageUrl: String?,
   contentDescription: String?,
   modifier: Modifier = Modifier,
   sharedElementModifier: Modifier = Modifier,
