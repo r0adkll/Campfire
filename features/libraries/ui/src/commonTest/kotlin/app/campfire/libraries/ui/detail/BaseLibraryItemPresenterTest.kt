@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.test
+package app.campfire.libraries.ui.detail
 
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayer
@@ -9,7 +9,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
-import app.campfire.libraries.ui.detail.LibraryItemPresenter
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.TestCampfireSettings

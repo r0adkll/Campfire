@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.test
+package app.campfire.libraries.ui.detail
 
 import app.campfire.analytics.events.AnalyticEvent
 import app.campfire.audioplayer.test.FakeAudioPlayer
@@ -14,7 +14,6 @@ import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.screen.LibraryScreen
-import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.cash.burst.Burst

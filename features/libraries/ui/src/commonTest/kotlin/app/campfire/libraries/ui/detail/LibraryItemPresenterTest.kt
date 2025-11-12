@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.test
+package app.campfire.libraries.ui.detail
 
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.assert.containsInstance
@@ -8,7 +8,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
-import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot

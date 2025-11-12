@@ -225,6 +225,8 @@ class LibraryItemBuilder {
 
 class MediaBuilder {
 
+  var duration: Duration = Duration.ZERO
+
   private var metadata = mediaMetadata()
 
   @LibraryItemDsl
@@ -236,6 +238,7 @@ class MediaBuilder {
 
   internal fun build(): Media {
     return media(
+      durationInMillis = duration.inWholeMilliseconds,
       metadata = metadata,
     )
   }
@@ -243,12 +246,18 @@ class MediaBuilder {
 
 class MetadataBuilder {
 
-  var narratorName: String = "Voice Actor Prime"
+  var title: String? = "The Great Fake Adventure"
+  var subtitle: String? = "A Test Saga"
+  var authorName: String? = "Dr. Fakenstein"
+  var narratorName: String? = "Voice Actor Prime"
   var authors: List<Media.AuthorMetadata> = listOf(authorMetadata())
   var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0)
 
   internal fun build(): Media.Metadata {
     return mediaMetadata(
+      title = title,
+      subtitle = subtitle,
+      authorName = authorName,
       narratorName = narratorName,
       authors = authors,
       seriesSequence = seriesSequence,

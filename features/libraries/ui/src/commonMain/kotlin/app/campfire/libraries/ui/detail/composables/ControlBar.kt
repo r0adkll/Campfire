@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.icons.CampfireIcons
@@ -70,7 +71,9 @@ internal fun ControlBar(
 
       Button(
         onClick = onPlayClick,
-        modifier = Modifier.weight(1f),
+        modifier = Modifier
+          .weight(1f)
+          .testTag("button_play"),
         shape = RoundedCornerShape(
           topStart = CornerSize(50),
           bottomStart = CornerSize(50),
@@ -113,6 +116,7 @@ internal fun ControlBar(
             top = 8.dp,
             bottom = 8.dp,
           ),
+          modifier = Modifier.testTag("button_download"),
         ) {
           Icon(
             CampfireIcons.Rounded.Download,
@@ -126,7 +130,9 @@ internal fun ControlBar(
     if (hasProgress) {
       FilledTonalButton(
         onClick = onDiscardProgress,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("button_discard_progress"),
       ) {
         Icon(Icons.AutoMirrored.Rounded.Backspace, contentDescription = null)
         Spacer(Modifier.width(8.dp))
@@ -138,7 +144,9 @@ internal fun ControlBar(
     if (mediaProgress?.isFinished != true) {
       FilledTonalButton(
         onClick = onMarkFinished,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("button_mark_finished"),
       ) {
         Icon(Icons.Rounded.MarkFinished, contentDescription = null)
         Spacer(Modifier.width(8.dp))
@@ -147,7 +155,9 @@ internal fun ControlBar(
     } else {
       FilledTonalButton(
         onClick = onMarkNotFinished,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .testTag("button_mark_not_finished"),
       ) {
         Icon(Icons.Filled.MarkFinished, contentDescription = null)
         Spacer(Modifier.width(8.dp))

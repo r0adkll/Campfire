@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
@@ -43,7 +44,9 @@ internal fun MediaProgressBar(
   ) {
     FancyLinearProgressIndicator(
       progress = { progress.actualProgress },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier
+        .fillMaxWidth()
+        .testTag("progress_indicator"),
       strokeCap = StrokeCap.Round,
       color = if (progress.isFinished) {
         MaterialTheme.colorScheme.inversePrimary
@@ -63,7 +66,8 @@ internal fun MediaProgressBar(
           contentDescription = null,
           tint = Color.Green,
           modifier = Modifier
-            .size(14.dp),
+            .size(14.dp)
+            .testTag("icon_finished_check"),
         )
         Spacer(Modifier.width(4.dp))
       }
