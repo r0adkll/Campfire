@@ -251,6 +251,7 @@ class MetadataBuilder {
   var authorName: String? = "Dr. Fakenstein"
   var narratorName: String? = "Voice Actor Prime"
   var authors: List<Media.AuthorMetadata> = listOf(authorMetadata())
+  var seriesName: String? = null
   var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0)
 
   internal fun build(): Media.Metadata {
@@ -260,6 +261,7 @@ class MetadataBuilder {
       authorName = authorName,
       narratorName = narratorName,
       authors = authors,
+      seriesName = seriesName,
       seriesSequence = seriesSequence,
     )
   }
