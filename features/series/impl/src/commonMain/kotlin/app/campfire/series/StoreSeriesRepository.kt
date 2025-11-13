@@ -12,6 +12,7 @@ import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
+import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
@@ -129,6 +130,15 @@ class StoreSeriesRepository(
               val media = item.media.asDbModel(item.id)
               db.libraryItemsQueries.insertOrIgnore(libraryItem)
               db.mediaQueries.insertOrIgnore(media)
+
+              // Make sure we keep our item series sequence up to date
+              runIfNotNull(
+                media.metadata_series_id,
+                media.metadata_series_name,
+                media.metadata_series_sequence,
+              ) { id, name, sequence ->
+                db.mediaQueries.updateSeriesSequence(id, name, sequence, item.id)
+              }
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(

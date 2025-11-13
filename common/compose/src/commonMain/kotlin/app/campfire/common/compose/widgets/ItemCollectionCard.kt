@@ -22,7 +22,7 @@ import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMaxBy
 import androidx.compose.ui.util.fastSumBy
-import app.campfire.core.extensions.fluentIf
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.core.model.LibraryItem
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 
@@ -95,7 +95,7 @@ private fun MultiBookLayout(
             imageUrl = item.media.coverImageUrl,
             contentDescription = item.media.metadata.title,
             modifier = Modifier
-              .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+              .thenIfNotNull(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)) {
                 sharedElement(
                   sharedContentState = rememberSharedContentState(
                     LibraryItemSharedTransitionKey(
@@ -103,7 +103,7 @@ private fun MultiBookLayout(
                       type = LibraryItemSharedTransitionKey.ElementType.Image,
                     ),
                   ),
-                  animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+                  animatedVisibilityScope = it,
                   zIndexInOverlay = -(i + 1f),
                 )
               }

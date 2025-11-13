@@ -11,6 +11,7 @@ import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.Series
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -32,8 +33,8 @@ class SeriesPresenter(
   override fun present(): SeriesUiState {
     val seriesContentState by remember {
       seriesRepository.observeAllSeries()
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<List<Series>> }
+        .catch { emit(LoadState.Error as LoadState<List<Series>>) }
     }.collectAsState(LoadState.Loading)
 
     return SeriesUiState(

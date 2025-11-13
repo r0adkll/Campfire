@@ -5,6 +5,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
+import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.models.Series as NetworkSeries
@@ -51,6 +52,15 @@ internal class SeriesSourceOfTruthFactory(
               // If these items exist, lets not overwrite their metadata
               db.libraryItemsQueries.insertOrIgnore(libraryItem)
               db.mediaQueries.insertOrIgnore(media)
+
+              // Make sure we keep our item series sequence up to date
+              runIfNotNull(
+                media.metadata_series_id,
+                media.metadata_series_name,
+                media.metadata_series_sequence,
+              ) { id, name, sequence ->
+                db.mediaQueries.updateSeriesSequence(id, name, sequence, book.id)
+              }
 
               // Insert junction entry
               db.seriesBookJoinQueries.insert(

@@ -12,6 +12,7 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -35,13 +36,14 @@ class SeriesDetailPresenter(
   private val analytics: Analytics,
 ) : Presenter<SeriesDetailUiState> {
 
+  @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): SeriesDetailUiState {
     val seriesContentState by remember {
       repository.observeSeriesLibraryItems(seriesId = screen.seriesId)
-        .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .map { LoadState.Loaded(it) as LoadState<List<LibraryItem>> }
+        .catch { emit(LoadState.Error as LoadState<List<LibraryItem>>) }
     }.collectAsState(LoadState.Loading)
 
     val offlineDownloads by remember {

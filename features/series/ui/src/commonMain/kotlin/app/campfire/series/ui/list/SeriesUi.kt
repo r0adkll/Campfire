@@ -5,8 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -66,7 +69,7 @@ fun Series(
     modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
       nestedScroll(appBarBehavior.nestedScrollConnection)
     },
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.seriesContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
