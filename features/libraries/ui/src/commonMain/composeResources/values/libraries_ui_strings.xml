@@ -84,4 +84,6 @@
   <string name="filter_value_tracks_single">Single-track</string>
   <string name="filter_value_tracks_multi">Multi-track</string>
 
+  <string name="cd_back_arrow">Back</string>
+  <string name="cd_add_to_collection">Add to collection</string>
 </resources>

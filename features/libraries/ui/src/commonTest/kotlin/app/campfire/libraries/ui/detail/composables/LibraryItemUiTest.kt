@@ -1,0 +1,175 @@
+package app.campfire.libraries.ui.detail.composables
+
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.onChildren
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
+import app.campfire.collections.api.ui.AddToCollectionDialog
+import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.LibraryItem
+import app.campfire.home.ui.libraryItem
+import app.campfire.libraries.ui.detail.LibraryItem
+import app.campfire.libraries.ui.detail.LibraryItemUiEvent
+import app.campfire.libraries.ui.detail.LibraryItemUiState
+import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
+import com.slack.circuit.test.TestEventSink
+import kotlin.test.Test
+
+@OptIn(
+  ExperimentalTestApi::class,
+  ExperimentalSharedTransitionApi::class,
+  ExperimentalMaterial3WindowSizeClassApi::class,
+)
+class LibraryItemUiTest {
+
+  private val events = TestEventSink<LibraryItemUiEvent>()
+  private val addToCollectionDialog = object : AddToCollectionDialog {
+    @Composable
+    override fun Content(
+      item: LibraryItem,
+      onDismiss: () -> Unit,
+      modifier: Modifier,
+    ) {
+      Box(
+        modifier = modifier
+          .testTag("add_to_collection_dialog"),
+      )
+    }
+  }
+
+  @Test
+  fun testErrorList() = runComposeUiTest {
+    val state = LibraryItemUiState(
+      libraryItem = null,
+      contentState = LoadState.Error,
+      showConfirmDownloadDialog = false,
+      events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNodeWithTag("error_list_state").assertIsDisplayed()
+  }
+
+  @Test
+  fun testLoadingList() = runComposeUiTest {
+    val state = LibraryItemUiState(
+      libraryItem = null,
+      contentState = LoadState.Loading,
+      showConfirmDownloadDialog = false,
+      events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNodeWithTag("loading_list_state").assertIsDisplayed()
+  }
+
+  @Test
+  fun testLoadedList() = runComposeUiTest {
+    val state = LibraryItemUiState(
+      libraryItem = null,
+      contentState = LoadState.Loaded(
+        data = List(20) { TestContentSlot("slot_$it") },
+      ),
+      showConfirmDownloadDialog = false,
+      events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNode(hasScrollAction())
+      .onChildren()
+      .assertCountEquals(20)
+  }
+
+  @Test
+  fun clickingBackEmitsEvent() = runComposeUiTest {
+    val state = LibraryItemUiState(
+      libraryItem = null,
+      contentState = LoadState.Loaded(
+        data = List(20) { TestContentSlot("slot_$it") },
+      ),
+      showConfirmDownloadDialog = false,
+      events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNodeWithContentDescription("Back").performClick()
+    events.assertEvent(LibraryItemUiEvent.OnBack)
+  }
+
+  @Test
+  fun clickingAddToCollectionShowsDialog() = runComposeUiTest {
+    val state = LibraryItemUiState(
+      libraryItem = libraryItem(),
+      contentState = LoadState.Loaded(
+        data = List(20) { TestContentSlot("slot_$it") },
+      ),
+      showConfirmDownloadDialog = false,
+      events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNodeWithContentDescription("Add to collection").performClick()
+    onNodeWithTag("add_to_collection_dialog").assertExists()
+  }
+
+  @Composable
+  private fun TestLibraryItem(
+    state: LibraryItemUiState,
+    modifier: Modifier = Modifier,
+  ) {
+    PreviewSharedElementTransitionLayout {
+      CompositionLocalProvider(
+        LocalWindowSizeClass provides calculateWindowSizeClass(),
+        LocalContentLayout provides ContentLayout.Root,
+      ) {
+        LibraryItem(
+          state = state,
+          addToCollectionDialog = addToCollectionDialog,
+          modifier = modifier,
+        )
+      }
+    }
+  }
+}
+
+private class TestContentSlot(
+  override val id: String,
+) : ContentSlot {
+
+  @Composable
+  override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
+    Box(modifier = modifier.testTag(id))
+  }
+}

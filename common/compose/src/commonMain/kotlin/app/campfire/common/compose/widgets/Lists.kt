@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 
 /**
@@ -27,7 +28,9 @@ fun LoadingListState(
   modifier: Modifier = Modifier,
 ) {
   Box(
-    modifier = modifier.fillMaxSize(),
+    modifier = modifier
+      .fillMaxSize()
+      .testTag("loading_list_state"),
     contentAlignment = Alignment.Center,
   ) {
     CircularProgressIndicator()
@@ -45,7 +48,8 @@ fun ErrorListState(
   Column(
     modifier = modifier
       .fillMaxWidth()
-      .padding(horizontal = 32.dp),
+      .padding(horizontal = 32.dp)
+      .testTag("error_list_state"),
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {

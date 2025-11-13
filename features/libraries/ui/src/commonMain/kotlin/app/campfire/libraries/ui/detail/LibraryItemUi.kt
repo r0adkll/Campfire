@@ -57,6 +57,8 @@ import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
+import campfire.features.libraries.ui.generated.resources.cd_back_arrow
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
@@ -180,7 +182,10 @@ fun LibraryItem(
               state.eventSink(LibraryItemUiEvent.OnBack)
             },
           ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+            Icon(
+              Icons.AutoMirrored.Rounded.ArrowBack,
+              contentDescription = stringResource(Res.string.cd_back_arrow),
+            )
           }
         },
         actions = {
@@ -190,7 +195,10 @@ fun LibraryItem(
               showAddToCollectionDialog = true
             },
           ) {
-            Icon(Icons.Rounded.LibraryAdd, contentDescription = null)
+            Icon(
+              Icons.Rounded.LibraryAdd,
+              contentDescription = stringResource(Res.string.cd_add_to_collection),
+            )
           }
         },
       )

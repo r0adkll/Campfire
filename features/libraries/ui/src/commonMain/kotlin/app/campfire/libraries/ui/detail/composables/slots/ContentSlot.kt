@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 
-sealed interface ContentSlot {
+interface ContentSlot {
 
   /**
    * Unique slot identifier for efficient [androidx.compose.foundation.lazy.LazyColumn] items
