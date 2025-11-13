@@ -3,10 +3,11 @@ package app.campfire.libraries.ui.detail.composables
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
@@ -17,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.unit.Density
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
@@ -29,6 +31,7 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
+import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
 
@@ -149,9 +152,9 @@ class LibraryItemUiTest {
     state: LibraryItemUiState,
     modifier: Modifier = Modifier,
   ) {
-    PreviewSharedElementTransitionLayout {
+    SharedElementTransitionLayout {
       CompositionLocalProvider(
-        LocalWindowSizeClass provides calculateWindowSizeClass(),
+        LocalWindowSizeClass provides WindowSizeClass.calculateFromSize(Size(720f, 1080f), Density(1f)),
         LocalContentLayout provides ContentLayout.Root,
       ) {
         LibraryItem(
