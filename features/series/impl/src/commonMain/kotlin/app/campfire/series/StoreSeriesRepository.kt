@@ -5,6 +5,7 @@ import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.with
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -18,6 +19,8 @@ import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
+import app.campfire.network.models.LibraryItemMinified
+import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.series.api.SeriesRepository
 import app.campfire.series.store.SeriesStore
 import app.campfire.user.api.UserRepository
@@ -26,12 +29,12 @@ import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
@@ -66,16 +69,34 @@ class StoreSeriesRepository(
     val seriesId: SeriesId,
   )
 
+  data class SeriesNetworkResult(
+    val series: app.campfire.network.models.Series,
+    val books: List<LibraryItemMinified<MinifiedBookMetadata>>,
+  )
+
+  @Deprecated("This store interface needs to be extracted and updated to account for the APIs eccentricities")
   @OptIn(ExperimentalEncodingApi::class)
   private val libraryItemStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { s: SeriesItems ->
-      api.getLibraryItemsMinified(
-        libraryId = s.libraryId,
-        filter = LibraryItemFilter(
-          group = "series",
-          value = s.seriesId,
-        ),
-      ).asFetcherResult()
+      withContext(dispatcherProvider.io) {
+        val series = async { api.getSeriesById(s.libraryId, s.seriesId) }
+        val books = async {
+          api.getLibraryItemsMinified(
+            libraryId = s.libraryId,
+            filter = LibraryItemFilter(
+              group = "series",
+              value = s.seriesId,
+            ),
+          )
+        }
+
+        val seriesResult = series.await()
+        val seriesBooksResult = books.await()
+
+        seriesResult.with(seriesBooksResult) { series, books ->
+          SeriesNetworkResult(series, books.data)
+        }.asFetcherResult()
+      }
     },
     sourceOfTruth = SourceOfTruth.of(
       reader = { s: SeriesItems ->
@@ -89,10 +110,15 @@ class StoreSeriesRepository(
               .takeIf { it.isNotEmpty() }
           }
       },
-      writer = { s, items ->
+      writer = { s, networkResult ->
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
-            items.data.forEach { item ->
+            // Insert the series first,
+            val series = networkResult.series.asDbModel(s.libraryId)
+            db.seriesQueries.insert(series)
+
+            // Insert the books
+            networkResult.books.forEach { item ->
               // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
 //              libraryItemDao.insert(
 //                item = item,

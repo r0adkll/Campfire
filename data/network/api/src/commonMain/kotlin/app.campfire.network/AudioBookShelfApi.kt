@@ -103,6 +103,11 @@ interface AudioBookShelfApi {
   suspend fun getSeries(libraryId: String): Result<List<Series>>
 
   /**
+   * Get a specific series by its id
+   */
+  suspend fun getSeriesById(libraryId: String, seriesId: String): Result<Series>
+
+  /**
    * Get a Library's list of authors
    */
   suspend fun getAuthors(libraryId: String): Result<List<Author>>
