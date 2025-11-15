@@ -8,7 +8,8 @@ This document provides an overview of the architecture decisions used in this pr
 2. [UI Layer](UI_LAYER.md)
 3. [Data Layer](DATA_LAYER.md)
 
-### UI Layer
+### [UI Layer](UI_LAYER.md)
+Campfire uses [Circuit] to drive its entire UI/Presentation stack. Check out their documentation for more in depth details on the framework. Follow the link about for a more in-depth breakdown of the UI anatomy in this application.
 
 ```mermaid
 %%{
@@ -48,3 +49,5 @@ graph TB
   StoreLibraryItemRepository --> LibraryItemRepository
   LibraryItemRepository --> MyScreenPresenter
 ```
+
+[Circuit]: https://slackhq.github.io/circuit/
