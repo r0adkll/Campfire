@@ -27,7 +27,7 @@ ij_continuation_indent_size = 2
 [*.gradle]
 indent_size = 4
 
-[*.{xml,yml,yaml}]
+[*.{xml,yml,yaml,md}]
 indent_size = 2
 
 [*.json]

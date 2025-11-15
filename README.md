@@ -37,7 +37,7 @@
 [firebase]: https://firebase.google.com/
 
 ## Architecture
-Head over to [Architecture](docs/Architecture.md) for more detailed information on the architecture of this project.
+Head over to [Architecture](docs/architecture/README.md) for more detailed information on the architecture of this project.
 
 ## Contributing
 

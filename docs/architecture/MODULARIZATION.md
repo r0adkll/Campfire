@@ -1,10 +1,6 @@
-# Architecture
+# Modularization
 
-This document provides an overview of the architecture decisions used in this project.
-
-## Module Structure
-
-This section describes the types of modules / groups that are used to build this application for all
+This page describes the types of modules / groups that are used to build this application for all
 module types that this architecture encompasses. Think of these as the module building blocks for this
 architecture.
 
@@ -39,16 +35,20 @@ module-name/
 ├── ui/
 │   └── src/
 │       └── …
-└── public-ui/
+├── public-ui/
+│   └── src/
+│       └── …
+└── test/
     └── src/
         └── …
 ```
 
 These are a group of modules for building features that provide function to other features/modules and ui/screens.
-* `:api` - A lightweight module that can only depend on `:core` or other infra modules without other dependencies.
-* `:impl` - The implementation module that provides the implementations and bindings for `:api`. This is only implemented by the `:app` module(s)
-* `:ui` _[optional]_ - This module consumes `:api` and any other feature `:api` modules to provide Circuit screen implementations _(more on this later)_. This is only implemented by the `:app` module.
-* `:public-ui` _[optional]_ - This should **_ONLY_** be used to share common ui components to other features that require logic specific to that module that wouldn't make it a good fit for the common ui/widgets module.
+* **`:api`** - A lightweight module that can only depend on `:core` or other infra modules without other dependencies.
+* **`:impl`** - The implementation module that provides the implementations and bindings for `:api`. This is only implemented by the `:app` module(s)
+* **`:ui`** _[optional]_ - This module consumes `:api` and any other feature `:api` modules to provide Circuit screen implementations _(more on this later)_. This is only implemented by the `:app` module.
+* **`:public-ui`** _[optional]_ - This should **_ONLY_** be used to share common ui components to other features that require logic specific to that module that wouldn't make it a good fit for the common ui/widgets module.
+* **`:test`** _[optional]_ - This modules contains test utility code for the `:api` module in this group. This only exposes fakes, model fixtures, etc. This should NEVER expose any other module from this group than `:api`
 
 ## Module Types
 
