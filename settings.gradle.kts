@@ -1,5 +1,4 @@
 import kotlinx.kover.gradle.aggregation.settings.dsl.KoverSettingsExtension
-import kotlinx.kover.gradle.plugin.dsl.AggregationType
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit
 
 pluginManagement {
