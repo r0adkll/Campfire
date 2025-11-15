@@ -14,9 +14,9 @@
 |-----------------------------------|-------------------------------------|-----------------------------------------|
 | ![](.github/art/screens/Home.png) | ![](.github/art/screens/Detail.png) | ![](.github/art/screens/PlayerView.png) |
 
-| Search                              | Stats                              |
-|-------------------------------------|------------------------------------|
-| ![](.github/art/screens/Search.png) | ![](.github/art/screens/Stats.png) |
+| Library                              | Search                              | Stats                              |
+|--------------------------------------|-------------------------------------|------------------------------------|
+| ![](.github/art/screens/Library.png) | ![](.github/art/screens/Search.png) | ![](.github/art/screens/Stats.png) |
 
 | Foldable - Home                            | Foldable - Detail                            |
 |--------------------------------------------|----------------------------------------------|
