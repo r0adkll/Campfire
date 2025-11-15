@@ -31,13 +31,19 @@ data class LibraryItemScreen(
 > Wait, isn't `@Parcelize` an Android concept? Yes, but the kotlin plugin lets you customize this with a custom annotation which you can then use expect/actual for multiplatform compatibility. Check out [ParcelizeConventionPlugin](../../gradle/build-logic/convention/src/main/kotlin/app/campfire/convention/ParcelizeConventionPlugin.kt) for more details!
 
 ## `{{NAME}}UiState`
-Next, is the view state which is a simple data class used to drive your `@Composable` UI.
+Next, is the view state and view events which is a simple data class used to drive your `@Composable` UI and react to user input to update your data layer and subsequently the state.
 
 ```kotlin
 @Immutable
 data class LibraryItemUiState(
   val libraryItemState: LoadState<LibraryItem>,
+  val eventSink: (LibraryItemEvent) -> Unit,
 ) : CircuitUiState
+
+sealed interface LibraryItemEvent {
+  data object Back : LibraryItemEvent
+  data class LibraryItemClicked(val libraryItemId: LibraryItemId) : LibraryItemEvent
+}
 ```
 
 ## `{{NAME}}Presenter`
@@ -63,7 +69,12 @@ class LibraryItemPresenter(
         .catch { emit(LoadState.Error as LoadState<LibraryItem>) }
     }.collectAsState(LoadState.Loading)
 
-    return LibraryItemUiState(libraryItemState)
+    return LibraryItemUiState(libraryItemState) { event ->
+      when (event) {
+        LibraryItemUiEvent.Back -> navigator.pop()
+        //…
+      }
+    }
   }
 }
 ```

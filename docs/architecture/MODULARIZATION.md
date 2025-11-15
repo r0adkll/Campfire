@@ -19,7 +19,7 @@ These are modules that are very self-contained and serve a singular purpose / co
 - `:infra:debug` - A module that provides in-app debug UI and functionality for the app.
 - `:infra:shake` - A module that provides KMP shake detection.
 
-### Split
+### Grouped
 
 ```
 module-name/
