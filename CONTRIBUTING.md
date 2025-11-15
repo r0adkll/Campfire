@@ -1,4 +1,4 @@
-# Contributing to DeckBox
+# Contributing to Campfire
 
 ## Issues
 
