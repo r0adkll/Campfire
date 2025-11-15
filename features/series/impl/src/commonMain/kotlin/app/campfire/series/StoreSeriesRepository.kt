@@ -29,6 +29,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
@@ -39,6 +40,7 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
+import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -152,6 +154,10 @@ class StoreSeriesRepository(
         }
       },
     ),
+  ).cachePolicy(
+    MemoryPolicy.builder<SeriesItems, List<LibraryItem>>()
+      .setExpireAfterAccess(5.minutes)
+      .build(),
   ).build()
 
   @OptIn(ExperimentalCoroutinesApi::class)
