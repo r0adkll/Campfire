@@ -13,7 +13,7 @@ Each screen in the app follows this basic anatomy.
 
 > [!INFO]
 > You can use the `Circuit Screen` file template in the `New` context menu in the Project View to easily generate all the components to build a screen in this app.
-> ![](../../.github/art/CircuitScreenFileTemplate.png)
+> <img src="../../.github/art/CircuitScreenFileTemplate.png" width=100 />
 
 
 ## `{{NAME}}Screen`
