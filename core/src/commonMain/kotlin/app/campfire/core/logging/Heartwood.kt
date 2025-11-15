@@ -17,6 +17,10 @@ class Heartwood private constructor() {
       barks.add(bark)
     }
 
+    fun shrink(bark: Bark) {
+      barks.remove(bark)
+    }
+
     override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
       barks.forEach { it.log(priority, tag, extras, message) }
     }

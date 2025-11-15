@@ -108,6 +108,7 @@ include(
   ":data:account:api",
   ":data:account:impl",
   ":data:account:ui",
+  ":data:account:test",
 )
 include(
   ":data:analytics:api",
@@ -122,8 +123,12 @@ include(
 include(
   ":data:network:api",
   ":data:network:impl",
-  ":data:db",
-  ":data:mapping",
+  ":data:network:test",
+)
+include(
+  ":data:db:core",
+  ":data:db:mapping",
+  ":data:db:test",
 )
 include(
   ":features:auth:api",

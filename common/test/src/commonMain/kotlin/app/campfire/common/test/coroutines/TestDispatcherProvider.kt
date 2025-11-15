@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.TestScope
 
 class TestDispatcherProvider(
   dispatcher: TestDispatcher = StandardTestDispatcher(),
@@ -16,3 +17,7 @@ class TestDispatcherProvider(
   main = dispatcher,
   computation = dispatcher,
 )
+
+fun TestScope.asTestDispatcherProvider(): DispatcherProvider {
+  return TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+}

@@ -13,9 +13,9 @@ kotlin {
       dependencies {
         api(projects.data.account.api)
         api(projects.features.settings.api)
-        api(projects.data.db)
+        api(projects.data.db.core)
         api(projects.data.network.api)
-        api(projects.data.mapping)
+        api(projects.data.db.mapping)
 
         implementation(projects.infra.audioplayer.api)
         implementation(projects.core)

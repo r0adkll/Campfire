@@ -169,12 +169,7 @@ class StoreSeriesRepository(
                 return@mapNotNull null
               }
 
-              series.entries.map { (s, books) ->
-                val sortedBooks = books
-                  .map { it.asDomainModel(tokenHydrator) }
-                  .sortedBy { it.media.metadata.seriesSequence?.sequence }
-                s.asDomainModel(sortedBooks)
-              }
+              series
             }
           }
       }

@@ -14,8 +14,8 @@ kotlin {
       dependencies {
         implementation(projects.features.settings.api)
         implementation(projects.core)
-        implementation(projects.data.db)
-        implementation(projects.data.mapping)
+        implementation(projects.data.db.core)
+        implementation(projects.data.db.mapping)
         implementation(projects.data.network.api)
         implementation(projects.data.account.api)
         implementation(projects.features.user.api)

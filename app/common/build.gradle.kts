@@ -17,7 +17,7 @@ kotlin {
         api(projects.common.compose)
 
         // Data Modules
-        api(projects.data.db)
+        api(projects.data.db.core)
         api(projects.data.network.impl)
         api(projects.data.account.impl)
         api(projects.data.account.ui)
