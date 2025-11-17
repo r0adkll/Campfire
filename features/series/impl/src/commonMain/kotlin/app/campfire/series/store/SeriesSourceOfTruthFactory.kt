@@ -51,7 +51,7 @@ internal class SeriesSourceOfTruthFactory(
         db.transaction {
           series.forEach { series ->
             // Insert Series
-            db.seriesQueries.insert(series.asDbModel(libraryId))
+            db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
 
             // Insert the series books
             series.books?.forEachIndexed { index, book ->

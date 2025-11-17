@@ -75,6 +75,18 @@ class StoreLibraryRepository(
       writer = { request: SingleLibraryRequest, data ->
         val libraryItem = data.asDbModel(request.userId)
         withContext(dispatcherProvider.databaseWrite) {
+          db.librariesQueries.update(
+            id = request.libraryId,
+            name = libraryItem.name,
+            displayOrder = libraryItem.displayOrder,
+            icon = libraryItem.icon,
+            mediaType = libraryItem.mediaType,
+            provider = libraryItem.provider,
+            createdAt = libraryItem.createdAt,
+            lastUpdate = libraryItem.lastUpdate,
+            coverAspectRatio = libraryItem.coverAspectRatio,
+            audiobooksOnly = libraryItem.audiobooksOnly,
+          )
           db.librariesQueries.insert(libraryItem)
         }
       },
@@ -99,6 +111,18 @@ class StoreLibraryRepository(
           db.transaction {
             data.forEach { library ->
               val libraryItem = library.asDbModel(userId)
+              db.librariesQueries.update(
+                id = library.id,
+                name = libraryItem.name,
+                displayOrder = libraryItem.displayOrder,
+                icon = libraryItem.icon,
+                mediaType = libraryItem.mediaType,
+                provider = libraryItem.provider,
+                createdAt = libraryItem.createdAt,
+                lastUpdate = libraryItem.lastUpdate,
+                coverAspectRatio = libraryItem.coverAspectRatio,
+                audiobooksOnly = libraryItem.audiobooksOnly,
+              )
               db.librariesQueries.insert(libraryItem)
             }
           }

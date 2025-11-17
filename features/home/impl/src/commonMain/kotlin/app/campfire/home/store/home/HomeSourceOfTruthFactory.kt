@@ -129,8 +129,21 @@ class HomeSourceOfTruthFactory(
     entities: List<SeriesPersonalized>,
   ) {
     entities.forEach { series ->
-      // Insert Series
-      db.seriesQueries.insert(series.asDbModel(libraryId))
+      // Upsert Series
+      db.seriesQueries.update(
+        id = series.id,
+        name = series.name,
+        description = series.description,
+        addedAt = series.addedAt,
+        updatedAt = series.updatedAt,
+        inProgress = series.inProgress == true,
+        hasActiveBook = series.hasActiveBook == true,
+        hideFromContinueListening = series.hideFromContinueListening == true,
+        bookInProgressLastUpdate = series.bookInProgressLastUpdate,
+        firstBookUnreadId = series.firstBookUnread?.id,
+        libraryId = libraryId,
+      )
+      db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
 
       // Insert the series books
       series.books?.forEachIndexed { index, book ->

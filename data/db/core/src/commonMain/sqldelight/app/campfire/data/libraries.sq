@@ -18,8 +18,21 @@ CREATE TABLE IF NOT EXISTS library (
 );
 
 insert:
-INSERT OR REPLACE INTO library
+INSERT OR IGNORE INTO library
 VALUES ?;
+
+update:
+UPDATE library
+SET name = :name,
+    displayOrder = :displayOrder,
+    icon = :icon,
+    mediaType = :mediaType,
+    provider = :provider,
+    createdAt = :createdAt,
+    lastUpdate = :lastUpdate,
+    coverAspectRatio = :coverAspectRatio,
+    audiobooksOnly = :audiobooksOnly
+WHERE id = :id;
 
 selectAll:
 SELECT * FROM library

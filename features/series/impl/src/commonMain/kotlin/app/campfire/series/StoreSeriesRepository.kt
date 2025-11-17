@@ -118,7 +118,7 @@ class StoreSeriesRepository(
           db.transaction {
             // Insert the series first,
             val series = networkResult.series.asDbModel(s.libraryId)
-            db.seriesQueries.insert(series)
+            db.seriesQueries.insertOrIgnore(series)
 
             // Insert the books
             networkResult.books.forEach { item ->
@@ -171,7 +171,10 @@ class StoreSeriesRepository(
             response.dataOrNull()?.let { series ->
               // If the response is empty, but was from the SoT, then lets just return null and wait
               // for the network request.
-              if (series.isEmpty() && response.origin == StoreReadResponseOrigin.SourceOfTruth) {
+              val isEmptyNotAllowedForOrigin =
+                response.origin is StoreReadResponseOrigin.SourceOfTruth ||
+                  response.origin is StoreReadResponseOrigin.Fetcher
+              if (series.isEmpty() && isEmptyNotAllowedForOrigin) {
                 return@mapNotNull null
               }
 

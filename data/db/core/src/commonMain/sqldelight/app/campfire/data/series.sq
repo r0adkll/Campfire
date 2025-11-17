@@ -17,9 +17,23 @@ CREATE TABLE IF NOT EXISTS series (
   FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
 );
 
-insert:
-INSERT OR REPLACE INTO series
+insertOrIgnore:
+INSERT OR IGNORE INTO series
 VALUES ?;
+
+update:
+UPDATE series
+SET id = :id,
+    name = :name,
+    description = :description,
+    addedAt = :addedAt,
+    updatedAt = :updatedAt,
+    inProgress = :inProgress,
+    hasActiveBook = :hasActiveBook,
+    hideFromContinueListening = :hideFromContinueListening,
+    bookInProgressLastUpdate = :bookInProgressLastUpdate,
+    firstBookUnreadId = :firstBookUnreadId
+WHERE libraryId = :libraryId;
 
 selectAll:
 SELECT * FROM series;
@@ -30,7 +44,8 @@ WHERE id = ?;
 
 selectByLibraryId:
 SELECT * FROM series
-WHERE libraryId = ?;
+WHERE libraryId = ?
+ORDER BY name ASC;
 
 selectByShelfId:
 SELECT * FROM series

@@ -33,7 +33,14 @@ class SeriesPresenter(
   override fun present(): SeriesUiState {
     val seriesContentState by remember {
       seriesRepository.observeAllSeries()
-        .map { LoadState.Loaded(it) as LoadState<List<Series>> }
+        .map { series ->
+          LoadState.Loaded(
+            // TODO: Make this a user setting / property
+            series.sortedBy { s ->
+              s.nameIgnorePrefix ?: s.name
+            },
+          ) as LoadState<List<Series>>
+        }
         .catch { emit(LoadState.Error as LoadState<List<Series>>) }
     }.collectAsState(LoadState.Loading)
 

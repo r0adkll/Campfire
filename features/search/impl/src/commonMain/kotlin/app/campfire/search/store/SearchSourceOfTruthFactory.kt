@@ -185,7 +185,7 @@ class SearchSourceOfTruthFactory(
       transactionWithResult {
         series.forEach { seriesSearchResult ->
 
-          db.seriesQueries.insert(
+          db.seriesQueries.insertOrIgnore(
             seriesSearchResult.series.asDbModel(query.libraryId),
           )
 
