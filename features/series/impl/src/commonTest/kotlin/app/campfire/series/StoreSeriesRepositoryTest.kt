@@ -93,7 +93,7 @@ class StoreSeriesRepositoryTest {
 
     databaseInterceptor.db
       .seriesQueries
-      .insert(createDbSeries("s1", libraryId = libraryId))
+      .insertOrIgnore(createDbSeries("s1", libraryId = libraryId))
 
     cache.put(libraryId, listOf(series))
 
@@ -115,7 +115,7 @@ class StoreSeriesRepositoryTest {
     cache.put(libraryId, listOf(series("c1", "Test Series")))
     databaseInterceptor.db
       .seriesQueries
-      .insert(createDbSeries("s1", libraryId = libraryId))
+      .insertOrIgnore(createDbSeries("s1", libraryId = libraryId))
     api.series = Result.success(listOf(createNetworkSeries("n1")))
 
     repository.observeAllSeries().test {

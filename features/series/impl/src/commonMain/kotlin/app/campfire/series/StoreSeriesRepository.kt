@@ -178,7 +178,7 @@ class StoreSeriesRepository(
                 return@mapNotNull null
               }
 
-              series
+              series.sortedBy { it.name }
             }
           }
       }

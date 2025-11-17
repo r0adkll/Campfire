@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Incorrect stat % trend rendering when negative from the previous week
 - Series not always appearing on item details.
 - Inconsistent series book ordering
+- Series disk cache getting deleted when leaving series screen
 
 ### Other Notes & Contributions
 
