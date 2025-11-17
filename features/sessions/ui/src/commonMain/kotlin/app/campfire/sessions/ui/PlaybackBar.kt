@@ -51,6 +51,7 @@ enum class PlaybackBarState {
 internal const val FlingThreshold = 4000f
 internal const val TranslationThreshold = 0.75f
 
+internal val BaseShadowElevation = 2.dp
 internal val ShadowElevation = 4.dp
 internal val TonalElevation = 2.dp
 

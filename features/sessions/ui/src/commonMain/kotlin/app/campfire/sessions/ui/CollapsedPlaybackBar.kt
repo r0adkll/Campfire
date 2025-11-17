@@ -108,7 +108,7 @@ internal fun CollapsedPlaybackBar(
     )
   }
 
-  val shadowElevation = ShadowElevation * abs(dragState.easedOffsetY)
+  val shadowElevation = BaseShadowElevation + ShadowElevation * abs(dragState.easedOffsetY)
   val tonalElevation = TonalElevation * abs(dragState.easedOffsetY)
 
   val surfaceColor by animateColorAsState(
