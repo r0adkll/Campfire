@@ -119,6 +119,12 @@ jobs:
           min-coverage-changed-files: 80
           coverage-counter-type: LINE
 
+      - name: Fail if coverage is not met
+        run: |
+          if [[ "${{ steps.kover.outputs.coverage-changed-files }}" < 50 ]];
+            exit 1
+          fi
+
   android:
     needs: [code-style]
     runs-on: ubuntu-latest
