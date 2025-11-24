@@ -103,11 +103,14 @@ class AddToCollectionDialogImpl(
     item: LibraryItem,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    properties: DialogProperties = DialogProperties(),
+    properties: DialogProperties = DialogProperties(
+      usePlatformDefaultWidth = false,
+    ),
   ) {
     BasicAlertDialog(
       onDismissRequest = onDismiss,
-      modifier = modifier,
+      modifier = modifier
+        .padding(horizontal = 24.dp),
       properties = properties,
     ) {
       AlertDialogContent(

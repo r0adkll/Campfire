@@ -86,17 +86,17 @@ fun AuthorCard(
         contentDescription = author.name,
         contentScale = ContentScale.Crop,
         modifier = Modifier
-          .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
-            sharedElement(
-              sharedContentState = rememberSharedContentState(
-                AuthorSharedTransitionKey(
-                  id = author.id,
-                  type = AuthorSharedTransitionKey.ElementType.Image,
-                ),
-              ),
-              animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-            )
-          }
+//          .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+//            sharedElement(
+//              sharedContentState = rememberSharedContentState(
+//                AuthorSharedTransitionKey(
+//                  id = author.id,
+//                  type = AuthorSharedTransitionKey.ElementType.Image,
+//                ),
+//              ),
+//              animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+//            )
+//          }
           .fillMaxSize()
           .clip(RoundedCornerShape(ThumbnailCornerSize)),
       )

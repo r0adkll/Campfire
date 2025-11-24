@@ -27,5 +27,6 @@ class SpacerSlot private constructor(
     fun small(id: String) = SpacerSlot(id, 8.dp)
     fun medium(id: String) = SpacerSlot(id, 16.dp)
     fun large(id: String) = SpacerSlot(id, 24.dp)
+    fun xlarge(id: String) = SpacerSlot(id, 32.dp)
   }
 }

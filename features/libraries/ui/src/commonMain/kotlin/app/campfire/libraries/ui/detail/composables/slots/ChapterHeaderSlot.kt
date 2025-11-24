@@ -4,14 +4,21 @@ import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -23,8 +30,11 @@ import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.header_chapters
 import org.jetbrains.compose.resources.stringResource
 
+internal val ChapterContainerColor
+  @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
+
 class ChapterHeaderSlot(
-  @VisibleForTesting
+  @get:VisibleForTesting
   val showTimeInBook: Boolean,
 ) : ContentSlot {
 
@@ -32,16 +42,23 @@ class ChapterHeaderSlot(
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
-    Column(
+    Surface(
       modifier = modifier,
+      shape = MaterialTheme.shapes.extraLarge.copy(
+        bottomStart = ZeroCornerSize,
+        bottomEnd = ZeroCornerSize,
+      ),
+      color = ChapterContainerColor,
     ) {
-      HorizontalDivider(Modifier.fillMaxWidth())
       MetadataHeader(
         title = stringResource(Res.string.header_chapters),
+        textStyle = MaterialTheme.typography.titleLarge,
+        textColor = MaterialTheme.colorScheme.contentColorFor(ChapterContainerColor),
         modifier = Modifier
-          .height(56.dp)
+          .heightIn(min = 48.dp)
           .padding(
-            horizontal = 16.dp,
+            horizontal = 24.dp,
+            vertical = 8.dp
           ),
         trailingContent = {
           Switch(
@@ -49,6 +66,11 @@ class ChapterHeaderSlot(
             onCheckedChange = {
               eventSink(LibraryItemUiEvent.TimeInBookChange(it))
             },
+            colors = SwitchDefaults.colors(
+              checkedTrackColor = MaterialTheme.colorScheme.secondary,
+              checkedThumbColor = MaterialTheme.colorScheme.onSecondary,
+              checkedIconColor = MaterialTheme.colorScheme.onSecondaryContainer
+            ),
             thumbContent = {
               Icon(
                 if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else Icons.Rounded.Timer,

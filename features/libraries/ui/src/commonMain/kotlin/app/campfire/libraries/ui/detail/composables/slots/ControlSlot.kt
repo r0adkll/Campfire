@@ -22,7 +22,7 @@ class ControlSlot(
   private val libraryItem: LibraryItem,
   private val offlineDownload: OfflineDownload?,
   private val mediaProgress: MediaProgress?,
-  @VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
+  @get:VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
 ) : ContentSlot {
 
   override val id: String = "control_bar"

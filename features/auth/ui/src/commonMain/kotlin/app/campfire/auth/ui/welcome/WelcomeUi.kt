@@ -50,10 +50,10 @@ fun Welcome(
         AddCampsiteCard(
           onClick = { state.eventSink(WelcomeUiEvent.AddCampsite) },
           modifier = Modifier
-            .sharedBounds(
-              sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
-              animatedVisibilityScope = requireAnimatedScope(Navigation),
-            )
+//            .sharedBounds(
+//              sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
+//              animatedVisibilityScope = requireAnimatedScope(Navigation),
+//            )
             .widthIn(max = MaxContentWidth)
             .fillMaxWidth()
             .padding(

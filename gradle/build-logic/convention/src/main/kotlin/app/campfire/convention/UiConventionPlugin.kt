@@ -49,6 +49,7 @@ class UiConventionPlugin : Plugin<Project> {
         implementation(compose.ui)
         implementation(compose.components.resources)
         implementation(compose.components.uiToolingPreview)
+        libs.findLibrary("compose-material3-expressive").ifPresent { implementation(it) }
 
         // Add Circuit Dependencies
         libs.findLibrary("circuit-runtime").ifPresent { implementation(it) }

@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 
 @Composable
@@ -19,10 +20,14 @@ fun CollectionDetailTopAppBar(
   onBack: () -> Unit,
   onDelete: () -> Unit,
   modifier: Modifier = Modifier,
+  containerColor: Color = Color.Unspecified,
+  scrolledContainerColor: Color = Color.Unspecified,
 ) {
   CampfireTopAppBar(
     modifier = modifier,
     title = { Text(name) },
+    containerColor = containerColor,
+    scrolledContainerColor = scrolledContainerColor,
     scrollBehavior = scrollBehavior,
     navigationIcon = {
       IconButton(

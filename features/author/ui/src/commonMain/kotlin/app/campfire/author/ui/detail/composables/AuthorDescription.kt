@@ -42,7 +42,7 @@ internal fun AuthorDescription(
 
     Text(
       text = description,
-      style = MaterialTheme.typography.bodyMedium,
+      style = MaterialTheme.typography.bodyLarge,
       maxLines = if (isExpanded) Int.MAX_VALUE else 5,
       overflow = TextOverflow.Ellipsis,
       onTextLayout = { textLayout = it },

@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,7 +58,6 @@ class TitleAndAuthorSlot(
       )
 
       libraryItem.media.metadata.subtitle?.let { subtitle ->
-        Spacer(Modifier.height(4.dp))
         Text(
           text = subtitle,
           style = MaterialTheme.typography.titleLarge,
@@ -87,6 +87,7 @@ class TitleAndAuthorSlot(
         Text(
           text = libraryItem.media.durationInMillis.milliseconds.readoutFormat(),
           style = MaterialTheme.typography.titleSmall,
+          fontWeight = FontWeight.SemiBold,
         )
         Spacer(Modifier.width(26.dp))
       }

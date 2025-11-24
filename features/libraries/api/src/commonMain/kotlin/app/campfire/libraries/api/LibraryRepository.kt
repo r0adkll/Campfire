@@ -12,12 +12,12 @@ interface LibraryRepository {
   /**
    * Observe the current selected library
    */
-  fun observeCurrentLibrary(): Flow<Library>
+  fun observeCurrentLibrary(refresh: Boolean = true): Flow<Library>
 
   /**
    * Observe all libraries for the current server
    */
-  fun observeAllLibraries(): Flow<List<Library>>
+  fun observeAllLibraries(refresh: Boolean = true): Flow<List<Library>>
 
   /**
    * Observe the library items for the current selected library

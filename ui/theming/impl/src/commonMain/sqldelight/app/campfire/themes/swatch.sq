@@ -1,0 +1,29 @@
+import androidx.compose.ui.graphics.Color;
+import kotlin.collections.List;
+
+CREATE TABLE IF NOT EXISTS swatch (
+  key TEXT NOT NULL PRIMARY KEY,
+  dominant INTEGER AS Color NOT NULL,
+  vibrant TEXT AS List<Color>
+);
+
+-- Queries
+
+insert:
+INSERT OR REPLACE INTO swatch
+VALUES ?;
+
+selectByKey:
+SELECT * FROM swatch
+WHERE key = ?;
+
+selectAll:
+SELECT * FROM swatch;
+
+deleteByKey:
+DELETE FROM swatch
+WHERE key = ?;
+
+containsKey:
+SELECT 1 FROM swatch
+WHERE key = ?;

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.animation.AnimatedVisibility
@@ -20,8 +22,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
@@ -114,17 +118,20 @@ fun OfflineStatusCard(
 
 @Composable
 private fun OfflineTitleBar(
-  expanded: Boolean,
   completed: Boolean,
-  onClick: () -> Unit,
   title: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  expanded: Boolean = false,
+  onClick: (() -> Unit)? = null,
 ) {
   Row(
     modifier = modifier
       .fillMaxWidth()
       .clickable(
-        onClick = onClick,
+        enabled = onClick != null,
+        onClick = {
+          onClick?.invoke()
+        },
       ),
     verticalAlignment = Alignment.CenterVertically,
   ) {
@@ -146,16 +153,17 @@ private fun OfflineTitleBar(
       }
     }
 
-    Spacer(Modifier.width(8.dp))
-
-    val iconRotation by animateFloatAsState(if (expanded) 180f else 0f)
-    Icon(
-      Icons.Rounded.KeyboardArrowDown,
-      contentDescription = null,
-      modifier = Modifier
-        .padding(16.dp)
-        .rotate(iconRotation),
-    )
+    if (onClick != null) {
+      Spacer(Modifier.width(8.dp))
+      val iconRotation by animateFloatAsState(if (expanded) 180f else 0f)
+      Icon(
+        Icons.Rounded.KeyboardArrowDown,
+        contentDescription = null,
+        modifier = Modifier
+          .padding(16.dp)
+          .rotate(iconRotation),
+      )
+    }
   }
 }
 
@@ -177,16 +185,16 @@ private fun OfflineProgressBar(
       ),
   ) {
     if (isIndeterminate) {
-      LinearProgressIndicator(
-        trackColor = MaterialTheme.colorScheme.surfaceContainer,
+      LinearWavyProgressIndicator(
+        trackColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
           .fillMaxWidth()
           .testTag("indeterminate_progress_bar"),
       )
     } else {
-      LinearProgressIndicator(
+      LinearWavyProgressIndicator(
         progress = { progress },
-        trackColor = MaterialTheme.colorScheme.surfaceContainer,
+        trackColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
           .fillMaxWidth()
           .testTag("determinate_progress_bar"),
@@ -227,7 +235,7 @@ private fun OfflineProgressBar(
 }
 
 @Composable
-private fun OfflineCompletedActions(
+internal fun OfflineCompletedActions(
   sizeInBytes: Long,
   onDeleteClick: () -> Unit,
   modifier: Modifier = Modifier,

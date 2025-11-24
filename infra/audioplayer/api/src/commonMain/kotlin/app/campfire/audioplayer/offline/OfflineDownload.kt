@@ -9,6 +9,16 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+
+@OptIn(ExperimentalContracts::class)
+fun OfflineDownload?.isNullOrNone(): Boolean {
+    contract {
+      returns(false) implies (this@isNullOrNone != null)
+    }
+    return this == null || state == None
+  }
 
 /**
  * Represents the download state of a [LibraryItem].

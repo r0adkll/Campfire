@@ -47,9 +47,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.cardElevation
+import app.campfire.common.compose.util.rememberCachingSwatchListener
+import app.campfire.common.compose.util.rememberThemeDispatcherListener
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.offline.OfflineStatus
@@ -133,24 +134,26 @@ private fun LibraryItemCardImage(
       contentDescription = item.media.metadata.title,
       placeholder = painterResource(Res.drawable.placeholder_book),
       shape = shape,
+//      swatchListener = rememberCachingSwatchListener(item.id),
+      imageBitmapListener = rememberThemeDispatcherListener(item.id),
       modifier = Modifier
         .aspectRatio(1f)
         .fillMaxWidth()
         .widthIn(max = CardMaxWidth)
         .clip(shape),
       sharedElementModifier = Modifier
-        .thenIfNotNull(animationScope) { scope ->
-          sharedElement(
-            sharedContentState = rememberSharedContentState(
-              LibraryItemSharedTransitionKey(
-                id = sharedTransitionKey,
-                type = LibraryItemSharedTransitionKey.ElementType.Image,
-              ),
-            ),
-            animatedVisibilityScope = scope,
-            zIndexInOverlay = sharedTransitionZIndex,
-          )
-        },
+//        .thenIfNotNull(animationScope) { scope ->
+//          sharedElement(
+//            sharedContentState = rememberSharedContentState(
+//              LibraryItemSharedTransitionKey(
+//                id = sharedTransitionKey,
+//                type = LibraryItemSharedTransitionKey.ElementType.Image,
+//              ),
+//            ),
+//            animatedVisibilityScope = scope,
+//            zIndexInOverlay = sharedTransitionZIndex,
+//          )
+//        },
     )
 
     val isTransitionVisible by remember {

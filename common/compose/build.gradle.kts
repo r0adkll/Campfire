@@ -20,15 +20,18 @@ kotlin {
         api(libs.coil)
         api(libs.coil.compose)
         api(libs.coil.svg)
+        api(libs.compose.material3.expressive)
         api(libs.compose.material3.windowsizeclass)
         api(libs.materialcolorsutilities)
+        api(libs.swatchbuckler.compose)
+        api(libs.swatchbuckler.coil)
 
         api(compose.foundation)
         api(compose.material)
-        api(compose.material3)
         api(compose.materialIconsExtended)
         api(compose.animation)
         api(compose.components.resources)
+        api(compose.components.uiToolingPreview)
       }
     }
 

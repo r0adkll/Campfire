@@ -1,17 +1,20 @@
 package app.campfire.libraries.ui.detail
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Session
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 @Immutable
 data class LibraryItemUiState(
   val libraryItem: LibraryItem?,
+  val theme: Theme? = null,
   val contentState: LoadState<out List<ContentSlot>>,
   val showConfirmDownloadDialog: Boolean,
   val eventSink: (LibraryItemUiEvent) -> Unit,
@@ -25,6 +28,8 @@ sealed interface SessionUiState {
 }
 
 sealed interface LibraryItemUiEvent : CircuitUiEvent {
+  data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
+
   data class PlayClick(val item: LibraryItem) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent

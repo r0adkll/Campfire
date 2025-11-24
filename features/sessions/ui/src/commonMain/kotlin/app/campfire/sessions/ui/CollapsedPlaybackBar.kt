@@ -199,10 +199,10 @@ private fun CollapsedPlaybackBarContent(
           imageUrl = thumbnailUrl,
           contentDescription = thumbnailContentDescription,
           modifier = Modifier
-            .sharedElement(
-              rememberSharedContentState(SharedImage),
-              animatedVisibilityScope = animatedVisibilityScope,
-            ),
+//            .sharedElement(
+//              rememberSharedContentState(SharedImage),
+//              animatedVisibilityScope = animatedVisibilityScope,
+//            ),
         )
 
         androidx.compose.animation.AnimatedVisibility(

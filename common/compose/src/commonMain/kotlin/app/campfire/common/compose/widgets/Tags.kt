@@ -117,7 +117,7 @@ object TagDefaults {
 
   @Composable
   fun filledColors(
-    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
     contentColor: Color = MaterialTheme.colorScheme.contentColorFor(containerColor),
     borderColor: Color = Color.Unspecified,
   ) = TagColors(containerColor, contentColor, borderColor)

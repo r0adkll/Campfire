@@ -193,8 +193,14 @@ include(
   ":ui:appbar",
   ":ui:drawer",
   ":ui:attribution",
+)
+include(
   ":ui:widgets:api",
   ":ui:widgets:impl",
+)
+include(
+  ":ui:theming:api",
+  ":ui:theming:impl",
 )
 include(":scripts:app")
 

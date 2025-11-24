@@ -10,6 +10,7 @@ expect interface SqlDelightDatabasePlatformComponent
 
 @ContributesTo(AppScope::class)
 interface DatabaseComponent : SqlDelightDatabasePlatformComponent {
+
   @SingleIn(AppScope::class)
   @Provides
   fun provideSqlDelightDatabase(

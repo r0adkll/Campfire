@@ -15,9 +15,12 @@ kotlin {
         implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
         implementation(projects.ui.appbar)
+        implementation(projects.ui.theming.api)
 
         implementation(libs.circuitx.overlays)
         implementation(libs.compose.rich.text)
+        implementation(libs.swatchbuckler.compose)
+        implementation(libs.swatchbuckler.coil)
       }
     }
 

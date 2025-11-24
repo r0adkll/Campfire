@@ -23,8 +23,7 @@ VALUES ?;
 
 update:
 UPDATE series
-SET id = :id,
-    name = :name,
+SET name = :name,
     description = :description,
     addedAt = :addedAt,
     updatedAt = :updatedAt,
@@ -33,7 +32,14 @@ SET id = :id,
     hideFromContinueListening = :hideFromContinueListening,
     bookInProgressLastUpdate = :bookInProgressLastUpdate,
     firstBookUnreadId = :firstBookUnreadId
-WHERE libraryId = :libraryId;
+WHERE libraryId = :libraryId
+  AND id = :id;
+
+existsById:
+SELECT 1 FROM series
+WHERE id = ?
+  AND libraryId = ?
+LIMIT 1;
 
 selectAll:
 SELECT * FROM series;

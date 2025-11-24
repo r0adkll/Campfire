@@ -21,8 +21,10 @@
   <string name="action_show_more">Show more</string>
 
   <string name="menu_item_mark_finished">Mark as finished</string>
+  <string name="menu_item_mark_finished_short">Finished</string>
   <string name="menu_item_mark_not_finished">Mark as not finished</string>
   <string name="menu_item_discard_progress">Discard progress</string>
+  <string name="menu_item_discard_progress_short">Discard</string>
   <string name="menu_item_add_playlist">Add to playlist</string>
   <string name="menu_item_add_collection">Add to collection</string>
   <string name="menu_item_download">Download</string>

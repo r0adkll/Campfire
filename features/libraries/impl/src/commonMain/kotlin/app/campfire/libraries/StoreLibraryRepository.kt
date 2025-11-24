@@ -141,14 +141,14 @@ class StoreLibraryRepository(
       .build(),
   ).build()
 
-  override fun observeCurrentLibrary(): Flow<Library> {
+  override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         // Fetch the latest library based on the value in the User has selected in the database.
         // If the user changes libraries an active subscription to this flow should update the current library
         val request = SingleLibraryRequest(user.id, user.selectedLibraryId)
         singleLibraryStore
-          .stream(StoreReadRequest.cached(request, refresh = true))
+          .stream(StoreReadRequest.cached(request, refresh = refresh))
           .debugLogging("SingleLibraryStore")
           .mapNotNull {
             it.dataOrNull()?.asDomainModel()
@@ -156,10 +156,10 @@ class StoreLibraryRepository(
       }
   }
 
-  override fun observeAllLibraries(): Flow<List<Library>> {
+  override fun observeAllLibraries(refresh: Boolean): Flow<List<Library>> {
     val userId = userSession.userId ?: return flowOf(emptyList())
     return allLibrariesStore
-      .stream(StoreReadRequest.cached(userId, refresh = true))
+      .stream(StoreReadRequest.cached(userId, refresh = refresh))
       .debugLogging("AllLibrariesStore")
       .mapNotNull {
         it.dataOrNull()?.map { it.asDomainModel() }

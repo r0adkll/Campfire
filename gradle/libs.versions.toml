@@ -15,8 +15,8 @@ burst = "2.10.2"
 clikt = "5.0.3"
 core-ktx = "1.17.0"
 coroutines = "1.10.2"
-# TODO: 1.9.1+ breaks Wavy Slider - TODO: Update to support M3 Expressive
 compose-multiplatform = "1.9.3"
+compose-m3 = "1.10.0-alpha04"
 connectivity = "2.3.0"
 coil = "3.3.0"
 circuit = "0.31.0"
@@ -51,6 +51,7 @@ benchmark-macro-junit4 = "1.4.1"
 baselineprofile = "1.4.1"
 profileinstaller = "1.4.1"
 material = "1.13.0"
+swatchbuckler = "0.1.1-SNAPSHOT"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -78,6 +79,9 @@ baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprof
 modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.13.0" }
 
 [libraries]
+swatchbuckler-compose = { module = "com.r0adkll.swatchbuckler:compose", version.ref = "swatchbuckler" }
+swatchbuckler-coil = { module = "com.r0adkll.swatchbuckler:coil", version.ref = "swatchbuckler" }
+
 # About Libraries
 about-libraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "about-libraries" }
 about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "about-libraries" }
@@ -148,6 +152,7 @@ multiplatformsettings-coroutines = { module = "com.russhwolf:multiplatform-setti
 multiplatformsettings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatformsettings" }
 
 compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
+compose-material3-expressive = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-m3" }
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
 compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13"
@@ -195,6 +200,7 @@ connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", ver
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
 store-cache = { module = "org.mobilenativefoundation.store:cache5", version.ref = "store" }
+stately-concurrent-collections = "co.touchlab:stately-concurrent-collections:2.1.0"
 
 # SqlDelight
 sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }

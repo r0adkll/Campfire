@@ -4,7 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -25,9 +27,13 @@ class SeriesSlot(
     Column(modifier) {
       MetadataHeader(
         title = "Series",
-        modifier = Modifier.padding(
-          horizontal = 16.dp,
-        ),
+        textStyle = MaterialTheme.typography.titleLarge,
+        textColor = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier
+          .heightIn(min = 56.dp)
+          .padding(
+            horizontal = 16.dp,
+          ),
       )
       Spacer(Modifier.height(8.dp))
       SeriesMetadata(

@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
@@ -225,7 +226,9 @@ fun AdaptiveCampfireLayout(
                       )
                     },
                   shadowElevation = SupportingContentElevation,
-                  tonalElevation = SupportingContentElevation,
+                  tonalElevation = 1.dp,
+//                  tonalElevation = SupportingContentElevation,
+//                  color = MaterialTheme.colorScheme.surfaceContainerHighest,
                   shape = supportingContentShape,
                 ) {
                   CompositionLocalProvider(

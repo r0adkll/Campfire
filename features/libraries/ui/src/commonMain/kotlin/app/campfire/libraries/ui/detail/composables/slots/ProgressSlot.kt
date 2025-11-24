@@ -10,8 +10,8 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 
 class ProgressSlot(
-  @VisibleForTesting
-  val mediaProgress: MediaProgress,
+  val isPlaying: Boolean,
+  @get:VisibleForTesting val mediaProgress: MediaProgress,
 ) : ContentSlot {
 
   override val id: String = "media_progress"
@@ -19,9 +19,12 @@ class ProgressSlot(
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
     MediaProgressBar(
+      isPlaying = isPlaying,
       progress = mediaProgress,
       modifier = modifier
-        .padding(horizontal = 20.dp),
+        .padding(
+          horizontal = 20.dp
+        ),
     )
   }
 }

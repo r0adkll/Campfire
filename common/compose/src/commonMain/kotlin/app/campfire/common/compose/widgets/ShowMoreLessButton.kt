@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package app.campfire.common.compose.widgets
 
 import androidx.compose.animation.AnimatedContent
@@ -11,11 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.UnfoldLess
 import androidx.compose.material.icons.rounded.UnfoldMore
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,19 +43,20 @@ fun ShowMoreLessButton(
   modifier: Modifier = Modifier,
   color: Color = MaterialTheme.colorScheme.primary,
 ) {
+  val shape = MaterialTheme.shapes.small
   Row(
     verticalAlignment = Alignment.CenterVertically,
     modifier = modifier
       .border(
-        width = 2.dp,
+        width = 1.dp,
         color = color,
-        shape = RoundedCornerShape(8.dp),
+        shape = shape,
       )
-      .clip(RoundedCornerShape(8.dp))
+      .clip(shape)
       .clickable {
         onExpandedChange(!expanded)
       }
-      .height(40.dp)
+      .height(ButtonDefaults.ExtraSmallContainerHeight)
       .padding(
         start = 8.dp,
         end = 16.dp,
@@ -66,15 +72,16 @@ fun ShowMoreLessButton(
         if (isExpanded) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore,
         contentDescription = null,
         tint = color,
+        modifier = Modifier.size(ButtonDefaults.ExtraSmallIconSize)
       )
     }
 
-    Spacer(Modifier.width(4.dp))
+    Spacer(Modifier.size(ButtonDefaults.ExtraSmallIconSpacing))
 
     val textRes = if (expanded) Res.string.action_show_less else Res.string.action_show_more
     Text(
       text = stringResource(textRes),
-      style = MaterialTheme.typography.labelLarge,
+      style = ButtonDefaults.textStyleFor(ButtonDefaults.ExtraSmallContainerHeight),
       fontWeight = FontWeight.Medium,
       color = color,
     )

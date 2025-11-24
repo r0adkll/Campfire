@@ -447,10 +447,10 @@ private fun SharedTransitionScope.ExpandedItemImage(
       imageUrl = mediaUrl,
       contentDescription = session.libraryItem.media.metadata.title,
       size = size,
-      modifier = Modifier.sharedElement(
-        rememberSharedContentState(SharedImage),
-        animatedVisibilityScope = animatedVisibilityScope,
-      ),
+//      modifier = Modifier.sharedElement(
+//        rememberSharedContentState(SharedImage),
+//        animatedVisibilityScope = animatedVisibilityScope,
+//      ),
     )
 
     AnimatedVisibility(

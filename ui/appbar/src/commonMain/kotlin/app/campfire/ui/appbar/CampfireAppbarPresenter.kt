@@ -33,12 +33,12 @@ class CampfireAppbarPresenter(
     }.collectAsState(null)
 
     val library by remember {
-      libraryRepository.observeCurrentLibrary()
+      libraryRepository.observeCurrentLibrary(refresh = false)
         .catch { null }
     }.collectAsState(null)
 
     val libraries by remember {
-      libraryRepository.observeAllLibraries()
+      libraryRepository.observeAllLibraries(refresh = false)
         .map { it.sortedBy { it.displayOrder } }
         .catch { emptyList<Library>() }
     }.collectAsState(emptyList())

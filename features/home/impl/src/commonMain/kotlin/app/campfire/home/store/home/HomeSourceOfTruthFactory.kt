@@ -16,6 +16,8 @@ import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf as NetworkShelf
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
+import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.flow.map
@@ -130,20 +132,25 @@ class HomeSourceOfTruthFactory(
   ) {
     entities.forEach { series ->
       // Upsert Series
-      db.seriesQueries.update(
-        id = series.id,
-        name = series.name,
-        description = series.description,
-        addedAt = series.addedAt,
-        updatedAt = series.updatedAt,
-        inProgress = series.inProgress == true,
-        hasActiveBook = series.hasActiveBook == true,
-        hideFromContinueListening = series.hideFromContinueListening == true,
-        bookInProgressLastUpdate = series.bookInProgressLastUpdate,
-        firstBookUnreadId = series.firstBookUnread?.id,
-        libraryId = libraryId,
-      )
-      db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
+      val exists = db.seriesQueries.existsById(series.id, libraryId)
+        .awaitAsOneOrNull() != null
+      if (exists) {
+        db.seriesQueries.update(
+          id = series.id,
+          name = series.name,
+          description = series.description,
+          addedAt = series.addedAt,
+          updatedAt = series.updatedAt,
+          inProgress = series.inProgress == true,
+          hasActiveBook = series.hasActiveBook == true,
+          hideFromContinueListening = series.hideFromContinueListening == true,
+          bookInProgressLastUpdate = series.bookInProgressLastUpdate,
+          firstBookUnreadId = series.firstBookUnread?.id,
+          libraryId = libraryId,
+        )
+      } else {
+        db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
+      }
 
       // Insert the series books
       series.books?.forEachIndexed { index, book ->

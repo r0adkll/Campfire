@@ -1,18 +1,28 @@
 package app.campfire.libraries.ui.detail
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.LibraryAdd
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalAbsoluteTonalElevation
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
@@ -23,6 +33,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
@@ -33,6 +45,8 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.util.LocalThemeCache
+import app.campfire.common.compose.util.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
@@ -42,6 +56,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.libraries.ui.detail.composables.slots.ChapterContainerColor
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
@@ -68,110 +83,39 @@ import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(heightDp = 1600)
-@Composable
-fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
-  CampfireTheme {
-    CompositionLocalProvider(
-      LocalWindowSizeClass provides calculateWindowSizeClass(),
-      LocalContentLayout provides ContentLayout.Root,
-    ) {
-      val libraryItem = libraryItem()
-      val mediaProgress = mediaProgress()
-      val offlineDownload = OfflineDownload(
-        libraryItemId = "",
-        state = OfflineDownload.State.Completed,
-        contentLength = 500L * 1024L * 1024L,
-      )
-
-      val slotState = LibraryItemUiState(
-        libraryItem = libraryItem,
-        contentState = LoadState.Loaded(
-          data = listOf(
-            CoverImageSlot("", "", ""),
-            TitleAndAuthorSlot(libraryItem),
-            SpacerSlot.medium("progress_spacer"),
-            ProgressSlot(mediaProgress),
-            SpacerSlot.medium("control_spacer"),
-            ControlSlot(
-              libraryItem = libraryItem,
-              offlineDownload = offlineDownload,
-              mediaProgress = mediaProgress,
-              showConfirmDownloadDialogSetting = true,
-            ),
-            SpacerSlot.medium("offline_spacer"),
-            OfflineStatusSlot(offlineDownload),
-            SpacerSlot.medium("summary_spacer"),
-            SummarySlot(libraryItem.media.metadata.description!!),
-            SpacerSlot.medium("series_spacer"),
-            SeriesSlot(
-              libraryItem = libraryItem,
-              seriesBooks = listOf(
-                libraryItem(),
-                libraryItem(),
-                libraryItem(),
-                libraryItem(),
-              ),
-            ),
-            SpacerSlot.medium("genres_spacer"),
-            ChipsSlot(
-              title = ChipsTitle(Res.plurals.genres_title, 2),
-              chips = libraryItem.media.metadata.genres,
-            ),
-            SpacerSlot.medium("tags_spacer"),
-            ChipsSlot(
-              title = ChipsTitle(Res.plurals.tags_title, 2),
-              chips = libraryItem.media.tags,
-            ),
-            SpacerSlot.medium("published_spacer"),
-            PublishedSlot(
-              publisher = libraryItem.media.metadata.publisher!!,
-              publishedYear = libraryItem.media.metadata.publishedYear!!,
-            ),
-            SpacerSlot.large("chapters_spacer"),
-            ChapterHeaderSlot(
-              showTimeInBook = true,
-            ),
-            *libraryItem.media.chapters.map {
-              ChapterSlot(
-                libraryItem = libraryItem,
-                chapter = it,
-                showTimeInBook = true,
-                mediaProgress = mediaProgress,
-              )
-            }.toTypedArray(),
-          ),
-        ),
-        showConfirmDownloadDialog = false,
-        eventSink = {},
-      )
-
-      LibraryItem(
-        state = slotState,
-        addToCollectionDialog = object : AddToCollectionDialog {
-          @Composable
-          override fun Content(item: LibraryItem, onDismiss: () -> Unit, modifier: Modifier) {
-          }
-        },
-      )
-    }
-  }
-}
-
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Composable
 fun LibraryItem(
   state: LibraryItemUiState,
   addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier = Modifier,
+) {
+  MaterialExpressiveTheme(
+    colorScheme = state.theme?.colorScheme
+  ) {
+    LibraryItemContent(
+      state = state,
+      addToCollectionDialog = addToCollectionDialog,
+      modifier = modifier,
+    )
+  }
+}
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Composable
+fun LibraryItemContent(
+  state: LibraryItemUiState,
+  addToCollectionDialog: AddToCollectionDialog,
+  modifier: Modifier,
 ) = SharedElementTransitionScope {
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
   var showAddToCollectionDialog by remember { mutableStateOf(false) }
 
+  val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
   Scaffold(
+    containerColor = surfaceColor,
     topBar = {
       CampfireTopAppBar(
         title = {},
@@ -240,7 +184,12 @@ private fun LoadedState(
 ) {
   LazyColumn(
     modifier = modifier.fillMaxSize(),
-    contentPadding = contentPadding,
+    contentPadding = PaddingValues(
+      start = contentPadding.calculateStartPadding(LocalLayoutDirection.current),
+      end = contentPadding.calculateStartPadding(LocalLayoutDirection.current),
+      top = contentPadding.calculateTopPadding(),
+      bottom = 0.dp,
+    ),
   ) {
     items(
       items = slots,
@@ -250,6 +199,108 @@ private fun LoadedState(
       slot.Content(
         Modifier.animateItem(),
         eventSink,
+      )
+    }
+
+    item {
+      Box(
+        modifier = Modifier
+          .background(ChapterContainerColor)
+          .fillMaxWidth()
+          .height(contentPadding.calculateBottomPadding())
+      )
+    }
+  }
+}
+
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
+@Preview(heightDp = 1600)
+@Composable
+fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
+  CampfireTheme {
+    CompositionLocalProvider(
+      LocalWindowSizeClass provides calculateWindowSizeClass(),
+      LocalContentLayout provides ContentLayout.Root,
+    ) {
+      val libraryItem = libraryItem()
+      val mediaProgress = mediaProgress()
+      val offlineDownload = OfflineDownload(
+        libraryItemId = "",
+        state = OfflineDownload.State.Completed,
+        contentLength = 500L * 1024L * 1024L,
+      )
+
+      val slotState = LibraryItemUiState(
+        libraryItem = libraryItem,
+        contentState = LoadState.Loaded(
+          data = listOf(
+            CoverImageSlot("", "", "", ""),
+            TitleAndAuthorSlot(libraryItem),
+            SpacerSlot.medium("progress_spacer"),
+            ProgressSlot(false, mediaProgress),
+            SpacerSlot.medium("control_spacer"),
+            ControlSlot(
+              libraryItem = libraryItem,
+              offlineDownload = offlineDownload,
+              mediaProgress = mediaProgress,
+              showConfirmDownloadDialogSetting = true,
+            ),
+            SpacerSlot.medium("offline_spacer"),
+            OfflineStatusSlot(offlineDownload),
+            SpacerSlot.medium("summary_spacer"),
+            SummarySlot(libraryItem.media.metadata.description!!),
+            SpacerSlot.medium("series_spacer"),
+            SeriesSlot(
+              libraryItem = libraryItem,
+              seriesBooks = listOf(
+                libraryItem(),
+                libraryItem(),
+                libraryItem(),
+                libraryItem(),
+              ),
+            ),
+            SpacerSlot.medium("genres_spacer"),
+            ChipsSlot(
+              title = ChipsTitle(Res.plurals.genres_title, 2),
+              chips = libraryItem.media.metadata.genres,
+            ),
+            SpacerSlot.medium("tags_spacer"),
+            ChipsSlot(
+              title = ChipsTitle(Res.plurals.tags_title, 2),
+              chips = libraryItem.media.tags,
+            ),
+            SpacerSlot.medium("published_spacer"),
+            PublishedSlot(
+              publisher = libraryItem.media.metadata.publisher!!,
+              publishedYear = libraryItem.media.metadata.publishedYear!!,
+            ),
+            SpacerSlot.large("chapters_spacer"),
+            ChapterHeaderSlot(
+              showTimeInBook = true,
+            ),
+            *libraryItem.media.chapters.map {
+              ChapterSlot(
+                libraryItem = libraryItem,
+                chapter = it,
+                showTimeInBook = true,
+                mediaProgress = mediaProgress,
+              )
+            }.toTypedArray(),
+          ),
+        ),
+        showConfirmDownloadDialog = false,
+        eventSink = {},
+      )
+
+      LibraryItemContent(
+        state = slotState,
+        addToCollectionDialog = object : AddToCollectionDialog {
+          @Composable
+          override fun Content(item: LibraryItem, onDismiss: () -> Unit, modifier: Modifier) {
+          }
+        },
+        modifier = Modifier,
       )
     }
   }

@@ -63,10 +63,10 @@ internal fun VerticalLogoTitle(
   ) {
     NoisyCampfireIcon(
       modifier = Modifier
-        .sharedElement(
-          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
-          animatedVisibilityScope = requireAnimatedScope(Navigation),
-        )
+//        .sharedElement(
+//          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
+//          animatedVisibilityScope = requireAnimatedScope(Navigation),
+//        )
         .size(236.dp),
     )
 
@@ -77,10 +77,10 @@ internal fun VerticalLogoTitle(
       style = MaterialTheme.typography.displayLarge,
       fontFamily = PaytoneOneFontFamily,
       modifier = Modifier
-        .sharedBounds(
-          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
-          animatedVisibilityScope = requireAnimatedScope(Navigation),
-        ),
+//        .sharedBounds(
+//          sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
+//          animatedVisibilityScope = requireAnimatedScope(Navigation),
+//        ),
     )
   }
 }

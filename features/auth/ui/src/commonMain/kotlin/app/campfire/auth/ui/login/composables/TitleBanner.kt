@@ -38,12 +38,12 @@ internal fun TitleBanner(
   ) {
     NoisyCampfireIcon(
       modifier = Modifier
-        .fluentIf<Modifier>(animatedVisibilityScope != null) {
-          sharedElement(
-            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
-            animatedVisibilityScope = animatedVisibilityScope!!,
-          )
-        }
+//        .fluentIf<Modifier>(animatedVisibilityScope != null) {
+//          sharedElement(
+//            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Logo)),
+//            animatedVisibilityScope = animatedVisibilityScope!!,
+//          )
+//        }
         .size(96.dp),
     )
     Spacer(Modifier.width(16.dp))
@@ -52,12 +52,12 @@ internal fun TitleBanner(
       style = MaterialTheme.typography.displayMedium,
       fontFamily = PaytoneOneFontFamily,
       modifier = Modifier
-        .fluentIf<Modifier>(animatedVisibilityScope != null) {
-          sharedBounds(
-            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
-            animatedVisibilityScope = animatedVisibilityScope!!,
-          )
-        },
+//        .fluentIf<Modifier>(animatedVisibilityScope != null) {
+//          sharedBounds(
+//            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Title)),
+//            animatedVisibilityScope = animatedVisibilityScope!!,
+//          )
+//        },
     )
   }
 }

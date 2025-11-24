@@ -13,10 +13,8 @@ internal fun AuthorDetailHeader(
   title: String,
   modifier: Modifier = Modifier,
 ) {
-  Box(
-    modifier = modifier.height(48.dp),
-    contentAlignment = Alignment.CenterStart,
-  ) {
-    MetadataHeader(title)
-  }
+  MetadataHeader(
+    title = title,
+    modifier = modifier,
+  )
 }

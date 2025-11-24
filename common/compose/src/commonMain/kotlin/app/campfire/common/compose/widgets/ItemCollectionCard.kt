@@ -95,18 +95,18 @@ private fun MultiBookLayout(
             imageUrl = item.media.coverImageUrl,
             contentDescription = item.media.metadata.title,
             modifier = Modifier
-              .thenIfNotNull(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)) {
-                sharedElement(
-                  sharedContentState = rememberSharedContentState(
-                    LibraryItemSharedTransitionKey(
-                      id = item.id + sharedTransitionKeyModifier,
-                      type = LibraryItemSharedTransitionKey.ElementType.Image,
-                    ),
-                  ),
-                  animatedVisibilityScope = it,
-                  zIndexInOverlay = -(i + 1f),
-                )
-              }
+//              .thenIfNotNull(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)) {
+//                sharedElement(
+//                  sharedContentState = rememberSharedContentState(
+//                    LibraryItemSharedTransitionKey(
+//                      id = item.id + sharedTransitionKeyModifier,
+//                      type = LibraryItemSharedTransitionKey.ElementType.Image,
+//                    ),
+//                  ),
+//                  animatedVisibilityScope = it,
+//                  zIndexInOverlay = -(i + 1f),
+//                )
+//              }
               .size(bookImageSize),
           )
         }

@@ -3,18 +3,22 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
+import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.coroutines.onLoaded
@@ -32,6 +36,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.ControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
+import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.OfflineStatusSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.PublishedSlot
@@ -42,20 +47,30 @@ import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.ui.theming.api.SwatchSelector
+import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.r0adkll.swatchbuckler.compose.Schema
+import com.r0adkll.swatchbuckler.compose.Theme
+import com.r0adkll.swatchbuckler.compose.ThemeBuilder
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -73,6 +88,8 @@ class LibraryItemPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
   private val analytics: Analytics,
+  private val themeManager: ThemeManager,
+  private val dispatcherProvider: DispatcherProvider,
 ) : Presenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
@@ -121,6 +138,19 @@ class LibraryItemPresenter(
         }
     }.collectAsState(null)
 
+    val isPlaying by remember {
+      audioPlayerHolder.currentPlayer
+        .flatMapLatest {
+          if (it?.preparedSession?.libraryItem?.id == screen.libraryItemId) {
+            it.state
+          } else {
+            flowOf(AudioPlayer.State.Disabled)
+          }
+        }
+        .mapLatest { it == AudioPlayer.State.Playing }
+        .distinctUntilChanged()
+    }.collectAsState(false)
+
     val showConfirmDownloadDialog by remember {
       settings.observeShowConfirmDownload()
     }.collectAsState(true)
@@ -134,6 +164,7 @@ class LibraryItemPresenter(
       buildSlots(
         libraryItem = libraryItem,
         sharedTransitionKey = screen.sharedTransitionKey,
+        isPlaying = isPlaying,
         mediaProgressState = mediaProgressState,
         offlineDownloadState = offlineDownloadState,
         seriesContentState = seriesContentState,
@@ -142,13 +173,32 @@ class LibraryItemPresenter(
       )
     }
 
+    val theme by remember {
+      themeManager.observeThemeFor(
+        key = screen.libraryItemId,
+        colorSelector = SwatchSelector.Dominant,
+        schema = Schema.Expressive,
+      )
+    }.collectAsState(null)
+
     return LibraryItemUiState(
       libraryItem = libraryItemContentState.dataOrNull,
+      theme = theme,
       contentState = slots,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
+
+        is LibraryItemUiEvent.SeedColorChange -> {
+          scope.launch(dispatcherProvider.computation) {
+            themeManager.queue(
+              key = screen.libraryItemId,
+              seedColor = event.seedColor,
+            )
+          }
+        }
+
         is LibraryItemUiEvent.PlayClick -> {
           analytics.send(ActionEvent("play_item", Click))
           playbackController.startSession(event.item.id)
@@ -250,6 +300,7 @@ class LibraryItemPresenter(
 private fun buildSlots(
   libraryItem: LibraryItem,
   sharedTransitionKey: String,
+  isPlaying: Boolean,
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<LibraryItem>>,
@@ -258,6 +309,7 @@ private fun buildSlots(
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
+      libraryItemId = libraryItem.id,
       imageUrl = libraryItem.media.coverImageUrl,
       contentDescription = libraryItem.media.metadata.title,
       sharedTransitionKey = sharedTransitionKey,
@@ -269,29 +321,42 @@ private fun buildSlots(
 
     mediaProgressState.onLoaded { mediaProgress ->
       if (mediaProgress != null && mediaProgress.progress > 0f) {
-        this += SpacerSlot.medium("progress_spacer")
-        this += ProgressSlot(mediaProgress)
+        this += SpacerSlot.xlarge("progress_spacer_before")
+        this += ProgressSlot(isPlaying, mediaProgress)
+        this += SpacerSlot.small("progress_spacer_after")
       }
     }
 
-    this += SpacerSlot.medium("control_spacer")
-    this += ControlSlot(
+//    this += SpacerSlot.medium("control_spacer")
+//    this += ControlSlot(
+//      libraryItem = libraryItem,
+//      offlineDownload = offlineDownloadState,
+//      mediaProgress = mediaProgressState.dataOrNull,
+//      showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
+//    )
+
+    this += SpacerSlot.medium("expressive_control_spacer")
+    this += ExpressiveControlSlot(
       libraryItem = libraryItem,
       offlineDownload = offlineDownloadState,
       mediaProgress = mediaProgressState.dataOrNull,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
     )
 
-    if (offlineDownloadState != null && offlineDownloadState.state != OfflineDownload.State.None) {
-      this += SpacerSlot.medium("offline_spacer")
-      this += OfflineStatusSlot(
-        offlineDownload = offlineDownloadState,
-      )
-    }
+//    if (offlineDownloadState != null && offlineDownloadState.state != OfflineDownload.State.None) {
+//      this += SpacerSlot.medium("offline_spacer")
+//      this += OfflineStatusSlot(
+//        offlineDownload = offlineDownloadState,
+//      )
+//    }
 
     libraryItem.media.metadata.description?.let { desc ->
       this += SpacerSlot.medium("summary_spacer")
-      this += SummarySlot(desc)
+      this += SummarySlot(
+        description = desc,
+        publisher = libraryItem.media.metadata.publisher,
+        publishedYear = libraryItem.media.metadata.publishedYear,
+      )
     }
 
     seriesContentState.onLoaded { seriesBooks ->
@@ -304,13 +369,13 @@ private fun buildSlots(
       }
     }
 
-    if (libraryItem.media.metadata.publisher != null) {
-      this += SpacerSlot.medium("publisher_spacer")
-      this += PublishedSlot(
-        publisher = libraryItem.media.metadata.publisher!!,
-        publishedYear = libraryItem.media.metadata.publishedYear,
-      )
-    }
+//    if (libraryItem.media.metadata.publisher != null) {
+//      this += SpacerSlot.medium("publisher_spacer")
+//      this += PublishedSlot(
+//        publisher = libraryItem.media.metadata.publisher!!,
+//        publishedYear = libraryItem.media.metadata.publishedYear,
+//      )
+//    }
 
     libraryItem.media.metadata.genres.takeIf { it.isNotEmpty() }?.let { genres ->
       this += SpacerSlot.medium("genres_spacer")

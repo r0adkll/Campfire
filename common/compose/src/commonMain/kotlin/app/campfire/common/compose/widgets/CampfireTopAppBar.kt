@@ -3,6 +3,7 @@ package app.campfire.common.compose.widgets
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.ProvideTextStyle
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -35,15 +37,13 @@ fun CampfireTopAppBar(
   expandedHeight: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
   windowInsets: WindowInsets = CampfireTopAppBarInsets,
   scrollBehavior: TopAppBarScrollBehavior? = null,
+  containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current),
+  scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 4.dp),
 ) {
-  val currentContentLayout = LocalContentLayout.current
   val colors = TopAppBarDefaults.topAppBarColors(
-    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
-    containerColor = if (currentContentLayout == ContentLayout.Supporting) {
-      MaterialTheme.colorScheme.surfaceColorAtElevation(SupportingContentElevation)
-    } else {
-      Color.Unspecified
-    },
+    scrolledContainerColor = scrolledContainerColor,
+    containerColor = containerColor,
+
   )
 
   TopAppBar(

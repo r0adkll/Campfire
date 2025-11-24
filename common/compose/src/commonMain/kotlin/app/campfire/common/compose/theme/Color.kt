@@ -1,6 +1,10 @@
 package app.campfire.common.compose.theme
 
 import androidx.compose.material3.ColorScheme
+import app.campfire.common.compose.theme.alt.AltBlueColorPalette
+import app.campfire.common.compose.theme.alt.AltGreenColorPalette
+import app.campfire.common.compose.theme.alt.AltRedColorPalette
+import app.campfire.common.compose.theme.alt.AltYellowColorPalette
 import app.campfire.common.compose.theme.tents.BlueColorPalette
 import app.campfire.common.compose.theme.tents.GreenColorPalette
 import app.campfire.common.compose.theme.tents.OrangeColorPalette
@@ -23,10 +27,10 @@ data class ColorPalette(
  */
 val Tent.colorPalette: ColorPalette
   get() = when (this) {
-    Tent.Red -> RedColorPalette
-    Tent.Blue -> BlueColorPalette
-    Tent.Green -> GreenColorPalette
-    Tent.Yellow -> YellowColorPalette
+    Tent.Red -> AltRedColorPalette
+    Tent.Blue -> AltBlueColorPalette
+    Tent.Green -> AltGreenColorPalette
+    Tent.Yellow -> AltYellowColorPalette
     Tent.Orange -> OrangeColorPalette
     Tent.Purple -> PurpleColorPalette
   }
