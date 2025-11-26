@@ -153,8 +153,8 @@ private fun LoadedShelfContent(
           offlineStatus = offlineStatus(entity.id),
           progress = progressStatus(entity.id)
             ?: entity.userMediaProgress,
+          onClick = { onItemClick(entity) },
           modifier = Modifier
-            .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)
             .animateItem()
             .semantics {
@@ -164,8 +164,8 @@ private fun LoadedShelfContent(
 
         is Author -> AuthorCard(
           author = entity,
+          onClick = { onItemClick(entity) },
           modifier = Modifier
-            .clickable { onItemClick(entity) }
             .width(LibraryCardWidth)
             .animateItem(),
         )
@@ -174,8 +174,8 @@ private fun LoadedShelfContent(
           name = entity.name,
           description = entity.description,
           items = entity.books ?: emptyList(),
+          onClick = { onItemClick(entity) },
           modifier = Modifier
-            .clickable { onItemClick(entity) }
             .width(SeriesCardWidth)
             .animateItem(),
         )

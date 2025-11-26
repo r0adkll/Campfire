@@ -47,10 +47,10 @@ internal fun AddCampsiteCard(
         CampfireIcons.Tents.Red,
         contentDescription = null,
         modifier = Modifier
-//          .sharedElement(
-//            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Tent)),
-//            animatedVisibilityScope = requireAnimatedScope(Navigation),
-//          ),
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Tent)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          ),
       )
       Spacer(Modifier.width(16.dp))
       Column(

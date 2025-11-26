@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -163,6 +164,7 @@ private fun TwoPaneLayout(
         bottomStart = 16.dp,
       ),
       modifier = Modifier
+        .systemBarsPadding()
         .padding(
           top = 16.dp,
           bottom = 16.dp,
@@ -203,6 +205,7 @@ private fun OnePaneLayout(
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     showDeveloperPane = isDebug || state.developerSettings.developerModeEnabled,
     modifier = modifier
+      .systemBarsPadding()
       .fillMaxSize(),
   )
 }
@@ -216,6 +219,7 @@ private fun OnlyPaneLayout(
 ) {
   Box(
     modifier
+      .systemBarsPadding()
       .background(MaterialTheme.colorScheme.surface)
       .fillMaxSize(),
   ) {

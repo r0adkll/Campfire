@@ -1,0 +1,180 @@
+package app.campfire.ui.appbar
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.input.clearText
+import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material3.AppBarWithSearch
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExpandedFullScreenSearchBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarScrollBehavior
+import androidx.compose.material3.SearchBarValue
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberSearchBarState
+import androidx.compose.material3.rememberTooltipState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.icon
+import app.campfire.common.compose.widgets.AppBarState
+import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connected
+import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connecting
+import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnected
+import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
+import app.campfire.common.compose.widgets.ServerIcon
+import app.campfire.search.api.ui.SearchComponent
+import campfire.ui.appbar.generated.resources.Res
+import campfire.ui.appbar.generated.resources.search_placeholder_format
+import campfire.ui.appbar.generated.resources.search_placeholder_options
+import campfire.ui.appbar.generated.resources.search_placeholder_text
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringArrayResource
+import org.jetbrains.compose.resources.stringResource
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun CampfireSearchAppBar(
+  state: AppBarState,
+  searchComponent: SearchComponent,
+  onNavigationClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  scrollBehavior: SearchBarScrollBehavior? = null,
+) {
+  CampfireSearchAppBar(
+    searchComponent = searchComponent,
+    navigationIcon = {
+      ServerIcon(
+        serverState = state.server,
+        onClick = onNavigationClick,
+      )
+    },
+    modifier = modifier,
+    scrollBehavior = scrollBehavior,
+  )
+}
+
+/**
+ * The root appbar for top-level screens to re-use to provide a consistent UI experience across
+ * their surfaces.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CampfireSearchAppBar(
+  searchComponent: SearchComponent,
+  navigationIcon: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+  scrollBehavior: SearchBarScrollBehavior? = null,
+) {
+  val scope = rememberCoroutineScope()
+  val textFieldState = rememberTextFieldState()
+  val searchBarState = rememberSearchBarState()
+  val inputField =
+    @Composable {
+      SearchBarDefaults.InputField(
+        modifier = Modifier.fillMaxWidth(),
+        searchBarState = searchBarState,
+        textFieldState = textFieldState,
+        onSearch = { scope.launch { searchBarState.animateToCollapsed() } },
+        placeholder = {
+          Text(
+            modifier = Modifier.clearAndSetSemantics {},
+            text = stringResource(Res.string.search_placeholder_text),
+          )
+        },
+        leadingIcon = {
+          AnimatedContent(
+            targetState = searchBarState.currentValue,
+            contentAlignment = Alignment.Center,
+          ) { state ->
+            when (state) {
+              SearchBarValue.Expanded -> {
+                IconButton(
+                  onClick = { scope.launch { searchBarState.animateToCollapsed() } },
+                ) {
+                  Icon(
+                    Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Back",
+                  )
+                }
+              }
+              SearchBarValue.Collapsed -> {
+                Icon(Icons.Default.Search, contentDescription = null)
+              }
+            }
+          }
+        },
+        trailingIcon = {
+          AnimatedVisibility(
+            visible = searchBarState.currentValue == SearchBarValue.Expanded,
+          ) {
+            IconButton(
+              onClick = {
+                textFieldState.clearText()
+                scope.launch { searchBarState.animateToCollapsed() }
+              },
+            ) {
+              Icon(Icons.Rounded.Clear, contentDescription = null)
+            }
+          }
+        },
+      )
+    }
+
+  AppBarWithSearch(
+    state = searchBarState,
+    inputField = inputField,
+    modifier = modifier,
+    navigationIcon = navigationIcon,
+    scrollBehavior = scrollBehavior,
+    windowInsets = SearchBarDefaults.windowInsets
+      .only(WindowInsetsSides.Horizontal),
+    contentPadding = SearchBarDefaults.windowInsets
+      .only(WindowInsetsSides.Top)
+      .asPaddingValues() + PaddingValues(horizontal = 8.dp),
+  )
+  ExpandedFullScreenSearchBar(
+    state = searchBarState,
+    inputField = inputField,
+  ) {
+    searchComponent.ResultContent(
+      textFieldState = textFieldState,
+    )
+  }
+}

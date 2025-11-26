@@ -13,11 +13,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
@@ -25,11 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -39,20 +35,14 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
-import app.campfire.common.compose.navigation.LocalSearchView
 import app.campfire.common.compose.navigation.LocalUserSession
-import app.campfire.common.compose.navigation.SearchViewNavigationState
-import app.campfire.core.Platform
-import app.campfire.core.currentPlatform
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.session.isLoggedIn
 import com.slack.circuit.overlay.ContentWithOverlays
@@ -68,12 +58,10 @@ fun AdaptiveCampfireLayout(
   overlayHost: OverlayHost,
   drawerState: DrawerState,
   drawerEnabled: Boolean,
-  onSearchClick: () -> Unit,
 
   drawerContent: @Composable () -> Unit,
   bottomBarNavigation: @Composable () -> Unit,
   railNavigation: @Composable () -> Unit,
-  searchBar: @Composable () -> Unit,
 
   content: @Composable () -> Unit,
   playbackBarContent: @Composable BoxScope.() -> Unit,
@@ -103,9 +91,8 @@ fun AdaptiveCampfireLayout(
       SupportingContentState.Closed
     }
 
-  ContentLayoutWithSearchNav(
+  ContentWithOverlays(
     overlayHost = overlayHost,
-    onSearchClick = onSearchClick,
   ) {
     // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
     // otherwise, this just pass the content() block through
@@ -119,6 +106,8 @@ fun AdaptiveCampfireLayout(
       ) {
         Scaffold(
           bottomBar = {
+            // TODO: Extract all the navigation bars into a :ui package
+            //  so we can easily spread their usage
             if (navigationType == NavigationType.BottomNavigation) {
               AnimatedVisibility(
                 visible = !hideBottomNav,
@@ -164,32 +153,9 @@ fun AdaptiveCampfireLayout(
                 .weight(1f)
                 .fillMaxHeight(),
             ) {
-              if (isSupportingPaneEnabled && isLoggedIn) {
-                Box(
-                  modifier = Modifier
-                    .statusBarsPadding()
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(end = supportingContentWidth)
-                    .zIndex(1f),
-                ) {
-                  searchBar()
-                }
-              }
-
               Column(
                 modifier = Modifier.padding(end = supportingContentWidth),
               ) {
-                if (isSupportingPaneEnabled && isLoggedIn) {
-                  Spacer(
-                    Modifier
-                      .statusBarsPadding()
-                      .fluentIf(currentPlatform == Platform.DESKTOP) {
-                        padding(top = 16.dp)
-                      }
-                      .height(SearchBarDefaults.InputFieldHeight),
-                  )
-                }
                 CompositionLocalProvider(
                   LocalContentLayout provides ContentLayout.Root,
                   LocalSupportingContentState provides supportingContentState,
@@ -250,25 +216,6 @@ fun AdaptiveCampfireLayout(
         }
       }
     }
-  }
-}
-
-@Composable
-private fun ContentLayoutWithSearchNav(
-  overlayHost: OverlayHost,
-  onSearchClick: () -> Unit,
-  content: @Composable () -> Unit,
-) {
-  val searchViewNavigationState = remember {
-    SearchViewNavigationState(onSearchClick)
-  }
-  CompositionLocalProvider(
-    LocalSearchView provides searchViewNavigationState,
-  ) {
-    ContentWithOverlays(
-      overlayHost = overlayHost,
-      content = content,
-    )
   }
 }
 

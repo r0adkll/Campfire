@@ -15,6 +15,7 @@ import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -50,7 +51,7 @@ class CollectionDetailPresenter(
     val collectionContentState by remember {
       collectionsRepository.observeCollectionItems(screen.collectionId)
         .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out List<LibraryItem>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     val offlineDownloads by remember {

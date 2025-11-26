@@ -82,7 +82,7 @@ fun CampfireMediumTopAppBar(
   scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
   val currentContentLayout = LocalContentLayout.current
-  val colors = TopAppBarDefaults.mediumTopAppBarColors(
+  val colors = TopAppBarDefaults.topAppBarColors(
     scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
     containerColor = if (currentContentLayout == ContentLayout.Supporting) {
       MaterialTheme.colorScheme.surfaceColorAtElevation(SupportingContentElevation)

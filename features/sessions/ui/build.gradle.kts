@@ -11,6 +11,7 @@ kotlin {
         implementation(projects.features.libraries.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.infra.audioplayer.publicUi)
+        implementation(projects.ui.theming.api)
 
         implementation(compose.components.resources)
 

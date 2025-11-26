@@ -1,5 +1,6 @@
 package app.campfire.sessions.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -9,6 +10,9 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -26,9 +30,12 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -39,15 +46,22 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -60,6 +74,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
@@ -236,7 +251,7 @@ internal fun ExpandedPlaybackBar(
   }
 
   Surface(
-    color = MaterialTheme.colorScheme.secondaryContainer,
+    color = DefaultSheetColor,
     modifier = modifier
       .fillMaxSize()
       .sharedBounds(
@@ -279,9 +294,9 @@ internal fun ExpandedPlaybackBar(
           CastButton()
         },
         colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = MaterialTheme.colorScheme.secondaryContainer,
-          navigationIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-          actionIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+          containerColor = DefaultSheetColor,
+          navigationIconContentColor = MaterialTheme.colorScheme.contentColorFor(DefaultSheetColor),
+          actionIconContentColor = MaterialTheme.colorScheme.contentColorFor(DefaultSheetColor),
         ),
         windowInsets = if (windowSizeClass.isSupportingPaneEnabled) {
           WindowInsets(0.dp)
@@ -357,7 +372,7 @@ internal fun ExpandedPlaybackBar(
           interactionSource = interactionSource,
         )
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
 
         PlaybackActions(
           state = state,
@@ -370,7 +385,7 @@ internal fun ExpandedPlaybackBar(
         )
       }
 
-      Spacer(Modifier.height(24.dp))
+      Spacer(Modifier.height(16.dp))
 
       ActionRow(
         onBookmarksClick = {
@@ -447,10 +462,10 @@ private fun SharedTransitionScope.ExpandedItemImage(
       imageUrl = mediaUrl,
       contentDescription = session.libraryItem.media.metadata.title,
       size = size,
-//      modifier = Modifier.sharedElement(
-//        rememberSharedContentState(SharedImage),
-//        animatedVisibilityScope = animatedVisibilityScope,
-//      ),
+      modifier = Modifier.sharedElement(
+        rememberSharedContentState(SharedImage),
+        animatedVisibilityScope = animatedVisibilityScope,
+      ),
     )
 
     AnimatedVisibility(
@@ -588,6 +603,7 @@ private fun PlaybackSeekBar(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PlaybackActions(
   state: AudioPlayer.State,
@@ -599,91 +615,182 @@ private fun PlaybackActions(
   onSkipNextClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Row(
+  Column(
     modifier = modifier.fillMaxWidth(),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    IconButton(
-      onClick = onSkipPreviousClick,
+    val playButtonExtraWidth = 32.dp
+    val playButtonSize = ButtonDefaults.LargeContainerHeight
+    val accessoryButtonContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
+    val accessoryButtonContentColor = MaterialTheme.colorScheme.onSurface
+
+    Row(
+      modifier = modifier,
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
     ) {
-      Icon(
-        Icons.Rounded.SkipPrevious,
-        modifier = Modifier.size(48.dp),
-        contentDescription = null,
-      )
-    }
+      val buttonShape = MaterialTheme.shapes.extraLarge
 
-    IconButton(
-      onClick = onRewindClick,
-    ) {
-      RewindIcon(
-        modifier = Modifier.size(48.dp),
-      )
-    }
-
-    val isPlayPauseEnabled = state != AudioPlayer.State.Finished &&
-      state != AudioPlayer.State.Buffering &&
-      !isInteracting
-
-    val elevation by animateDpAsState(
-      targetValue = if (isPlayPauseEnabled) {
-        6.dp
-      } else {
-        1.dp
-      },
-    )
-
-    Surface(
-      shape = CircleShape,
-      modifier = Modifier.size(90.dp),
-      shadowElevation = elevation,
-      onClick = onPlayPauseClick,
-      enabled = isPlayPauseEnabled,
-    ) {
-      Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
+      @Composable
+      fun AccessoryButton(
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier,
+        content: @Composable (iconSize: Dp) -> Unit,
       ) {
-        if (state != AudioPlayer.State.Buffering) {
-          Icon(
-            if (isInteracting) {
-              Icons.Rounded.EditAudio
-            } else if (state == AudioPlayer.State.Playing) {
-              Icons.Rounded.Pause
-            } else {
-              Icons.Rounded.PlayArrow
-            },
-            modifier = Modifier
-              .size(48.dp)
-              .alpha(if (isPlayPauseEnabled) 1f else 0.5f),
-            contentDescription = null,
-          )
-        } else {
-          CircularProgressIndicator(
-            modifier = Modifier.size(48.dp),
-            strokeWidth = 4.dp,
-          )
+        val accessoryButtonSize = ButtonDefaults.LargeContainerHeight
+        val accessoryButtonIconSize = ButtonDefaults.LargeIconSize
+        FilledIconButton(
+          onClick = onClick,
+          shapes = IconButtonDefaults.shapes(
+            shape = buttonShape,
+            pressedShape = ButtonDefaults.shape,
+          ),
+          colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = accessoryButtonContainerColor,
+            contentColor = accessoryButtonContentColor,
+          ),
+          modifier = modifier
+            .sizeIn(
+              minWidth = accessoryButtonSize,
+              minHeight = accessoryButtonSize
+            ),
+          content = {
+            content(accessoryButtonIconSize)
+          },
+        )
+      }
+
+//      AccessoryButton(
+//        onClick = onSkipPreviousClick,
+//      ) { iconSize ->
+//        Icon(
+//          Icons.Rounded.SkipPrevious,
+//          modifier = Modifier.size(iconSize),
+//          contentDescription = null,
+//        )
+//      }
+
+      AccessoryButton(
+        onClick = onRewindClick,
+      ) { iconSize ->
+        RewindIcon(
+          modifier = Modifier.size(iconSize),
+        )
+      }
+
+      val isPlayPauseEnabled = state != AudioPlayer.State.Finished &&
+        state != AudioPlayer.State.Buffering &&
+        !isInteracting
+
+      val playButtonIconSize = ButtonDefaults.ExtraLargeIconSize
+      FilledIconButton(
+        onClick = onPlayPauseClick,
+        enabled = isPlayPauseEnabled,
+        shapes = IconButtonDefaults.shapes(
+          shape = buttonShape,
+          pressedShape = ButtonDefaults.shape,
+        ),
+        modifier = Modifier
+          .sizeIn(
+            minWidth = playButtonSize + playButtonExtraWidth,
+            minHeight = playButtonSize
+          ),
+      ) {
+        AnimatedContent(
+          targetState = when {
+            state == AudioPlayer.State.Buffering -> PlayButtonState.Buffering
+            isInteracting -> PlayButtonState.Interacting
+            state == AudioPlayer.State.Playing -> PlayButtonState.Playing
+            else -> PlayButtonState.Paused
+          },
+          transitionSpec = {
+            (fadeIn(initialAlpha = 0.4f) + expandIn(expandFrom = Alignment.Center)) togetherWith
+              (fadeOut(targetAlpha = 0.4f) + shrinkOut(shrinkTowards = Alignment.Center))
+          },
+          contentAlignment = Alignment.Center,
+        ) { state ->
+          if (state == PlayButtonState.Buffering) {
+            CircularProgressIndicator(
+              modifier = Modifier.size(playButtonIconSize),
+              strokeWidth = 4.dp,
+            )
+          } else {
+            Icon(
+              when (state) {
+                PlayButtonState.Interacting -> Icons.Rounded.EditAudio
+                PlayButtonState.Playing -> Icons.Rounded.Pause
+                else -> Icons.Rounded.PlayArrow
+              },
+              modifier = Modifier.size(playButtonIconSize),
+              contentDescription = null,
+            )
+          }
         }
       }
+
+      AccessoryButton(
+        onClick = onForwardClick,
+      ) { iconSize ->
+        ForwardIcon(
+          modifier = Modifier.size(iconSize),
+        )
+      }
+
+//      AccessoryButton(
+//        onClick = onSkipNextClick,
+//      ) { iconSize ->
+//        Icon(
+//          Icons.Rounded.SkipNext,
+//          modifier = Modifier.size(iconSize),
+//          contentDescription = null,
+//        )
+//      }
     }
 
-    IconButton(
-      onClick = onForwardClick,
+    // TODO: Next/Previous buttons here
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(4.dp),
+      modifier = Modifier
+        .widthIn(
+          max = (ButtonDefaults.LargeContainerHeight * 3) + playButtonExtraWidth + 8.dp
+        )
     ) {
-      ForwardIcon(
-        modifier = Modifier.size(48.dp),
+      val buttonSize = ButtonDefaults.MinHeight
+      val colors = IconButtonDefaults.filledIconButtonColors(
+        containerColor = accessoryButtonContainerColor,
+        contentColor = accessoryButtonContentColor,
       )
-    }
+      val shapes = IconButtonDefaults.shapes()
 
-    IconButton(
-      onClick = onSkipNextClick,
-    ) {
-      Icon(
-        Icons.Rounded.SkipNext,
-        modifier = Modifier.size(48.dp),
-        contentDescription = null,
-      )
+      FilledIconButton(
+        onClick = onSkipPreviousClick,
+        shapes = shapes,
+        colors = colors,
+        modifier = Modifier
+          .weight(1f)
+          .heightIn(buttonSize),
+      ) {
+        Icon(
+          Icons.Rounded.SkipPrevious,
+          modifier = Modifier.size(ButtonDefaults.LargeIconSize),
+          contentDescription = null,
+        )
+      }
+      FilledIconButton(
+        onClick = onSkipNextClick,
+        shapes = shapes,
+        colors = colors,
+        modifier = Modifier
+          .weight(1f)
+          .heightIn(buttonSize),
+      ) {
+        Icon(
+          Icons.Rounded.SkipNext,
+          modifier = Modifier.size(ButtonDefaults.LargeIconSize),
+          contentDescription = null,
+        )
+      }
     }
   }
 }
@@ -740,4 +847,11 @@ private fun ActionRow(
       }
     }
   }
+}
+
+enum class PlayButtonState {
+  Buffering,
+  Interacting,
+  Playing,
+  Paused,
 }

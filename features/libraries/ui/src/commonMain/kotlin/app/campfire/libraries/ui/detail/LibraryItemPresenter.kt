@@ -3,10 +3,8 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
@@ -34,12 +32,9 @@ import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
-import app.campfire.libraries.ui.detail.composables.slots.ControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
-import app.campfire.libraries.ui.detail.composables.slots.OfflineStatusSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
-import app.campfire.libraries.ui.detail.composables.slots.PublishedSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
@@ -55,22 +50,18 @@ import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.compose.Schema
-import com.r0adkll.swatchbuckler.compose.Theme
-import com.r0adkll.swatchbuckler.compose.ThemeBuilder
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -192,7 +183,7 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.SeedColorChange -> {
           scope.launch(dispatcherProvider.computation) {
-            themeManager.queue(
+            themeManager.enqueue(
               key = screen.libraryItemId,
               seedColor = event.seedColor,
             )

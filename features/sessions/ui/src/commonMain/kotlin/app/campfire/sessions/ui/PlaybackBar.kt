@@ -9,10 +9,17 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.Bookmark
@@ -33,14 +40,23 @@ import app.campfire.analytics.events.Timer
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
+import app.campfire.common.compose.theme.colorScheme
 import app.campfire.core.extensions.progressOver
+import app.campfire.core.logging.bark
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
+import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 
 enum class PlaybackBarState {
   Hidden,
@@ -55,12 +71,18 @@ internal val BaseShadowElevation = 2.dp
 internal val ShadowElevation = 4.dp
 internal val TonalElevation = 2.dp
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+internal val DefaultSheetColor: Color
+  @Composable get() = MaterialTheme.colorScheme.surfaceContainerHighest
+
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalCoroutinesApi::class,
+  ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun PlaybackBar(
   expanded: Boolean,
   onExpansionChange: (Boolean) -> Unit,
   navigator: Navigator,
+  themeManager: ThemeManager,
   modifier: Modifier = Modifier,
 ) {
   SessionHostLayout { currentSession, audioPlayer, clearSession, startSession ->
@@ -95,128 +117,147 @@ fun PlaybackBar(
       audioPlayer?.runningTimer ?: emptyFlow()
     }.collectAsState(null)
 
-    SharedTransitionLayout(
-      modifier = modifier,
+    val theme = remember(currentSession?.libraryItem?.id) {
+      val itemId = currentSession?.libraryItem?.id
+      if (itemId != null) {
+        bark("PlaybackBar") { "Observing theme for $itemId" }
+        themeManager.observeThemeFor(itemId)
+      } else emptyFlow()
+    }.collectAsState(null)
+
+    MaterialExpressiveTheme(
+      colorScheme = theme.value?.colorScheme
     ) {
-      AnimatedContent(
-        targetState = when {
-          currentSession == null -> Hidden
-          expanded -> Expanded
-          else -> Collapsed
-        },
-        transitionSpec = {
-          when {
-            (initialState == Hidden && targetState == Collapsed) ||
-              (initialState == Collapsed && targetState == Hidden)
-            -> slideInVertically { it } togetherWith slideOutVertically { it }
+      SharedTransitionLayout(
+        modifier = modifier,
+      ) {
+        AnimatedContent(
+          targetState = when {
+            currentSession == null -> Hidden
+            expanded -> Expanded
+            else -> Collapsed
+          },
+          transitionSpec = {
+            when {
+              (initialState == Hidden && targetState == Collapsed) ||
+                (initialState == Collapsed && targetState == Hidden)
+                -> slideInVertically { it } togetherWith slideOutVertically { it }
 
-            else -> scaleIn() togetherWith scaleOut()
-          }
-        },
-      ) { state ->
-        when (state) {
-          Hidden -> Unit
-          Collapsed -> {
-            if (currentSession == null) return@AnimatedContent
-            CollapsedPlaybackBar(
-              session = currentSession,
-              state = playerState.value,
-              progress = {
-                currentTime.value progressOver currentDuration.value
-              },
-              currentMetadata = currentMetadata.value,
-              runningTimer = runningTimer.value,
-              onClick = { onExpansionChange(!expanded) },
-              onPlayPauseClick = {
-                Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
-                if (playerState.value == AudioPlayer.State.Disabled) {
-                  startSession()
-                } else {
-                  audioPlayer?.playPause()
-                }
-              },
-              onRewindClick = {
-                Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
-                audioPlayer?.seekBackward()
-              },
-              onClearSession = clearSession,
-              sharedTransitionScope = this@SharedTransitionLayout,
-              animatedVisibilityScope = this,
-              modifier = Modifier.padding(8.dp),
-            )
-          }
+              else -> scaleIn() togetherWith scaleOut()
+            }
+          },
+        ) { state ->
+          when (state) {
+            Hidden -> Unit
+            Collapsed -> {
+              if (currentSession == null) return@AnimatedContent
+              CollapsedPlaybackBar(
+                session = currentSession,
+                state = playerState.value,
+                progress = {
+                  currentTime.value progressOver currentDuration.value
+                },
+                currentMetadata = currentMetadata.value,
+                runningTimer = runningTimer.value,
+                onClick = { onExpansionChange(!expanded) },
+                onPlayPauseClick = {
+                  Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
+                  if (playerState.value == AudioPlayer.State.Disabled) {
+                    startSession()
+                  } else {
+                    audioPlayer?.playPause()
+                  }
+                },
+                onRewindClick = {
+                  Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
+                  audioPlayer?.seekBackward()
+                },
+                onClearSession = clearSession,
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this,
+                modifier = Modifier.padding(8.dp),
+              )
+            }
 
-          Expanded -> {
-            ExpandedPlaybackBar(
-              navigator = navigator,
-              session = currentSession!!,
-              state = playerState.value,
-              playbackSpeed = playbackSpeed.value,
-              currentTime = currentTime.value,
-              currentDuration = currentDuration.value,
-              currentMetadata = currentMetadata.value,
-              runningTimer = runningTimer.value,
-              sharedTransitionScope = this@SharedTransitionLayout,
-              animatedVisibilityScope = this,
-              onPlayPauseClick = {
-                Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
-                if (playerState.value == AudioPlayer.State.Disabled) {
-                  startSession()
-                } else {
-                  audioPlayer?.playPause()
-                }
-              },
-              onRewindClick = {
-                Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
-                audioPlayer?.seekBackward()
-              },
-              onForwardClick = {
-                Analytics.send(PlaybackActionEvent(Forward, Click, PlaybackBar))
-                audioPlayer?.seekForward()
-              },
-              onSkipPreviousClick = {
-                Analytics.send(PlaybackActionEvent(SkipPrevious, Click, PlaybackBar))
-                audioPlayer?.skipToPrevious()
-              },
-              onSkipNextClick = {
-                Analytics.send(PlaybackActionEvent(SkipNext, Click, PlaybackBar))
-                audioPlayer?.skipToNext()
-              },
-              onClose = { onExpansionChange(false) },
-              onSeek = { progress ->
-                Analytics.send(PlaybackActionEvent(Seek, Changed, PlaybackBar, extras = mapOf("progress" to progress)))
-                audioPlayer?.seekTo(progress)
-              },
-              onTimerCleared = {
-                Analytics.send(PlaybackActionEvent(Timer, Cleared, PlaybackBar))
-                audioPlayer?.clearTimer()
-              },
-              onTimerSelected = { timer ->
-                Analytics.send(
-                  PlaybackActionEvent(
-                    obj = Timer,
-                    verb = Changed,
-                    noun = PlaybackBar,
-                    extras = when (timer) {
-                      is PlaybackTimer.EndOfChapter -> mapOf("type" to "end_of_chapter")
-                      is PlaybackTimer.Epoch -> mapOf(
-                        "type" to "epoch",
-                        "time" to timer.epochMillis,
-                      )
-                    },
-                  ),
-                )
-                audioPlayer?.setTimer(timer)
-              },
-              onChapterSelected = { chapter ->
-                Analytics.send(PlaybackActionEvent(Chapter, Selected))
-                audioPlayer?.seekTo(chapter.id)
-              },
-              onBookmarkSelected = { bookmark ->
-                Analytics.send(PlaybackActionEvent(Bookmark, Selected))
-                audioPlayer?.seekTo(bookmark.time)
-              },
-            )
+            Expanded -> {
+              ExpandedPlaybackBar(
+                navigator = navigator,
+                session = currentSession!!,
+                state = playerState.value,
+                playbackSpeed = playbackSpeed.value,
+                currentTime = currentTime.value,
+                currentDuration = currentDuration.value,
+                currentMetadata = currentMetadata.value,
+                runningTimer = runningTimer.value,
+                sharedTransitionScope = this@SharedTransitionLayout,
+                animatedVisibilityScope = this,
+                onPlayPauseClick = {
+                  Analytics.send(PlaybackActionEvent(PlayPause, Click, PlaybackBar))
+                  if (playerState.value == AudioPlayer.State.Disabled) {
+                    startSession()
+                  } else {
+                    audioPlayer?.playPause()
+                  }
+                },
+                onRewindClick = {
+                  Analytics.send(PlaybackActionEvent(Rewind, Click, PlaybackBar))
+                  audioPlayer?.seekBackward()
+                },
+                onForwardClick = {
+                  Analytics.send(PlaybackActionEvent(Forward, Click, PlaybackBar))
+                  audioPlayer?.seekForward()
+                },
+                onSkipPreviousClick = {
+                  Analytics.send(PlaybackActionEvent(SkipPrevious, Click, PlaybackBar))
+                  audioPlayer?.skipToPrevious()
+                },
+                onSkipNextClick = {
+                  Analytics.send(PlaybackActionEvent(SkipNext, Click, PlaybackBar))
+                  audioPlayer?.skipToNext()
+                },
+                onClose = { onExpansionChange(false) },
+                onSeek = { progress ->
+                  Analytics.send(
+                    PlaybackActionEvent(
+                      Seek,
+                      Changed,
+                      PlaybackBar,
+                      extras = mapOf("progress" to progress)
+                    )
+                  )
+                  audioPlayer?.seekTo(progress)
+                },
+                onTimerCleared = {
+                  Analytics.send(PlaybackActionEvent(Timer, Cleared, PlaybackBar))
+                  audioPlayer?.clearTimer()
+                },
+                onTimerSelected = { timer ->
+                  Analytics.send(
+                    PlaybackActionEvent(
+                      obj = Timer,
+                      verb = Changed,
+                      noun = PlaybackBar,
+                      extras = when (timer) {
+                        is PlaybackTimer.EndOfChapter -> mapOf("type" to "end_of_chapter")
+                        is PlaybackTimer.Epoch -> mapOf(
+                          "type" to "epoch",
+                          "time" to timer.epochMillis,
+                        )
+                      },
+                    ),
+                  )
+                  audioPlayer?.setTimer(timer)
+                },
+                onChapterSelected = { chapter ->
+                  Analytics.send(PlaybackActionEvent(Chapter, Selected))
+                  audioPlayer?.seekTo(chapter.id)
+                },
+                onBookmarkSelected = { bookmark ->
+                  Analytics.send(PlaybackActionEvent(Bookmark, Selected))
+                  audioPlayer?.seekTo(bookmark.time)
+                },
+              )
+            }
           }
         }
       }

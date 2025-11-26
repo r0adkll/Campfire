@@ -45,8 +45,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.common.compose.util.LocalThemeCache
-import app.campfire.common.compose.util.colorScheme
+import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState

@@ -191,7 +191,7 @@ include(
 )
 include(
   ":ui:appbar",
-  ":ui:drawer",
+  ":ui:navigation",
   ":ui:attribution",
 )
 include(

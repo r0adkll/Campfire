@@ -1,2 +1,11 @@
 <resources>
+  <string name="search_placeholder_text">Search for your next story</string>
+  <string name="search_placeholder_format">Search for your next %1$s</string>
+  <string-array name="search_placeholder_options">
+    <item>tale</item>
+    <item>story</item>
+    <item>adventure</item>
+    <item>romance</item>
+    <item>mystery</item>
+  </string-array>
 </resources>

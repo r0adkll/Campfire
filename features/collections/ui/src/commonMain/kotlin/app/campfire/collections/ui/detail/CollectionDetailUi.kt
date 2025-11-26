@@ -187,10 +187,7 @@ fun CollectionDetail(
     },
     floatingActionButtonPosition = FabPosition.End,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets
-      .fluentIf(LocalContentLayout.current != ContentLayout.Supporting) {
-        exclude(WindowInsets.navigationBars)
-      },
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.collectionContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

@@ -22,15 +22,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -44,12 +42,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.layout.LocalContentLayout
-import app.campfire.common.compose.layout.cardElevation
-import app.campfire.common.compose.util.rememberCachingSwatchListener
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.util.rememberThemeDispatcherListener
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -63,7 +60,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
 private val CardMaxWidth = 400.dp
-private val ThumbnailCornerSize = 12.dp
 
 data class LibraryItemSharedTransitionKey(
   val id: String,
@@ -74,10 +70,11 @@ data class LibraryItemSharedTransitionKey(
   }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryItemCard(
   item: LibraryItem,
+  onClick: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
   sharedTransitionKey: String = item.id,
   sharedTransitionZIndex: Float = 0f,
@@ -86,11 +83,9 @@ fun LibraryItemCard(
   offlineStatus: OfflineStatus = OfflineStatus.None,
   progress: MediaProgress? = item.userMediaProgress,
 ) {
-  val contentLayout = LocalContentLayout.current
-
-  ElevatedCard(
+  ElevatedContentCard(
     modifier = modifier,
-    elevation = contentLayout.cardElevation,
+    onClick = onClick,
   ) {
     Box {
       Column {
@@ -113,6 +108,7 @@ fun LibraryItemCard(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LibraryItemCardImage(
   item: LibraryItem,
@@ -123,18 +119,16 @@ private fun LibraryItemCardImage(
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
-  val shape = RoundedCornerShape(ThumbnailCornerSize)
+  val shape = MaterialTheme.shapes.largeIncreased
 
   Box(
-    modifier = modifier
-      .clip(shape),
+    modifier = modifier.clip(shape),
   ) {
     CoverImage(
       imageUrl = item.media.coverImageUrl,
       contentDescription = item.media.metadata.title,
       placeholder = painterResource(Res.drawable.placeholder_book),
       shape = shape,
-//      swatchListener = rememberCachingSwatchListener(item.id),
       imageBitmapListener = rememberThemeDispatcherListener(item.id),
       modifier = Modifier
         .aspectRatio(1f)
@@ -142,18 +136,18 @@ private fun LibraryItemCardImage(
         .widthIn(max = CardMaxWidth)
         .clip(shape),
       sharedElementModifier = Modifier
-//        .thenIfNotNull(animationScope) { scope ->
-//          sharedElement(
-//            sharedContentState = rememberSharedContentState(
-//              LibraryItemSharedTransitionKey(
-//                id = sharedTransitionKey,
-//                type = LibraryItemSharedTransitionKey.ElementType.Image,
-//              ),
-//            ),
-//            animatedVisibilityScope = scope,
-//            zIndexInOverlay = sharedTransitionZIndex,
-//          )
-//        },
+        .thenIfNotNull(animationScope) { scope ->
+          sharedElement(
+            sharedContentState = rememberSharedContentState(
+              LibraryItemSharedTransitionKey(
+                id = sharedTransitionKey,
+                type = LibraryItemSharedTransitionKey.ElementType.Image,
+              ),
+            ),
+            animatedVisibilityScope = scope,
+            zIndexInOverlay = sharedTransitionZIndex,
+          )
+        },
     )
 
     val isTransitionVisible by remember {
@@ -236,36 +230,38 @@ private fun LibraryItemCardInformation(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LibraryItemCardEditingScrim(
   isSelectable: Boolean,
   selected: Boolean,
   modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.largeIncreased,
 ) {
   AnimatedVisibility(
     visible = isSelectable,
     modifier = modifier,
   ) {
     val selectedBorderAlpha by animateFloatAsState(if (selected) 1f else 0.75f)
-    val selectedBorderSize by animateDpAsState(if (selected) 2.dp else 1.dp)
+    val selectedBorderSize by animateDpAsState(if (selected) 3.dp else 1.dp)
     val selectedBackgroundAlpha by animateFloatAsState(if (selected) 0.75f else 0.3f)
 
     Box(
       modifier = Modifier
-        .clip(CardDefaults.elevatedShape)
+        .clip(shape)
         .fillMaxSize()
         .background(
           color = MaterialTheme.colorScheme.secondaryContainer.copy(
             alpha = selectedBackgroundAlpha,
           ),
-          shape = CardDefaults.elevatedShape,
+          shape = shape,
         )
         .border(
           width = selectedBorderSize,
           color = MaterialTheme.colorScheme.secondary.copy(
             alpha = selectedBorderAlpha,
           ),
-          shape = CardDefaults.elevatedShape,
+          shape = shape,
         ),
     ) {
       Icon(

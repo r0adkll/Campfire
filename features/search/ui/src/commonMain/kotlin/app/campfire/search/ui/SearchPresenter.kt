@@ -1,11 +1,10 @@
 package app.campfire.search.ui
 
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
@@ -20,7 +19,7 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
-import com.slack.circuit.runtime.Navigator
+import app.campfire.search.api.ui.SearchResultNavEvent
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,34 +31,38 @@ import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias SearchPresenterFactory = (navigator: Navigator, requestDismiss: () -> Unit) -> SearchPresenter
+typealias SearchPresenterFactory = (
+  textFieldState: TextFieldState,
+  onSearchEvent: (SearchResultNavEvent) -> Unit,
+) -> SearchPresenter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Inject
 class SearchPresenter(
   private val searchRepository: SearchRepository,
-  @Assisted private val navigator: Navigator,
-  @Assisted private val requestDismiss: () -> Unit,
+  @Assisted private val textFieldState: TextFieldState,
+  @Assisted private val onSearchEvent: (SearchResultNavEvent) -> Unit,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
 ) : Presenter<SearchUiState> {
 
   @Composable
   override fun present(): SearchUiState {
-    var query by remember { mutableStateOf("") }
-
-    val searchResult by remember(query) {
-      if (query.isBlank()) {
-        flowOf(SearchResult.Empty)
-      } else {
-        searchRepository.searchCurrentLibrary(query)
-          // Give the user time to type
-          .onStart {
-            emit(SearchResult.Loading)
-            delay(400.milliseconds)
-            analytics.send(SearchEvent())
+    val searchResult by remember {
+      snapshotFlow { textFieldState.text }
+        .flatMapLatest { query ->
+          if (query.isBlank()) {
+            flowOf(SearchResult.Empty)
+          } else {
+            searchRepository.searchCurrentLibrary(query.toString())
+              // Give the user time to type
+              .onStart {
+                emit(SearchResult.Loading)
+                delay(400.milliseconds)
+                analytics.send(SearchEvent())
+              }
           }
-      }
+        }
     }.collectAsState(SearchResult.Empty)
 
     val offlineDownloads by remember {
@@ -71,15 +74,11 @@ class SearchPresenter(
     }.collectAsState(emptyMap())
 
     return SearchUiState(
-      query = query,
+      query = textFieldState.text.toString(),
       searchResult = searchResult,
       offlineStates = offlineDownloads,
     ) { event ->
       when (event) {
-        SearchUiEvent.ClearQuery -> query = ""
-        SearchUiEvent.Dismiss -> requestDismiss()
-        is SearchUiEvent.QueryChanged -> query = event.query
-
         is SearchUiEvent.OnAuthorClick -> {
           analytics.send(ContentSelected(ContentType.Author))
           navigateTo(
@@ -124,7 +123,6 @@ class SearchPresenter(
   }
 
   private fun navigateTo(screen: BaseScreen, resetRoot: Boolean = false) {
-    if (resetRoot) navigator.resetRoot(screen) else navigator.goTo(screen)
-    requestDismiss()
+    onSearchEvent(SearchResultNavEvent(screen, resetRoot))
   }
 }

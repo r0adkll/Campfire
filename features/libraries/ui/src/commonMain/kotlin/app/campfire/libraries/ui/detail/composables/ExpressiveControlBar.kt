@@ -101,7 +101,7 @@ internal fun ExpressiveControlBar(
     modifier = modifier
       .fillMaxWidth(),
     shape = MaterialTheme.shapes.extraLarge,
-    color = MaterialTheme.colorScheme.primaryContainer,
+    color = MaterialTheme.colorScheme.surfaceContainerHighest,
   ) {
     Column(
       modifier = Modifier
@@ -154,8 +154,8 @@ private fun OfflineStatus(
   Card(
     shape = MaterialTheme.shapes.medium,
     colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.surface,
-      contentColor = MaterialTheme.colorScheme.primary,
+      containerColor = MaterialTheme.colorScheme.primaryContainer,
+      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ),
     modifier = modifier,
   ) {
@@ -315,7 +315,7 @@ private fun OfflineProgressBar(
   ) {
     if (isIndeterminate) {
       LinearWavyProgressIndicator(
-        trackColor = MaterialTheme.colorScheme.primaryContainer,
+        trackColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
           .fillMaxWidth()
           .testTag("indeterminate_progress_bar"),
@@ -323,7 +323,7 @@ private fun OfflineProgressBar(
     } else {
       LinearWavyProgressIndicator(
         progress = { progress },
-        trackColor = MaterialTheme.colorScheme.primaryContainer,
+        trackColor = MaterialTheme.colorScheme.surface,
         color = LocalContentColor.current,
         modifier = Modifier
           .fillMaxWidth()
@@ -646,7 +646,7 @@ fun ExpressiveControlSlotPreview(
 ) {
   CampfireTheme(
     useDarkColors = false,
-    tent = Tent.Purple
+    tent = Tent.Red,
   ) {
     CompositionLocalProvider(
       LocalContentLayout provides ContentLayout.Root

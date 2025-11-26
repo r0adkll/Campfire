@@ -1,4 +1,7 @@
 <resources>
+  <string name="settings">Settings</string>
+  <string name="settings_content_description">App settings</string>
+
   <string name="nav_home_label">Home</string>
   <string name="nav_home_content_description">The home content for the current user/library</string>
   <string name="nav_statistics_label">Statistics</string>

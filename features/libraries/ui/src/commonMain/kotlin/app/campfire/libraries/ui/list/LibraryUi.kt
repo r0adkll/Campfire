@@ -16,8 +16,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,10 +30,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
-import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
@@ -43,7 +41,6 @@ import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.OfflineStatusIndicator
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
@@ -74,24 +71,19 @@ fun LibraryUi(
 ) {
   val coroutineScope = rememberCoroutineScope()
   val overlayHost by rememberUpdatedState(LocalOverlayHost.current)
-  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
 
-  val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
   Scaffold(
     topBar = {
-      if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
-        )
-      }
+      // Injected appbar that injects its own presenter to consistently load its state
+      // across multiple services.
+      campfireAppBar(
+        Modifier,
+        appBarBehavior,
+      )
     },
-    modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
-      nestedScroll(appBarBehavior.nestedScrollConnection)
-    },
+    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.contentState) {
@@ -240,9 +232,8 @@ private fun LibraryGrid(
       LibraryItemCard(
         item = item,
         offlineStatus = offlineStatus.asWidgetStatus(),
-        modifier = Modifier
-          .animateItem()
-          .clickable { onItemClick(item) },
+        onClick = { onItemClick(item) },
+        modifier = Modifier.animateItem(),
       )
     }
   }

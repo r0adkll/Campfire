@@ -130,8 +130,7 @@ private fun LoadedState(
       LibraryItemCard(
         item = item,
         offlineStatus = offlineStatus(item.id),
-        modifier = Modifier
-          .clickable { onLibraryItemClick(item) },
+        onClick = { onLibraryItemClick(item) },
       )
     }
 

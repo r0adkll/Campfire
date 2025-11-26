@@ -22,7 +22,7 @@ val CampfireTopAppBarInsets: WindowInsets
     val contentLayout = LocalContentLayout.current
 
     return if (windowSizeClass.isSupportingPaneEnabled && contentLayout == ContentLayout.Root) {
-      TopAppBarDefaults.windowInsets.exclude(WindowInsets.statusBars)
+      TopAppBarDefaults.windowInsets
     } else {
       TopAppBarDefaults.windowInsets
     }

@@ -119,10 +119,10 @@ internal fun ServerCard(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
     ),
     modifier = modifier
-//      .sharedBounds(
-//        sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
-//        animatedVisibilityScope = requireAnimatedScope(Navigation),
-//      ),
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(Card)),
+        animatedVisibilityScope = requireAnimatedScope(Navigation),
+      ),
   ) {
     ServerNameAndIcon(
       tent = tent,
@@ -297,10 +297,10 @@ private fun ServerNameAndIcon(
         tent.icon,
         contentDescription = null,
         modifier = Modifier
-//          .sharedElement(
-//            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(ElementType.Tent)),
-//            animatedVisibilityScope = requireAnimatedScope(Navigation),
-//          ),
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(AuthSharedTransitionKey(ElementType.Tent)),
+            animatedVisibilityScope = requireAnimatedScope(Navigation),
+          ),
       )
       Box(
         modifier = Modifier

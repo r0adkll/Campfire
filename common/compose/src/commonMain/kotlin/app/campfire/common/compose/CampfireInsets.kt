@@ -37,7 +37,9 @@ val CampfireWindowInsets: WindowInsets
     }
 
     return if (windowSizeClass.isSupportingPaneEnabled) {
-      WindowInsets.systemBars.exclude(WindowInsets.statusBars).add(playbackBarInsets)
+      ScaffoldDefaults.contentWindowInsets
+//        .exclude(WindowInsets.statusBars)
+        .add(playbackBarInsets)
     } else {
       ScaffoldDefaults.contentWindowInsets.add(playbackBarInsets)
     }

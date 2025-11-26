@@ -129,15 +129,15 @@ fun AuthorCoverImage(
     placeholder = painterResource(placeHolderResource),
     modifier = modifier,
     sharedElementModifier = Modifier
-//      .sharedElement(
-//        sharedContentState = rememberSharedContentState(
-//          AuthorSharedTransitionKey(
-//            id = author.id,
-//            type = AuthorSharedTransitionKey.ElementType.Image,
-//          ),
-//        ),
-//        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-//      ),
+      .sharedElement(
+        sharedContentState = rememberSharedContentState(
+          AuthorSharedTransitionKey(
+            id = author.id,
+            type = AuthorSharedTransitionKey.ElementType.Image,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+      ),
   )
 }
 

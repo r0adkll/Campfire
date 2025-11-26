@@ -63,7 +63,7 @@ kotlin {
         api(projects.features.stats.impl)
         api(projects.features.stats.ui)
 
-        api(projects.ui.drawer)
+        api(projects.ui.navigation)
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)
         api(projects.ui.theming.impl)

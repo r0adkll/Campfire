@@ -1,6 +1,7 @@
-package app.campfire.ui.drawer
+package app.campfire.ui.navigation.drawer
 
 import app.campfire.core.model.Server
+import app.campfire.ui.navigation.HomeNavigationItem
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 

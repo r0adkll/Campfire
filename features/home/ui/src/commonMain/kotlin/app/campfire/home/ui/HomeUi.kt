@@ -9,24 +9,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.randomEmptyMessage
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
@@ -50,24 +45,18 @@ fun HomeScreen(
   campfireAppbar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
-  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
-  val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
   Scaffold(
     topBar = {
-      if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppbar(
-          Modifier,
-          appBarBehavior,
-        )
-      }
+      // Injected appbar that injects its own presenter to consistently load its state
+      // across multiple services.
+      campfireAppbar(
+        Modifier,
+        appBarBehavior,
+      )
     },
-    modifier = modifier
-      .fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
-        nestedScroll(appBarBehavior.nestedScrollConnection)
-      },
+    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (val feed = state.homeFeed) {
@@ -78,6 +67,7 @@ fun HomeScreen(
             feed.error.message
               ?: feed.error::class.simpleName
               ?: "<Unknown error>"
+
           is FeedResponse.Error.Message -> feed.message
         }
         ErrorListState(
@@ -103,6 +93,7 @@ fun HomeScreen(
               is LibraryItem -> state.eventSink(
                 HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
               )
+
               is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
               is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
               else -> Unit

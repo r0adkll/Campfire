@@ -6,13 +6,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import app.campfire.account.api.ServerRepository
 import app.campfire.common.compose.widgets.AppBarState
 import app.campfire.common.compose.widgets.AppBarState.LibraryState
-import app.campfire.common.compose.widgets.AppBarState.ServerState
+import app.campfire.common.compose.widgets.ServerState
 import app.campfire.common.compose.widgets.AppBarViewEvent
 import app.campfire.core.model.Library
 import app.campfire.libraries.api.LibraryRepository
+import com.slack.circuit.retained.collectAsRetainedState
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -30,7 +32,7 @@ class CampfireAppbarPresenter(
 
     val server by remember {
       serverRepository.observeCurrentServer()
-    }.collectAsState(null)
+    }.collectAsRetainedState(null)
 
     val library by remember {
       libraryRepository.observeCurrentLibrary(refresh = false)

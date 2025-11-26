@@ -43,6 +43,7 @@ class StoreServerRepository(
       .flatMapLatest { userSession ->
         if (userSession is UserSession.LoggedIn) {
           val key = ServerStore.Operation.User(userSession.user.id)
+
           serverStore
             .stream(StoreReadRequest.cached(key, false))
             .mapLatest { it.dataOrNull() as? ServerStore.Output.Single }

@@ -31,14 +31,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -156,6 +158,7 @@ private fun CastButton(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun CurrentDeviceButton(
   state: CastState,
@@ -163,21 +166,28 @@ private fun CurrentDeviceButton(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  OutlinedButton(
+  val buttonHeight = ButtonDefaults.ExtraSmallContainerHeight
+  Button(
     onClick = onClick,
-    modifier = modifier.padding(horizontal = 8.dp),
-    colors = ButtonDefaults.outlinedButtonColors(
-      containerColor = MaterialTheme.colorScheme.primaryContainer,
-      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    modifier = modifier
+      .padding(horizontal = 8.dp)
+      .heightIn(buttonHeight),
+    colors = ButtonDefaults.buttonColors(
+//      containerColor = MaterialTheme.colorScheme.primaryContainer,
+//      contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
     ),
-    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+    shapes = ButtonDefaults.shapes(
+      shape = ButtonDefaults.squareShape,
+      pressedShape = ButtonDefaults.shape,
+    ),
+    contentPadding = ButtonDefaults.contentPaddingFor(buttonHeight),
   ) {
     AnimatedContent(
       targetState = state == CastState.Connecting,
     ) { isConnecting ->
       if (isConnecting) {
         CircularProgressIndicator(
-          modifier = Modifier.size(ButtonDefaults.IconSize),
+          modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonHeight)),
           color = LocalContentColor.current,
           strokeWidth = 3.dp,
         )
@@ -185,11 +195,11 @@ private fun CurrentDeviceButton(
         Icon(
           device.asIcon(),
           contentDescription = null,
-          modifier = Modifier.size(ButtonDefaults.IconSize),
+          modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonHeight)),
         )
       }
     }
-    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+    Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(buttonHeight)))
     AnimatedContent(
       targetState = state == CastState.Connecting,
       transitionSpec = {
@@ -205,9 +215,15 @@ private fun CurrentDeviceButton(
       },
     ) { isConnecting ->
       if (isConnecting) {
-        Text(stringResource(Res.string.label_connecting))
+        Text(
+          text = stringResource(Res.string.label_connecting),
+          style = ButtonDefaults.textStyleFor(buttonHeight),
+        )
       } else {
-        Text(device.displayName)
+        Text(
+          text = device.displayName,
+          style = ButtonDefaults.textStyleFor(buttonHeight),
+        )
       }
     }
   }

@@ -107,9 +107,7 @@ private fun LoadedState(
         sharedTransitionKey = item.id + seriesName,
         sharedTransitionZIndex = -(index + 1f),
         offlineStatus = offlineStatus(item.id),
-        modifier = Modifier.clickable {
-          onLibraryItemClick(item)
-        },
+        onClick = { onLibraryItemClick(item) },
       )
     }
   }

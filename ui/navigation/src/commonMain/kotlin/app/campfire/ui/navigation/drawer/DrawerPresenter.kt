@@ -1,4 +1,4 @@
-package app.campfire.ui.drawer
+package app.campfire.ui.navigation.drawer
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope

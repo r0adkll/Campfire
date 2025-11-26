@@ -1,10 +1,6 @@
 package app.campfire.common.compose.widgets
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -20,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -29,16 +24,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connected
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connecting
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnected
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
 import app.campfire.core.model.Library
-import app.campfire.core.model.Server
 
 data class AppBarState(
   val library: LibraryState,
@@ -49,14 +37,6 @@ data class AppBarState(
   sealed interface LibraryState {
     data object Loading : LibraryState
     data class Loaded(val library: Library) : LibraryState
-  }
-
-  sealed interface ServerState {
-    data object Loading : ServerState
-    data class Loaded(
-      val server: Server,
-      val connectionState: ConnectionState,
-    ) : ServerState
   }
 
   enum class ConnectionState {
@@ -162,46 +142,4 @@ fun CampfireAppBar(
     modifier = modifier,
     scrollBehavior = scrollBehavior,
   )
-}
-
-@Composable
-private fun ServerIcon(
-  serverState: AppBarState.ServerState,
-  onClick: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Row(
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(4.dp),
-    modifier = modifier
-      .padding(start = 8.dp)
-      .clip(CircleShape)
-      .clickable(onClick = onClick),
-  ) {
-    when (serverState) {
-      AppBarState.ServerState.Loading -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
-      is AppBarState.ServerState.Loaded -> {
-        Image(
-          serverState.server.tent.icon,
-          contentDescription = null,
-          modifier = Modifier.size(32.dp),
-        )
-        if (serverState.connectionState != None) {
-          Box(
-            modifier = Modifier
-              .size(8.dp)
-              .background(
-                when (serverState.connectionState) {
-                  Disconnected -> MaterialTheme.colorScheme.error
-                  Connecting -> Color.Yellow
-                  Connected -> Color.Green
-                  None -> Color.Transparent
-                },
-                CircleShape,
-              ),
-          )
-        }
-      }
-    }
-  }
 }

@@ -54,6 +54,7 @@ import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
+import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.core.model.LibraryItemId
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
@@ -102,15 +103,15 @@ class CoverImageSlot(
           swatch = palette
         },
         sharedElementModifier = Modifier
-//          .sharedElement(
-//            sharedContentState = rememberSharedContentState(
-//              LibraryItemSharedTransitionKey(
-//                id = sharedTransitionKey,
-//                type = LibraryItemSharedTransitionKey.ElementType.Image,
-//              ),
-//            ),
-//            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-//          ),
+          .sharedElement(
+            sharedContentState = rememberSharedContentState(
+              LibraryItemSharedTransitionKey(
+                id = sharedTransitionKey,
+                type = LibraryItemSharedTransitionKey.ElementType.Image,
+              ),
+            ),
+            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+          ),
       )
 
       Box(

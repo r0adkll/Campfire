@@ -48,9 +48,3 @@
 # Don't obfuscate the MainActivity name since we use a string literal in our Widget
 # to launch it when the DI graph is not available
 -keepnames class app.campfire.android.MainActivity
-
-# For some reason the 'homeNavigator' is getting stripped by R8 here
-# and breaking navigation from the Search Overlay. So let just not do that.
--keep class app.campfire.search.ui.SearchOverlay {
-    <fields>;
-}

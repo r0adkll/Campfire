@@ -26,7 +26,7 @@ interface ThemeManager {
    * @param key the key to store/cache the resulting quantized [Swatch] for later
    * @param image the bitmap to quantize
    */
-  suspend fun queue(
+  suspend fun enqueue(
     key: String,
     image: ImageBitmap,
   )
@@ -38,7 +38,7 @@ interface ThemeManager {
    * @param key the key to store/cache the resulting [Theme] for later
    * @param seedColor the seed color to generate the theme from
    */
-  suspend fun queue(
+  suspend fun enqueue(
     key: String,
     seedColor: Color,
   )

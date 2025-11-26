@@ -147,11 +147,8 @@ private fun SuccessContent(
         LibraryItemCard(
           item = book,
           offlineStatus = offlineStatus(book.id),
-          modifier = Modifier
-            .animateItem()
-            .clickable {
-              onBookClick(book)
-            },
+          onClick = { onBookClick(book) },
+          modifier = Modifier.animateItem(),
         )
       }
     }
@@ -165,11 +162,8 @@ private fun SuccessContent(
       ) { author ->
         AuthorCard(
           author = author,
-          modifier = Modifier
-            .animateItem()
-            .clickable {
-              onAuthorClick(author)
-            },
+          onClick = { onAuthorClick(author) },
+          modifier = Modifier.animateItem(),
         )
       }
     }
@@ -187,12 +181,10 @@ private fun SuccessContent(
           description = s.description,
           items = s.books ?: emptyList(),
           itemSize = 100.dp,
+          onClick = { onSeriesClick(s) },
           modifier = Modifier
             .fillMaxWidth()
-            .animateItem()
-            .clickable {
-              onSeriesClick(s)
-            },
+            .animateItem(),
         )
       }
     }

@@ -2,6 +2,7 @@ package app.campfire.common.root
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -13,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
@@ -23,14 +23,11 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.common.compose.util.InMemoryThemeCache
-import app.campfire.common.compose.util.LocalThemeCache
 import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.theming.api.ThemeManager
-import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.rememberCircuitNavigator
@@ -90,19 +87,13 @@ fun CampfireContentWithInsets(
         OpenUrlNavigator(navigator, onOpenUrl)
       }
 
-      // Remember an instance of the in-memory palette cache for this compose stack
-      val contentColorThemeCache = remember {
-        InMemoryThemeCache()
-      }
-
+      // Remember an instance of the theme dispatcher
       val themeManagerDispatcher = remember {
-        object : ThemeDispatcher {
-          override suspend fun queue(key: String, imageBitmap: ImageBitmap) {
-            themeManager.queue(
-              key = key,
-              image = imageBitmap,
-            )
-          }
+        ThemeDispatcher { key, imageBitmap ->
+          themeManager.enqueue(
+            key = key,
+            image = imageBitmap,
+          )
         }
       }
 
@@ -114,12 +105,12 @@ fun CampfireContentWithInsets(
         ) {
           CompositionLocalProvider(
             LocalPlaybackSession provides currentSession,
-            LocalThemeCache provides contentColorThemeCache,
             LocalThemeDispatcher provides themeManagerDispatcher,
           ) {
-            HomeUi(
+            RootUi(
               backstack = backStack,
               navigator = urlNavigator,
+              themeManager = themeManager,
               windowInsets = windowInsets,
               navigationEventListeners = userComponent.navigationEventListeners,
               modifier = modifier,
@@ -153,7 +144,9 @@ fun CampfireContent(
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     onOpenUrl = onOpenUrl,
-    windowInsets = WindowInsets.systemBars.exclude(WindowInsets.statusBars),
+    windowInsets = WindowInsets.systemBars
+      .exclude(WindowInsets.statusBars)
+      .exclude(WindowInsets.navigationBars),
     modifier = modifier,
   )
 }

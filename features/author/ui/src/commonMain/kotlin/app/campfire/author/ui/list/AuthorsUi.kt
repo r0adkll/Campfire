@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -41,23 +42,18 @@ fun Authors(
   campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
-  val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
-  val appBarBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
 
   Scaffold(
     topBar = {
-      if (!windowSizeClass.isSupportingPaneEnabled) {
-        // Injected appbar that injects its own presenter to consistently load its state
-        // across multiple services.
-        campfireAppBar(
-          Modifier,
-          appBarBehavior,
-        )
-      }
+      // Injected appbar that injects its own presenter to consistently load its state
+      // across multiple services.
+      campfireAppBar(
+        Modifier,
+        appBarBehavior
+      )
     },
-    modifier = modifier.fluentIf(!windowSizeClass.isSupportingPaneEnabled) {
-      nestedScroll(appBarBehavior.nestedScrollConnection)
-    },
+    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.authorContentState) {
@@ -97,9 +93,7 @@ private fun LoadedState(
     ) { author ->
       AuthorCard(
         author = author,
-        modifier = Modifier.clickable {
-          onAuthorClick(author)
-        },
+        onClick = { onAuthorClick(author) },
       )
     }
   }

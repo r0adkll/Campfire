@@ -26,6 +26,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -94,7 +95,7 @@ class CachingThemeManager(
       .launchIn(applicationScope)
   }
 
-  override suspend fun queue(key: String, image: ImageBitmap) {
+  override suspend fun enqueue(key: String, image: ImageBitmap) {
     if (memorySwatchCache.containsKey(key)) {
       vbark { "$key already mem-cached, ignoring…" }
       return
@@ -108,7 +109,7 @@ class CachingThemeManager(
     quantizerPipeline.queue(key, image)
   }
 
-  override suspend fun queue(key: String, seedColor: Color) {
+  override suspend fun enqueue(key: String, seedColor: Color) {
     if (memoryThemeCache.containsKey(key)) {
       vbark { "$key already mem-cached, ignoring…" }
       return
@@ -136,18 +137,9 @@ class CachingThemeManager(
     spec: ColorSpec.SpecVersion,
   ): Flow<Theme?> {
     return themeOutputSink.asSharedFlow()
+      .filter { it.key == key }
       .mapLatest { it.theme }
       .onStart<Theme?> {
-        // Build the cache key for the given them build parameters
-        // and use that to attempt to fetch pre-computed hash value
-        val cacheKey = ThemeCacheKeyBuilder.build(
-          key = key,
-          swatchSelector = colorSelector,
-          schema = schema,
-          contrast = contrast,
-          spec = spec,
-        )
-
         // 1) Make sure we aren't currently processing a swatch or theme for this key
         if (themePipeline.containsKey(key)){
           vbark { "Theme pipeline already processing $key, ignoring…" }
@@ -157,6 +149,16 @@ class CachingThemeManager(
           vbark { "Quantizer pipeline already processing $key, ignoring…" }
           return@onStart
         }
+
+        // Build the cache key for the given them build parameters
+        // and use that to attempt to fetch pre-computed hash value
+        val cacheKey = ThemeCacheKeyBuilder.build(
+          key = key,
+          swatchSelector = colorSelector,
+          schema = schema,
+          contrast = contrast,
+          spec = spec,
+        )
 
         // 2) Check Memory cache
         val memoryTheme = memoryThemeCache[cacheKey]
