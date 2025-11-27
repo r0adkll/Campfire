@@ -61,11 +61,9 @@ import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
-import app.campfire.libraries.ui.detail.composables.slots.ControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
-import app.campfire.libraries.ui.detail.composables.slots.OfflineStatusSlot
+import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
-import app.campfire.libraries.ui.detail.composables.slots.PublishedSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
@@ -214,7 +212,7 @@ private fun LoadedState(
 
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
-@Preview(heightDp = 1600)
+@Preview(heightDp = 2200)
 @Composable
 fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
   CampfireTheme {
@@ -234,19 +232,17 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
         libraryItem = libraryItem,
         contentState = LoadState.Loaded(
           data = listOf(
-            CoverImageSlot("", "", "", ""),
+            CoverImageSlot("", "", ""),
             TitleAndAuthorSlot(libraryItem),
             SpacerSlot.medium("progress_spacer"),
             ProgressSlot(false, mediaProgress),
             SpacerSlot.medium("control_spacer"),
-            ControlSlot(
+            ExpressiveControlSlot(
               libraryItem = libraryItem,
               offlineDownload = offlineDownload,
               mediaProgress = mediaProgress,
               showConfirmDownloadDialogSetting = true,
             ),
-            SpacerSlot.medium("offline_spacer"),
-            OfflineStatusSlot(offlineDownload),
             SpacerSlot.medium("summary_spacer"),
             SummarySlot(libraryItem.media.metadata.description!!),
             SpacerSlot.medium("series_spacer"),
@@ -268,11 +264,6 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
             ChipsSlot(
               title = ChipsTitle(Res.plurals.tags_title, 2),
               chips = libraryItem.media.tags,
-            ),
-            SpacerSlot.medium("published_spacer"),
-            PublishedSlot(
-              publisher = libraryItem.media.metadata.publisher!!,
-              publishedYear = libraryItem.media.metadata.publishedYear!!,
             ),
             SpacerSlot.large("chapters_spacer"),
             ChapterHeaderSlot(

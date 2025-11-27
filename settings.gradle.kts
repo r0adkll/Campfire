@@ -201,6 +201,7 @@ include(
 include(
   ":ui:theming:api",
   ":ui:theming:impl",
+  ":ui:theming:test",
 )
 include(":scripts:app")
 

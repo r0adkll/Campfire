@@ -67,7 +67,6 @@ private val RootCoverImageSize = 300.dp
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 class CoverImageSlot(
-  private val libraryItemId: LibraryItemId,
   private val imageUrl: String?,
   private val contentDescription: String?,
   private val sharedTransitionKey: String,

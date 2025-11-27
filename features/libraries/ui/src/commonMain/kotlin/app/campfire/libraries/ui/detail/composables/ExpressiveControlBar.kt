@@ -475,6 +475,7 @@ private fun PlayAndDownloadButtons(
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
+    verticalAlignment = Alignment.CenterVertically,
   ) {
     val hasOfflineDownload = offlineDownload?.state != null &&
       offlineDownload.state != OfflineDownload.State.None
@@ -512,9 +513,9 @@ private fun PlayAndDownloadButtons(
       Icon(
         if (hasProgress) Icons.Outlined.Autoplay else Icons.Rounded.PlayArrow,
         contentDescription = null,
-        modifier = Modifier.size(ButtonDefaults.MediumIconSize),
+        modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
       )
-      Spacer(Modifier.size(ButtonDefaults.MediumIconSpacing))
+      Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
       Text(
         text = if (hasProgress) {
           stringResource(Res.string.action_resume_listening)
@@ -551,17 +552,22 @@ private fun PlayAndDownloadButtons(
         contentPadding = PaddingValues(
           start = 20.dp,
           end = 24.dp,
-          top = 8.dp,
-          bottom = 8.dp,
+          top = 16.dp,
+          bottom = 16.dp,
         ),
         modifier = Modifier
           .heightIn(size)
           .testTag("button_download"),
       ) {
+        // This is a DUMB hack to make it height match the left side button
+        Text(
+          text = "",
+          style = ButtonDefaults.textStyleFor(size),
+        )
         Icon(
           CampfireIcons.Rounded.Download,
-          contentDescription = null,
-          modifier = Modifier.size(ButtonDefaults.MediumIconSize),
+          contentDescription = "Download",
+          modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
         )
       }
     }

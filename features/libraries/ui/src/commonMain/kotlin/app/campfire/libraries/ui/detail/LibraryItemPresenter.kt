@@ -300,7 +300,6 @@ private fun buildSlots(
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
-      libraryItemId = libraryItem.id,
       imageUrl = libraryItem.media.coverImageUrl,
       contentDescription = libraryItem.media.metadata.title,
       sharedTransitionKey = sharedTransitionKey,
@@ -318,14 +317,6 @@ private fun buildSlots(
       }
     }
 
-//    this += SpacerSlot.medium("control_spacer")
-//    this += ControlSlot(
-//      libraryItem = libraryItem,
-//      offlineDownload = offlineDownloadState,
-//      mediaProgress = mediaProgressState.dataOrNull,
-//      showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
-//    )
-
     this += SpacerSlot.medium("expressive_control_spacer")
     this += ExpressiveControlSlot(
       libraryItem = libraryItem,
@@ -333,13 +324,6 @@ private fun buildSlots(
       mediaProgress = mediaProgressState.dataOrNull,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
     )
-
-//    if (offlineDownloadState != null && offlineDownloadState.state != OfflineDownload.State.None) {
-//      this += SpacerSlot.medium("offline_spacer")
-//      this += OfflineStatusSlot(
-//        offlineDownload = offlineDownloadState,
-//      )
-//    }
 
     libraryItem.media.metadata.description?.let { desc ->
       this += SpacerSlot.medium("summary_spacer")

@@ -5,6 +5,7 @@ import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
+import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -12,8 +13,10 @@ import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import com.slack.circuit.test.FakeNavigator
+import kotlinx.coroutines.test.TestDispatcher
 
 internal const val TestLibraryItemId = "item_id"
 
@@ -29,8 +32,10 @@ abstract class BaseLibraryItemPresenterTest {
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
   internal val audioPlayer = FakeAudioPlayer()
   internal val offlineDownloadManager = FakeOfflineDownloadManager()
+  internal val themeManager = FakeThemeManager()
   internal val settings = TestCampfireSettings()
   internal val analytics = FakeAnalytics()
+  internal val dispatcherProvider = TestDispatcherProvider()
 
   protected val presenter = LibraryItemPresenter(
     screen = screen,
@@ -44,6 +49,8 @@ abstract class BaseLibraryItemPresenterTest {
     offlineDownloadManager = offlineDownloadManager,
     settings = settings,
     analytics = analytics,
+    themeManager = themeManager,
+    dispatcherProvider = dispatcherProvider,
   )
 }
 

@@ -20,7 +20,6 @@ interface ContentSlot {
   fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit)
 
   enum class ContentType {
-    Header,
     Chips,
     Chapter,
     Spacer,

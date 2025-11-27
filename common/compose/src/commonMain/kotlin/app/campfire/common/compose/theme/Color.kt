@@ -27,7 +27,7 @@ data class ColorPalette(
  */
 val Tent.colorPalette: ColorPalette
   get() = when (this) {
-    Tent.Red -> AltRedColorPalette
+    Tent.Red -> RedColorPalette
     Tent.Blue -> AltBlueColorPalette
     Tent.Green -> AltGreenColorPalette
     Tent.Yellow -> AltYellowColorPalette

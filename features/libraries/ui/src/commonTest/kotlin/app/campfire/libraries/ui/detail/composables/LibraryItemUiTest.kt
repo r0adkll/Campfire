@@ -60,6 +60,7 @@ class LibraryItemUiTest {
   fun testErrorList() = runComposeUiTest {
     val state = LibraryItemUiState(
       libraryItem = null,
+      theme = null,
       contentState = LoadState.Error,
       showConfirmDownloadDialog = false,
       events::invoke,
@@ -76,6 +77,7 @@ class LibraryItemUiTest {
   fun testLoadingList() = runComposeUiTest {
     val state = LibraryItemUiState(
       libraryItem = null,
+      theme = null,
       contentState = LoadState.Loading,
       showConfirmDownloadDialog = false,
       events::invoke,
@@ -92,6 +94,7 @@ class LibraryItemUiTest {
   fun testLoadedList() = runComposeUiTest {
     val state = LibraryItemUiState(
       libraryItem = null,
+      theme = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),
@@ -112,6 +115,7 @@ class LibraryItemUiTest {
   fun clickingBackEmitsEvent() = runComposeUiTest {
     val state = LibraryItemUiState(
       libraryItem = null,
+      theme = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),
@@ -131,6 +135,7 @@ class LibraryItemUiTest {
   fun clickingAddToCollectionShowsDialog() = runComposeUiTest {
     val state = LibraryItemUiState(
       libraryItem = libraryItem(),
+      theme = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),

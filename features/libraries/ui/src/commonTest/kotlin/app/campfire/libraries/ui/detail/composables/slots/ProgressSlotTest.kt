@@ -21,7 +21,7 @@ class ProgressSlotTest {
       currentTime = 20f,
       duration = 100f,
     )
-    val slot = ProgressSlot(mediaProgress)
+    val slot = ProgressSlot(false, mediaProgress)
 
     setContent {
       PreviewSharedElementTransitionLayout {
@@ -44,7 +44,7 @@ class ProgressSlotTest {
       isFinished = true,
       finishedAt = 0L,
     )
-    val slot = ProgressSlot(mediaProgress)
+    val slot = ProgressSlot(false, mediaProgress)
 
     setContent {
       PreviewSharedElementTransitionLayout {
