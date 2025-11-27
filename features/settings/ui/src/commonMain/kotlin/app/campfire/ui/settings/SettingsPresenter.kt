@@ -26,6 +26,7 @@ import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.shake.ShakeDetector
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
@@ -35,6 +36,8 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfService
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeName
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
@@ -76,6 +79,7 @@ class SettingsPresenter(
   private val applicationInfo: ApplicationInfo,
   private val applicationUrls: ApplicationUrls,
   private val settings: CampfireSettings,
+  private val themeSettings: ThemeSettings,
   private val playbackSettings: PlaybackSettings,
   private val sleepSettings: SleepSettings,
   private val devSettings: DevSettings,
@@ -101,6 +105,9 @@ class SettingsPresenter(
     // Appearance Settings
     val theme by remember { settings.observeTheme() }.collectAsState(settings.theme)
     val useDynamicColors by remember { settings.observeUseDynamicColors() }.collectAsState(settings.useDynamicColors)
+    val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
+    val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
+
 
     // Playback Settings
     val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
@@ -156,10 +163,14 @@ class SettingsPresenter(
 
     return SettingsUiState(
       server = server,
-      theme = theme,
       isShakingAvailable = remember { shakeDetector.isAvailable },
-      useDynamicColors = useDynamicColors,
       applicationInfo = applicationInfo,
+      appearanceSettings = AppearanceSettingsInfo(
+        theme = theme,
+        useDynamicColors = useDynamicColors,
+        dynamicItemDetailTheming = dynamicItemDetailTheming,
+        dynamicPlaybackTheming = dynamicPlaybackTheming,
+      ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
         downloads = downloadedLibraryItems,
@@ -219,6 +230,8 @@ class SettingsPresenter(
         is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
           is Theme -> settings.theme = event.theme
           is UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors
+          is DynamicItemDetailTheming -> themeSettings.dynamicallyThemeItemDetail = event.enabled
+          is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
         }
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {

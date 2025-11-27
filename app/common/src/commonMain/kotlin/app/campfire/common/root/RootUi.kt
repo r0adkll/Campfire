@@ -50,6 +50,7 @@ import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
 import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.sessions.ui.PlaybackBottomBar
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.bar.CampfireNavigationBar
 import app.campfire.ui.navigation.bar.LocalNavigationBarState
 import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
@@ -80,6 +81,7 @@ internal fun RootUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
   themeManager: ThemeManager,
+  themeSettings: ThemeSettings,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
   windowInsets: WindowInsets,
   modifier: Modifier = Modifier,
@@ -252,6 +254,7 @@ internal fun RootUi(
           },
           navigator = homeNavigator,
           themeManager = themeManager,
+          themeSettings = themeSettings,
           offset = {
             if (!windowSizeClass.isSupportingPaneEnabled && currentPresentation?.hideBottomNav != true) {
               val dy = navigationBarState.playbackBarOffset(bottomBarOffset).roundToInt()

@@ -70,6 +70,7 @@ class CoverImageSlot(
   private val imageUrl: String?,
   private val contentDescription: String?,
   private val sharedTransitionKey: String,
+  private val isDynamicThemingEnabled: Boolean = true,
 ) : ContentSlot {
 
   override val id: String = "cover_image"
@@ -98,9 +99,9 @@ class CoverImageSlot(
           .padding(
             vertical = 16.dp,
           ),
-        swatchListener = { palette ->
-          swatch = palette
-        },
+        swatchListener = if (isDynamicThemingEnabled) {
+          { palette -> swatch = palette }
+        } else null,
         sharedElementModifier = Modifier
           .sharedElement(
             sharedContentState = rememberSharedContentState(
@@ -116,7 +117,7 @@ class CoverImageSlot(
       Box(
         modifier = Modifier
           .size(size)
-          .align(Alignment.Center)
+          .align(Alignment.Center),
       ) {
         AnimatedVisibility(
           visible = swatch != null,
@@ -184,10 +185,10 @@ private fun SwatchToolbar(
           modifier = Modifier
             .padding(
               horizontal = 12.dp,
-              vertical = 6.dp
+              vertical = 6.dp,
             ),
           verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp)
+          horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
           val colorOptionSize by transition.animateDp { state ->
             if (state == EnterExitState.Visible) DefaultColorOptionSize else 8.dp

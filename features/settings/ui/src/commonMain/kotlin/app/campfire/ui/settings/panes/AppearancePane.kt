@@ -19,9 +19,15 @@ import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.ThemeModeSetting
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.header_appearance_dynamic
+import campfire.features.settings.ui.generated.resources.header_appearance_overall
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
 import campfire.features.settings.ui.generated.resources.setting_dynamic_colors_description
 import campfire.features.settings.ui.generated.resources.setting_dynamic_colors_title
+import campfire.features.settings.ui.generated.resources.setting_dynamic_item_detail_description
+import campfire.features.settings.ui.generated.resources.setting_dynamic_item_detail_title
+import campfire.features.settings.ui.generated.resources.setting_dynamic_playback_description
+import campfire.features.settings.ui.generated.resources.setting_dynamic_playback_title
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -37,17 +43,17 @@ internal fun AppearancePane(
   ) {
 
     Header(
-      title = { Text("Overall") }
+      title = { Text(stringResource(Res.string.header_appearance_overall)) }
     )
 
     ThemeModeSetting(
-      themeMode = state.theme,
+      themeMode = state.appearanceSettings.theme,
       onThemeChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.Theme(it)) },
     )
 
     if (currentPlatform == Platform.ANDROID) {
       SwitchSetting(
-        value = state.useDynamicColors,
+        value = state.appearanceSettings.useDynamicColors,
         onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_dynamic_colors_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_dynamic_colors_description)) },
@@ -55,53 +61,21 @@ internal fun AppearancePane(
     }
 
     Header(
-      title = { Text("Dynamic") }
+      title = { Text(stringResource(Res.string.header_appearance_dynamic)) }
     )
 
     SwitchSetting(
-      value = true,
-      onValueChange = {},
-      headlineContent = { Text("Item detail") },
-      supportingContent = { Text("Theme the item detail screen based on the item's thumbnail image") },
+      value = state.appearanceSettings.dynamicItemDetailTheming,
+      onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_dynamic_item_detail_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_dynamic_item_detail_description)) },
     )
 
     SwitchSetting(
-      value = true,
-      onValueChange = {},
-      headlineContent = { Text("Playback UI") },
-      supportingContent = { Text("Theme the player view based on the item's thumbnail image") },
-    )
-
-    ActionSetting(
-      headlineContent = { Text("Swatch color selector") },
-      supportingContent = { Text("The color choice from the analyzed item cover image") },
-      trailingContent = {
-        Text(
-          text = "Dominant",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.secondary,
-          fontWeight = FontWeight.Bold,
-        )
-      },
-      onClick =  {
-        // TODO: Show swatch picker editor
-      }
-    )
-
-    ActionSetting(
-      headlineContent = { Text("Dynamic color scheme") },
-      supportingContent = { Text("The type of color scheme to use when generating based on content") },
-      trailingContent = {
-        Text(
-          text = "Expressive",
-          style = MaterialTheme.typography.titleMedium,
-          color = MaterialTheme.colorScheme.secondary,
-          fontWeight = FontWeight.Bold,
-        )
-      },
-      onClick =  {
-        // TODO: Show swatch picker editor
-      }
+      value = state.appearanceSettings.dynamicPlaybackTheming,
+      onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_dynamic_playback_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_dynamic_playback_description)) },
     )
   }
 }

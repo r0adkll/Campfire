@@ -219,7 +219,6 @@ private fun OnlyPaneLayout(
 ) {
   Box(
     modifier
-      .systemBarsPadding()
       .background(MaterialTheme.colorScheme.surface)
       .fillMaxSize(),
   ) {

@@ -10,6 +10,7 @@ kotlin {
         api(projects.core)
         api(projects.features.settings.api)
         api(libs.multiplatformsettings.test)
+        api(libs.kotlinx.coroutines.test)
       }
     }
   }

@@ -13,6 +13,7 @@ import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import com.slack.circuit.test.FakeNavigator
@@ -33,6 +34,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val audioPlayer = FakeAudioPlayer()
   internal val offlineDownloadManager = FakeOfflineDownloadManager()
   internal val themeManager = FakeThemeManager()
+  internal val themeSettings = TestThemeSettings()
   internal val settings = TestCampfireSettings()
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
@@ -50,6 +52,7 @@ abstract class BaseLibraryItemPresenterTest {
     settings = settings,
     analytics = analytics,
     themeManager = themeManager,
+    themeSettings = themeSettings,
     dispatcherProvider = dispatcherProvider,
   )
 }

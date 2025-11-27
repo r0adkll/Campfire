@@ -27,6 +27,7 @@ import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -55,6 +56,7 @@ fun CampfireContentWithInsets(
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
+  themeSettings: ThemeSettings,
   @Assisted modifier: Modifier = Modifier,
 ) {
   val appUriHandler = remember(onOpenUrl) {
@@ -111,6 +113,7 @@ fun CampfireContentWithInsets(
               backstack = backStack,
               navigator = urlNavigator,
               themeManager = themeManager,
+              themeSettings = themeSettings,
               windowInsets = windowInsets,
               navigationEventListeners = userComponent.navigationEventListeners,
               modifier = modifier,
@@ -136,6 +139,7 @@ fun CampfireContent(
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
+  themeSettings: ThemeSettings,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
@@ -143,6 +147,7 @@ fun CampfireContent(
     settings = settings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
+    themeSettings = themeSettings,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars
       .exclude(WindowInsets.statusBars)

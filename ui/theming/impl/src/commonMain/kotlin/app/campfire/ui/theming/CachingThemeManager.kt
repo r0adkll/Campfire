@@ -7,6 +7,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Corked
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.cache.Cache
@@ -46,6 +47,7 @@ class CachingThemeManager(
   private val memoryThemeCache: Cache<ComputedTheme>,
   private val diskThemeCache: DiskCache<ComputedTheme>,
 
+  private val themeSettings: ThemeSettings,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
   private val dispatcherProvider: DispatcherProvider,
 ) : ThemeManager {
@@ -96,6 +98,9 @@ class CachingThemeManager(
   }
 
   override suspend fun enqueue(key: String, image: ImageBitmap) {
+    // If not enabled, then don't waste the cycles computing this here
+    if (!isDynamicThemingEnabled()) return
+
     if (memorySwatchCache.containsKey(key)) {
       vbark { "$key already mem-cached, ignoring…" }
       return
@@ -110,6 +115,9 @@ class CachingThemeManager(
   }
 
   override suspend fun enqueue(key: String, seedColor: Color) {
+    // If not enabled, then don't waste the cycles computing this here
+    if (!isDynamicThemingEnabled()) return
+
     if (memoryThemeCache.containsKey(key)) {
       vbark { "$key already mem-cached, ignoring…" }
       return
@@ -196,6 +204,13 @@ class CachingThemeManager(
         // If we make it to the end be sure to emit a null so the UI can act accordingly
         emit(null)
       }
+  }
+
+  /**
+   * Check if the user settings for dynamic content theming are enabled.
+   */
+  private fun isDynamicThemingEnabled(): Boolean {
+    return themeSettings.dynamicallyThemePlayback || themeSettings.dynamicallyThemeItemDetail
   }
 
   companion object : Corked("CachingThemeManager")

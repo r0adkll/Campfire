@@ -1,6 +1,7 @@
 package app.campfire.ui.settings
 
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.screens.SettingsScreen
@@ -18,12 +19,12 @@ import com.slack.circuit.runtime.CircuitUiState
 import kotlin.time.Duration
 import kotlinx.datetime.LocalTime
 
+@Stable
 data class SettingsUiState(
   val server: LoadState<out Server>,
-  val theme: CampfireSettings.Theme,
   val isShakingAvailable: Boolean,
-  val useDynamicColors: Boolean,
   val applicationInfo: ApplicationInfo,
+  val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
@@ -31,6 +32,14 @@ data class SettingsUiState(
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
+
+@Immutable
+data class AppearanceSettingsInfo(
+  val theme: CampfireSettings.Theme,
+  val useDynamicColors: Boolean,
+  val dynamicItemDetailTheming: Boolean,
+  val dynamicPlaybackTheming: Boolean,
+)
 
 @Immutable
 data class DownloadsSettingsInfo(
@@ -114,6 +123,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface AppearanceSettingEvent : SettingsUiEvent {
     data class Theme(val theme: CampfireSettings.Theme) : AppearanceSettingEvent
     data class UseDynamicColors(val useDynamicColors: Boolean) : AppearanceSettingEvent
+    data class DynamicItemDetailTheming(val enabled: Boolean) : AppearanceSettingEvent
+    data class DynamicPlaybackTheming(val enabled: Boolean) : AppearanceSettingEvent
   }
 
   // Downloads Pane Events

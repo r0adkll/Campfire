@@ -49,6 +49,7 @@ import app.campfire.core.logging.bark
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.seconds
@@ -58,6 +59,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 
@@ -86,6 +88,7 @@ fun PlaybackBar(
   onExpansionChange: (Boolean) -> Unit,
   navigator: Navigator,
   themeManager: ThemeManager,
+  themeSettings: ThemeSettings,
   offset: Density.() -> IntOffset,
   modifier: Modifier = Modifier,
 ) {
@@ -121,12 +124,20 @@ fun PlaybackBar(
       audioPlayer?.runningTimer ?: emptyFlow()
     }.collectAsState(null)
 
-    val theme = remember(currentSession?.libraryItem?.id) {
-      val itemId = currentSession?.libraryItem?.id
-      if (itemId != null) {
-        bark("PlaybackBar") { "Observing theme for $itemId" }
-        themeManager.observeThemeFor(itemId)
-      } else emptyFlow()
+    val isDynamicThemingEnabled by remember {
+      themeSettings.observeDynamicallyThemePlayback()
+    }.collectAsState()
+
+    val theme = remember(currentSession?.libraryItem?.id, isDynamicThemingEnabled) {
+      if (!isDynamicThemingEnabled) {
+        flowOf(null)
+      } else {
+        val itemId = currentSession?.libraryItem?.id
+        if (itemId != null) {
+          bark("PlaybackBar") { "Observing theme for $itemId" }
+          themeManager.observeThemeFor(itemId)
+        } else emptyFlow()
+      }
     }.collectAsState(null)
 
     MaterialExpressiveTheme(

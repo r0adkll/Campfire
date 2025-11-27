@@ -15,6 +15,8 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfService
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeName
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
@@ -56,6 +58,8 @@ class SettingsAnalyticUiEventHandler(
     is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
       is Theme -> send("theme", Updated, event.theme.storageKey)
       is UseDynamicColors -> send("dynamic_colors", Updated, event.useDynamicColors.toString())
+      is DynamicItemDetailTheming -> send("dynamic_item_detail_theme", Updated, event.enabled.toString())
+      is DynamicPlaybackTheming -> send("dynamic_playback_theme", Updated, event.enabled.toString())
     }
 
     is SettingsUiEvent.DownloadsSettingEvent -> when (event) {

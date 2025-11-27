@@ -42,6 +42,7 @@ import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
@@ -80,6 +81,7 @@ class LibraryItemPresenter(
   private val settings: CampfireSettings,
   private val analytics: Analytics,
   private val themeManager: ThemeManager,
+  private val themeSettings: ThemeSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : Presenter<LibraryItemUiState> {
 
@@ -150,12 +152,26 @@ class LibraryItemPresenter(
       settings.observeShowTimeInBook()
     }.collectAsState(true)
 
+    val isDynamicThemingEnabled by remember {
+      themeSettings.observeDynamicallyThemeItemDetail()
+    }.collectAsState()
+
+    val theme by remember(isDynamicThemingEnabled) {
+      if (!isDynamicThemingEnabled) flowOf(null)
+      else themeManager.observeThemeFor(
+        key = screen.libraryItemId,
+        colorSelector = SwatchSelector.Dominant,
+        schema = Schema.Expressive,
+      )
+    }.collectAsState(null)
+
     // Build the Slots
     val slots = libraryItemContentState.map { libraryItem ->
       buildSlots(
         libraryItem = libraryItem,
         sharedTransitionKey = screen.sharedTransitionKey,
         isPlaying = isPlaying,
+        isDynamicThemingEnabled = isDynamicThemingEnabled,
         mediaProgressState = mediaProgressState,
         offlineDownloadState = offlineDownloadState,
         seriesContentState = seriesContentState,
@@ -163,14 +179,6 @@ class LibraryItemPresenter(
         showConfirmDownloadDialog = showConfirmDownloadDialog,
       )
     }
-
-    val theme by remember {
-      themeManager.observeThemeFor(
-        key = screen.libraryItemId,
-        colorSelector = SwatchSelector.Dominant,
-        schema = Schema.Expressive,
-      )
-    }.collectAsState(null)
 
     return LibraryItemUiState(
       libraryItem = libraryItemContentState.dataOrNull,
@@ -292,6 +300,7 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   sharedTransitionKey: String,
   isPlaying: Boolean,
+  isDynamicThemingEnabled: Boolean,
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<LibraryItem>>,
@@ -303,6 +312,7 @@ private fun buildSlots(
       imageUrl = libraryItem.media.coverImageUrl,
       contentDescription = libraryItem.media.metadata.title,
       sharedTransitionKey = sharedTransitionKey,
+      isDynamicThemingEnabled = isDynamicThemingEnabled,
     )
 
     this += TitleAndAuthorSlot(
