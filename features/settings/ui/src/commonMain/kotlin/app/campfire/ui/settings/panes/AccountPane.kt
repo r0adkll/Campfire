@@ -42,11 +42,6 @@ internal fun AccountPane(
         title = { Text(stringResource(Res.string.setting_account_server_appearance_title)) },
       )
 
-      TentSetting(
-        tent = server.tent,
-        onTentChange = { state.eventSink(SettingsUiEvent.AccountSettingEvent.ChangeTent(it)) },
-      )
-
       TextFieldSetting(
         value = server.name,
         onValueChange = { state.eventSink(SettingsUiEvent.AccountSettingEvent.ChangeName(it)) },

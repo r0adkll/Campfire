@@ -4,11 +4,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.core.Platform
+import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.currentPlatform
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
+import app.campfire.ui.settings.composables.TentSetting
 import app.campfire.ui.settings.composables.ThemeModeSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_appearance_dynamic
@@ -36,6 +38,13 @@ internal fun AppearancePane(
     Header(
       title = { Text(stringResource(Res.string.header_appearance_overall)) },
     )
+
+    state.server.onLoaded { server ->
+      TentSetting(
+        tent = server.tent,
+        onTentChange = { state.eventSink(SettingsUiEvent.AccountSettingEvent.ChangeTent(it)) },
+      )
+    }
 
     ThemeModeSetting(
       themeMode = state.appearanceSettings.theme,
