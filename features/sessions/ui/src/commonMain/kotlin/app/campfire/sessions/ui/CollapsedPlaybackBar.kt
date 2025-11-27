@@ -88,6 +88,8 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun CollapsedPlaybackBar(
+  containerColor: Color,
+  contentColor: Color,
   session: Session,
   state: AudioPlayer.State,
   progress: () -> Float,
@@ -116,12 +118,22 @@ internal fun CollapsedPlaybackBar(
       Dispose -> MaterialTheme.colorScheme.errorContainer
       Open,
       None,
-      -> DefaultSheetColor
+      -> containerColor
     },
+  )
+
+  val surfaceContentColor by animateColorAsState(
+    when (dragState.actionState) {
+      Dispose -> MaterialTheme.colorScheme.onErrorContainer
+      Open,
+      None,
+      -> contentColor
+    }
   )
 
   Surface(
     color = surfaceColor,
+    contentColor = surfaceContentColor,
     shape = RoundedCornerShape(12.dp),
     shadowElevation = shadowElevation,
     tonalElevation = tonalElevation,
@@ -205,6 +217,7 @@ private fun CollapsedPlaybackBarContent(
             ),
         )
 
+        // Sleep / Snooze Icon
         androidx.compose.animation.AnimatedVisibility(
           visible = runningTimer != null && dragState.actionState != Dispose,
           enter = fadeIn(),
@@ -235,6 +248,7 @@ private fun CollapsedPlaybackBarContent(
           }
         }
 
+        // Delete/Dispose Icon
         androidx.compose.animation.AnimatedVisibility(
           visible = dragState.actionState == Dispose,
           enter = fadeIn(),

@@ -69,8 +69,15 @@ internal val BaseShadowElevation = 2.dp
 internal val ShadowElevation = 4.dp
 internal val TonalElevation = 2.dp
 
-internal val DefaultSheetColor: Color
+private val DefaultSheetColor: Color
   @Composable get() = MaterialTheme.colorScheme.surfaceContainerHighest
+private val DefaultSheetContentColor: Color
+  @Composable get() = MaterialTheme.colorScheme.onSurface
+
+private val DefaultNonThemedSheetColor: Color
+  @Composable get() = MaterialTheme.colorScheme.secondaryContainer
+private val DefaultNonThemedContentColor: Color
+  @Composable get() = MaterialTheme.colorScheme.onSecondaryContainer
 
 @OptIn(
   ExperimentalSharedTransitionApi::class,
@@ -140,6 +147,18 @@ fun PlaybackBar(
     MaterialExpressiveTheme(
       colorScheme = theme.value?.colorScheme,
     ) {
+      val sheetContainerColor = if (isDynamicThemingEnabled) {
+        DefaultSheetColor
+      } else {
+        DefaultNonThemedSheetColor
+      }
+
+      val sheetContentColor = if (isDynamicThemingEnabled) {
+        DefaultSheetContentColor
+      } else {
+        DefaultNonThemedContentColor
+      }
+
       SharedTransitionLayout(
         modifier = modifier,
       ) {
@@ -164,6 +183,8 @@ fun PlaybackBar(
             Collapsed -> {
               if (currentSession == null) return@AnimatedContent
               CollapsedPlaybackBar(
+                containerColor = sheetContainerColor,
+                contentColor = sheetContentColor,
                 session = currentSession,
                 state = playerState.value,
                 progress = {
@@ -195,6 +216,8 @@ fun PlaybackBar(
 
             Expanded -> {
               ExpandedPlaybackBar(
+                containerColor = sheetContainerColor,
+                contentColor = sheetContentColor,
                 navigator = navigator,
                 session = currentSession!!,
                 state = playerState.value,

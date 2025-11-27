@@ -129,6 +129,8 @@ internal val LargeCoverImageSize = 188.dp
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ExpandedPlaybackBar(
+  containerColor: Color,
+  contentColor: Color,
   navigator: Navigator,
 
   state: AudioPlayer.State,
@@ -161,6 +163,8 @@ internal fun ExpandedPlaybackBar(
     modifier = modifier,
   ) {
     ExpandedPlaybackBar(
+      containerColor = containerColor,
+      contentColor = contentColor,
       navigator = navigator,
       overlayHost = overlayHost,
       state = state,
@@ -190,6 +194,8 @@ internal fun ExpandedPlaybackBar(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun ExpandedPlaybackBar(
+  containerColor: Color,
+  contentColor: Color,
   navigator: Navigator,
   overlayHost: OverlayHost,
   state: AudioPlayer.State,
@@ -247,7 +253,8 @@ internal fun ExpandedPlaybackBar(
   }
 
   Surface(
-    color = DefaultSheetColor,
+    color = containerColor,
+    contentColor = contentColor,
     modifier = modifier
       .fillMaxSize()
       .sharedBounds(
@@ -291,9 +298,9 @@ internal fun ExpandedPlaybackBar(
           CastButton()
         },
         colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = DefaultSheetColor,
-          navigationIconContentColor = MaterialTheme.colorScheme.contentColorFor(DefaultSheetColor),
-          actionIconContentColor = MaterialTheme.colorScheme.contentColorFor(DefaultSheetColor),
+          containerColor = containerColor,
+          navigationIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
+          actionIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
         ),
         windowInsets = if (windowSizeClass.isSupportingPaneEnabled) {
           WindowInsets(0.dp)

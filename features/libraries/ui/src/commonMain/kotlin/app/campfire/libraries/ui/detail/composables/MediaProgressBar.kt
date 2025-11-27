@@ -53,7 +53,7 @@ internal fun MediaProgressBar(
       modifier = Modifier
         .fillMaxWidth()
         .testTag("progress_indicator"),
-      trackColor = MaterialTheme.colorScheme.primaryContainer,
+      trackColor = MaterialTheme.colorScheme.secondaryContainer,
       color = if (progress.isFinished) {
         MaterialTheme.colorScheme.inversePrimary
       } else {
