@@ -7,9 +7,10 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.collections.api)
+        implementation(projects.data.crashreporting.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
-        implementation(projects.data.crashreporting.api)
+        implementation(projects.ui.navigation)
 
         implementation(compose.components.resources)
 

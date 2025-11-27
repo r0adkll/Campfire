@@ -54,6 +54,7 @@ import app.campfire.libraries.ui.list.sheets.filters.showItemFilterOverlay
 import app.campfire.libraries.ui.list.sheets.sort.SortModeResult
 import app.campfire.libraries.ui.list.sheets.sort.showSortModeBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.error_library_items_message
@@ -73,6 +74,7 @@ fun LibraryUi(
   val overlayHost by rememberUpdatedState(LocalOverlayHost.current)
 
   val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+  AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
 
   Scaffold(
     topBar = {

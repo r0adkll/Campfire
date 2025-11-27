@@ -19,5 +19,6 @@ data class LibraryState(
 )
 
 sealed interface AccountSwitcherUiEvent : CircuitUiEvent {
+  data class SwitchAccount(val server: Server) : AccountSwitcherUiEvent
   data class SelectLibrary(val library: Library) : AccountSwitcherUiEvent
 }

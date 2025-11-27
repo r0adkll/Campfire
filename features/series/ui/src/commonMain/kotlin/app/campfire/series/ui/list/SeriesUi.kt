@@ -34,6 +34,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Series
 import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.empty_series_items_message
 import campfire.features.series.ui.generated.resources.error_series_items_message
@@ -48,6 +49,7 @@ fun Series(
   modifier: Modifier = Modifier,
 ) {
   val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+  AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
 
   Scaffold(
     topBar = {

@@ -69,7 +69,7 @@ interface AccountSwitcherComponent {
 
 @Composable
 fun AccountSwitcher(
-  onClick: () -> Unit,
+  onClick: (eventSink: (AccountSwitcherUiEvent) -> Unit) -> Unit,
   modifier: Modifier = Modifier,
   component: AccountSwitcherComponent = rememberComponent(),
 ) {
@@ -77,7 +77,9 @@ fun AccountSwitcher(
   val state = presenter.present()
   AccountSwitcher(
     state = state,
-    onClick = onClick,
+    onClick = {
+      onClick(state.eventSink)
+    },
     modifier = modifier,
   )
 }

@@ -9,6 +9,7 @@ kotlin {
         implementation(projects.features.author.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
+        implementation(projects.ui.navigation)
 
         implementation(compose.components.resources)
       }

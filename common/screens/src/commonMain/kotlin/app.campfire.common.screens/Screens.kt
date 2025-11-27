@@ -47,9 +47,6 @@ data class LoginScreen(
 data object HomeScreen : BaseScreen(name = "Home")
 
 @Parcelize
-data object DrawerScreen : StaticScreen
-
-@Parcelize
 data object SeriesScreen : BaseScreen(name = "Series")
 
 @Parcelize

@@ -30,6 +30,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.error_authors_items_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -43,6 +44,7 @@ fun Authors(
   modifier: Modifier = Modifier,
 ) {
   val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+  AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
 
   Scaffold(
     topBar = {

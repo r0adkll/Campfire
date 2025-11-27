@@ -11,21 +11,18 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.DrawerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.account.ui.picker.AccountPickerResult
-import app.campfire.account.ui.picker.showAccountPicker
-import app.campfire.account.ui.switcher.AccountSwitcher
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.Author
 import app.campfire.common.compose.icons.filled.Collections
@@ -39,18 +36,16 @@ import app.campfire.common.compose.icons.outline.Series
 import app.campfire.common.compose.icons.rounded.LogFile
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
-import app.campfire.common.compose.navigation.LocalDrawerState
-import app.campfire.common.compose.navigation.LocalRootScreen
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.common.screens.DebugScreen
-import app.campfire.common.screens.DrawerScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
-import app.campfire.core.di.UserScope
+import app.campfire.core.di.AppScope
 import app.campfire.core.isDebug
+import app.campfire.core.reflect.instanceOf
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.updates.AppUpdateWidget
@@ -69,51 +64,36 @@ import campfire.ui.navigation.generated.resources.nav_settings_content_descripti
 import campfire.ui.navigation.generated.resources.nav_settings_label
 import campfire.ui.navigation.generated.resources.nav_statistics_content_description
 import campfire.ui.navigation.generated.resources.nav_statistics_label
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
-import com.slack.circuit.overlay.LocalOverlayHost
-import kotlinx.coroutines.async
+import com.r0adkll.kimchi.annotations.ContributesTo
+import com.slack.circuit.runtime.Navigator
+import com.slack.circuit.runtime.screen.Screen
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
-@CircuitInject(DrawerScreen::class, UserScope::class)
+@ContributesTo(AppScope::class)
+interface CampfireDrawerComponent {
+  val appUpdateWidget: AppUpdateWidget
+}
+
 @Composable
-fun Drawer(
-  state: DrawerUiState,
-  appUpdateWidget: AppUpdateWidget,
+fun CampfireDrawer(
+  rootScreen: Screen,
+  drawerState: DrawerState,
+  navigator: Navigator,
+  accountSwitcher: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  component: CampfireDrawerComponent = rememberComponent(),
 ) {
-  val coroutineScope = rememberCoroutineScope()
+  val scope = rememberCoroutineScope()
   val drawerItems = buildDrawerItems()
-  val drawerState by rememberUpdatedState(LocalDrawerState.current)
-  val rootScreen by rememberUpdatedState(LocalRootScreen.current)
-  val overlayHost = LocalOverlayHost.current
 
   DrawerSheet(
     modifier = modifier,
   ) {
-    // Show the root account switcher
-    AccountSwitcher(
-      {
-        coroutineScope.launch {
-          async {
-            drawerState?.close()
-          }
-          when (val result = overlayHost.showAccountPicker()) {
-            AccountPickerResult.AddAccount -> {
-              state.eventSink(DrawerUiEvent.AddAccount)
-              drawerState?.close()
-            }
-            is AccountPickerResult.SwitchAccount -> {
-              state.eventSink(DrawerUiEvent.SwitchAccount(result.server))
-              drawerState?.close()
-            }
-            else -> Unit
-          }
-        }
-      },
-      Modifier,
-    )
+    accountSwitcher()
+
     Spacer(Modifier.height(8.dp))
+
     for (item in drawerItems) {
       NavigationDrawerItem(
         icon = {
@@ -123,11 +103,11 @@ fun Drawer(
           )
         },
         label = { Text(text = item.label) },
-        selected = rootScreen == item.screen,
+        selected = item.screen.instanceOf(rootScreen::class),
         onClick = {
-          state.eventSink(DrawerUiEvent.ItemClick(item))
-          coroutineScope.launch {
-            drawerState?.close()
+          navigator.goTo(item.screen)
+          scope.launch {
+            drawerState.close()
           }
         },
         modifier = Modifier
@@ -139,7 +119,7 @@ fun Drawer(
 
     Spacer(Modifier.weight(1f))
 
-    appUpdateWidget.Content(
+    component.appUpdateWidget.Content(
       Modifier
         .fillMaxWidth(),
     )

@@ -5,8 +5,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
+import app.campfire.common.screens.LoginScreen
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.Library
+import app.campfire.core.model.Server
 import app.campfire.libraries.api.LibraryRepository
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -18,6 +22,7 @@ typealias AccountSwitcherPresenterFactory = () -> AccountSwitcherPresenter
 
 @Inject
 class AccountSwitcherPresenter(
+  private val accountManager: AccountManager,
   private val serverRepository: ServerRepository,
   private val libraryRepository: LibraryRepository,
 ) : Presenter<AccountSwitcherUiState> {
@@ -29,13 +34,13 @@ class AccountSwitcherPresenter(
     val accountState by remember {
       serverRepository.observeCurrentServer()
         .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out Server>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     val allAccounts by remember {
       serverRepository.observeAllServers()
         .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out List<Server>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     val currentLibrary by remember {
@@ -47,7 +52,7 @@ class AccountSwitcherPresenter(
       libraryRepository.observeAllLibraries()
         .map { it.sortedBy { library -> library.displayOrder } }
         .map { LoadState.Loaded(it) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out List<Library>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     return AccountSwitcherUiState(
@@ -64,6 +69,12 @@ class AccountSwitcherPresenter(
         is AccountSwitcherUiEvent.SelectLibrary -> {
           scope.launch {
             libraryRepository.setCurrentLibrary(event.library)
+          }
+        }
+
+        is AccountSwitcherUiEvent.SwitchAccount -> {
+          scope.launch {
+            accountManager.switchAccount(event.server.user)
           }
         }
       }

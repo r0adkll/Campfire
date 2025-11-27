@@ -8,6 +8,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
@@ -20,6 +21,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.Bookmark
@@ -83,6 +86,7 @@ fun PlaybackBar(
   onExpansionChange: (Boolean) -> Unit,
   navigator: Navigator,
   themeManager: ThemeManager,
+  offset: Density.() -> IntOffset,
   modifier: Modifier = Modifier,
 ) {
   SessionHostLayout { currentSession, audioPlayer, clearSession, startSession ->
@@ -175,7 +179,9 @@ fun PlaybackBar(
                 onClearSession = clearSession,
                 sharedTransitionScope = this@SharedTransitionLayout,
                 animatedVisibilityScope = this,
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                  .padding(8.dp)
+                  .offset(offset),
               )
             }
 

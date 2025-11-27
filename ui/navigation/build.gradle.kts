@@ -8,7 +8,10 @@ kotlin {
       dependencies {
         api(projects.common.compose)
         api(projects.data.account.api)
-        api(projects.data.account.ui)
+
+        // FIXME: This is an unintended dependency cycle. We should probably extract this element
+        //  or abstract it to projects.data.account.api
+//        api(projects.data.account.ui)
         api(projects.infra.updates.api)
         api(projects.features.libraries.api)
 
