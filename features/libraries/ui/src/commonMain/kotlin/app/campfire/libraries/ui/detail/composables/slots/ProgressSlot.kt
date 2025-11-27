@@ -23,7 +23,7 @@ class ProgressSlot(
       progress = mediaProgress,
       modifier = modifier
         .padding(
-          horizontal = 20.dp
+          horizontal = 20.dp,
         ),
     )
   }

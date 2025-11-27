@@ -35,7 +35,6 @@ import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.coroutines.newSingleThreadContext
 import org.jetbrains.compose.resources.painterResource
 
 val CoverImageSize = 256.dp

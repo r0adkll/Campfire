@@ -35,7 +35,7 @@ class ThreadedQuantizerPipeline(
       dispatcherProvider.computation.limitedParallelism(1, "quantizer") +
       CoroutineExceptionHandler { _, t ->
         ebark(throwable = t) { "Something when wrong when quantizing an image" }
-      }
+      },
   )
 
   private val _outputSink = MutableSharedFlow<QuantizedSwatch>(
@@ -44,7 +44,6 @@ class ThreadedQuantizerPipeline(
   )
   override val outputSink: SharedFlow<QuantizedSwatch>
     get() = _outputSink.asSharedFlow()
-
       // If we get new subscribers emit any pending outputs immediately
       .onSubscription {
         if (outputQueue.isNotEmpty()) {

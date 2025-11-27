@@ -460,8 +460,3 @@ val AltYellowColorPalette = ColorPalette(
   mediumContrastDarkColorScheme,
   highContrastDarkColorScheme,
 )
-
-
-
-
-

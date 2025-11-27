@@ -111,10 +111,9 @@ fun SelectThemeForKey.asDomainTheme(): ComputedTheme {
         dark_onTertiaryFixed,
         dark_onTertiaryFixedVariant,
       ),
-    )
+    ),
   )
 }
-
 
 fun SelectAllThemes.asDomainTheme(): ComputedTheme {
   return ComputedTheme(
@@ -221,6 +220,6 @@ fun SelectAllThemes.asDomainTheme(): ComputedTheme {
         dark_onTertiaryFixed,
         dark_onTertiaryFixedVariant,
       ),
-    )
+    ),
   )
 }

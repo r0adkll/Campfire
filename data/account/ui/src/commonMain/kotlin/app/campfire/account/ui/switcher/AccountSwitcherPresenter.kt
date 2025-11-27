@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
-import app.campfire.common.screens.LoginScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Library
 import app.campfire.core.model.Server

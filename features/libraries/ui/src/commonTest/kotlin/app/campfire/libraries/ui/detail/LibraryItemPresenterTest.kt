@@ -1,6 +1,5 @@
 package app.campfire.libraries.ui.detail
 
-import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf

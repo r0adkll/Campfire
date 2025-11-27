@@ -89,7 +89,7 @@ fun LibraryItem(
   modifier: Modifier = Modifier,
 ) {
   MaterialExpressiveTheme(
-    colorScheme = state.theme?.colorScheme
+    colorScheme = state.theme?.colorScheme,
   ) {
     LibraryItemContent(
       state = state,
@@ -204,12 +204,11 @@ private fun LoadedState(
         modifier = Modifier
           .background(ChapterContainerColor)
           .fillMaxWidth()
-          .height(contentPadding.calculateBottomPadding())
+          .height(contentPadding.calculateBottomPadding()),
       )
     }
   }
 }
-
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3WindowSizeClassApi::class)
 @Preview(heightDp = 2200)

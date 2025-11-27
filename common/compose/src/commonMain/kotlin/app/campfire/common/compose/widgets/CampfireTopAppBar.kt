@@ -38,7 +38,9 @@ fun CampfireTopAppBar(
   windowInsets: WindowInsets = CampfireTopAppBarInsets,
   scrollBehavior: TopAppBarScrollBehavior? = null,
   containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current),
-  scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 4.dp),
+  scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(
+    LocalAbsoluteTonalElevation.current + 4.dp,
+  ),
 ) {
   val colors = TopAppBarDefaults.topAppBarColors(
     scrolledContainerColor = scrolledContainerColor,

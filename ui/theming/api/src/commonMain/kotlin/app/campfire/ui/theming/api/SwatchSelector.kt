@@ -8,12 +8,12 @@ sealed class SwatchSelector(
 ) {
   abstract val key: String
 
-  object Dominant : SwatchSelector({ it.dominant }){
-    override val key  = "dominant"
+  object Dominant : SwatchSelector({ it.dominant }) {
+    override val key = "dominant"
   }
 
   data class Vibrant(
-    val index: Int = 0
+    val index: Int = 0,
   ) : SwatchSelector({
     it.vibrant.getOrNull(index)
       ?: it.vibrant.lastOrNull()

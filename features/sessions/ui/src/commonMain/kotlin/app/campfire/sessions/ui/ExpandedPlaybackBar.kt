@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -35,10 +34,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
@@ -48,12 +45,10 @@ import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -76,7 +71,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
@@ -656,7 +650,7 @@ private fun PlaybackActions(
           modifier = modifier
             .sizeIn(
               minWidth = accessoryButtonSize,
-              minHeight = accessoryButtonSize
+              minHeight = accessoryButtonSize,
             ),
           content = {
             content(accessoryButtonIconSize)
@@ -697,7 +691,7 @@ private fun PlaybackActions(
         modifier = Modifier
           .sizeIn(
             minWidth = playButtonSize + playButtonExtraWidth,
-            minHeight = playButtonSize
+            minHeight = playButtonSize,
           ),
       ) {
         AnimatedContent(
@@ -756,8 +750,8 @@ private fun PlaybackActions(
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       modifier = Modifier
         .widthIn(
-          max = (ButtonDefaults.LargeContainerHeight * 3) + playButtonExtraWidth + 8.dp
-        )
+          max = (ButtonDefaults.LargeContainerHeight * 3) + playButtonExtraWidth + 8.dp,
+        ),
     ) {
       val buttonSize = ButtonDefaults.MinHeight
       val colors = IconButtonDefaults.filledIconButtonColors(

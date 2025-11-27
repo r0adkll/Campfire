@@ -67,5 +67,5 @@ interface ThemeManager {
     schema: Schema = Schema.Expressive,
     contrast: Double = 0.0,
     spec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
-  ) : Flow<Theme?>
+  ): Flow<Theme?>
 }

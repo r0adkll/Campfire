@@ -27,7 +27,7 @@ internal fun ServerIcon(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   size: Dp = DefaultServerIconSize,
-  component: ServerIconComponent = rememberComponent()
+  component: ServerIconComponent = rememberComponent(),
 ) {
   val serverState by remember(component) {
     component.serverRepository.observeCurrentServer()

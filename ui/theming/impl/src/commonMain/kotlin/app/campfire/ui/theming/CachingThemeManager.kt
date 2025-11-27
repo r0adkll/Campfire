@@ -149,7 +149,7 @@ class CachingThemeManager(
       .mapLatest { it.theme }
       .onStart<Theme?> {
         // 1) Make sure we aren't currently processing a swatch or theme for this key
-        if (themePipeline.containsKey(key)){
+        if (themePipeline.containsKey(key)) {
           vbark { "Theme pipeline already processing $key, ignoring…" }
           return@onStart
         }

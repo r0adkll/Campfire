@@ -25,7 +25,7 @@ internal fun ChipSection(
       title = title,
       textStyle = MaterialTheme.typography.titleLarge,
       textColor = MaterialTheme.colorScheme.onSurface,
-      modifier = Modifier.heightIn(min = 56.dp)
+      modifier = Modifier.heightIn(min = 56.dp),
     )
     TagGroup(
       tags = items.map { Tag(it) },

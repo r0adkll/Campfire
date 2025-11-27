@@ -1,19 +1,14 @@
 package app.campfire.ui.navigation.bar
 
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.FloatingToolbarScrollBehavior
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarScrollBehavior
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.annotation.FrequentlyChangingValue
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -24,8 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import app.campfire.common.compose.extensions.thenIfNotNull
-import app.campfire.common.compose.util.withDensity
-import app.campfire.core.logging.bark
 import app.campfire.core.reflect.instanceOf
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.ui.navigation.HomeNavigationItemIcon
@@ -84,18 +77,18 @@ class CampfireNavigationBarState(
   internal var scrollOffsetLimit by mutableFloatStateOf(initialOffsetLimit)
 
   fun playbackBarOffset(bottomSystemInset: Float): Float {
-      return scrollBehavior?.let { behavior ->
-        val scrollOffset = (-behavior.scrollOffset)
-          .coerceIn(0f, scrollOffsetLimit)
+    return scrollBehavior?.let { behavior ->
+      val scrollOffset = (-behavior.scrollOffset)
+        .coerceIn(0f, scrollOffsetLimit)
 
-        val remainingHeight = scrollOffsetLimit - scrollOffset
-        if (remainingHeight > bottomSystemInset) {
-          0f
-        } else {
-          bottomSystemInset - remainingHeight
-        }
-      } ?: 0f
-    }
+      val remainingHeight = scrollOffsetLimit - scrollOffset
+      if (remainingHeight > bottomSystemInset) {
+        0f
+      } else {
+        bottomSystemInset - remainingHeight
+      }
+    } ?: 0f
+  }
 
   fun installScrollBehavior(behavior: SearchBarScrollBehavior) {
     scrollBehavior = behavior

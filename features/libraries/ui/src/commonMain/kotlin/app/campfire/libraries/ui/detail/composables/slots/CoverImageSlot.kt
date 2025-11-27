@@ -3,10 +3,7 @@ package app.campfire.libraries.ui.detail.composables.slots
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateInt
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -31,12 +28,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconToggleButton
-import androidx.compose.material3.FloatingToolbarDefaults
-import androidx.compose.material3.FloatingToolbarHorizontalFabPosition
-import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.IconToggleButtonShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -55,7 +48,6 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
-import app.campfire.core.model.LibraryItemId
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.placeholder_book
@@ -101,7 +93,9 @@ class CoverImageSlot(
           ),
         swatchListener = if (isDynamicThemingEnabled) {
           { palette -> swatch = palette }
-        } else null,
+        } else {
+          null
+        },
         sharedElementModifier = Modifier
           .sharedElement(
             sharedContentState = rememberSharedContentState(
@@ -135,7 +129,6 @@ class CoverImageSlot(
           )
         }
       }
-
     }
   }
 }

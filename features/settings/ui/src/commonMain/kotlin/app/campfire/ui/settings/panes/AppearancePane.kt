@@ -1,20 +1,12 @@
 package app.campfire.ui.settings.panes
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FormatPaint
-import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
-import app.campfire.ui.settings.composables.ActionSetting
-import app.campfire.ui.settings.composables.DropdownSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.ThemeModeSetting
@@ -41,9 +33,8 @@ internal fun AppearancePane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-
     Header(
-      title = { Text(stringResource(Res.string.header_appearance_overall)) }
+      title = { Text(stringResource(Res.string.header_appearance_overall)) },
     )
 
     ThemeModeSetting(
@@ -61,7 +52,7 @@ internal fun AppearancePane(
     }
 
     Header(
-      title = { Text(stringResource(Res.string.header_appearance_dynamic)) }
+      title = { Text(stringResource(Res.string.header_appearance_dynamic)) },
     )
 
     SwitchSetting(

@@ -157,8 +157,9 @@ class LibraryItemPresenter(
     }.collectAsState()
 
     val theme by remember(isDynamicThemingEnabled) {
-      if (!isDynamicThemingEnabled) flowOf(null)
-      else themeManager.observeThemeFor(
+      if (!isDynamicThemingEnabled) {
+        flowOf(null)
+      } else themeManager.observeThemeFor(
         key = screen.libraryItemId,
         colorSelector = SwatchSelector.Dominant,
         schema = Schema.Expressive,

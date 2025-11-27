@@ -16,7 +16,6 @@ import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf as NetworkShelf
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
-import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList

@@ -63,7 +63,7 @@ fun SummarySlotPreview() {
           .heightIn(min = 300.dp)
           .padding(
             vertical = 8.dp,
-          )
+          ),
       ) {
         SummarySlot(
           "Word ".repeat(100),

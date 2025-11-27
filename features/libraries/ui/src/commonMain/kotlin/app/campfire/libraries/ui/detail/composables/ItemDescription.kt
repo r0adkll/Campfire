@@ -30,11 +30,9 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.common.compose.widgets.ShowMoreLessButton
-import campfire.features.libraries.ui.generated.resources.Res
 import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ItemDescription(
@@ -99,8 +97,8 @@ internal fun ItemDescription(
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier
           .padding(
-            horizontal = 16.dp
-          )
+            horizontal = 16.dp,
+          ),
       )
     }
 

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,7 +42,7 @@ fun ServerIcon(
   serverState: ServerState,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  size: Dp = DefaultServerIconSize
+  size: Dp = DefaultServerIconSize,
 ) {
   Row(
     verticalAlignment = Alignment.CenterVertically,

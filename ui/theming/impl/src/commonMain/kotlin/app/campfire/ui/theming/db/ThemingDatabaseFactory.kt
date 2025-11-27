@@ -3,7 +3,6 @@ package app.campfire.ui.theming.db
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.ColorScheme
 import app.campfire.themes.Swatch
-import app.campfire.themes.Theme
 import app.cash.sqldelight.db.SqlDriver
 import me.tatarka.inject.annotations.Inject
 

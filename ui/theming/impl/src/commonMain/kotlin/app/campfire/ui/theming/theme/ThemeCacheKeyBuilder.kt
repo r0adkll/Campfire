@@ -31,13 +31,13 @@ object ThemeCacheKeyBuilder {
       Schema.Rainbow -> "rainbow"
       Schema.TonalSpot -> "tonal-spot"
       Schema.Vibrant -> "vibrant"
-    }
+    },
   )
 
   private fun StringBuilder.appendColorSpec(spec: ColorSpec.SpecVersion) = append(
     when (spec) {
       ColorSpec.SpecVersion.SPEC_2021 -> "2021"
       ColorSpec.SpecVersion.SPEC_2025 -> "2025"
-    }
+    },
   )
 }

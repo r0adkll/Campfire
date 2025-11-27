@@ -11,8 +11,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -35,9 +33,6 @@ import app.campfire.home.api.FeedResponse
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
-import app.campfire.ui.navigation.bar.CampfireNavigationBar
-import app.campfire.ui.navigation.bar.LocalNavigationBarState
-import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.home_feed_load_error
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject

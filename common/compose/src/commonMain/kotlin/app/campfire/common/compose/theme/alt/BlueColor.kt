@@ -460,8 +460,3 @@ val AltBlueColorPalette = ColorPalette(
   mediumContrastDarkColorScheme,
   highContrastDarkColorScheme,
 )
-
-
-
-
-

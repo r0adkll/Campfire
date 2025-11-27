@@ -17,7 +17,6 @@ import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import com.slack.circuit.test.FakeNavigator
-import kotlinx.coroutines.test.TestDispatcher
 
 internal const val TestLibraryItemId = "item_id"
 

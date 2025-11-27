@@ -2,11 +2,9 @@ package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,7 +14,6 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.extensions.thenIf
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
@@ -49,7 +46,7 @@ class ChapterSlot(
     val bottomCornerSize = if (isLast) CornerSize(20.dp) else CornerSize(4.dp)
     Column(
       modifier = modifier
-        .background(ChapterContainerColor)
+        .background(ChapterContainerColor),
     ) {
       Surface(
         modifier = Modifier
@@ -60,7 +57,7 @@ class ChapterSlot(
           topEnd = topCornerSize,
           bottomStart = bottomCornerSize,
           bottomEnd = bottomCornerSize,
-        )
+        ),
       ) {
         DurationListItem(
           title = chapter.title,

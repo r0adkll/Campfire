@@ -460,8 +460,3 @@ val AltGreenColorPalette = ColorPalette(
   mediumContrastDarkColorScheme,
   highContrastDarkColorScheme,
 )
-
-
-
-
-

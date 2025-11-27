@@ -1,7 +1,7 @@
 package app.campfire.ui.theming.db.mapping
 
-import app.campfire.themes.ColorScheme as DbColorScheme
 import androidx.compose.material3.ColorScheme
+import app.campfire.themes.ColorScheme as DbColorScheme
 
 fun ColorScheme.asDbModel(
   cacheKey: String,

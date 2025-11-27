@@ -14,7 +14,6 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
-
 @SingleIn(AppScope::class)
 @Inject
 class DiskThemeCache(
@@ -58,10 +57,10 @@ class DiskThemeCache(
   private suspend fun SuspendingTransactionWithoutReturn.insertComputedTheme(key: String, value: ComputedTheme) {
     db.themeQueries.insertTheme(DbTheme(key, value.key))
     db.themeQueries.insertColorScheme(
-      value.theme.lightColorScheme.asDbModel(key, false)
+      value.theme.lightColorScheme.asDbModel(key, false),
     )
     db.themeQueries.insertColorScheme(
-      value.theme.darkColorScheme.asDbModel(key, true)
+      value.theme.darkColorScheme.asDbModel(key, true),
     )
   }
 

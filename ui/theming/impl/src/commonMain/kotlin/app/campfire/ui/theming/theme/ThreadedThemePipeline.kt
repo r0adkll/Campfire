@@ -39,7 +39,7 @@ class ThreadedThemePipeline(
       dispatcherProvider.computation.limitedParallelism(1, "theme-builder") +
       CoroutineExceptionHandler { _, t ->
         ebark(throwable = t) { "Something when wrong generating a theme" }
-      }
+      },
   )
 
   private val _outputSink = MutableSharedFlow<ComputedTheme>(
@@ -108,7 +108,7 @@ class ThreadedThemePipeline(
       val computedTheme = ComputedTheme(
         key = key,
         cacheKey = cacheKey,
-        theme = theme
+        theme = theme,
       )
 
       // If there is no one to emit to, store the result until there are subscribers

@@ -12,12 +12,12 @@ import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
 fun ComposeUiTest.setCampfireContent(
   contentLayout: ContentLayout = ContentLayout.Root,
-  content: @Composable () -> Unit
+  content: @Composable () -> Unit,
 ) {
   setContent {
     PreviewSharedElementTransitionLayout {
       CompositionLocalProvider(
-        LocalContentLayout provides contentLayout
+        LocalContentLayout provides contentLayout,
       ) {
         content()
       }

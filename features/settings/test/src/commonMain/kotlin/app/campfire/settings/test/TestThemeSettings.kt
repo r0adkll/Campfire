@@ -9,14 +9,13 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 
 class TestThemeSettings(
-  private val testScope: CoroutineScope = TestScope(StandardTestDispatcher())
+  private val testScope: CoroutineScope = TestScope(StandardTestDispatcher()),
 ) : TestSettings(), ThemeSettings {
 
   override var dynamicallyThemeItemDetail: Boolean by boolean()
   override fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean> =
     observeBoolean(::dynamicallyThemeItemDetail)
       .stateIn(testScope, SharingStarted.Lazily, dynamicallyThemePlayback)
-
 
   override var dynamicallyThemePlayback: Boolean by boolean()
   override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> =

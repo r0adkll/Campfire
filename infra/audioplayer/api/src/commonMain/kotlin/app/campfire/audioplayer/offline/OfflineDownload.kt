@@ -14,11 +14,11 @@ import kotlin.contracts.contract
 
 @OptIn(ExperimentalContracts::class)
 fun OfflineDownload?.isNullOrNone(): Boolean {
-    contract {
-      returns(false) implies (this@isNullOrNone != null)
-    }
-    return this == null || state == None
+  contract {
+    returns(false) implies (this@isNullOrNone != null)
   }
+  return this == null || state == None
+}
 
 /**
  * Represents the download state of a [LibraryItem].

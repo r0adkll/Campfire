@@ -1,7 +1,6 @@
 package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -72,7 +71,6 @@ internal fun DurationListItem(
             cornerRadius = cornerRadius,
           )
 
-
 //          drawRoundRect(
 //            color = selectedColor,
 //            topLeft = Offset(-IndicatorSize.toPx(), IndicatorPadding.toPx()),
@@ -83,7 +81,7 @@ internal fun DurationListItem(
       }
       .padding(
         horizontal = 16.dp,
-        vertical = 12.dp
+        vertical = 12.dp,
       )
       .thenIf(isActiveChapter) {
         padding(bottom = ProgressHeight)

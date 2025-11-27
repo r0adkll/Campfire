@@ -108,7 +108,6 @@ class SettingsPresenter(
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
 
-
     // Playback Settings
     val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
     val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState()

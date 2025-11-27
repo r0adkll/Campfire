@@ -15,10 +15,8 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Density
@@ -54,14 +52,9 @@ import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filterNot
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 
 enum class PlaybackBarState {
   Hidden,
@@ -79,8 +72,10 @@ internal val TonalElevation = 2.dp
 internal val DefaultSheetColor: Color
   @Composable get() = MaterialTheme.colorScheme.surfaceContainerHighest
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalCoroutinesApi::class,
-  ExperimentalMaterial3ExpressiveApi::class
+@OptIn(
+  ExperimentalSharedTransitionApi::class,
+  ExperimentalCoroutinesApi::class,
+  ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 fun PlaybackBar(
@@ -136,12 +131,14 @@ fun PlaybackBar(
         if (itemId != null) {
           bark("PlaybackBar") { "Observing theme for $itemId" }
           themeManager.observeThemeFor(itemId)
-        } else emptyFlow()
+        } else {
+          emptyFlow()
+        }
       }
     }.collectAsState(null)
 
     MaterialExpressiveTheme(
-      colorScheme = theme.value?.colorScheme
+      colorScheme = theme.value?.colorScheme,
     ) {
       SharedTransitionLayout(
         modifier = modifier,
@@ -156,7 +153,7 @@ fun PlaybackBar(
             when {
               (initialState == Hidden && targetState == Collapsed) ||
                 (initialState == Collapsed && targetState == Hidden)
-                -> slideInVertically { it } togetherWith slideOutVertically { it }
+              -> slideInVertically { it } togetherWith slideOutVertically { it }
 
               else -> scaleIn() togetherWith scaleOut()
             }
@@ -239,8 +236,8 @@ fun PlaybackBar(
                       Seek,
                       Changed,
                       PlaybackBar,
-                      extras = mapOf("progress" to progress)
-                    )
+                      extras = mapOf("progress" to progress),
+                    ),
                   )
                   audioPlayer?.seekTo(progress)
                 },

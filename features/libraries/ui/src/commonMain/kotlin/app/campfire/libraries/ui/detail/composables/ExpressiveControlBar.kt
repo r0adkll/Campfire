@@ -166,7 +166,7 @@ private fun OfflineStatus(
           when (offlineDownload.state) {
             OfflineDownload.State.None,
             OfflineDownload.State.Downloading,
-              -> "Downloading"
+            -> "Downloading"
 
             OfflineDownload.State.Queued -> "Queued"
             OfflineDownload.State.Stopped -> "Stopped"
@@ -179,16 +179,18 @@ private fun OfflineStatus(
         {
           Text(offlineDownload.progress.bytes.asReadableBytes())
         }
-      } else null,
+      } else {
+        null
+      },
       trailing = {
         AnimatedContent(
-          targetState = offlineDownload.isActive
+          targetState = offlineDownload.isActive,
         ) { isActive ->
           if (isActive) {
             FilledIconButton(
               onClick = onStopClick,
               shapes = IconButtonDefaults.shapes(),
-              modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize())
+              modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
             ) {
               Icon(
                 Icons.Rounded.Stop,
@@ -202,7 +204,7 @@ private fun OfflineStatus(
             Button(
               onClick = onDeleteClick,
               shapes = ButtonDefaults.shapes(
-                shape = ButtonDefaults.squareShape
+                shape = ButtonDefaults.squareShape,
               ),
               colors = ButtonDefaults.buttonColors(
                 containerColor = color,
@@ -270,17 +272,17 @@ internal fun OfflineTitleBar(
           MaterialTheme.typography.titleSmall
         } else {
           MaterialTheme.typography.titleMedium
-        }
+        },
       ) {
         title()
       }
 
       if (subtitle != null) {
         ProvideTextStyle(
-          MaterialTheme.typography.labelMedium
+          MaterialTheme.typography.labelMedium,
         ) {
           CompositionLocalProvider(
-            LocalContentColor provides LocalContentColor.current.copy(alpha = 0.65f)
+            LocalContentColor provides LocalContentColor.current.copy(alpha = 0.65f),
           ) {
             subtitle()
           }
@@ -655,7 +657,7 @@ fun ExpressiveControlSlotPreview(
     tent = Tent.Red,
   ) {
     CompositionLocalProvider(
-      LocalContentLayout provides ContentLayout.Root
+      LocalContentLayout provides ContentLayout.Root,
     ) {
       Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -683,7 +685,7 @@ fun DarkExpressiveControlSlotPreview(
     useDarkColors = true,
   ) {
     CompositionLocalProvider(
-      LocalContentLayout provides ContentLayout.Root
+      LocalContentLayout provides ContentLayout.Root,
     ) {
       Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
