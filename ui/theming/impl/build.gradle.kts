@@ -14,7 +14,7 @@ kotlin {
     databases {
       create("CampfireThemeDatabase") {
         packageName.set("app.campfire.themes")
-        schemaOutputDirectory.set(file("src/commonMain/sqldelight/app/campfire/theming"))
+        schemaOutputDirectory.set(file("src/commonMain/sqldelight/app/campfire/schema"))
         generateAsync.set(true)
       }
     }
