@@ -93,7 +93,7 @@ jobs:
       - name: Check skip-coverage label is added
         id: label-check
         run: |
-          if gh api --jq '.labels.[].name' /repos/{owner}/{repo}/pulls/${{ github.event.number }} | grep -q "skip-coverage"
+          if gh api --jq '.labels.[].name' /repos/r0adkll/Campfire/pulls/${{ github.event.number }} | grep -q "skip-coverage"
           then
             echo "SKIP_COVERAGE=true" >> "$GITHUB_OUTPUT"
           else
@@ -120,6 +120,7 @@ jobs:
           coverage-counter-type: LINE
 
       - name: Fail if coverage is not met
+        if: ${{ steps.label-check.outputs.SKIP_COVERAGE == false}}
         run: |
           if [[ "${{ steps.kover.outputs.coverage-changed-files }}" -lt 50 ]]; then
             exit 1
