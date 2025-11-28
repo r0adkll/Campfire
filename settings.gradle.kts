@@ -11,9 +11,15 @@ pluginManagement {
   repositories {
 
     if (hasProperty("campfire.config.enableSnapshots")) {
-      maven("https://oss.sonatype.org/content/repositories/snapshots") {
+      maven("https://central.sonatype.com/repository/maven-snapshots/") {
         name = "snapshots-maven-central"
-        mavenContent { snapshotsOnly() }
+        mavenContent {
+          snapshotsOnly()
+        }
+
+        content {
+          includeGroup("com.r0adkll.swatchbuckler")
+        }
       }
     }
 
@@ -35,9 +41,12 @@ dependencyResolutionManagement {
 
   repositories {
     if (hasProperty("campfire.config.enableSnapshots")) {
-      maven("https://oss.sonatype.org/content/repositories/snapshots") {
+      maven("https://central.sonatype.com/repository/maven-snapshots/") {
         name = "snapshots-maven-central"
         mavenContent { snapshotsOnly() }
+        content {
+          includeGroup("com.r0adkll.swatchbuckler")
+        }
       }
     }
 
