@@ -18,8 +18,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.icons.rememberTentVectorPainter
@@ -50,17 +48,19 @@ internal fun TentSetting(
     supportingContent = {
       Text(
         text = "Pick your campsites tent & theme",
-        color = if (enabled) colors.supportingTextColor else colors.disabledHeadlineColor
+        color = if (enabled) colors.supportingTextColor else colors.disabledHeadlineColor,
       )
     },
     overlineContent = if (!enabled) {
       {
         Text(
           text = "Disable '${stringResource(Res.string.setting_dynamic_colors_title)}'",
-          color = MaterialTheme.colorScheme.error
+          color = MaterialTheme.colorScheme.error,
         )
       }
-    } else null,
+    } else {
+      null
+    },
     trailingContent = {
       Box {
         if (!enabled) {

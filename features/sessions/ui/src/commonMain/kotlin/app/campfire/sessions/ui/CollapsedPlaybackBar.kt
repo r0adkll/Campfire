@@ -128,7 +128,7 @@ internal fun CollapsedPlaybackBar(
       Open,
       None,
       -> contentColor
-    }
+    },
   )
 
   Surface(

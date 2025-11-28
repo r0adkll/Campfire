@@ -12,7 +12,6 @@ import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
-import app.campfire.ui.settings.composables.TentSetting
 import app.campfire.ui.settings.composables.TextFieldSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_account_dialog_label

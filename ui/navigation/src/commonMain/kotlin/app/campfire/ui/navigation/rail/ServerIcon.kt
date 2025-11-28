@@ -42,7 +42,8 @@ internal fun ServerIcon(
             ServerState.Loaded(
               server = server,
               useDynamicColors = useDynamicColors,
-              connectionState = AppBarState.ConnectionState.None)
+              connectionState = AppBarState.ConnectionState.None,
+            )
           }
       }
       .catch<ServerState> { emit(ServerState.Error) }

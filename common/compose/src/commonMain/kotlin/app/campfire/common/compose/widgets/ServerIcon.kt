@@ -26,7 +26,6 @@ import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnec
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
-import com.r0adkll.swatchbuckler.color.dynamiccolor.DynamicColor
 
 val DefaultServerIconSize = 40.dp
 
@@ -66,7 +65,7 @@ fun ServerIcon(
       }
 
       is ServerState.Loaded -> {
-        if (serverState.useDynamicColors){
+        if (serverState.useDynamicColors) {
           Image(
             rememberTentVectorPainter(),
             contentDescription = null,
