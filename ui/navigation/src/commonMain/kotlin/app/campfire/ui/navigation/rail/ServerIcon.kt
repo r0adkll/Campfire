@@ -13,15 +13,20 @@ import app.campfire.common.compose.widgets.DefaultServerIconSize
 import app.campfire.common.compose.widgets.ServerIcon
 import app.campfire.common.compose.widgets.ServerState
 import app.campfire.core.di.AppScope
+import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 @ContributesTo(AppScope::class)
 interface ServerIconComponent {
+  val settings: CampfireSettings
   val serverRepository: ServerRepository
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 internal fun ServerIcon(
   onClick: () -> Unit,
@@ -31,7 +36,15 @@ internal fun ServerIcon(
 ) {
   val serverState by remember(component) {
     component.serverRepository.observeCurrentServer()
-      .map { ServerState.Loaded(it, connectionState = AppBarState.ConnectionState.None) }
+      .flatMapLatest { server ->
+        component.settings.observeUseDynamicColors()
+          .map { useDynamicColors ->
+            ServerState.Loaded(
+              server = server,
+              useDynamicColors = useDynamicColors,
+              connectionState = AppBarState.ConnectionState.None)
+          }
+      }
       .catch<ServerState> { emit(ServerState.Error) }
   }.collectAsState(ServerState.Loading)
 

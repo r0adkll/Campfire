@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.icon
+import app.campfire.common.compose.icons.rememberTentVectorPainter
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connected
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connecting
@@ -25,6 +26,7 @@ import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnec
 import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
+import com.r0adkll.swatchbuckler.color.dynamiccolor.DynamicColor
 
 val DefaultServerIconSize = 40.dp
 
@@ -32,6 +34,7 @@ sealed interface ServerState {
   data object Loading : ServerState
   data class Loaded(
     val server: Server,
+    val useDynamicColors: Boolean,
     val connectionState: ConnectionState,
   ) : ServerState
   data object Error : ServerState
@@ -63,13 +66,23 @@ fun ServerIcon(
       }
 
       is ServerState.Loaded -> {
-        Image(
-          serverState.server.tent.icon,
-          contentDescription = null,
-          modifier = Modifier
-            .size(size)
-            .padding(4.dp),
-        )
+        if (serverState.useDynamicColors){
+          Image(
+            rememberTentVectorPainter(),
+            contentDescription = null,
+            modifier = Modifier
+              .size(size)
+              .padding(4.dp),
+          )
+        } else {
+          Image(
+            serverState.server.tent.icon,
+            contentDescription = null,
+            modifier = Modifier
+              .size(size)
+              .padding(4.dp),
+          )
+        }
         if (serverState.connectionState != None) {
           Box(
             modifier = Modifier

@@ -42,6 +42,7 @@ internal fun AppearancePane(
     state.server.onLoaded { server ->
       TentSetting(
         tent = server.tent,
+        enabled = !state.appearanceSettings.useDynamicColors,
         onTentChange = { state.eventSink(SettingsUiEvent.AccountSettingEvent.ChangeTent(it)) },
       )
     }

@@ -13,6 +13,7 @@ import app.campfire.common.compose.widgets.AppBarViewEvent
 import app.campfire.common.compose.widgets.ServerState
 import app.campfire.core.model.Library
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.settings.api.CampfireSettings
 import com.slack.circuit.retained.collectAsRetainedState
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,7 @@ import me.tatarka.inject.annotations.Inject
 
 @Inject
 class CampfireAppbarPresenter(
+  private val settings: CampfireSettings,
   private val serverRepository: ServerRepository,
   private val libraryRepository: LibraryRepository,
 ) {
@@ -28,6 +30,10 @@ class CampfireAppbarPresenter(
   @Composable
   fun present(): AppBarState {
     val scope = rememberCoroutineScope()
+
+    val useDynamicColors by remember {
+      settings.observeUseDynamicColors()
+    }.collectAsState(settings.useDynamicColors)
 
     val server by remember {
       serverRepository.observeCurrentServer()
@@ -52,7 +58,7 @@ class CampfireAppbarPresenter(
 
     return AppBarState(
       library = library?.let { LibraryState.Loaded(it) } ?: LibraryState.Loading,
-      server = server?.let { ServerState.Loaded(it, connectionState) } ?: ServerState.Loading,
+      server = server?.let { ServerState.Loaded(it, useDynamicColors, connectionState) } ?: ServerState.Loading,
       allLibraries = libraries,
     ) { event ->
       when (event) {

@@ -7,6 +7,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class AccountSwitcherUiState(
+  val useDynamicColors: Boolean,
   val currentAccount: LoadState<out Server>,
   val allAccounts: LoadState<out List<Server>>,
   val libraryState: LibraryState?,

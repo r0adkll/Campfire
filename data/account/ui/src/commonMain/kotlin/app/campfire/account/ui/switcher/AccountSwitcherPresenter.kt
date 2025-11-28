@@ -11,6 +11,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Library
 import app.campfire.core.model.Server
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.settings.api.CampfireSettings
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -21,6 +22,7 @@ typealias AccountSwitcherPresenterFactory = () -> AccountSwitcherPresenter
 
 @Inject
 class AccountSwitcherPresenter(
+  private val settings: CampfireSettings,
   private val accountManager: AccountManager,
   private val serverRepository: ServerRepository,
   private val libraryRepository: LibraryRepository,
@@ -29,6 +31,10 @@ class AccountSwitcherPresenter(
   @Composable
   override fun present(): AccountSwitcherUiState {
     val scope = rememberCoroutineScope()
+
+    val useDynamicColors by remember {
+      settings.observeUseDynamicColors()
+    }.collectAsState(settings.useDynamicColors)
 
     val accountState by remember {
       serverRepository.observeCurrentServer()
@@ -55,6 +61,7 @@ class AccountSwitcherPresenter(
     }.collectAsState(LoadState.Loading)
 
     return AccountSwitcherUiState(
+      useDynamicColors = useDynamicColors,
       currentAccount = accountState,
       libraryState = currentLibrary?.let {
         LibraryState(
