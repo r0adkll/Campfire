@@ -102,6 +102,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check label output
+        run: echo "${{ steps.label-check.outputs.SKIP_COVERAGE }}"
+
       - name: Run tests and generate coverage report
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == false}}
         run: ./gradlew --quiet test allTests koverXmlReport
