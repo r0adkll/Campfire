@@ -121,7 +121,7 @@ jobs:
 
       - name: Fail if coverage is not met
         run: |
-          if [[ "${{ steps.kover.outputs.coverage-changed-files }}" -lt 50 ]];
+          if [[ "${{ steps.kover.outputs.coverage-changed-files }}" -lt 50 ]]; then
             exit 1
           fi
 
