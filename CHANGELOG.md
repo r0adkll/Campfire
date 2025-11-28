@@ -9,14 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- New dynamic content theming based on an item's thumbnail.
+- Ability to change the seed color for per-item theming
+- Settings to enable/disable dynamic content based theming
+
 ### Changed
 
+- Material 3 Expressive UI overhaul
 - Rewrote item detail screen for performance
 - Item detail screen UI polishing.
+- Moved 'tent' choice/theming to 'Appearance' settings tab
 
 ### Deprecated
 
 ### Removed
+
+- Top bar library switcher. This is now located only in the left-hand drawer.
 
 ### Fixed
 
