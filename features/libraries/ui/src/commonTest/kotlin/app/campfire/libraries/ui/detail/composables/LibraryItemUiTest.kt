@@ -108,7 +108,8 @@ class LibraryItemUiTest {
 
     onNode(hasScrollAction())
       .onChildren()
-      .assertCountEquals(20)
+      // Account for the spacer we add to the bottom of this list
+      .assertCountEquals(21)
   }
 
   @Test
