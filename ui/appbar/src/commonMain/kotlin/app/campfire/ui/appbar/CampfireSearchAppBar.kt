@@ -3,6 +3,7 @@ package app.campfire.ui.appbar
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,6 +46,7 @@ internal fun CampfireSearchAppBar(
   searchComponent: SearchComponent,
   onNavigationClick: () -> Unit,
   modifier: Modifier = Modifier,
+  actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   CampfireSearchAppBar(
@@ -55,6 +57,7 @@ internal fun CampfireSearchAppBar(
         onClick = onNavigationClick,
       )
     },
+    actions = actions,
     modifier = modifier,
     scrollBehavior = scrollBehavior,
   )
@@ -70,6 +73,7 @@ private fun CampfireSearchAppBar(
   searchComponent: SearchComponent,
   navigationIcon: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   val scope = rememberCoroutineScope()
@@ -132,6 +136,7 @@ private fun CampfireSearchAppBar(
     inputField = inputField,
     modifier = modifier,
     navigationIcon = navigationIcon,
+    actions = actions,
     scrollBehavior = scrollBehavior,
     windowInsets = SearchBarDefaults.windowInsets
       .only(WindowInsetsSides.Horizontal),

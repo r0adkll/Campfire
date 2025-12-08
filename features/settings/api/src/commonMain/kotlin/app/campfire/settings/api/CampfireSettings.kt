@@ -1,8 +1,6 @@
 package app.campfire.settings.api
 
 import app.campfire.core.model.UserId
-import app.campfire.core.settings.EnumSetting
-import app.campfire.core.settings.EnumSettingProvider
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -21,11 +19,10 @@ interface CampfireSettings {
   var analyticReportingEnabled: Boolean
   fun observeAnalyticReportingEnabled(): Flow<Boolean>
 
-  var theme: Theme
-  fun observeTheme(): Flow<Theme>
+  var themeId: ThemeKey
 
-  var useDynamicColors: Boolean
-  fun observeUseDynamicColors(): Flow<Boolean>
+  var themeMode: ThemeMode
+  fun observeTheme(): Flow<ThemeMode>
 
   var libraryItemDisplayState: ItemDisplayState
   fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
@@ -47,17 +44,4 @@ interface CampfireSettings {
 
   var showTimeInBook: Boolean
   fun observeShowTimeInBook(): Flow<Boolean>
-
-  enum class Theme(override val storageKey: String) : EnumSetting {
-    LIGHT("light"),
-    DARK("dark"),
-    SYSTEM("system"),
-    ;
-
-    companion object : EnumSettingProvider<Theme> {
-      override fun fromStorageKey(key: String?): Theme {
-        return values().find { it.storageKey == key } ?: SYSTEM
-      }
-    }
-  }
 }

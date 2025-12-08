@@ -113,7 +113,6 @@ private fun AccountSwitcher(
   ) {
     AccountSwitcher(
       tent = tent,
-      useDynamicColors = state.useDynamicColors,
       serverName = { Text(serverName) },
       userName = { userName?.let { Text(it) } },
       onClick = onClick,
@@ -147,7 +146,6 @@ private fun AccountCard(
 @Composable
 private fun AccountSwitcher(
   tent: Tent,
-  useDynamicColors: Boolean,
   serverName: @Composable () -> Unit,
   userName: @Composable () -> Unit,
   onClick: () -> Unit,
@@ -171,21 +169,13 @@ private fun AccountSwitcher(
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      if (useDynamicColors) {
-        Image(
-          rememberTentVectorPainter(),
-          contentDescription = null,
-          modifier = Modifier
-            .size(TentIconSize),
-        )
-      } else {
-        Image(
-          tent.icon,
-          contentDescription = null,
-          modifier = Modifier
-            .size(TentIconSize),
-        )
-      }
+      // TODO: Power this by app theme
+      Image(
+        tent.icon,
+        contentDescription = null,
+        modifier = Modifier
+          .size(TentIconSize),
+      )
 
       Spacer(Modifier.width(16.dp))
 

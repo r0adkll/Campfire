@@ -31,10 +31,6 @@ class CampfireAppbarPresenter(
   fun present(): AppBarState {
     val scope = rememberCoroutineScope()
 
-    val useDynamicColors by remember {
-      settings.observeUseDynamicColors()
-    }.collectAsState(settings.useDynamicColors)
-
     val server by remember {
       serverRepository.observeCurrentServer()
     }.collectAsRetainedState(null)
@@ -58,7 +54,7 @@ class CampfireAppbarPresenter(
 
     return AppBarState(
       library = library?.let { LibraryState.Loaded(it) } ?: LibraryState.Loading,
-      server = server?.let { ServerState.Loaded(it, useDynamicColors, connectionState) } ?: ServerState.Loading,
+      server = server?.let { ServerState.Loaded(it, connectionState) } ?: ServerState.Loading,
       allLibraries = libraries,
     ) { event ->
       when (event) {

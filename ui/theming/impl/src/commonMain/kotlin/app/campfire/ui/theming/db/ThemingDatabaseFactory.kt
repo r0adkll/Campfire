@@ -2,7 +2,9 @@ package app.campfire.ui.theming.db
 
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.ColorScheme
+import app.campfire.themes.CustomAppTheme
 import app.campfire.themes.Swatch
+import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.db.SqlDriver
 import me.tatarka.inject.annotations.Inject
 
@@ -67,5 +69,16 @@ class ThemingDatabaseFactory(
       dominantAdapter = ColorColumnAdapter,
       vibrantAdapter = ColorListColumnAdapter,
     ),
+    customAppThemeAdapter = CustomAppTheme.Adapter(
+      iconAdapter = EnumColumnAdapter(),
+      seedColorAdapter = ColorColumnAdapter,
+      secondaryColorOverrideAdapter = ColorColumnAdapter,
+      tertiaryColorOverrideAdapter = ColorColumnAdapter,
+      errorColorOverrideAdapter = ColorColumnAdapter,
+      neutralColorOverrideAdapter = ColorColumnAdapter,
+      neutralVariantColorOverrideAdapter = ColorColumnAdapter,
+      colorSpecAdapter = EnumColumnAdapter(),
+      colorStyleAdapter = EnumColumnAdapter(),
+    )
   )
 }

@@ -39,7 +39,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
-import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.UseDynamicColors
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
@@ -57,6 +56,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivi
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
+import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -103,8 +103,7 @@ class SettingsPresenter(
     }.collectAsState(LoadState.Loading)
 
     // Appearance Settings
-    val theme by remember { settings.observeTheme() }.collectAsState(settings.theme)
-    val useDynamicColors by remember { settings.observeUseDynamicColors() }.collectAsState(settings.useDynamicColors)
+    val themeMode by remember { settings.observeTheme() }.collectAsState(settings.themeMode)
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
 
@@ -165,8 +164,7 @@ class SettingsPresenter(
       isShakingAvailable = remember { shakeDetector.isAvailable },
       applicationInfo = applicationInfo,
       appearanceSettings = AppearanceSettingsInfo(
-        theme = theme,
-        useDynamicColors = useDynamicColors,
+        themeMode = themeMode,
         dynamicItemDetailTheming = dynamicItemDetailTheming,
         dynamicPlaybackTheming = dynamicPlaybackTheming,
       ),
@@ -227,10 +225,10 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
-          is Theme -> settings.theme = event.theme
-          is UseDynamicColors -> settings.useDynamicColors = event.useDynamicColors
+          is Theme -> settings.themeMode = event.themeMode
           is DynamicItemDetailTheming -> themeSettings.dynamicallyThemeItemDetail = event.enabled
           is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
+          SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> navigator.goTo(ThemePickerScreen)
         }
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {

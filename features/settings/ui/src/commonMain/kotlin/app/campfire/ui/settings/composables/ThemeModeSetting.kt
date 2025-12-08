@@ -31,10 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.core.extensions.capitalized
-import app.campfire.settings.api.CampfireSettings.Theme
-import app.campfire.settings.api.CampfireSettings.Theme.DARK
-import app.campfire.settings.api.CampfireSettings.Theme.LIGHT
-import app.campfire.settings.api.CampfireSettings.Theme.SYSTEM
+import app.campfire.settings.api.ThemeMode
+import app.campfire.settings.api.ThemeMode.DARK
+import app.campfire.settings.api.ThemeMode.LIGHT
+import app.campfire.settings.api.ThemeMode.SYSTEM
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_theme_description
 import campfire.features.settings.ui.generated.resources.setting_theme_title
@@ -42,8 +42,8 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ThemeModeSetting(
-  themeMode: Theme,
-  onThemeChange: (Theme) -> Unit,
+  themeMode: ThemeMode,
+  onThemeChange: (ThemeMode) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
@@ -62,7 +62,7 @@ internal fun ThemeModeSetting(
           expanded = isExpanded,
           onDismissRequest = { isExpanded = false },
         ) {
-          Theme.entries.forEach { t ->
+          ThemeMode.entries.forEach { t ->
             DropdownMenuItem(
               leadingIcon = {
                 Icon(
@@ -89,7 +89,7 @@ internal fun ThemeModeSetting(
 
 @Composable
 private fun ThemeModeChip(
-  themeMode: Theme,
+  themeMode: ThemeMode,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {

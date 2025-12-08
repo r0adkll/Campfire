@@ -191,6 +191,10 @@ private fun OfflineStatus(
               onClick = onStopClick,
               shapes = IconButtonDefaults.shapes(),
               modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+              colors = IconButtonDefaults.filledIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+              ),
             ) {
               Icon(
                 Icons.Rounded.Stop,

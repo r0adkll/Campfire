@@ -67,6 +67,7 @@ kotlin {
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)
         api(projects.ui.theming.impl)
+        api(projects.ui.theming.ui)
 
         api(compose.runtime)
         api(compose.foundation)

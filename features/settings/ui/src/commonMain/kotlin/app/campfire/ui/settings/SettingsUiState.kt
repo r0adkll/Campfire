@@ -10,10 +10,10 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
-import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
+import app.campfire.settings.api.ThemeMode
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import kotlin.time.Duration
@@ -35,8 +35,7 @@ data class SettingsUiState(
 
 @Immutable
 data class AppearanceSettingsInfo(
-  val theme: CampfireSettings.Theme,
-  val useDynamicColors: Boolean,
+  val themeMode: ThemeMode,
   val dynamicItemDetailTheming: Boolean,
   val dynamicPlaybackTheming: Boolean,
 )
@@ -121,10 +120,10 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   // Appearance Pane Events
   sealed interface AppearanceSettingEvent : SettingsUiEvent {
-    data class Theme(val theme: CampfireSettings.Theme) : AppearanceSettingEvent
-    data class UseDynamicColors(val useDynamicColors: Boolean) : AppearanceSettingEvent
+    data class Theme(val themeMode: ThemeMode) : AppearanceSettingEvent
     data class DynamicItemDetailTheming(val enabled: Boolean) : AppearanceSettingEvent
     data class DynamicPlaybackTheming(val enabled: Boolean) : AppearanceSettingEvent
+    data object OpenThemeBuilder : AppearanceSettingEvent
   }
 
   // Downloads Pane Events

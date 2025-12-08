@@ -19,10 +19,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 
 @ContributesTo(AppScope::class)
 interface ServerIconComponent {
-  val settings: CampfireSettings
   val serverRepository: ServerRepository
 }
 
@@ -36,15 +36,11 @@ internal fun ServerIcon(
 ) {
   val serverState by remember(component) {
     component.serverRepository.observeCurrentServer()
-      .flatMapLatest { server ->
-        component.settings.observeUseDynamicColors()
-          .map { useDynamicColors ->
-            ServerState.Loaded(
-              server = server,
-              useDynamicColors = useDynamicColors,
-              connectionState = AppBarState.ConnectionState.None,
-            )
-          }
+      .mapLatest { server ->
+        ServerState.Loaded(
+          server = server,
+          connectionState = AppBarState.ConnectionState.None,
+        )
       }
       .catch<ServerState> { emit(ServerState.Error) }
   }.collectAsState(ServerState.Loading)

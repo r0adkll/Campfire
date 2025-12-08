@@ -1,5 +1,7 @@
 plugins {
+  id("app.campfire.android.library")
   id("app.campfire.multiplatform")
+  id("app.campfire.parcelize")
   alias(libs.plugins.compose.multiplatform)
   alias(libs.plugins.compose.compiler)
 }
@@ -10,6 +12,8 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.core)
+        implementation(projects.common.screens)
+        implementation(projects.common.compose)
         implementation(compose.runtime)
         implementation(compose.ui)
 

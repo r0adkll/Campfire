@@ -17,10 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
-import app.campfire.account.ui.rememberCurrentTent
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.shouldUseDarkColors
-import app.campfire.common.compose.extensions.shouldUseDynamicColors
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
@@ -28,7 +26,9 @@ import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeSettings
+import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
+import app.campfire.ui.theming.api.colorScheme
 import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.rememberCircuitNavigator
@@ -57,6 +57,7 @@ fun CampfireContentWithInsets(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeSettings: ThemeSettings,
+  themeRepository: AppThemeRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
   val appUriHandler = remember(onOpenUrl) {
@@ -99,11 +100,14 @@ fun CampfireContentWithInsets(
         }
       }
 
+      val appTheme by remember {
+        themeRepository.observeCurrentAppTheme()
+      }.collectAsState()
+
       CircuitCompositionLocals(userComponent.circuit) {
         CampfireTheme(
-          tent = rememberCurrentTent(userComponent.currentUserSession),
+          colorScheme = { colorScheme(appTheme) },
           useDarkColors = settings.shouldUseDarkColors(),
-          useDynamicColors = settings.shouldUseDynamicColors(),
         ) {
           CompositionLocalProvider(
             LocalPlaybackSession provides currentSession,
@@ -140,6 +144,7 @@ fun CampfireContent(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeSettings: ThemeSettings,
+  themeRepository: AppThemeRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
@@ -148,6 +153,7 @@ fun CampfireContent(
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     themeSettings = themeSettings,
+    themeRepository = themeRepository,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars
       .exclude(WindowInsets.statusBars)

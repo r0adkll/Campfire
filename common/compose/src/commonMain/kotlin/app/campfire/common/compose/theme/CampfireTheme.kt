@@ -18,13 +18,37 @@ fun CampfireTheme(
   useDynamicColors: Boolean = false,
   content: @Composable () -> Unit,
 ) {
-  val colorPalette = tent.colorPalette
-  val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
   ApplyStatusBar(useDarkColors)
 
   CompositionLocalProvider(
     LocalUseDarkColors provides useDarkColors,
   ) {
+    val colorPalette = tent.colorPalette
+    val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
+
+    MaterialExpressiveTheme(
+      colorScheme = colorScheme,
+      typography = CampfireTypography,
+      shapes = CampfireShapes,
+      content = content,
+    )
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun CampfireTheme(
+  colorScheme: @Composable () -> ColorScheme,
+  useDarkColors: Boolean = isSystemInDarkTheme(),
+  content: @Composable () -> Unit,
+) {
+  ApplyStatusBar(useDarkColors)
+
+  CompositionLocalProvider(
+    LocalUseDarkColors provides useDarkColors,
+  ) {
+    val colorScheme = colorScheme()
+
     MaterialExpressiveTheme(
       colorScheme = colorScheme,
       typography = CampfireTypography,

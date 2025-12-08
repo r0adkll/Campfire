@@ -7,7 +7,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 
 @Composable
-internal actual fun colorScheme(
+actual fun colorScheme(
   colorPalette: ColorPalette,
   useDarkColors: Boolean,
   useDynamicColors: Boolean,
@@ -15,3 +15,8 @@ internal actual fun colorScheme(
   useDarkColors -> colorPalette.darkColorScheme
   else -> colorPalette.lightColorScheme
 }
+
+@Composable
+internal actual fun dynamicColorScheme(
+  useDarkColors: Boolean,
+): ColorScheme? = null

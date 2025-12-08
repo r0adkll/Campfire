@@ -25,6 +25,8 @@ class DiskThemeCache(
     return withContext(dispatcherProvider.databaseRead) {
       db.themeQueries.selectAllThemes()
         .awaitAsList()
+        // We share this table with custom app themes so let's ignore them for this cache
+        .filter { it.key.startsWith("custom") }
         .associate { it.cacheKey to it.asDomainTheme() }
     }
   }

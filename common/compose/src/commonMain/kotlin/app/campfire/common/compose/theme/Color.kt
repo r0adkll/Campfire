@@ -12,10 +12,10 @@ import app.campfire.core.model.Tent
 data class ColorPalette(
   val lightColorScheme: ColorScheme,
   val darkColorScheme: ColorScheme,
-  val mediumContrastLightColorScheme: ColorScheme,
-  val highContrastLightColorScheme: ColorScheme,
-  val mediumContrastDarkColorScheme: ColorScheme,
-  val highContrastDarkColorScheme: ColorScheme,
+  val mediumContrastLightColorScheme: ColorScheme? = null,
+  val highContrastLightColorScheme: ColorScheme? = null,
+  val mediumContrastDarkColorScheme: ColorScheme? = null,
+  val highContrastDarkColorScheme: ColorScheme? = null,
 )
 
 /**

@@ -1,0 +1,9 @@
+<resources>
+  <string name="theme_name_tent">Camping Tent Red</string>
+  <string name="theme_name_forest">Forest Green</string>
+  <string name="theme_name_water_bottle">Water Bottle Blue</string>
+  <string name="theme_name_rucksack">Rucksack Yellow</string>
+  <string name="theme_name_life_float">Life Float Orange</string>
+  <string name="theme_name_mountain">Mountain Range Purple</string>
+  <string name="theme_name_dynamic">System Wallpaper Dynamic</string>
+</resources>

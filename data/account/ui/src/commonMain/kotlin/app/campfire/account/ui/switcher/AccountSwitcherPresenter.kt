@@ -22,7 +22,6 @@ typealias AccountSwitcherPresenterFactory = () -> AccountSwitcherPresenter
 
 @Inject
 class AccountSwitcherPresenter(
-  private val settings: CampfireSettings,
   private val accountManager: AccountManager,
   private val serverRepository: ServerRepository,
   private val libraryRepository: LibraryRepository,
@@ -31,10 +30,6 @@ class AccountSwitcherPresenter(
   @Composable
   override fun present(): AccountSwitcherUiState {
     val scope = rememberCoroutineScope()
-
-    val useDynamicColors by remember {
-      settings.observeUseDynamicColors()
-    }.collectAsState(settings.useDynamicColors)
 
     val accountState by remember {
       serverRepository.observeCurrentServer()
@@ -61,7 +56,6 @@ class AccountSwitcherPresenter(
     }.collectAsState(LoadState.Loading)
 
     return AccountSwitcherUiState(
-      useDynamicColors = useDynamicColors,
       currentAccount = accountState,
       libraryState = currentLibrary?.let {
         LibraryState(

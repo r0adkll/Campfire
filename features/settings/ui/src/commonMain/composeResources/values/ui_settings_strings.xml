@@ -29,8 +29,8 @@
 
   <!-- Appearance setting strings -->
   <string name="header_appearance_overall">Application</string>
-  <string name="setting_theme_title">Theme</string>
-  <string name="setting_theme_description">Change the application theme</string>
+  <string name="setting_theme_title">Theme mode</string>
+  <string name="setting_theme_description">Choose between Light, Dark, and System theme mode</string>
   <string name="setting_dynamic_colors_title">Use dynamic system theme</string>
   <string name="setting_dynamic_colors_description">Enable dynamic color scheme based off your system wallpaper</string>
   <string name="header_appearance_dynamic">Dynamic theming</string>

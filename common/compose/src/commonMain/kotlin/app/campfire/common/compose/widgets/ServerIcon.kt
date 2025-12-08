@@ -33,7 +33,6 @@ sealed interface ServerState {
   data object Loading : ServerState
   data class Loaded(
     val server: Server,
-    val useDynamicColors: Boolean,
     val connectionState: ConnectionState,
   ) : ServerState
   data object Error : ServerState
@@ -65,23 +64,16 @@ fun ServerIcon(
       }
 
       is ServerState.Loaded -> {
-        if (serverState.useDynamicColors) {
-          Image(
-            rememberTentVectorPainter(),
-            contentDescription = null,
-            modifier = Modifier
-              .size(size)
-              .padding(4.dp),
-          )
-        } else {
-          Image(
-            serverState.server.tent.icon,
-            contentDescription = null,
-            modifier = Modifier
-              .size(size)
-              .padding(4.dp),
-          )
-        }
+
+        // TODO: Load from app theme
+        Image(
+          serverState.server.tent.icon,
+          contentDescription = null,
+          modifier = Modifier
+            .size(size)
+            .padding(4.dp),
+        )
+
         if (serverState.connectionState != None) {
           Box(
             modifier = Modifier
