@@ -10,6 +10,7 @@ kotlin {
         api(projects.features.libraries.api)
         api(projects.features.search.api)
         api(projects.data.account.api)
+        api(projects.ui.theming.api)
 
         implementation(compose.components.resources)
       }

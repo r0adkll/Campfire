@@ -9,6 +9,7 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.features.user.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.ui.theming.api)
 
         implementation(compose.components.resources)
 

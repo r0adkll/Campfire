@@ -147,6 +147,8 @@ class ThemeBuilderPresenter(
           neutralVariantOverride = null
         }
 
+        is ThemeBuilderUiEvent.IconPicked -> icon = event.icon
+
         is ThemeBuilderUiEvent.SecondaryColorPicked -> secondaryOverride = event.color
         is ThemeBuilderUiEvent.TertiaryColorPicked -> tertiaryOverride = event.color
         is ThemeBuilderUiEvent.ErrorColorPicked -> errorOverride = event.color

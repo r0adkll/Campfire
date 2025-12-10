@@ -1,8 +1,10 @@
 package app.campfire.ui.theming.ui.builder
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -41,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -52,6 +55,7 @@ import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.common.compose.theme.LocalUseDarkColors
+import app.campfire.common.compose.theme.alt.AltRedColorPalette
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.core.di.UserScope
@@ -61,6 +65,7 @@ import app.campfire.ui.theming.ui.builder.composables.ColorSpecPicker
 import app.campfire.ui.theming.ui.builder.composables.ColorStylePicker
 import app.campfire.ui.theming.ui.builder.composables.ContrastPicker
 import app.campfire.ui.theming.ui.builder.composables.Header
+import app.campfire.ui.theming.ui.builder.composables.IconPicker
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
@@ -153,17 +158,30 @@ fun ThemeBuilder(
           .verticalScroll(rememberScrollState()),
       ) {
 
-        OutlinedTextField(
-          state = state.name,
-          label = { Text("Name") },
-          shape = MaterialTheme.shapes.medium,
+        Row(
           modifier = Modifier
             .fillMaxWidth()
             .padding(
               horizontal = 16.dp,
               vertical = 8.dp
-            )
-        )
+            ),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+          IconPicker(
+            icon = state.theme.icon,
+            onIconClick = {
+              state.eventSink(ThemeBuilderUiEvent.IconPicked(it))
+            },
+          )
+
+          OutlinedTextField(
+            state = state.name,
+            label = { Text("Name") },
+            shape = MaterialTheme.shapes.medium,
+            modifier = Modifier.weight(1f)
+          )
+        }
 
         ColorPicker(
           title = "Seed color",
@@ -363,7 +381,21 @@ fun ThemeBuilderPreview() {
 
     ThemeBuilder(
       state = ThemeBuilderUiState(
-        theme = AppTheme.Fixed.Tent,
+        theme = AppTheme.Fixed.Custom(
+          id = "test",
+          name = "Test",
+          icon = AppTheme.Icon.Tent,
+          seedColor = Color.Red,
+          colorSpec = SpecVersion.SPEC_2021,
+          colorStyle = Variant.EXPRESSIVE,
+          contrastLevel = 0f,
+          secondaryColorOverride = null,
+          tertiaryColorOverride = null,
+          errorColorOverride = null,
+          neutralColorOverride = null,
+          neutralVariantColorOverride = null,
+          colorPalette = AltRedColorPalette,
+        ),
         name = rememberTextFieldState(""),
         seedColor = seedColor,
         secondaryColorOverride = null,

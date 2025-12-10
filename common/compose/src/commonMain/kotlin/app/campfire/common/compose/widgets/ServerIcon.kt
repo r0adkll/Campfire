@@ -18,12 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.icon
-import app.campfire.common.compose.icons.rememberTentVectorPainter
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connected
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Connecting
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.Disconnected
-import app.campfire.common.compose.widgets.AppBarState.ConnectionState.None
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 
@@ -36,6 +30,13 @@ sealed interface ServerState {
     val connectionState: ConnectionState,
   ) : ServerState
   data object Error : ServerState
+}
+
+enum class ConnectionState {
+  Disconnected,
+  Connecting,
+  Connected,
+  None,
 }
 
 @Composable
@@ -74,16 +75,16 @@ fun ServerIcon(
             .padding(4.dp),
         )
 
-        if (serverState.connectionState != None) {
+        if (serverState.connectionState != ConnectionState.None) {
           Box(
             modifier = Modifier
               .size(8.dp)
               .background(
                 when (serverState.connectionState) {
-                  Disconnected -> MaterialTheme.colorScheme.error
-                  Connecting -> Color.Yellow
-                  Connected -> Color.Green
-                  None -> Color.Transparent
+                  ConnectionState.Disconnected -> MaterialTheme.colorScheme.error
+                  ConnectionState.Connecting -> Color.Yellow
+                  ConnectionState.Connected -> Color.Green
+                  ConnectionState.None -> Color.Transparent
                 },
                 CircleShape,
               ),

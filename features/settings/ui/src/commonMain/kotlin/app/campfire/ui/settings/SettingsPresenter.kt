@@ -56,6 +56,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivi
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
+import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -80,6 +81,7 @@ class SettingsPresenter(
   private val applicationUrls: ApplicationUrls,
   private val settings: CampfireSettings,
   private val themeSettings: ThemeSettings,
+  private val themeRepository: AppThemeRepository,
   private val playbackSettings: PlaybackSettings,
   private val sleepSettings: SleepSettings,
   private val devSettings: DevSettings,
@@ -103,6 +105,7 @@ class SettingsPresenter(
     }.collectAsState(LoadState.Loading)
 
     // Appearance Settings
+    val appTheme by remember { themeRepository.observeCurrentAppTheme() }.collectAsState()
     val themeMode by remember { settings.observeTheme() }.collectAsState(settings.themeMode)
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
@@ -164,6 +167,7 @@ class SettingsPresenter(
       isShakingAvailable = remember { shakeDetector.isAvailable },
       applicationInfo = applicationInfo,
       appearanceSettings = AppearanceSettingsInfo(
+        appTheme = appTheme,
         themeMode = themeMode,
         dynamicItemDetailTheming = dynamicItemDetailTheming,
         dynamicPlaybackTheming = dynamicPlaybackTheming,

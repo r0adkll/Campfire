@@ -60,6 +60,7 @@ import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
 import app.campfire.core.di.UserScope
+import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
@@ -249,26 +250,10 @@ private fun ThemeOption(
             )
             .padding(6.dp),
         ) {
-          val imageModifier = Modifier
-            .size(32.dp)
-
-          when (theme) {
-            is AppTheme.Fixed -> {
-              Image(
-                theme.icon.icon(),
-                contentDescription = null,
-                modifier = imageModifier,
-              )
-            }
-
-            is AppTheme.Dynamic -> {
-              Image(
-                rememberWallVectorPainter(),
-                contentDescription = null,
-                modifier = imageModifier,
-              )
-            }
-          }
+          AppThemeImage(
+            appTheme = theme,
+            modifier = Modifier.size(32.dp),
+          )
         }
 
         Spacer(Modifier.size(16.dp))

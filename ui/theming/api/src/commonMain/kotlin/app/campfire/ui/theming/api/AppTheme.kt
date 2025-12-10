@@ -1,9 +1,13 @@
 package app.campfire.ui.theming.api
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.theme.Forest
 import app.campfire.common.compose.icons.theme.LifeFloat
@@ -11,6 +15,7 @@ import app.campfire.common.compose.icons.theme.Mountain
 import app.campfire.common.compose.icons.theme.Rucksack
 import app.campfire.common.compose.icons.theme.Tent
 import app.campfire.common.compose.icons.theme.WaterBottle
+import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.ColorPalette
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.theme.alt.AltBlueColorPalette
@@ -77,5 +82,29 @@ fun colorScheme(
   is AppTheme.Dynamic -> {
     val backupPalette = AppTheme.Fixed.Tent.colorPalette
     colorScheme(backupPalette, useDarkColors, true)
+  }
+}
+
+@Composable
+fun AppThemeImage(
+  appTheme: AppTheme,
+  modifier: Modifier,
+) {
+  when (appTheme) {
+    is AppTheme.Fixed -> {
+      Image(
+        appTheme.icon.icon(),
+        contentDescription = null,
+        modifier = modifier,
+      )
+    }
+
+    is AppTheme.Dynamic -> {
+      Image(
+        rememberWallVectorPainter(),
+        contentDescription = null,
+        modifier = modifier,
+      )
+    }
   }
 }

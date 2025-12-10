@@ -11,6 +11,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.search.api.ui.SearchComponent
+import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -28,8 +29,8 @@ object SharedAppBar
 @Inject
 @Composable
 fun CampfireAppBar(
-  presenter: CampfireAppbarPresenter,
   searchComponent: SearchComponent,
+  themeIconContent: ThemeIconContent,
   @Assisted modifier: Modifier = Modifier,
   @Assisted scrollBehavior: SearchBarScrollBehavior?,
 ) = SharedElementTransitionScope {
@@ -46,8 +47,8 @@ fun CampfireAppBar(
     )
   } else {
     CompactCampfireAppBar(
-      presenter = presenter,
       searchComponent = searchComponent,
+      themeIconContent = themeIconContent,
       scrollBehavior = scrollBehavior,
       modifier = modifier
         .sharedElement(
@@ -60,16 +61,15 @@ fun CampfireAppBar(
 
 @Composable
 private fun CompactCampfireAppBar(
-  presenter: CampfireAppbarPresenter,
   searchComponent: SearchComponent,
+  themeIconContent: ThemeIconContent,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
   val drawerOpener = localDrawerOpener()
-  val state = presenter.present()
   CampfireSearchAppBar(
-    state = state,
     searchComponent = searchComponent,
+    themeIconContent = themeIconContent,
     onNavigationClick = drawerOpener,
     modifier = modifier,
     scrollBehavior = scrollBehavior,

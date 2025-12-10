@@ -7,12 +7,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.rememberTentVectorPainter
+import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.ThemeModeSetting
+import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.AppThemeImage
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_appearance_dynamic
 import campfire.features.settings.ui.generated.resources.header_appearance_overall
@@ -42,9 +45,8 @@ internal fun AppearancePane(
       headlineContent = { Text("Theme") },
       supportingContent = { Text("Change or customize the application appearance") },
       trailingContent = {
-        Image(
-          rememberTentVectorPainter(),
-          contentDescription = null,
+        AppThemeImage(
+          appTheme = state.appearanceSettings.appTheme,
           modifier = Modifier.size(48.dp),
         )
       },

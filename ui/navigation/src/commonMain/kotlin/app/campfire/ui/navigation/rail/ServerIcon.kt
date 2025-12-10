@@ -1,29 +1,19 @@
 package app.campfire.ui.navigation.rail
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import app.campfire.account.api.ServerRepository
 import app.campfire.common.compose.di.rememberComponent
-import app.campfire.common.compose.widgets.AppBarState
 import app.campfire.common.compose.widgets.DefaultServerIconSize
-import app.campfire.common.compose.widgets.ServerIcon
-import app.campfire.common.compose.widgets.ServerState
 import app.campfire.core.di.AppScope
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 
 @ContributesTo(AppScope::class)
 interface ServerIconComponent {
-  val serverRepository: ServerRepository
+  val themeIconContent: ThemeIconContent
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,21 +24,9 @@ internal fun ServerIcon(
   size: Dp = DefaultServerIconSize,
   component: ServerIconComponent = rememberComponent(),
 ) {
-  val serverState by remember(component) {
-    component.serverRepository.observeCurrentServer()
-      .mapLatest { server ->
-        ServerState.Loaded(
-          server = server,
-          connectionState = AppBarState.ConnectionState.None,
-        )
-      }
-      .catch<ServerState> { emit(ServerState.Error) }
-  }.collectAsState(ServerState.Loading)
-
-  ServerIcon(
-    serverState = serverState,
+  component.themeIconContent.Content(
     onClick = onClick,
-    size = size,
-    modifier = modifier,
+    modifier = modifier
+      .size(size)
   )
 }

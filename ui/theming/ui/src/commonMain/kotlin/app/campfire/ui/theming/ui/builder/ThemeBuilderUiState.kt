@@ -9,7 +9,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class ThemeBuilderUiState(
-  val theme: AppTheme,
+  val theme: AppTheme.Fixed.Custom,
 
   val name: TextFieldState,
   val seedColor: Color,
@@ -33,6 +33,7 @@ sealed interface ThemeBuilderUiEvent : CircuitUiEvent {
   data object Back : ThemeBuilderUiEvent
   data object Save : ThemeBuilderUiEvent
 
+  data class IconPicked(val icon: AppTheme.Icon) : ThemeBuilderUiEvent
   data class SeedColorPicked(val color: Color) : ThemeBuilderUiEvent
   data class SecondaryColorPicked(val color: Color) : ThemeBuilderUiEvent
   data class TertiaryColorPicked(val color: Color) : ThemeBuilderUiEvent

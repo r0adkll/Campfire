@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
@@ -31,9 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
-import app.campfire.common.compose.widgets.AppBarState
-import app.campfire.common.compose.widgets.ServerIcon
 import app.campfire.search.api.ui.SearchComponent
+import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import campfire.ui.appbar.generated.resources.Res
 import campfire.ui.appbar.generated.resources.search_placeholder_text
 import kotlinx.coroutines.launch
@@ -42,8 +43,8 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CampfireSearchAppBar(
-  state: AppBarState,
   searchComponent: SearchComponent,
+  themeIconContent: ThemeIconContent,
   onNavigationClick: () -> Unit,
   modifier: Modifier = Modifier,
   actions: @Composable (RowScope.() -> Unit)? = null,
@@ -52,9 +53,11 @@ internal fun CampfireSearchAppBar(
   CampfireSearchAppBar(
     searchComponent = searchComponent,
     navigationIcon = {
-      ServerIcon(
-        serverState = state.server,
+      themeIconContent.Content(
         onClick = onNavigationClick,
+        modifier = Modifier
+          .size(40.dp)
+          .padding(4.dp)
       )
     },
     actions = actions,

@@ -14,6 +14,7 @@ import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.api.ThemeMode
+import app.campfire.ui.theming.api.AppTheme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import kotlin.time.Duration
@@ -35,6 +36,7 @@ data class SettingsUiState(
 
 @Immutable
 data class AppearanceSettingsInfo(
+  val appTheme: AppTheme,
   val themeMode: ThemeMode,
   val dynamicItemDetailTheming: Boolean,
   val dynamicPlaybackTheming: Boolean,
