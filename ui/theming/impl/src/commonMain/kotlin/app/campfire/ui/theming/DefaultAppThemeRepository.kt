@@ -130,6 +130,11 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
+    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    if (isCurrentTheme) {
+      setCurrentTheme(theme)
+    }
+
     // Persist to disk
     withContext(dispatcherProvider.databaseWrite) {
       themingDb.customAppThemeQueries.transaction {
@@ -167,6 +172,17 @@ class DefaultAppThemeRepository(
           theme.colorPalette.darkColorScheme.asDbModel(theme.id, isDark = true),
         )
       }
+    }
+  }
+
+  override suspend fun deleteCustomTheme(id: String) {
+    themeCache.remove(id)
+    themingDb.customAppThemeQueries.delete(id)
+    themingDb.themeQueries.deleteTheme(id)
+
+    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == id
+    if (isCurrentTheme) {
+      setCurrentTheme(AppTheme.Fixed.Tent)
     }
   }
 }

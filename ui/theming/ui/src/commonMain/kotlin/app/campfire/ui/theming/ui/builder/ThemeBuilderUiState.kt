@@ -32,6 +32,7 @@ data class ThemeBuilderUiState(
 sealed interface ThemeBuilderUiEvent : CircuitUiEvent {
   data object Back : ThemeBuilderUiEvent
   data object Save : ThemeBuilderUiEvent
+  data object Delete : ThemeBuilderUiEvent
 
   data class IconPicked(val icon: AppTheme.Icon) : ThemeBuilderUiEvent
   data class SeedColorPicked(val color: Color) : ThemeBuilderUiEvent

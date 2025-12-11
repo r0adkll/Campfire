@@ -14,4 +14,6 @@ interface AppThemeRepository {
   suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed.Custom>
 
   suspend fun saveCustomTheme(theme: AppTheme.Fixed.Custom)
+
+  suspend fun deleteCustomTheme(id: String)
 }

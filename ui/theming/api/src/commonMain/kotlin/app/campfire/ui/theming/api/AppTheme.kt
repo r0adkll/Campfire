@@ -20,11 +20,14 @@ import app.campfire.common.compose.theme.ColorPalette
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.theme.alt.AltBlueColorPalette
 import app.campfire.common.compose.theme.alt.AltGreenColorPalette
+import app.campfire.common.compose.theme.alt.AltOrangeColorPalette
+import app.campfire.common.compose.theme.alt.AltPurpleColorPalette
 import app.campfire.common.compose.theme.alt.AltRedColorPalette
 import app.campfire.common.compose.theme.alt.AltYellowColorPalette
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.theme.tents.OrangeColorPalette
 import app.campfire.common.compose.theme.tents.PurpleColorPalette
+import app.campfire.common.compose.theme.tents.RedColorPalette
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 
@@ -34,12 +37,12 @@ sealed interface AppTheme {
     open val icon: Icon,
     open val colorPalette: ColorPalette,
   ) : AppTheme {
-    data object Tent : Fixed(Icon.Tent, AltRedColorPalette)
+    data object Tent : Fixed(Icon.Tent, RedColorPalette)
     data object Rucksack : Fixed(Icon.Rucksack, AltYellowColorPalette)
     data object WaterBottle : Fixed(Icon.WaterBottle, AltBlueColorPalette)
     data object Forest : Fixed(Icon.Forest, AltGreenColorPalette)
-    data object Mountain : Fixed(Icon.Mountain, PurpleColorPalette)
-    data object LifeFloat : Fixed(Icon.LifeFloat, OrangeColorPalette)
+    data object Mountain : Fixed(Icon.Mountain, AltPurpleColorPalette)
+    data object LifeFloat : Fixed(Icon.LifeFloat, AltOrangeColorPalette)
 
     data class Custom(
       val id: String,

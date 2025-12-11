@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -149,6 +150,9 @@ private fun SuccessContent(
           offlineStatus = offlineStatus(book.id),
           onClick = { onBookClick(book) },
           modifier = Modifier.animateItem(),
+          colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+          ),
         )
       }
     }
@@ -164,6 +168,9 @@ private fun SuccessContent(
           author = author,
           onClick = { onAuthorClick(author) },
           modifier = Modifier.animateItem(),
+          colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+          ),
         )
       }
     }
@@ -182,6 +189,9 @@ private fun SuccessContent(
           items = s.books ?: emptyList(),
           itemSize = 100.dp,
           onClick = { onSeriesClick(s) },
+          colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+          ),
           modifier = Modifier
             .fillMaxWidth()
             .animateItem(),

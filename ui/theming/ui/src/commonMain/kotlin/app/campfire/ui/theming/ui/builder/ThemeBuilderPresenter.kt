@@ -47,6 +47,10 @@ internal val ColorStyles = mapOf(
   ),
 )
 
+internal const val NEW_THEME_ID = "new-theme-id"
+
+internal val AppTheme.Fixed.Custom.isNew: Boolean get() = id == NEW_THEME_ID
+
 @CircuitInject(ThemeBuilderScreen::class, UserScope::class)
 @Inject
 class ThemeBuilderPresenter(
@@ -59,7 +63,7 @@ class ThemeBuilderPresenter(
   override fun present(): ThemeBuilderUiState {
     val scope = rememberCoroutineScope()
 
-    val id by remember { mutableStateOf(screen.customThemeId ?: Uuid.random().toHexDashString()) }
+    val id by remember { mutableStateOf(screen.customThemeId ?: NEW_THEME_ID) }
     val name = rememberTextFieldState()
     var icon by remember { mutableStateOf(AppTheme.Icon.Tent) }
 
@@ -132,9 +136,24 @@ class ThemeBuilderPresenter(
         ThemeBuilderUiEvent.Back -> navigator.pop()
 
         ThemeBuilderUiEvent.Save -> {
+          val themeToSave = if (theme.id == NEW_THEME_ID) {
+            theme.copy(id = Uuid.random().toHexDashString())
+          } else {
+            theme
+          }
+
           scope.launch {
-            themeRepository.saveCustomTheme(theme)
+            themeRepository.saveCustomTheme(themeToSave)
             navigator.pop()
+          }
+        }
+
+        ThemeBuilderUiEvent.Delete -> {
+          if (!theme.isNew) {
+            scope.launch {
+              themeRepository.deleteCustomTheme(theme.id)
+              navigator.pop()
+            }
           }
         }
 

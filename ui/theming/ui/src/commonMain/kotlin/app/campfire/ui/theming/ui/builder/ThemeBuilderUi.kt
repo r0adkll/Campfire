@@ -19,8 +19,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Save
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +36,7 @@ import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -98,6 +102,47 @@ fun ThemeBuilder(
             }
           },
           actions = {
+            var showDeleteConfirmation by remember { mutableStateOf(false) }
+            if (!state.theme.isNew) {
+
+              IconButton(
+                onClick = {
+                  showDeleteConfirmation = true
+                },
+              ) {
+                Icon(
+                  Icons.Rounded.Delete,
+                  contentDescription = "Delete",
+                  tint = MaterialTheme.colorScheme.error,
+                )
+              }
+
+              if (showDeleteConfirmation) {
+                AlertDialog(
+                  onDismissRequest = { showDeleteConfirmation = false },
+                  title = { Text("Delete theme?") },
+                  text = { Text("Are you sure you want to delete this theme?") },
+                  confirmButton = {
+                    TextButton(
+                      onClick = {
+                        state.eventSink(ThemeBuilderUiEvent.Delete)
+                        showDeleteConfirmation = false
+                      }
+                    ) {
+                      Text("Delete")
+                    }
+                  },
+                  dismissButton = {
+                    TextButton(
+                      onClick = { showDeleteConfirmation = false },
+                    ) {
+                      Text("Cancel")
+                    }
+                  }
+                )
+              }
+            }
+
             Switch(
               checked = isDarkMode,
               onCheckedChange = { isDarkMode = it },

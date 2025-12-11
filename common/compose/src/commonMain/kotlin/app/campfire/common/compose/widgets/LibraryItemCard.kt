@@ -27,6 +27,8 @@ import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.CardColors
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -82,10 +84,14 @@ fun LibraryItemCard(
   selected: Boolean = false,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   progress: MediaProgress? = item.userMediaProgress,
+  colors: CardColors = CardDefaults.elevatedCardColors(
+    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+  ),
 ) {
   ElevatedContentCard(
     modifier = modifier,
     onClick = onClick,
+    colors = colors,
   ) {
     Box {
       Column {
