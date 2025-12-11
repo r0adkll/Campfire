@@ -1,13 +1,11 @@
 package app.campfire.ui.theming.api
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.theme.Forest
 import app.campfire.common.compose.icons.theme.LifeFloat
@@ -22,11 +20,8 @@ import app.campfire.common.compose.theme.alt.AltBlueColorPalette
 import app.campfire.common.compose.theme.alt.AltGreenColorPalette
 import app.campfire.common.compose.theme.alt.AltOrangeColorPalette
 import app.campfire.common.compose.theme.alt.AltPurpleColorPalette
-import app.campfire.common.compose.theme.alt.AltRedColorPalette
 import app.campfire.common.compose.theme.alt.AltYellowColorPalette
 import app.campfire.common.compose.theme.colorScheme
-import app.campfire.common.compose.theme.tents.OrangeColorPalette
-import app.campfire.common.compose.theme.tents.PurpleColorPalette
 import app.campfire.common.compose.theme.tents.RedColorPalette
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant

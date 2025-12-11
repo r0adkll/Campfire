@@ -49,14 +49,12 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.filled.Library
 import app.campfire.common.compose.icons.icon
-import app.campfire.common.compose.icons.rememberTentVectorPainter
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
-import app.campfire.core.model.Tent
 import app.campfire.ui.theming.api.AppTheme
 import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.libraries_error_message

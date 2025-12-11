@@ -29,7 +29,7 @@ fun ThemeIconPreview() {
     columns = GridCells.Fixed(3),
     verticalArrangement = Arrangement.spacedBy(8.dp),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
-    modifier = Modifier.padding(16.dp)
+    modifier = Modifier.padding(16.dp),
   ) {
     items(icons) { ico ->
       Image(

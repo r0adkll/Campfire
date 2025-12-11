@@ -52,15 +52,14 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.theme.Palette
-import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
-import app.campfire.ui.theming.api.AppTheme
-import app.campfire.ui.theming.api.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
 import app.campfire.core.di.UserScope
+import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
+import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import campfire.ui.theming.ui.generated.resources.Res
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
@@ -134,7 +133,7 @@ fun ThemePicker(
         item {
           Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(vertical = 8.dp),
           ) {
             HorizontalDivider(Modifier.weight(1f))
             Text(
@@ -154,10 +153,10 @@ fun ThemePicker(
                 modifier = Modifier
                   .fillMaxWidth()
                   .height(56.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
               ) {
                 CircularWavyProgressIndicator(
-                  modifier = Modifier.size(40.dp)
+                  modifier = Modifier.size(40.dp),
                 )
               }
             }
@@ -184,7 +183,7 @@ fun ThemePicker(
                   .fillMaxWidth()
                   .height(56.dp)
                   .padding(horizontal = 32.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
               ) {
                 Text("Uh-oh! Unable to load custom themes")
               }
@@ -213,7 +212,7 @@ private fun ThemeOption(
   selected: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  onEditClick: (() -> Unit)? = null
+  onEditClick: (() -> Unit)? = null,
 ) {
   MaterialExpressiveTheme(
     colorScheme = colorScheme(theme),
@@ -240,7 +239,6 @@ private fun ThemeOption(
           ),
         verticalAlignment = Alignment.CenterVertically,
       ) {
-
         // Theme Icon,
         Box(
           modifier = Modifier
@@ -315,7 +313,7 @@ private fun AnimatedPalettePreview(
       ) + fadeIn(),
       exit = shrinkOut(
         shrinkTowards = Alignment.Center,
-      ) + fadeOut()
+      ) + fadeOut(),
     ) {
       Icon(
         Icons.Rounded.FormatPaint,
@@ -339,7 +337,6 @@ private fun PalettePreview(
     verticalArrangement = Arrangement.Center,
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-
     Box(
       Modifier
         .weight(1f)
@@ -394,7 +391,6 @@ private fun CreateCustomThemeOption(
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-
       // Theme Icon,
       Box(
         modifier = Modifier

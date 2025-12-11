@@ -22,7 +22,6 @@ class DefaultThemeIconContent(
   private val themeRepository: AppThemeRepository,
 ) : ThemeIconContent {
 
-
   @Composable
   override fun Content(onClick: () -> Unit, modifier: Modifier) {
     val currentAppTheme by remember {
@@ -36,6 +35,5 @@ class DefaultThemeIconContent(
         .clickable(onClick = onClick)
         .then(modifier),
     )
-
   }
 }

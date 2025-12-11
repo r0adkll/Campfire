@@ -38,16 +38,16 @@ internal fun ContrastPicker(
           onLevelClick(contrastLevel)
         },
         shapes =
-          when (index) {
-            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-            ContrastLevel.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-          },
+        when (index) {
+          0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+          ContrastLevel.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+          else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+        },
         colors = ToggleButtonDefaults.outlinedToggleButtonColors(
           checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
           checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
-        modifier = modifiers[index]
+        modifier = modifiers[index],
       ) {
         Icon(
           when (contrastLevel) {
@@ -56,7 +56,7 @@ internal fun ContrastPicker(
             ContrastLevel.High -> Icons.Rounded.BrightnessHigh
           },
           contentDescription = null,
-          modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+          modifier = Modifier.size(ToggleButtonDefaults.IconSize),
         )
         Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
         Text(
@@ -64,7 +64,7 @@ internal fun ContrastPicker(
             ContrastLevel.Normal -> "Normal"
             ContrastLevel.Medium -> "Medium"
             ContrastLevel.High -> "High"
-          }
+          },
         )
       }
     }

@@ -1,7 +1,7 @@
 package app.campfire.ui.theming.ui.picker
 
-import app.campfire.ui.theming.api.AppTheme
 import app.campfire.core.coroutines.LoadState
+import app.campfire.ui.theming.api.AppTheme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
@@ -15,7 +15,7 @@ data class ThemePickerUiState(
 sealed interface ThemePickerUiEvent : CircuitUiEvent {
   data object Back : ThemePickerUiEvent
   data class OpenThemeBuilder(
-    val theme: AppTheme.Fixed.Custom? = null
+    val theme: AppTheme.Fixed.Custom? = null,
   ) : ThemePickerUiEvent
 
   data class SelectTheme(val theme: AppTheme) : ThemePickerUiEvent

@@ -23,7 +23,6 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,12 +56,12 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
-import app.campfire.ui.theming.api.AppTheme
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.theme.alt.AltRedColorPalette
-import app.campfire.ui.theming.api.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.core.di.UserScope
+import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.composables.ColorPicker
 import app.campfire.ui.theming.ui.builder.composables.ColorSpecPicker
@@ -104,7 +103,6 @@ fun ThemeBuilder(
           actions = {
             var showDeleteConfirmation by remember { mutableStateOf(false) }
             if (!state.theme.isNew) {
-
               IconButton(
                 onClick = {
                   showDeleteConfirmation = true
@@ -127,7 +125,7 @@ fun ThemeBuilder(
                       onClick = {
                         state.eventSink(ThemeBuilderUiEvent.Delete)
                         showDeleteConfirmation = false
-                      }
+                      },
                     ) {
                       Text("Delete")
                     }
@@ -138,7 +136,7 @@ fun ThemeBuilder(
                     ) {
                       Text("Cancel")
                     }
-                  }
+                  },
                 )
               }
             }
@@ -155,10 +153,10 @@ fun ThemeBuilder(
                     LocalContentColor.current
                   } else {
                     MaterialTheme.colorScheme.onSecondaryContainer
-                  }
+                  },
                 )
               },
-              modifier = Modifier.padding(horizontal = 8.dp)
+              modifier = Modifier.padding(horizontal = 8.dp),
             )
           },
           scrollBehavior = scrollBehavior,
@@ -202,13 +200,12 @@ fun ThemeBuilder(
           )
           .verticalScroll(rememberScrollState()),
       ) {
-
         Row(
           modifier = Modifier
             .fillMaxWidth()
             .padding(
               horizontal = 16.dp,
-              vertical = 8.dp
+              vertical = 8.dp,
             ),
           verticalAlignment = Alignment.CenterVertically,
           horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -224,7 +221,7 @@ fun ThemeBuilder(
             state = state.name,
             label = { Text("Name") },
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
           )
         }
 
@@ -287,7 +284,7 @@ fun ThemeBuilder(
           onLevelClick = {
             state.eventSink(ThemeBuilderUiEvent.ContrastLevelClick(it))
           },
-          modifier = Modifier.padding(horizontal = 16.dp)
+          modifier = Modifier.padding(horizontal = 16.dp),
         )
 
         Header(
@@ -404,7 +401,7 @@ fun ThemeBuilder(
         Spacer(
           Modifier.padding(
             bottom = paddingValues.calculateBottomPadding(),
-          )
+          ),
         )
       }
     }

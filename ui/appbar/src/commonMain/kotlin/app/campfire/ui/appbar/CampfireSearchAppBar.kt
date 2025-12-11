@@ -57,7 +57,7 @@ internal fun CampfireSearchAppBar(
         onClick = onNavigationClick,
         modifier = Modifier
           .size(40.dp)
-          .padding(4.dp)
+          .padding(4.dp),
       )
     },
     actions = actions,

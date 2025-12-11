@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.icons.icon
 import app.campfire.ui.theming.api.AppTheme
-import app.campfire.ui.theming.api.AppThemeImage
 
 internal val IconSize = 48.dp
 
@@ -33,9 +32,8 @@ internal fun IconPicker(
 ) {
   var isExpanded by remember { mutableStateOf(false) }
   Box(
-    modifier = modifier
+    modifier = modifier,
   ) {
-
     Image(
       icon.icon(),
       contentDescription = "AppTheme Icon",
@@ -44,7 +42,7 @@ internal fun IconPicker(
         .clickable {
           isExpanded = true
         }
-        .size(IconSize)
+        .size(IconSize),
     )
 
     DropdownMenu(

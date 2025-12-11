@@ -196,7 +196,6 @@ private val darkColorScheme = darkColorScheme(
   onTertiaryFixedVariant = OnTertiaryFixedVariant,
 )
 
-
 /**
  * @see app.campfire.core.model.Tent.Red
  */

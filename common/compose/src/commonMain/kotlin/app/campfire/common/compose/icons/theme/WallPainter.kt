@@ -6,13 +6,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.compositeOver
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.DarkColorTint
 import app.campfire.common.compose.icons.rounded.Path
 
 @Composable
@@ -25,7 +20,7 @@ fun rememberWallVectorPainter(
   defaultHeight = 64.dp,
   viewportWidth = 64f,
   viewportHeight = 64f,
-  autoMirror = false
+  autoMirror = false,
 ) { w, h ->
   Path(fill = SolidColor(lightColor)) {
     moveTo(44f, 10f)

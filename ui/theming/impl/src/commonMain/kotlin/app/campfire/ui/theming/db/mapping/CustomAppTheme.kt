@@ -121,10 +121,9 @@ fun SelectAll.asDomainModel(): AppTheme.Fixed.Custom {
         dark_onTertiaryFixed,
         dark_onTertiaryFixedVariant,
       ),
-    )
+    ),
   )
 }
-
 
 fun SelectById.asDomainModel(): AppTheme.Fixed.Custom {
   return AppTheme.Fixed.Custom(
@@ -241,6 +240,6 @@ fun SelectById.asDomainModel(): AppTheme.Fixed.Custom {
         dark_onTertiaryFixed,
         dark_onTertiaryFixedVariant,
       ),
-    )
+    ),
   )
 }

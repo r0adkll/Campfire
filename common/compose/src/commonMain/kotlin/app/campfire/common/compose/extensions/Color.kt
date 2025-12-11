@@ -18,7 +18,9 @@ fun String.fromHexCode(): Color {
   var color = substring(1).toLong(16)
   if (length == 6) { // Set the alpha value
     color = color or -0x1000000
-  } else require(length == 8) { "Unknown color" }
+  } else {
+    require(length == 8) { "Unknown color" }
+  }
   return Color(color.toInt())
 }
 
@@ -29,4 +31,3 @@ fun String.fromHexCodeOrNull(): Color? {
     null
   }
 }
-

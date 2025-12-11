@@ -10,7 +10,7 @@ sealed class ThemeKey(val storageKey: String) {
   data object Dynamic : ThemeKey("dynamic")
 
   data class Custom(
-    val id: String
+    val id: String,
   ) : ThemeKey("custom__$id")
 
   companion object {

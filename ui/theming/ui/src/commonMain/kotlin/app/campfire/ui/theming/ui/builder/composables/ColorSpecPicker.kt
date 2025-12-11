@@ -53,7 +53,7 @@ internal fun ColorSpecPicker(
           Icon(
             Icons.Rounded.AutoAwesome,
             contentDescription = null,
-            modifier = Modifier.size(ToggleButtonDefaults.IconSize)
+            modifier = Modifier.size(ToggleButtonDefaults.IconSize),
           )
           Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
         }

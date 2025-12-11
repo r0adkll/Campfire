@@ -80,7 +80,6 @@ internal fun ColorStylePicker(
             },
           )
         }
-
       }
     }
   }

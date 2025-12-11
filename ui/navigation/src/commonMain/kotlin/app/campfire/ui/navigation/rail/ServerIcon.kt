@@ -27,6 +27,6 @@ internal fun ServerIcon(
   component.themeIconContent.Content(
     onClick = onClick,
     modifier = modifier
-      .size(size)
+      .size(size),
   )
 }

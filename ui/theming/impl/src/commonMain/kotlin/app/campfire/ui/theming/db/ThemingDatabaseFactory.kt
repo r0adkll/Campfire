@@ -79,6 +79,6 @@ class ThemingDatabaseFactory(
       neutralVariantColorOverrideAdapter = ColorColumnAdapter,
       colorSpecAdapter = EnumColumnAdapter(),
       colorStyleAdapter = EnumColumnAdapter(),
-    )
+    ),
   )
 }

@@ -65,7 +65,6 @@ fun ServerIcon(
       }
 
       is ServerState.Loaded -> {
-
         // TODO: Load from app theme
         Image(
           serverState.server.tent.icon,

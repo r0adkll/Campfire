@@ -127,7 +127,7 @@ private fun ColorPickerDialog(
 ) {
   val colorController = rememberColorPickerController()
   val hexColorTextFieldState = rememberTextFieldState(
-    initialText = initialColor?.toHexString(includePrefix = false) ?: ""
+    initialText = initialColor?.toHexString(includePrefix = false) ?: "",
   )
 
   LaunchedEffect(hexColorTextFieldState.text) {
@@ -177,7 +177,7 @@ private fun ColorPickerDialog(
           },
           modifier = Modifier
             .padding(16.dp)
-            .height(350.dp)
+            .height(350.dp),
         )
 
         Spacer(Modifier.height(8.dp))
@@ -193,7 +193,7 @@ private fun ColorPickerDialog(
               .clip(MaterialTheme.shapes.large)
               .background(colorController.selectedColor.value)
               .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.large)
-              .size(56.dp)
+              .size(56.dp),
           )
 
           Spacer(Modifier.size(16.dp))
@@ -205,9 +205,8 @@ private fun ColorPickerDialog(
             lineLimits = TextFieldLineLimits.SingleLine,
             inputTransformation = InputTransformation.maxLength(6),
             textStyle = MaterialTheme.typography.titleMediumEmphasized,
-            modifier = Modifier
+            modifier = Modifier,
           )
-
         }
       }
     },
