@@ -5,6 +5,7 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import kotlinx.coroutines.flow.Flow
 
@@ -14,6 +15,8 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
   override var analyticsId: String by string()
   override var hasEverConsented: Boolean by boolean()
   override var crashReportingEnabled: Boolean by boolean()
+
+  override var themeId: ThemeKey = ThemeKey.Tent
 
   override fun observeCrashReportingEnabled(): Flow<Boolean> =
     observeBoolean(::crashReportingEnabled)
