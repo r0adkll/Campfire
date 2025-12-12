@@ -9,7 +9,7 @@ data class MediaProgress(
   val episodeId: String? = null,
   val mediaItemId: String,
   val mediaItemType: MediaType,
-  val duration: Float,
+  val duration: Float?,
   val progress: Float,
   val currentTime: Float,
   val isFinished: Boolean,
@@ -22,7 +22,11 @@ data class MediaProgress(
 ) {
 
   val actualProgress: Float
-    get() = if (isFinished) 1f else currentTime / duration
+    get() = if (isFinished) {
+      1f
+    } else duration?.let {
+      currentTime / duration
+    } ?: progress
 
   companion object {
     const val UNKNOWN_ID = "unknown_id"

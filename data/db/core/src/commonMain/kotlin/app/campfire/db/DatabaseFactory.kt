@@ -32,7 +32,7 @@ import me.tatarka.inject.annotations.Inject
  * Checkout [CampfireDatabaseImpl.Schema.version] for the current version. This should match
  * the latest migration file (if > 1) in `sqldelight/migrations`.
  */
-private const val OLD_DB_VERSION = 1
+private const val OLD_DB_VERSION = 2
 
 @ContributesBinding(AppScope::class)
 @Inject

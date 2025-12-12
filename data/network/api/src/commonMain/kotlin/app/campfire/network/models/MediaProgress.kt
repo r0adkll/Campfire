@@ -10,7 +10,7 @@ data class MediaProgress(
   val episodeId: String? = null,
   val mediaItemId: String,
   val mediaItemType: MediaType,
-  val duration: Float,
+  val duration: Float?,
   val progress: Float,
   val currentTime: Float,
   val isFinished: Boolean,

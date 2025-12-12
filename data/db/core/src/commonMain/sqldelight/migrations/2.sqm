@@ -1,0 +1,27 @@
+import app.campfire.core.model.MediaType;
+import kotlin.Boolean;
+
+CREATE TABLE IF NOT EXISTS mediaProgress2 (
+  id TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  episodeId TEXT,
+  mediaItemId TEXT NOT NULL,
+  mediaItemType TEXT AS MediaType NOT NULL,
+  duration REAL,
+  progress REAL NOT NULL,
+  currentTime REAL NOT NULL,
+  isFinished INTEGER AS Boolean NOT NULL,
+  hideFromContinueListening INTEGER AS Boolean NOT NULL,
+  ebookLocation TEXT,
+  ebookProgress REAL,
+  lastUpdate INTEGER NOT NULL,
+  startedAt INTEGER NOT NULL,
+  finishedAt INTEGER,
+  PRIMARY KEY (libraryItemId, userId)
+);
+
+INSERT INTO mediaProgress2 SELECT * FROM mediaProgress;
+DROP TABLE mediaProgress;
+ALTER TABLE mediaProgress2 RENAME TO mediaProgress;
+

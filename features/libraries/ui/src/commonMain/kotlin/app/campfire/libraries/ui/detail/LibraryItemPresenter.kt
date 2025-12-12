@@ -323,7 +323,7 @@ private fun buildSlots(
     mediaProgressState.onLoaded { mediaProgress ->
       if (mediaProgress != null && mediaProgress.progress > 0f) {
         this += SpacerSlot.xlarge("progress_spacer_before")
-        this += ProgressSlot(isPlaying, mediaProgress)
+        this += ProgressSlot(isPlaying, mediaProgress, libraryItem)
         this += SpacerSlot.small("progress_spacer_after")
       }
     }

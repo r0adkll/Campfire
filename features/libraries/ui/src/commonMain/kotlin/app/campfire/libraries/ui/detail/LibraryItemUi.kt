@@ -234,7 +234,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
             CoverImageSlot("", "", ""),
             TitleAndAuthorSlot(libraryItem),
             SpacerSlot.medium("progress_spacer"),
-            ProgressSlot(false, mediaProgress),
+            ProgressSlot(false, mediaProgress, libraryItem),
             SpacerSlot.medium("control_spacer"),
             ExpressiveControlSlot(
               libraryItem = libraryItem,

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS mediaProgress (
   episodeId TEXT,
   mediaItemId TEXT NOT NULL,
   mediaItemType TEXT AS MediaType NOT NULL,
-  duration REAL NOT NULL,
+  duration REAL,
   progress REAL NOT NULL,
   currentTime REAL NOT NULL,
   isFinished INTEGER AS Boolean NOT NULL,

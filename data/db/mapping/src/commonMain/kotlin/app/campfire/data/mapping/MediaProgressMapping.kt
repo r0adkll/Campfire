@@ -21,7 +21,7 @@ fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
       NetworkMediaType.Podcast -> MediaType.Podcast
       NetworkMediaType.Podcast2 -> MediaType.Podcast
     },
-    duration = duration.toDouble(),
+    duration = duration?.toDouble(),
     progress = progress.toDouble(),
     currentTime = currentTime.toDouble(),
     isFinished = isFinished,
@@ -42,7 +42,7 @@ fun MediaProgress.asDbModel(existingId: MediaProgressId? = null): DatabaseMediaP
     episodeId = episodeId,
     mediaItemId = mediaItemId,
     mediaItemType = mediaItemType,
-    duration = duration.toDouble(),
+    duration = duration?.toDouble(),
     progress = progress.toDouble(),
     currentTime = currentTime.toDouble(),
     isFinished = isFinished,
@@ -103,7 +103,7 @@ fun DatabaseMediaProgress.asDomainModel(): MediaProgress {
     episodeId = episodeId,
     mediaItemId = mediaItemId,
     mediaItemType = mediaItemType,
-    duration = duration.toFloat(),
+    duration = duration?.toFloat(),
     progress = progress.toFloat(),
     currentTime = currentTime.toFloat(),
     isFinished = isFinished,

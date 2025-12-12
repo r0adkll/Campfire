@@ -27,7 +27,9 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.util.withDensity
 import app.campfire.core.extensions.asDate
+import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.readableFormat
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.remaining_duration_finished
@@ -41,6 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun MediaProgressBar(
   isPlaying: Boolean,
+  libraryItem: LibraryItem,
   progress: MediaProgress,
   modifier: Modifier = Modifier,
 ) {
@@ -97,7 +100,8 @@ internal fun MediaProgressBar(
           progress.finishedAt!!.asDate().readableFormat,
         )
         else -> {
-          val remainingDurationMillis = (progress.duration - (progress.duration * progress.actualProgress)) * 1000f
+          val duration = progress.duration ?: libraryItem.media.durationInMillis.milliseconds.asSeconds()
+          val remainingDurationMillis = (duration - (duration * progress.actualProgress)) * 1000f
           val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
           stringResource(Res.string.remaining_duration_format, remainingDuration)
         }
