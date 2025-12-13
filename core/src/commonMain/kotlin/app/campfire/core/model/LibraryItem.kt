@@ -35,12 +35,12 @@ data class LibraryItem(
    *
    * @param durationMs the cumulative duration of the playback for the current library item
    */
-  fun getChapterForDuration(durationMs: Long): Chapter {
+  fun getChapterForDuration(durationMs: Long): Chapter? {
     return media.chapters.find {
       val startMs = it.start.seconds.inWholeMilliseconds
       val endMs = it.end.seconds.inWholeMilliseconds
       durationMs in startMs..<endMs
-    } ?: error("Unable to find chapter for duration $durationMs")
+    }
   }
 }
 

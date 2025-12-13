@@ -205,18 +205,25 @@ class ExoPlayerAudioPlayer(
         overallTime.value = overallProgressOfChapterMs.milliseconds
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter
-        val progressInChapterMs = (session.currentTime - chapter.start.seconds)
-          .inWholeMilliseconds.coerceAtLeast(0L)
-        seekTo(chapter.id, progressInChapterMs)
+        if (chapter != null) {
+          val progressInChapterMs = (session.currentTime - chapter.start.seconds)
+            .inWholeMilliseconds.coerceAtLeast(0L)
+          seekTo(chapter.id, progressInChapterMs)
 
-        // Hydrate the current states so the UI reflects appropriately
-        currentTime.value = progressInChapterMs.milliseconds
-        currentDuration.value = chapter.duration
-        currentMetadata.value = Metadata(
-          title = chapter.title,
-          artworkUri = session.libraryItem.media.coverImageUrl,
-        )
-        overallTime.value = session.currentTime
+          // Hydrate the current states so the UI reflects appropriately
+          currentTime.value = progressInChapterMs.milliseconds
+          currentDuration.value = chapter.duration
+          currentMetadata.value = Metadata(
+            title = chapter.title,
+            artworkUri = session.libraryItem.media.coverImageUrl,
+          )
+          overallTime.value = session.currentTime
+        } else {
+          // TODO: Log some state here to make it easier to understand this situation
+          
+
+          // Do nothing here for now.
+        }
       }
 
       if (playImmediately) {

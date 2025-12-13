@@ -124,7 +124,7 @@ class PlayerWidget : GlanceAppWidget() {
           session?.let { s ->
             SessionLite(
               id = s.id.toHexDashString(),
-              title = s.chapter.title,
+              title = s.title,
               libraryItem = s.libraryItem,
             )
           }

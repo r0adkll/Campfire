@@ -36,6 +36,7 @@ class DefaultPlaybackSessionManager(
 
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
+
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         // TODO: We should probably wire this into some sort of playlist functionality
         //  where we want to mark the finished item as done, and start the next.

@@ -38,9 +38,12 @@ data class Session(
   val isFinished: Boolean
     get() = currentTime >= duration
 
-  val chapter: Chapter
+  val chapter: Chapter?
     get() = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
 
   val title: String
-    get() = chapter.title
+    get() = chapter?.title
+      ?: libraryItem.media.chapters.firstOrNull()?.title
+      ?: libraryItem.media.metadata.title
+      ?: "--"
 }

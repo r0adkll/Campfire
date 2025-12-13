@@ -150,7 +150,7 @@ internal fun CollapsedPlaybackBar(
       Dispose -> BorderStroke(2.dp, MaterialTheme.colorScheme.error)
     },
   ) {
-    val title = currentMetadata.title ?: session.chapter.title
+    val title = currentMetadata.title ?: session.title
     val thumbnailUrl = currentMetadata.artworkUri ?: session.libraryItem.media.coverImageUrl
     val thumbnailContentDescription = session.libraryItem.media.metadata.title
     val timeRemaining = session.timeRemaining.readoutFormat()
