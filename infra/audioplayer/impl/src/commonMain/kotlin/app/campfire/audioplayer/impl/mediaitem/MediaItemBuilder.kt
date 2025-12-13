@@ -16,6 +16,14 @@ object MediaItemBuilder {
     val chapters = media.chapters
     val audioTracks = media.tracks
 
+    // If the library item doesn't have chapters then we'll want to best-guess create the media
+    // items from its audio tracks.
+    if (chapters.isEmpty()) {
+      return audioTracks.map { track ->
+        createMediaItem(track, media)
+      }
+    }
+
     // Its probably a safe assumption that if the # of chapters matches the # of audio tracks/files
     // then this item is file segmented by chapter and we can assume a 1:1 relationship
     val likelyTrackPerChapter = chapters.size == audioTracks.size
@@ -75,6 +83,18 @@ object MediaItemBuilder {
     )
   }
 
+  private fun createMediaItem(
+    track: AudioTrack,
+    media: Media,
+  ): MediaItem {
+    return MediaItem(
+      id = "${media.id}_${track.index}",
+      uri = track.contentUrlWithToken,
+      mimeType = track.mimeType,
+      metadata = createMediaMetadata(track, media),
+    )
+  }
+
   internal fun createMediaMetadata(
     chapter: Chapter,
     media: Media,
@@ -88,6 +108,22 @@ object MediaItemBuilder {
       albumTitle = media.metadata.seriesName,
       artworkUri = media.coverImageUrl,
       durationMs = chapter.duration.inWholeMilliseconds,
+    )
+  }
+
+  internal fun createMediaMetadata(
+    track: AudioTrack,
+    media: Media,
+  ): MediaItem.Metadata {
+    return MediaItem.Metadata(
+      id = track.index,
+      title = track.taggedTitle,
+      artist = media.metadata.authorName,
+      description = media.metadata.description ?: "",
+      subtitle = media.metadata.subtitle,
+      albumTitle = media.metadata.seriesName,
+      artworkUri = media.coverImageUrl,
+      durationMs = track.duration.seconds.inWholeMilliseconds,
     )
   }
 }

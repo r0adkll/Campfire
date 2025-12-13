@@ -41,9 +41,12 @@ data class Session(
   val chapter: Chapter?
     get() = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
 
+  val audioTrack: AudioTrack?
+    get() = libraryItem.getAudioTrackForDuration(currentTime.inWholeMilliseconds)
+
   val title: String
     get() = chapter?.title
-      ?: libraryItem.media.chapters.firstOrNull()?.title
+      ?: audioTrack?.taggedTitle
       ?: libraryItem.media.metadata.title
       ?: "--"
 }

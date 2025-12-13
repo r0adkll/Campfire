@@ -11,7 +11,15 @@ data class AudioTrack(
   val codec: String,
   val metadata: FileMetadata,
   val metaTags: MetaTags?,
-)
+) {
+
+  /**
+   * Get the title of this track from its ID3 metadata tag, falling back
+   * on its full title if not available
+   */
+  val taggedTitle: String
+    get() = metaTags?.tagTitle ?: title
+}
 
 data class MetaTags(
   val tagAlbum: String? = null,

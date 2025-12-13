@@ -42,6 +42,19 @@ data class LibraryItem(
       durationMs in startMs..<endMs
     }
   }
+
+  /**
+   * Get the current audio track for the total duration of time passed in the playback
+   *
+   * @param durationMs the cumulative duration of the playback for the current library item
+   */
+  fun getAudioTrackForDuration(durationMs: Long): AudioTrack? {
+    return media.tracks.find { track ->
+      val startMs = track.startOffset.seconds.inWholeMilliseconds
+      val endMs = startMs + track.duration.seconds.inWholeMilliseconds
+      durationMs in startMs..<endMs
+    }
+  }
 }
 
 /**
