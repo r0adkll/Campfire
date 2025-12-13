@@ -79,7 +79,6 @@ class CachingThemeManager(
           key = qSwatch.key,
           swatch = qSwatch.swatch,
           colorSelector = SwatchSelector.Dominant,
-          // TODO: Configure this enqueue from user adjustable settings
         )
       }
       .launchIn(applicationScope)
@@ -92,7 +91,6 @@ class CachingThemeManager(
         // Cache the result to our internal cache stages
         memoryThemeCache[cTheme.cacheKey] = cTheme
         diskThemeCache[cTheme.cacheKey] = cTheme
-        // TODO: Composition cache?
       }
       .launchIn(applicationScope)
   }
@@ -128,7 +126,6 @@ class CachingThemeManager(
       return
     }
 
-    // TODO: Again, how to configure / pass theme builder config like scheme/contrast/etc
     themePipeline.queue(
       key = key,
       swatch = Swatch(seedColor),

@@ -665,16 +665,6 @@ private fun PlaybackActions(
         )
       }
 
-//      AccessoryButton(
-//        onClick = onSkipPreviousClick,
-//      ) { iconSize ->
-//        Icon(
-//          Icons.Rounded.SkipPrevious,
-//          modifier = Modifier.size(iconSize),
-//          contentDescription = null,
-//        )
-//      }
-
       AccessoryButton(
         onClick = onRewindClick,
       ) { iconSize ->
@@ -740,19 +730,8 @@ private fun PlaybackActions(
           modifier = Modifier.size(iconSize),
         )
       }
-
-//      AccessoryButton(
-//        onClick = onSkipNextClick,
-//      ) { iconSize ->
-//        Icon(
-//          Icons.Rounded.SkipNext,
-//          modifier = Modifier.size(iconSize),
-//          contentDescription = null,
-//        )
-//      }
     }
 
-    // TODO: Next/Previous buttons here
     Row(
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       modifier = Modifier

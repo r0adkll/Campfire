@@ -106,8 +106,6 @@ fun AdaptiveCampfireLayout(
       ) {
         Scaffold(
           bottomBar = {
-            // TODO: Extract all the navigation bars into a :ui package
-            //  so we can easily spread their usage
             if (navigationType == NavigationType.BottomNavigation) {
               AnimatedVisibility(
                 visible = !hideBottomNav,
