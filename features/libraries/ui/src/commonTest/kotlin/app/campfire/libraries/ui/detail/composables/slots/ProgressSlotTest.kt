@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.common.test.mediaProgress
+import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlin.test.Test
@@ -16,12 +17,13 @@ class ProgressSlotTest {
 
   @Test
   fun inProgressTest() = runComposeUiTest {
+    val libraryItem = libraryItem()
     val mediaProgress = mediaProgress(
       libraryItemId = TestLibraryItemId,
       currentTime = 20f,
       duration = 100f,
     )
-    val slot = ProgressSlot(false, mediaProgress)
+    val slot = ProgressSlot(false, mediaProgress, libraryItem)
 
     setContent {
       PreviewSharedElementTransitionLayout {
@@ -37,6 +39,7 @@ class ProgressSlotTest {
 
   @Test
   fun isFinishedTest() = runComposeUiTest {
+    val libraryItem = libraryItem()
     val mediaProgress = mediaProgress(
       libraryItemId = TestLibraryItemId,
       currentTime = 100f,
@@ -44,7 +47,7 @@ class ProgressSlotTest {
       isFinished = true,
       finishedAt = 0L,
     )
-    val slot = ProgressSlot(false, mediaProgress)
+    val slot = ProgressSlot(false, mediaProgress, libraryItem)
 
     setContent {
       PreviewSharedElementTransitionLayout {
