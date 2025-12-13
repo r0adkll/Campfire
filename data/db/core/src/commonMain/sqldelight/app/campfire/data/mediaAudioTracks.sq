@@ -20,6 +20,15 @@ CREATE TABLE IF NOT EXISTS mediaAudioTracks (
   metadata_ctimeMs INTEGER NOT NULL,
   metadata_birthtimeMs INTEGER NOT NULL,
 
+  metaTags_tagAlbum TEXT,
+  metaTags_tagArtist TEXT,
+  metaTags_tagAlbumArtist TEXT,
+  metaTags_tagTitle TEXT,
+  metaTags_tagSubtitle TEXT,
+  metaTags_tagSeries TEXT,
+  metaTags_tagSeriesPart TEXT,
+  metaTags_tagTrack TEXT,
+
   PRIMARY KEY (mediaId, mediaIndex),
   FOREIGN KEY (mediaId) REFERENCES media(mediaId) ON DELETE CASCADE ON UPDATE NO ACTION
 );

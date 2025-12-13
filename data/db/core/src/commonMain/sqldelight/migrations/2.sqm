@@ -1,6 +1,7 @@
 import app.campfire.core.model.MediaType;
 import kotlin.Boolean;
 
+-- Remove null constraint from 'duration' column on mediaProgress
 CREATE TABLE IF NOT EXISTS mediaProgress2 (
   id TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
@@ -25,3 +26,13 @@ INSERT INTO mediaProgress2 SELECT * FROM mediaProgress;
 DROP TABLE mediaProgress;
 ALTER TABLE mediaProgress2 RENAME TO mediaProgress;
 
+-- Add metaTag columns on mediaAudioTracks table
+ALTER TABLE mediaAudioTracks
+ADD COLUMN metaTags_tagAlbum TEXT,
+ADD COLUMN metaTags_tagArtist TEXT,
+ADD COLUMN metaTags_tagAlbumArtist TEXT,
+ADD COLUMN metaTags_tagTitle TEXT,
+ADD COLUMN metaTags_tagSubtitle TEXT,
+ADD COLUMN metaTags_tagSeries TEXT,
+ADD COLUMN metaTags_tagSeriesPart TEXT,
+ADD COLUMN metaTags_tagTrack TEXT;

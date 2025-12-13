@@ -3,6 +3,7 @@ package app.campfire.data.mapping
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
+import app.campfire.core.model.MetaTags
 import app.campfire.data.MediaAudioTracks
 import app.campfire.network.models.AudioTrack as NetworkAudioTrack
 
@@ -24,6 +25,14 @@ fun NetworkAudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
     metadata_mtimeMs = metadata.mtimeMs,
     metadata_ctimeMs = metadata.ctimeMs,
     metadata_birthtimeMs = metadata.birthtimeMs,
+    metaTags_tagAlbum = metaTags?.tagAlbum,
+    metaTags_tagArtist = metaTags?.tagArtist,
+    metaTags_tagAlbumArtist = metaTags?.tagAlbumArtist,
+    metaTags_tagTitle = metaTags?.tagTitle,
+    metaTags_tagSubtitle = metaTags?.tagSubtitle,
+    metaTags_tagSeries = metaTags?.tagSeries,
+    metaTags_tagSeriesPart = metaTags?.tagSeriesPart,
+    metaTags_tagTrack = metaTags?.tagTrack,
   )
 }
 
@@ -45,6 +54,14 @@ fun AudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
     metadata_mtimeMs = metadata.mtimeMs,
     metadata_ctimeMs = metadata.ctimeMs,
     metadata_birthtimeMs = metadata.birthtimeMs,
+    metaTags_tagAlbum = metaTags?.tagAlbum,
+    metaTags_tagArtist = metaTags?.tagArtist,
+    metaTags_tagAlbumArtist = metaTags?.tagAlbumArtist,
+    metaTags_tagTitle = metaTags?.tagTitle,
+    metaTags_tagSubtitle = metaTags?.tagSubtitle,
+    metaTags_tagSeries = metaTags?.tagSeries,
+    metaTags_tagSeriesPart = metaTags?.tagSeriesPart,
+    metaTags_tagTrack = metaTags?.tagTrack,
   )
 }
 
@@ -68,5 +85,17 @@ suspend fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): Audio
       ctimeMs = metadata.ctimeMs,
       birthtimeMs = metadata.birthtimeMs,
     ),
+    metaTags = metaTags?.let {
+      MetaTags(
+        tagAlbum = it.tagAlbum,
+        tagArtist = it.tagArtist,
+        tagAlbumArtist = it.tagAlbumArtist,
+        tagTitle = it.tagTitle,
+        tagSubtitle = it.tagSubtitle,
+        tagSeries = it.tagSeries,
+        tagSeriesPart = it.tagSeriesPart,
+        tagTrack = it.tagTrack,
+      )
+    }
   )
 }

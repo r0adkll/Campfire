@@ -10,4 +10,16 @@ data class AudioTrack(
   val mimeType: String,
   val codec: String,
   val metadata: FileMetadata,
+  val metaTags: MetaTags?,
+)
+
+data class MetaTags(
+  val tagAlbum: String? = null,
+  val tagArtist: String? = null,
+  val tagAlbumArtist: String? = null,
+  val tagTitle: String? = null,
+  val tagSubtitle: String? = null,
+  val tagSeries: String? = null,
+  val tagSeriesPart: String? = null,
+  val tagTrack: String? = null,
 )

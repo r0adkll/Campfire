@@ -9,7 +9,9 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media as DomainMedia
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType as DomainMediaType
+import app.campfire.core.model.MetaTags
 import app.campfire.core.model.SeriesSequence
+import app.campfire.core.util.createIfAnyNotNull
 import app.campfire.core.util.createIfNotNull
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
 import app.campfire.data.Media as DatabaseMedia
@@ -623,6 +625,27 @@ suspend fun LibraryItemWithMedia.asDomainModel(
             ctimeMs = it.metadata_ctimeMs,
             birthtimeMs = it.metadata_birthtimeMs,
           ),
+          metaTags = createIfAnyNotNull(
+            it.metaTags_tagAlbum,
+            it.metaTags_tagArtist,
+            it.metaTags_tagAlbumArtist,
+            it.metaTags_tagTitle,
+            it.metaTags_tagSubtitle,
+            it.metaTags_tagSeries,
+            it.metaTags_tagSeriesPart,
+            it.metaTags_tagTrack,
+          ) {
+            MetaTags(
+              tagAlbum = it.metaTags_tagAlbum,
+              tagArtist = it.metaTags_tagArtist,
+              tagAlbumArtist = it.metaTags_tagAlbum,
+              tagTitle = it.metaTags_tagTitle,
+              tagSubtitle = it.metaTags_tagSubtitle,
+              tagSeries = it.metaTags_tagSeries,
+              tagSeriesPart = it.metaTags_tagSeriesPart,
+              tagTrack = it.metaTags_tagTrack,
+            )
+          }
         )
       },
       coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
