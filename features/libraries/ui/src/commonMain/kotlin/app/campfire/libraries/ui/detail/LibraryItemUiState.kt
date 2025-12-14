@@ -3,6 +3,7 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Session
@@ -38,6 +39,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class AuthorClick(val item: LibraryItem) : LibraryItemUiEvent
   data class NarratorClick(val item: LibraryItem) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
+  data class AudioTrackClick(val item: LibraryItem, val track: AudioTrack) : LibraryItemUiEvent
   data class TimeInBookChange(val enabled: Boolean) : LibraryItemUiEvent
 
   data class DownloadClick(val doNotShowAgain: Boolean = true) : LibraryItemUiEvent

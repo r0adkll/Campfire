@@ -59,7 +59,7 @@ class CachingThemeManager(
 
   override fun initialize() {
     // Hydrate memory cache from disk
-    applicationScope.launch(dispatcherProvider.computation) {
+    applicationScope.launch {
       val duration = measureTime {
         diskSwatchCache.selectAll().let { memorySwatchCache.putAll(it) }
         diskThemeCache.selectAll().let { memoryThemeCache.putAll(it) }

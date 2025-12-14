@@ -97,6 +97,7 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -111,6 +112,8 @@ import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
+import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
+import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -150,6 +153,7 @@ internal fun ExpandedPlaybackBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onAudioTrackSelected: (AudioTrack) -> Unit,
   onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
@@ -183,6 +187,7 @@ internal fun ExpandedPlaybackBar(
       onTimerCleared = onTimerCleared,
       onTimerSelected = onTimerSelected,
       onChapterSelected = onChapterSelected,
+      onAudioTrackSelected = onAudioTrackSelected,
       onBookmarkSelected = onBookmarkSelected,
       onClose = onClose,
       sharedTransitionScope = sharedTransitionScope,
@@ -215,6 +220,7 @@ internal fun ExpandedPlaybackBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onAudioTrackSelected: (AudioTrack) -> Unit,
   onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
@@ -428,14 +434,27 @@ internal fun ExpandedPlaybackBar(
           )
         },
         onChapterListClick = {
-          scope.launch {
-            val result = overlayHost.showChapterBottomSheet(
-              chapters = session.libraryItem.media.chapters,
-              currentChapter = session.chapter,
-              playbackSpeed = playbackSpeed,
-            )
-            if (result is ChapterResult.Selected) {
-              onChapterSelected(result.chapter)
+          if (session.libraryItem.media.chapters.isNotEmpty()) {
+            scope.launch {
+              val result = overlayHost.showChapterBottomSheet(
+                chapters = session.libraryItem.media.chapters,
+                currentChapter = session.chapter,
+                playbackSpeed = playbackSpeed,
+              )
+              if (result is ChapterResult.Selected) {
+                onChapterSelected(result.chapter)
+              }
+            }
+          } else if (session.libraryItem.media.tracks.isNotEmpty()) {
+            scope.launch {
+              val result = overlayHost.showAudioTrackBottomSheet(
+                audioTracks = session.libraryItem.media.tracks,
+                currentAudioTrack = session.audioTrack,
+                playbackSpeed = playbackSpeed,
+              )
+              if (result is AudioTrackResult.Selected) {
+                onAudioTrackSelected(result.audioTrack)
+              }
             }
           }
         },

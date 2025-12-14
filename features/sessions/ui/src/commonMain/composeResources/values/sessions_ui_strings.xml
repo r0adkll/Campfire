@@ -3,6 +3,7 @@
   <string name="buffering">Buffering…</string>
 
   <string name="chapters_bottomsheet_title">Chapters</string>
+  <string name="audio_tracks_bottomsheet_title">Audio Tracks</string>
   <string name="chapters_loading_error">Uh-oh! Unable to load the chapters for this item.</string>
 
   <string name="speed_bottomsheet_title">Playback speed</string>

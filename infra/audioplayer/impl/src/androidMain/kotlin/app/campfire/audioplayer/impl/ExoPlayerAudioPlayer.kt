@@ -182,27 +182,46 @@ class ExoPlayerAudioPlayer(
 
       // Seek the media player
       if (chapterId != null) {
-        // If the Chapter Id is passed explicitly then we can take that intention as
-        // starting playback directly at that chapter
-        val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
-          ?: error("Unable to find chapter to start")
+        if (session.libraryItem.media.chapters.isNotEmpty()) {
+          // If the Chapter Id is passed explicitly then we can take that intention as
+          // starting playback directly at that chapter
+          val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
+            ?: error("Unable to find chapter to start")
 
-        val overallProgressOfChapterMs = session.libraryItem.media.chapters.fold(0L) { acc, c ->
-          if (c.id < chapterId) {
-            acc + c.duration.inWholeMilliseconds
-          } else {
-            acc
+          val overallProgressOfChapterMs = session.libraryItem.media.chapters.fold(0L) { acc, c ->
+            if (c.id < chapterId) {
+              acc + c.duration.inWholeMilliseconds
+            } else {
+              acc
+            }
           }
-        }
 
-        seekTo(chapterId)
-        currentTime.value = 0.seconds
-        currentDuration.value = chapter.duration
-        currentMetadata.value = Metadata(
-          title = chapter.title,
-          artworkUri = session.libraryItem.media.coverImageUrl,
-        )
-        overallTime.value = overallProgressOfChapterMs.milliseconds
+          seekTo(chapterId)
+          currentTime.value = 0.seconds
+          currentDuration.value = chapter.duration
+          currentMetadata.value = Metadata(
+            title = chapter.title,
+            artworkUri = session.libraryItem.media.coverImageUrl,
+          )
+          overallTime.value = overallProgressOfChapterMs.milliseconds
+        } else if (session.libraryItem.media.tracks.isNotEmpty()) {
+          // If the Chapter Id is passed explicitly then we can take that intention as
+          // starting playback directly at that chapter
+          val track = session.libraryItem.media.tracks.find { it.index == chapterId }
+            ?: error("Unable to find audio track to start")
+
+          seekTo(chapterId)
+          currentTime.value = 0.seconds
+          currentDuration.value = track.duration.seconds
+          currentMetadata.value = Metadata(
+            title = track.taggedTitle,
+            artworkUri = session.libraryItem.media.coverImageUrl,
+          )
+          overallTime.value = track.startOffset.seconds
+        } else {
+          // TODO: Log some state here to make it easier to understand this situation
+
+        }
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter
         val track = session.audioTrack

@@ -27,6 +27,7 @@ val SkipNext get() = PlaybackObj("skip_next")
 val Seek get() = PlaybackObj("seek")
 val Timer get() = PlaybackObj("sleep_timer")
 val Chapter get() = PlaybackObj("chapter")
+val AudioTrack get() = PlaybackObj("track")
 val Bookmark get() = PlaybackObj("bookmark")
 val Speed get() = PlaybackObj("playback_speed")
 

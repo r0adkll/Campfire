@@ -76,6 +76,7 @@ import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
@@ -88,6 +89,8 @@ import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
+import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
+import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
 import com.slack.circuit.overlay.LocalOverlayHost
@@ -159,6 +162,9 @@ fun PlaybackBottomBar(
       onChapterSelected = { chapter ->
         audioPlayer?.seekTo(chapter.id)
       },
+      onAudioTrackSelected = { track ->
+        audioPlayer?.seekTo(track.index - 1)
+      },
       onBookmarkSelected = { bookmark ->
         audioPlayer?.seekTo(bookmark.time)
       },
@@ -186,6 +192,7 @@ private fun PlaybackBottomBar(
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
+  onAudioTrackSelected: (AudioTrack) -> Unit,
   onBookmarkSelected: (Bookmark) -> Unit,
 
   modifier: Modifier = Modifier,
@@ -299,14 +306,27 @@ private fun PlaybackBottomBar(
         },
         onChapterListClick = {
           if (session == null) return@ActionRow
-          scope.launch {
-            val result = overlayHost.showChapterBottomSheet(
-              chapters = session.libraryItem.media.chapters,
-              currentChapter = session.chapter,
-              playbackSpeed = playbackSpeed,
-            )
-            if (result is ChapterResult.Selected) {
-              onChapterSelected(result.chapter)
+          if (session.libraryItem.media.chapters.isNotEmpty()) {
+            scope.launch {
+              val result = overlayHost.showChapterBottomSheet(
+                chapters = session.libraryItem.media.chapters,
+                currentChapter = session.chapter,
+                playbackSpeed = playbackSpeed,
+              )
+              if (result is ChapterResult.Selected) {
+                onChapterSelected(result.chapter)
+              }
+            }
+          } else if (session.libraryItem.media.tracks.isNotEmpty()) {
+            scope.launch {
+              val result = overlayHost.showAudioTrackBottomSheet(
+                audioTracks = session.libraryItem.media.tracks,
+                currentAudioTrack = session.audioTrack,
+                playbackSpeed = playbackSpeed,
+              )
+              if (result is AudioTrackResult.Selected) {
+                onAudioTrackSelected(result.audioTrack)
+              }
             }
           }
         },

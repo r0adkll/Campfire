@@ -21,6 +21,7 @@ import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.header_audio_tracks
 import campfire.features.libraries.ui.generated.resources.header_chapters
 import org.jetbrains.compose.resources.stringResource
 
@@ -30,6 +31,7 @@ internal val ChapterContainerColor
 class ChapterHeaderSlot(
   @get:VisibleForTesting
   val showTimeInBook: Boolean,
+  val isAudioTracks: Boolean = false,
 ) : ContentSlot {
 
   override val id: String = "chapter_header"
@@ -45,7 +47,11 @@ class ChapterHeaderSlot(
       color = ChapterContainerColor,
     ) {
       MetadataHeader(
-        title = stringResource(Res.string.header_chapters),
+        title = if (isAudioTracks) {
+          stringResource(Res.string.header_audio_tracks)
+        } else {
+          stringResource(Res.string.header_chapters)
+        },
         textStyle = MaterialTheme.typography.titleLarge,
         textColor = MaterialTheme.colorScheme.contentColorFor(ChapterContainerColor),
         modifier = Modifier

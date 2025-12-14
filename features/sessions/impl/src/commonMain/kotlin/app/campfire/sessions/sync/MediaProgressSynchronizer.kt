@@ -2,24 +2,34 @@ package app.campfire.sessions.sync
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
+import app.campfire.core.di.AppScope
+import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.epochMilliseconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.time.Duration
 import kotlin.uuid.Uuid
 import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(UserScope::class)
+@ContributesTo(UserScope::class)
+interface MediaProgressSynchronizerUserComponent {
+  val sessionsRepository: SessionsRepository
+  val mediaProgressRepository: MediaProgressRepository
+}
+
+@ContributesMultibinding(AppScope::class)
 @Inject
-class MediaProgressSynchronizer(
-  private val sessionsRepository: SessionsRepository,
-  private val mediaProgressRepository: MediaProgressRepository,
-) : PlaybackSynchronizer {
+class MediaProgressSynchronizer : PlaybackSynchronizer {
+
+  private val component: MediaProgressSynchronizerUserComponent
+    get() = ComponentHolder.component()
 
   // We want this to process last in the list of synchronizers so other synchros
   // have the chance to update the local database with the latest information.
@@ -41,7 +51,7 @@ class MediaProgressSynchronizer(
   }
 
   private suspend fun syncProgress(libraryItemId: LibraryItemId, force: Boolean = false) {
-    val session = sessionsRepository.getSession(libraryItemId) ?: return
+    val session = component.sessionsRepository.getSession(libraryItemId) ?: return
 
     val updatedProgress = MediaProgress(
       id = MediaProgress.UNKNOWN_ID,
@@ -66,6 +76,6 @@ class MediaProgressSynchronizer(
       startedAt = session.startedAt.epochMilliseconds,
     )
 
-    mediaProgressRepository.updateProgress(updatedProgress, force)
+    component.mediaProgressRepository.updateProgress(updatedProgress, force)
   }
 }

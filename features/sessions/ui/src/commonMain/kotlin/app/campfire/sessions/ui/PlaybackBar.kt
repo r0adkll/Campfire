@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.AudioTrack
 import app.campfire.analytics.events.Bookmark
 import app.campfire.analytics.events.Changed
 import app.campfire.analytics.events.Chapter
@@ -288,6 +289,10 @@ fun PlaybackBar(
                 onChapterSelected = { chapter ->
                   Analytics.send(PlaybackActionEvent(Chapter, Selected))
                   audioPlayer?.seekTo(chapter.id)
+                },
+                onAudioTrackSelected = { track ->
+                  Analytics.send(PlaybackActionEvent(AudioTrack, Selected))
+                  audioPlayer?.seekTo(track.index - 1)
                 },
                 onBookmarkSelected = { bookmark ->
                   Analytics.send(PlaybackActionEvent(Bookmark, Selected))

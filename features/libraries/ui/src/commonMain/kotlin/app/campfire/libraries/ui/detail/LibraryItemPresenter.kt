@@ -21,12 +21,14 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.libraries.ui.detail.composables.slots.AudioTrackSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
@@ -263,6 +265,19 @@ class LibraryItemPresenter(
           }
         }
 
+        is LibraryItemUiEvent.AudioTrackClick -> {
+          analytics.send(ActionEvent("track", Click))
+          val session = currentSession.sessionOrNull()
+          val currentPlayer = audioPlayerHolder.currentPlayer.value
+          if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
+            // Just seek to the track index
+            audioPlayerHolder.currentPlayer.value?.seekTo(event.track.index - 1)
+              ?: throw IllegalStateException("Current session doesn't have a player")
+          } else {
+            playbackController.startSession(event.item.id, true, event.track.index)
+          }
+        }
+
         is LibraryItemUiEvent.DownloadClick -> {
           analytics.send(ActionEvent("download", Click))
           settings.showConfirmDownload = !event.doNotShowAgain
@@ -355,14 +370,6 @@ private fun buildSlots(
       }
     }
 
-//    if (libraryItem.media.metadata.publisher != null) {
-//      this += SpacerSlot.medium("publisher_spacer")
-//      this += PublishedSlot(
-//        publisher = libraryItem.media.metadata.publisher!!,
-//        publishedYear = libraryItem.media.metadata.publishedYear,
-//      )
-//    }
-
     libraryItem.media.metadata.genres.takeIf { it.isNotEmpty() }?.let { genres ->
       this += SpacerSlot.medium("genres_spacer")
       this += ChipsSlot(
@@ -388,6 +395,20 @@ private fun buildSlots(
         this += ChapterSlot(
           libraryItem = libraryItem,
           chapter = chapter,
+          showTimeInBook = showTimeInBook,
+          mediaProgress = mediaProgressState.dataOrNull,
+        )
+      }
+    } else if (libraryItem.media.tracks.isNotEmpty()) {
+      this += SpacerSlot.large("chapters_spacer")
+      this += ChapterHeaderSlot(
+        showTimeInBook = showTimeInBook,
+        isAudioTracks = true,
+      )
+      libraryItem.media.tracks.forEach { track ->
+        this += AudioTrackSlot(
+          libraryItem = libraryItem,
+          track = track,
           showTimeInBook = showTimeInBook,
           mediaProgress = mediaProgressState.dataOrNull,
         )
