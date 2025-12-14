@@ -145,6 +145,7 @@ fun CollectionDetail(
           )
         } else {
           CollectionDetailTopAppBar(
+            canEdit = state.canEdit,
             name = state.collection?.name ?: screen.collectionName,
             scrollBehavior = scrollBehavior,
             onBack = { state.eventSink(CollectionDetailUiEvent.Back) },
@@ -163,7 +164,7 @@ fun CollectionDetail(
 
       val overlayHost = LocalOverlayHost.current
       AnimatedVisibility(
-        visible = !isItemEditing,
+        visible = !isItemEditing && state.canEdit,
       ) {
         ExtendedFloatingActionButton(
           onClick = {
@@ -191,6 +192,7 @@ fun CollectionDetail(
       )
 
       is LoadState.Loaded -> LoadedState(
+        canEdit = state.canEdit,
         collectionName = screen.collectionName,
         description = state.collection?.description,
         isEditing = isItemEditing,
@@ -233,6 +235,7 @@ fun CollectionDetail(
 
 @Composable
 private fun LoadedState(
+  canEdit: Boolean,
   collectionName: String,
   description: String?,
   isEditing: Boolean,
@@ -290,7 +293,11 @@ private fun LoadedState(
             onClickLabel = "View item",
             onClick = { onLibraryItemClick(item) },
             onLongClickLabel = "Enter item edit mode",
-            onLongClick = { onLibraryItemLongClick(item) },
+            onLongClick = if (canEdit) {
+              { onLibraryItemLongClick(item) }
+            } else {
+              null
+            },
           ),
       )
     }

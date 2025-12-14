@@ -11,5 +11,6 @@ data class CollectionsUiState(
 ) : CircuitUiState
 
 sealed interface CollectionsUiEvent : CircuitUiEvent {
+  data object Back : CollectionsUiEvent
   data class CollectionClick(val collection: Collection) : CollectionsUiEvent
 }

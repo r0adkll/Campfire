@@ -16,6 +16,8 @@ import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.User
+import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -34,10 +36,16 @@ import me.tatarka.inject.annotations.Inject
 class CollectionDetailPresenter(
   @Assisted private val screen: CollectionDetailScreen,
   @Assisted private val navigator: Navigator,
+  private val currentSession: UserSession,
   private val collectionsRepository: CollectionsRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
 ) : Presenter<CollectionDetailUiState> {
+
+  private val canEdit by lazy {
+    (currentSession as? UserSession.LoggedIn)?.user
+      ?.type == User.Type.Admin
+  }
 
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
@@ -63,6 +71,7 @@ class CollectionDetailPresenter(
     }.collectAsState(emptyMap())
 
     return CollectionDetailUiState(
+      canEdit = canEdit,
       collection = collection,
       collectionContentState = collectionContentState,
       offlineStates = offlineDownloads,

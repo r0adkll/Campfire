@@ -44,7 +44,7 @@ fun SeriesDetail(
   state: SeriesDetailUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
       CampfireTopAppBar(

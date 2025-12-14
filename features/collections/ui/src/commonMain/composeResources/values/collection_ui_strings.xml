@@ -1,4 +1,6 @@
 <resources>
+  <string name="collections_title">Collections</string>
+
   <string name="error_collection_items_message">Something went wrong when trying to load this library's collections</string>
   <string name="empty_collection_items_message">Doesn't look like you have any collections. Try adding one now!</string>
   <string name="error_collection_detail_message">Something went wrong when trying to load this collection</string>

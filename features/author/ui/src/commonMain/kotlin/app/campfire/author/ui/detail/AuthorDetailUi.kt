@@ -54,7 +54,7 @@ fun AuthorDetail(
   state: AuthorDetailUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
       CampfireTopAppBar(

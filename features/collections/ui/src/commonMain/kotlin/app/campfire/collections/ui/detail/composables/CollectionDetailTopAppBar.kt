@@ -16,6 +16,7 @@ import app.campfire.common.compose.widgets.CampfireTopAppBar
 @Composable
 fun CollectionDetailTopAppBar(
   name: String,
+  canEdit: Boolean,
   scrollBehavior: TopAppBarScrollBehavior,
   onBack: () -> Unit,
   onDelete: () -> Unit,
@@ -37,14 +38,16 @@ fun CollectionDetailTopAppBar(
       }
     },
     actions = {
-      IconButton(
-        onClick = onDelete,
-      ) {
-        Icon(
-          Icons.Rounded.Delete,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.error,
-        )
+      if (canEdit) {
+        IconButton(
+          onClick = onDelete,
+        ) {
+          Icon(
+            Icons.Rounded.Delete,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error,
+          )
+        }
       }
     },
   )

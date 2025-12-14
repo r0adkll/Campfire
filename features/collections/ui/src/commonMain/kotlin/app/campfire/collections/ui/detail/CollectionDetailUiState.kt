@@ -9,6 +9,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class CollectionDetailUiState(
+  val canEdit: Boolean,
   val collection: Collection?,
   val collectionContentState: LoadState<out List<LibraryItem>>,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,

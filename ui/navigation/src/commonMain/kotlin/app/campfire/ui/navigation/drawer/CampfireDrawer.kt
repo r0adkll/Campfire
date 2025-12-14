@@ -179,15 +179,6 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
       )
       add(
         HomeNavigationItem(
-          screen = CollectionsScreen,
-          label = stringResource(Res.string.nav_collections_label),
-          contentDescription = stringResource(Res.string.nav_collections_content_description),
-          iconImageVector = Icons.Outlined.Collections,
-          selectedImageVector = Icons.Filled.Collections,
-        ),
-      )
-      add(
-        HomeNavigationItem(
           screen = AuthorsScreen,
           label = stringResource(Res.string.nav_authors_label),
           contentDescription = stringResource(Res.string.nav_authors_content_description),
@@ -206,15 +197,17 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
         selectedImageVector = Icons.Filled.QueryStats,
       ),
     )
-//    add(
-//      HomeNavigationItem(
-//        screen = StorageScreen,
-//        label = stringResource(Res.string.nav_storage_label),
-//        contentDescription = stringResource(Res.string.nav_storage_content_description),
-//        iconImageVector = Icons.Rounded.Folder,
-//        selectedImageVector = Icons.Filled.Folder,
-//      ),
-//    )
+
+    add(
+      HomeNavigationItem(
+        screen = CollectionsScreen,
+        label = stringResource(Res.string.nav_collections_label),
+        contentDescription = stringResource(Res.string.nav_collections_content_description),
+        iconImageVector = Icons.Outlined.Collections,
+        selectedImageVector = Icons.Filled.Collections,
+      ),
+    )
+
     add(
       HomeNavigationItem(
         screen = SettingsScreen(),

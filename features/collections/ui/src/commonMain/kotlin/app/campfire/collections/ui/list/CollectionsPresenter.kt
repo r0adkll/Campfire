@@ -46,6 +46,8 @@ class CollectionsPresenter(
       collectionContentState = collectionContentState,
     ) { event ->
       when (event) {
+        CollectionsUiEvent.Back -> navigator.pop()
+
         is CollectionsUiEvent.CollectionClick -> {
           analytics.send(ContentSelected(ContentType.Collection))
           navigator.goTo(
