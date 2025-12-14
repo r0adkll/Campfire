@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inconsistent series book ordering
 - Series disk cache getting deleted when leaving series screen
 - Crash due to null 'duration' value in MediaProgress
+- Crash due to float 'time' in Bookmark responses
 
 ### Other Notes & Contributions
 
