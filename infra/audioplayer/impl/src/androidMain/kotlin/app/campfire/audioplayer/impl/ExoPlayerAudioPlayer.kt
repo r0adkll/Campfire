@@ -220,7 +220,6 @@ class ExoPlayerAudioPlayer(
           overallTime.value = track.startOffset.seconds
         } else {
           // TODO: Log some state here to make it easier to understand this situation
-
         }
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter

@@ -7,7 +7,6 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.epochMilliseconds
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.sessions.api.SessionsRepository

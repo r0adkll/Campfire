@@ -645,7 +645,7 @@ suspend fun LibraryItemWithMedia.asDomainModel(
               tagSeriesPart = it.metaTags_tagSeriesPart,
               tagTrack = it.metaTags_tagTrack,
             )
-          }
+          },
         )
       },
       coverImageUrl = tokenHydrator.hydrateLibraryItem(id),

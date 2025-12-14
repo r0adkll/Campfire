@@ -21,7 +21,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.libraries.api.LibraryItemFilter

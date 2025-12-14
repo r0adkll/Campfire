@@ -16,6 +16,7 @@ inline fun <R> createIfNotNull(vararg values: Any?, block: () -> R): R? {
     null
   }
 }
+
 @OptIn(ExperimentalContracts::class)
 inline fun <R> createIfAnyNotNull(vararg values: Any?, block: () -> R): R? {
   contract {

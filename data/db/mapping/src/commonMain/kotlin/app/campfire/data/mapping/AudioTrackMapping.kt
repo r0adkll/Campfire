@@ -96,6 +96,6 @@ suspend fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): Audio
         tagSeriesPart = it.tagSeriesPart,
         tagTrack = it.tagTrack,
       )
-    }
+    },
   )
 }
