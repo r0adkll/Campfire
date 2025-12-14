@@ -27,7 +27,6 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
-import app.campfire.audioplayer.impl.util.InvalidPlaybackSessionException
 import app.campfire.audioplayer.impl.util.eventAsDebugLog
 import app.campfire.audioplayer.impl.util.playbackStateAsDebugLog
 import app.campfire.audioplayer.model.Metadata

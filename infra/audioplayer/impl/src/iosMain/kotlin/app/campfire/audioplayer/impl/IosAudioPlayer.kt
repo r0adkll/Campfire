@@ -19,8 +19,10 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
+import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -152,24 +154,26 @@ class IosAudioPlayer(
       }
     } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
       val chapter = session.chapter
-      val progressInChapter = (session.currentTime - chapter.start.seconds)
+      val track = session.audioTrack
+      if (chapter != null) {
+        val progressInChapter = (session.currentTime - chapter.start.seconds)
 
-      val timestampInMillis = session.currentTime.inWholeMilliseconds
-      var mediaItemOffsetMs = 0L
-      for (index in mediaItems.indices) {
-        val mediaItem = mediaItems[index]
-        val mediaItemDuration = mediaItem.duration.inWholeMilliseconds
-        val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
-        if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
-          player.currentItemIndex = index
-          startTimeInChapterMs = timestampInMillis - mediaItemOffsetMs
-          break
+        val timestampInMillis = session.currentTime.inWholeMilliseconds
+        var mediaItemOffsetMs = 0L
+        for (index in mediaItems.indices) {
+          val mediaItem = mediaItems[index]
+          val mediaItemDuration = mediaItem.duration.inWholeMilliseconds
+          val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
+          if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
+            player.currentItemIndex = index
+            startTimeInChapterMs = timestampInMillis - mediaItemOffsetMs
+            break
+          }
+          mediaItemOffsetMs = mediaItemEnd
         }
-        mediaItemOffsetMs = mediaItemEnd
-      }
 
-      bark {
-        """
+        bark {
+          """
           Preparing iOS media player(
             chapter = $chapter,
             progressInChapter = $progressInChapter,
@@ -178,13 +182,55 @@ class IosAudioPlayer(
             session-currentTime = ${session.currentTime.inWholeMilliseconds}
           )
         """.trimIndent()
-      }
+        }
 
-      // Hydrate the current states so the UI reflects appropriately
-      currentMetadata.value = Metadata(
-        title = chapter.title,
-        artworkUri = session.libraryItem.media.coverImageUrl,
-      )
+        // Hydrate the current states so the UI reflects appropriately
+        currentMetadata.value = Metadata(
+          title = chapter.title,
+          artworkUri = session.libraryItem.media.coverImageUrl,
+        )
+      } else if (track != null) {
+        val progressInChapter = (session.currentTime - track.startOffset.seconds)
+
+        val timestampInMillis = session.currentTime.inWholeMilliseconds
+        var mediaItemOffsetMs = 0L
+        for (index in mediaItems.indices) {
+          val mediaItem = mediaItems[index]
+          val mediaItemDuration = mediaItem.duration.inWholeMilliseconds
+          val mediaItemEnd = mediaItemOffsetMs + mediaItemDuration
+          if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
+            player.currentItemIndex = index
+            startTimeInChapterMs = timestampInMillis - mediaItemOffsetMs
+            break
+          }
+          mediaItemOffsetMs = mediaItemEnd
+        }
+
+        bark {
+          """
+          Preparing iOS media player(
+            chapter = $chapter,
+            progressInChapter = $progressInChapter,
+            mediaItemIndex = ${player.currentItemIndex},
+            startTimeInChapterMs = $startTimeInChapterMs,
+            session-currentTime = ${session.currentTime.inWholeMilliseconds}
+          )
+        """.trimIndent()
+        }
+
+        // Hydrate the current states so the UI reflects appropriately
+        currentMetadata.value = Metadata(
+          title = track.taggedTitle,
+          artworkUri = session.libraryItem.media.coverImageUrl,
+        )
+      } else {
+        CrashReporter.record(
+          InvalidPlaybackSessionException(
+            session,
+            "Session Time is > 0, unable to find chapter/track info",
+          ),
+        )
+      }
     }
 
     if (playImmediately) {

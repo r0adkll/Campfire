@@ -1,4 +1,4 @@
-package app.campfire.audioplayer.impl.util
+package app.campfire.audioplayer.impl
 
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItem
