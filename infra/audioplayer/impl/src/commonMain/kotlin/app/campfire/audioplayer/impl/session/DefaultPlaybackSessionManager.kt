@@ -4,6 +4,7 @@ import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.Corked
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.loggableId
@@ -30,9 +31,7 @@ class DefaultPlaybackSessionManager(
   ) {
     withContext(dispatcherProvider.io) {
       val session = sessionsRepository.createSession(libraryItemId)
-      bark("AudioPlayer") {
-        "Preparing playback session for ${libraryItemId.loggableId}: ${session.id}"
-      }
+      ibark { "Preparing playback session for ${libraryItemId.loggableId}: ${session.id}" }
 
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
@@ -46,7 +45,9 @@ class DefaultPlaybackSessionManager(
   }
 
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
-    bark("AudioPlayer") { "Stopping playback session for ${libraryItemId.loggableId}" }
+    ibark { "Stopping playback session for ${libraryItemId.loggableId}" }
     sessionsRepository.stopSession(libraryItemId)
   }
+
+  companion object : Corked("PlaybackSessionManager")
 }
