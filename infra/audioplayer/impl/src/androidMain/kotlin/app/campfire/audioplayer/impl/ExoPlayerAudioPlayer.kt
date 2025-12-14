@@ -224,8 +224,8 @@ class ExoPlayerAudioPlayer(
           CrashReporter.record(
             InvalidPlaybackSessionException(
               session,
-              "Chapter/Track Prepare Failed: No Chapters / Tracks"
-            )
+              "Chapter/Track Prepare Failed: No Chapters / Tracks",
+            ),
           )
         }
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
@@ -262,8 +262,8 @@ class ExoPlayerAudioPlayer(
           CrashReporter.record(
             InvalidPlaybackSessionException(
               session,
-              "Session Time is > 0, unable to find chapter/track info"
-            )
+              "Session Time is > 0, unable to find chapter/track info",
+            ),
           )
         }
       }
