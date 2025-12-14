@@ -22,7 +22,6 @@ import app.campfire.core.time.FatherTime
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -181,7 +180,7 @@ class IosAudioPlayer(
             startTimeInChapterMs = $startTimeInChapterMs,
             session-currentTime = ${session.currentTime.inWholeMilliseconds}
           )
-        """.trimIndent()
+          """.trimIndent()
         }
 
         // Hydrate the current states so the UI reflects appropriately
@@ -215,7 +214,7 @@ class IosAudioPlayer(
             startTimeInChapterMs = $startTimeInChapterMs,
             session-currentTime = ${session.currentTime.inWholeMilliseconds}
           )
-        """.trimIndent()
+          """.trimIndent()
         }
 
         // Hydrate the current states so the UI reflects appropriately
