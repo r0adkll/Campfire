@@ -27,6 +27,7 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
+import app.campfire.audioplayer.impl.util.InvalidPlaybackSessionException
 import app.campfire.audioplayer.impl.util.eventAsDebugLog
 import app.campfire.audioplayer.impl.util.playbackStateAsDebugLog
 import app.campfire.audioplayer.model.Metadata
@@ -37,6 +38,7 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
+import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -219,7 +221,12 @@ class ExoPlayerAudioPlayer(
           )
           overallTime.value = track.startOffset.seconds
         } else {
-          // TODO: Log some state here to make it easier to understand this situation
+          CrashReporter.record(
+            InvalidPlaybackSessionException(
+              session,
+              "Chapter/Track Prepare Failed: No Chapters / Tracks"
+            )
+          )
         }
       } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
         val chapter = session.chapter
@@ -252,9 +259,12 @@ class ExoPlayerAudioPlayer(
           )
           overallTime.value = session.currentTime
         } else {
-          // TODO: Log some state here to make it easier to understand this situation
-
-          // Do nothing here for now.
+          CrashReporter.record(
+            InvalidPlaybackSessionException(
+              session,
+              "Session Time is > 0, unable to find chapter/track info"
+            )
+          )
         }
       }
 
