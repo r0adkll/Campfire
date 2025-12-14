@@ -59,7 +59,7 @@ danger(args) {
     val hasSchemaChanges = allSourceFiles.any { it.endsWith(".sq") }
     if (hasSchemaChanges && !ignoreDbChanges) {
       // Check for Migration
-      val migration = git.createdFiles.find { it.endsWith(".sqm") }
+      val migration = allSourceFiles.find { it.endsWith(".sqm") }
       if (migration == null) {
         fail(
           "Changes have been made to the DB schema, but no migration has been found. " +
