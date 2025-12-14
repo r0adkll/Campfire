@@ -36,3 +36,17 @@ ADD COLUMN metaTags_tagSubtitle TEXT,
 ADD COLUMN metaTags_tagSeries TEXT,
 ADD COLUMN metaTags_tagSeriesPart TEXT,
 ADD COLUMN metaTags_tagTrack TEXT;
+
+-- Migrate foreign key constraints on collectionsBookJoin
+CREATE TABLE IF NOT EXISTS collectionsBookJoin2 (
+  collectionsId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+
+  PRIMARY KEY (collectionsId, libraryItemId),
+  FOREIGN KEY (collectionsId) REFERENCES collections(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+INSERT INTO collectionsBookJoin2 SELECT * FROM collectionsBookJoin;
+DROP TABLE collectionsBookJoin;
+ALTER TABLE collectionsBookJoin2 RENAME TO collectionsBookJoin;
