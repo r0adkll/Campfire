@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 data class AudioBookmark(
   val libraryItemId: String,
   val title: String,
-  val time: Int,
+  val time: Float,
   val createdAt: Long,
 )

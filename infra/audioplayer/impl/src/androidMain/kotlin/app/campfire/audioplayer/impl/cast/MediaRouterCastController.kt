@@ -124,15 +124,15 @@ class MediaRouterCastController(
 
   override fun onRouteSelected(router: MediaRouter, selectedRoute: RouteInfo, reason: Int, requestedRoute: RouteInfo) {
     ibark {
-      "CastController:onRouteSelected(device = $selectedRoute, reason = $reason, " +
-        "requestedRoute = $requestedRoute)"
+      "CastController:onRouteSelected(device = ${selectedRoute.id}, reason = $reason, " +
+        "requestedRoute = ${requestedRoute.id})"
     }
     this.selectedRoute = requestedRoute
     updateDevices(router)
   }
 
   override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
-    ibark { "CastController:onRouteUnselected(device = $route, reason = $reason)" }
+    ibark { "CastController:onRouteUnselected(device = ${route.id}, reason = $reason)" }
     updateDevices(router)
   }
 
@@ -140,7 +140,7 @@ class MediaRouterCastController(
     router: MediaRouter,
     route: RouteInfo,
   ) {
-    ibark { "CastController:onRouteAdded(route = $route)" }
+    ibark { "CastController:onRouteAdded(route = ${route.id})" }
     updateDevices(router)
   }
 
@@ -148,7 +148,7 @@ class MediaRouterCastController(
     router: MediaRouter,
     route: RouteInfo,
   ) {
-    ibark { "CastController:onRouteRemoved(route = $route)" }
+    ibark { "CastController:onRouteRemoved(route = ${route.id})" }
     updateDevices(router)
   }
 

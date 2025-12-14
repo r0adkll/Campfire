@@ -1,8 +1,10 @@
 package app.campfire.data.mapping
 
+import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Bookmark
 import app.campfire.data.Bookmarks as DbBookmark
 import app.campfire.network.models.AudioBookmark as NetworkBookmark
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
@@ -13,7 +15,7 @@ fun NetworkBookmark.asDbModel(userId: String): DbBookmark {
     userId = userId,
     libraryItemId = libraryItemId,
     title = title,
-    timeInSeconds = time,
+    timeInSeconds = time.roundToInt(),
     createdAt = Instant.fromEpochSeconds(createdAt).toLocalDateTime(TimeZone.UTC),
   )
 }
