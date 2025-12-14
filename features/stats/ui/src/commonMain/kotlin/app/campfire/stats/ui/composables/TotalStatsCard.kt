@@ -111,6 +111,9 @@ private fun ListeningBarChart(
 ) {
   require(barCount > 0)
 
+  // If there aren't any days then short-circuit as there won't be anything to render anyway
+  if (days.isEmpty()) return
+
   val xAxis = remember(today, days) {
     val max = days.values.max()
     (barCount - 1 downTo 0).map { offset ->
