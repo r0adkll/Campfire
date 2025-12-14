@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rewrote item detail screen for performance
 - Item detail screen UI polishing.
 - Moved 'tent' choice/theming to 'Appearance' settings tab
+- Moved 'Collections' to the left-drawer from bottom nav bar
+- Editing collections now only shows for server admins
 
 ### Deprecated
 
