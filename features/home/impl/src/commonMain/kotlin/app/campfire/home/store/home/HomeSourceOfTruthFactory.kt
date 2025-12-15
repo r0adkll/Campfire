@@ -71,7 +71,6 @@ class HomeSourceOfTruthFactory(
 
               // Persist shelf metadata
               if (isNew) {
-                HomeStore.ibark { "--> New Shelf[$index] (${shelf.id})" }
                 // If the shelf is new, just insert it and its joins
                 val dbShelf = shelf.asDbModel(
                   index = index,
