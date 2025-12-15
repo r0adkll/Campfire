@@ -6,7 +6,6 @@ import app.campfire.common.test.logging.SystemBark
 import app.campfire.common.test.user
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Heartwood
-import app.campfire.core.model.LibraryId
 import app.campfire.core.model.Series
 import app.campfire.core.session.UserSession
 import app.campfire.db.test.CampfireDatabaseTestInterceptor
@@ -37,12 +36,13 @@ class StoreSeriesRepositoryTest {
   @InterceptTest
   private val databaseInterceptor = CampfireDatabaseTestInterceptor()
 
+  private val userId = "test_user_id"
   private val libraryId = "test_library_id"
-  private val userSession = UserSession.LoggedIn(user("test_user_id"))
+  private val userSession = UserSession.LoggedIn(user(userId))
   private val api = FakeAudioBookShelfApi()
   private val userRepository = FakeUserRepository()
   private val tokenHydrator = FakeTokenHydrator()
-  private val cache = CacheBuilder<LibraryId, List<Series>>().build()
+  private val cache = CacheBuilder<SeriesStore.Key, List<Series>>().build()
 
   private val createRepository = { dispatcherProvider: DispatcherProvider ->
     StoreSeriesRepository(
@@ -78,7 +78,7 @@ class StoreSeriesRepositoryTest {
   fun observeSeries_Cached() = runTest {
     val repository = createRepository(asTestDispatcherProvider())
     val series = series("test_series_id", "Test Series")
-    cache.put(libraryId, listOf(series))
+    cache.put(SeriesStore.Key(userId, libraryId), listOf(series))
 
     repository.observeAllSeries().test {
       assertThat(awaitItem())
@@ -95,7 +95,7 @@ class StoreSeriesRepositoryTest {
       .seriesQueries
       .insertOrIgnore(createDbSeries("s1", libraryId = libraryId))
 
-    cache.put(libraryId, listOf(series))
+    cache.put(SeriesStore.Key(userId, libraryId), listOf(series))
 
     repository.observeAllSeries().test {
       assertThat(awaitItem())
@@ -112,7 +112,7 @@ class StoreSeriesRepositoryTest {
   fun observeSeries_CachedWithSoTAndNetwork_EmitsCacheSoTNetwork() = runTest {
     val repository = createRepository(asTestDispatcherProvider())
 
-    cache.put(libraryId, listOf(series("c1", "Test Series")))
+    cache.put(SeriesStore.Key(userId, libraryId), listOf(series("c1", "Test Series")))
     databaseInterceptor.db
       .seriesQueries
       .insertOrIgnore(createDbSeries("s1", libraryId = libraryId))

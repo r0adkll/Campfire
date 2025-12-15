@@ -2,6 +2,7 @@ package app.campfire.home.mapping
 
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.ShelfType
+import app.campfire.core.model.UserId
 import app.campfire.data.Shelf as DbShelf
 import app.campfire.home.api.model.Shelf as DomainShelf
 import app.campfire.network.models.Shelf as NetworkShelf
@@ -19,10 +20,12 @@ fun DbShelf.asDomainModel(): DomainShelf {
 fun NetworkShelf.asDbModel(
   index: Int,
   libraryId: LibraryId,
+  userId: UserId,
 ): DbShelf {
   return DbShelf(
     id = id,
     libraryId = libraryId,
+    userId = userId,
     label = label,
     labelStringKey = labelStringKey,
     total = total,

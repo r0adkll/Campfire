@@ -3,7 +3,6 @@ package app.campfire.series.store
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.model.LibraryId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.util.runIfNotNull
@@ -11,6 +10,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.models.Series as NetworkSeries
+import app.campfire.series.store.SeriesStore.Key
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -28,8 +28,8 @@ internal class SeriesSourceOfTruthFactory(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   fun create() = SourceOfTruth.of(
-    reader = { libraryId: LibraryId ->
-      db.seriesQueries.selectByLibraryId(libraryId)
+    reader = { key: Key ->
+      db.seriesQueries.selectByLibraryId(key.libraryId)
         .asFlow()
         .mapToList(dispatcherProvider.databaseRead)
         .mapLatest { series ->
@@ -46,12 +46,12 @@ internal class SeriesSourceOfTruthFactory(
           }
         }
     },
-    writer = { libraryId, series: List<NetworkSeries> ->
+    writer = { key: Key, series: List<NetworkSeries> ->
       withContext(dispatcherProvider.databaseWrite) {
         db.transaction {
           series.forEach { series ->
             // Insert Series
-            db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
+            db.seriesQueries.insertOrIgnore(series.asDbModel(key.userId, key.libraryId))
 
             // Insert the series books
             series.books?.forEachIndexed { index, book ->
@@ -83,9 +83,9 @@ internal class SeriesSourceOfTruthFactory(
         }
       }
     },
-    delete = { libraryId: LibraryId ->
+    delete = { key ->
       withContext(dispatcherProvider.databaseWrite) {
-        db.seriesQueries.deleteForLibraryId(libraryId)
+        db.seriesQueries.deleteForLibraryId(key.libraryId)
       }
     },
   )

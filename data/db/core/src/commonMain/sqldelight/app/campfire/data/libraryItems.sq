@@ -56,7 +56,8 @@ SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
 INNER JOIN shelfJoin ON shelfJoin.entityId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
-WHERE shelfJoin.shelfId = ?;
+WHERE shelfJoin.shelfId = ?
+ORDER BY shelfJoin.shelfOrder ASC;
 
 selectForCollection:
 SELECT libraryItem.*,media.* FROM libraryItem

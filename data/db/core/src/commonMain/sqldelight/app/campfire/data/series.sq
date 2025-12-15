@@ -14,7 +14,9 @@ CREATE TABLE IF NOT EXISTS series (
   firstBookUnreadId TEXT,
 
   libraryId TEXT NOT NULL,
-  FOREIGN KEY (libraryId) REFERENCES library(id) ON DELETE CASCADE
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
 insertOrIgnore:
@@ -56,7 +58,8 @@ ORDER BY name ASC;
 selectByShelfId:
 SELECT * FROM series
 INNER JOIN shelfJoin ON shelfJoin.entityId = series.id
-WHERE shelfJoin.shelfId = ?;
+WHERE shelfJoin.shelfId = ?
+ORDER BY shelfJoin.shelfOrder ASC;
 
 deleteForLibraryId:
 DELETE FROM series

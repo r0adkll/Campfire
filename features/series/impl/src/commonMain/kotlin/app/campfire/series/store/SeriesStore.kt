@@ -5,6 +5,7 @@ import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.Series
+import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.network.AudioBookShelfApi
 import kotlin.time.Duration.Companion.minutes
@@ -16,13 +17,18 @@ import org.mobilenativefoundation.store.store5.StoreBuilder
 
 object SeriesStore {
 
+  data class Key(
+    val userId: UserId,
+    val libraryId: LibraryId,
+  )
+
   class Factory(
     userSession: UserSession,
     api: AudioBookShelfApi,
     db: CampfireDatabase,
     tokenHydrator: TokenHydrator,
     dispatcherProvider: DispatcherProvider,
-    private val cache: Cache<LibraryId, List<Series>>,
+    private val cache: Cache<Key, List<Series>>,
   ) {
 
     @Inject
@@ -38,7 +44,7 @@ object SeriesStore {
       db = db,
       tokenHydrator = tokenHydrator,
       dispatcherProvider = dispatcherProvider,
-      cache = CacheBuilder<LibraryId, List<Series>>()
+      cache = CacheBuilder<Key, List<Series>>()
         .expireAfterAccess(5.minutes)
         .build(),
     )
@@ -47,7 +53,7 @@ object SeriesStore {
     private val seriesSourceOfTruthFactory =
       SeriesSourceOfTruthFactory(userSession, db, tokenHydrator, dispatcherProvider)
 
-    fun create(): Store<LibraryId, List<Series>> {
+    fun create(): Store<Key, List<Series>> {
       return StoreBuilder
         .from(
           fetcher = seriesFetcherFactory.create(),

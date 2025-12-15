@@ -10,6 +10,7 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
 import app.campfire.core.util.runIfNotNull
@@ -68,6 +69,7 @@ class StoreSeriesRepository(
   private val seriesStore by lazy { seriesStoreFactory.create() }
 
   data class SeriesItems(
+    val userId: UserId,
     val libraryId: LibraryId,
     val seriesId: SeriesId,
   )
@@ -117,7 +119,7 @@ class StoreSeriesRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             // Insert the series first,
-            val series = networkResult.series.asDbModel(s.libraryId)
+            val series = networkResult.series.asDbModel(s.userId, s.libraryId)
             db.seriesQueries.insertOrIgnore(series)
 
             // Insert the books
@@ -164,7 +166,8 @@ class StoreSeriesRepository(
   override fun observeAllSeries(): Flow<List<Series>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        seriesStore.stream(StoreReadRequest.cached(user.selectedLibraryId, refresh = true))
+        val key = SeriesStore.Key(user.id, user.selectedLibraryId)
+        seriesStore.stream(StoreReadRequest.cached(key, refresh = true))
           .debugLogging("Series")
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
@@ -189,7 +192,7 @@ class StoreSeriesRepository(
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         val request = StoreReadRequest.cached(
-          SeriesItems(user.selectedLibraryId, seriesId),
+          SeriesItems(user.id, user.selectedLibraryId, seriesId),
           refresh = true,
         )
         libraryItemStore.stream(request)

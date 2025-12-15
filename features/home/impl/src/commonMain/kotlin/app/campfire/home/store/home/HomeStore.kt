@@ -5,6 +5,7 @@ import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.UserId
 import app.campfire.home.api.model.Shelf
 import app.campfire.network.AudioBookShelfApi
 import kotlin.time.Duration.Companion.minutes
@@ -47,5 +48,8 @@ object HomeStore : Cork {
     }
   }
 
-  data class Key(val libraryId: LibraryId)
+  data class Key(
+    val userId: UserId,
+    val libraryId: LibraryId,
+  )
 }

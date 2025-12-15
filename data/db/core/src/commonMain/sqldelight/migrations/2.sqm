@@ -50,3 +50,51 @@ CREATE TABLE IF NOT EXISTS collectionsBookJoin2 (
 INSERT INTO collectionsBookJoin2 SELECT * FROM collectionsBookJoin;
 DROP TABLE collectionsBookJoin;
 ALTER TABLE collectionsBookJoin2 RENAME TO collectionsBookJoin;
+
+-- Drop and re-create home shelf tables
+DROP TABLE shelf;
+DROP TABLE shelfJoin;
+
+CREATE TABLE shelf (
+  id TEXT NOT NULL PRIMARY KEY,
+  libraryId TEXT NOT NULL,
+  label TEXT NOT NULL,
+  labelStringKey TEXT NOT NULL,
+  total INTEGER AS Int NOT NULL,
+  type TEXT AS ShelfType NOT NULL,
+  homeOrder INTEGER AS Int NOT NULL DEFAULT 0,
+
+  userId TEXT NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE shelfJoin(
+  shelfId TEXT NOT NULL,
+  entityId TEXT NOT NULL,
+  shelfOrder INTEGER AS Int NOT NULL DEFAULT 0,
+
+  PRIMARY KEY (shelfId, entityId),
+  FOREIGN KEY (shelfId) REFERENCES shelf(id) ON DELETE CASCADE
+);
+
+-- Drop and re-create series tables
+DROP TABLE series;
+
+CREATE TABLE series (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  inProgress INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hasActiveBook INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hideFromContinueListening INTEGER AS Boolean NOT NULL DEFAULT 0,
+  bookInProgressLastUpdate INTEGER,
+  firstBookUnreadId TEXT,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);

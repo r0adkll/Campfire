@@ -20,6 +20,7 @@ import app.campfire.data.Search_tags
 import app.campfire.data.Server
 import app.campfire.data.Session
 import app.campfire.data.Shelf
+import app.campfire.data.ShelfJoin
 import app.campfire.data.User
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.adapter.primitive.IntColumnAdapter
@@ -151,6 +152,9 @@ class DatabaseFactory(
       totalAdapter = IntColumnAdapter,
       typeAdapter = EnumColumnAdapter(),
       homeOrderAdapter = IntColumnAdapter,
+    ),
+    shelfJoinAdapter = ShelfJoin.Adapter(
+      shelfOrderAdapter = IntColumnAdapter,
     ),
   )
 }

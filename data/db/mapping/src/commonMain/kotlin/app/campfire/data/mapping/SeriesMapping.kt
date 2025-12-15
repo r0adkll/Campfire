@@ -3,19 +3,24 @@ package app.campfire.data.mapping
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
+import app.campfire.core.model.UserId
 import app.campfire.data.SearchSeries
 import app.campfire.data.SelectByShelfId
 import app.campfire.data.Series as DbSeries
 import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.network.models.SeriesPersonalized
 
-fun NetworkSeries.asDbModel(libraryId: LibraryId): DbSeries {
+fun NetworkSeries.asDbModel(
+  userId: UserId,
+  libraryId: LibraryId,
+): DbSeries {
   return DbSeries(
     id = id,
     name = name,
     description = description,
     addedAt = addedAt,
     updatedAt = updatedAt,
+    userId = userId,
     libraryId = libraryId,
     inProgress = false,
     hasActiveBook = false,
@@ -25,13 +30,17 @@ fun NetworkSeries.asDbModel(libraryId: LibraryId): DbSeries {
   )
 }
 
-fun SeriesPersonalized.asDbModel(libraryId: LibraryId): DbSeries {
+fun SeriesPersonalized.asDbModel(
+  userId: UserId,
+  libraryId: LibraryId,
+): DbSeries {
   return DbSeries(
     id = id,
     name = name,
     description = description,
     addedAt = addedAt,
     updatedAt = updatedAt,
+    userId = userId,
     libraryId = libraryId,
     inProgress = inProgress == true,
     hasActiveBook = hasActiveBook == true,

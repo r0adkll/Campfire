@@ -4,6 +4,8 @@ import app.campfire.CampfireDatabase
 import app.campfire.account.api.TokenHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.ShelfType
+import app.campfire.core.model.UserId
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.ShelfJoin
 import app.campfire.data.mapping.asDbModel
@@ -16,6 +18,7 @@ import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf as NetworkShelf
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -32,7 +35,7 @@ class HomeSourceOfTruthFactory(
   fun create(): SourceOfTruth<HomeStore.Key, List<NetworkShelf>, List<Shelf>> {
     return SourceOfTruth.of(
       reader = { key ->
-        db.shelfQueries.select(key.libraryId)
+        db.shelfQueries.select(key.libraryId, key.userId)
           .asFlow()
           .mapToList(dispatcherProvider.databaseRead)
           .map { shelves ->
@@ -46,29 +49,80 @@ class HomeSourceOfTruthFactory(
           }
       },
       writer = { key, shelves ->
+        val currentShelves = withContext(dispatcherProvider.databaseRead) {
+          db.shelfQueries.select(key.libraryId, key.userId).awaitAsList()
+        }
+
+        val currentJoins = withContext(dispatcherProvider.databaseRead) {
+          db.shelfQueries.selectAllJoins().awaitAsList()
+        }.groupBy { it.shelfId }
+
+        val trashed = currentShelves.filter { shelves.none { shelf -> it.id == shelf.id } }
+
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             // Persist all the entities within a shelf
             shelves.forEachIndexed { index, shelf ->
-              writeEntities(key.libraryId, shelf)
+              val isExisting = currentShelves.any { it.id == shelf.id }
+              val isNew = currentShelves.none { it.id == shelf.id }
+
+              // Either way we should always persist and update the entities in the shelves
+              writeEntities(key.userId, key.libraryId, shelf)
 
               // Persist shelf metadata
-              val dbShelf = shelf.asDbModel(index, key.libraryId)
-              db.shelfQueries.insert(dbShelf)
-              writeEntityJoins(shelf)
+              if (isNew) {
+                HomeStore.ibark { "--> New Shelf[$index] (${shelf.id})" }
+                // If the shelf is new, just insert it and its joins
+                val dbShelf = shelf.asDbModel(
+                  index = index,
+                  libraryId = key.libraryId,
+                  userId = key.userId,
+                )
+                db.shelfQueries.insert(dbShelf)
+                writeEntityJoins(shelf)
+              } else if (isExisting) {
+                // If the shelf already exists, update the current shelf metadata
+                // and its joins
+                db.shelfQueries.update(
+                  id = shelf.id,
+                  label = shelf.label,
+                  labelStringKey = shelf.labelStringKey,
+                  total = shelf.total,
+                  type = when (shelf) {
+                    is NetworkShelf.AuthorShelf -> ShelfType.AUTHOR
+                    is NetworkShelf.BookShelf -> ShelfType.BOOK
+                    is NetworkShelf.EpisodeShelf -> ShelfType.EPISODE
+                    is NetworkShelf.PodcastShelf -> ShelfType.PODCAST
+                    is NetworkShelf.SeriesShelf -> ShelfType.SERIES
+                  },
+                  homeOrder = index,
+                )
+
+                val currentShelfJoins = currentJoins[shelf.id]
+                  ?.map { it.entityId }
+                  ?: emptyList()
+                updateEntityJoins(shelf, currentShelfJoins)
+              }
+            }
+
+            // Remove all shelves, and their joins, for shelfs that don't exist
+            // in the returned network response
+            trashed.forEach { shelf ->
+              db.shelfQueries.deleteById(shelf.id)
             }
           }
         }
       },
       delete = { key ->
         withContext(dispatcherProvider.databaseWrite) {
-          db.shelfQueries.delete(key.libraryId)
+          db.shelfQueries.delete(key.libraryId, key.userId)
         }
       },
     )
   }
 
   private suspend fun SuspendingTransactionWithoutReturn.writeEntities(
+    userId: UserId,
     libraryId: LibraryId,
     shelf: NetworkShelf,
   ): Unit = when (shelf) {
@@ -76,7 +130,7 @@ class HomeSourceOfTruthFactory(
     is NetworkShelf.EpisodeShelf -> writeLibraryItems(shelf.entities)
     is NetworkShelf.PodcastShelf -> writeLibraryItems(shelf.entities)
     is NetworkShelf.AuthorShelf -> writeAuthors(shelf.entities)
-    is NetworkShelf.SeriesShelf -> writeSeries(libraryId, shelf.entities)
+    is NetworkShelf.SeriesShelf -> writeSeries(userId, libraryId, shelf.entities)
   }
 
   @Suppress("UnusedReceiverParameter")
@@ -91,14 +145,52 @@ class HomeSourceOfTruthFactory(
       is NetworkShelf.SeriesShelf -> shelf.entities.map { it.id }
     }
 
-    entityIds.forEach { entityId ->
+    entityIds.forEachIndexed { index, entityId ->
       db.shelfQueries.insertJoins(
         ShelfJoin(
           shelfId = shelf.id,
           entityId = entityId,
+          shelfOrder = index,
         ),
       )
     }
+  }
+
+  @Suppress("UnusedReceiverParameter")
+  private suspend fun SuspendingTransactionWithoutReturn.updateEntityJoins(
+    shelf: NetworkShelf,
+    existingJoins: List<String>,
+  ) {
+    val entityIds = when (shelf) {
+      is NetworkShelf.BookShelf -> shelf.entities.map { it.id }
+      is NetworkShelf.AuthorShelf -> shelf.entities.map { it.id }
+      is NetworkShelf.EpisodeShelf -> shelf.entities.map { it.id }
+      is NetworkShelf.PodcastShelf -> shelf.entities.map { it.id }
+      is NetworkShelf.SeriesShelf -> shelf.entities.map { it.id }
+    }
+
+    val trashed = existingJoins.filter { !entityIds.contains(it) }
+    entityIds.forEachIndexed { index, entityId ->
+      val isNew = !existingJoins.contains(entityId)
+
+      if (isNew) {
+        db.shelfQueries.insertJoins(
+          ShelfJoin(
+            shelfId = shelf.id,
+            entityId = entityId,
+            shelfOrder = index,
+          ),
+        )
+      } else {
+        db.shelfQueries.updateJoin(
+          shelfId = shelf.id,
+          entityId = entityId,
+          shelfOrder = index,
+        )
+      }
+    }
+
+    db.shelfQueries.deleteJoins(shelf.id, trashed)
   }
 
   @Suppress("UnusedReceiverParameter")
@@ -126,6 +218,7 @@ class HomeSourceOfTruthFactory(
 
   @Suppress("UnusedReceiverParameter")
   private suspend fun SuspendingTransactionWithoutReturn.writeSeries(
+    userId: UserId,
     libraryId: LibraryId,
     entities: List<SeriesPersonalized>,
   ) {
@@ -148,7 +241,7 @@ class HomeSourceOfTruthFactory(
           libraryId = libraryId,
         )
       } else {
-        db.seriesQueries.insertOrIgnore(series.asDbModel(libraryId))
+        db.seriesQueries.insertOrIgnore(series.asDbModel(userId, libraryId))
       }
 
       // Insert the series books

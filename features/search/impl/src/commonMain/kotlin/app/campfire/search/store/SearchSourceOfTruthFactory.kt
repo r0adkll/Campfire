@@ -186,7 +186,7 @@ class SearchSourceOfTruthFactory(
         series.forEach { seriesSearchResult ->
 
           db.seriesQueries.insertOrIgnore(
-            seriesSearchResult.series.asDbModel(query.libraryId),
+            seriesSearchResult.series.asDbModel(query.userId, query.libraryId),
           )
 
           seriesSearchResult.books.forEach { libraryItem ->

@@ -77,7 +77,7 @@ class ShelfSourceOfTruthFactory(
   }
 
   private fun readAuthors(shelfId: ShelfId): Flow<List<Author>> {
-    return db.authorsQueries.selectForId(shelfId)
+    return db.authorsQueries.selectForShelf(shelfId)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { authors ->

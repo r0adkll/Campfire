@@ -24,7 +24,8 @@ WHERE libraryId = ?;
 selectForShelf:
 SELECT * FROM authors
 INNER JOIN shelfJoin ON shelfJoin.entityId = authors.id
-WHERE shelfJoin.shelfId = ?;
+WHERE shelfJoin.shelfId = ?
+ORDER BY shelfJoin.shelfOrder ASC;
 
 selectForId:
 SELECT * FROM authors

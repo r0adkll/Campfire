@@ -44,7 +44,7 @@ class StoreHomeRepository(
   override fun observeHomeFeed(): Flow<FeedResponse<List<Shelf>>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        val key = HomeStore.Key(user.selectedLibraryId)
+        val key = HomeStore.Key(user.id, user.selectedLibraryId)
         val request = StoreReadRequest.cached(key, refresh = true)
         homeStore.stream(request)
           .debugLogging(HomeStore.tag)
