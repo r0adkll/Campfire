@@ -13,6 +13,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -21,6 +22,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.http.headers
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.withContext
@@ -57,6 +59,7 @@ class KtorAuthAudioBookShelfApi(
     password: String,
   ): Result<LoginResponse> = trySendRequest {
     client.post {
+      header("x-return-tokens", "true")
       url("${cleanServerUrl(serverUrl)}/login")
       contentType(ContentType.Application.Json)
       setBody(LoginRequest(username, password))

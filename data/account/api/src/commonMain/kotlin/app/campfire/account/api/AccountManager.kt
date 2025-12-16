@@ -15,12 +15,14 @@ interface AccountManager {
    * and setting the account as the current account
    *
    * @param serverUrl the url of the server the account is from
-   * @param token the access token the account will use to access the server
+   * @param accessToken the access token the account will use to access the server
+   * @param refreshToken the refresh token the account will use to refresh the access token
    * @param user the user object representing the new account
    */
   suspend fun addAccount(
     serverUrl: String,
-    token: String,
+    accessToken: String,
+    refreshToken: String?,
     user: User,
   )
 
@@ -41,5 +43,10 @@ interface AccountManager {
    * requests on behalf of the account.
    * @param userId the id of the user to fetch a token for
    */
-  suspend fun getToken(userId: UserId): String?
+  suspend fun getToken(userId: UserId): AbsToken?
+
+  /**
+   * Update the set of tokens for a given user
+   */
+  suspend fun updateToken(userId: UserId, newToken: AbsToken)
 }

@@ -39,7 +39,7 @@ class ServerTokenHydrator(
   private suspend fun getCurrentToken(): String? {
     if (cachedToken != null) return cachedToken
     return userSession.userId?.let { userId ->
-      tokenStorage.get(userId).also { token ->
+      tokenStorage.get(userId)?.accessToken.also { token ->
         /*
          * This token is not going to change mid-usersession
          * so lets cache it for faster use

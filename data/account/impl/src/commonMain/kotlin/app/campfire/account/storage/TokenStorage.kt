@@ -1,5 +1,6 @@
 package app.campfire.account.storage
 
+import app.campfire.account.api.AbsToken
 import app.campfire.core.model.UserId
 
 /**
@@ -7,7 +8,7 @@ import app.campfire.core.model.UserId
  */
 interface TokenStorage {
 
-  suspend fun get(userId: UserId): String?
-  suspend fun put(userId: UserId, token: String)
+  suspend fun get(userId: UserId): AbsToken?
+  suspend fun put(userId: UserId, token: AbsToken)
   suspend fun remove(userId: UserId)
 }

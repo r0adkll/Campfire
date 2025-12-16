@@ -8,6 +8,9 @@ sealed class UserSession {
 
   data class LoggedIn(
     val user: User,
+
+    // TODO: This ends up getting cached with the saveable backstack in circuit creating a UI bug
+    //  find another way to surface the consent screen.
     val showAnalyticsConsent: Boolean = false,
   ) : UserSession() {
     /**
@@ -28,6 +31,8 @@ val UserSession.serverUrl: String? get() = when (this) {
   is UserSession.LoggedIn -> user.serverUrl
   else -> null
 }
+
+val UserSession.requireServerUrl: String get() = requireNotNull(serverUrl)
 
 val UserSession.userId: UserId? get() = when (this) {
   is UserSession.LoggedIn -> user.id

@@ -1,5 +1,6 @@
 package app.campfire.account
 
+import app.campfire.account.api.AbsToken
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.UserSessionManager
@@ -42,19 +43,23 @@ class DefaultAccountManager(
       bark(LogPriority.ERROR, throwable = throwable) { "Coroutine Exception in AccountManager" }
     }
 
-  override suspend fun addAccount(serverUrl: String, token: String, user: User) =
-    withContext(accountManagerCoroutineContext) {
-      // Store the access token
-      tokenStorage.put(user.id, token)
+  override suspend fun addAccount(
+    serverUrl: String,
+    accessToken: String,
+    refreshToken: String?,
+    user: User,
+  ) = withContext(accountManagerCoroutineContext) {
+    // Store the access token
+    tokenStorage.put(user.id, AbsToken(accessToken, refreshToken))
 
-      // Check for other accounts
-      val hasOtherAccounts = serverRepository.getAllServers().any { it.user.id != user.id }
+    // Check for other accounts
+    val hasOtherAccounts = serverRepository.getAllServers().any { it.user.id != user.id }
 
-      // Switch the session over
-      changeSession {
-        UserSession.LoggedIn(user, showAnalyticsConsent = !hasOtherAccounts)
-      }
+    // Switch the session over
+    changeSession {
+      UserSession.LoggedIn(user, showAnalyticsConsent = !hasOtherAccounts)
     }
+  }
 
   override suspend fun switchAccount(user: User) = withContext(accountManagerCoroutineContext) {
     // If we are switching to the current account, just ignore the action
@@ -96,8 +101,12 @@ class DefaultAccountManager(
     logoutUseCase.execute(server)
   }
 
-  override suspend fun getToken(userId: UserId): String? {
+  override suspend fun getToken(userId: UserId): AbsToken? {
     return tokenStorage.get(userId)
+  }
+
+  override suspend fun updateToken(userId: UserId, newToken: AbsToken) {
+    tokenStorage.put(userId, newToken)
   }
 
   private suspend inline fun changeSession(block: suspend () -> UserSession) {

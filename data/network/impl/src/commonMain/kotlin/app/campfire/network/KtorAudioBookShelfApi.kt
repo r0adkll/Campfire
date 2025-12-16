@@ -4,7 +4,8 @@ import app.campfire.account.api.AccountManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.serverUrl
+import app.campfire.core.session.requireServerUrl
+import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.network.envelopes.AddBookToCollectionRequest
 import app.campfire.network.envelopes.AllLibrariesResponse
@@ -13,6 +14,7 @@ import app.campfire.network.envelopes.BatchBooksRequest
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.LibraryItemsResponse
+import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
@@ -41,17 +43,19 @@ import app.campfire.network.models.User
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
+import io.ktor.client.request.post
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
@@ -81,6 +85,29 @@ class KtorAudioBookShelfApi(
 
       install(ContentNegotiation) {
         json()
+      }
+
+      install(Auth) {
+        bearer {
+          loadTokens {
+            accountManager.getToken(userSession.requiredUserId)?.asBearerTokens()
+          }
+          refreshTokens {
+            val newToken = client.post {
+              val currentServerUrl = userSession.requireServerUrl
+              url("${cleanServerUrl(currentServerUrl)}/auth/refresh")
+              oldTokens?.refreshToken?.let {
+                header("x-refresh-token", it)
+              }
+              markAsRefreshTokenRequest()
+            }.body<LoginResponse>().asAbsToken()
+
+            // Store our new tokens
+            accountManager.updateToken(userSession.requiredUserId, newToken)
+
+            newToken.asBearerTokens()
+          }
+        }
       }
     }
   }
@@ -420,17 +447,9 @@ class KtorAudioBookShelfApi(
     endpoint: String,
     builder: HttpRequestBuilder.() -> Unit = { },
   ): HttpResponse {
-    val currentServerUrl = userSession.serverUrl
-      ?: throw IllegalStateException("You must be logged in to perform this request")
-    val currentUserId = userSession.userId
-      ?: throw IllegalStateException("You must be logged in to perform this request")
-    val token = accountManager.getToken(currentUserId)
-
+    val currentServerUrl = userSession.requireServerUrl
     return client.request {
       url("${cleanServerUrl(currentServerUrl)}${if (!endpoint.startsWith("/")) "/" else ""}$endpoint")
-      token?.let {
-        header(HttpHeaders.Authorization, "Bearer $it")
-      }
       header(HEADER_SERVER_URL, currentServerUrl)
       contentType(ContentType.Application.Json)
       builder()
@@ -441,18 +460,12 @@ class KtorAudioBookShelfApi(
     urlBuilder: URLBuilder.() -> Unit,
     builder: HttpRequestBuilder.() -> Unit = { },
   ): HttpResponse {
-    val currentServerUrl = userSession.serverUrl
-      ?: throw IllegalStateException("You must be logged in to perform this request")
-    val currentUserId = userSession.userId
-      ?: throw IllegalStateException("You must be logged in to perform this request")
-    val token = accountManager.getToken(currentUserId)
-      ?: throw IllegalStateException("No authentication found for the url $currentServerUrl")
+    val currentServerUrl = userSession.requireServerUrl
     return client.request {
       url {
         takeFrom(cleanServerUrl(currentServerUrl))
         urlBuilder()
       }
-      header(HttpHeaders.Authorization, "Bearer $token")
       header(HEADER_SERVER_URL, currentServerUrl)
       contentType(ContentType.Application.Json)
       builder()

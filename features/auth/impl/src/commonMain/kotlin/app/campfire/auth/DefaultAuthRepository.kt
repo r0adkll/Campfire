@@ -66,7 +66,8 @@ class DefaultAuthRepository(
       // Add the new account/user and set it as the current session
       accountManager.addAccount(
         serverUrl = serverUrl,
-        token = response.user.token,
+        accessToken = response.user.accessToken,
+        refreshToken = response.user.refreshToken,
         user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
       )
 
