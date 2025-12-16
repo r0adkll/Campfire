@@ -23,6 +23,7 @@ import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
@@ -41,6 +42,7 @@ import kotlin.test.Test
 )
 class LibraryItemUiTest {
 
+  val user = user("test_user-id")
   private val events = TestEventSink<LibraryItemUiEvent>()
   private val addToCollectionDialog = object : AddToCollectionDialog {
     @Composable
@@ -59,6 +61,7 @@ class LibraryItemUiTest {
   @Test
   fun testErrorList() = runComposeUiTest {
     val state = LibraryItemUiState(
+      user = user,
       libraryItem = null,
       theme = null,
       contentState = LoadState.Error,
@@ -76,6 +79,7 @@ class LibraryItemUiTest {
   @Test
   fun testLoadingList() = runComposeUiTest {
     val state = LibraryItemUiState(
+      user = user,
       libraryItem = null,
       theme = null,
       contentState = LoadState.Loading,
@@ -93,6 +97,7 @@ class LibraryItemUiTest {
   @Test
   fun testLoadedList() = runComposeUiTest {
     val state = LibraryItemUiState(
+      user = user,
       libraryItem = null,
       theme = null,
       contentState = LoadState.Loaded(
@@ -115,6 +120,7 @@ class LibraryItemUiTest {
   @Test
   fun clickingBackEmitsEvent() = runComposeUiTest {
     val state = LibraryItemUiState(
+      user = user,
       libraryItem = null,
       theme = null,
       contentState = LoadState.Loaded(
@@ -135,6 +141,7 @@ class LibraryItemUiTest {
   @Test
   fun clickingAddToCollectionShowsDialog() = runComposeUiTest {
     val state = LibraryItemUiState(
+      user = user,
       libraryItem = libraryItem(),
       theme = null,
       contentState = LoadState.Loaded(
