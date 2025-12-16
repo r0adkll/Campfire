@@ -23,6 +23,8 @@ import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUser
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -72,6 +74,7 @@ import me.tatarka.inject.annotations.Inject
 class LibraryItemPresenter(
   @Assisted private val screen: LibraryItemScreen,
   @Assisted private val navigator: Navigator,
+  private val userSession: UserSession,
   private val repository: LibraryItemRepository,
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
@@ -183,6 +186,7 @@ class LibraryItemPresenter(
     }
 
     return LibraryItemUiState(
+      user = userSession.requiredUser,
       libraryItem = libraryItemContentState.dataOrNull,
       theme = theme,
       contentState = slots,

@@ -36,5 +36,12 @@ val UserSession.userId: UserId? get() = when (this) {
 
 val UserSession.requiredUserId: UserId get() = requireNotNull(userId)
 
+val UserSession.user: User? get() = when (this) {
+  is UserSession.LoggedIn -> user
+  else -> null
+}
+
+val UserSession.requiredUser: User get() = requireNotNull(user)
+
 val UserSession.isLoggedIn: Boolean
   get() = this is UserSession.LoggedIn && !this.showAnalyticsConsent

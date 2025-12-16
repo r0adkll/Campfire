@@ -51,7 +51,12 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.User
+import app.campfire.core.model.User.Permissions
+import app.campfire.core.model.User.Type
+import app.campfire.core.model.UserId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -130,16 +135,18 @@ fun LibraryItemContent(
           }
         },
         actions = {
-          IconButton(
-            onClick = {
-              Analytics.send(ActionEvent("add_to_collection", Click))
-              showAddToCollectionDialog = true
-            },
-          ) {
-            Icon(
-              Icons.Rounded.LibraryAdd,
-              contentDescription = stringResource(Res.string.cd_add_to_collection),
-            )
+          if (state.user.type == User.Type.Admin) {
+            IconButton(
+              onClick = {
+                Analytics.send(ActionEvent("add_to_collection", Click))
+                showAddToCollectionDialog = true
+              },
+            ) {
+              Icon(
+                Icons.Rounded.LibraryAdd,
+                contentDescription = stringResource(Res.string.cd_add_to_collection),
+              )
+            }
           }
         },
       )
@@ -227,7 +234,40 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
         contentLength = 500L * 1024L * 1024L,
       )
 
+      fun user(
+        id: UserId,
+        name: String = "Test User",
+        selectedLibraryId: LibraryId = "test_library_id",
+        type: Type = Type.Admin,
+        isActive: Boolean = true,
+        isLocked: Boolean = false,
+        lastSeen: Long = 0L,
+        createdAt: Long = 0L,
+        permissions: Permissions = Permissions(
+          download = true,
+          update = true,
+          delete = true,
+          upload = true,
+          accessAllLibraries = true,
+          accessAllTags = true,
+          accessExplicitContent = true,
+        ),
+        serverUrl: String = "https://test.url",
+      ) = User(
+        id = id,
+        name = name,
+        selectedLibraryId = selectedLibraryId,
+        type = type,
+        isActive = isActive,
+        isLocked = isLocked,
+        lastSeen = lastSeen,
+        createdAt = createdAt,
+        permissions = permissions,
+        serverUrl = serverUrl,
+      )
+
       val slotState = LibraryItemUiState(
+        user = user("user_id"),
         libraryItem = libraryItem,
         contentState = LoadState.Loaded(
           data = listOf(
