@@ -14,6 +14,7 @@ fun createDbSeries(
   bookInProgressLastUpdate: Long? = null,
   firstBookUnreadId: String? = null,
   libraryId: String = "test_db_library_id",
+  userId: String = "test_user_id",
 ) = Series(
   id = id,
   name = name,
@@ -26,4 +27,5 @@ fun createDbSeries(
   bookInProgressLastUpdate = bookInProgressLastUpdate,
   firstBookUnreadId = firstBookUnreadId,
   libraryId = libraryId,
+  userId = userId,
 )
