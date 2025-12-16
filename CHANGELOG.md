@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash due to float 'time' in Bookmark responses
 - Crash due to missing or misaligned chapters during playback / ui
 - Crash due to no user stat information
+- Home feed not syncing / displaying correctly
 
 ### Other Notes & Contributions
 
