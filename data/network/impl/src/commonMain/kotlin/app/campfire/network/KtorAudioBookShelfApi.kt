@@ -86,17 +86,9 @@ class KtorAudioBookShelfApi(
 
   private val client by lazy {
     httpClient.config {
-      defaultRequest {
-      }
-
-      install(ContentNegotiation) {
-        json()
-      }
-
       install(Auth) {
         bearer {
           refreshTokens {
-            bark("KtorClient", LogPriority.INFO) { "Refreshing token for ${userSession.requiredUserId}" }
             val tokens = accountManager.getToken(userSession.requiredUserId)
             val newTokenResponse = client.post {
               val currentServerUrl = userSession.requireServerUrl
@@ -110,12 +102,7 @@ class KtorAudioBookShelfApi(
             return@refreshTokens if (newTokenResponse.status.isSuccess()) {
               try {
                 val newToken = newTokenResponse.body<LoginResponse>().asAbsToken()
-
-                // Store our new tokens
                 accountManager.updateToken(userSession.requiredUserId, newToken)
-
-                bark("KtorClient", LogPriority.INFO) { "Stored new tokens! DIFF [${newToken != tokens}]" }
-
                 newToken.asBearerTokens()
               } catch (e: Exception) {
                 bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
