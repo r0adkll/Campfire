@@ -20,6 +20,12 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Provides
 
+private val RESPONSE_CODE_REGEX = "RESPONSE: (\\d+)".toRegex(RegexOption.MULTILINE)
+
+internal val HttpHeaders.RefreshToken: String get() = "x-refresh-token"
+internal val HttpHeaders.ReturnTokens: String get() = "x-return-tokens"
+internal val HttpHeaders.ServerUrl: String get() = "X-Server-Url"
+
 @ContributesTo(AppScope::class)
 interface HttpClientModule {
 
@@ -42,20 +48,37 @@ interface HttpClientModule {
 
       install(Logging) {
         level = when {
-          applicationInfo.debugBuild -> LogLevel.HEADERS
+          applicationInfo.debugBuild -> LogLevel.ALL
           applicationInfo.flavor == Flavor.Alpha -> LogLevel.INFO
           else -> LogLevel.NONE
         }
+
         logger = object : Logger {
           override fun log(message: String) {
+            val responseCode = RESPONSE_CODE_REGEX.find(message)
+              ?.groupValues?.getOrNull(1)?.toIntOrNull()
+              ?: -1
+
+            val priority = when (responseCode) {
+              in 200 until 300 -> LogPriority.INFO
+              in 300 until 400 -> LogPriority.WARN
+              in 400 until 600 -> LogPriority.ERROR
+              else -> LogPriority.DEBUG
+            }
+
             bark(
               tag = "KtorClient",
-              priority = LogPriority.DEBUG,
-              extras = mapOf(
-                "isLogging" to "true",
-              ),
+              priority = priority,
             ) { message }
           }
+        }
+
+        sanitizeHeader { header ->
+          header == HttpHeaders.Authorization ||
+            header == HttpHeaders.Cookie ||
+            header == HttpHeaders.SetCookie ||
+            header == HttpHeaders.RefreshToken ||
+            header == HttpHeaders.ServerUrl
         }
       }
 
@@ -69,20 +92,21 @@ interface HttpClientModule {
   }
 }
 
-private val ApplicationInfo.userAgent: String get() = buildString {
-  // Append application name + Flavor
-  append("Campfire")
-  append(
-    when (flavor) {
-      Flavor.Beta -> " Beta"
-      Flavor.Alpha -> " Alpha"
-      else -> ""
-    },
-  )
+private val ApplicationInfo.userAgent: String
+  get() = buildString {
+    // Append application name + Flavor
+    append("Campfire")
+    append(
+      when (flavor) {
+        Flavor.Beta -> " Beta"
+        Flavor.Alpha -> " Alpha"
+        else -> ""
+      },
+    )
 
-  // Append application version
-  append("/$versionName ")
+    // Append application version
+    append("/$versionName ")
 
-  // Append OS information
-  append("($osName $osVersion; Mobile)")
-}
+    // Append OS information
+    append("($osName $osVersion; Mobile)")
+  }
