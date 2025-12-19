@@ -106,6 +106,7 @@ class KtorAudioBookShelfApi(
                 null
               }
             } else {
+              // TODO: Handle case where account can no-longer auth due to expired refresh token
               bark("KtorClient", LogPriority.ERROR) { "Refresh token request failed!" }
               null
             }
