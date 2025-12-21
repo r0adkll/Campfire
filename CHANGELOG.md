@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Switched underlying authentication to use bearer auth for improved security.
+- Streaming / Image requests now use HTTP headers for authorization.
 
 ### Deprecated
 
