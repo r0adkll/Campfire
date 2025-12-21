@@ -55,7 +55,6 @@ interface ExoPlayerAppComponent {
     )
   }
 
-
   @OptIn(UnstableApi::class)
   @SingleIn(AppScope::class)
   @Provides
@@ -93,7 +92,7 @@ interface ExoPlayerAppComponent {
     simpleCache: SimpleCache,
     sessionManager: UserSessionManager,
     accountManager: AccountManager,
-    appInfo: ApplicationInfo
+    appInfo: ApplicationInfo,
   ): MediaSource.Factory {
     val httpDataSourceFactory = DefaultHttpDataSource.Factory()
       .setUserAgent(appInfo.userAgent)
@@ -117,7 +116,7 @@ interface ExoPlayerAppComponent {
           userSession = sessionManager.current,
           accountManager = accountManager,
           upstreamDataSourceFactory = cacheDataSourceFactory,
-        )
+        ),
       )
   }
 }

@@ -30,7 +30,7 @@ class StartupInitializer(
     applicationScope.launch {
       ibark { "Starting startup initialization" }
 
-      dbark { "--> UserInitializer is starting"  }
+      dbark { "--> UserInitializer is starting" }
       val userInitDuration = measureTime { userInitializer.initialize() }
       dbark { "<-- UserInitializer has finished in $userInitDuration" }
 

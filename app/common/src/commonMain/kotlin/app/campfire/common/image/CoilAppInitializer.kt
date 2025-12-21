@@ -34,8 +34,8 @@ class CoilAppInitializer(
             KtorNetworkFetcherFactory(
               httpClient = {
                 authenticatingHttpClient()
-              }
-            )
+              },
+            ),
           )
         }
         .build()
