@@ -73,6 +73,7 @@ fun AuthorCard(
         Res.drawable.placeholder_person
       }
 
+      val contentScale = ContentScale.Crop
       val painter = rememberAsyncImagePainter(
         model = author.imagePath,
         placeholder = painterResource(placeHolderResource),
@@ -80,6 +81,7 @@ fun AuthorCard(
         onError = {
           bark(throwable = it.result.throwable) { "Author image loading error" }
         },
+        contentScale = contentScale,
       )
 
       val imageState by painter.state.collectAsState()
@@ -92,7 +94,7 @@ fun AuthorCard(
       Image(
         painter,
         contentDescription = author.name,
-        contentScale = ContentScale.Crop,
+        contentScale = contentScale,
         modifier = Modifier
           .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
             sharedElement(
