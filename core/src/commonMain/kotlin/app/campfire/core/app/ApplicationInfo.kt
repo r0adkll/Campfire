@@ -16,7 +16,27 @@ data class ApplicationInfo(
   val manufacturer: String? = null,
   val model: String? = null,
   val sdkVersion: Int? = null,
-)
+) {
+
+  val userAgent: String
+    get() = buildString {
+      // Append application name + Flavor
+      append("Campfire")
+      append(
+        when (flavor) {
+          Flavor.Beta -> " Beta"
+          Flavor.Alpha -> " Alpha"
+          else -> ""
+        },
+      )
+
+      // Append application version
+      append("/$versionName ")
+
+      // Append OS information
+      append("($osName $osVersion; Mobile)")
+    }
+}
 
 enum class Flavor {
   Standard, Beta, Alpha

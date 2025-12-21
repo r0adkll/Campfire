@@ -49,7 +49,7 @@ object IosMediaItemBuilder {
 
       IosMediaItem(
         id = audio.index.toString(),
-        uri = audio.contentUrlWithToken,
+        uri = audio.contentUrl,
         startOffset = audio.startOffset.seconds,
         duration = audio.duration.seconds,
         tracks = tracks,

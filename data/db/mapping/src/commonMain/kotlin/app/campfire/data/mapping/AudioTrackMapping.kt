@@ -65,14 +65,13 @@ fun AudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
   )
 }
 
-suspend fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): AudioTrack {
+fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): AudioTrack {
   return AudioTrack(
     index = index,
     startOffset = startOffset,
     duration = duration,
     title = title,
     contentUrl = contentUrl,
-    contentUrlWithToken = tokenHydrator.hydrateUrlWithToken(contentUrl),
     mimeType = mimeType,
     codec = codec,
     metadata = FileMetadata(

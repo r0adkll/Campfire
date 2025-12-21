@@ -69,7 +69,7 @@ object MediaItemBuilder {
   ): MediaItem {
     return MediaItem(
       id = "${media.id}_${chapter.id}",
-      uri = track.contentUrlWithToken,
+      uri = track.contentUrl,
       mimeType = track.mimeType,
       clipping = if (clipAudio) {
         MediaItem.Clipping(
@@ -89,7 +89,7 @@ object MediaItemBuilder {
   ): MediaItem {
     return MediaItem(
       id = "${media.id}_${track.index}",
-      uri = track.contentUrlWithToken,
+      uri = track.contentUrl,
       mimeType = track.mimeType,
       metadata = createMediaMetadata(track, media),
     )

@@ -13,6 +13,7 @@ import androidx.media3.exoplayer.scheduler.Scheduler
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.logging.Corked
 import app.campfire.infra.audioplayer.impl.R
 import com.r0adkll.kimchi.annotations.ContributesTo
 
@@ -75,7 +76,17 @@ class CampfireDownloadService : DownloadService(
     )
   }
 
-  companion object {
+  override fun onCreate() {
+    super.onCreate()
+    ibark { "--> Creating CampfireDownloadService…" }
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    ibark { "<-- Destroying CampfireDownloadService…" }
+  }
+
+  companion object : Corked("CampfireDownloadService") {
     private const val CHANNEL_ID = "app.campfire.notifications.download"
     private const val NOTIFICATION_ID = 101
     private const val JOB_ID = 1

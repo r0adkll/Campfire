@@ -73,7 +73,7 @@ class DownloadTracker(
   fun getOfflineDownload(item: LibraryItem): OfflineDownload {
     val itemDownloads = if (item.media.tracks.isNotEmpty()) {
       item.media.tracks.mapNotNull {
-        downloads[it.contentUrlWithToken.toUri()]
+        downloads[it.contentUrl.toUri()]
       }
     } else {
       // Find all the downloads by the items associated metadata id. Due to API design restraints, the

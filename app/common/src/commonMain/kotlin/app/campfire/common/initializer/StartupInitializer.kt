@@ -1,12 +1,15 @@
 package app.campfire.common.initializer
 
 import app.campfire.core.app.AppInitializer
+import app.campfire.core.app.UserInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.measureTime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
@@ -15,31 +18,41 @@ import me.tatarka.inject.annotations.Inject
 @SingleIn(AppScope::class)
 @Inject
 class StartupInitializer(
-  initializers: Set<AppInitializer>,
+  private val userInitializer: UserInitializer,
+  private val initializers: Set<AppInitializer>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) {
-
-  private val sortedInitializers = initializers.sortedByDescending { it.priority }
 
   fun initialize() {
     applicationScope.launch {
       ibark { "Starting startup initialization" }
-      val deferred = sortedInitializers.map { initializer ->
-        async {
-          dbark { "--> ${initializer::class.simpleName} is starting" }
-          try {
-            initializer.onInitialize()
-          } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            ebark(throwable = e) { "Something went wrong initializing with ${initializer::class.qualifiedName}" }
-          } finally {
-            dbark { "<-- ${initializer::class.simpleName} has finished" }
-          }
-        }
-      }
 
+      dbark { "--> UserInitializer is starting"  }
+      val userInitDuration = measureTime { userInitializer.initialize() }
+      dbark { "<-- UserInitializer has finished in $userInitDuration" }
+
+      // Process AppScope Initializers
+      val appInitializers = initializers.sortedByDescending { it.priority }
+      val deferred = appInitializers.map { initializer ->
+        processInitializer(initializer)
+      }
       deferred.awaitAll()
-      ibark { "Finished startup initializing" }
+
+      ibark { "Finished AppScope initializing" }
+    }
+  }
+
+  private fun CoroutineScope.processInitializer(initializer: AppInitializer): Deferred<Unit> {
+    return async {
+      dbark { "--> ${initializer::class.simpleName} is starting" }
+      try {
+        initializer.onInitialize()
+      } catch (e: Exception) {
+        if (e is CancellationException) throw e
+        ebark(throwable = e) { "Something went wrong initializing with ${initializer::class.qualifiedName}" }
+      } finally {
+        dbark { "<-- ${initializer::class.simpleName} has finished" }
+      }
     }
   }
 

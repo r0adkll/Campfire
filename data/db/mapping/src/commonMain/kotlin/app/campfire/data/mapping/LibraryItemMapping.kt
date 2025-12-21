@@ -612,7 +612,6 @@ suspend fun LibraryItemWithMedia.asDomainModel(
           duration = it.duration.toFloat(),
           title = it.title,
           contentUrl = tokenHydrator.hydrateUrl(it.contentUrl),
-          contentUrlWithToken = tokenHydrator.hydrateUrlWithToken(it.contentUrl),
           mimeType = it.mimeType,
           codec = it.codec,
           metadata = FileMetadata(

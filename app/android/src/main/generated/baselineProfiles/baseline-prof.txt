@@ -25459,7 +25459,6 @@ PLapp/campfire/core/model/AudioFile;-><init>(ILjava/lang/String;JJLjava/lang/Int
 PLapp/campfire/core/model/AudioFile;->equals(Ljava/lang/Object;)Z
 PLapp/campfire/core/model/AudioTrack;-><init>(IFFLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lapp/campfire/core/model/FileMetadata;)V
 PLapp/campfire/core/model/AudioTrack;->equals(Ljava/lang/Object;)Z
-PLapp/campfire/core/model/AudioTrack;->getContentUrlWithToken()Ljava/lang/String;
 PLapp/campfire/core/model/Chapter;-><init>(IFFLjava/lang/String;)V
 PLapp/campfire/core/model/Chapter;->equals(Ljava/lang/Object;)Z
 PLapp/campfire/core/model/Chapter;->getDuration-UwyO8pc()J

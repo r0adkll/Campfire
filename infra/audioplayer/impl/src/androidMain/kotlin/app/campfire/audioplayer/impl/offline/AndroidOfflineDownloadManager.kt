@@ -77,7 +77,7 @@ class AndroidOfflineDownloadManager(
 
   override fun download(item: LibraryItem) {
     item.media.tracks.forEach { track ->
-      val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrlWithToken.toUri())
+      val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrl.toUri())
         .setData(item.id.encodeToByteArray())
         .build()
 
