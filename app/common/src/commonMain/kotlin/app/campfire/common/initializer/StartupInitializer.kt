@@ -7,6 +7,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.TimeSource
 import kotlin.time.measureTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -22,6 +23,8 @@ class StartupInitializer(
   private val initializers: Set<AppInitializer>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) {
+
+  internal var timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
 
   fun initialize() {
     applicationScope.launch {
@@ -44,6 +47,7 @@ class StartupInitializer(
 
   private fun CoroutineScope.processInitializer(initializer: AppInitializer): Deferred<Unit> {
     return async {
+      val start = timeSource.markNow()
       dbark { "--> ${initializer::class.simpleName} is starting" }
       try {
         initializer.onInitialize()
@@ -51,7 +55,8 @@ class StartupInitializer(
         if (e is CancellationException) throw e
         ebark(throwable = e) { "Something went wrong initializing with ${initializer::class.qualifiedName}" }
       } finally {
-        dbark { "<-- ${initializer::class.simpleName} has finished" }
+        val duration = start.elapsedNow()
+        dbark { "<-- ${initializer::class.simpleName} has finished in $duration" }
       }
     }
   }

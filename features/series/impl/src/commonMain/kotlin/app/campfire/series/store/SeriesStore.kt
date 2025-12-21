@@ -1,7 +1,7 @@
 package app.campfire.series.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.Series
@@ -26,7 +26,7 @@ object SeriesStore {
     userSession: UserSession,
     api: AudioBookShelfApi,
     db: CampfireDatabase,
-    tokenHydrator: TokenHydrator,
+    urlHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
     private val cache: Cache<Key, List<Series>>,
   ) {
@@ -36,13 +36,13 @@ object SeriesStore {
       userSession: UserSession,
       api: AudioBookShelfApi,
       db: CampfireDatabase,
-      tokenHydrator: TokenHydrator,
+      urlHydrator: UrlHydrator,
       dispatcherProvider: DispatcherProvider,
     ) : this(
       userSession = userSession,
       api = api,
       db = db,
-      tokenHydrator = tokenHydrator,
+      urlHydrator = urlHydrator,
       dispatcherProvider = dispatcherProvider,
       cache = CacheBuilder<Key, List<Series>>()
         .expireAfterAccess(5.minutes)
@@ -51,7 +51,7 @@ object SeriesStore {
 
     private val seriesFetcherFactory = SeriesFetcherFactory(api)
     private val seriesSourceOfTruthFactory =
-      SeriesSourceOfTruthFactory(userSession, db, tokenHydrator, dispatcherProvider)
+      SeriesSourceOfTruthFactory(userSession, db, urlHydrator, dispatcherProvider)
 
     fun create(): Store<Key, List<Series>> {
       return StoreBuilder

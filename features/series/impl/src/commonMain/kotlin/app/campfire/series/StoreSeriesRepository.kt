@@ -1,7 +1,7 @@
 package app.campfire.series
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -56,7 +56,7 @@ class StoreSeriesRepository(
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
   private val userRepository: UserRepository,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
   private val seriesStoreFactory: SeriesStore.Factory,
 ) : SeriesRepository {
@@ -111,7 +111,7 @@ class StoreSeriesRepository(
           .mapToList(dispatcherProvider.databaseRead)
           .mapNotNull { selectForSeries ->
             selectForSeries
-              .map { it.asDomainModel(tokenHydrator) }
+              .map { it.asDomainModel(urlHydrator) }
               .takeIf { it.isNotEmpty() }
           }
       },

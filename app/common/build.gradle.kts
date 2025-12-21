@@ -86,6 +86,9 @@ kotlin {
         api(libs.circuitx.gesturenav)
         api(libs.circuitx.navigation)
 
+        api(libs.coil.networking.ktor3)
+        api(libs.ktor.client.auth)
+
         implementation(libs.kotlininject.runtime)
         implementation(libs.kimchi.annotations)
         implementation(libs.kimchi.circuit.annotations)

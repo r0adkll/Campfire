@@ -1,7 +1,7 @@
 package app.campfire.home.store.home
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryId
@@ -22,7 +22,7 @@ object HomeStore : Cork {
   class Factory(
     api: AudioBookShelfApi,
     private val db: CampfireDatabase,
-    private val imageHydrator: TokenHydrator,
+    private val imageHydrator: UrlHydrator,
     private val dispatcherProvider: DispatcherProvider,
   ) {
 

@@ -1,6 +1,6 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.Collection
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
@@ -24,7 +24,7 @@ fun NetworkCollection.asDbModel(
   )
 }
 
-suspend fun NetworkCollection.asDomainModel(tokenHydrator: TokenHydrator): Collection {
+suspend fun NetworkCollection.asDomainModel(urlHydrator: UrlHydrator): Collection {
   return Collection(
     id = id,
     name = name,
@@ -33,7 +33,7 @@ suspend fun NetworkCollection.asDomainModel(tokenHydrator: TokenHydrator): Colle
     coverFullPath = coverFullPath,
     updatedAt = lastUpdate,
     createdAt = createdAt,
-    books = books.map { it.asDomainModel(tokenHydrator) },
+    books = books.map { it.asDomainModel(urlHydrator) },
   )
 }
 

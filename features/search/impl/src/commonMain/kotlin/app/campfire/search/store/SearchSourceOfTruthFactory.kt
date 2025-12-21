@@ -1,7 +1,7 @@
 package app.campfire.search.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.data.Search
 import app.campfire.data.Search_authors
@@ -33,7 +33,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 class SearchSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val libraryItemDao: LibraryItemDao,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -160,7 +160,7 @@ class SearchSourceOfTruthFactory(
       transactionWithResult {
         db.authorsQueries.transaction {
           authors.forEach { author ->
-            db.authorsQueries.insert(author.asDbModel(tokenHydrator))
+            db.authorsQueries.insert(author.asDbModel(urlHydrator))
           }
         }
       }

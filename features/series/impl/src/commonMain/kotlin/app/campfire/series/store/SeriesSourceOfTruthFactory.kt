@@ -1,7 +1,7 @@
 package app.campfire.series.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
@@ -22,7 +22,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 internal class SeriesSourceOfTruthFactory(
   private val userSession: UserSession,
   private val db: CampfireDatabase,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -37,7 +37,7 @@ internal class SeriesSourceOfTruthFactory(
             val books = db.libraryItemsQueries
               .selectForSeries(dbSeries.id)
               .awaitAsList()
-              .map { it.asDomainModel(tokenHydrator) }
+              .map { it.asDomainModel(urlHydrator) }
               .sortedBy { it.media.metadata.seriesSequence?.sequence }
 
             dbSeries.asDomainModel(

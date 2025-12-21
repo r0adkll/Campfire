@@ -1,7 +1,7 @@
 package app.campfire.collections.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
@@ -30,7 +30,7 @@ class CollectionsSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val libraryItemDao: LibraryItemDao,
   private val dispatcherProvider: DispatcherProvider,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val fatherTime: FatherTime,
 ) {
 
@@ -67,7 +67,7 @@ class CollectionsSourceOfTruthFactory(
       }
       .mapLatest { collectionMap ->
         collectionMap.entries.map { (c, books) ->
-          c.asDomainModel(books.map { it.asDomainModel(tokenHydrator) })
+          c.asDomainModel(books.map { it.asDomainModel(urlHydrator) })
         }
       }
       .map { CollectionsStore.Output.Collection(it) }
@@ -82,7 +82,7 @@ class CollectionsSourceOfTruthFactory(
           val libraryItems = db.libraryItemsQueries
             .selectForCollection(c.id)
             .awaitAsList()
-            .map { it.asDomainModel(tokenHydrator) }
+            .map { it.asDomainModel(urlHydrator) }
 
           c.asDomainModel(libraryItems)
         }

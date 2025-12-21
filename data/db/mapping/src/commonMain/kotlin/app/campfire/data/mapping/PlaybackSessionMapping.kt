@@ -1,6 +1,6 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.DeviceInfo
 import app.campfire.core.model.PlaybackSession
 import app.campfire.network.models.DeviceInfo as NetworkDeviceInfo
@@ -10,7 +10,7 @@ import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-suspend fun NetworkPlaybackSession.asDomainModel(tokenHydrator: TokenHydrator): PlaybackSession {
+suspend fun NetworkPlaybackSession.asDomainModel(urlHydrator: UrlHydrator): PlaybackSession {
   return PlaybackSession(
     id = id,
     userId = userId,
@@ -22,7 +22,7 @@ suspend fun NetworkPlaybackSession.asDomainModel(tokenHydrator: TokenHydrator): 
     chapters = chapters.map { it.asDomainModel() },
     displayTitle = displayTitle,
     displayAuthor = displayAuthor,
-    coverImageUrl = tokenHydrator.hydrateLibraryItem(libraryItemId),
+    coverImageUrl = urlHydrator.hydrateLibraryItem(libraryItemId),
     duration = duration.seconds,
     playMethod = playMethod,
     mediaPlayer = mediaPlayer,

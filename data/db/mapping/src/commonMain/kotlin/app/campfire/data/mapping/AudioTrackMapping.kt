@@ -1,6 +1,6 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.MetaTags
@@ -65,7 +65,7 @@ fun AudioTrack.asDbModel(mediaId: String): MediaAudioTracks {
   )
 }
 
-fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): AudioTrack {
+fun NetworkAudioTrack.asDomainModel(urlHydrator: UrlHydrator): AudioTrack {
   return AudioTrack(
     index = index,
     startOffset = startOffset,
@@ -77,7 +77,7 @@ fun NetworkAudioTrack.asDomainModel(tokenHydrator: TokenHydrator): AudioTrack {
     metadata = FileMetadata(
       filename = metadata.filename,
       ext = metadata.ext,
-      path = tokenHydrator.hydrateUrl(metadata.path),
+      path = urlHydrator.hydrateUrl(metadata.path),
       relPath = metadata.relPath,
       size = metadata.size,
       mtimeMs = metadata.mtimeMs,

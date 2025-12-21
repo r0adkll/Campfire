@@ -1,6 +1,6 @@
 package app.campfire.stats
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryStats
 import app.campfire.core.model.ListeningStats
@@ -20,7 +20,7 @@ import me.tatarka.inject.annotations.Inject
 class NetworkStatsRepository(
   private val api: AudioBookShelfApi,
   private val userRepository: UserRepository,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
 ) : StatsRepository {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -30,7 +30,7 @@ class NetworkStatsRepository(
         flow {
           val result = api.getLibraryStats(user.selectedLibraryId)
           if (result.isSuccess) {
-            emit(result.getOrThrow().asDomainModel(tokenHydrator))
+            emit(result.getOrThrow().asDomainModel(urlHydrator))
           } else {
             throw result.exceptionOrNull()!!
           }
@@ -42,7 +42,7 @@ class NetworkStatsRepository(
     return flow {
       val result = api.getListeningStats()
       if (result.isSuccess) {
-        emit(result.getOrThrow().asDomainModel(tokenHydrator))
+        emit(result.getOrThrow().asDomainModel(urlHydrator))
       } else {
         throw result.exceptionOrNull()!!
       }

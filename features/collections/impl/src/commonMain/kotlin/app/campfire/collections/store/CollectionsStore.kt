@@ -1,7 +1,7 @@
 package app.campfire.collections.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
@@ -31,18 +31,18 @@ object CollectionsStore : Cork {
     api: AudioBookShelfApi,
     db: CampfireDatabase,
     libraryItemDao: LibraryItemDao,
-    tokenHydrator: TokenHydrator,
+    urlHydrator: UrlHydrator,
     fatherTime: FatherTime,
     userSessionManager: UserSessionManager,
     dispatcherProvider: DispatcherProvider,
   ) {
-    private val fetcherFactory = CollectionsFetcherFactory(api, tokenHydrator)
+    private val fetcherFactory = CollectionsFetcherFactory(api, urlHydrator)
     private val sourceOfTruthFactory =
       CollectionsSourceOfTruthFactory(
         db = db,
         libraryItemDao = libraryItemDao,
         dispatcherProvider = dispatcherProvider,
-        tokenHydrator = tokenHydrator,
+        urlHydrator = urlHydrator,
         fatherTime = fatherTime,
       )
     private val updaterFactory = CollectionsUpdaterFactory(api, db, dispatcherProvider)

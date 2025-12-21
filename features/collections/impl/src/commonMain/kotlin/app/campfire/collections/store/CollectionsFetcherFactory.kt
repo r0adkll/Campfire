@@ -1,6 +1,6 @@
 package app.campfire.collections.store
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.Collection
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
@@ -9,7 +9,7 @@ import org.mobilenativefoundation.store.store5.Fetcher
 
 class CollectionsFetcherFactory(
   private val api: AudioBookShelfApi,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
 ) {
 
   fun create(): Fetcher<CollectionsStore.Operation, List<Collection>> {
@@ -20,13 +20,13 @@ class CollectionsFetcherFactory(
           api.getCollections(operation.libraryId)
             .map { collections ->
               collections.map { collection ->
-                collection.asDomainModel(tokenHydrator)
+                collection.asDomainModel(urlHydrator)
               }
             }
             .asFetcherResult()
         }
         is CollectionsStore.Operation.Single -> api.getCollection(operation.collectionId)
-          .map { listOf(it.asDomainModel(tokenHydrator)) }
+          .map { listOf(it.asDomainModel(urlHydrator)) }
           .asFetcherResult()
         else -> throw IllegalArgumentException("Unknown operation: $operation")
       }

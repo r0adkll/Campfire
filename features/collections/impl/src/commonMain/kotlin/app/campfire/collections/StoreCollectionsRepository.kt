@@ -1,7 +1,7 @@
 package app.campfire.collections
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.collections.store.CollectionsStore
 import app.campfire.core.coroutines.DispatcherProvider
@@ -38,7 +38,7 @@ import org.mobilenativefoundation.store.store5.StoreWriteResponse
 class StoreCollectionsRepository(
   private val userRepository: UserRepository,
   private val db: CampfireDatabase,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val storeFactory: CollectionsStore.Factory,
   private val dispatcherProvider: DispatcherProvider,
 ) : CollectionsRepository {
@@ -93,7 +93,7 @@ class StoreCollectionsRepository(
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { selectForCollection ->
         selectForCollection
-          .map { it.asDomainModel(tokenHydrator) }
+          .map { it.asDomainModel(urlHydrator) }
       }
   }
 

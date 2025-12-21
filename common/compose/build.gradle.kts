@@ -20,6 +20,7 @@ kotlin {
         api(libs.coil)
         api(libs.coil.compose)
         api(libs.coil.svg)
+        api(libs.coil.networking.ktor3)
         api(libs.compose.material3.expressive)
         api(libs.compose.material3.windowsizeclass)
         api(libs.materialcolorsutilities)
@@ -43,7 +44,7 @@ kotlin {
       dependsOn(commonMain.get())
 
       dependencies {
-        api(libs.coil.networking.okhttp)
+        api(libs.ktor.client.okhttp)
       }
     }
 
@@ -59,7 +60,6 @@ kotlin {
       dependsOn(jvmCommon)
 
       dependencies {
-        api(libs.coil.networking.okhttp)
         api(libs.androidx.paging.common)
         implementation(libs.androidx.activity.compose)
 
@@ -71,7 +71,6 @@ kotlin {
     appleMain {
       dependsOn(skikoMain)
       dependencies {
-        api(libs.coil.networking.ktor3)
         api(libs.ktor.client.darwin)
       }
     }

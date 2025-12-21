@@ -1,6 +1,6 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.AudioFile
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -243,7 +243,7 @@ private val String.lastFirst: String
   }
 
 suspend fun LibraryItemExpanded.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -272,7 +272,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
       DomainMedia(
         id = id,
         metadata = metadata.asDomainModel(),
-        coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+        coverImageUrl = urlHydrator.hydrateLibraryItem(id),
         coverPath = coverPath,
         tags = tags ?: emptyList(),
         numTracks = numTracks,
@@ -293,7 +293,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
         },
 
         tracks = tracks.map {
-          it.asDomainModel(tokenHydrator)
+          it.asDomainModel(urlHydrator)
         },
       )
     },
@@ -301,7 +301,7 @@ suspend fun LibraryItemExpanded.asDomainModel(
 }
 
 suspend fun SelectForSeries.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -354,7 +354,7 @@ suspend fun SelectForSeries.asDomainModel(
           )
         },
       ),
-      coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+      coverImageUrl = urlHydrator.hydrateLibraryItem(id),
       coverPath = coverPath,
       tags = tags ?: emptyList(),
       numTracks = numTracks,
@@ -370,7 +370,7 @@ suspend fun SelectForSeries.asDomainModel(
 }
 
 suspend fun SelectForCollection.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -423,7 +423,7 @@ suspend fun SelectForCollection.asDomainModel(
           )
         },
       ),
-      coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+      coverImageUrl = urlHydrator.hydrateLibraryItem(id),
       coverPath = coverPath,
       tags = tags ?: emptyList(),
       numTracks = numTracks,
@@ -439,7 +439,7 @@ suspend fun SelectForCollection.asDomainModel(
 }
 
 suspend fun SelectForAuthorName.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(
     id = id,
@@ -492,7 +492,7 @@ suspend fun SelectForAuthorName.asDomainModel(
           )
         },
       ),
-      coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+      coverImageUrl = urlHydrator.hydrateLibraryItem(id),
       coverPath = coverPath,
       tags = tags ?: emptyList(),
       numTracks = numTracks,
@@ -508,7 +508,7 @@ suspend fun SelectForAuthorName.asDomainModel(
 }
 
 suspend fun LibraryItemWithMedia.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
   mediaAudioFiles: List<MediaAudioFiles> = emptyList(),
   mediaAudioTracks: List<MediaAudioTracks> = emptyList(),
   mediaChapters: List<MediaChapters> = emptyList(),
@@ -611,13 +611,13 @@ suspend fun LibraryItemWithMedia.asDomainModel(
           startOffset = it.startOffset.toFloat(),
           duration = it.duration.toFloat(),
           title = it.title,
-          contentUrl = tokenHydrator.hydrateUrl(it.contentUrl),
+          contentUrl = urlHydrator.hydrateUrl(it.contentUrl),
           mimeType = it.mimeType,
           codec = it.codec,
           metadata = FileMetadata(
             filename = it.metadata_filename,
             ext = it.metadata_ext,
-            path = tokenHydrator.hydrateUrl(it.metadata_path),
+            path = urlHydrator.hydrateUrl(it.metadata_path),
             relPath = it.metadata_relPath,
             size = it.metadata_size,
             mtimeMs = it.metadata_mtimeMs,
@@ -647,7 +647,7 @@ suspend fun LibraryItemWithMedia.asDomainModel(
           },
         )
       },
-      coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+      coverImageUrl = urlHydrator.hydrateLibraryItem(id),
       coverPath = coverPath,
       tags = tags ?: emptyList(),
       numTracks = numTracks,

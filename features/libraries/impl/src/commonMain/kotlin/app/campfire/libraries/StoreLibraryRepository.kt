@@ -1,7 +1,7 @@
 package app.campfire.libraries
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -32,7 +32,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -51,7 +50,7 @@ class StoreLibraryRepository(
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
   private val userRepository: UserRepository,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val libraryItemsStoreFactory: LibraryItemsStore.Factory,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
@@ -187,7 +186,7 @@ class StoreLibraryRepository(
           )
           .debugLogging("LibraryItemStore")
           .mapNotNull {
-            it.dataOrNull()?.map { it.asDomainModel(tokenHydrator) }
+            it.dataOrNull()?.map { it.asDomainModel(urlHydrator) }
           }
       }
   }

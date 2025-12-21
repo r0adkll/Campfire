@@ -1,7 +1,7 @@
 package app.campfire.home.store.home
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.ShelfType
@@ -28,7 +28,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 
 class HomeSourceOfTruthFactory(
   private val db: CampfireDatabase,
-  private val imageHydrator: TokenHydrator,
+  private val imageHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) {
 

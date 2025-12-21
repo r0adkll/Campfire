@@ -1,17 +1,16 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.ItemListenedTo
 import app.campfire.core.model.ListeningStats
 import app.campfire.network.models.ItemsListenedTo
 import app.campfire.network.models.ListeningStats as NetworkListeningStats
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 
 suspend fun NetworkListeningStats.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): ListeningStats {
   return ListeningStats(
     totalTime = totalTime.seconds,
@@ -20,18 +19,18 @@ suspend fun NetworkListeningStats.asDomainModel(
       LocalDate.parse(date) to duration.seconds
     }.toMap(),
     dayOfWeek = dayOfWeek.mapKeys { it.key.asDayOfWeek() }.mapValues { it.value.seconds },
-    items = items.values.map { it.asDomainModel(tokenHydrator) },
-    recentSessions = recentSessions.map { it.asDomainModel(tokenHydrator) },
+    items = items.values.map { it.asDomainModel(urlHydrator) },
+    recentSessions = recentSessions.map { it.asDomainModel(urlHydrator) },
   )
 }
 
 suspend fun ItemsListenedTo.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): ItemListenedTo {
   return ItemListenedTo(
     id = id,
     timeListening = timeListening.seconds,
-    coverImageUrl = tokenHydrator.hydrateLibraryItem(id),
+    coverImageUrl = urlHydrator.hydrateLibraryItem(id),
     mediaMetadata = mediaMetadata.asDomainModel(),
   )
 }

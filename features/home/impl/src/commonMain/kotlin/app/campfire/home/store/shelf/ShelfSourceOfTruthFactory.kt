@@ -1,7 +1,7 @@
 package app.campfire.home.store.shelf
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
@@ -25,7 +25,7 @@ import org.mobilenativefoundation.store.store5.SourceOfTruth
 class ShelfSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val libraryItemDao: LibraryItemDao,
-  private val tokenHydrator: TokenHydrator,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
@@ -68,7 +68,7 @@ class ShelfSourceOfTruthFactory(
 
         seriesWithBooks.entries.map { (s, books) ->
           val sortedBooks = books
-            .map { it.asDomainModel(tokenHydrator) }
+            .map { it.asDomainModel(urlHydrator) }
             .sortedBy { it.media.metadata.seriesSequence?.sequence }
 
           s.asDomainModel(sortedBooks)

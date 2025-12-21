@@ -1,7 +1,7 @@
 package app.campfire.search.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryId
@@ -25,14 +25,14 @@ object SearchStore : Cork {
     api: AudioBookShelfApi,
     db: CampfireDatabase,
     libraryItemDao: LibraryItemDao,
-    tokenHydrator: TokenHydrator,
+    urlHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
   ) {
     private val fetcherFactory = SearchFetcherFactory(api)
     private val sourceOfTruthFactory = SearchSourceOfTruthFactory(
       db = db,
       libraryItemDao = libraryItemDao,
-      tokenHydrator = tokenHydrator,
+      urlHydrator = urlHydrator,
       dispatcherProvider = dispatcherProvider,
     )
 

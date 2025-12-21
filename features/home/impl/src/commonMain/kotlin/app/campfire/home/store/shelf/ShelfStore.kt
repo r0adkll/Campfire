@@ -1,7 +1,7 @@
 package app.campfire.home.store.shelf
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.ShelfEntity
@@ -24,14 +24,14 @@ object ShelfStore : Cork {
   class Factory(
     db: CampfireDatabase,
     libraryItemDao: LibraryItemDao,
-    tokenHydrator: TokenHydrator,
+    urlHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
   ) {
 
     private val sourceOfTruthFactory = ShelfSourceOfTruthFactory(
       db = db,
       libraryItemDao = libraryItemDao,
-      tokenHydrator = tokenHydrator,
+      urlHydrator = urlHydrator,
       dispatcherProvider = dispatcherProvider,
     )
 

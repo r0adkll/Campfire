@@ -1,6 +1,6 @@
 package app.campfire.data.mapping
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.AuthorWithCount
 import app.campfire.core.model.GenreWithCount
 import app.campfire.core.model.LargestItem
@@ -10,14 +10,14 @@ import app.campfire.network.models.LibraryStats as NetworkLibraryStats
 import kotlin.time.Duration.Companion.seconds
 
 suspend fun NetworkLibraryStats.asDomainModel(
-  tokenHydrator: TokenHydrator,
+  urlHydrator: UrlHydrator,
 ): LibraryStats {
   return LibraryStats(
     largestItems = largestItems.map { item ->
       LargestItem(
         id = item.id,
         title = item.title,
-        coverImageUrl = tokenHydrator.hydrateLibraryItem(item.id),
+        coverImageUrl = urlHydrator.hydrateLibraryItem(item.id),
         sizeInBytes = item.size,
       )
     },
@@ -26,7 +26,7 @@ suspend fun NetworkLibraryStats.asDomainModel(
       AuthorWithCount(
         id = author.id,
         name = author.name,
-        imageUrl = tokenHydrator.hydrateAuthor(author.id),
+        imageUrl = urlHydrator.hydrateAuthor(author.id),
         count = author.count,
       )
     },
@@ -39,7 +39,7 @@ suspend fun NetworkLibraryStats.asDomainModel(
       LongestItem(
         id = item.id,
         title = item.title,
-        coverImageUrl = tokenHydrator.hydrateLibraryItem(item.id),
+        coverImageUrl = urlHydrator.hydrateLibraryItem(item.id),
         duration = item.duration.seconds,
       )
     },

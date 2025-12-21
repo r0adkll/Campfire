@@ -1,7 +1,7 @@
 package app.campfire.author.store
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -34,7 +34,7 @@ interface LibraryAuthorStoreModule {
   fun provideAuthorsStore(
     api: AudioBookShelfApi,
     db: CampfireDatabase,
-    imageHydrator: TokenHydrator,
+    imageHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
   ): LibraryAuthorStore {
     return StoreBuilder

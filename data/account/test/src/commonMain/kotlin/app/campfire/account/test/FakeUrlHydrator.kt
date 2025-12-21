@@ -1,16 +1,12 @@
 package app.campfire.account.test
 
-import app.campfire.account.api.TokenHydrator
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.model.AuthorId
 import app.campfire.core.model.LibraryItemId
 
-class FakeTokenHydrator : TokenHydrator {
+class FakeUrlHydrator : UrlHydrator {
 
   override fun hydrateUrl(absolutePath: String): String {
-    return absolutePath
-  }
-
-  override suspend fun hydrateUrlWithToken(absolutePath: String): String {
     return absolutePath
   }
 

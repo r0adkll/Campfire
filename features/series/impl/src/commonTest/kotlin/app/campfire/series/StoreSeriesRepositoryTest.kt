@@ -1,6 +1,6 @@
 package app.campfire.series
 
-import app.campfire.account.test.FakeTokenHydrator
+import app.campfire.account.test.FakeUrlHydrator
 import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.common.test.logging.SystemBark
 import app.campfire.common.test.user
@@ -41,7 +41,7 @@ class StoreSeriesRepositoryTest {
   private val userSession = UserSession.LoggedIn(user(userId))
   private val api = FakeAudioBookShelfApi()
   private val userRepository = FakeUserRepository()
-  private val tokenHydrator = FakeTokenHydrator()
+  private val tokenHydrator = FakeUrlHydrator()
   private val cache = CacheBuilder<SeriesStore.Key, List<Series>>().build()
 
   private val createRepository = { dispatcherProvider: DispatcherProvider ->
@@ -50,13 +50,13 @@ class StoreSeriesRepositoryTest {
       api = api,
       db = databaseInterceptor.db,
       userRepository = userRepository,
-      tokenHydrator = tokenHydrator,
+      urlHydrator = tokenHydrator,
       dispatcherProvider = dispatcherProvider,
       seriesStoreFactory = SeriesStore.Factory(
         userSession = userSession,
         api = api,
         db = databaseInterceptor.db,
-        tokenHydrator = tokenHydrator,
+        urlHydrator = tokenHydrator,
         dispatcherProvider = dispatcherProvider,
         cache = cache,
       ),
