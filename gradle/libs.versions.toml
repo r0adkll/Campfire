@@ -60,7 +60,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 android-lint = { id = "com.android.lint", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "about-libraries" }
-buildConfig = "com.github.gmazzo.buildconfig:6.0.6"
+buildConfig = "com.github.gmazzo.buildconfig:6.0.7"
 burst = { id = "app.cash.burst", version.ref = "burst" }
 cacheFixPlugin = { id = "org.gradle.android.cache-fix", version = "3.0.3" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
