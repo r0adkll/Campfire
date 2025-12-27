@@ -12,6 +12,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.core)
+        implementation(projects.data.network.api)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.ktor.client.core)
 

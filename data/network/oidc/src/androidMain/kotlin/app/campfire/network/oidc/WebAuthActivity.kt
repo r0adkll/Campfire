@@ -1,5 +1,6 @@
 package app.campfire.network.oidc
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
@@ -9,13 +10,16 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
+import androidx.browser.customtabs.CustomTabsClient
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import app.campfire.core.logging.bark
 
 internal const val EXTRA_KEY_REDIRECTURL = "redirecturl"
 internal const val EXTRA_KEY_URL = "url"
+internal const val EXTRA_KEY_BROWSER_PACKAGE = "browser_package"
 
 class WebAuthActivity : ComponentActivity() {
 
@@ -27,6 +31,7 @@ class WebAuthActivity : ComponentActivity() {
     super.onResume()
     val url = intent.extras?.getString(EXTRA_KEY_URL)
     val redirectUrl = intent.extras?.getString(EXTRA_KEY_REDIRECTURL)
+    val preferredBrowserPackage = intent.extras?.getString(EXTRA_KEY_BROWSER_PACKAGE)
 
     if (intent?.data != null) {
       // we're called by custom tab
@@ -44,8 +49,38 @@ class WebAuthActivity : ComponentActivity() {
         // do not navigate to the login page again in this activity instance
         intent.removeExtra(EXTRA_KEY_URL)
 
-        showWebView(url, redirectUrl)
+        launchCustomTabIntent(
+          url = url,
+          redirectUrl = redirectUrl,
+          preferredBrowserPackage = preferredBrowserPackage,
+        )
       }
+    }
+  }
+
+  private fun launchCustomTabIntent(
+    url: String,
+    redirectUrl: String?,
+    preferredBrowserPackage: String?,
+    ephemeralSession: Boolean = true,
+  ) {
+    val builder = CustomTabsIntent.Builder()
+
+    if (preferredBrowserPackage != null) {
+      // Enable ephemeral browsing if supported
+      if (CustomTabsClient.isEphemeralBrowsingSupported(this, preferredBrowserPackage)) {
+        builder.setEphemeralBrowsingEnabled(ephemeralSession)
+      }
+    }
+
+    val intent = builder.build()
+    preferredBrowserPackage?.let {
+      intent.intent.setPackage(it)
+    }
+    try {
+      intent.launchUrl(this, url.toUri())
+    } catch (_: ActivityNotFoundException) {
+      showWebView(url, redirectUrl)
     }
   }
 
@@ -72,7 +107,6 @@ class WebAuthActivity : ComponentActivity() {
             request: WebResourceRequest?,
           ): Boolean {
             val requestedUrl = request?.url
-            bark { "shouldOverrideUrlLoading: $requestedUrl" }
             return if (requestedUrl != null && redirectUrl != null && requestedUrl.toString().startsWith(redirectUrl)) {
               intent.data = request.url
               setResult(RESULT_OK, intent)
@@ -108,7 +142,6 @@ class WebAuthActivity : ComponentActivity() {
 
       // Set content and show
       setContentView(webView)
-      bark { "showWebView($url)" }
       webView.loadUrl(url)
     }
   }

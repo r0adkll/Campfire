@@ -3,6 +3,7 @@ package app.campfire.network.oidc
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import app.campfire.network.oidc.customtab.getCustomTabProviders
 import io.ktor.http.Url
 
 internal class ActivityWebAuthFlow(
@@ -14,7 +15,18 @@ internal class ActivityWebAuthFlow(
     requestUrl: Url,
     redirectUri: String,
   ): WebAuthFlowResult {
-    val intent = prepareIntent(requestUrl.toString(), redirectUri)
+    val customTabsProviders = context.getCustomTabProviders().map { it.activityInfo.packageName }
+    val preferredBrowserPackage = if (customTabsProviders.isNotEmpty()) {
+      customTabsProviders.firstOrNull()
+    } else {
+      null
+    }
+
+    val intent = prepareIntent(
+      requestUrl = requestUrl.toString(),
+      redirectUri = redirectUri,
+      preferredBrowserPackage = preferredBrowserPackage,
+    )
     return launcher.launch(intent)
       .fold(
         onSuccess = {
@@ -29,10 +41,17 @@ internal class ActivityWebAuthFlow(
       )
   }
 
-  private fun prepareIntent(requestUrl: String, redirectUri: String): Intent {
+  private fun prepareIntent(
+    requestUrl: String,
+    redirectUri: String,
+    preferredBrowserPackage: String?,
+  ): Intent {
     return Intent(context, WebAuthActivity::class.java).apply {
       putExtra(EXTRA_KEY_URL, requestUrl)
       putExtra(EXTRA_KEY_REDIRECTURL, redirectUri)
+      preferredBrowserPackage?.let {
+        putExtra(EXTRA_KEY_BROWSER_PACKAGE, it)
+      }
     }
   }
 }

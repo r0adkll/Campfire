@@ -1,5 +1,6 @@
 package app.campfire.network
 
+import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.ServerStatus
 
@@ -29,8 +30,20 @@ interface AuthAudioBookShelfApi {
   ): Result<LoginResponse>
 
   /**
+   * Call /auth/openid to start oauth2 session and receive the authorization URL
+   * to display to the user.
+   */
+  suspend fun authorization(
+    serverUrl: String,
+    codeChallenge: String,
+    codeVerifier: String,
+    state: String,
+  ): Result<AuthorizationResponse>
+
+  /**
    * This endpoint finalizes the OAuth2 authentication flow for the client.
    * https://api.audiobookshelf.org/#oauth2-callback
+   *
    * @param serverUrl the url of the audiobookshelf server to call
    * @param state the state string you generated in the first request
    * @param code The code you received when redirect_uri was called
@@ -42,6 +55,5 @@ interface AuthAudioBookShelfApi {
     state: String,
     code: String,
     codeVerifier: String,
-    cookie: String,
   ): Result<LoginResponse>
 }

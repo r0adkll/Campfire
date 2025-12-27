@@ -59,10 +59,9 @@ class DefaultAuthRepository(
     codeVerifier: String,
     code: String,
     state: String,
-    cookie: String,
     tent: Tent,
   ): Result<Unit> {
-    val result = api.oauth(serverUrl, state, code, codeVerifier, cookie)
+    val result = api.oauth(serverUrl, state, code, codeVerifier)
 
     if (result.isSuccess) {
       val response = result.getOrThrow()

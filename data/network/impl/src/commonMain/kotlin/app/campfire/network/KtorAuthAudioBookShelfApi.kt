@@ -2,8 +2,10 @@ package app.campfire.network
 
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.SingleIn
 import app.campfire.network.di.ReturnTokens
 import app.campfire.network.di.ServerUrl
+import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.PingResponse
@@ -11,9 +13,10 @@ import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.ServerStatus
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
+import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.call.body
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.request.cookie
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -26,12 +29,13 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
 import io.ktor.http.contentType
+import io.ktor.http.isSecure
 import io.ktor.http.isSuccess
-import io.ktor.http.parseClientCookiesHeader
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
 
+@SingleIn(AppScope::class)
 @Inject
 @ContributesBinding(AppScope::class)
 class KtorAuthAudioBookShelfApi(
@@ -39,9 +43,16 @@ class KtorAuthAudioBookShelfApi(
   private val dispatcherProvider: DispatcherProvider,
 ) : AuthAudioBookShelfApi {
 
+  // We need the in-memory cookie storage to remain consistent
+  // between HttpClients since we copy them to enable/disable
+  // automatic redirects.
+  private val cookieStorage = AcceptAllCookiesStorage()
+
   private val client by lazy {
     httpClient.config {
-      install(HttpCookies)
+      install(HttpCookies) {
+        storage = cookieStorage
+      }
     }
   }
 
@@ -68,12 +79,57 @@ class KtorAuthAudioBookShelfApi(
     }
   }
 
+  override suspend fun authorization(
+    serverUrl: String,
+    codeChallenge: String,
+    codeVerifier: String,
+    state: String,
+  ): Result<AuthorizationResponse> {
+    val nonRedirectClient = client.config {
+      followRedirects = false
+    }
+
+    return try {
+      val response = nonRedirectClient.get {
+        url("${cleanServerUrl(serverUrl)}/auth/openid")
+        parameter("code_challenge", codeChallenge)
+        parameter("code_challenge_method", "S256")
+        parameter("response_type", "code")
+        parameter("redirect_uri", "audiobookshelf://oauth")
+        parameter("client_id", "Campfire")
+        parameter("state", state)
+      }
+
+      if (response.status.value in 200 until 400) {
+        val redirectUrl = response.headers[HttpHeaders.Location]
+        if (redirectUrl != null) {
+          val redirectUrl = Url(redirectUrl)
+
+          if (!redirectUrl.protocol.isSecure()) {
+            return Result.failure(ApiException(response.status.value, "Redirect URL is not secure!"))
+          }
+
+          Result.success(AuthorizationResponse(redirectUrl.toString()))
+        } else {
+          Result.failure(ApiException(response.status.value, "No 'Location' header found!"))
+        }
+      } else {
+        Result.failure(ApiException(response.status.value, response.bodyAsText()))
+      }
+    } catch (e: IOException) {
+      e.printStackTrace()
+      Result.failure(e)
+    } catch (e: NoTransformationFoundException) {
+      e.printStackTrace()
+      Result.failure(e)
+    }
+  }
+
   override suspend fun oauth(
     serverUrl: String,
     state: String,
     code: String,
     codeVerifier: String,
-    cookie: String,
   ): Result<LoginResponse> = trySendRequest {
     client.get {
       val baseUrl = cleanServerUrl(serverUrl)
@@ -81,15 +137,6 @@ class KtorAuthAudioBookShelfApi(
       parameter("state", state)
       parameter("code", code)
       parameter("code_verifier", codeVerifier)
-
-      cookie("auth_cb", "$baseUrl/audiobookshelf/login", domain = baseUrl)
-      parseClientCookiesHeader(cookie).forEach { (name, value) ->
-        cookie(
-          name = name,
-          value = value,
-          domain = baseUrl,
-        )
-      }
     }
   }
 
@@ -111,6 +158,9 @@ class KtorAuthAudioBookShelfApi(
         Result.failure(ApiException(response.status.value, response.bodyAsText()))
       }
     } catch (e: IOException) {
+      e.printStackTrace()
+      Result.failure(e)
+    } catch (e: NoTransformationFoundException) {
       e.printStackTrace()
       Result.failure(e)
     }

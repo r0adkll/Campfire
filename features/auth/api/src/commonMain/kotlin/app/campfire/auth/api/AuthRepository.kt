@@ -21,7 +21,6 @@ interface AuthRepository {
     codeVerifier: String,
     code: String,
     state: String,
-    cookie: String,
     tent: Tent,
   ): Result<Unit>
 }

@@ -4,5 +4,4 @@ data class OpenIdAuthorization(
   val codeVerifier: String,
   val code: String,
   val state: String,
-  val cookie: String,
 )

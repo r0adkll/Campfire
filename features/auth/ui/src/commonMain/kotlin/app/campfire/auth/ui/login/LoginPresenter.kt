@@ -139,7 +139,6 @@ class LoginPresenter(
                   codeVerifier = authorization.codeVerifier,
                   code = authorization.code,
                   state = authorization.state,
-                  cookie = authorization.cookie,
                   tent = tent,
                 ).onFailure { e ->
                   isAuthenticating = false
