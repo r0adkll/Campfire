@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload build outputs
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-build-outputs
           path: app/android/build/outputs

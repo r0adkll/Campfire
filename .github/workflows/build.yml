@@ -173,7 +173,7 @@ jobs:
       - name: Upload APK
         id: upload_artifact
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-standard-release-apk
           path: app/android/build/outputs/apk/standard/release/android-standard-release.apk
@@ -188,7 +188,7 @@ jobs:
 
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-reports
           path: |
@@ -196,7 +196,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: android-test-results
           path: |
@@ -225,14 +225,14 @@ jobs:
 
       - name: Upload build outputs
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: desktop-build-binaries
           path: app/desktop/build/compose/binaries
 
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: desktop-reports
           path: |
@@ -261,7 +261,7 @@ jobs:
 
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ios-reports
           path: |
@@ -269,7 +269,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ios-test-results
           path: |
