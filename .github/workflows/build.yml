@@ -159,7 +159,7 @@ jobs:
 
       - name: Build Android App
         run: |
-          ./gradlew --quiet :app:android:assembleStandardRelease
+          ./gradlew --quiet :app:android:assembleAlphaRelease
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
@@ -175,8 +175,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: android-standard-release-apk
-          path: app/android/build/outputs/apk/standard/release/android-standard-release.apk
+          name: android-alpha-release-apk
+          path: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
 
       - name: Post Artifact URL to PR
         if: ${{ github.event_name == 'pull_request' }}
