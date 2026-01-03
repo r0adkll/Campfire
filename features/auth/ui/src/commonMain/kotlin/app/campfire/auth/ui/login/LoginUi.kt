@@ -225,50 +225,51 @@ private fun OpenIdAuthButton(
     visible = authMethodState?.openIdState != null,
     modifier = modifier.fillMaxWidth(),
   ) {
-    // This should ONLY be rendered if not null
+    Column {
 
-    // Only show the '----- OR -----' if password auth is also enabled
-    if (authMethodState?.passwordAuthEnabled == true) {
-      Row(
+      // Only show the '----- OR -----' if password auth is also enabled
+      if (authMethodState?.passwordAuthEnabled == true) {
+        Row(
+          modifier = Modifier
+            .widthIn(max = 500.dp)
+            .padding(vertical = 16.dp)
+            .fillMaxWidth(),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          HorizontalDivider(
+            Modifier.weight(1f),
+          )
+
+          Text(
+            text = "OR",
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 16.dp),
+            color = MaterialTheme.colorScheme.outlineVariant,
+          )
+
+          HorizontalDivider(
+            Modifier.weight(1f),
+          )
+        }
+      } else {
+        Spacer(Modifier.size(8.dp))
+      }
+
+      FilledTonalButton(
+        enabled = !isAuthenticating,
+        onClick = onClick,
         modifier = Modifier
           .widthIn(max = 500.dp)
-          .padding(vertical = 16.dp)
           .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
       ) {
-        HorizontalDivider(
-          Modifier.weight(1f),
+        Icon(
+          CampfireIcons.Rounded.IdBadge,
+          contentDescription = null,
         )
-
-        Text(
-          text = "OR",
-          style = MaterialTheme.typography.labelMedium,
-          fontWeight = FontWeight.Bold,
-          modifier = Modifier.padding(horizontal = 16.dp),
-          color = MaterialTheme.colorScheme.outlineVariant,
-        )
-
-        HorizontalDivider(
-          Modifier.weight(1f),
-        )
+        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+        Text(authMethodState?.openIdState?.buttonText ?: stringResource(Res.string.action_login_openid))
       }
-    } else {
-      Spacer(Modifier.size(8.dp))
-    }
-
-    FilledTonalButton(
-      enabled = !isAuthenticating,
-      onClick = onClick,
-      modifier = Modifier
-        .widthIn(max = 500.dp)
-        .fillMaxWidth(),
-    ) {
-      Icon(
-        CampfireIcons.Rounded.IdBadge,
-        contentDescription = null,
-      )
-      Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-      Text(authMethodState?.openIdState?.buttonText ?: stringResource(Res.string.action_login_openid))
     }
   }
 }
