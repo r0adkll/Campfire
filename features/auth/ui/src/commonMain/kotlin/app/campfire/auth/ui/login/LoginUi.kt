@@ -226,7 +226,6 @@ private fun OpenIdAuthButton(
     modifier = modifier.fillMaxWidth(),
   ) {
     Column {
-
       // Only show the '----- OR -----' if password auth is also enabled
       if (authMethodState?.passwordAuthEnabled == true) {
         Row(
