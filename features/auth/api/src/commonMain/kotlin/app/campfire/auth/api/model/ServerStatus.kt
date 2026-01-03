@@ -14,3 +14,4 @@ data class OpenIdFormData(
 )
 
 const val AUTH_METHOD_OPENID = "openid"
+const val AUTH_METHOD_LOCAL = "local"

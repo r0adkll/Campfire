@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
 import app.campfire.auth.ui.BuildConfig
 import app.campfire.auth.ui.login.LoginUiEvent.AddCampsite
@@ -53,6 +54,13 @@ class LoginPresenter(
     var isAuthenticating by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<AuthError?>(null) }
 
+    // Clear any auth errors if the inputs change
+    LaunchedEffect(serverUrl, username, password) {
+      if (authError != null) {
+        authError = null
+      }
+    }
+
     val connectionState = connectionState(serverUrl)
 
     LaunchedEffect(serverUrl, connectionState) {
@@ -61,20 +69,6 @@ class LoginPresenter(
           serverName = it.capitalized()
         }
       }
-    }
-
-    val openIdState = when (connectionState) {
-      is ConnectionState.Success -> {
-        if (connectionState.status.authMethods.contains(AUTH_METHOD_OPENID)) {
-          OpenIdUiState(
-            text = connectionState.status.authFormData?.openIdButtonText,
-          )
-        } else {
-          null
-        }
-      }
-
-      else -> null
     }
 
     return LoginUiState(
@@ -86,7 +80,6 @@ class LoginPresenter(
       isAuthenticating = isAuthenticating,
       authError = authError,
       connectionState = connectionState,
-      openIdState = openIdState,
     ) { event ->
       when (event) {
         NavigateBack -> navigator.pop()
@@ -132,7 +125,6 @@ class LoginPresenter(
           coroutineScope.launch {
             oauthAuthorizationFlow.getAuthorization(serverUrl)
               .onSuccess { authorization ->
-                isAuthenticating = false
                 authRepository.authenticate(
                   serverUrl = serverUrl,
                   serverName = serverName,
@@ -176,7 +168,19 @@ class LoginPresenter(
 
       authRepository.status(serverUrl)
         .onSuccess { status ->
-          connectionState = ConnectionState.Success(status)
+          connectionState = ConnectionState.Success(
+            AuthMethodState(
+              passwordAuthEnabled = status.authMethods.contains(AUTH_METHOD_LOCAL),
+              openIdState = if (status.authMethods.contains(AUTH_METHOD_OPENID)) {
+                OpenIdUiState(
+                  customMessage = status.authFormData?.customMessage,
+                  buttonText = status.authFormData?.openIdButtonText,
+                )
+              } else {
+                null
+              },
+            ),
+          )
         }
         .onFailure { e ->
           connectionState = ConnectionState.Error(e)

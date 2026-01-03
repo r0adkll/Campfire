@@ -1,5 +1,7 @@
 package app.campfire.auth.ui.login
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +20,8 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -113,6 +117,7 @@ private fun LoginContent(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun LoginUiContent(
   state: LoginUiState,
@@ -120,6 +125,7 @@ internal fun LoginUiContent(
 ) {
   val eventSink = state.eventSink
   var hasFocus by remember { mutableStateOf(false) }
+  val authMethodState = (state.connectionState as? ConnectionState.Success)?.authMethodState
 
   Column(
     modifier = modifier.padding(horizontal = 16.dp),
@@ -147,31 +153,82 @@ internal fun LoginUiContent(
 
     Spacer(Modifier.height(16.dp))
 
-    Button(
-      enabled = state.serverUrl.isNotBlank() &&
-        state.userName.isNotBlank() &&
-        state.password.isNotBlank() &&
-        !state.isAuthenticating,
-      onClick = {
-        eventSink(LoginUiEvent.AddCampsite)
-      },
-      modifier = Modifier
-        .widthIn(max = MaxContentWidth)
-        .fillMaxWidth(),
-    ) {
-      if (!state.isAuthenticating) {
-        Icon(
-          Icons.Rounded.Add,
-          contentDescription = null,
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(stringResource(Res.string.action_add_campsite))
-      } else {
-        Text(stringResource(Res.string.label_authenticating_loading_message))
+    if (authMethodState?.passwordAuthEnabled == true) {
+      Button(
+        enabled = state.serverUrl.isNotBlank() &&
+          state.userName.isNotBlank() &&
+          state.password.isNotBlank() &&
+          !state.isAuthenticating,
+        onClick = {
+          eventSink(LoginUiEvent.AddCampsite)
+        },
+        modifier = Modifier
+          .widthIn(max = MaxContentWidth)
+          .fillMaxWidth(),
+      ) {
+        if (!state.isAuthenticating) {
+          Icon(
+            Icons.Rounded.Add,
+            contentDescription = null,
+          )
+          Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+          Text(stringResource(Res.string.action_add_campsite))
+        } else {
+          Text(stringResource(Res.string.label_authenticating_loading_message))
+        }
+      }
+    } else {
+      AnimatedVisibility(
+        visible = state.isAuthenticating,
+      ) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp),
+          horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          CircularWavyProgressIndicator(
+            Modifier.size(32.dp),
+          )
+          Text(
+            text = stringResource(Res.string.label_authenticating_loading_message),
+            style = MaterialTheme.typography.labelLargeEmphasized,
+          )
+        }
       }
     }
 
-    state.openIdState?.let { openId ->
+    // Show the OIDC authentication button if available
+    OpenIdAuthButton(
+      authMethodState = authMethodState,
+      isAuthenticating = state.isAuthenticating,
+      onClick = {
+        eventSink(LoginUiEvent.StartOpenIdAuth)
+      },
+    )
+
+    Spacer(
+      Modifier.imePadding(),
+    )
+  }
+}
+
+@Composable
+private fun OpenIdAuthButton(
+  authMethodState: AuthMethodState?,
+  isAuthenticating: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  AnimatedVisibility(
+    visible = authMethodState?.openIdState != null,
+    modifier = modifier.fillMaxWidth(),
+  ) {
+    // This should ONLY be rendered if not null
+
+    // Only show the '----- OR -----' if password auth is also enabled
+    if (authMethodState?.passwordAuthEnabled == true) {
       Row(
         modifier = Modifier
           .widthIn(max = 500.dp)
@@ -195,26 +252,23 @@ internal fun LoginUiContent(
           Modifier.weight(1f),
         )
       }
-
-      FilledTonalButton(
-        onClick = {
-          eventSink(LoginUiEvent.StartOpenIdAuth)
-        },
-        modifier = Modifier
-          .widthIn(max = 500.dp)
-          .fillMaxWidth(),
-      ) {
-        Icon(
-          CampfireIcons.Rounded.IdBadge,
-          contentDescription = null,
-        )
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-        Text(openId.text ?: stringResource(Res.string.action_login_openid))
-      }
+    } else {
+      Spacer(Modifier.size(8.dp))
     }
 
-    Spacer(
-      Modifier.imePadding(),
-    )
+    FilledTonalButton(
+      enabled = !isAuthenticating,
+      onClick = onClick,
+      modifier = Modifier
+        .widthIn(max = 500.dp)
+        .fillMaxWidth(),
+    ) {
+      Icon(
+        CampfireIcons.Rounded.IdBadge,
+        contentDescription = null,
+      )
+      Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+      Text(authMethodState?.openIdState?.buttonText ?: stringResource(Res.string.action_login_openid))
+    }
   }
 }
