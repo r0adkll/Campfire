@@ -13,9 +13,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
@@ -24,10 +21,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -36,11 +36,10 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.campfire.core.model.NetworkSettings
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.core.model.NetworkSettings
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import org.jetbrains.compose.ui.tooling.preview.Preview
@@ -67,7 +66,7 @@ suspend fun OverlayHost.showNetworkSettingsBottomSheet(
         currentSettings = model.settings,
         onDismiss = { navigator.finish(it) },
       )
-    }
+    },
   )
 }
 
@@ -80,10 +79,12 @@ private fun NetworkSettingsBottomSheet(
 ) {
   val headers = remember {
     mutableStateMapOf(
-      *(currentSettings?.extraHeaders
-        ?.map { (k,v) -> k to v }
-        ?.toTypedArray()
-        ?: emptyArray<Pair<String, String>>())
+      *(
+        currentSettings?.extraHeaders
+          ?.map { (k, v) -> k to v }
+          ?.toTypedArray()
+          ?: emptyArray<Pair<String, String>>()
+        ),
     )
   }
 
@@ -105,7 +106,7 @@ private fun NetworkSettingsBottomSheet(
         .padding(
           horizontal = 16.dp,
           vertical = 8.dp,
-        )
+        ),
     )
 
     headers.forEach { (name, value) ->
@@ -119,7 +120,6 @@ private fun NetworkSettingsBottomSheet(
     }
 
     if (headers.isEmpty()) {
-
       Box(
         modifier = Modifier
           .fillMaxWidth()
@@ -131,7 +131,6 @@ private fun NetworkSettingsBottomSheet(
           style = MaterialTheme.typography.bodyMedium,
         )
       }
-
     }
 
     Spacer(Modifier.size(8.dp))
@@ -143,7 +142,7 @@ private fun NetworkSettingsBottomSheet(
         .padding(
           horizontal = 16.dp,
           vertical = 8.dp,
-        )
+        ),
     )
 
     val newHeaderName = rememberTextFieldState()
@@ -199,8 +198,8 @@ private fun NetworkSettingsBottomSheet(
       onClick = {
         onDismiss(
           NetworkSettingsResult.Success(
-            NetworkSettings(headers)
-          )
+            NetworkSettings(headers),
+          ),
         )
       },
       shapes = ButtonDefaults.shapes(),
@@ -208,7 +207,7 @@ private fun NetworkSettingsBottomSheet(
       modifier = Modifier
         .heightIn(acceptButtonSize)
         .padding(horizontal = 16.dp)
-        .align(Alignment.End)
+        .align(Alignment.End),
     ) {
       Icon(
         Icons.Rounded.Save,
@@ -218,7 +217,7 @@ private fun NetworkSettingsBottomSheet(
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(acceptButtonSize)))
       Text(
         text = "Accept",
-        style = ButtonDefaults.textStyleFor(acceptButtonSize)
+        style = ButtonDefaults.textStyleFor(acceptButtonSize),
       )
     }
 
@@ -289,7 +288,7 @@ private fun NetworkSettingsBottomSheetPreview() {
           mapOf(
             "CF-Access-Client-Id" to "abcdefghijklmnopqrstuvwxyz",
             "CF-Access-Client-Secret" to "abcdefghijklmnopqrstuvwxyz",
-          )
+          ),
         ),
         onDismiss = {},
       )

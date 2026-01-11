@@ -10,7 +10,6 @@ import androidx.compose.runtime.setValue
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
-import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.ui.BuildConfig
 import app.campfire.auth.ui.login.LoginUiEvent.AddCampsite
 import app.campfire.auth.ui.login.LoginUiEvent.ChangeNetworkSettings
@@ -23,6 +22,7 @@ import app.campfire.auth.ui.login.LoginUiEvent.UserName
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
+import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import app.campfire.network.oidc.AuthorizationFlow
 import coil3.toUri
@@ -94,7 +94,6 @@ class LoginPresenter(
         is Password -> password = event.password
         is ServerName -> serverName = event.serverName
         is ServerUrl -> serverUrl = event.url
-
 
         is AddCampsite -> {
           // Validate that we can actually add a campsite

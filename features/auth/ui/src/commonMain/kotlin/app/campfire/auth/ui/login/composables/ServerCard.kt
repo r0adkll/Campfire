@@ -67,7 +67,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.ui.login.AuthError
 import app.campfire.auth.ui.login.ConnectionState
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
@@ -80,6 +79,7 @@ import app.campfire.common.compose.icons.rounded.Connected
 import app.campfire.common.compose.icons.rounded.Disconnected
 import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.invalid_server_url
@@ -96,8 +96,10 @@ import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import com.slack.circuit.sharedelements.SharedElementTransitionScope.AnimatedScope.Navigation
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalSharedTransitionApi::class,
-  ExperimentalMaterial3ExpressiveApi::class
+@OptIn(
+  ExperimentalComposeUiApi::class,
+  ExperimentalSharedTransitionApi::class,
+  ExperimentalMaterial3ExpressiveApi::class,
 )
 @Composable
 internal fun ServerCard(
@@ -173,8 +175,8 @@ internal fun ServerCard(
       },
       supportingText = if (
         serverUrl.isNotBlank() &&
-          connectionState != null &&
-          connectionState !is ConnectionState.Success
+        connectionState != null &&
+        connectionState !is ConnectionState.Success
       ) {
         {
           Text(
@@ -209,7 +211,7 @@ internal fun ServerCard(
       modifier = Modifier
         .fillMaxWidth()
         .padding(
-          horizontal = 16.dp
+          horizontal = 16.dp,
         )
         .focusRequester(serverUrlFocus)
         .focusProperties {
@@ -241,7 +243,7 @@ internal fun ServerCard(
           enabled = !isAuthenticating,
           onClick = onEditNetworkSettingsClick,
           shapes = ButtonDefaults.shapes(
-            shape = ButtonDefaults.squareShape
+            shape = ButtonDefaults.squareShape,
           ),
           contentPadding = ButtonDefaults.contentPaddingFor(buttonSize),
           modifier = Modifier
@@ -255,7 +257,7 @@ internal fun ServerCard(
           Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(buttonSize)))
           Text(
             text = "Edit network settings",
-            style = ButtonDefaults.textStyleFor(buttonSize)
+            style = ButtonDefaults.textStyleFor(buttonSize),
           )
         }
       }

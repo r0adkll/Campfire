@@ -41,7 +41,7 @@ sealed interface LoginUiEvent : CircuitUiEvent {
   data class ServerUrl(val url: String) : LoginUiEvent
   data class UserName(val userName: String) : LoginUiEvent
   data class Password(val password: String) : LoginUiEvent
-  data class ChangeNetworkSettings(val settings: NetworkSettings): LoginUiEvent
+  data class ChangeNetworkSettings(val settings: NetworkSettings) : LoginUiEvent
   data object AddCampsite : LoginUiEvent
   data object StartOpenIdAuth : LoginUiEvent
 }

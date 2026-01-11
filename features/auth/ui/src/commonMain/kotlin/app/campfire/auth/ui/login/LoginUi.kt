@@ -64,7 +64,6 @@ import campfire.features.auth.ui.generated.resources.label_authenticating_loadin
 import campfire.features.auth.ui.generated.resources.login_add_account_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
-import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -332,7 +331,7 @@ fun LoginUI_Blank() = LoginUiPreview(
     connectionState = null,
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -353,11 +352,11 @@ fun LoginUI_Both_Methods() = LoginUiPreview(
           customMessage = "Custom message",
           buttonText = "Login with Pocket ID",
         ),
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -378,11 +377,11 @@ fun LoginUI_OnlyOIDC() = LoginUiPreview(
           customMessage = "Custom message",
           buttonText = "Login with Pocket ID",
         ),
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -399,7 +398,7 @@ fun LoginUI_OnlyOIDC_Failure() = LoginUiPreview(
     connectionState = ConnectionState.Error(Throwable()),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -420,11 +419,11 @@ fun LoginUI_OnlyOIDC_Authenticating() = LoginUiPreview(
           customMessage = "Custom message",
           buttonText = "Login with Pocket ID",
         ),
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -442,11 +441,11 @@ fun LoginUI_OnlyPassword() = LoginUiPreview(
       authMethodState = AuthMethodState(
         passwordAuthEnabled = true,
         openIdState = null,
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -464,11 +463,11 @@ fun LoginUI_OnlyPassword_Failure() = LoginUiPreview(
       authMethodState = AuthMethodState(
         passwordAuthEnabled = true,
         openIdState = null,
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )
 
 @Preview
@@ -486,9 +485,9 @@ fun LoginUI_OnlyPassword_Authenticating() = LoginUiPreview(
       authMethodState = AuthMethodState(
         passwordAuthEnabled = true,
         openIdState = null,
-      )
+      ),
     ),
     networkSettings = null,
     eventSink = {},
-  )
+  ),
 )

@@ -11,7 +11,7 @@ import io.ktor.util.AttributeKey
 import io.ktor.util.appendAll
 
 class SuspendingDefaultRequestHeaders private constructor(
-  private val block: SuspendingDefaultRequestHeadersBuilder.() -> Unit
+  private val block: SuspendingDefaultRequestHeadersBuilder.() -> Unit,
 ) {
 
   companion object Plugin : HttpClientPlugin<SuspendingDefaultRequestHeadersBuilder, SuspendingDefaultRequestHeaders> {
@@ -49,7 +49,6 @@ class SuspendingDefaultRequestHeaders private constructor(
             headers.appendAll(key, oldValues)
             headers.appendMissing(key, newValues)
           }
-
         }
 
         context.headers.clear()
@@ -65,7 +64,7 @@ class SuspendingDefaultRequestHeaders private constructor(
 }
 
 fun HttpClientConfig<*>.suspendingDefaultHeaders(
-  block: suspend SuspendingDefaultRequestHeaders.SuspendingDefaultRequestHeadersBuilder.() -> Unit
+  block: suspend SuspendingDefaultRequestHeaders.SuspendingDefaultRequestHeadersBuilder.() -> Unit,
 ) {
   install(SuspendingDefaultRequestHeaders) {
     suspendingBuilder = block
