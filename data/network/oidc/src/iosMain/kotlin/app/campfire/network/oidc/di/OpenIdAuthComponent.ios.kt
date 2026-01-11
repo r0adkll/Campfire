@@ -7,7 +7,7 @@ import me.tatarka.inject.annotations.Provides
 actual interface PlatformOpenIdAuthComponent {
   @Provides
   fun provideIosAuthorizationFlow(): AuthorizationFlow = object : AuthorizationFlow {
-    override suspend fun getAuthorization(serverUrl: String): Result<OpenIdAuthorization> {
+    override suspend fun getAuthorization(serverUrl: String, extraHeaders: Map<String, String>?): Result<OpenIdAuthorization> {
       return Result.failure(IllegalStateException("OAuth not supported on this platform"))
     }
   }

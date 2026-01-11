@@ -3,6 +3,7 @@ package app.campfire.auth
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
 import app.campfire.auth.api.AuthRepository
+import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.auth.model.asDomainModel
 import app.campfire.core.di.AppScope
@@ -23,8 +24,11 @@ class DefaultAuthRepository(
   private val accountManager: AccountManager,
 ) : AuthRepository {
 
-  override suspend fun status(serverUrl: String): Result<ServerStatus> {
-    return api.status(serverUrl)
+  override suspend fun status(
+    serverUrl: String,
+    networkSettings: NetworkSettings?,
+  ): Result<ServerStatus> {
+    return api.status(serverUrl, networkSettings?.extraHeaders)
       .map { it.asDomainModel() }
   }
 
@@ -34,8 +38,9 @@ class DefaultAuthRepository(
     username: String,
     password: String,
     tent: Tent,
+    networkSettings: NetworkSettings?,
   ): Result<Unit> {
-    val result = api.login(serverUrl, username, password)
+    val result = api.login(serverUrl, username, password, networkSettings?.extraHeaders)
 
     if (result.isSuccess) {
       val response = result.getOrThrow()
@@ -45,6 +50,7 @@ class DefaultAuthRepository(
         serverName = serverName,
         tent = tent,
         response = response,
+        networkSettings = networkSettings,
       )
 
       return Result.success(Unit)
@@ -60,8 +66,9 @@ class DefaultAuthRepository(
     code: String,
     state: String,
     tent: Tent,
+    networkSettings: NetworkSettings?,
   ): Result<Unit> {
-    val result = api.oauth(serverUrl, state, code, codeVerifier)
+    val result = api.oauth(serverUrl, state, code, codeVerifier, networkSettings?.extraHeaders)
 
     if (result.isSuccess) {
       val response = result.getOrThrow()
@@ -71,6 +78,7 @@ class DefaultAuthRepository(
         serverName = serverName,
         tent = tent,
         response = response,
+        networkSettings = networkSettings,
       )
 
       return Result.success(Unit)
@@ -84,6 +92,7 @@ class DefaultAuthRepository(
     serverName: String,
     tent: Tent,
     response: LoginResponse,
+    networkSettings: NetworkSettings?,
   ) {
     // Insert Server & User
     db.transaction {
@@ -117,6 +126,7 @@ class DefaultAuthRepository(
       serverUrl = serverUrl,
       accessToken = response.user.accessToken,
       refreshToken = response.user.refreshToken,
+      extraHeaders = networkSettings?.extraHeaders,
       user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
     )
   }

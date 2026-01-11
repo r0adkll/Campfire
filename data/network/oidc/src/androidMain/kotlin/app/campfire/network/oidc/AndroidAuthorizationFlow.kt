@@ -13,7 +13,10 @@ class AndroidAuthorizationFlow(
   private val launcher: StartActivityForResultFlowLauncher,
 ) : AuthorizationFlow {
 
-  override suspend fun getAuthorization(serverUrl: String): Result<OpenIdAuthorization> {
+  override suspend fun getAuthorization(
+    serverUrl: String,
+    extraHeaders: Map<String, String>?,
+  ): Result<OpenIdAuthorization> {
     val pkce = Pkce()
     val state = secureRandomBytes().encodeForPKCE()
 

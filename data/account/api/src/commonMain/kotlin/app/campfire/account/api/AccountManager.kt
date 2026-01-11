@@ -23,6 +23,7 @@ interface AccountManager {
     serverUrl: String,
     accessToken: String,
     refreshToken: String?,
+    extraHeaders: Map<String, String>?,
     user: User,
   )
 
@@ -49,4 +50,12 @@ interface AccountManager {
    * Update the set of tokens for a given user
    */
   suspend fun updateToken(userId: UserId, newToken: AbsToken)
+
+  /**
+   * Get a set of extra headers the User configured during Authentication
+   * to send in every network request.
+   * @param userId the id of the user to fetch extra headers for
+   * @return a map of extra headers to send
+   */
+  suspend fun getExtraHeaders(userId: UserId): Map<String, String>?
 }

@@ -2,6 +2,7 @@ package app.campfire.auth.ui.login
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -16,6 +17,7 @@ data class LoginUiState(
   val password: String,
   val isAuthenticating: Boolean,
   val authError: AuthError?,
+  val networkSettings: NetworkSettings?,
 
   val eventSink: (LoginUiEvent) -> Unit,
 ) : CircuitUiState
@@ -39,6 +41,7 @@ sealed interface LoginUiEvent : CircuitUiEvent {
   data class ServerUrl(val url: String) : LoginUiEvent
   data class UserName(val userName: String) : LoginUiEvent
   data class Password(val password: String) : LoginUiEvent
+  data class ChangeNetworkSettings(val settings: NetworkSettings): LoginUiEvent
   data object AddCampsite : LoginUiEvent
   data object StartOpenIdAuth : LoginUiEvent
 }

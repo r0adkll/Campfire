@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,14 +24,16 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cancel
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.Lan
 import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,13 +65,20 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.ui.login.AuthError
 import app.campfire.auth.ui.login.ConnectionState
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.icon
+import app.campfire.common.compose.icons.rounded.AssignmentGlobe
+import app.campfire.common.compose.icons.rounded.Connected
+import app.campfire.common.compose.icons.rounded.Disconnected
+import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.model.Tent
 import campfire.features.auth.ui.generated.resources.Res
@@ -85,7 +96,9 @@ import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import com.slack.circuit.sharedelements.SharedElementTransitionScope.AnimatedScope.Navigation
 import org.jetbrains.compose.resources.stringResource
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalSharedTransitionApi::class,
+  ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 internal fun ServerCard(
   tent: Tent,
@@ -94,6 +107,8 @@ internal fun ServerCard(
   onServerNameChange: (String) -> Unit,
   serverUrl: String,
   onServerUrlChange: (String) -> Unit,
+  networkSettings: NetworkSettings?,
+  onEditNetworkSettingsClick: () -> Unit,
   username: String,
   onUsernameChange: (String) -> Unit,
   password: String,
@@ -125,6 +140,8 @@ internal fun ServerCard(
         animatedVisibilityScope = requireAnimatedScope(Navigation),
       ),
   ) {
+    Spacer(Modifier.size(16.dp))
+
     ServerNameAndIcon(
       enabled = !isAuthenticating,
       tent = tent,
@@ -135,9 +152,10 @@ internal fun ServerCard(
       modifier = Modifier.padding(
         start = 16.dp,
         end = 16.dp,
-        top = 16.dp,
       ),
     )
+
+    Spacer(Modifier.size(16.dp))
 
     OutlinedTextField(
       enabled = !isAuthenticating,
@@ -146,11 +164,18 @@ internal fun ServerCard(
       label = { Text(stringResource(Res.string.label_server_url)) },
       leadingIcon = {
         Icon(
-          Icons.Rounded.Lan,
+          when (connectionState) {
+            is ConnectionState.Success -> CampfireIcons.Rounded.Connected
+            else -> CampfireIcons.Rounded.Disconnected
+          },
           contentDescription = null,
         )
       },
-      supportingText = if (serverUrl.isNotBlank() && connectionState != null) {
+      supportingText = if (
+        serverUrl.isNotBlank() &&
+          connectionState != null &&
+          connectionState !is ConnectionState.Success
+      ) {
         {
           Text(
             when (connectionState) {
@@ -179,16 +204,62 @@ internal fun ServerCard(
         autoCorrectEnabled = true,
         imeAction = ImeAction.Next,
       ),
+      isError = connectionState is ConnectionState.Error,
       singleLine = true,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(16.dp)
+        .padding(
+          horizontal = 16.dp
+        )
         .focusRequester(serverUrlFocus)
         .focusProperties {
           previous = serverNameFocus
           next = usernameFocus
         },
     )
+
+    AnimatedVisibility(
+      visible = serverUrl.isNotBlank(),
+      modifier = Modifier
+        .padding(horizontal = 16.dp)
+        .align(Alignment.End),
+    ) {
+      val buttonSize = ButtonDefaults.ExtraSmallContainerHeight
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        if (!networkSettings?.extraHeaders.isNullOrEmpty()) {
+          NetworkSettingCounter(
+            count = networkSettings.extraHeaders.size,
+            buttonSize = buttonSize,
+          )
+        }
+
+        Spacer(Modifier.size(4.dp))
+
+        Button(
+          enabled = !isAuthenticating,
+          onClick = onEditNetworkSettingsClick,
+          shapes = ButtonDefaults.shapes(
+            shape = ButtonDefaults.squareShape
+          ),
+          contentPadding = ButtonDefaults.contentPaddingFor(buttonSize),
+          modifier = Modifier
+            .heightIn(buttonSize),
+        ) {
+          Icon(
+            CampfireIcons.Rounded.Settings,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
+          )
+          Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(buttonSize)))
+          Text(
+            text = "Edit network settings",
+            style = ButtonDefaults.textStyleFor(buttonSize)
+          )
+        }
+      }
+    }
 
     AnimatedVisibility(
       visible = connectionState is ConnectionState.Success,
@@ -198,7 +269,6 @@ internal fun ServerCard(
         Modifier.padding(
           start = 16.dp,
           end = 16.dp,
-          bottom = 16.dp,
         ),
       ) {
         if (authMethodState?.passwordAuthEnabled == true) {
@@ -277,6 +347,8 @@ internal fun ServerCard(
         }
       }
     }
+
+    Spacer(Modifier.size(16.dp))
   }
 }
 
@@ -375,5 +447,39 @@ private fun ServerNameAndIcon(
         )
       }
     }
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun NetworkSettingCounter(
+  count: Int,
+  buttonSize: Dp,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier
+      .heightIn(buttonSize)
+      .border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.outline,
+        shape = ButtonDefaults.squareShape,
+      )
+      .padding(
+        ButtonDefaults.contentPaddingFor(buttonSize),
+      ),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    Icon(
+      CampfireIcons.Rounded.AssignmentGlobe,
+      contentDescription = null,
+      tint = MaterialTheme.colorScheme.outline,
+      modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
+    )
+    Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(buttonSize)))
+    Text(
+      text = "$count",
+      style = ButtonDefaults.textStyleFor(buttonSize),
+    )
   }
 }

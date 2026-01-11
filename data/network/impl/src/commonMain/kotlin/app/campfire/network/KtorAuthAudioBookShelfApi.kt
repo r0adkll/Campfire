@@ -8,7 +8,6 @@ import app.campfire.network.di.ServerUrl
 import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginRequest
 import app.campfire.network.envelopes.LoginResponse
-import app.campfire.network.envelopes.PingResponse
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.ServerStatus
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -17,6 +16,7 @@ import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.client.call.body
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -56,24 +56,27 @@ class KtorAuthAudioBookShelfApi(
     }
   }
 
-  override suspend fun ping(
+  override suspend fun status(
     serverUrl: String,
-  ): Boolean = trySendRequest<PingResponse> { client.get("$serverUrl/ping") }
-    .map { it.success }
-    .getOrElse { false }
-
-  override suspend fun status(serverUrl: String): Result<ServerStatus> {
-    return trySendRequest { client.get("$serverUrl/status") }
+    extraHeaders: Map<String, String>?,
+  ): Result<ServerStatus> {
+    return trySendRequest {
+      client.get("$serverUrl/status") {
+        maybeHeaders(extraHeaders)
+      }
+    }
   }
 
   override suspend fun login(
     serverUrl: String,
     username: String,
     password: String,
+    extraHeaders: Map<String, String>?,
   ): Result<LoginResponse> = trySendRequest {
     client.post {
-      header(HttpHeaders.ReturnTokens, "true")
       url("${cleanServerUrl(serverUrl)}/login")
+      header(HttpHeaders.ReturnTokens, "true")
+      maybeHeaders(extraHeaders)
       contentType(ContentType.Application.Json)
       setBody(LoginRequest(username, password))
     }
@@ -84,6 +87,7 @@ class KtorAuthAudioBookShelfApi(
     codeChallenge: String,
     codeVerifier: String,
     state: String,
+    extraHeaders: Map<String, String>?,
   ): Result<AuthorizationResponse> {
     val nonRedirectClient = client.config {
       followRedirects = false
@@ -98,6 +102,7 @@ class KtorAuthAudioBookShelfApi(
         parameter("redirect_uri", "audiobookshelf://oauth")
         parameter("client_id", "Campfire")
         parameter("state", state)
+        maybeHeaders(extraHeaders)
       }
 
       if (response.status.value in 200 until 400) {
@@ -130,6 +135,7 @@ class KtorAuthAudioBookShelfApi(
     state: String,
     code: String,
     codeVerifier: String,
+    extraHeaders: Map<String, String>?,
   ): Result<LoginResponse> = trySendRequest {
     client.get {
       val baseUrl = cleanServerUrl(serverUrl)
@@ -137,6 +143,7 @@ class KtorAuthAudioBookShelfApi(
       parameter("state", state)
       parameter("code", code)
       parameter("code_verifier", codeVerifier)
+      maybeHeaders(extraHeaders)
     }
   }
 
@@ -164,5 +171,11 @@ class KtorAuthAudioBookShelfApi(
       e.printStackTrace()
       Result.failure(e)
     }
+  }
+}
+
+private fun HttpRequestBuilder.maybeHeaders(headers: Map<String, String>?) {
+  headers?.let { h ->
+    h.forEach { (k, v) -> header(k, v) }
   }
 }

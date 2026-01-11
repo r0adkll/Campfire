@@ -7,15 +7,12 @@ import app.campfire.network.models.ServerStatus
 interface AuthAudioBookShelfApi {
 
   /**
-   * Ping an audiobookshelf server to validate that it exists and is running
-   */
-  @Deprecated("Use .status() instead", replaceWith = ReplaceWith("status(serverUrl)"))
-  suspend fun ping(serverUrl: String): Boolean
-
-  /**
    * Get the status of an audiobookshelf server
    */
-  suspend fun status(serverUrl: String): Result<ServerStatus>
+  suspend fun status(
+    serverUrl: String,
+    extraHeaders: Map<String, String>? = null,
+  ): Result<ServerStatus>
 
   /**
    * This endpoint logs in a client to the server, returning information about the user and server.
@@ -27,6 +24,7 @@ interface AuthAudioBookShelfApi {
     serverUrl: String,
     username: String,
     password: String,
+    extraHeaders: Map<String, String>? = null,
   ): Result<LoginResponse>
 
   /**
@@ -38,6 +36,7 @@ interface AuthAudioBookShelfApi {
     codeChallenge: String,
     codeVerifier: String,
     state: String,
+    extraHeaders: Map<String, String>? = null,
   ): Result<AuthorizationResponse>
 
   /**
@@ -55,5 +54,6 @@ interface AuthAudioBookShelfApi {
     state: String,
     code: String,
     codeVerifier: String,
+    extraHeaders: Map<String, String>? = null,
   ): Result<LoginResponse>
 }

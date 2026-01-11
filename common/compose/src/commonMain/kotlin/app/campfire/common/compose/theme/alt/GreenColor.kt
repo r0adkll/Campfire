@@ -5,7 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import app.campfire.common.compose.theme.ColorPalette
 
-private val seed = Color(0xFF00FF00)
+val greenSeed = Color(0xFF00FF00)
 
 private val primaryLight = Color(0xFF026B00)
 private val onPrimaryLight = Color(0xFFD3FFC2)

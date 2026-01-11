@@ -23,18 +23,30 @@ actual interface PlatformTokenSettingsComponent {
   fun provideTokenSettings(
     application: Application,
   ): Settings = SharedPreferencesSettings(
-    delegate = createEncryptedSharedPreferences(application),
+    delegate = createEncryptedSharedPreferences(application, "token_shared_prefs"),
+  )
+
+  @SingleIn(AppScope::class)
+  @Provides
+  @ExtraHeaderSettings
+  fun provideExtraHeaderSettings(
+    application: Application,
+  ): Settings = SharedPreferencesSettings(
+    delegate = createEncryptedSharedPreferences(application, "extra_headers"),
   )
 }
 
-internal fun createEncryptedSharedPreferences(context: Context): SharedPreferences {
+internal fun createEncryptedSharedPreferences(
+  context: Context,
+  name: String,
+): SharedPreferences {
   val masterKey: MasterKey = MasterKey.Builder(context)
     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
     .build()
 
   return EncryptedSharedPreferences.create(
     context,
-    "token_shared_prefs",
+    name,
     masterKey,
     EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
     EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,

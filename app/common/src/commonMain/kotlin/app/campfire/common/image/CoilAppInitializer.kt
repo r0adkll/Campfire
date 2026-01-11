@@ -6,6 +6,7 @@ import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.session.userId
 import app.campfire.network.asBearerTokens
+import app.campfire.network.plugins.suspendingDefaultHeaders
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
 import coil3.network.ktor3.KtorNetworkFetcherFactory
@@ -14,6 +15,7 @@ import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
+import io.ktor.client.request.header
 import me.tatarka.inject.annotations.Inject
 
 @ContributesMultibinding(AppScope::class)
@@ -51,6 +53,13 @@ class CoilAppInitializer(
           }
         }
         sendWithoutRequest { true }
+      }
+    }
+
+    suspendingDefaultHeaders {
+      userSessionManager.current.userId?.let { userId ->
+        val extraHeaders = accountManager.getExtraHeaders(userId)
+        extraHeaders?.forEach { (name, value) -> header(name, value) }
       }
     }
   }

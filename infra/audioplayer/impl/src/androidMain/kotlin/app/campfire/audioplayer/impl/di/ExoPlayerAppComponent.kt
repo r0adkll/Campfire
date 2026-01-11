@@ -134,8 +134,14 @@ private fun createAuthenticatingDataSource(
     accountManager.getToken(userSession.requiredUserId)
   }
 
+  val extraHeaders = runBlocking {
+    accountManager.getExtraHeaders(userSession.requiredUserId)
+  } ?: emptyMap()
+
   if (token != null) {
-    dataSpec.withAdditionalHeaders(mapOf("Authorization" to "Bearer ${token.accessToken}"))
+    dataSpec
+      .withAdditionalHeaders(mapOf("Authorization" to "Bearer ${token.accessToken}"))
+      .withAdditionalHeaders(extraHeaders)
   } else {
     dataSpec
   }

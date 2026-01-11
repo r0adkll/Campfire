@@ -44,6 +44,7 @@ import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
+import app.campfire.network.plugins.suspendingDefaultHeaders
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -111,6 +112,13 @@ class KtorAudioBookShelfApi(
               null
             }
           }
+        }
+      }
+
+      suspendingDefaultHeaders {
+        val extraHeaders = accountManager.getExtraHeaders(userSession.requiredUserId)
+        extraHeaders?.forEach { (name, value) ->
+          header(name, value)
         }
       }
     }

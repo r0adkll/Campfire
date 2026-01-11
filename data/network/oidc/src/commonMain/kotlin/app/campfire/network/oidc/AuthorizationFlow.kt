@@ -12,6 +12,7 @@ interface AuthorizationFlow {
    */
   suspend fun getAuthorization(
     serverUrl: String,
+    extraHeaders: Map<String, String>? = null,
   ): Result<OpenIdAuthorization>
 }
 

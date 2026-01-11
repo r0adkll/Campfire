@@ -8,6 +8,10 @@ import me.tatarka.inject.annotations.Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class TokenSettings
 
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class ExtraHeaderSettings
+
 /**
  * Component to be implemented by platform configurations and
  * then used to contribute a DI component to provide the settings
