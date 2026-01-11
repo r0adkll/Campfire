@@ -3,10 +3,10 @@ package app.campfire.auth
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
 import app.campfire.auth.api.AuthRepository
-import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.auth.model.asDomainModel
 import app.campfire.core.di.AppScope
+import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import app.campfire.data.mapping.asDatabaseModel
 import app.campfire.data.mapping.asDbModel

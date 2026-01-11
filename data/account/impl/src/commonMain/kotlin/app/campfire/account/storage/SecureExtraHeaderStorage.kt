@@ -43,7 +43,7 @@ class SecureExtraHeaderStorage(
 
   private fun serialize(extraHeaders: Map<String, String>): String {
     return extraHeaders
-      .map { (name, value) -> "${name}$PAIR_SEPARATOR${value}" }
+      .map { (name, value) -> "${name}$PAIR_SEPARATOR$value" }
       .joinToString(SET_SEPARATOR)
   }
 
@@ -53,7 +53,9 @@ class SecureExtraHeaderStorage(
       val pair = set.split(PAIR_SEPARATOR)
       if (pair.size == 2) {
         pair[0] to pair[1]
-      } else null
+      } else {
+        null
+      }
     }.toMap()
   }
 

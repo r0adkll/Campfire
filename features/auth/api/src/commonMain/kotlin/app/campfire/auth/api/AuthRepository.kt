@@ -1,7 +1,7 @@
 package app.campfire.auth.api
 
-import app.campfire.core.model.NetworkSettings
 import app.campfire.auth.api.model.ServerStatus
+import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 
 interface AuthRepository {
