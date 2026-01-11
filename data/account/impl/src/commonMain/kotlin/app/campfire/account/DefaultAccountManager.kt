@@ -102,8 +102,9 @@ class DefaultAccountManager(
       }
     }
 
-    // Delete the accounts token
+    // Delete the accounts token / data
     tokenStorage.remove(server.user.id)
+    extraHeaderStorage.remove(server.user.id)
 
     // Delete the accounts data
     logoutUseCase.execute(server)
