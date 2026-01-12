@@ -19,4 +19,11 @@ actual interface PlatformTokenSettingsComponent {
   fun provideTokenSettings(delegate: Preferences): Settings {
     return PreferencesSettings(delegate)
   }
+
+  @SingleIn(AppScope::class)
+  @Provides
+  @ExtraHeaderSettings
+  fun provideExtraHeaderSettings(delegate: Preferences): Settings {
+    return PreferencesSettings(delegate)
+  }
 }

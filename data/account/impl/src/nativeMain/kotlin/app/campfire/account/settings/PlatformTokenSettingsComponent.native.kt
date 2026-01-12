@@ -18,4 +18,10 @@ actual interface PlatformTokenSettingsComponent {
   @Provides
   @TokenSettings
   fun provideTokenSettings(): Settings = KeychainSettings("app.campfire.app.tokens")
+
+  @OptIn(ExperimentalSettingsImplementation::class)
+  @SingleIn(AppScope::class)
+  @Provides
+  @ExtraHeaderSettings
+  fun provideExtraHeadersSettings(): Settings = KeychainSettings("app.campfire.app.extraHeaders")
 }
