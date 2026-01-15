@@ -74,7 +74,7 @@ interface ExoPlayerAppComponent {
       databaseProvider,
       simpleCache,
       createAuthenticatingDataSource(
-        userSession = sessionManager.current,
+        userSessionProvider = { sessionManager.current },
         accountManager = accountManager,
         upstreamDataSourceFactory = httpDataSourceFactory,
       ),
@@ -113,7 +113,7 @@ interface ExoPlayerAppComponent {
     return DefaultMediaSourceFactory(application, extractorsFactory)
       .setDataSourceFactory(
         createAuthenticatingDataSource(
-          userSession = sessionManager.current,
+          userSessionProvider = { sessionManager.current },
           accountManager = accountManager,
           upstreamDataSourceFactory = cacheDataSourceFactory,
         ),
@@ -123,7 +123,7 @@ interface ExoPlayerAppComponent {
 
 @OptIn(UnstableApi::class)
 private fun createAuthenticatingDataSource(
-  userSession: UserSession,
+  userSessionProvider: () -> UserSession,
   accountManager: AccountManager,
   upstreamDataSourceFactory: DataSource.Factory,
 ) = ResolvingDataSource.Factory(upstreamDataSourceFactory) { dataSpec ->
@@ -131,11 +131,11 @@ private fun createAuthenticatingDataSource(
   //  executed in other coroutine contexts. Since this is used internally by ExoPlayer we should be
   //  safe from that particular issue.
   val token = runBlocking {
-    accountManager.getToken(userSession.requiredUserId)
+    accountManager.getToken(userSessionProvider().requiredUserId)
   }
 
   val extraHeaders = runBlocking {
-    accountManager.getExtraHeaders(userSession.requiredUserId)
+    accountManager.getExtraHeaders(userSessionProvider().requiredUserId)
   } ?: emptyMap()
 
   if (token != null) {

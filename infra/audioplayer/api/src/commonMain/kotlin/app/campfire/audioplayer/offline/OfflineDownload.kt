@@ -33,10 +33,14 @@ data class OfflineDownload(
 ) {
 
   val isCompleted: Boolean
-    get() = state == Completed
+    get() = state == Completed ||
+      state == Failed ||
+      state == Stopped
 
   val isActive: Boolean
-    get() = state != Completed && state != None
+    get() = state != Completed &&
+      state != Failed &&
+      state != None
 
   enum class State {
     /**

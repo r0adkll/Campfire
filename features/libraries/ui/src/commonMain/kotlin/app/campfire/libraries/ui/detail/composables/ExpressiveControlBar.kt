@@ -23,11 +23,14 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
+import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Downloading
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonShapes
@@ -37,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
@@ -126,6 +130,7 @@ internal fun ExpressiveControlBar(
           offlineDownload = offlineDownload,
           onDeleteClick = onDeleteDownloadClick,
           onStopClick = onStopDownloadClick,
+          onRetryClick = onDownloadClick,
         )
       }
 
@@ -149,6 +154,7 @@ private fun OfflineStatus(
   offlineDownload: OfflineDownload,
   onDeleteClick: () -> Unit,
   onStopClick: () -> Unit,
+  onRetryClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Card(
@@ -160,7 +166,7 @@ private fun OfflineStatus(
     modifier = modifier,
   ) {
     OfflineTitleBar(
-      completed = offlineDownload.isCompleted,
+      state = offlineDownload.state,
       title = {
         Text(
           when (offlineDownload.state) {
@@ -170,12 +176,12 @@ private fun OfflineStatus(
 
             OfflineDownload.State.Queued -> "Queued"
             OfflineDownload.State.Stopped -> "Stopped"
-            OfflineDownload.State.Failed -> "Failed"
+            OfflineDownload.State.Failed -> "Download failed"
             OfflineDownload.State.Completed -> "Available for offline"
           },
         )
       },
-      subtitle = if (offlineDownload.isCompleted) {
+      subtitle = if (offlineDownload.state == OfflineDownload.State.Completed) {
         {
           Text(offlineDownload.progress.bytes.asReadableBytes())
         }
@@ -203,31 +209,70 @@ private fun OfflineStatus(
               )
             }
           } else {
-            val size = ButtonDefaults.ExtraSmallContainerHeight
-            val color = MaterialTheme.colorScheme.error
-            Button(
-              onClick = onDeleteClick,
-              shapes = ButtonDefaults.shapes(
-                shape = ButtonDefaults.squareShape,
-              ),
-              colors = ButtonDefaults.buttonColors(
-                containerColor = color,
-                contentColor = MaterialTheme.colorScheme.contentColorFor(color),
-              ),
-              modifier = Modifier
-                .heightIn(size),
-              contentPadding = ButtonDefaults.contentPaddingFor(size),
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
             ) {
-              Icon(
-                Icons.Rounded.Delete,
-                contentDescription = stringResource(Res.string.action_stop_downloading),
-                modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
-              )
-              Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
-              Text(
-                text = stringResource(Res.string.action_delete_offline),
-                style = ButtonDefaults.textStyleFor(size),
-              )
+              if (
+                offlineDownload.state == OfflineDownload.State.Failed ||
+                offlineDownload.state == OfflineDownload.State.Stopped
+              ) {
+                IconButton(
+                  onClick = onRetryClick,
+                  shapes = IconButtonDefaults.shapes(),
+                  modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                ) {
+                  Icon(
+                    Icons.Rounded.Replay,
+                    contentDescription = "Retry download",
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                  )
+                }
+
+                Spacer(Modifier.size(8.dp))
+
+                FilledIconButton(
+                  onClick = onDeleteClick,
+                  shapes = IconButtonDefaults.shapes(),
+                  colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError,
+                  ),
+                  modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                ) {
+                  Icon(
+                    Icons.Rounded.Delete,
+                    contentDescription = "Delete download",
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                  )
+                }
+              } else {
+                val size = ButtonDefaults.ExtraSmallContainerHeight
+                val color = MaterialTheme.colorScheme.error
+                Button(
+                  onClick = onDeleteClick,
+                  shapes = ButtonDefaults.shapes(
+                    shape = ButtonDefaults.squareShape,
+                  ),
+                  colors = ButtonDefaults.buttonColors(
+                    containerColor = color,
+                    contentColor = MaterialTheme.colorScheme.contentColorFor(color),
+                  ),
+                  modifier = Modifier
+                    .heightIn(size),
+                  contentPadding = ButtonDefaults.contentPaddingFor(size),
+                ) {
+                  Icon(
+                    Icons.Rounded.Delete,
+                    contentDescription = stringResource(Res.string.action_stop_downloading),
+                    modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
+                  )
+                  Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+                  Text(
+                    text = stringResource(Res.string.action_delete_offline),
+                    style = ButtonDefaults.textStyleFor(size),
+                  )
+                }
+              }
             }
           }
         }
@@ -241,7 +286,6 @@ private fun OfflineStatus(
         bytesDownloaded = offlineDownload.progress.bytes,
         contentLength = offlineDownload.contentLength,
         isIndeterminate = offlineDownload.progress.indeterminate,
-        onStopClick = onStopClick,
       )
     }
   }
@@ -249,7 +293,7 @@ private fun OfflineStatus(
 
 @Composable
 internal fun OfflineTitleBar(
-  completed: Boolean,
+  state: OfflineDownload.State,
   title: @Composable () -> Unit,
   subtitle: (@Composable () -> Unit)?,
   trailing: @Composable () -> Unit,
@@ -260,7 +304,14 @@ internal fun OfflineTitleBar(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Icon(
-      if (completed) Icons.Rounded.DownloadDone else Icons.Rounded.Downloading,
+      when (state) {
+        OfflineDownload.State.None -> Icons.Rounded.Downloading
+        OfflineDownload.State.Queued -> Icons.Rounded.Downloading
+        OfflineDownload.State.Downloading -> Icons.Rounded.Downloading
+        OfflineDownload.State.Stopped -> Icons.Outlined.StopCircle
+        OfflineDownload.State.Completed -> Icons.Rounded.DownloadDone
+        OfflineDownload.State.Failed -> Icons.Rounded.WarningAmber
+      },
       contentDescription = null,
       modifier = Modifier
         .padding(16.dp),
@@ -308,7 +359,6 @@ private fun OfflineProgressBar(
   bytesDownloaded: Long,
   contentLength: Long,
   isIndeterminate: Boolean,
-  onStopClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -598,9 +648,9 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       libraryItem = libraryItem(),
       offlineDownload = OfflineDownload(
         libraryItemId = "",
-        state = OfflineDownload.State.None,
+        state = OfflineDownload.State.Failed,
         contentLength = 5L * 1024L * 1024L,
-        progress = OfflineDownload.Progress(0L, 0f),
+        progress = OfflineDownload.Progress(0L, 0f, true),
       ),
       mediaProgress = mediaProgress(),
       showConfirmDownloadDialogSetting = false,

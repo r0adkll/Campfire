@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.Settings
@@ -54,6 +56,8 @@ import campfire.ui.navigation.generated.resources.nav_authors_content_descriptio
 import campfire.ui.navigation.generated.resources.nav_authors_label
 import campfire.ui.navigation.generated.resources.nav_collections_content_description
 import campfire.ui.navigation.generated.resources.nav_collections_label
+import campfire.ui.navigation.generated.resources.nav_downloads_content_description
+import campfire.ui.navigation.generated.resources.nav_downloads_label
 import campfire.ui.navigation.generated.resources.nav_home_content_description
 import campfire.ui.navigation.generated.resources.nav_home_label
 import campfire.ui.navigation.generated.resources.nav_library_content_description
@@ -190,6 +194,16 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
 
     add(
       HomeNavigationItem(
+        screen = CollectionsScreen,
+        label = stringResource(Res.string.nav_collections_label),
+        contentDescription = stringResource(Res.string.nav_collections_content_description),
+        iconImageVector = Icons.Outlined.Collections,
+        selectedImageVector = Icons.Filled.Collections,
+      ),
+    )
+
+    add(
+      HomeNavigationItem(
         screen = StatisticsScreen,
         label = stringResource(Res.string.nav_statistics_label),
         contentDescription = stringResource(Res.string.nav_statistics_content_description),
@@ -200,11 +214,11 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
 
     add(
       HomeNavigationItem(
-        screen = CollectionsScreen,
-        label = stringResource(Res.string.nav_collections_label),
-        contentDescription = stringResource(Res.string.nav_collections_content_description),
-        iconImageVector = Icons.Outlined.Collections,
-        selectedImageVector = Icons.Filled.Collections,
+        screen = SettingsScreen(SettingsScreen.Page.Downloads),
+        label = stringResource(Res.string.nav_downloads_label),
+        contentDescription = stringResource(Res.string.nav_downloads_content_description),
+        iconImageVector = Icons.Outlined.CloudDownload,
+        selectedImageVector = Icons.Filled.CloudDownload,
       ),
     )
 

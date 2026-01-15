@@ -20,4 +20,7 @@
   <string name="nav_collections_content_description">The collections content for the current user</string>
   <string name="nav_authors_label">Authors</string>
   <string name="nav_authors_content_description">The list of authors for the current user/library</string>
+
+  <string name="nav_downloads_label">Downloads</string>
+  <string name="nav_downloads_content_description">The offline downloaded content for the current user</string>
 </resources>

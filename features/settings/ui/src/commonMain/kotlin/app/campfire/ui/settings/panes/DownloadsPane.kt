@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -15,7 +16,7 @@ import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DeleteForever
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Downloading
-import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalIconButton
@@ -45,6 +46,7 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.extensions.ifNotEmpty
 import app.campfire.core.model.LibraryItem
@@ -84,12 +86,11 @@ internal fun DownloadsPane(
       supportingContent = { Text(stringResource(Res.string.setting_show_download_confirmation_description)) },
     )
 
-    state.downloadsSettings.downloads.ifNotEmpty {
-      Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
+    Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
 
+    state.downloadsSettings.downloads.ifNotEmpty {
       var showConfirmation by remember { mutableStateOf<LibraryItemId?>(null) }
       forEach { (item, download) ->
-
         ConfirmationLayout(
           showConfirmation = showConfirmation == item.id,
           confirm = {
@@ -120,6 +121,15 @@ internal fun DownloadsPane(
           )
         }
       }
+    }
+
+    if (state.downloadsSettings.downloads.isEmpty()) {
+      EmptyState(
+        message = "No downloads yet!",
+        modifier = Modifier
+          .height(700.dp)
+          .padding(vertical = 24.dp),
+      )
     }
   }
 }
@@ -279,7 +289,12 @@ private fun ItemDownloadImage(
         modifier = Modifier
           .size(size)
           .background(
-            color = MaterialTheme.colorScheme.scrim.copy(0.6f),
+            color = when (download.state) {
+              Stopped,
+              Failed,
+              -> MaterialTheme.colorScheme.errorContainer.copy(0.90f)
+              else -> MaterialTheme.colorScheme.scrim.copy(0.6f)
+            },
           ),
         contentAlignment = Alignment.Center,
       ) {
@@ -293,11 +308,16 @@ private fun ItemDownloadImage(
             Downloading,
             -> Icons.Rounded.Downloading
 
-            Failed -> Icons.Rounded.ErrorOutline
+            Failed -> Icons.Rounded.WarningAmber
             Completed -> Icons.Rounded.DownloadDone
           },
           contentDescription = null,
-          tint = Color.White,
+          tint = when (download.state) {
+            Stopped,
+            Failed,
+            -> MaterialTheme.colorScheme.error
+            else -> Color.White
+          },
         )
       }
     }
