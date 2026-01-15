@@ -64,9 +64,10 @@ class LibraryItemUiTest {
       user = user,
       libraryItem = null,
       theme = null,
+      swatch = null,
       contentState = LoadState.Error,
       showConfirmDownloadDialog = false,
-      events::invoke,
+      eventSink = events::invoke,
     )
 
     setContent {
@@ -82,9 +83,10 @@ class LibraryItemUiTest {
       user = user,
       libraryItem = null,
       theme = null,
+      swatch = null,
       contentState = LoadState.Loading,
       showConfirmDownloadDialog = false,
-      events::invoke,
+      eventSink = events::invoke,
     )
 
     setContent {
@@ -100,11 +102,12 @@ class LibraryItemUiTest {
       user = user,
       libraryItem = null,
       theme = null,
+      swatch = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
-      events::invoke,
+      eventSink = events::invoke,
     )
 
     setContent {
@@ -123,11 +126,12 @@ class LibraryItemUiTest {
       user = user,
       libraryItem = null,
       theme = null,
+      swatch = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
-      events::invoke,
+      eventSink = events::invoke,
     )
 
     setContent {
@@ -144,11 +148,12 @@ class LibraryItemUiTest {
       user = user,
       libraryItem = libraryItem(),
       theme = null,
+      swatch = null,
       contentState = LoadState.Loaded(
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
-      events::invoke,
+      eventSink = events::invoke,
     )
 
     setContent {
