@@ -1,6 +1,9 @@
 package app.campfire.libraries.ui.detail
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -60,6 +63,7 @@ import app.campfire.core.model.UserId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.libraries.ui.detail.composables.SwatchToolbar
 import app.campfire.libraries.ui.detail.composables.slots.ChapterContainerColor
 import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
@@ -135,7 +139,22 @@ fun LibraryItemContent(
           }
         },
         actions = {
-          if (state.user.type == User.Type.Admin) {
+          AnimatedVisibility(
+            visible = state.swatch != null,
+            modifier = Modifier,
+            enter = fadeIn(),
+            exit = fadeOut(),
+          ) {
+            SwatchToolbar(
+              swatch = state.swatch!!,
+              onColorClicked = {
+                state.eventSink(LibraryItemUiEvent.SeedColorChange(it))
+              },
+              modifier = Modifier.padding(end = 8.dp),
+            )
+          }
+
+          if (state.user.type == Type.Admin) {
             IconButton(
               onClick = {
                 Analytics.send(ActionEvent("add_to_collection", Click))

@@ -12,6 +12,7 @@ import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.cache.Cache
 import app.campfire.ui.theming.cache.DiskCache
+import app.campfire.ui.theming.quantizer.QuantizedSwatch
 import app.campfire.ui.theming.quantizer.QuantizerPipeline
 import app.campfire.ui.theming.theme.ComputedTheme
 import app.campfire.ui.theming.theme.ThemeCacheKeyBuilder
@@ -57,6 +58,11 @@ class CachingThemeManager(
     extraBufferCapacity = 8,
   )
 
+  private val swatchOutputSink = MutableSharedFlow<QuantizedSwatch>(
+    replay = 0,
+    extraBufferCapacity = 8,
+  )
+
   override fun initialize() {
     // Hydrate memory cache from disk
     applicationScope.launch {
@@ -73,6 +79,9 @@ class CachingThemeManager(
       .onEach { qSwatch ->
         memorySwatchCache[qSwatch.key] = qSwatch.swatch
         diskSwatchCache[qSwatch.key] = qSwatch.swatch
+
+        // Emit to any observers
+        swatchOutputSink.emit(qSwatch)
 
         // Process into a them using defaults
         themePipeline.queue(
@@ -199,6 +208,37 @@ class CachingThemeManager(
         }
 
         // If we make it to the end be sure to emit a null so the UI can act accordingly
+        emit(null)
+      }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeSwatchFor(key: String): Flow<Swatch?> {
+    return swatchOutputSink.asSharedFlow()
+      .filter { it.key == key }
+      .mapLatest { it.swatch }
+      .onStart<Swatch?> {
+        // 1) Make sure we aren't currently processing a swatch or theme for this key
+        if (quantizerPipeline.containsKey(key)) {
+          vbark { "Quantizer pipeline already processing $key, ignoring…" }
+          return@onStart
+        }
+
+        val memorySwatch = memorySwatchCache[key]
+        if (memorySwatch != null) {
+          vbark { "Found theme in memory cache for $key" }
+          emit(memorySwatch)
+          return@onStart
+        }
+
+        val diskSwatch = diskSwatchCache[key]
+        if (diskSwatch != null) {
+          vbark { "Found theme in disk cache for $key" }
+          memorySwatchCache[key] = diskSwatch
+          emit(diskSwatch)
+          return@onStart
+        }
+
         emit(null)
       }
   }

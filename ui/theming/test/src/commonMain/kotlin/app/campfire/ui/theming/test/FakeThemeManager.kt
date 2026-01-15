@@ -6,6 +6,7 @@ import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.compose.Schema
+import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -37,6 +38,11 @@ class FakeThemeManager : ThemeManager {
     spec: ColorSpec.SpecVersion,
   ): Flow<Theme?> {
     return themeFlow.asSharedFlow()
+  }
+
+  val swatchFlow = MutableSharedFlow<Swatch?>(replay = 1)
+  override fun observeSwatchFor(key: String): Flow<Swatch?> {
+    return swatchFlow.asSharedFlow()
   }
 
   data class QuantizeTask(val key: String, val image: ImageBitmap)

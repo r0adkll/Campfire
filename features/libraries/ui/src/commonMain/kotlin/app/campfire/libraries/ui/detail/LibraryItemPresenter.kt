@@ -170,13 +170,18 @@ class LibraryItemPresenter(
       )
     }.collectAsState(null)
 
+    val swatch by remember(isDynamicThemingEnabled) {
+      if (!isDynamicThemingEnabled) {
+        flowOf(null)
+      } else themeManager.observeSwatchFor(screen.libraryItemId)
+    }.collectAsState(null)
+
     // Build the Slots
     val slots = libraryItemContentState.map { libraryItem ->
       buildSlots(
         libraryItem = libraryItem,
         sharedTransitionKey = screen.sharedTransitionKey,
         isPlaying = isPlaying,
-        isDynamicThemingEnabled = isDynamicThemingEnabled,
         mediaProgressState = mediaProgressState,
         offlineDownloadState = offlineDownloadState,
         seriesContentState = seriesContentState,
@@ -189,6 +194,7 @@ class LibraryItemPresenter(
       user = userSession.requiredUser,
       libraryItem = libraryItemContentState.dataOrNull,
       theme = theme,
+      swatch = swatch,
       contentState = slots,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
     ) { event ->
@@ -319,7 +325,6 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   sharedTransitionKey: String,
   isPlaying: Boolean,
-  isDynamicThemingEnabled: Boolean,
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<LibraryItem>>,
@@ -331,7 +336,6 @@ private fun buildSlots(
       imageUrl = libraryItem.media.coverImageUrl,
       contentDescription = libraryItem.media.metadata.title,
       sharedTransitionKey = sharedTransitionKey,
-      isDynamicThemingEnabled = isDynamicThemingEnabled,
     )
 
     this += TitleAndAuthorSlot(

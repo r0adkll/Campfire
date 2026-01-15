@@ -68,4 +68,21 @@ interface ThemeManager {
     contrast: Double = 0.0,
     spec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2025,
   ): Flow<Theme?>
+
+  /**
+   * Observe a computed swatch for a given key. This will either return immediately with a
+   * cached swatch, or re-compute it based on the key and input parameters. If no cache exists at all then, this
+   * will return null.
+   *
+   * This will:
+   * 1. Check memory cache for a pre-computed [Swatch] object for the given [key]; Return if exists.
+   * 2. Check disk cache for a pre-computed [Swatch] object for the given [key]; Return if exists.
+   * 3. Return null if nothing else
+   *
+   * @param key the caching key used to store swatches
+   * @return a flow of the cached or computed swatch, or null if it can't be resolved
+   */
+  fun observeSwatchFor(
+    key: String,
+  ): Flow<Swatch?>
 }

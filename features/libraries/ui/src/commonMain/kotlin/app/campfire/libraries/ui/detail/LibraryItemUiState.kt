@@ -9,6 +9,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -17,6 +18,7 @@ import com.slack.circuit.runtime.CircuitUiState
 data class LibraryItemUiState(
   val user: User,
   val libraryItem: LibraryItem?,
+  val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out List<ContentSlot>>,
   val showConfirmDownloadDialog: Boolean,
