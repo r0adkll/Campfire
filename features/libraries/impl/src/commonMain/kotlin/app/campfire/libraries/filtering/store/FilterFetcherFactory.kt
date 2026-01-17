@@ -9,13 +9,12 @@ import org.mobilenativefoundation.store.store5.Fetcher
 
 class FilterFetcherFactory(
   private val api: AudioBookShelfApi,
-  private val crashReporter: CrashReporter
 ) {
 
   fun create(): Fetcher<LibraryId, FilterData> = Fetcher.ofResult { libraryId ->
     api.getFilterData(libraryId)
       .onSuccess { filterData ->
-        crashReporter.tag("bookCount", filterData.bookCount.toString())
+        CrashReporter.tag("bookCount", filterData.bookCount.toString())
       }
       .asFetcherResult()
   }

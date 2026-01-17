@@ -21,10 +21,9 @@ class FilteringStore private constructor() {
     db: CampfireDatabase,
     dispatcherProvider: DispatcherProvider,
     fatherTime: FatherTime,
-    crashReporter: CrashReporter,
   ) {
 
-    private val filterFetcherFactory = FilterFetcherFactory(api, crashReporter)
+    private val filterFetcherFactory = FilterFetcherFactory(api)
     private val filterSourceOfTruthFactory = FilterSourceOfTruthFactory(db, dispatcherProvider, fatherTime)
 
     fun create(): Store<LibraryId, FilterData> = StoreBuilder.Companion

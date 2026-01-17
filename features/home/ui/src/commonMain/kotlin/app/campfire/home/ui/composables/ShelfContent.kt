@@ -170,6 +170,7 @@ private fun LoadedShelfContent(
         )
 
         is Series -> ItemCollectionCard(
+          sharedTransitionKey = entity.id,
           name = entity.name,
           description = entity.description,
           items = entity.books ?: emptyList(),

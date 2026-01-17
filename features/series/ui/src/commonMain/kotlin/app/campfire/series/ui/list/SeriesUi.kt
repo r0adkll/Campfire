@@ -103,6 +103,7 @@ private fun LoadedState(
         key = { it.id },
       ) { series ->
         ItemCollectionCard(
+          sharedTransitionKey = series.id,
           name = series.name,
           description = series.description,
           items = series.books ?: emptyList(),

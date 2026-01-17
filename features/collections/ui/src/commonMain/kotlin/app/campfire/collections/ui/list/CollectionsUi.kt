@@ -110,6 +110,7 @@ private fun LoadedState(
         key = { it.id },
       ) { collection ->
         ItemCollectionCard(
+          sharedTransitionKey = collection.id,
           name = collection.name,
           description = collection.description,
           items = collection.books,
