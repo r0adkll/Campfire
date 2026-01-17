@@ -9,6 +9,13 @@
 > [!IMPORTANT]
 > This is a **WIP** project and no timeline will be given at this point in time
 
+## Install
+If you would like to install **Campfire** and test it out head over to the [releases page](https://github.com/r0adkll/Campfire/releases) and download the latest APK on your device.
+
+OR stay up to date with the latest release using
+
+[![]()](https://appdistribution.firebase.dev/i/6021e2e24ae35f4c)
+
 ## Tech Stack
 
 * [Kotlin Multiplatform][kotlin-multiplatform]
