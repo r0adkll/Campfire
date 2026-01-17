@@ -27,6 +27,7 @@ import app.campfire.common.test.user
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
@@ -175,6 +176,7 @@ class LibraryItemUiTest {
         LocalContentLayout provides ContentLayout.Root,
       ) {
         LibraryItem(
+          screen = LibraryItemScreen(""),
           state = state,
           addToCollectionDialog = addToCollectionDialog,
           modifier = modifier,
