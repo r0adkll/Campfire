@@ -14,7 +14,7 @@ If you would like to install **Campfire** and test it out head over to the [rele
 
 OR stay up to date with the latest release using
 
-[![]()](https://appdistribution.firebase.dev/i/6021e2e24ae35f4c)
+[<img width=400 src=".github/art/FirebaseAppDistribution.svg"/>](https://appdistribution.firebase.dev/i/6021e2e24ae35f4c)
 
 ## Tech Stack
 
