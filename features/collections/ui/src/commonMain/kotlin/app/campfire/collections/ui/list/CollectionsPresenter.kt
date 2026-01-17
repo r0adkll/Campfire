@@ -15,6 +15,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
 import app.campfire.crashreporting.CrashReporter
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -28,7 +29,7 @@ class CollectionsPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: CollectionsRepository,
   private val analytics: Analytics,
-) : Presenter<CollectionsUiState> {
+) : NonPausablePresenter<CollectionsUiState> {
 
   @Suppress("UNCHECKED_CAST")
   @Composable

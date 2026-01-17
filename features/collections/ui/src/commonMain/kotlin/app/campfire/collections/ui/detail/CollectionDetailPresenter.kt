@@ -20,6 +20,7 @@ import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -40,7 +41,7 @@ class CollectionDetailPresenter(
   private val collectionsRepository: CollectionsRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
-) : Presenter<CollectionDetailUiState> {
+) : NonPausablePresenter<CollectionDetailUiState> {
 
   private val canEdit by lazy {
     (currentSession as? UserSession.LoggedIn)?.user

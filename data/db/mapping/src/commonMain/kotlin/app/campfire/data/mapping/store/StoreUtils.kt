@@ -1,5 +1,6 @@
 package app.campfire.data.mapping.store
 
+import app.campfire.core.extensions.isUnknownHostException
 import app.campfire.core.logging.LogPriority.ERROR
 import app.campfire.core.logging.LogPriority.VERBOSE
 import app.campfire.core.logging.bark
@@ -24,10 +25,14 @@ fun <T> Flow<StoreReadResponse<T>>.debugLogging(
     val messagePrefix = "Store[$tag] Origin[${response.origin.readable()}]"
     when (response) {
       is StoreReadResponse.Error.Exception -> {
-        bark(tag, ERROR, throwable = response.error) { "$messagePrefix Error" }
-        CrashReporter.record(
-          StoreException("$tag - Error observing store instance", response.error),
-        )
+        if (response.error.isUnknownHostException) {
+          bark(tag, ERROR) { "$messagePrefix UnknownHostException" }
+        } else {
+          bark(tag, ERROR, throwable = response.error) { "$messagePrefix Error" }
+          CrashReporter.record(
+            StoreException("$tag - Error observing store instance", response.error),
+          )
+        }
       }
       is StoreReadResponse.Error.Message -> {
         bark(tag, ERROR) { "$messagePrefix Error: ${response.message}" }

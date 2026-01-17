@@ -24,7 +24,7 @@ class AnalyticsNavigationEventListener(
   }
 
   override fun pop(result: PopResult?, navigationContext: NavigationContext) {
-    navigationContext.peek()?.let { screen ->
+    navigationContext.peekBackStack()?.getOrNull(1)?.let { screen ->
       sendScreenView(screen)
     }
   }

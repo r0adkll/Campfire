@@ -17,7 +17,7 @@ import platform.darwin._os_log_internal
 object IosBark : Heartwood.Bark {
 
   @OptIn(ExperimentalForeignApi::class)
-  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
+  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
     _os_log_internal(
       __dso_handle.ptr,
       OS_LOG_DEFAULT,
@@ -26,11 +26,11 @@ object IosBark : Heartwood.Bark {
     )
   }
 
-  private fun message(priority: LogPriority, tag: String?, message: String): String {
+  private fun message(priority: LogPriority, tag: String?, message: () -> String): String {
     return if (tag.isNullOrBlank()) {
-      "${priority.short}: $message"
+      "${priority.short}: ${message()}"
     } else {
-      "${priority.short}/$tag: $message"
+      "${priority.short}/$tag: ${message()}"
     }
   }
 

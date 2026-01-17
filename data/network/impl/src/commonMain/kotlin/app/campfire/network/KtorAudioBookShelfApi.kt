@@ -48,6 +48,7 @@ import app.campfire.network.plugins.suspendingDefaultHeaders
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.request.HttpRequestBuilder
@@ -451,10 +452,9 @@ class KtorAudioBookShelfApi(
 
         Result.success(body)
       } else {
-        Result.failure(ApiException(response.status.value, response.bodyAsText()))
+        Result.failure(ApiException(response.status.value, "Network request failed"))
       }
     } catch (e: IOException) {
-      e.printStackTrace()
       Result.failure(e)
     }
   }

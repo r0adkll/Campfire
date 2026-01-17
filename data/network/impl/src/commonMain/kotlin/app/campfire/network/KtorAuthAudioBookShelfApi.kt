@@ -119,7 +119,7 @@ class KtorAuthAudioBookShelfApi(
           Result.failure(ApiException(response.status.value, "No 'Location' header found!"))
         }
       } else {
-        Result.failure(ApiException(response.status.value, response.bodyAsText()))
+        Result.failure(ApiException(response.status.value, "/auth/openid failed!"))
       }
     } catch (e: IOException) {
       e.printStackTrace()

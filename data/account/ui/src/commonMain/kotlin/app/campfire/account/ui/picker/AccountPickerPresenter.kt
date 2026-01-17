@@ -9,6 +9,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Server
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -24,7 +25,7 @@ class AccountPickerPresenter(
   @Assisted private val requestDismiss: () -> Unit,
   private val serverRepository: ServerRepository,
   private val accountManager: AccountManager,
-) : Presenter<AccountPickerUiState> {
+) : NonPausablePresenter<AccountPickerUiState> {
 
   @Composable
   override fun present(): AccountPickerUiState {

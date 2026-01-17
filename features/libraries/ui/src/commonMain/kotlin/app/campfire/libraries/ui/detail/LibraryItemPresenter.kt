@@ -54,6 +54,7 @@ import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.compose.Schema
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -87,7 +88,7 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val dispatcherProvider: DispatcherProvider,
-) : Presenter<LibraryItemUiState> {
+) : NonPausablePresenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -340,6 +341,7 @@ private fun buildSlots(
 
     this += TitleAndAuthorSlot(
       libraryItem = libraryItem,
+      sharedTransitionKey = sharedTransitionKey,
     )
 
     mediaProgressState.onLoaded { mediaProgress ->

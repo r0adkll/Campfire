@@ -22,8 +22,8 @@ import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -46,7 +45,7 @@ class HomePresenter(
   private val homeRepository: HomeRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
-) : Presenter<HomeUiState> {
+) : NonPausablePresenter<HomeUiState> {
 
   @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)

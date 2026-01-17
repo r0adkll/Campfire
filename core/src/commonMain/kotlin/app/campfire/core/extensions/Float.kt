@@ -17,6 +17,7 @@ val Float.seconds: Duration
  * @return the String representation of the receiver up to numOfDec decimal places
  */
 fun Float.toString(numOfDec: Int): String {
+  if (isNaN() || isInfinite()) return "--"
   val sign = if (this < 0f) "-" else ""
   val thisAbs = abs(this)
   val integerDigits = thisAbs.toInt()

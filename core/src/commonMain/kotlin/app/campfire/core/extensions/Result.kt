@@ -11,4 +11,4 @@ inline fun <A, B, R> Result<A>.with(other: Result<B>, transform: (A, B) -> R): R
 class FusedResultFailure(
   val first: Result<*>,
   val second: Result<*>,
-) : Exception("FusedResultFailure")
+) : Exception("FusedResultFailure[${first.exceptionOrNull()?.message}, ${second.exceptionOrNull()?.message}]")

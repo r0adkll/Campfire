@@ -5,6 +5,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.FilterData
 import app.campfire.core.model.LibraryId
 import app.campfire.core.time.FatherTime
+import app.campfire.crashreporting.CrashReporter
 import app.campfire.network.AudioBookShelfApi
 import kotlin.time.Duration.Companion.minutes
 import me.tatarka.inject.annotations.Inject
@@ -20,9 +21,10 @@ class FilteringStore private constructor() {
     db: CampfireDatabase,
     dispatcherProvider: DispatcherProvider,
     fatherTime: FatherTime,
+    crashReporter: CrashReporter,
   ) {
 
-    private val filterFetcherFactory = FilterFetcherFactory(api)
+    private val filterFetcherFactory = FilterFetcherFactory(api, crashReporter)
     private val filterSourceOfTruthFactory = FilterSourceOfTruthFactory(db, dispatcherProvider, fatherTime)
 
     fun create(): Store<LibraryId, FilterData> = StoreBuilder.Companion

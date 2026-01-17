@@ -13,6 +13,7 @@ import app.campfire.audioplayer.cast.CastState
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
+import app.campfire.core.logging.LogPriority
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
@@ -161,8 +162,12 @@ class MediaRouterCastController(
       .filter { route ->
         val extras: Bundle? = route.extras
         if (extras != null) {
-          if (extras.getString("com.google.android.gms.cast.EXTRA_SESSION_ID") != null) {
-            return@filter false
+          try {
+            if (extras.getString("com.google.android.gms.cast.EXTRA_SESSION_ID") != null) {
+              return@filter false
+            }
+          } catch (e: ClassNotFoundException) {
+            bark(LogPriority.ERROR, throwable = e) { "Unable to find class for EXTRA_SESSION_ID" }
           }
         }
         true

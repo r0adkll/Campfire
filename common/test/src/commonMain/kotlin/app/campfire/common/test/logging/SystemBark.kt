@@ -14,7 +14,7 @@ object SystemBark : Heartwood.Bark {
     priority: LogPriority,
     tag: String?,
     extras: Extras?,
-    message: String,
+    message: () -> String,
   ) {
     println(
       buildString {
@@ -34,7 +34,7 @@ object SystemBark : Heartwood.Bark {
           },
         )
 
-        append(message)
+        append(message())
       },
     )
   }

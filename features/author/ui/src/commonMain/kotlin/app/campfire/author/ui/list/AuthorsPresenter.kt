@@ -13,6 +13,7 @@ import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -26,7 +27,7 @@ class AuthorsPresenter(
   @Assisted private val navigator: Navigator,
   private val authorRepository: AuthorRepository,
   private val analytics: Analytics,
-) : Presenter<AuthorsUiState> {
+) : NonPausablePresenter<AuthorsUiState> {
 
   @Composable
   override fun present(): AuthorsUiState {
