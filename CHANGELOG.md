@@ -17,12 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Switched underlying authentication to use bearer auth for improved security.
 - Streaming / Image requests now use HTTP headers for authorization.
 - Moved palette picker on item detail from cover image to top bar
+- Improved navigation shared element animations
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Predictive back navigation causing screens to infinitely load
 
 ### Other Notes & Contributions
 
