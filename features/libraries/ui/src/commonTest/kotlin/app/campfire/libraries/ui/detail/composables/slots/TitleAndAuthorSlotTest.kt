@@ -27,7 +27,7 @@ class TitleAndAuthorSlotTest {
         }
       }
     }
-    val slot = TitleAndAuthorSlot(libraryItem)
+    val slot = TitleAndAuthorSlot(libraryItem, "")
 
     setContent {
       PreviewSharedElementTransitionLayout {
