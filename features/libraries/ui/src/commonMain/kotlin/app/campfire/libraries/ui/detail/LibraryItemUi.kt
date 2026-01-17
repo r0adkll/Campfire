@@ -180,7 +180,7 @@ fun LibraryItemContent(
           LibraryItemSharedTransitionKey(
             id = screen.sharedTransitionKey,
             type = LibraryItemSharedTransitionKey.ElementType.Bounds,
-          )
+          ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
       )

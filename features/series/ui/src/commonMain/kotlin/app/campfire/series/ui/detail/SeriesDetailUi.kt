@@ -1,7 +1,6 @@
 package app.campfire.series.ui.detail
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -28,7 +27,6 @@ import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
-import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MaxBookDisplay
 import app.campfire.common.screens.SeriesDetailScreen
@@ -72,7 +70,7 @@ fun SeriesDetail(
           ItemCollectionSharedTransitionKey(
             id = screen.seriesId,
             type = ItemCollectionSharedTransitionKey.ElementType.Bounds,
-          )
+          ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
         zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),

@@ -6,5 +6,5 @@ internal class MediaItemException(
   message: String,
   item: LibraryItem,
 ) : Exception(
-  "$message: Item[numChapters=${item.media.chapters.size}, numTracks=${item.media.tracks.size}]"
+  "$message: Item[numChapters=${item.media.chapters.size}, numTracks=${item.media.tracks.size}]",
 )

@@ -258,7 +258,6 @@ class ExoPlayerAudioPlayer(
           )
           overallTime.value = session.currentTime
         } else {
-
           CrashReporter.record(
             InvalidPlaybackSessionException(
               session,

@@ -33,7 +33,6 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.AuthorSharedTransitionKey
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
-import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorDetailScreen
@@ -80,7 +79,7 @@ fun AuthorDetail(
           AuthorSharedTransitionKey(
             id = screen.authorId,
             type = AuthorSharedTransitionKey.ElementType.Bounds,
-          )
+          ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
       )

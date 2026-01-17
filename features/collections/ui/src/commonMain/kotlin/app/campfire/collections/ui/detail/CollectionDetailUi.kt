@@ -192,7 +192,7 @@ fun CollectionDetail(
           ItemCollectionSharedTransitionKey(
             id = screen.collectionId,
             type = ItemCollectionSharedTransitionKey.ElementType.Bounds,
-          )
+          ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
         zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),

@@ -5,7 +5,6 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.FilterData
 import app.campfire.core.model.LibraryId
 import app.campfire.core.time.FatherTime
-import app.campfire.crashreporting.CrashReporter
 import app.campfire.network.AudioBookShelfApi
 import kotlin.time.Duration.Companion.minutes
 import me.tatarka.inject.annotations.Inject

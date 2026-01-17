@@ -63,7 +63,7 @@ class TitleAndAuthorSlot(
               LibraryItemSharedTransitionKey(
                 id = sharedTransitionKey,
                 type = LibraryItemSharedTransitionKey.ElementType.Title,
-              )
+              ),
             ),
             animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
           )

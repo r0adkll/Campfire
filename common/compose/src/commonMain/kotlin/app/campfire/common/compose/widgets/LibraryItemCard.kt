@@ -242,7 +242,7 @@ private fun LibraryItemCardInformation(
               LibraryItemSharedTransitionKey(
                 id = sharedTransitionKey,
                 type = LibraryItemSharedTransitionKey.ElementType.Title,
-              )
+              ),
             ),
             animatedVisibilityScope = scope,
           )

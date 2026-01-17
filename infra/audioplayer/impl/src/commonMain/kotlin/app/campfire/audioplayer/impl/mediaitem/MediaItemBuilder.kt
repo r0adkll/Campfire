@@ -2,8 +2,6 @@ package app.campfire.audioplayer.impl.mediaitem
 
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
@@ -160,8 +158,10 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       buildString {
         appendLine("Tracks[")
         item.media.tracks.forEachIndexed { index, track ->
-          appendLine("  [$index::${track.index}]: ${track.startOffset.seconds} --> " +
-            "${(track.startOffset + track.duration).seconds}")
+          appendLine(
+            "  [$index::${track.index}]: ${track.startOffset.seconds} --> " +
+              "${(track.startOffset + track.duration).seconds}",
+          )
         }
         append("]")
       }

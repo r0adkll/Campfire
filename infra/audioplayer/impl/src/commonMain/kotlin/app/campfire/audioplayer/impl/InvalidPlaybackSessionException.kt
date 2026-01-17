@@ -38,7 +38,6 @@ private fun LibraryItem.chapterRange(): String {
   return "${firstChapter?.start?.seconds} --> ${lastChapter?.end?.seconds}"
 }
 
-
 private fun LibraryItem.trackRange(): String {
   val firstTrack = media.tracks.firstOrNull()
   val lastTrack = media.tracks.lastOrNull()

@@ -32,7 +32,6 @@ import java.awt.Desktop
 import java.awt.GraphicsEnvironment
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")

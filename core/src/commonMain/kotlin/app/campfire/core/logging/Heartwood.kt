@@ -25,7 +25,13 @@ class Heartwood private constructor() {
       barks.forEach { it.log(priority, tag, extras, message) }
     }
 
-    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String, throwable: Throwable?) {
+    override fun log(
+      priority: LogPriority,
+      tag: String?,
+      extras: Extras?,
+      message: () -> String,
+      throwable: Throwable?,
+    ) {
       barks.forEach { it.log(priority, tag, extras, message, throwable) }
     }
   }

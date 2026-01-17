@@ -136,7 +136,7 @@ internal fun RootUi(
     isBackEnabled = overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen,
     onBackCompleted = {
       overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
-    }
+    },
   )
 
   val homeNavigator = remember(navigator, windowSizeClass) {
@@ -161,7 +161,7 @@ internal fun RootUi(
     onBackCompleted = {
       Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
       playbackBarExpanded = false
-    }
+    },
   )
 
   // Search View wiring

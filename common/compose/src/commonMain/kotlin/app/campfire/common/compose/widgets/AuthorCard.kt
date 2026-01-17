@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIfNotNull
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
