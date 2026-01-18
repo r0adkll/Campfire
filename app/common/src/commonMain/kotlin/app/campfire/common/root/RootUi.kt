@@ -27,6 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import app.campfire.account.ui.picker.AccountPickerResult
 import app.campfire.account.ui.picker.showAccountPicker
 import app.campfire.account.ui.switcher.AccountSwitcher
@@ -36,7 +39,6 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.PlatformBackHandler
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.util.withDensity
@@ -129,9 +131,13 @@ internal fun RootUi(
   }
 
   val overlayHost = rememberOverlayHost()
-  PlatformBackHandler(overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen) {
-    overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
-  }
+  NavigationBackHandler(
+    state = rememberNavigationEventState(NavigationEventInfo.None),
+    isBackEnabled = overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen,
+    onBackCompleted = {
+      overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
+    },
+  )
 
   val homeNavigator = remember(navigator, windowSizeClass) {
     HomeNavigator(
@@ -149,10 +155,14 @@ internal fun RootUi(
   }
 
   var playbackBarExpanded by remember { mutableStateOf(false) }
-  PlatformBackHandler(playbackBarExpanded) {
-    Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
-    playbackBarExpanded = false
-  }
+  NavigationBackHandler(
+    state = rememberNavigationEventState(NavigationEventInfo.None),
+    isBackEnabled = playbackBarExpanded,
+    onBackCompleted = {
+      Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
+      playbackBarExpanded = false
+    },
+  )
 
   // Search View wiring
   val navigationBarState = rememberCampfireNavigationBarState()
@@ -228,9 +238,11 @@ internal fun RootUi(
           NavigableCircuitContent(
             navigator = homeNavigator,
             backStack = backstack,
-            decoratorFactory = GestureNavigationDecorationFactory(
-              onBackInvoked = navigator::pop,
-            ),
+            decoratorFactory = remember(navigator) {
+              GestureNavigationDecorationFactory(
+                onBackInvoked = navigator::pop,
+              )
+            },
           )
         }
       }

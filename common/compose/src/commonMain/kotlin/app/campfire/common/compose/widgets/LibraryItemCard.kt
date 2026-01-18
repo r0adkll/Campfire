@@ -69,6 +69,8 @@ data class LibraryItemSharedTransitionKey(
 ) {
   enum class ElementType {
     Image,
+    Bounds,
+    Title,
   }
 }
 
@@ -87,9 +89,22 @@ fun LibraryItemCard(
   colors: CardColors = CardDefaults.elevatedCardColors(
     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
   ),
-) {
+) = SharedElementTransitionScope {
+  val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
   ElevatedContentCard(
-    modifier = modifier,
+    modifier = modifier
+      .thenIfNotNull(animationScope) { scope ->
+        sharedBounds(
+          sharedContentState = rememberSharedContentState(
+            LibraryItemSharedTransitionKey(
+              id = sharedTransitionKey,
+              type = LibraryItemSharedTransitionKey.ElementType.Bounds,
+            ),
+          ),
+          animatedVisibilityScope = scope,
+        )
+      },
     onClick = onClick,
     colors = colors,
   ) {
@@ -102,7 +117,10 @@ fun LibraryItemCard(
           offlineStatus = offlineStatus,
           progress = progress,
         )
-        LibraryItemCardInformation(item)
+        LibraryItemCardInformation(
+          item = item,
+          sharedTransitionKey = sharedTransitionKey,
+        )
       }
 
       LibraryItemCardEditingScrim(
@@ -202,8 +220,11 @@ private fun LibraryItemCardImage(
 @Composable
 private fun LibraryItemCardInformation(
   item: LibraryItem,
+  sharedTransitionKey: String,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
+  val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
   Column(
     modifier.padding(
       vertical = 16.dp,
@@ -215,6 +236,17 @@ private fun LibraryItemCardInformation(
       fontStyle = if (item.media.metadata.title == null) FontStyle.Italic else null,
       maxLines = 1,
       modifier = Modifier
+        .thenIfNotNull(animationScope) { scope ->
+          sharedBounds(
+            sharedContentState = rememberSharedContentState(
+              LibraryItemSharedTransitionKey(
+                id = sharedTransitionKey,
+                type = LibraryItemSharedTransitionKey.ElementType.Title,
+              ),
+            ),
+            animatedVisibilityScope = scope,
+          )
+        }
         .basicMarquee(
           velocity = LibraryItemMarqueeVelocity,
         )

@@ -30,9 +30,19 @@ import com.slack.circuit.sharedelements.SharedElementTransitionScope
 
 private val BookImageSize = 180.dp
 private val BookCornerSize = 12.dp
-private const val MaxBookDisplay = 8
+const val MaxBookDisplay = 8
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+data class ItemCollectionSharedTransitionKey(
+  val id: String,
+  val type: ElementType,
+) {
+  enum class ElementType {
+    Bounds,
+    Title,
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun ItemCollectionCard(
   name: String,
@@ -40,13 +50,28 @@ fun ItemCollectionCard(
   onClick: () -> Unit,
   items: List<LibraryItem>,
   modifier: Modifier = Modifier,
+  sharedTransitionKey: String = name,
   itemSize: Dp = Dp.Unspecified,
   colors: CardColors = CardDefaults.elevatedCardColors(
     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
   ),
-) {
+) = SharedElementTransitionScope {
+  val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
   ElevatedContentCard(
-    modifier = modifier,
+    modifier = modifier
+      .thenIfNotNull(animationScope) { scope ->
+        sharedBounds(
+          sharedContentState = rememberSharedContentState(
+            ItemCollectionSharedTransitionKey(
+              id = sharedTransitionKey,
+              type = ItemCollectionSharedTransitionKey.ElementType.Bounds,
+            ),
+          ),
+          animatedVisibilityScope = scope,
+          zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
+        )
+      },
     onClick = onClick,
     colors = colors,
   ) {

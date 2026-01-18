@@ -1,5 +1,6 @@
 package app.campfire.author.ui.detail
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +30,7 @@ import app.campfire.author.ui.detail.composables.AuthorDetailHeader
 import app.campfire.author.ui.detail.composables.AuthorHeader
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.widgets.AuthorSharedTransitionKey
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemCard
@@ -45,15 +47,17 @@ import campfire.features.author.ui.generated.resources.author_books_empty_messag
 import campfire.features.author.ui.generated.resources.author_books_header
 import campfire.features.author.ui.generated.resources.error_author_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @CircuitInject(AuthorDetailScreen::class, UserScope::class)
 @Composable
 fun AuthorDetail(
   screen: AuthorDetailScreen,
   state: AuthorDetailUiState,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
@@ -69,7 +73,17 @@ fun AuthorDetail(
         },
       )
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(
+          AuthorSharedTransitionKey(
+            id = screen.authorId,
+            type = AuthorSharedTransitionKey.ElementType.Bounds,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+      )
+      .nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.authorContentState) {

@@ -58,7 +58,6 @@ import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
@@ -451,10 +450,9 @@ class KtorAudioBookShelfApi(
 
         Result.success(body)
       } else {
-        Result.failure(ApiException(response.status.value, response.bodyAsText()))
+        Result.failure(ApiException(response.status.value, "Network request failed"))
       }
     } catch (e: IOException) {
-      e.printStackTrace()
       Result.failure(e)
     }
   }

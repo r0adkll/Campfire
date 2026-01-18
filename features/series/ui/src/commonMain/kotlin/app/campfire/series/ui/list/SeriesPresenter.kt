@@ -14,8 +14,8 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Series
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
@@ -27,7 +27,7 @@ class SeriesPresenter(
   @Assisted private val navigator: Navigator,
   private val seriesRepository: SeriesRepository,
   private val analytics: Analytics,
-) : Presenter<SeriesUiState> {
+) : NonPausablePresenter<SeriesUiState> {
 
   @Composable
   override fun present(): SeriesUiState {

@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import app.campfire.core.extensions.fluentIf
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
@@ -44,6 +44,8 @@ data class AuthorSharedTransitionKey(
 ) {
   enum class ElementType {
     Image,
+    Bounds,
+    Title,
   }
 }
 
@@ -57,8 +59,21 @@ fun AuthorCard(
     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
   ),
 ) = SharedElementTransitionScope {
+  val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
   ElevatedContentCard(
-    modifier = modifier,
+    modifier = modifier
+      .thenIfNotNull(animationScope) { scope ->
+        sharedBounds(
+          sharedContentState = rememberSharedContentState(
+            AuthorSharedTransitionKey(
+              id = author.id,
+              type = AuthorSharedTransitionKey.ElementType.Bounds,
+            ),
+          ),
+          animatedVisibilityScope = scope,
+        )
+      },
     onClick = onClick,
     colors = colors,
   ) {
@@ -96,7 +111,7 @@ fun AuthorCard(
         contentDescription = author.name,
         contentScale = contentScale,
         modifier = Modifier
-          .fluentIf<Modifier>(findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation) != null) {
+          .thenIfNotNull(animationScope) { scope ->
             sharedElement(
               sharedContentState = rememberSharedContentState(
                 AuthorSharedTransitionKey(
@@ -104,7 +119,7 @@ fun AuthorCard(
                   type = AuthorSharedTransitionKey.ElementType.Image,
                 ),
               ),
-              animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+              animatedVisibilityScope = scope,
             )
           }
           .fillMaxSize()

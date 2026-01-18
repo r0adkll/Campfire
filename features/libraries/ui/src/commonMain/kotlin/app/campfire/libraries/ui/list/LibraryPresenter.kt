@@ -20,8 +20,8 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
@@ -40,7 +40,7 @@ class LibraryPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
   private val analytics: Analytics,
-) : Presenter<LibraryUiState> {
+) : NonPausablePresenter<LibraryUiState> {
 
   @Composable
   override fun present(): LibraryUiState {

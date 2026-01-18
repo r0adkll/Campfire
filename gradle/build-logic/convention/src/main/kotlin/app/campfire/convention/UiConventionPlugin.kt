@@ -53,6 +53,7 @@ class UiConventionPlugin : Plugin<Project> {
 
         // Add Circuit Dependencies
         libs.findLibrary("circuit-runtime").ifPresent { implementation(it) }
+        libs.findLibrary("circuit-foundation").ifPresent { implementation(it) }
 
         // Add DI / Kimchi Dependencies
         libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }

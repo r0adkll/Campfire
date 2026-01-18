@@ -1,5 +1,6 @@
 package app.campfire.series.ui.detail
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -24,8 +25,10 @@ import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.MaxBookDisplay
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -35,15 +38,17 @@ import app.campfire.core.offline.OfflineStatus
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @CircuitInject(SeriesDetailScreen::class, UserScope::class)
 @Composable
 fun SeriesDetail(
   screen: SeriesDetailScreen,
   state: SeriesDetailUiState,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
@@ -59,7 +64,18 @@ fun SeriesDetail(
         },
       )
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(
+          ItemCollectionSharedTransitionKey(
+            id = screen.seriesId,
+            type = ItemCollectionSharedTransitionKey.ElementType.Bounds,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+        zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
+      )
+      .nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     when (state.seriesContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

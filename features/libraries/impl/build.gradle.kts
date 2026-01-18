@@ -21,6 +21,7 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
+        implementation(projects.data.crashreporting.api)
         implementation(libs.store)
       }
     }

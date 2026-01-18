@@ -51,6 +51,7 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -93,6 +94,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 @CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Composable
 fun LibraryItem(
+  screen: LibraryItemScreen,
   state: LibraryItemUiState,
   addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier = Modifier,
@@ -101,6 +103,7 @@ fun LibraryItem(
     colorScheme = state.theme?.colorScheme,
   ) {
     LibraryItemContent(
+      screen = screen,
       state = state,
       addToCollectionDialog = addToCollectionDialog,
       modifier = modifier,
@@ -111,6 +114,7 @@ fun LibraryItem(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LibraryItemContent(
+  screen: LibraryItemScreen,
   state: LibraryItemUiState,
   addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier,
@@ -170,7 +174,17 @@ fun LibraryItemContent(
         },
       )
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(
+          LibraryItemSharedTransitionKey(
+            id = screen.sharedTransitionKey,
+            type = LibraryItemSharedTransitionKey.ElementType.Bounds,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+      )
+      .nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (val contentState = state.contentState) {
@@ -291,7 +305,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
         contentState = LoadState.Loaded(
           data = listOf(
             CoverImageSlot("", "", ""),
-            TitleAndAuthorSlot(libraryItem),
+            TitleAndAuthorSlot(libraryItem, ""),
             SpacerSlot.medium("progress_spacer"),
             ProgressSlot(false, mediaProgress, libraryItem),
             SpacerSlot.medium("control_spacer"),
@@ -342,6 +356,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
       )
 
       LibraryItemContent(
+        screen = LibraryItemScreen("itemId"),
         state = slotState,
         addToCollectionDialog = object : AddToCollectionDialog {
           @Composable

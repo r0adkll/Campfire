@@ -184,6 +184,7 @@ private fun SuccessContent(
         span = { GridItemSpan(2) },
       ) { s ->
         ItemCollectionCard(
+          sharedTransitionKey = s.id,
           name = s.name,
           description = s.description,
           items = s.books ?: emptyList(),

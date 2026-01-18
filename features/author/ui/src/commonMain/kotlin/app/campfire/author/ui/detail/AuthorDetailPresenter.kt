@@ -15,8 +15,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
@@ -34,7 +34,7 @@ class AuthorDetailPresenter(
   private val authorRepository: AuthorRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
-) : Presenter<AuthorDetailUiState> {
+) : NonPausablePresenter<AuthorDetailUiState> {
 
   @Composable
   override fun present(): AuthorDetailUiState {

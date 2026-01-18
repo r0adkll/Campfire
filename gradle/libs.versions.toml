@@ -22,6 +22,7 @@ connectivity = "2.4.0"
 coil = "3.3.0"
 circuit = "0.32.0"
 glance = "1.1.1"
+jb-compose-navigationevent = "1.0.0"
 junit = "4.13.2"
 kimchi = "0.7.0"
 kotlin = "2.3.0"
@@ -154,6 +155,8 @@ multiplatformsettings-test = { module = "com.russhwolf:multiplatform-settings-te
 
 compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
 compose-material3-expressive = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-m3" }
+compose-navigationevent = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "jb-compose-navigationevent" }
+
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
 compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13"

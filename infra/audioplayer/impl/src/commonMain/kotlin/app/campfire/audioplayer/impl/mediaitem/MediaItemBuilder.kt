@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.mediaitem
 
 import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.Corked
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
@@ -8,7 +9,7 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.Session
 import kotlin.math.abs
 
-object MediaItemBuilder {
+object MediaItemBuilder : Corked("MediaItemBuilders") {
 
   fun build(session: Session): List<MediaItem> = build(session.libraryItem)
 
@@ -43,7 +44,7 @@ object MediaItemBuilder {
         val trackStart = it.startOffset.seconds.inWholeSeconds
         val trackEnd = (it.startOffset + it.duration).seconds.inWholeSeconds
         chapter.start.seconds.inWholeSeconds in trackStart.rangeUntil(trackEnd)
-      } ?: error("Unable to find track for chapter ${chapter.title}")
+      } ?: throwMediaItemException(index, "Unable to find track for chapter '${chapter.title}'", item)
 
       // Determine now if the audio track needs to be clipped for this item\
       val diff = computerChapterTrackDiffInSeconds(chapter, track)
@@ -125,5 +126,47 @@ object MediaItemBuilder {
       artworkUri = media.coverImageUrl,
       durationMs = track.duration.seconds.inWholeMilliseconds,
     )
+  }
+
+  private fun throwMediaItemException(
+    chapterIndex: Int,
+    message: String,
+    item: LibraryItem,
+  ): Nothing {
+    // Dump item state to logs
+    ebark { "MediaItem Compute Exception @ Index[$chapterIndex]" }
+    ebark {
+      """
+        LibraryItem[
+          chapters = [expected: ${item.media.numChapters}, actual: ${item.media.chapters.size}],
+          tracks = [expected: ${item.media.numTracks}, actual: ${item.media.tracks.size}],
+          audioFiles = [expected: ${item.media.numAudioFiles}, actual: ${item.media.audioFiles.size}],
+          invalid = [audioFiles: ${item.media.numInvalidAudioFiles}, missing: ${item.media.numMissingParts}],
+        ]
+      """.trimIndent()
+    }
+    ebark {
+      buildString {
+        appendLine("Chapters[")
+        item.media.chapters.forEachIndexed { index, chapter ->
+          appendLine("  [$index::${chapter.id}]: ${chapter.start.seconds} --> ${chapter.end.seconds}")
+        }
+        append("]")
+      }
+    }
+    ebark {
+      buildString {
+        appendLine("Tracks[")
+        item.media.tracks.forEachIndexed { index, track ->
+          appendLine(
+            "  [$index::${track.index}]: ${track.startOffset.seconds} --> " +
+              "${(track.startOffset + track.duration).seconds}",
+          )
+        }
+        append("]")
+      }
+    }
+
+    throw MediaItemException(message, item)
   }
 }

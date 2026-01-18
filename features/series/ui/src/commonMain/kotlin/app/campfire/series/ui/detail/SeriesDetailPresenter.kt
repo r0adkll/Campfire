@@ -16,8 +16,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
@@ -34,7 +34,7 @@ class SeriesDetailPresenter(
   private val repository: SeriesRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
-) : Presenter<SeriesDetailUiState> {
+) : NonPausablePresenter<SeriesDetailUiState> {
 
   @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)

@@ -28,6 +28,15 @@ class StartupInitializer(
 
   fun initialize() {
     applicationScope.launch {
+      // Filter out high priority initializers
+      val highPriorityInitializers = initializers.filter { initializer ->
+        initializer.priority in AppInitializer.FIRST_INIT_PRIORITY_RANGE
+      }
+      val deferredHighPriority = highPriorityInitializers.map { initializer ->
+        processInitializer(initializer)
+      }
+      deferredHighPriority.awaitAll()
+
       ibark { "Starting startup initialization" }
 
       dbark { "--> UserInitializer is starting" }
@@ -35,7 +44,10 @@ class StartupInitializer(
       dbark { "<-- UserInitializer has finished in $userInitDuration" }
 
       // Process AppScope Initializers
-      val appInitializers = initializers.sortedByDescending { it.priority }
+      val lowPriorityInitializers = initializers.filter { initializer ->
+        initializer.priority <= AppInitializer.HIGHEST_PRIORITY
+      }
+      val appInitializers = lowPriorityInitializers.sortedByDescending { it.priority }
       val deferred = appInitializers.map { initializer ->
         processInitializer(initializer)
       }

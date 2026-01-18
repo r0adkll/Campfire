@@ -20,8 +20,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import app.campfire.common.compose.LocalWindowBackEventDispatcher
-import app.campfire.common.compose.WindowBackEventDispatcher
 import app.campfire.common.compose.extensions.area
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Extras
@@ -34,20 +32,17 @@ import java.awt.Desktop
 import java.awt.GraphicsEnvironment
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-
-class DesktopWindowBackEventDispatcher : WindowBackEventDispatcher {
-  override val events = MutableSharedFlow<Unit>()
-}
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
-  Heartwood.grow(object : Heartwood.Bark {
-    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
-      println("[${priority.name}] ${tag?.let { " ($it) " } ?: ""} $message")
-    }
-  })
+  Heartwood.grow(
+    object : Heartwood.Bark {
+      override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
+        println("[${priority.name}] ${tag?.let { " ($it) " } ?: ""} ${message()}")
+      }
+    },
+  )
 
   val applicationComponent = remember {
     DesktopApplicationComponent.createDesktopApplicationComponent().also { component ->
@@ -57,9 +52,6 @@ fun main() = application {
   }
 
   val coroutineScope = rememberCoroutineScope()
-  val windowBackEventDispatcher = remember {
-    DesktopWindowBackEventDispatcher()
-  }
 
   val maximumScreenSize = remember {
     GraphicsEnvironment.getLocalGraphicsEnvironment()
@@ -83,7 +75,9 @@ fun main() = application {
     state = windowState,
     onKeyEvent = {
       if ((it.isCtrlPressed && it.key == Key.D) || it.key == Key.Escape) {
-        coroutineScope.launch { windowBackEventDispatcher.events.emit(Unit) }
+        coroutineScope.launch {
+          /* Replace this with desktop appropriate nav listener */
+        }
         true
       } else {
         false
@@ -111,7 +105,6 @@ fun main() = application {
     }
 
     CompositionLocalProvider(
-      LocalWindowBackEventDispatcher provides windowBackEventDispatcher,
       LocalUriHandler provides uriHandler,
     ) {
       component.campfireContent(

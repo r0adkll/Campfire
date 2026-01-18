@@ -5,9 +5,9 @@ typealias Extras = Map<String, String>
 class Heartwood private constructor() {
 
   interface Bark {
-    fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String)
-    fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String, throwable: Throwable?) =
-      log(priority, tag, extras, messageWithStacktrace(throwable, message))
+    fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String)
+    fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String, throwable: Throwable?) =
+      log(priority, tag, extras) { messageWithStacktrace(throwable, message()) }
   }
 
   companion object : Bark {
@@ -21,11 +21,17 @@ class Heartwood private constructor() {
       barks.remove(bark)
     }
 
-    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
+    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
       barks.forEach { it.log(priority, tag, extras, message) }
     }
 
-    override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String, throwable: Throwable?) {
+    override fun log(
+      priority: LogPriority,
+      tag: String?,
+      extras: Extras?,
+      message: () -> String,
+      throwable: Throwable?,
+    ) {
       barks.forEach { it.log(priority, tag, extras, message, throwable) }
     }
   }
@@ -42,7 +48,7 @@ enum class LogPriority(val priority: Int, val short: String) {
 /**
  * Bark out a message into the world for all to hear.
  */
-inline fun Any.bark(
+fun Any.bark(
   priority: LogPriority = LogPriority.DEBUG,
   /**
    * If provided, the log will use this tag instead of the simple class name of `this` at the call
@@ -54,7 +60,7 @@ inline fun Any.bark(
   message: () -> String,
 ) {
   val tagOrCaller = tag ?: outerClassSimpleNameInternalOnlyDoNotUseKThxBye()
-  Heartwood.log(priority, tagOrCaller, extras, message(), throwable)
+  Heartwood.log(priority, tagOrCaller, extras, message, throwable)
 }
 
 /**
@@ -62,14 +68,14 @@ inline fun Any.bark(
  * be used in standalone functions where there is no `this`.
  * @see logcat above
  */
-inline fun bark(
+fun bark(
   tag: String,
   priority: LogPriority = LogPriority.DEBUG,
   throwable: Throwable? = null,
   extras: Extras? = null,
   message: () -> String,
 ) {
-  Heartwood.log(priority, tag, extras, message(), throwable)
+  Heartwood.log(priority, tag, extras, message, throwable)
 }
 
 fun messageWithStacktrace(t: Throwable?, msg: String): String {

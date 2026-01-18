@@ -7,8 +7,8 @@ import app.campfire.core.logging.LogPriority
 
 class AndroidBark : Heartwood.Bark {
 
-  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
-    var msg = message
+  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
+    var msg = message()
     if (extras != null) {
       msg += "\nExtras[${extras.entries.joinToString { "${it.key}:${it.value}" }}]"
     }

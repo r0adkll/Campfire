@@ -3,6 +3,7 @@ package app.campfire.collections.ui.detail
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -56,8 +57,10 @@ import app.campfire.collections.ui.detail.composables.EditingTopAppBar
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.MaxBookDisplay
 import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -73,16 +76,18 @@ import campfire.features.collections.ui.generated.resources.dialog_confirm_delet
 import campfire.features.collections.ui.generated.resources.error_collection_detail_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @CircuitInject(CollectionDetailScreen::class, UserScope::class)
 @Composable
 fun CollectionDetail(
   screen: CollectionDetailScreen,
   state: CollectionDetailUiState,
   modifier: Modifier = Modifier,
-) {
+) = SharedElementTransitionScope {
   val scope = rememberCoroutineScope()
   val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
   val gridState = rememberLazyGridState()
@@ -181,7 +186,18 @@ fun CollectionDetail(
       }
     },
     floatingActionButtonPosition = FabPosition.End,
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier
+      .sharedBounds(
+        sharedContentState = rememberSharedContentState(
+          ItemCollectionSharedTransitionKey(
+            id = screen.collectionId,
+            type = ItemCollectionSharedTransitionKey.ElementType.Bounds,
+          ),
+        ),
+        animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+        zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
+      )
+      .nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.collectionContentState) {

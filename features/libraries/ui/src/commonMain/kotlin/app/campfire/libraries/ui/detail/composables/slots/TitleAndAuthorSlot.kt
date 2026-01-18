@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,22 +25,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.unknown_title
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.compose.resources.stringResource
 
 class TitleAndAuthorSlot(
   private val libraryItem: LibraryItem,
+  private val sharedTransitionKey: String,
 ) : ContentSlot {
 
   override val id: String = "title_author"
 
+  @OptIn(ExperimentalSharedTransitionApi::class)
   @Composable
-  override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
+  override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) = SharedElementTransitionScope {
     Column(
       modifier = modifier,
     ) {
@@ -53,6 +58,15 @@ class TitleAndAuthorSlot(
         textAlign = TextAlign.Center,
         modifier = Modifier
           .fillMaxWidth()
+          .sharedBounds(
+            sharedContentState = rememberSharedContentState(
+              LibraryItemSharedTransitionKey(
+                id = sharedTransitionKey,
+                type = LibraryItemSharedTransitionKey.ElementType.Title,
+              ),
+            ),
+            animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
+          )
           .padding(horizontal = 16.dp),
       )
 

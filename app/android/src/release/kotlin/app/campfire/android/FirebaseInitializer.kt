@@ -39,7 +39,7 @@ class FirebaseInitializer(
       bark("Firebase", ERROR, throwable = t) { "Something when wrong in the Firebase Application Initializer Scope" }
     }
 
-  override val priority: Int = AppInitializer.HIGHEST_PRIORITY
+  override val priority: Int = AppInitializer.FIREBASE_INIT_PRIORITY
 
   override suspend fun onInitialize() {
     // ONLY initialize firebase on release builds
@@ -79,7 +79,7 @@ object FirebaseBark : Heartwood.Bark {
     priority: LogPriority,
     tag: String?,
     extras: Extras?,
-    message: String,
+    message: () -> String,
   ) {
     if (priority == VERBOSE) return
 
@@ -93,7 +93,6 @@ object FirebaseBark : Heartwood.Bark {
         // Priority
         append(
           when (priority) {
-            VERBOSE -> "V: "
             DEBUG -> "D: "
             INFO -> "I: "
             WARN -> "W: "

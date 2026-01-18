@@ -13,15 +13,15 @@ class LogEventCollectorBark(
   private val fatherTime: FatherTime,
 ) : Heartwood.Bark {
 
-  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String) {
+  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
     // Do nothing
   }
 
-  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: String, throwable: Throwable?) {
+  override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String, throwable: Throwable?) {
     val event = LogEvent(
       priority = priority,
       tag = tag,
-      message = message,
+      message = message(),
       throwable = throwable,
       extras = extras,
       timestamp = fatherTime.nowInEpochMillis(),

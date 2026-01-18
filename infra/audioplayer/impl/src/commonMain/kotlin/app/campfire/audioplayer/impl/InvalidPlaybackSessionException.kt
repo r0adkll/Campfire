@@ -24,26 +24,22 @@ class InvalidPlaybackSessionException(
           numChapters = ${session.libraryItem.media.numChapters},
           numInvalidAudioFiles = ${session.libraryItem.media.numInvalidAudioFiles},
           duration = ${session.libraryItem.media.durationInMillis.milliseconds},
-          chapters = [
-            ${session.libraryItem.chaptersAsDebugString()}
-          ],
-          tracks = [
-            ${session.libraryItem.tracksAsDebugString()}
-          ],
+          chapterRange = ${session.libraryItem.chapterRange()},
+          trackRange = ${session.libraryItem.trackRange()},
         }
       }
     )
   """.trimIndent(),
 )
 
-private fun LibraryItem.chaptersAsDebugString(): String {
-  return media.chapters.joinToString(",\n") {
-    "[${it.id}] ${it.start.seconds} -> ${it.end.seconds}"
-  }
+private fun LibraryItem.chapterRange(): String {
+  val firstChapter = media.chapters.firstOrNull()
+  val lastChapter = media.chapters.lastOrNull()
+  return "${firstChapter?.start?.seconds} --> ${lastChapter?.end?.seconds}"
 }
 
-private fun LibraryItem.tracksAsDebugString(): String {
-  return media.tracks.joinToString(",\n") {
-    "[${it.index}] ${it.startOffset.seconds} -> ${(it.startOffset + it.duration).seconds}"
-  }
+private fun LibraryItem.trackRange(): String {
+  val firstTrack = media.tracks.firstOrNull()
+  val lastTrack = media.tracks.lastOrNull()
+  return "${firstTrack?.startOffset?.seconds} --> ${(lastTrack?.let { it.startOffset + it.duration })?.seconds}"
 }

@@ -93,6 +93,7 @@ kotlin {
         implementation(libs.kotlininject.runtime)
         implementation(libs.kimchi.annotations)
         implementation(libs.kimchi.circuit.annotations)
+        implementation(libs.compose.navigationevent)
       }
     }
   }

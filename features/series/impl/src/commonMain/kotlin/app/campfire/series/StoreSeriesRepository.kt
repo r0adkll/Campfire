@@ -6,6 +6,8 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.with
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -201,6 +203,21 @@ class StoreSeriesRepository(
             response.dataOrNull()
           }.mapLatest { items ->
             items.sortedBy { it.media.metadata.seriesSequence?.sequence }
+          }.mapLatest { items ->
+            val uniqueIds = items.map { it.id }.toSet()
+            if (uniqueIds.size != items.size) {
+              val duplicateIds = uniqueIds.groupBy { it }.filter { it.value.size > 1 }.keys
+              bark(LogPriority.WARN) { "Duplicate LibraryItems found for Series: $duplicateIds" }
+
+              // Filter out the duplicates to keep the UI from breaking
+              return@mapLatest items.toMutableList().apply {
+                duplicateIds.forEach { duplicateId ->
+                  removeAt(indexOfFirst { it.id == duplicateId })
+                }
+              }
+            }
+
+            items
           }
       }
   }
