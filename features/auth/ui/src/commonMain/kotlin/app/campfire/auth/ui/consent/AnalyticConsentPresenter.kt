@@ -48,7 +48,6 @@ class AnalyticConsentPresenter(
           settings.crashReportingEnabled = crashReportingEnabled
           settings.analyticReportingEnabled = analyticReportingEnabled
           if (userSession is UserSession.LoggedIn) {
-            userSessionManager.current = userSession.copy(showAnalyticsConsent = false)
             navigator.resetRoot(HomeScreen)
           } else {
             error("We shouldn't be showing data collection consent for non-logged in user sessions.")

@@ -60,12 +60,9 @@ class DefaultAccountManager(
       extraHeaderStorage.put(user.id, headers)
     }
 
-    // Check for other accounts
-    val hasOtherAccounts = serverRepository.getAllServers().any { it.user.id != user.id }
-
     // Switch the session over
     changeSession {
-      UserSession.LoggedIn(user, showAnalyticsConsent = !hasOtherAccounts)
+      UserSession.LoggedIn(user)
     }
   }
 

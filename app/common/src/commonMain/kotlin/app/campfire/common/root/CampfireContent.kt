@@ -74,7 +74,7 @@ fun CampfireContentWithInsets(
     LocalUriHandler provides appUriHandler,
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
-      val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen) }
+      val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen()) }
       val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
       val navigator = rememberInterceptingNavigator(
         navigator = baseNavigator,

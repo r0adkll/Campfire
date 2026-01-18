@@ -8,10 +8,6 @@ sealed class UserSession {
 
   data class LoggedIn(
     val user: User,
-
-    // TODO: This ends up getting cached with the saveable backstack in circuit creating a UI bug
-    //  find another way to surface the consent screen.
-    val showAnalyticsConsent: Boolean = false,
   ) : UserSession() {
     /**
      * A unique key to use for composition purposes where we want user/serverUrl combos to only cause composition
@@ -49,4 +45,4 @@ val UserSession.user: User? get() = when (this) {
 val UserSession.requiredUser: User get() = requireNotNull(user)
 
 val UserSession.isLoggedIn: Boolean
-  get() = this is UserSession.LoggedIn && !this.showAnalyticsConsent
+  get() = this is UserSession.LoggedIn

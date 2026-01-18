@@ -13,6 +13,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
@@ -37,7 +38,7 @@ interface UserComponent {
   val navigationEventListeners: ImmutableList<NavigationEventListener>
 
   @get:RootScreen
-  val rootScreen: BaseScreen
+  val rootScreen: () -> BaseScreen
 
   @get:ForScope(UserScope::class)
   val coroutineScopeHolder: CoroutineScopeHolder
@@ -45,10 +46,12 @@ interface UserComponent {
   val sessionsRepository: SessionsRepository
 
   @Provides @RootScreen
-  @SingleIn(UserScope::class)
-  fun provideRootScreen(userSession: UserSession): BaseScreen {
+  fun provideRootScreen(
+    userSession: UserSession,
+    settings: CampfireSettings,
+  ): BaseScreen {
     return when (userSession) {
-      is UserSession.LoggedIn -> if (userSession.showAnalyticsConsent) AnalyticConsentScreen else HomeScreen
+      is UserSession.LoggedIn -> if (!settings.hasEverConsented) AnalyticConsentScreen else HomeScreen
       else -> WelcomeScreen
     }
   }
