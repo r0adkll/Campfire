@@ -64,6 +64,7 @@ class DatabaseUserSessionRestorer(
           }
 
           if (newToken != null) {
+            bark(LogPriority.INFO) { "Successfully migrated legacy authentication!" }
             accountManager.updateToken(
               userId = server.user.id,
               newToken = newToken,

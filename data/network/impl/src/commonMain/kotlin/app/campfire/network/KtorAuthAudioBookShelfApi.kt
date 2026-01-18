@@ -155,6 +155,7 @@ class KtorAuthAudioBookShelfApi(
     client.post {
       val baseUrl = cleanServerUrl(serverUrl)
       url("$baseUrl/api/authorize")
+      header(HttpHeaders.ReturnTokens, "true")
       bearerAuth(legacyToken)
     }
   }
