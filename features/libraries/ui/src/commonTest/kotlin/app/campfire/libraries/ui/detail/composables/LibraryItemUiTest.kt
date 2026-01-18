@@ -33,7 +33,6 @@ import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
-import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
 
