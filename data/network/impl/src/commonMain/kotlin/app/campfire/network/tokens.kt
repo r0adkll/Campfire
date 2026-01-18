@@ -9,4 +9,6 @@ fun AbsToken.asBearerTokens(): BearerTokens = BearerTokens(
   refreshToken = refreshToken,
 )
 
-fun LoginResponse.asAbsToken(): AbsToken = AbsToken(user.accessToken, user.refreshToken)
+fun LoginResponse.asAbsToken(): AbsToken? = user.accessToken?.let { accessToken ->
+  AbsToken(accessToken, user.refreshToken)
+}

@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
@@ -58,6 +59,7 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component4
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
@@ -120,7 +122,9 @@ internal fun ServerCard(
   authError: AuthError?,
   isAuthenticating: Boolean,
   modifier: Modifier = Modifier,
+  autoFocus: Boolean = false,
 ) = SharedElementTransitionScope {
+  val focusManager = LocalFocusManager.current
   val (serverNameFocus, serverUrlFocus, usernameFocus, passwordFocus) = remember { FocusRequester.createRefs() }
 
   LaunchedEffect(isAuthenticating) {
@@ -130,6 +134,16 @@ internal fun ServerCard(
       usernameFocus.freeFocus()
       passwordFocus.freeFocus()
     }
+  }
+
+  LaunchedEffect(connectionState) {
+    if (connectionState is ConnectionState.Success) {
+      focusManager.moveFocus(FocusDirection.Next)
+    }
+  }
+
+  LaunchedEffect(autoFocus) {
+    if (autoFocus) serverUrlFocus.requestFocus()
   }
 
   ElevatedCard(
@@ -193,7 +207,10 @@ internal fun ServerCard(
       trailingIcon = if (serverUrl.isNotBlank()) {
         {
           IconButton(
-            onClick = { onServerUrlChange("") },
+            onClick = {
+              onServerUrlChange("")
+              serverUrlFocus.requestFocus()
+            },
           ) {
             Icon(Icons.Rounded.Cancel, contentDescription = null)
           }

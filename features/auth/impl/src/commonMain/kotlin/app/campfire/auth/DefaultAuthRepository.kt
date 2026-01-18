@@ -4,12 +4,14 @@ import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
+import app.campfire.auth.di.ExistingUser
+import app.campfire.auth.di.NewUser
+import app.campfire.auth.local.UserStorageStrategy
 import app.campfire.auth.model.asDomainModel
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
-import app.campfire.data.mapping.asDatabaseModel
-import app.campfire.data.mapping.asDbModel
+import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.envelopes.LoginResponse
@@ -22,6 +24,8 @@ class DefaultAuthRepository(
   private val api: AuthAudioBookShelfApi,
   private val db: CampfireDatabase,
   private val accountManager: AccountManager,
+  @NewUser private val newUserStorageStrategy: UserStorageStrategy,
+  @ExistingUser private val existingUserStorageStrategy: UserStorageStrategy,
 ) : AuthRepository {
 
   override suspend fun status(
@@ -38,6 +42,7 @@ class DefaultAuthRepository(
     username: String,
     password: String,
     tent: Tent,
+    userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
     val result = api.login(serverUrl, username, password, networkSettings?.extraHeaders)
@@ -50,6 +55,7 @@ class DefaultAuthRepository(
         serverName = serverName,
         tent = tent,
         response = response,
+        userId = userId,
         networkSettings = networkSettings,
       )
 
@@ -66,18 +72,23 @@ class DefaultAuthRepository(
     code: String,
     state: String,
     tent: Tent,
+    userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
     val result = api.oauth(serverUrl, state, code, codeVerifier, networkSettings?.extraHeaders)
 
     if (result.isSuccess) {
       val response = result.getOrThrow()
+      if (response.user.accessToken == null) {
+        return Result.failure(IllegalStateException("Unable to authenticate user. No valid tokens."))
+      }
 
       handleLoginResponse(
         serverUrl = serverUrl,
         serverName = serverName,
         tent = tent,
         response = response,
+        userId = userId,
         networkSettings = networkSettings,
       )
 
@@ -87,44 +98,40 @@ class DefaultAuthRepository(
     }
   }
 
+  override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? {
+    return accountManager.getExtraHeaders(userId)?.let { extraHeaders ->
+      NetworkSettings(extraHeaders = extraHeaders)
+    }
+  }
+
   private suspend fun handleLoginResponse(
     serverUrl: String,
     serverName: String,
     tent: Tent,
     response: LoginResponse,
+    userId: UserId?,
     networkSettings: NetworkSettings?,
   ) {
     // Insert Server & User
-    db.transaction {
-      db.serversQueries.insert(
-        response.serverSettings.asDatabaseModel(
-          url = serverUrl,
-          userId = response.user.id,
-          name = serverName,
-          tent = tent,
-        ),
-      )
-
-      // Insert User
-      db.usersQueries.insert(
-        response.user.asDatabaseModel(serverUrl, response.userDefaultLibraryId),
-      )
-
-      // Insert User MediaProgress
-      response.user.mediaProgress.forEach { progress ->
-        db.mediaProgressQueries.insert(progress.asDbModel())
-      }
-
-      // Insert User Bookmarks
-      response.user.bookmarks.forEach { bookmark ->
-        db.bookmarksQueries.insert(bookmark.asDbModel(response.user.id))
-      }
+    val storageStrategy = if (userId != null) {
+      existingUserStorageStrategy
+    } else {
+      newUserStorageStrategy
     }
+
+    storageStrategy.store(
+      tent = tent,
+      serverName = serverName,
+      serverUrl = serverUrl,
+      serverSettings = response.serverSettings,
+      user = response.user,
+      userDefaultLibraryId = response.userDefaultLibraryId,
+    )
 
     // Add the new account/user and set it as the current session
     accountManager.addAccount(
       serverUrl = serverUrl,
-      accessToken = response.user.accessToken,
+      accessToken = requireNotNull(response.user.accessToken),
       refreshToken = response.user.refreshToken,
       extraHeaders = networkSettings?.extraHeaders,
       user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),

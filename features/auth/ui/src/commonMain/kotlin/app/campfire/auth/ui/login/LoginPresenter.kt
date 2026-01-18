@@ -24,6 +24,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
+import app.campfire.core.model.UserId
 import app.campfire.network.oidc.AuthorizationFlow
 import coil3.toUri
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -38,24 +39,67 @@ import okio.IOException
 @CircuitInject(LoginScreen::class, UserScope::class)
 @Inject
 class LoginPresenter(
+  @Assisted private val screen: LoginScreen,
   @Assisted private val navigator: Navigator,
   private val authRepository: AuthRepository,
   private val oauthAuthorizationFlow: AuthorizationFlow,
 ) : Presenter<LoginUiState> {
 
+  private val initialTent: Tent = when (screen) {
+    is LoginScreen.ReAuthentication -> screen.tent
+    else -> Tent.Default
+  }
+
+  private val initialServerName: String = when (screen) {
+    is LoginScreen.ReAuthentication -> screen.serverName
+    else -> ""
+  }
+
+  private val initialServerUrl: String = when (screen) {
+    is LoginScreen.ReAuthentication -> screen.serverUrl
+    is LoginScreen.Additional -> ""
+    else -> BuildConfig.TEST_SERVER_URL ?: ""
+  }
+
+  private val initialUserName: String = when (screen) {
+    is LoginScreen.ReAuthentication -> screen.userName
+    is LoginScreen.Additional -> ""
+    else -> BuildConfig.TEST_USERNAME ?: ""
+  }
+
+  private val initialPassword: String = when (screen) {
+    is LoginScreen.ReAuthentication -> ""
+    is LoginScreen.Additional -> ""
+    else -> BuildConfig.TEST_PASSWORD ?: ""
+  }
+
+  private val existingUserId: UserId?
+    get() = when (screen) {
+      is LoginScreen.ReAuthentication -> screen.userId
+      else -> null
+    }
+
   @Composable
   override fun present(): LoginUiState {
     val coroutineScope = rememberCoroutineScope()
 
-    var tent by remember { mutableStateOf(Tent.Default) }
-    var serverName by remember { mutableStateOf("") }
-    var serverUrl by remember { mutableStateOf(BuildConfig.TEST_SERVER_URL ?: "") }
+    var tent by remember { mutableStateOf(initialTent) }
+    var serverName by remember { mutableStateOf(initialServerName) }
+    var serverUrl by remember { mutableStateOf(initialServerUrl) }
     var networkSettings by remember { mutableStateOf<NetworkSettings?>(null) }
-    var username by remember { mutableStateOf(BuildConfig.TEST_USERNAME ?: "") }
-    var password by remember { mutableStateOf(BuildConfig.TEST_PASSWORD ?: "") }
+    var username by remember { mutableStateOf(initialUserName) }
+    var password by remember { mutableStateOf(initialPassword) }
 
     var isAuthenticating by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<AuthError?>(null) }
+
+    // If we are re-authenticating, be sure to load the existing extra headers
+    // from the account manager.
+    LaunchedEffect(screen) {
+      if (screen is LoginScreen.ReAuthentication) {
+        networkSettings = authRepository.getNetworkSettings(screen.userId)
+      }
+    }
 
     // Clear any auth errors if the inputs change
     LaunchedEffect(serverUrl, username, password) {
@@ -114,6 +158,7 @@ class LoginPresenter(
               username = username,
               password = password,
               tent = tent,
+              userId = existingUserId,
               networkSettings = networkSettings,
             ).onFailure {
               isAuthenticating = false
@@ -138,6 +183,7 @@ class LoginPresenter(
                   code = authorization.code,
                   state = authorization.state,
                   tent = tent,
+                  userId = existingUserId,
                   networkSettings = networkSettings,
                 ).onFailure { e ->
                   isAuthenticating = false
@@ -165,6 +211,11 @@ class LoginPresenter(
     var connectionState by remember { mutableStateOf<ConnectionState?>(null) }
 
     LaunchedEffect(serverUrl, networkSettings) {
+      if (serverUrl.isBlank()) {
+        connectionState = null
+        return@LaunchedEffect
+      }
+
       connectionState = ConnectionState.Loading
 
       // Give the user some time to type the URL

@@ -54,6 +54,37 @@ insert:
 INSERT OR REPLACE INTO server
 VALUES ?;
 
+update:
+UPDATE server
+SET name = :name,
+    tent = :tent,
+    scannerFindCovers = :scannerFindCovers,
+    scannerCoverProvider = :scannerCoverProvider,
+    scannerParseSubtitle = :scannerParseSubtitle,
+    scannerPreferMatchedMetadata = :scannerPreferMatchedMetadata,
+    scannerDisableWatcher = :scannerDisableWatcher,
+    storeCoverWithItem = :storeCoverWithItem,
+    storeMetadataWithItem = :storeMetadataWithItem,
+    metadataFileFormat = :metadataFileFormat,
+    rateLimitLoginRequests = :rateLimitLoginRequests,
+    rateLimitLoginWindow = :rateLimitLoginWindow,
+    backupSchedule = :backupSchedule,
+    backupsToKeep = :backupsToKeep,
+    maxBackupSize = :maxBackupSize,
+    loggerDailyLogsToKeep = :loggerDailyLogsToKeep,
+    loggerScannerLogsToKeep = :loggerScannerLogsToKeep,
+    homeBookshelfView = :homeBookshelfView,
+    bookshelfView = :bookshelfView,
+    sortingIgnorePrefix = :sortingIgnorePrefix,
+    sortingPrefixes = :sortingPrefixes,
+    chromecastEnabled = :chromecastEnabled,
+    dateFormat = :dateFormat,
+    timeFormat = :timeFormat,
+    language = :language,
+    logLevel = :logLevel,
+    version = :version
+WHERE userId = :userId;
+
 updateTent:
 UPDATE server
 SET tent = ?

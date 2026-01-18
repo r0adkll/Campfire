@@ -28,6 +28,12 @@ interface AccountManager {
   )
 
   /**
+   * Invalidate an account to require re-authentication by the user
+   *
+   */
+  suspend fun invalidateAccount(user: User)
+
+  /**
    * Switch the current account/session to a new user
    * @param user the user to switch the account to
    */

@@ -1,13 +1,11 @@
 package app.campfire.search.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Modifier
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.core.di.UserScope
 import app.campfire.search.api.ui.LocalSearchEventHandler
@@ -43,7 +41,6 @@ class CampfireSearchComponent(
     val eventSink = state.eventSink
 
     SearchResultContent(
-      modifier = Modifier.imePadding(),
       query = state.query,
       results = state.searchResult,
       offlineStatus = { state.offlineStates[it].asWidgetStatus() },

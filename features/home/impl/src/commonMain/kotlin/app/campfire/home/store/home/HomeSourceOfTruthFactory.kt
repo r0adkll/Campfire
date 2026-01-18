@@ -26,6 +26,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 
+// Hack to prevent other libraries/accounts from overwriting their shelves
+fun NetworkShelf.uniqueId(
+  userId: UserId,
+  libraryId: LibraryId,
+): String {
+  return "${id}_${userId}_$libraryId"
+}
+
 class HomeSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val imageHydrator: UrlHydrator,
@@ -49,6 +57,9 @@ class HomeSourceOfTruthFactory(
           }
       },
       writer = { key, shelves ->
+        // Hack to prevent other libraries/accounts from overwriting their shelves
+        fun NetworkShelf.uniqueId(): String = uniqueId(key.userId, key.libraryId)
+
         val currentShelves = withContext(dispatcherProvider.databaseRead) {
           db.shelfQueries.select(key.libraryId, key.userId).awaitAsList()
         }
@@ -57,14 +68,14 @@ class HomeSourceOfTruthFactory(
           db.shelfQueries.selectAllJoins().awaitAsList()
         }.groupBy { it.shelfId }
 
-        val trashed = currentShelves.filter { shelves.none { shelf -> it.id == shelf.id } }
+        val trashed = currentShelves.filter { shelves.none { shelf -> it.id == shelf.uniqueId() } }
 
         withContext(dispatcherProvider.databaseWrite) {
           db.transaction {
             // Persist all the entities within a shelf
             shelves.forEachIndexed { index, shelf ->
-              val isExisting = currentShelves.any { it.id == shelf.id }
-              val isNew = currentShelves.none { it.id == shelf.id }
+              val isExisting = currentShelves.any { it.id == shelf.uniqueId() }
+              val isNew = currentShelves.none { it.id == shelf.uniqueId() }
 
               // Either way we should always persist and update the entities in the shelves
               writeEntities(key.userId, key.libraryId, shelf)
@@ -78,12 +89,12 @@ class HomeSourceOfTruthFactory(
                   userId = key.userId,
                 )
                 db.shelfQueries.insert(dbShelf)
-                writeEntityJoins(shelf)
+                writeEntityJoins(key, shelf)
               } else if (isExisting) {
                 // If the shelf already exists, update the current shelf metadata
                 // and its joins
                 db.shelfQueries.update(
-                  id = shelf.id,
+                  id = shelf.uniqueId(),
                   label = shelf.label,
                   labelStringKey = shelf.labelStringKey,
                   total = shelf.total,
@@ -97,10 +108,10 @@ class HomeSourceOfTruthFactory(
                   homeOrder = index,
                 )
 
-                val currentShelfJoins = currentJoins[shelf.id]
+                val currentShelfJoins = currentJoins[shelf.uniqueId()]
                   ?.map { it.entityId }
                   ?: emptyList()
-                updateEntityJoins(shelf, currentShelfJoins)
+                updateEntityJoins(key, shelf, currentShelfJoins)
               }
             }
 
@@ -134,6 +145,7 @@ class HomeSourceOfTruthFactory(
 
   @Suppress("UnusedReceiverParameter")
   private suspend fun SuspendingTransactionWithoutReturn.writeEntityJoins(
+    key: HomeStore.Key,
     shelf: NetworkShelf,
   ) {
     val entityIds = when (shelf) {
@@ -147,7 +159,7 @@ class HomeSourceOfTruthFactory(
     entityIds.forEachIndexed { index, entityId ->
       db.shelfQueries.insertJoins(
         ShelfJoin(
-          shelfId = shelf.id,
+          shelfId = shelf.uniqueId(key.userId, key.libraryId),
           entityId = entityId,
           shelfOrder = index,
         ),
@@ -157,6 +169,7 @@ class HomeSourceOfTruthFactory(
 
   @Suppress("UnusedReceiverParameter")
   private suspend fun SuspendingTransactionWithoutReturn.updateEntityJoins(
+    key: HomeStore.Key,
     shelf: NetworkShelf,
     existingJoins: List<String>,
   ) {
@@ -175,21 +188,21 @@ class HomeSourceOfTruthFactory(
       if (isNew) {
         db.shelfQueries.insertJoins(
           ShelfJoin(
-            shelfId = shelf.id,
+            shelfId = shelf.uniqueId(key.userId, key.libraryId),
             entityId = entityId,
             shelfOrder = index,
           ),
         )
       } else {
         db.shelfQueries.updateJoin(
-          shelfId = shelf.id,
+          shelfId = shelf.uniqueId(key.userId, key.libraryId),
           entityId = entityId,
           shelfOrder = index,
         )
       }
     }
 
-    db.shelfQueries.deleteJoins(shelf.id, trashed)
+    db.shelfQueries.deleteJoins(shelf.uniqueId(key.userId, key.libraryId), trashed)
   }
 
   @Suppress("UnusedReceiverParameter")

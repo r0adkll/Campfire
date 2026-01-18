@@ -56,6 +56,8 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import org.jetbrains.compose.resources.stringResource
 
+private val SearchEmptyImageSize = 128.dp
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun SearchResultContent(
@@ -71,7 +73,11 @@ internal fun SearchResultContent(
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionLayout {
   when (results) {
-    SearchResult.Error -> EmptyState(stringResource(Res.string.search_results_error_message), modifier)
+    SearchResult.Error -> EmptyState(
+      message = stringResource(resource = Res.string.search_results_error_message),
+      modifier = modifier.padding(vertical = 16.dp),
+      imageSize = SearchEmptyImageSize,
+    )
     SearchResult.Loading -> LoadingState(modifier.fillMaxSize())
     is SearchResult.Success -> if (results.isEmpty && query.isNotBlank()) {
       EmptyState(
@@ -88,12 +94,14 @@ internal fun SearchResultContent(
             },
           )
         },
-        modifier = modifier,
+        modifier = modifier.padding(vertical = 16.dp),
+        imageSize = SearchEmptyImageSize,
       )
     } else if (results.isEmpty && query.isBlank()) {
       EmptyState(
         message = "Your next adventure is just a \nsearch away!",
-        modifier = modifier,
+        modifier = modifier.padding(vertical = 16.dp),
+        imageSize = SearchEmptyImageSize,
       )
     } else {
       CompositionLocalProvider(

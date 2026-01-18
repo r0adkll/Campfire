@@ -3,6 +3,7 @@ package app.campfire.common.di
 import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.HomeScreen
+import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
@@ -51,6 +52,7 @@ interface UserComponent {
     settings: CampfireSettings,
   ): BaseScreen {
     return when (userSession) {
+      is UserSession.NeedsAuthentication -> LoginScreen.ReAuthentication(userSession.server)
       is UserSession.LoggedIn -> if (!settings.hasEverConsented) AnalyticConsentScreen else HomeScreen
       else -> WelcomeScreen
     }

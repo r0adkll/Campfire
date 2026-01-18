@@ -170,6 +170,9 @@ class KtorAuthAudioBookShelfApi(
     } catch (e: NoTransformationFoundException) {
       e.printStackTrace()
       Result.failure(e)
+    } catch (e: IllegalArgumentException) {
+      e.printStackTrace()
+      Result.failure(e)
     }
   }
 }

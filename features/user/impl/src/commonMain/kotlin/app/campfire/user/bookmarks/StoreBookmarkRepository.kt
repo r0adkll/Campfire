@@ -6,6 +6,7 @@ import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
+import app.campfire.data.mapping.store.debugLogging
 import app.campfire.user.api.BookmarkRepository
 import app.campfire.user.bookmarks.store.BookmarkStore
 import app.campfire.user.bookmarks.store.BookmarkStore.Operation.Mutation.Create
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -44,7 +44,7 @@ class StoreBookmarkRepository(
     )
 
     return bookmarkStore.stream<List<Bookmark>>(request)
-      .onEach { BookmarkStore.dbark { "observe --> $it" } }
+      .debugLogging(BookmarkStore.tag)
       .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
       .map { it.dataOrNull() ?: emptyList() }
       .map { it.sortedBy(Bookmark::time) }

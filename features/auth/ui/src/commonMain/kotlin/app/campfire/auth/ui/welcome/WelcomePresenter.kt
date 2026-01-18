@@ -22,6 +22,7 @@ class WelcomePresenter(
 ) : Presenter<WelcomeUiState> {
 
   private val loginPresenter = LoginPresenter(
+    screen = LoginScreen.New,
     navigator = navigator,
     authRepository = authRepository,
     oauthAuthorizationFlow = oauthAuthorizationFlow,
@@ -35,7 +36,7 @@ class WelcomePresenter(
       loginUiState = loginUiState,
     ) { event ->
       when (event) {
-        WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen())
+        WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen.New)
       }
     }
   }

@@ -54,6 +54,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.analytics.Analytics
@@ -162,7 +163,9 @@ private fun BookmarksBottomSheet(
   }.collectAsState(0.seconds)
 
   val loadState by remember {
-    component.bookmarkRepository.observeBookmarks(libraryItemId).map { LoadState.Loaded(it) }.catch { LoadState.Error }
+    component.bookmarkRepository.observeBookmarks(libraryItemId)
+      .map { LoadState.Loaded(it) }
+      .catch<LoadState<out List<Bookmark>>> { emit(LoadState.Error) }
   }.collectAsState(LoadState.Loading)
 
   var showCreateDialog by remember { mutableStateOf<Duration?>(null) }
@@ -223,10 +226,14 @@ private fun BookmarksBottomSheet(
             Box(
               modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp),
+                .padding(horizontal = 24.dp)
+                .height(200.dp),
               contentAlignment = Alignment.Center,
             ) {
-              Text(stringResource(Res.string.bookmark_bottomsheet_error_message))
+              Text(
+                text = stringResource(Res.string.bookmark_bottomsheet_error_message),
+                textAlign = TextAlign.Center,
+              )
             }
           }
         }

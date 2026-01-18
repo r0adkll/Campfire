@@ -2,8 +2,8 @@ package app.campfire.android.toast
 
 import android.content.Context
 import android.widget.Toast as SystemToast
-import app.campfire.common.compose.toast.Toast
-import app.campfire.common.compose.toast.ToastHandle
+import app.campfire.core.toast.Toast
+import app.campfire.core.toast.ToastHandle
 
 class AndroidToast(
   private val context: Context,

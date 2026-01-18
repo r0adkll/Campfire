@@ -1,6 +1,8 @@
 package app.campfire.account.session
 
 import app.campfire.CampfireDatabase
+import app.campfire.account.api.AccountManager
+import app.campfire.account.server.db.ServerWithUser
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
@@ -21,6 +23,7 @@ interface UserSessionRestorer {
 @ContributesBinding(AppScope::class)
 @Inject
 class DatabaseUserSessionRestorer(
+  private val accountManager: AccountManager,
   private val settings: CampfireSettings,
   private val db: CampfireDatabase,
   private val dispatcherProvider: DispatcherProvider,
@@ -29,18 +32,24 @@ class DatabaseUserSessionRestorer(
   override suspend fun restore(): UserSession = measureTimedValue {
     val currentUserId = settings.currentUserId ?: return@measureTimedValue UserSession.LoggedOut
 
-    val user = withContext(dispatcherProvider.databaseRead) {
-      db.usersQueries.selectById(currentUserId)
+    val server = withContext(dispatcherProvider.databaseRead) {
+      db.serversQueries.selectByUserId(currentUserId, ::ServerWithUser)
         .awaitAsOneOrNull()
         ?.asDomainModel()
     }
 
-    if (user == null) {
+    if (server == null) {
       settings.currentUserId = null
       return@measureTimedValue UserSession.LoggedOut
     }
 
-    return@measureTimedValue UserSession.LoggedIn(user)
+    // Validate that this account has valid credentials
+    val tokens = accountManager.getToken(server.user.id)
+    if (tokens != null) {
+      return@measureTimedValue UserSession.LoggedIn(server.user)
+    } else {
+      return@measureTimedValue UserSession.NeedsAuthentication(server)
+    }
   }.let { timedValue ->
     bark("UserSessionRestorer") {
       "Restored ${timedValue.value::class.simpleName} in ${timedValue.duration}"

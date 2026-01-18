@@ -34,6 +34,7 @@ fun UserComponentContent(
   when (userSession) {
     is UserSession.LoggedOut,
     is UserSession.LoggedIn,
+    is UserSession.NeedsAuthentication,
     -> {
       val userComponent = remember(userSession) {
         ComponentHolder.component<UserComponent>()

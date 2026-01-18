@@ -20,9 +20,9 @@ import app.campfire.common.compose.icons.rounded.Github
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.toast.LocalToast
-import app.campfire.common.compose.toast.Toast
-import app.campfire.common.compose.toast.ToastHandle
 import app.campfire.core.app.ApplicationInfo
+import app.campfire.core.toast.Toast
+import app.campfire.core.toast.ToastHandle
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick

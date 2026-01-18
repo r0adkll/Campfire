@@ -52,6 +52,8 @@ import app.campfire.auth.ui.login.settings.showNetworkSettingsBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.IdBadge
+import app.campfire.common.compose.layout.ContentLayout
+import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.screens.LoginScreen
@@ -62,8 +64,10 @@ import campfire.features.auth.ui.generated.resources.action_add_campsite
 import campfire.features.auth.ui.generated.resources.action_login_openid
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
+import campfire.features.auth.ui.generated.resources.login_reauth_account_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -76,21 +80,17 @@ fun Login(
   state: LoginUiState,
   modifier: Modifier = Modifier,
 ) {
-  CampfireTheme(
-    tent = state.tent,
-  ) {
-    LoginContent(
-      state = state,
-      isAddingAccount = screen.isAddingAccount,
-      modifier = modifier,
-    )
-  }
+  LoginContent(
+    screen = screen,
+    state = state,
+    modifier = modifier,
+  )
 }
 
 @Composable
 private fun LoginContent(
+  screen: LoginScreen,
   state: LoginUiState,
-  isAddingAccount: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Surface(
@@ -99,14 +99,23 @@ private fun LoginContent(
       .fillMaxSize(),
   ) {
     Box {
-      if (isAddingAccount) {
+      if (screen !is LoginScreen.New) {
         CampfireTopAppBar(
-          title = { Text(stringResource(Res.string.login_add_account_title)) },
+          title = {
+            Text(
+              when (screen) {
+                is LoginScreen.Additional -> stringResource(Res.string.login_add_account_title)
+                is LoginScreen.ReAuthentication -> stringResource(Res.string.login_reauth_account_title)
+              },
+            )
+          },
           navigationIcon = {
-            IconButton(
-              onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
-            ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+            if (screen is LoginScreen.Additional) {
+              IconButton(
+                onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
+              ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+              }
             }
           },
         )
@@ -122,6 +131,7 @@ private fun LoginContent(
 
       LoginUiContent(
         state = state,
+        autoFocus = screen is LoginScreen.Additional,
         modifier = Modifier
           .align(Alignment.Center)
           .fillMaxWidth(),
@@ -135,6 +145,7 @@ private fun LoginContent(
 internal fun LoginUiContent(
   state: LoginUiState,
   modifier: Modifier = Modifier,
+  autoFocus: Boolean = false,
 ) {
   val scope = rememberCoroutineScope()
   val overlayHost = LocalOverlayHost.current
@@ -147,6 +158,7 @@ internal fun LoginUiContent(
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
     ServerCard(
+      autoFocus = autoFocus,
       tent = state.tent,
       onTentChange = { eventSink(LoginUiEvent.ChangeTent(it)) },
       serverName = state.serverName,
@@ -301,12 +313,14 @@ private fun OpenIdAuthButton(
 @Composable
 private fun LoginUiPreview(
   state: LoginUiState,
-  screen: LoginScreen = LoginScreen(),
+  screen: LoginScreen = LoginScreen.New,
 ) {
   PreviewSharedElementTransitionLayout {
     CampfireTheme {
       CompositionLocalProvider(
         LocalWindowSizeClass provides calculateWindowSizeClass(),
+        LocalOverlayHost provides rememberOverlayHost(),
+        LocalContentLayout provides ContentLayout.Root,
       ) {
         Login(
           screen = screen,
@@ -329,6 +343,47 @@ fun LoginUI_Blank() = LoginUiPreview(
     isAuthenticating = false,
     authError = null,
     connectionState = null,
+    networkSettings = null,
+    eventSink = {},
+  ),
+)
+
+@Preview
+@Composable
+fun LoginUI_Additional_Blank() = LoginUiPreview(
+  screen = LoginScreen.Additional,
+  state = LoginUiState(
+    tent = Tent.Default,
+    serverName = "",
+    serverUrl = "",
+    userName = "",
+    password = "",
+    isAuthenticating = false,
+    authError = null,
+    connectionState = null,
+    networkSettings = null,
+    eventSink = {},
+  ),
+)
+
+@Preview
+@Composable
+fun LoginUI_ReAuthentication_Blank() = LoginUiPreview(
+  screen = LoginScreen.ReAuthentication("user_id", "r0adkll", Tent.Default, "", "https://abs.example.com"),
+  state = LoginUiState(
+    tent = Tent.Default,
+    serverName = "Abs",
+    serverUrl = "https://abs.example.com",
+    userName = "r0adkll",
+    password = "",
+    isAuthenticating = false,
+    authError = null,
+    connectionState = ConnectionState.Success(
+      authMethodState = AuthMethodState(
+        passwordAuthEnabled = true,
+        openIdState = null,
+      ),
+    ),
     networkSettings = null,
     eventSink = {},
   ),

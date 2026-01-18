@@ -3,6 +3,9 @@ package app.campfire.common.screens
 import app.campfire.core.model.AuthorId
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.Server
+import app.campfire.core.model.Tent
+import app.campfire.core.model.UserId
 import app.campfire.core.parcelize.Parcelize
 import com.slack.circuit.runtime.screen.Screen
 import com.slack.circuit.runtime.screen.StaticScreen
@@ -32,15 +35,42 @@ data object WelcomeScreen : BaseScreen(name = "Welcome") {
 }
 
 @Parcelize
-data class LoginScreen(
-  val isAddingAccount: Boolean = false,
-) : BaseScreen(name = "Login") {
-  override val arguments = mapOf(
-    "isAddingAccount" to isAddingAccount,
-  )
+sealed class LoginScreen : BaseScreen(name = "Login") {
+  /**
+   * Add a new account when no others exist
+   */
+  data object New : LoginScreen()
+
+  /**
+   * Add additional accounts to the app
+   */
+  data object Additional : LoginScreen()
+
+  /**
+   * Re-authenticate an existing account who's tokens have expired
+   */
+  data class ReAuthentication(
+    val userId: UserId,
+    val userName: String,
+    val tent: Tent,
+    val serverName: String,
+    val serverUrl: String,
+  ) : LoginScreen() {
+
+    constructor(server: Server) : this(
+      userId = server.user.id,
+      userName = server.user.name,
+      tent = server.tent,
+      serverName = server.name,
+      serverUrl = server.url,
+    )
+  }
 
   override val presentation: Presentation
-    get() = Presentation(hideBottomNav = !isAddingAccount)
+    get() = Presentation(
+      hideBottomNav = true,
+      hidePlaybackBar = true,
+    )
 }
 
 @Parcelize
@@ -90,8 +120,6 @@ data class SettingsScreen(
   val page: Page = Page.Root,
 ) : BaseScreen(name = "Settings.$page") {
 
-  override val arguments get() = mapOf("page" to page)
-
   enum class Page {
     Root,
     Account,
@@ -112,9 +140,7 @@ data object AttributionScreen : BaseScreen(name = "Attributions")
 //region Utility Screens
 
 @Parcelize
-data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen") {
-  override val arguments get() = mapOf("url" to url)
-}
+data class UrlScreen(val url: String) : BaseScreen(name = "UrlScreen")
 
 //endregion
 
@@ -132,7 +158,6 @@ abstract class DetailScreen(name: String) : BaseScreen(name) {
  * data type
  */
 abstract class BaseScreen(val name: String) : Screen {
-  open val arguments: Map<String, *>? = null
   open val presentation: Presentation = Presentation()
 }
 
@@ -142,9 +167,11 @@ abstract class BaseScreen(val name: String) : Screen {
  */
 data class Presentation(
   val hideBottomNav: Boolean = false,
+  val hidePlaybackBar: Boolean = false,
   val isDetailScreen: Boolean = false,
 ) {
   companion object {
-    val Fullscreen: Presentation get() = Presentation(hideBottomNav = true)
+    val Fullscreen: Presentation
+      get() = Presentation(hideBottomNav = true)
   }
 }

@@ -87,6 +87,7 @@ private val DefaultNonThemedContentColor: Color
 )
 @Composable
 fun PlaybackBar(
+  enabled: Boolean,
   expanded: Boolean,
   onExpansionChange: (Boolean) -> Unit,
   navigator: Navigator,
@@ -165,6 +166,7 @@ fun PlaybackBar(
       ) {
         AnimatedContent(
           targetState = when {
+            !enabled -> Hidden
             currentSession == null -> Hidden
             expanded -> Expanded
             else -> Collapsed

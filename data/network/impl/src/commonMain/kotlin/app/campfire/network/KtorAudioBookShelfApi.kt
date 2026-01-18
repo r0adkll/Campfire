@@ -7,6 +7,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requireServerUrl
+import app.campfire.core.session.requiredUser
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.network.di.RefreshToken
@@ -61,6 +62,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
@@ -99,15 +101,26 @@ class KtorAudioBookShelfApi(
             return@refreshTokens if (newTokenResponse.status.isSuccess()) {
               try {
                 val newToken = newTokenResponse.body<LoginResponse>().asAbsToken()
-                accountManager.updateToken(userSession.requiredUserId, newToken)
-                newToken.asBearerTokens()
+                if (newToken != null) {
+                  accountManager.updateToken(userSession.requiredUserId, newToken)
+                  newToken.asBearerTokens()
+                } else {
+                  bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
+                  accountManager.invalidateAccount(userSession.requiredUser)
+                  null
+                }
               } catch (e: Exception) {
                 bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
                 null
               }
             } else {
-              // TODO: Handle case where account can no-longer auth due to expired refresh token
-              bark("KtorClient", LogPriority.ERROR) { "Refresh token request failed!" }
+              bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
+              if (
+                newTokenResponse.status == HttpStatusCode.Unauthorized ||
+                newTokenResponse.status == HttpStatusCode.Forbidden
+              ) {
+                accountManager.invalidateAccount(userSession.requiredUser)
+              }
               null
             }
           }

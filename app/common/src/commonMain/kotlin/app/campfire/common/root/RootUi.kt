@@ -187,12 +187,17 @@ internal fun RootUi(
                 }
                 when (val result = overlayHost.showAccountPicker()) {
                   AccountPickerResult.AddAccount -> {
-                    homeNavigator.goTo(LoginScreen(isAddingAccount = true))
+                    homeNavigator.goTo(LoginScreen.Additional)
                     drawerState.close()
                   }
 
                   is AccountPickerResult.SwitchAccount -> {
                     eventSink(AccountSwitcherUiEvent.SwitchAccount(result.server))
+                    drawerState.close()
+                  }
+
+                  is AccountPickerResult.ReauthenticateAccount -> {
+                    homeNavigator.goTo(LoginScreen.ReAuthentication(result.server))
                     drawerState.close()
                   }
 
@@ -259,6 +264,7 @@ internal fun RootUi(
         }
 
         PlaybackBar(
+          enabled = currentPresentation?.hidePlaybackBar != true,
           expanded = playbackBarExpanded,
           onExpansionChange = {
             Analytics.send(ActionEvent("playback_bar", if (it) "expanded" else "collapsed"))

@@ -1,5 +1,6 @@
 package app.campfire.core.session
 
+import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 
@@ -19,6 +20,11 @@ sealed class UserSession {
     override val key: Any
       get() = "${user.id}::${user.serverUrl}"
   }
+
+  data class NeedsAuthentication(
+    val server: Server,
+  ) : UserSession()
+
   data object LoggedOut : UserSession()
   data object Loading : UserSession()
 }

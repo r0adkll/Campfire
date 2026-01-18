@@ -19,6 +19,7 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
+import app.campfire.core.toast.GlobalToaster
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     val toaster = AndroidToast(this)
+    GlobalToaster.register(toaster)
 
     setContent {
       CompositionLocalProvider(
@@ -86,6 +88,7 @@ class MainActivity : ComponentActivity() {
   override fun onDestroy() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
+    GlobalToaster.unregister()
     component.mediaRouterCastController.destroy()
     component.componentActivityPlugins.forEach { launcher ->
       launcher.unregister()

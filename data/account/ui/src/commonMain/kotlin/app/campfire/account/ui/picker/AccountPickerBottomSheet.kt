@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -22,8 +23,9 @@ import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -75,6 +77,7 @@ sealed interface AccountPickerResult {
   data object None : AccountPickerResult
   data object AddAccount : AccountPickerResult
   data class SwitchAccount(val server: Server) : AccountPickerResult
+  data class ReauthenticateAccount(val server: Server) : AccountPickerResult
 }
 
 suspend fun OverlayHost.showAccountPicker(): AccountPickerResult {
@@ -134,7 +137,15 @@ private fun AccountPickerContent(
     AccountPickerContent(
       accounts = state.accountState,
       onAccountClick = { server ->
-        overlayNavigator.finish(AccountPickerResult.SwitchAccount(server))
+        when (server.authState) {
+          AuthState.NeedsReauthentication -> {
+            overlayNavigator.finish(AccountPickerResult.ReauthenticateAccount(server.server))
+          }
+
+          AuthState.Valid -> {
+            overlayNavigator.finish(AccountPickerResult.SwitchAccount(server.server))
+          }
+        }
       },
       onAddAccountClick = {
         overlayNavigator.finish(AccountPickerResult.AddAccount)
@@ -149,7 +160,7 @@ private fun AccountPickerContent(
 @Composable
 private fun AccountPickerContent(
   accounts: LoadState<out AccountState>,
-  onAccountClick: (Server) -> Unit,
+  onAccountClick: (UiServer) -> Unit,
   onAddAccountClick: () -> Unit,
   onLogout: (Server) -> Unit,
   modifier: Modifier = Modifier,
@@ -197,7 +208,7 @@ private fun NonLoadedContent(
 @Composable
 private fun LoadedContent(
   accountState: AccountState,
-  onAccountClick: (Server) -> Unit,
+  onAccountClick: (UiServer) -> Unit,
   onAddAccountClick: () -> Unit,
   onLogout: (Server) -> Unit,
   modifier: Modifier = Modifier,
@@ -212,17 +223,17 @@ private fun LoadedContent(
   ) {
     items(
       items = accountState.all,
-      key = { it.user.id },
-    ) { server ->
-      val isCurrent = server.user.id == accountState.current.user.id
+      key = { it.server.user.id },
+    ) { uiServer ->
+      val isCurrent = uiServer.server.user.id == accountState.current.user.id
       AccountListItem(
-        server = server,
+        server = uiServer,
         isCurrent = isCurrent,
         onClick = {
-          onAccountClick(server)
+          onAccountClick(uiServer)
         },
         onLogout = {
-          logoutConfirmation = server
+          logoutConfirmation = uiServer.server
         },
         modifier = Modifier.animateItem(),
       )
@@ -253,9 +264,10 @@ private fun LoadedContent(
 
 private val TentIconSize = 40.dp
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AccountListItem(
-  server: Server,
+  server: UiServer,
   isCurrent: Boolean,
   onClick: () -> Unit,
   onLogout: () -> Unit,
@@ -268,7 +280,7 @@ private fun AccountListItem(
     ),
     leadingContent = {
       CampsiteIcon(
-        tent = server.tent,
+        tent = server.server.tent,
         hasFire = isCurrent,
         modifier = Modifier.size(TentIconSize),
       )
@@ -277,13 +289,38 @@ private fun AccountListItem(
       Row(
         verticalAlignment = Alignment.CenterVertically,
       ) {
-        Text("${server.user.name} @ ${server.name}")
+        Text("${server.server.user.name} @ ${server.server.name}")
       }
     },
-    supportingContent = { Text(server.url) },
+    supportingContent = { Text(server.server.url) },
+    overlineContent = if (server.authState is AuthState.NeedsReauthentication) {
+      {
+        Text(
+          text = "Needs Reauthentication",
+          color = MaterialTheme.colorScheme.error,
+        )
+      }
+    } else {
+      null
+    },
     trailingContent = {
-      IconButton(onClick = onLogout) {
-        Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null)
+      val size = ButtonDefaults.ExtraSmallContainerHeight
+      FilledTonalButton(
+        onClick = onLogout,
+        shapes = ButtonDefaults.shapesFor(size),
+        modifier = Modifier.heightIn(size),
+        contentPadding = ButtonDefaults.contentPaddingFor(size),
+      ) {
+        Icon(
+          Icons.AutoMirrored.Rounded.Logout,
+          contentDescription = null,
+          modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
+        )
+        Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+        Text(
+          text = stringResource(Res.string.account_picker_logout_action_confirm),
+          style = ButtonDefaults.textStyleFor(size),
+        )
       }
     },
     colors = ListItemDefaults.colors(

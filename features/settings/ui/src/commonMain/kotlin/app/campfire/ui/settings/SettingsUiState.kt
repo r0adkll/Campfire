@@ -168,6 +168,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface DeveloperSettingEvent : SettingsUiEvent {
     data object EnableDeveloperMode : DeveloperSettingEvent
     data object OpenAndroidAutoSettings : DeveloperSettingEvent
+    data object InvalidateCurrentAccount : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
   }

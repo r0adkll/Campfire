@@ -50,6 +50,20 @@ internal fun DeveloperPane(
     modifier = modifier,
   ) {
     Header(
+      title = { Text("Account") },
+    )
+
+    ActionSetting(
+      headlineContent = { Text("Invalidate current account") },
+      supportingContent = {
+        Text("Simulate an expired auth token on the current account for testing re-authentication.")
+      },
+      onClick = {
+        state.eventSink(DeveloperSettingEvent.InvalidateCurrentAccount)
+      },
+    )
+
+    Header(
       title = { Text("Misc") },
     )
 

@@ -33,7 +33,19 @@ class AccountPickerPresenter(
     val accountState by remember {
       combine(
         serverRepository.observeCurrentServer(),
-        serverRepository.observeAllServers(),
+        serverRepository.observeAllServers().map { servers ->
+          servers.map { server ->
+            val serverToken = accountManager.getToken(server.user.id)
+            UiServer(
+              server = server,
+              authState = if (serverToken != null) {
+                AuthState.Valid
+              } else {
+                AuthState.NeedsReauthentication
+              },
+            )
+          }
+        },
       ) { current, all ->
         AccountState(
           current = current,
@@ -41,8 +53,8 @@ class AccountPickerPresenter(
         )
       }.map {
         LoadState.Loaded(it)
-      }.catch {
-        LoadState.Error
+      }.catch<LoadState<out AccountState>> {
+        emit(LoadState.Error)
       }
     }.collectAsState(LoadState.Loading)
 
@@ -63,21 +75,21 @@ class AccountPickerPresenter(
 
 private class ServerComparator(
   val current: Server,
-) : Comparator<Server> {
+) : Comparator<UiServer> {
 
   /**
    * Compares its two arguments for order. Returns zero if the arguments are equal,
    * a negative number if the first argument is less than the second, or a positive number
    * if the first argument is greater than the second.
    */
-  override fun compare(a: Server, b: Server): Int {
-    val isCurrentA = a.user.id == current.user.id
-    val isCurrentB = b.user.id == current.user.id
+  override fun compare(a: UiServer, b: UiServer): Int {
+    val isCurrentA = a.server.user.id == current.user.id
+    val isCurrentB = b.server.user.id == current.user.id
 
     return when {
       isCurrentA -> -1
       isCurrentB -> 1
-      else -> a.name.compareTo(b.name)
+      else -> a.server.name.compareTo(b.server.name)
     }
   }
 }

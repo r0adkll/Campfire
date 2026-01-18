@@ -20,6 +20,8 @@ import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Server
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUser
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.settings.api.CampfireSettings
@@ -75,6 +77,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class SettingsPresenter(
   @Assisted private val navigator: Navigator,
+  private val userSession: UserSession,
   private val analytics: Analytics,
   private val analyticUiEventHandler: SettingsAnalyticUiEventHandler,
   private val applicationInfo: ApplicationInfo,
@@ -283,6 +286,11 @@ class SettingsPresenter(
             settings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
           is SettingsUiEvent.DeveloperSettingEvent.OpenAndroidAutoSettings -> androidAuto.openSettings()
+          is SettingsUiEvent.DeveloperSettingEvent.InvalidateCurrentAccount -> {
+            scope.launch {
+              accountManager.invalidateAccount(userSession.requiredUser)
+            }
+          }
         }
       }
     }

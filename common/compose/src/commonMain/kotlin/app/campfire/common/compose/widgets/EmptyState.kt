@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.rounded.rememberAnimatedEmptyState
 import campfire.common.compose.generated.resources.Res
@@ -32,10 +33,12 @@ private val EmptyVerticalSpacing = 32.dp
 fun EmptyState(
   message: String,
   modifier: Modifier = Modifier,
+  imageSize: Dp = EmptyImageSize,
 ) {
   EmptyState(
     message = { Text(message) },
     modifier = modifier,
+    imageSize = imageSize,
   )
 }
 
@@ -43,6 +46,7 @@ fun EmptyState(
 fun EmptyState(
   message: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  imageSize: Dp = EmptyImageSize,
 ) {
   Column(
     modifier = modifier
@@ -60,7 +64,7 @@ fun EmptyState(
         emptyPainter,
         contentDescription = null,
         modifier = Modifier
-          .width(EmptyImageSize),
+          .width(imageSize),
       )
     }
 
