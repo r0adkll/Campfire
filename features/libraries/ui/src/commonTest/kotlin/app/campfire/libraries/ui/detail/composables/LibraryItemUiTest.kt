@@ -32,6 +32,7 @@ import app.campfire.libraries.ui.detail.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
+import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuit.test.TestEventSink
 import kotlin.test.Test
@@ -170,7 +171,7 @@ class LibraryItemUiTest {
     state: LibraryItemUiState,
     modifier: Modifier = Modifier,
   ) {
-    SharedElementTransitionLayout {
+    PreviewSharedElementTransitionLayout {
       CompositionLocalProvider(
         LocalWindowSizeClass provides WindowSizeClass.calculateFromSize(Size(720f, 1080f), Density(1f)),
         LocalContentLayout provides ContentLayout.Root,
