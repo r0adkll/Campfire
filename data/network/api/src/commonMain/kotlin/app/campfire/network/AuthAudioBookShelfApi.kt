@@ -56,15 +56,4 @@ interface AuthAudioBookShelfApi {
     codeVerifier: String,
     extraHeaders: Map<String, String>? = null,
   ): Result<LoginResponse>
-
-  /**
-   * This endpoint is for migrating legacy authentication to the new access/refresh token system.
-   *
-   * @param serverUrl the url of the audiobookshelf server to call
-   * @param legacyToken the legacy long-lived token to use to migrate
-   */
-  suspend fun authorize(
-    serverUrl: String,
-    legacyToken: String,
-  ): Result<LoginResponse>
 }

@@ -56,7 +56,7 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import org.jetbrains.compose.resources.stringResource
 
-private val SearchEmptyImageSize = 128.dp
+private val SearchEmptyImageSize = 200.dp
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
