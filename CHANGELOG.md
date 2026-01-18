@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Analytics consent screen no longer re-appears after accepting it
+
 ### Other Notes & Contributions
 
 ## [0.8.0-beta] - 2025-12-16
