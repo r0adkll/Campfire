@@ -50,11 +50,24 @@ class SecureTokenStorage(
     settings.remove(refreshTokenStorageKey(userId))
   }
 
+  override suspend fun getLegacy(userId: UserId): String? {
+    return settings.getStringOrNull(legacyTokenStorageKey(userId))
+  }
+
+  override suspend fun removeLegacy(userId: UserId) {
+    settings.remove(legacyTokenStorageKey(userId))
+  }
+
   private fun accessTokenStorageKey(userId: String): String {
     return "accessToken_$userId"
   }
 
   private fun refreshTokenStorageKey(userId: String): String {
     return "refreshToken_$userId"
+  }
+
+  // TODO: Cleanup legacy token migration in future release (v0.11 maybe?)
+  private fun legacyTokenStorageKey(userId: String): String {
+    return "token_$userId"
   }
 }

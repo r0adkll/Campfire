@@ -141,6 +141,14 @@ class DefaultAccountManager(
     return tokenStorage.get(userId)
   }
 
+  override suspend fun getLegacyToken(userId: UserId): String? {
+    return tokenStorage.getLegacy(userId)
+  }
+
+  override suspend fun removeLegacyToken(userId: UserId) {
+    tokenStorage.removeLegacy(userId)
+  }
+
   override suspend fun updateToken(userId: UserId, newToken: AbsToken) {
     tokenStorage.put(userId, newToken)
   }

@@ -11,4 +11,10 @@ interface TokenStorage {
   suspend fun get(userId: UserId): AbsToken?
   suspend fun put(userId: UserId, token: AbsToken)
   suspend fun remove(userId: UserId)
+
+  /**
+   * Get the legacy long-lived token for the current user, if it exists.
+   */
+  suspend fun getLegacy(userId: UserId): String?
+  suspend fun removeLegacy(userId: UserId)
 }

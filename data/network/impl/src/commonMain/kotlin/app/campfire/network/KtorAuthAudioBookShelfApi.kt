@@ -17,6 +17,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
@@ -144,6 +145,17 @@ class KtorAuthAudioBookShelfApi(
       parameter("code", code)
       parameter("code_verifier", codeVerifier)
       maybeHeaders(extraHeaders)
+    }
+  }
+
+  override suspend fun authorize(
+    serverUrl: String,
+    legacyToken: String,
+  ): Result<LoginResponse> = trySendRequest {
+    client.post {
+      val baseUrl = cleanServerUrl(serverUrl)
+      url("$baseUrl/api/authorize")
+      bearerAuth(legacyToken)
     }
   }
 
