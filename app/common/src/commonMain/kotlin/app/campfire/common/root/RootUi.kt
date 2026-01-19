@@ -231,7 +231,7 @@ internal fun RootUi(
     },
 
     content = {
-      val searchEventHandler: (SearchResultNavEvent) -> Unit = remember {
+      val searchEventHandler: (SearchResultNavEvent) -> Unit = remember(homeNavigator) {
         { event -> homeNavigator.goToSearchEvent(event) }
       }
 
