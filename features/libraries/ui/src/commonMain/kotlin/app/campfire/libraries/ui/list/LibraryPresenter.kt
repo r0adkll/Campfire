@@ -21,6 +21,7 @@ import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -44,9 +45,9 @@ class LibraryPresenter(
 
   @Composable
   override fun present(): LibraryUiState {
-    // TODO: We should store this in user preferences so it persists
-    //  between UI and process changes
-    var itemFilter by remember { mutableStateOf(screen.filter) }
+    var itemFilter by rememberRetainedSaveable {
+      mutableStateOf(screen.filter)
+    }
 
     val sortMode by remember {
       settings.observeSortMode()

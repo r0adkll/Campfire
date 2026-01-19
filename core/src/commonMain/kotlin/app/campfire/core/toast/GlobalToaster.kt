@@ -3,7 +3,7 @@ package app.campfire.core.toast
 /**
  * An easy to use global singleton
  */
-object GlobalToaster : Toast {
+object GlobalToaster {
 
   /*
    * 🐲 WARNING!
@@ -13,11 +13,11 @@ object GlobalToaster : Toast {
    */
   private var delegate: Toast? = null
 
-  override fun show(
+  fun show(
     message: String,
     duration: Toast.Duration,
-  ): ToastHandle {
-    return delegate?.show(message, duration) ?: ToastHandle { }
+  ) {
+    runInMainThread { delegate?.show(message, duration) }
   }
 
   fun register(delegate: Toast) {
@@ -28,3 +28,5 @@ object GlobalToaster : Toast {
     this.delegate = null
   }
 }
+
+expect inline fun runInMainThread(crossinline block: () -> Unit)
