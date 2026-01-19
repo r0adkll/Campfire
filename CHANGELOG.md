@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - OIDC Authentication
 - Offline downloads accessible from side drawer
+- Denser grid option for the Library screen
 
 ### Changed
 
@@ -27,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Analytics consent screen no longer re-appears after accepting it
 - Predictive back navigation causing screens to infinitely load
+- Analytics consent screen re-appearing after accepting it
+- Search overlay popping up when adding bookmarks
+- Bug where home feed would be empty when using multiple accounts/libraries
 
 ### Other Notes & Contributions
 
