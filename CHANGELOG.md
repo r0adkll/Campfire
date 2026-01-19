@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Analytics consent screen re-appearing after accepting it
 - Search overlay popping up when adding bookmarks
 - Bug where home feed would be empty when using multiple accounts/libraries
+- Library filter(s) now persist between screens and configuration changes
 
 ### Other Notes & Contributions
 
