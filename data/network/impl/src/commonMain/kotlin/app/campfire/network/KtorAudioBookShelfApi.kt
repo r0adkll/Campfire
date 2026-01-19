@@ -2,6 +2,7 @@ package app.campfire.network
 
 import app.campfire.account.api.AccountManager
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
@@ -52,7 +53,6 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.request
@@ -75,6 +75,7 @@ import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
 
 @Inject
+@SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 class KtorAudioBookShelfApi(
   private val userSession: UserSession,
@@ -87,6 +88,10 @@ class KtorAudioBookShelfApi(
     httpClient.config {
       install(Auth) {
         bearer {
+          loadTokens {
+            accountManager.getToken(userSession.requiredUserId)?.asBearerTokens()
+          }
+
           refreshTokens {
             val tokens = accountManager.getToken(userSession.requiredUserId)
             val newTokenResponse = client.post {
@@ -475,14 +480,10 @@ class KtorAudioBookShelfApi(
     builder: HttpRequestBuilder.() -> Unit = { },
   ): HttpResponse {
     val currentServerUrl = userSession.requireServerUrl
-    val tokens = accountManager.getToken(userSession.requiredUserId)
     return client.request {
       url("${cleanServerUrl(currentServerUrl)}${if (!endpoint.startsWith("/")) "/" else ""}$endpoint")
       header(HttpHeaders.ServerUrl, currentServerUrl)
       contentType(ContentType.Application.Json)
-      tokens?.let {
-        bearerAuth(it.accessToken)
-      }
       builder()
     }
   }
@@ -492,7 +493,6 @@ class KtorAudioBookShelfApi(
     builder: HttpRequestBuilder.() -> Unit = { },
   ): HttpResponse {
     val currentServerUrl = userSession.requireServerUrl
-    val tokens = accountManager.getToken(userSession.requiredUserId)
     return client.request {
       url {
         takeFrom(cleanServerUrl(currentServerUrl))
@@ -500,9 +500,6 @@ class KtorAudioBookShelfApi(
       }
       header(HttpHeaders.ServerUrl, currentServerUrl)
       contentType(ContentType.Application.Json)
-      tokens?.let {
-        bearerAuth(it.accessToken)
-      }
       builder()
     }
   }

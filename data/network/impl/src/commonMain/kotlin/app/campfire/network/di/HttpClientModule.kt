@@ -74,6 +74,7 @@ interface HttpClientModule {
         }
 
         sanitizeHeader { header ->
+          if (applicationInfo.debugBuild) return@sanitizeHeader false
           header == HttpHeaders.Authorization ||
             header == HttpHeaders.Cookie ||
             header == HttpHeaders.SetCookie ||
