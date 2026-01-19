@@ -168,7 +168,8 @@ private fun LoadedContent(
     )
 
     ItemDisplayState.GridDense,
-    ItemDisplayState.Grid -> LibraryGrid(
+    ItemDisplayState.Grid,
+    -> LibraryGrid(
       items = items,
       offlineStates = offlineStates,
       onItemClick = onItemClick,
@@ -219,7 +220,7 @@ private fun LibraryGrid(
     columns = when (itemDisplayState) {
       ItemDisplayState.GridDense -> GridCells.Adaptive(DenseAdaptiveColumnSize)
       else -> GridCells.Adaptive(DefaultAdaptiveColumnSize)
-    }
+    },
   ) {
     item(
       span = { GridItemSpan(this.maxLineSpan) },
@@ -250,7 +251,7 @@ private fun LibraryGrid(
         shape = when (itemDisplayState) {
           ItemDisplayState.GridDense -> MaterialTheme.shapes.medium
           else -> MaterialTheme.shapes.largeIncreased
-        }
+        },
       )
     }
   }
