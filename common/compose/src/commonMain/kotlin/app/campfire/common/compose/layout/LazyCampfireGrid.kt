@@ -42,4 +42,5 @@ fun LazyCampfireGrid(
 }
 
 val DefaultAdaptiveColumnSize = 120.dp
+val DenseAdaptiveColumnSize = 80.dp
 val LargeAdaptiveColumnSize = 300.dp

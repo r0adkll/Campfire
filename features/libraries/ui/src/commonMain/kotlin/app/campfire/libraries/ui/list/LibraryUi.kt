@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.items
@@ -14,6 +15,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
@@ -31,6 +33,8 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
+import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
@@ -163,6 +167,7 @@ private fun LoadedContent(
       contentPadding = contentPadding,
     )
 
+    ItemDisplayState.GridDense,
     ItemDisplayState.Grid -> LibraryGrid(
       items = items,
       offlineStates = offlineStates,
@@ -188,6 +193,7 @@ private fun LoadedContent(
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LibraryGrid(
   items: List<LibraryItem>,
@@ -210,6 +216,10 @@ private fun LibraryGrid(
     contentPadding = contentPadding,
     horizontalArrangement = Arrangement.spacedBy(8.dp),
     verticalArrangement = Arrangement.spacedBy(8.dp),
+    columns = when (itemDisplayState) {
+      ItemDisplayState.GridDense -> GridCells.Adaptive(DenseAdaptiveColumnSize)
+      else -> GridCells.Adaptive(DefaultAdaptiveColumnSize)
+    }
   ) {
     item(
       span = { GridItemSpan(this.maxLineSpan) },
@@ -236,6 +246,11 @@ private fun LibraryGrid(
         offlineStatus = offlineStatus.asWidgetStatus(),
         onClick = { onItemClick(item) },
         modifier = Modifier.animateItem(),
+        showInformation = itemDisplayState != ItemDisplayState.GridDense,
+        shape = when (itemDisplayState) {
+          ItemDisplayState.GridDense -> MaterialTheme.shapes.medium
+          else -> MaterialTheme.shapes.largeIncreased
+        }
       )
     }
   }

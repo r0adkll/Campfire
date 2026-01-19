@@ -88,7 +88,8 @@ class LibraryPresenter(
         LibraryUiEvent.ToggleItemDisplayState -> {
           settings.libraryItemDisplayState = when (itemDisplayState) {
             ItemDisplayState.List -> ItemDisplayState.Grid
-            ItemDisplayState.Grid -> ItemDisplayState.List
+            ItemDisplayState.Grid -> ItemDisplayState.GridDense
+            ItemDisplayState.GridDense -> ItemDisplayState.List
           }.also {
             analytics.send(ActionEvent("item_display", "toggled", it.storageKey))
           }

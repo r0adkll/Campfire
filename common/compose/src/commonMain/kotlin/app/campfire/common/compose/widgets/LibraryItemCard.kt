@@ -84,8 +84,10 @@ fun LibraryItemCard(
   sharedTransitionZIndex: Float = 0f,
   isSelectable: Boolean = false,
   selected: Boolean = false,
+  showInformation: Boolean = true,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   progress: MediaProgress? = item.userMediaProgress,
+  shape: Shape = MaterialTheme.shapes.largeIncreased,
   colors: CardColors = CardDefaults.elevatedCardColors(
     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
   ),
@@ -107,6 +109,7 @@ fun LibraryItemCard(
       },
     onClick = onClick,
     colors = colors,
+    shape = shape,
   ) {
     Box {
       Column {
@@ -116,17 +119,21 @@ fun LibraryItemCard(
           sharedTransitionZIndex = sharedTransitionZIndex,
           offlineStatus = offlineStatus,
           progress = progress,
+          shape = shape,
         )
-        LibraryItemCardInformation(
-          item = item,
-          sharedTransitionKey = sharedTransitionKey,
-        )
+        if (showInformation) {
+          LibraryItemCardInformation(
+            item = item,
+            sharedTransitionKey = sharedTransitionKey,
+          )
+        }
       }
 
       LibraryItemCardEditingScrim(
         isSelectable = isSelectable,
         selected = selected,
         modifier = Modifier.matchParentSize(),
+        shape = shape,
       )
     }
   }
@@ -141,9 +148,9 @@ private fun LibraryItemCardImage(
   offlineStatus: OfflineStatus,
   progress: MediaProgress?,
   modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.largeIncreased,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
-  val shape = MaterialTheme.shapes.largeIncreased
 
   Box(
     modifier = modifier.clip(shape),

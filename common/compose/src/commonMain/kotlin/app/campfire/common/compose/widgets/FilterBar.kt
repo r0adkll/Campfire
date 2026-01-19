@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FilterAlt
 import androidx.compose.material.icons.rounded.FilterAltOff
+import androidx.compose.material.icons.rounded.Grid3x3
+import androidx.compose.material.icons.rounded.Grid4x4
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,8 +72,9 @@ fun FilterBar(
       ) {
         Icon(
           when (itemDisplayState) {
-            ItemDisplayState.List -> Icons.Rounded.GridView
-            ItemDisplayState.Grid -> Icons.Rounded.Lists
+            ItemDisplayState.List -> Icons.Rounded.Lists
+            ItemDisplayState.Grid -> Icons.Rounded.Grid3x3
+            ItemDisplayState.GridDense -> Icons.Rounded.Grid4x4
           },
           contentDescription = null,
         )
