@@ -26,8 +26,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -106,32 +104,10 @@ fun AdaptiveCampfireLayout(
         gesturesEnabled = isLoggedIn && drawerEnabled,
         modifier = Modifier.weight(1f),
       ) {
-        val snackBarHost = remember { SnackbarHostState() }
         Scaffold(
-          snackbarHost = {
-            SnackbarHost(
-              hostState = snackBarHost,
-            )
-          },
-          bottomBar = {
-            if (navigationType == NavigationType.BottomNavigation) {
-              AnimatedVisibility(
-                visible = !hideBottomNav,
-                enter = slideInVertically { it },
-                exit = slideOutVertically { it },
-              ) {
-                bottomBarNavigation()
-              }
-            } else {
-              Spacer(
-                Modifier
-                  .windowInsetsBottomHeight(WindowInsets.navigationBars)
-                  .fillMaxWidth(),
-              )
-            }
-          },
           contentWindowInsets = windowInsets,
         ) { paddingValues ->
+
           Row(
             modifier = Modifier
               .fillMaxSize()
@@ -165,7 +141,6 @@ fun AdaptiveCampfireLayout(
                 CompositionLocalProvider(
                   LocalContentLayout provides ContentLayout.Root,
                   LocalSupportingContentState provides supportingContentState,
-                  LocalSnackBarHost provides snackBarHost,
                 ) {
                   Box {
                     content()
@@ -175,6 +150,23 @@ fun AdaptiveCampfireLayout(
                     }
                   }
                 }
+              }
+
+              if (navigationType == NavigationType.BottomNavigation) {
+                Box(
+                  modifier = Modifier.align(Alignment.BottomCenter),
+                ) {
+                  bottomBarNavigation()
+                }
+//
+//                androidx.compose.animation.AnimatedVisibility(
+//                  visible = !hideBottomNav,
+//                  enter = slideInVertically { it },
+//                  exit = slideOutVertically { it },
+//                  modifier = Modifier.align(Alignment.BottomCenter)
+//                ) {
+//                  bottomBarNavigation()
+//                }
               }
 
               if (isSupportingPaneEnabled && isLoggedIn) {
@@ -207,7 +199,6 @@ fun AdaptiveCampfireLayout(
                   CompositionLocalProvider(
                     LocalContentLayout provides ContentLayout.Supporting,
                     LocalSupportingContentState provides supportingContentState,
-                    LocalSnackBarHost provides snackBarHost,
                   ) {
                     supportingContent()
                   }

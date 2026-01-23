@@ -211,6 +211,17 @@ internal fun RootUi(
       )
     },
     bottomBarNavigation = {
+      val shouldHideNavBar by remember {
+        derivedStateOf {
+          currentPresentation?.hideBottomNav == true ||
+            playbackBarExpanded
+        }
+      }
+
+      LaunchedEffect(shouldHideNavBar) {
+        navigationBarState.updateShouldHide(shouldHideNavBar)
+      }
+
       CampfireNavigationBar(
         state = navigationBarState,
         selectedNavigation = rootScreen,
@@ -275,7 +286,7 @@ internal fun RootUi(
           themeManager = themeManager,
           themeSettings = themeSettings,
           offset = {
-            if (!windowSizeClass.isSupportingPaneEnabled && currentPresentation?.hideBottomNav != true) {
+            if (!windowSizeClass.isSupportingPaneEnabled) {
               val dy = navigationBarState.playbackBarOffset(bottomBarOffset).roundToInt()
               IntOffset(0, -dy)
             } else {
