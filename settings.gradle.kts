@@ -19,6 +19,7 @@ pluginManagement {
 
         content {
           includeGroup("com.r0adkll.swatchbuckler")
+          includeGroup("app.cash.sqldelight")
         }
       }
     }
@@ -46,6 +47,7 @@ dependencyResolutionManagement {
         mavenContent { snapshotsOnly() }
         content {
           includeGroup("com.r0adkll.swatchbuckler")
+          includeGroup("app.cash.sqldelight")
         }
       }
     }

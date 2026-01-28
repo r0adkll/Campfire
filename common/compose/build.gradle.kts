@@ -60,7 +60,6 @@ kotlin {
       dependsOn(jvmCommon)
 
       dependencies {
-        api(libs.androidx.paging.common)
         implementation(libs.androidx.activity.compose)
 
         implementation(compose.preview)

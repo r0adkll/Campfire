@@ -27,6 +27,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.URLParserException
 import io.ktor.http.Url
 import io.ktor.http.contentType
 import io.ktor.http.isSecure
@@ -171,6 +172,9 @@ class KtorAuthAudioBookShelfApi(
       e.printStackTrace()
       Result.failure(e)
     } catch (e: IllegalArgumentException) {
+      e.printStackTrace()
+      Result.failure(e)
+    } catch (e: URLParserException) {
       e.printStackTrace()
       Result.failure(e)
     }

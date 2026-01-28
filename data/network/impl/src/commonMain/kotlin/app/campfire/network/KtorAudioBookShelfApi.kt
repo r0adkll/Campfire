@@ -153,36 +153,6 @@ class KtorAudioBookShelfApi(
     hydratedClientRequest("/api/libraries/$libraryId")
   }
 
-  override suspend fun getLibraryItems(
-    libraryId: String,
-    filter: LibraryItemFilter?,
-    sortMode: String?,
-    sortDescending: Boolean,
-    page: Int,
-    limit: Int,
-  ): Result<List<LibraryItemExpanded>> {
-    return trySendRequest<LibraryItemsResponse> {
-      hydratedClientRequest(
-        {
-          appendPathSegments("api", "libraries", libraryId, "items")
-          parameters.append("minified", "0")
-          filter?.let { f ->
-            val filterValue = "${f.group}.${f.value.encodeBase64().encodeURLQueryComponent()}"
-            parameters.append("filter", filterValue)
-          }
-          sortMode?.let { parameters.append("sort", it) }
-          if (sortDescending) parameters.append("sort_desc", "1")
-          parameters.append("page", page.toString())
-          parameters.append("limit", limit.toString())
-        },
-      )
-    }.map { it.results }
-  }
-
-  @Deprecated(
-    "This endpoint is deprecated since it only returns the minified model",
-    replaceWith = ReplaceWith("getLibraryItems"),
-  )
   override suspend fun getLibraryItemsMinified(
     libraryId: String,
     filter: LibraryItemFilter?,
@@ -201,7 +171,7 @@ class KtorAudioBookShelfApi(
             parameters.append("filter", filterValue)
           }
           sortMode?.let { parameters.append("sort", it) }
-          if (sortDescending) parameters.append("sort_desc", "1")
+          if (sortDescending) parameters.append("desc", "1")
           if (page != INVALID) parameters.append("page", page.toString())
           if (limit != INVALID) parameters.append("limit", limit.toString())
         },

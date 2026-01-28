@@ -1,0 +1,114 @@
+import kotlin.Int;
+
+CREATE TABLE libraryItemPage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  input TEXT NOT NULL,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+  count INTEGER AS Int NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE libraryItemPageJoin (
+  pageId INTEGER NOT NULL,
+  -- The index in the list of page results that this library item was returned
+  pageIndex INTEGER AS Int NOT NULL,
+  libraryItemId TEXT NOT NULL,
+
+  PRIMARY KEY (pageId, libraryItemId),
+  FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
+);
+
+-- Inserts
+
+insertPage:
+INSERT OR REPLACE INTO libraryItemPage
+VALUES (:id, :input, :page, :nextPage, :count, :libraryId, :userId, :updatedAt);
+
+selectLastPageId:
+SELECT last_insert_rowid();
+
+insertPageJoin:
+INSERT OR REPLACE INTO libraryItemPageJoin
+VALUES ?;
+
+-- Get the last updated timestamp, in epoch MS, of a library item page
+-- for a given user/library.
+latestUpdated:
+SELECT updatedAt FROM libraryItemPage
+WHERE userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC
+LIMIT 1;
+
+-- Return the number of items current paged for a give user/library
+count:
+SELECT count(*) FROM libraryItemPageJoin
+INNER JOIN libraryItemPage ON libraryItemPageJoin.pageId = libraryItemPage.id
+WHERE libraryItemPage.userId = ?
+  AND libraryItemPage.libraryId = ?
+  AND libraryItemPage.input = ?;
+
+-- Delete
+
+deletePage:
+DELETE FROM libraryItemPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+deleteByInput:
+DELETE FROM libraryItemPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+-- Queries
+
+selectPage:
+SELECT * FROM libraryItemPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+selectOldestPage:
+SELECT * FROM libraryItemPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC LIMIT 1;
+
+selectNextPage:
+SELECT nextPage FROM libraryItemPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY page DESC LIMIT 1;
+
+selectLibraryItemsForPage:
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
+INNER JOIN libraryItemPageJoin ON libraryItemPageJoin.libraryItemId = libraryItem.id
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+WHERE libraryItemPageJoin.pageId = ?
+ORDER BY libraryItemPageJoin.pageIndex ASC;
+
+selectLibraryItemsWithLimitOffset:
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
+INNER JOIN libraryItemPageJoin ON libraryItemPageJoin.libraryItemId = libraryItem.id
+INNER JOIN libraryItemPage ON libraryItemPage.id = libraryItemPageJoin.pageId
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+WHERE libraryItemPage.userId = :userId
+  AND libraryItemPage.libraryId = :libraryId
+  AND libraryItemPage.input = :input
+ORDER BY libraryItemPage.page ASC, libraryItemPageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;
+

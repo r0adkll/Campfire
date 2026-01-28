@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
+import app.campfire.core.extensions.fluentIf
 import org.jetbrains.skia.ImageFilter
 import org.jetbrains.skia.RuntimeEffect
 import org.jetbrains.skia.RuntimeShaderBuilder
@@ -23,8 +25,9 @@ actual fun Modifier.applyNoiseEffect(
   frequencyY: Float,
   speed: Float,
   amplitude: Float,
+  size: IntSize,
 ): Modifier {
-  var resolution by remember { mutableStateOf(IntSize.Zero) }
+  var resolution by remember { mutableStateOf(size) }
 
   val time by produceState(0f) {
     while (true) {
@@ -35,7 +38,9 @@ actual fun Modifier.applyNoiseEffect(
   }
 
   return this
-    .onSizeChanged { resolution = it }
+    .fluentIf(size == IntSize.Zero) {
+      onSizeChanged { resolution = it }
+    }
     .graphicsLayer {
       renderEffect = createRenderEffect(
         resolution = resolution,

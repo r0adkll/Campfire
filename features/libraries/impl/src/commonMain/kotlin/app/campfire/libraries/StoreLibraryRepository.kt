@@ -1,5 +1,8 @@
 package app.campfire.libraries
 
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
@@ -21,6 +24,8 @@ import app.campfire.data.mapping.store.debugLogging
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.items.LibraryItemsStore
+import app.campfire.libraries.paging.LibraryItemPagerFactory
+import app.campfire.libraries.paging.LibraryItemPagingInput
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
@@ -32,6 +37,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -52,6 +58,7 @@ class StoreLibraryRepository(
   private val userRepository: UserRepository,
   private val urlHydrator: UrlHydrator,
   private val libraryItemsStoreFactory: LibraryItemsStore.Factory,
+  private val libraryItemPagingFactory: LibraryItemPagerFactory,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
 
@@ -188,6 +195,19 @@ class StoreLibraryRepository(
           .mapNotNull {
             it.dataOrNull()?.map { it.asDomainModel(urlHydrator) }
           }
+      }
+  }
+
+  @OptIn(ExperimentalPagingApi::class)
+  override fun observeLibraryItemPager(
+    filter: LibraryItemFilter?,
+    sortMode: SortMode,
+    sortDirection: SortDirection
+  ): Flow<Pager<Int, LibraryItem>> {
+    return userRepository.observeCurrentUser()
+      .mapLatest { user ->
+        val input = LibraryItemPagingInput(filter, sortMode, sortDirection)
+        libraryItemPagingFactory.create(user, input)
       }
   }
 

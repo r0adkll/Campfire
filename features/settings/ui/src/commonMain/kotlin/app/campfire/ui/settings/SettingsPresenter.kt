@@ -61,6 +61,7 @@ import app.campfire.ui.settings.auto.AndroidAuto
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlin.time.Duration.Companion.milliseconds
@@ -94,7 +95,7 @@ class SettingsPresenter(
   private val accountManager: AccountManager,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
-) : Presenter<SettingsUiState> {
+) : NonPausablePresenter<SettingsUiState> {
 
   @Composable
   override fun present(): SettingsUiState {

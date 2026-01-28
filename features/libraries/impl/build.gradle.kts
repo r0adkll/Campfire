@@ -22,6 +22,8 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
         implementation(projects.data.crashreporting.api)
+
+        implementation(libs.androidx.paging.common)
         implementation(libs.store)
       }
     }

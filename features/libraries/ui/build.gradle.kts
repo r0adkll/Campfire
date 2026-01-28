@@ -22,6 +22,8 @@ kotlin {
         implementation(libs.compose.rich.text)
         implementation(libs.swatchbuckler.compose)
         implementation(libs.swatchbuckler.coil)
+        implementation(libs.androidx.paging.common)
+        implementation(libs.androidx.paging.compose)
       }
     }
 

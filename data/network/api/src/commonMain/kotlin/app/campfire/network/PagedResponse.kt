@@ -7,3 +7,10 @@ data class PagedResponse<Data>(
   val total: Int,
   val offset: Int,
 )
+
+val PagedResponse<*>.nextPage: Int?
+  get() = if (offset + data.size < total) {
+    page + 1
+  } else {
+    null
+  }

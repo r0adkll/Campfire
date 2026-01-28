@@ -36,17 +36,6 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getLibraryItems(
-    libraryId: String,
-    filter: LibraryItemFilter?,
-    sortMode: String?,
-    sortDescending: Boolean,
-    page: Int,
-    limit: Int,
-  ): Result<List<LibraryItemExpanded>> {
-    TODO("Not yet implemented")
-  }
-
   override suspend fun getLibraryItemsMinified(
     libraryId: String,
     filter: LibraryItemFilter?,

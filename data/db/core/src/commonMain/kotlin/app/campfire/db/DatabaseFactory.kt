@@ -9,6 +9,8 @@ import app.campfire.data.Bookmarks
 import app.campfire.data.FilterData
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
+import app.campfire.data.LibraryItemPage
+import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.Media
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
@@ -33,7 +35,7 @@ import me.tatarka.inject.annotations.Inject
  * Checkout [CampfireDatabaseImpl.Schema.version] for the current version. This should match
  * the latest migration file (if > 1) in `sqldelight/migrations`.
  */
-private const val OLD_DB_VERSION = 2
+private const val OLD_DB_VERSION = 3
 
 @ContributesBinding(AppScope::class)
 @Inject
@@ -155,6 +157,14 @@ class DatabaseFactory(
     ),
     shelfJoinAdapter = ShelfJoin.Adapter(
       shelfOrderAdapter = IntColumnAdapter,
+    ),
+    libraryItemPageAdapter = LibraryItemPage.Adapter(
+      pageAdapter = IntColumnAdapter,
+      nextPageAdapter = IntColumnAdapter,
+      countAdapter = IntColumnAdapter,
+    ),
+    libraryItemPageJoinAdapter = LibraryItemPageJoin.Adapter(
+      pageIndexAdapter = IntColumnAdapter,
     ),
   )
 }

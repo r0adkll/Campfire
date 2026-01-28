@@ -355,9 +355,9 @@ class FilteredItemQueryHelper(
         }
 
         is LibraryItemFilter.Narrators -> {
-          appendLine("AND media.metadata_narratorName = ?")
+          appendLine("AND media.metadata_narratorName LIKE ?")
           bind {
-            bindString(filter.value)
+            bindString("%${filter.value}%")
           }
         }
 

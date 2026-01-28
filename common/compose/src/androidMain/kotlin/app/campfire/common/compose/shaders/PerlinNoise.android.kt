@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.IntSize
+import app.campfire.core.extensions.fluentIf
 
 @Composable
 actual fun Modifier.applyNoiseEffect(
@@ -18,6 +20,7 @@ actual fun Modifier.applyNoiseEffect(
   frequencyY: Float,
   speed: Float,
   amplitude: Float,
+  size: IntSize,
 ): Modifier {
   if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return this
 
@@ -34,15 +37,27 @@ actual fun Modifier.applyNoiseEffect(
     setFloatUniform("frequencyY", frequencyY)
     setFloatUniform("speed", speed)
     setFloatUniform("amplitude", amplitude)
+
+    if (size != IntSize.Zero) {
+      setFloatUniform(
+        "resolution",
+        size.width.toFloat(),
+        size.height.toFloat(),
+      )
+    }
   }
 
+
+
   return this
-    .onSizeChanged {
-      shader.setFloatUniform(
-        "resolution",
-        it.width.toFloat(),
-        it.height.toFloat(),
-      )
+    .fluentIf(size == IntSize.Zero) {
+      onSizeChanged {
+        shader.setFloatUniform(
+          "resolution",
+          it.width.toFloat(),
+          it.height.toFloat(),
+        )
+      }
     }
     .graphicsLayer {
       shader.setFloatUniform("time", time)

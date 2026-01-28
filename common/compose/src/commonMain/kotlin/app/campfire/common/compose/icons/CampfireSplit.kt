@@ -1,10 +1,25 @@
 package app.campfire.common.compose.icons
 
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.EaseInCubic
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.EaseInOutSine
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.StartOffset
+import androidx.compose.animation.core.StartOffsetType
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -13,9 +28,12 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.common.compose.shaders.applyNoiseEffect
+import app.campfire.common.compose.util.withDensity
 
 private var _CampfireLogs: ImageVector? = null
 private var _CampfireFireInner: ImageVector? = null
@@ -218,7 +236,7 @@ fun NoisyCampfireIcon(
           frequencyY = 3f,
           speed = 0.7f,
           amplitude = 0.02f,
-        ),
+        )
     )
     Image(
       CampfireIcons.CampfireFireInner,
@@ -232,6 +250,87 @@ fun NoisyCampfireIcon(
           amplitude = 0.04f,
           speed = .75f,
         ),
+    )
+  }
+}
+
+@Composable
+fun LoadingCampfireIcon(
+  size: Dp,
+  modifier: Modifier = Modifier,
+) {
+  val pixelSize = withDensity {
+    IntSize(size.roundToPx(), size.roundToPx())
+  }
+
+  Box(
+    modifier = modifier
+  ) {
+    Image(
+      CampfireIcons.CampfireLogs,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(0f),
+    )
+
+    val infiniteTransition = rememberInfiniteTransition()
+
+    val outerScale by infiniteTransition.animateFloat(
+      initialValue = 0.95f,
+      targetValue = 1.05f,
+      animationSpec = infiniteRepeatable(
+        animation = tween(
+          durationMillis = 1000,
+          easing = EaseInOutSine,
+        ),
+        repeatMode = RepeatMode.Reverse,
+        initialStartOffset = StartOffset(750),
+      ),
+    )
+
+    Image(
+      CampfireIcons.CampfireFireOuter,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(1f)
+        .applyNoiseEffect(
+          frequencyX = 18f,
+          frequencyY = 3f,
+          speed = 0.8f,
+          amplitude = 0.03f,
+          size = pixelSize,
+        )
+        .scale(outerScale)
+    )
+
+    val innerScale by infiniteTransition.animateFloat(
+      initialValue = 0.95f,
+      targetValue = 1.05f,
+      animationSpec = infiniteRepeatable(
+        animation = tween(
+          durationMillis = 1000,
+          easing = EaseInOutSine,
+        ),
+        repeatMode = RepeatMode.Reverse,
+      ),
+    )
+
+    Image(
+      CampfireIcons.CampfireFireInner,
+      contentDescription = null,
+      modifier = Modifier
+        .fillMaxSize()
+        .zIndex(2f)
+        .applyNoiseEffect(
+          frequencyX = 9f,
+          frequencyY = 5f,
+          amplitude = 0.05f,
+          speed = .75f,
+          size = pixelSize,
+        )
+        .scale(innerScale),
     )
   }
 }

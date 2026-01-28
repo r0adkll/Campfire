@@ -5,6 +5,8 @@ package app.campfire.common.compose.shaders
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
 
 /* Copyright 2022 Google LLC.
    SPDX-License-Identifier: Apache-2.0 */
@@ -134,4 +136,5 @@ expect fun Modifier.applyNoiseEffect(
   frequencyY: Float = 6f,
   speed: Float = 0.65f,
   amplitude: Float = 0.03f,
+  size: IntSize = IntSize.Zero,
 ): Modifier
