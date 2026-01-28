@@ -201,7 +201,7 @@ connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", ver
 connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity" }
 connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity" }
 connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
-oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.16.3" }
+oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.16.4" }
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
