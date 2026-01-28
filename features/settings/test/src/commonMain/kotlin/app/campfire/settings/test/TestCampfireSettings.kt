@@ -1,6 +1,7 @@
 package app.campfire.settings.test
 
 import app.campfire.core.model.UserId
+import app.campfire.core.settings.AuthorSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -40,6 +41,14 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
   override var sortDirection: SortDirection by enum()
   override fun observeSortDirection(): Flow<SortDirection> =
     observeEnum(::sortDirection)
+
+  override var authorsSortMode: AuthorSortMode by enum()
+  override fun observeAuthorsSortMode(): Flow<AuthorSortMode> =
+    observeEnum(::authorsSortMode)
+
+  override var authorsSortDirection: SortDirection by enum()
+  override fun observeAuthorsSortDirection(): Flow<SortDirection> =
+    observeEnum(::authorsSortDirection)
 
   override var currentUserId: UserId? by stringOrNull()
   override fun observeCurrentUserId(): Flow<UserId?> =

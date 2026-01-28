@@ -1,17 +1,12 @@
-package app.campfire.libraries.paging
+package app.campfire.db.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.SuspendingTransacter
 import kotlin.coroutines.CoroutineContext
-import kotlin.jvm.JvmName
-import kotlin.jvm.JvmOverloads
 import kotlinx.coroutines.withContext
 
-@Suppress("FunctionName")
-@JvmName("QueryPagingSourceLong")
-@JvmOverloads
 fun <DomainType : Any, DatabaseType: Any> QueryPagingSource(
   countQuery: Query<Long>,
   transacter: SuspendingTransacter,
@@ -36,8 +31,6 @@ internal class OffsetQueryPagingSource<DomainType : Any, DatabaseType : Any>(
   private val context: CoroutineContext,
   private val initialOffset: Int,
 ) : QueryPagingSource<Int, DomainType, DatabaseType>() {
-
-  override val tag: String = "OffsetQueryPagingSource"
 
   override val jumpingSupported get() = true
 

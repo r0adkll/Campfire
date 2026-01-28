@@ -1,47 +1,48 @@
-package app.campfire.libraries.paging
+package app.campfire.author.paging
 
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import app.campfire.CampfireDatabase
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Author
 import app.campfire.core.model.User
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.time.FatherTime
+import app.campfire.data.AuthorsPageJoin
 import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
-import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.nextPage
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias LibraryItemRemoteMediatorFactory = (User, LibraryItemPagingInput) -> LibraryItemRemoteMediator
+typealias AuthorsRemoteMediatorFactory = (User, AuthorsPagingInput) -> AuthorsRemoteMediator
 
-private const val MAX_CACHE_TIME_MS = 24L * 60L * 60 * 1000L
+private const val MAX_CACHE_TIME_MS = 7L * 24L * 60L * 60 * 1000L
 
 @OptIn(ExperimentalPagingApi::class)
 @Inject
-class LibraryItemRemoteMediator(
+class AuthorsRemoteMediator(
   @Assisted private val user: User,
-  @Assisted private val input: LibraryItemPagingInput,
+  @Assisted private val input: AuthorsPagingInput,
   private val api: AudioBookShelfApi,
   private val db: CampfireDatabase,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
   private val fatherTime: FatherTime,
-) : RemoteMediator<Int, LibraryItem>(), Cork {
+) : RemoteMediator<Int, Author>(), Cork {
 
-  override val tag: String = "LibraryItemRemoteMediator"
+  override val tag: String = "AuthorsRemoteMediator"
 
   override suspend fun initialize(): InitializeAction {
-    val oldestPage = db.libraryItemPageQueries.selectOldestPage(
+    val oldestPage = db.authorsPageQueries.selectOldestPage(
       input = input.databaseKey,
       userId = user.id,
       libraryId = user.selectedLibraryId,
@@ -56,7 +57,7 @@ class LibraryItemRemoteMediator(
 
   override suspend fun load(
     loadType: LoadType,
-    state: PagingState<Int, LibraryItem>,
+    state: PagingState<Int, Author>,
   ): MediatorResult {
     ibark { "Mediator::load($loadType, anchor=${state.anchorPosition}, pages=${state.pages.size})" }
     return try {
@@ -65,7 +66,7 @@ class LibraryItemRemoteMediator(
         LoadType.PREPEND -> return MediatorResult.Success(endOfPaginationReached = true)
         LoadType.APPEND -> {
           val nextPage = withContext(dispatcherProvider.databaseRead) {
-            db.libraryItemPageQueries.selectNextPage(
+            db.authorsPageQueries.selectNextPage(
               input = input.databaseKey,
               userId = user.id,
               libraryId = user.selectedLibraryId,
@@ -86,11 +87,8 @@ class LibraryItemRemoteMediator(
       ibark { "Mediator::loadKey($loadKey)" }
 
       // Load the page from the network
-      val response = api.getLibraryItemsMinified(
+      val response = api.getAuthors(
         libraryId = user.selectedLibraryId,
-        filter = input.filter?.let {
-          LibraryItemFilter(it.group, it.value)
-        },
         sortMode = input.sortMode.networkKey,
         sortDescending = input.sortDirection == SortDirection.Descending,
         page = loadKey,
@@ -103,7 +101,7 @@ class LibraryItemRemoteMediator(
 
           db.transaction {
             if (loadType == LoadType.REFRESH) {
-              db.libraryItemPageQueries.deleteByInput(
+              db.authorsPageQueries.deleteByInput(
                 input = input.databaseKey,
                 userId = user.id,
                 libraryId = user.selectedLibraryId,
@@ -112,15 +110,12 @@ class LibraryItemRemoteMediator(
 
             // Insert items
             pagedResponse.data.forEach { item ->
-              val libraryItem = item.asDbModel(user.serverUrl)
-              val media = item.media.asDbModel(item.id)
-
-              db.libraryItemsQueries.insertOrIgnore(libraryItem)
-              db.mediaQueries.insertOrIgnore(media)
+              val dbAuthor = item.asDbModel(urlHydrator)
+              db.authorsQueries.insert(dbAuthor)
             }
 
             // Insert the Page + Joins
-            db.libraryItemPageQueries.insertPage(
+            db.authorsPageQueries.insertPage(
               id = null, // Auto-incrementing
               input = input.databaseKey,
               page = pagedResponse.page,
@@ -130,17 +125,17 @@ class LibraryItemRemoteMediator(
               userId = user.id,
               updatedAt = fatherTime.nowInEpochMillis(),
             )
-            val pageId = db.libraryItemPageQueries
+            val pageId = db.authorsPageQueries
               .selectLastPageId()
               .awaitAsOne()
 
             ibark { "Inserted page ${pagedResponse.page} with rowId[$pageId]" }
 
             pagedResponse.data.forEachIndexed { index, item ->
-              db.libraryItemPageQueries.insertPageJoin(
-                LibraryItemPageJoin(
+              db.authorsPageQueries.insertPageJoin(
+                AuthorsPageJoin(
                   pageId = pageId,
-                  libraryItemId = item.id,
+                  authorId = item.id,
                   pageIndex = index,
                 )
               )
@@ -156,7 +151,7 @@ class LibraryItemRemoteMediator(
         }
       )
     } catch (e: Exception) {
-      ebark(throwable = e) { "LibraryItem RemoteMediator Exception" }
+      ebark(throwable = e) { "Authors RemoteMediator Exception" }
       MediatorResult.Error(e)
     }
   }

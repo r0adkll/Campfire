@@ -39,7 +39,11 @@ interface LibraryAuthorStoreModule {
   ): LibraryAuthorStore {
     return StoreBuilder
       .from(
-        fetcher = Fetcher.ofResult { libraryId: LibraryId -> api.getAuthors(libraryId).asFetcherResult() },
+        fetcher = Fetcher.ofResult { libraryId: LibraryId ->
+          api.getAuthors(libraryId)
+            .map { it.data }
+            .asFetcherResult()
+        },
         sourceOfTruth = SourceOfTruth.of(
           reader = { libraryId: LibraryId ->
             db.authorsQueries.selectForLibrary(libraryId)

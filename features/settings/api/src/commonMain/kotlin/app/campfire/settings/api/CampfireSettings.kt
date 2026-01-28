@@ -1,6 +1,7 @@
 package app.campfire.settings.api
 
 import app.campfire.core.model.UserId
+import app.campfire.core.settings.AuthorSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -32,6 +33,12 @@ interface CampfireSettings {
 
   var sortDirection: SortDirection
   fun observeSortDirection(): Flow<SortDirection>
+
+  var authorsSortMode: AuthorSortMode
+  fun observeAuthorsSortMode(): Flow<AuthorSortMode>
+
+  var authorsSortDirection: SortDirection
+  fun observeAuthorsSortDirection(): Flow<SortDirection>
 
   var currentUserId: UserId?
   fun observeCurrentUserId(): Flow<UserId?>

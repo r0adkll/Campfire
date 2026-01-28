@@ -5,7 +5,7 @@ CREATE TABLE libraryItemPage (
   input TEXT NOT NULL,
   page INTEGER AS Int NOT NULL,
   nextPage INTEGER AS Int,
-  count INTEGER AS Int NOT NULL,
+  total INTEGER AS Int NOT NULL,
   libraryId TEXT NOT NULL,
   userId TEXT NOT NULL,
   updatedAt INTEGER NOT NULL,
@@ -17,5 +17,25 @@ CREATE TABLE libraryItemPageJoin (
   pageIndex INTEGER AS Int NOT NULL,
   libraryItemId TEXT NOT NULL,
   PRIMARY KEY (pageId, libraryItemId),
+  FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
+);
+
+CREATE TABLE authorsPage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  input TEXT NOT NULL,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+  total INTEGER AS Int NOT NULL,
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE authorsPageJoin (
+  pageId INTEGER NOT NULL,
+  pageIndex INTEGER AS Int NOT NULL,
+  authorId TEXT NOT NULL,
+  PRIMARY KEY (pageId, authorId),
   FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
 );

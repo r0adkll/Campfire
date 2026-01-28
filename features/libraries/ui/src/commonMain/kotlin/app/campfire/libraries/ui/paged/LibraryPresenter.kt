@@ -2,11 +2,13 @@ package app.campfire.libraries.ui.paged
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import app.campfire.analytics.Analytics
@@ -15,11 +17,13 @@ import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.filtering.FilteringRepository
+import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.settings.api.CampfireSettings
@@ -30,9 +34,13 @@ import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
+
+internal const val INVALID_ITEM_COUNT = -1
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(LibraryScreen::class, UserScope::class)
@@ -63,43 +71,51 @@ class LibraryPresenter(
       settings.observeSortDirection()
     }.collectAsState(settings.sortDirection)
 
-    val contentState by remember(sortMode, sortDirection, itemFilter) {
+    val contentPagerState by remember(sortMode, sortDirection, itemFilter) {
       repository.observeLibraryItemPager(
         filter = itemFilter,
         sortMode = sortMode,
         sortDirection = sortDirection,
       )
-        .map {
-          LoadState.Loaded(it.flow.cachedIn(scope))
-        }
-        .catch<LoadState<out Flow<PagingData<LibraryItem>>>> {
+        .map { LoadState.Loaded(it) }
+        .catch<LoadState<out LibraryItemPager>> {
           emit(LoadState.Error)
         }
     }.collectAsState(LoadState.Loading)
 
+    val totalItemCount by remember {
+      snapshotFlow { contentPagerState.dataOrNull }
+        .flatMapLatest { pager ->
+          pager?.countFlow
+            ?.map { it ?: INVALID_ITEM_COUNT }
+            ?: flowOf(INVALID_ITEM_COUNT)
+        }
+    }.collectAsState(INVALID_ITEM_COUNT)
+
+    val contentState by remember {
+      derivedStateOf {
+        contentPagerState.map {
+          it.pager.flow.cachedIn(scope)
+        }
+      }
+    }
+
     val itemDisplayState by settings.observeLibraryItemDisplayState()
       .collectAsState(ItemDisplayState.List)
 
-    val totalItemCount by remember {
-      filteringRepository.observeFilterData()
-        .map { it.bookCount }
-        .catch { emit(-2) }
-    }.collectAsState(-1)
-
-//    val offlineDownloads by remember {
-//      snapshotFlow { contentState.dataOrNull }
-//        .filterNotNull()
-//        .flatMapLatest { items ->
-//          offlineDownloadManager.observeForItems(items)
-//        }
-//    }.collectAsState(emptyMap())
+    val offlineDownloads by remember {
+      offlineDownloadManager.observeAll()
+        .map { downloads ->
+          downloads.associateBy { it.libraryItemId }
+        }
+    }.collectAsState(emptyMap())
 
     return LibraryUiState(
       contentState = contentState,
       totalItemCount = totalItemCount,
       sort = LibrarySort(sortMode, sortDirection),
       filter = itemFilter,
-      offlineStates = emptyMap(),
+      offlineStates = offlineDownloads,
       itemDisplayState = itemDisplayState,
     ) { event ->
       when (event) {

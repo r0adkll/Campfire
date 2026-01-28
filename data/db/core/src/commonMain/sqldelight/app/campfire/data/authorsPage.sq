@@ -1,0 +1,104 @@
+import kotlin.Int;
+
+CREATE TABLE authorsPage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  input TEXT NOT NULL,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+  total INTEGER AS Int NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE authorsPageJoin (
+  pageId INTEGER NOT NULL,
+  -- The index in the list of page results that this library item was returned
+  pageIndex INTEGER AS Int NOT NULL,
+  authorId TEXT NOT NULL,
+
+  PRIMARY KEY (pageId, authorId),
+  FOREIGN KEY (pageId) REFERENCES authorsPage(id) ON DELETE CASCADE
+);
+
+
+-- Inserts
+
+insertPage:
+INSERT OR REPLACE INTO authorsPage
+VALUES (:id, :input, :page, :nextPage, :total, :libraryId, :userId, :updatedAt);
+
+selectLastPageId:
+SELECT last_insert_rowid();
+
+insertPageJoin:
+INSERT OR REPLACE INTO authorsPageJoin
+VALUES ?;
+
+-- Get the last updated timestamp, in epoch MS, of a library item page
+-- for a given user/library.
+latestUpdated:
+SELECT updatedAt FROM authorsPage
+WHERE userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC
+LIMIT 1;
+
+-- Return the number of items current paged for a give user/library
+count:
+SELECT count(*) FROM authorsPageJoin
+INNER JOIN authorsPage ON authorsPageJoin.pageId = authorsPage.id
+WHERE authorsPage.userId = ?
+  AND authorsPage.libraryId = ?
+  AND authorsPage.input = ?;
+
+-- Delete
+
+deletePage:
+DELETE FROM authorsPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+deleteByInput:
+DELETE FROM authorsPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+-- Queries
+
+selectPage:
+SELECT * FROM authorsPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+selectOldestPage:
+SELECT * FROM authorsPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC LIMIT 1;
+
+selectNextPage:
+SELECT nextPage FROM authorsPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY page DESC LIMIT 1;
+
+selectAuthorsWithLimitOffset:
+SELECT * FROM authors
+INNER JOIN authorsPageJoin ON authorsPageJoin.authorId = authors.id
+INNER JOIN authorsPage ON authorsPage.id = authorsPageJoin.pageId
+WHERE authorsPage.userId = :userId
+  AND authorsPage.libraryId = :libraryId
+  AND authorsPage.input = :input
+ORDER BY authorsPage.page ASC, authorsPageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;

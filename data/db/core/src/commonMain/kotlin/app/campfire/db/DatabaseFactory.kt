@@ -3,6 +3,8 @@ package app.campfire.db
 import app.campfire.CampfireDatabase
 import app.campfire.core.di.AppScope
 import app.campfire.data.Authors
+import app.campfire.data.AuthorsPage
+import app.campfire.data.AuthorsPageJoin
 import app.campfire.data.BookmarkFailedCreate
 import app.campfire.data.BookmarkFailedDelete
 import app.campfire.data.Bookmarks
@@ -161,9 +163,17 @@ class DatabaseFactory(
     libraryItemPageAdapter = LibraryItemPage.Adapter(
       pageAdapter = IntColumnAdapter,
       nextPageAdapter = IntColumnAdapter,
-      countAdapter = IntColumnAdapter,
+      totalAdapter = IntColumnAdapter,
     ),
     libraryItemPageJoinAdapter = LibraryItemPageJoin.Adapter(
+      pageIndexAdapter = IntColumnAdapter,
+    ),
+    authorsPageAdapter = AuthorsPage.Adapter(
+      pageAdapter = IntColumnAdapter,
+      nextPageAdapter = IntColumnAdapter,
+      totalAdapter = IntColumnAdapter,
+    ),
+    authorsPageJoinAdapter = AuthorsPageJoin.Adapter(
       pageIndexAdapter = IntColumnAdapter,
     ),
   )

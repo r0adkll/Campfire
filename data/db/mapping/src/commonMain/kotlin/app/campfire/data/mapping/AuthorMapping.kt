@@ -5,6 +5,7 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.data.Authors as DbAuthor
 import app.campfire.data.SearchAuthors
+import app.campfire.data.SelectAuthorsWithLimitOffset
 import app.campfire.data.authors.SelectForShelf
 import app.campfire.network.models.Author as NetworkAuthor
 
@@ -57,6 +58,19 @@ fun SelectForShelf.asDomainModel(
 }
 
 fun SearchAuthors.asDomainModel(): Author {
+  return Author(
+    id = id,
+    asin = asin,
+    name = name,
+    description = description,
+    imagePath = imagePath,
+    addedAt = addedAt,
+    updatedAt = updatedAt,
+    numBooks = numBooks,
+  )
+}
+
+fun SelectAuthorsWithLimitOffset.asDomainModel(): Author {
   return Author(
     id = id,
     asin = asin,

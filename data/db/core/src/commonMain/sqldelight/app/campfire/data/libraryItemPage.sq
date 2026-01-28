@@ -5,7 +5,7 @@ CREATE TABLE libraryItemPage (
   input TEXT NOT NULL,
   page INTEGER AS Int NOT NULL,
   nextPage INTEGER AS Int,
-  count INTEGER AS Int NOT NULL,
+  total INTEGER AS Int NOT NULL,
 
   libraryId TEXT NOT NULL,
   userId TEXT NOT NULL,
@@ -28,7 +28,7 @@ CREATE TABLE libraryItemPageJoin (
 
 insertPage:
 INSERT OR REPLACE INTO libraryItemPage
-VALUES (:id, :input, :page, :nextPage, :count, :libraryId, :userId, :updatedAt);
+VALUES (:id, :input, :page, :nextPage, :total, :libraryId, :userId, :updatedAt);
 
 selectLastPageId:
 SELECT last_insert_rowid();

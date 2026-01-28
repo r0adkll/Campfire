@@ -217,10 +217,32 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  override suspend fun getAuthors(libraryId: String): Result<List<Author>> {
+  override suspend fun getAuthors(
+    libraryId: String,
+    sortMode: String?,
+    sortDescending: Boolean,
+    page: Int,
+    limit: Int
+  ): Result<PagedResponse<Author>> {
     return trySendRequest<AuthorResponse> {
-      hydratedClientRequest("/api/libraries/$libraryId/authors")
-    }.map { it.authors }
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "libraries", libraryId, "authors")
+          sortMode?.let { parameters.append("sort", it) }
+          if (sortDescending) parameters.append("desc", "1")
+          if (page != INVALID) parameters.append("page", page.toString())
+          if (limit != INVALID) parameters.append("limit", limit.toString())
+        }
+      )
+    }.map {
+      PagedResponse(
+        data = it.results,
+        page = it.page,
+        limit = it.limit,
+        total = it.total,
+        offset = it.page * it.limit,
+      )
+    }
   }
 
   override suspend fun getAuthor(authorId: String): Result<Author> {

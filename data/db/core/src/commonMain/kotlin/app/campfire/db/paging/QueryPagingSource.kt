@@ -1,17 +1,14 @@
-package app.campfire.libraries.paging
+package app.campfire.db.paging
 
 import androidx.paging.PagingSource
-import app.campfire.core.logging.Cork
 import app.cash.sqldelight.Query
 import kotlin.properties.Delegates
 
 abstract class QueryPagingSource<Key : Any, RowType : Any, DatabaseType : Any> :
   PagingSource<Key, RowType>(),
-  Query.Listener,
-  Cork {
+  Query.Listener {
 
   protected var currentQuery: Query<DatabaseType>? by Delegates.observable(null) { _, old, new ->
-    vbark { "Current Query Changed($this), $old" }
     old?.removeListener(this)
     new?.addListener(this)
   }
@@ -24,7 +21,6 @@ abstract class QueryPagingSource<Key : Any, RowType : Any, DatabaseType : Any> :
   }
 
   final override fun queryResultsChanged() {
-    vbark { "Query Results Changed($this)" }
     invalidate()
   }
 }

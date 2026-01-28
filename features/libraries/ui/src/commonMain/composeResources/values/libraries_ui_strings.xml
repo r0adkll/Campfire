@@ -56,6 +56,11 @@
   <string name="dialog_download_action_confirm">Download</string>
   <string name="dialog_download_action_dismiss">Cancel</string>
 
+  <plurals name="filter_bar_book_count">
+    <item quantity="one">%1$d Book</item>
+    <item quantity="other">%1$d Books</item>
+  </plurals>
+
   <string name="filter_category_genre">Genre</string>
   <string name="filter_category_tag">Tag</string>
   <string name="filter_category_series">Series</string>

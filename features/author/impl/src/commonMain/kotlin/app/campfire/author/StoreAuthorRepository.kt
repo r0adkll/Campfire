@@ -1,17 +1,30 @@
 package app.campfire.author
 
+import androidx.paging.Pager
+import app.campfire.CampfireDatabase
+import app.campfire.author.api.AuthorPager
 import app.campfire.author.api.AuthorRepository
+import app.campfire.author.paging.AuthorsPagerFactory
+import app.campfire.author.paging.AuthorsPagingInput
 import app.campfire.author.store.AuthorDetailStore
 import app.campfire.author.store.LibraryAuthorStore
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
+import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.SortDirection
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.user.api.UserRepository
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOneOrDefault
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -22,7 +35,10 @@ import org.mobilenativefoundation.store.store5.StoreReadRequest
 class StoreAuthorRepository(
   private val userRepository: UserRepository,
   private val libraryAuthorStore: LibraryAuthorStore,
+  private val authorsPagerFactory: AuthorsPagerFactory,
   private val authorDetailStore: AuthorDetailStore,
+  private val db: CampfireDatabase,
+  private val dispatcherProvider: DispatcherProvider,
 ) : AuthorRepository {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -42,6 +58,29 @@ class StoreAuthorRepository(
                 }
             }
           }
+      }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeAuthorsPager(
+    sortMode: AuthorSortMode,
+    sortDirection: SortDirection
+  ): Flow<AuthorPager> {
+    return userRepository.observeCurrentUser()
+      .mapLatest { user ->
+        val input = AuthorsPagingInput(sortMode, sortDirection)
+        AuthorPager(
+          pager = authorsPagerFactory.create(user, input),
+          countFlow = db.authorsPageQueries
+            .selectOldestPage(
+              input = input.databaseKey,
+              userId = user.id,
+              libraryId = user.selectedLibraryId,
+            )
+            .asFlow()
+            .mapToOneOrNull(dispatcherProvider.databaseRead)
+            .map { it?.total }
+        )
       }
   }
 

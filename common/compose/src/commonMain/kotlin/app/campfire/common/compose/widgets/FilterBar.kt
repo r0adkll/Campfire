@@ -17,7 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -35,24 +35,22 @@ import app.campfire.common.compose.icons.rounded.SortNumericAsc
 import app.campfire.common.compose.icons.rounded.SortNumericDesc
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
+import app.campfire.core.settings.SortDisplayMode
 import app.campfire.core.settings.SortMode
-import campfire.common.compose.generated.resources.Res
-import campfire.common.compose.generated.resources.filter_bar_book_count
-import org.jetbrains.compose.resources.pluralStringResource
 
 private val FilterBarHeight = 56.dp
 
 @Composable
 fun FilterBar(
-  itemCount: Int,
+  count: @Composable () -> Unit,
   itemDisplayState: ItemDisplayState,
-  onDisplayStateClick: () -> Unit,
-  isFiltered: Boolean,
-  onFilterClick: () -> Unit,
-  sortMode: SortMode,
+  sortMode: SortDisplayMode,
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
+  onDisplayStateClick: (() -> Unit)? = null,
+  isFiltered: Boolean = false,
+  onFilterClick: (() -> Unit)? = null,
 ) {
   CompositionLocalProvider(
     LocalContentColor provides MaterialTheme.colorScheme.onSurface,
@@ -66,7 +64,12 @@ fun FilterBar(
         modifier = Modifier
           .fillMaxHeight()
           .clip(RoundedCornerShape(8.dp))
-          .clickable(onClick = onDisplayStateClick),
+          .clickable(
+            enabled = onDisplayStateClick != null,
+            onClick = {
+              onDisplayStateClick?.invoke()
+            }
+          ),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Icon(
@@ -78,11 +81,13 @@ fun FilterBar(
           contentDescription = null,
         )
         Spacer(Modifier.width(8.dp))
-        Text(
-          text = pluralStringResource(Res.plurals.filter_bar_book_count, itemCount, itemCount),
-          style = MaterialTheme.typography.labelLarge,
-          fontWeight = FontWeight.SemiBold,
-        )
+        ProvideTextStyle(
+          MaterialTheme.typography.labelLarge.copy(
+            fontWeight = FontWeight.SemiBold,
+          ),
+        ) {
+          count()
+        }
       }
 
       Spacer(Modifier.weight(1f))
@@ -94,15 +99,17 @@ fun FilterBar(
         modifier = Modifier.offset(x = 12.dp),
       )
 
-      IconButton(
-        onClick = onFilterClick,
-        modifier = Modifier.offset(x = 12.dp),
-      ) {
-        Icon(
-          if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
-          contentDescription = null,
-          tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-        )
+      if (onFilterClick != null) {
+        IconButton(
+          onClick = onFilterClick,
+          modifier = Modifier.offset(x = 12.dp),
+        ) {
+          Icon(
+            if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
+            contentDescription = null,
+            tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+          )
+        }
       }
     }
   }
@@ -110,7 +117,7 @@ fun FilterBar(
 
 @Composable
 private fun SortIconButton(
-  sortMode: SortMode,
+  sortMode: SortDisplayMode,
   sortDirection: SortDirection,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -138,8 +145,8 @@ enum class SortIcon(
     Icons.Rounded.SortDesc,
   ),
   Numeric(
-    Icons.Rounded.SortNumericAsc,
     Icons.Rounded.SortNumericDesc,
+    Icons.Rounded.SortNumericAsc,
   ),
   Alphabetical(
     Icons.Rounded.SortAlphaAsc,
@@ -153,14 +160,10 @@ enum class SortIcon(
   }
 
   companion object {
-    fun forMode(mode: SortMode): SortIcon = when (mode) {
-      SortMode.Title -> Alphabetical
-      SortMode.AuthorFL -> Alphabetical
-      SortMode.AuthorLF -> Alphabetical
-      SortMode.PublishYear -> Numeric
-      SortMode.AddedAt -> Numeric
-      SortMode.Size -> Numeric
-      SortMode.Duration -> Numeric
+    fun forMode(displayMode: SortDisplayMode): SortIcon = when (displayMode.mode) {
+      SortDisplayMode.Mode.Alphabetical -> Alphabetical
+      SortDisplayMode.Mode.Numerical -> Numeric
+      SortDisplayMode.Mode.Normal -> Normal
     }
   }
 }

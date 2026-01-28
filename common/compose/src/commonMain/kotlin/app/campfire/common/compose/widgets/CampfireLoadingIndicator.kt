@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.paged.composables
+package app.campfire.common.compose.widgets
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import app.campfire.common.compose.icons.LoadingCampfireIcon
 
 private val LoaderIndicatorSize = 72.dp

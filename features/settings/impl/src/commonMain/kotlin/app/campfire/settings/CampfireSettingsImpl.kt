@@ -4,6 +4,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.model.UserId
+import app.campfire.core.settings.AuthorSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
@@ -73,6 +74,16 @@ class CampfireSettingsImpl(
     return flowSettings.getEnumFlow(KEY_SORT_DIRECTION, SortDirection)
   }
 
+  override var authorsSortMode: AuthorSortMode by enumSetting(KEY_AUTHOR_SORT_MODE, AuthorSortMode)
+  override fun observeAuthorsSortMode(): Flow<AuthorSortMode> {
+    return flowSettings.getEnumFlow(KEY_AUTHOR_SORT_MODE, AuthorSortMode)
+  }
+
+  override var authorsSortDirection: SortDirection by enumSetting(KEY_AUTHORS_SORT_DIRECTION, SortDirection)
+  override fun observeAuthorsSortDirection(): Flow<SortDirection> {
+    return flowSettings.getEnumFlow(KEY_AUTHORS_SORT_DIRECTION, SortDirection)
+  }
+
   override var currentUserId: UserId? by stringOrNullSetting(KEY_CURRENT_USER_ID)
   override fun observeCurrentUserId(): Flow<UserId?> {
     return flowSettings.getStringOrNullFlow(KEY_CURRENT_USER_ID)
@@ -103,7 +114,9 @@ internal const val KEY_CURRENT_THEME = "pref_current_theme"
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
 internal const val KEY_SORT_MODE = "pref_sort_mode"
+internal const val KEY_AUTHOR_SORT_MODE = "pref_author_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
+internal const val KEY_AUTHORS_SORT_DIRECTION = "pref_authors_sort_direction"
 internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"

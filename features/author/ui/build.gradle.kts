@@ -12,6 +12,8 @@ kotlin {
         implementation(projects.ui.navigation)
 
         implementation(compose.components.resources)
+        implementation(libs.androidx.paging.compose)
+        implementation(libs.circuitx.overlays)
       }
     }
 

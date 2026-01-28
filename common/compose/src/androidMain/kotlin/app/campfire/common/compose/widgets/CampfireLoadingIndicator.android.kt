@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.paged.composables
+package app.campfire.common.compose.widgets
 
 import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast

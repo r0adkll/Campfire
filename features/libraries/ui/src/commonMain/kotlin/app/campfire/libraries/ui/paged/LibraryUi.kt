@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 //import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -26,11 +25,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -50,6 +47,7 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
@@ -67,20 +65,21 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
 import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.screen.LibraryScreen
-import app.campfire.libraries.ui.list.sheets.filters.LibraryItemFilterResult
-import app.campfire.libraries.ui.list.sheets.filters.showItemFilterOverlay
-import app.campfire.libraries.ui.list.sheets.sort.SortModeResult
-import app.campfire.libraries.ui.list.sheets.sort.showSortModeBottomSheet
-import app.campfire.libraries.ui.paged.composables.CampfireLoadingIndicator
+import app.campfire.libraries.ui.paged.sheets.filters.LibraryItemFilterResult
+import app.campfire.libraries.ui.paged.sheets.filters.showItemFilterOverlay
+import app.campfire.libraries.ui.paged.sheets.sort.SortModeResult
+import app.campfire.libraries.ui.paged.sheets.sort.showSortModeBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.error_library_items_message
+import campfire.features.libraries.ui.generated.resources.filter_bar_book_count
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(LibraryScreen::class, UserScope::class)
@@ -270,7 +269,15 @@ private fun LibraryGrid(
       key = "filter-bar",
     ) {
       FilterBar(
-        itemCount = totalCount,
+        count = {
+          if (totalCount != INVALID_ITEM_COUNT) {
+            Text(
+              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount)
+            )
+          } else {
+            Text("--")
+          }
+        },
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = filter != null,
@@ -353,7 +360,15 @@ fun LibraryList(
   ) {
     stickyHeader(key = "filter-bar") {
       FilterBar(
-        itemCount = totalCount,
+        count = {
+          if (totalCount != INVALID_ITEM_COUNT) {
+            Text(
+              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount)
+            )
+          } else {
+            Text("--")
+          }
+        },
         itemDisplayState = itemDisplayState,
         onDisplayStateClick = onDisplayStateClick,
         isFiltered = filter != null,

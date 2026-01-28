@@ -85,7 +85,10 @@ class DefaultAccountManager(
       val remainingAccounts = allAccounts.filter { it.user.id != user.id }
 
       if (remainingAccounts.isEmpty()) {
-        val currentAccount = allAccounts.firstOrNull { it.user.id == user.id }
+        val currentAccount = allAccounts.firstOrNull {
+          it.user.id == user.id &&
+            tokenStorage.get(user.id) != null
+        }
         currentAccount?.let { server ->
           UserSession.NeedsAuthentication(server)
         } ?: UserSession.LoggedOut

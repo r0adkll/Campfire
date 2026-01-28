@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.list.sheets.filters
+package app.campfire.libraries.ui.paged.sheets.filters
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState

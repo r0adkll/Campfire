@@ -28,6 +28,7 @@ kotlin {
       dependencies {
         implementation(projects.core)
 
+        api(libs.androidx.paging.common)
         api(libs.sqldelight.coroutines)
         api(libs.sqldelight.async)
         api(libs.kotlinx.datetime)

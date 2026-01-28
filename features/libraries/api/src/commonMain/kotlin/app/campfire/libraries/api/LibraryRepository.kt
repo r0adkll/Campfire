@@ -7,6 +7,7 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortMode
+import app.campfire.libraries.api.paging.LibraryItemPager
 import kotlinx.coroutines.flow.Flow
 
 interface LibraryRepository {
@@ -41,7 +42,7 @@ interface LibraryRepository {
     filter: LibraryItemFilter?,
     sortMode: SortMode,
     sortDirection: SortDirection,
-  ) : Flow<Pager<Int, LibraryItem>>
+  ) : Flow<LibraryItemPager>
 
   /**
    * Set a library as the currently selected one

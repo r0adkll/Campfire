@@ -71,7 +71,13 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getAuthors(libraryId: String): Result<List<Author>> {
+  override suspend fun getAuthors(
+    libraryId: String,
+    sortMode: String?,
+    sortDescending: Boolean,
+    page: Int,
+    limit: Int
+  ): Result<PagedResponse<Author>> {
     TODO("Not yet implemented")
   }
 
