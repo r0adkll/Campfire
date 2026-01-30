@@ -1,6 +1,6 @@
 package app.campfire.author.paging
 
-import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 
 /**
@@ -11,7 +11,7 @@ import app.campfire.core.settings.SortDirection
  * a unique list of paged content.
  */
 data class AuthorsPagingInput(
-  val sortMode: AuthorSortMode,
+  val sortMode: ContentSortMode,
   val sortDirection: SortDirection,
 ) {
   // Generate the key used to serialize pages / requests in the database

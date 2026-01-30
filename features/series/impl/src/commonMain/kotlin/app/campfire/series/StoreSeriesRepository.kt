@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.with
+import app.campfire.core.filter.ContentFilter
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryId
@@ -15,6 +16,8 @@ import app.campfire.core.model.SeriesId
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
+import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.SortDirection
 import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
@@ -26,10 +29,14 @@ import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.series.api.SeriesRepository
+import app.campfire.series.api.paging.SeriesPager
+import app.campfire.series.paging.SeriesPagerFactory
+import app.campfire.series.paging.SeriesPagingInput
 import app.campfire.series.store.SeriesStore
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
+import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.minutes
@@ -38,6 +45,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
@@ -61,6 +69,7 @@ class StoreSeriesRepository(
   private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
   private val seriesStoreFactory: SeriesStore.Factory,
+  private val seriesPagerFactory: SeriesPagerFactory,
 ) : SeriesRepository {
 
   private val serverUrl by lazy {
@@ -190,6 +199,30 @@ class StoreSeriesRepository(
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeSeriesPager(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<SeriesPager> {
+    return userRepository.observeCurrentUser()
+      .mapLatest { user ->
+        val input = SeriesPagingInput(filter, sortMode, sortDirection)
+        SeriesPager(
+          pager = seriesPagerFactory.create(user, input),
+          countFlow = db.seriesPageQueries
+            .selectOldestPage(
+              input = input.databaseKey,
+              userId = user.id,
+              libraryId = user.selectedLibraryId,
+            )
+            .asFlow()
+            .mapToOneOrNull(dispatcherProvider.databaseRead)
+            .map { it?.total },
+        )
+      }
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeSeriesLibraryItems(seriesId: String): Flow<List<LibraryItem>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
@@ -206,13 +239,17 @@ class StoreSeriesRepository(
           }.mapLatest { items ->
             val uniqueIds = items.map { it.id }.toSet()
             if (uniqueIds.size != items.size) {
-              val duplicateIds = uniqueIds.groupBy { it }.filter { it.value.size > 1 }.keys
-              bark(LogPriority.WARN) { "Duplicate LibraryItems found for Series: $duplicateIds" }
+              val duplicateItems = items
+                .groupBy { it.id }
+                .filter { it.value.size > 1 }
+              bark(LogPriority.WARN) {
+                "Duplicate LibraryItems found for Series: ${duplicateItems.keys}"
+              }
 
               // Filter out the duplicates to keep the UI from breaking
               return@mapLatest items.toMutableList().apply {
-                duplicateIds.forEach { duplicateId ->
-                  removeAt(indexOfFirst { it.id == duplicateId })
+                duplicateItems.forEach { item ->
+                  removeAt(indexOfFirst { it.id == item.key })
                 }
               }
             }

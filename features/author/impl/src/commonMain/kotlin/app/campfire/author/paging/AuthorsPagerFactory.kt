@@ -22,7 +22,7 @@ class AuthorsPagerFactory(
   fun create(
     user: User,
     input: AuthorsPagingInput,
-  ) : Pager<Int, Author> {
+  ): Pager<Int, Author> {
     return Pager(
       config = PagingConfig(
         pageSize = DEFAULT_PAGE_SIZE,
@@ -34,7 +34,7 @@ class AuthorsPagerFactory(
         countQuery = db.authorsPageQueries.count(
           userId = user.id,
           libraryId = user.selectedLibraryId,
-          input = input.databaseKey
+          input = input.databaseKey,
         ),
         transacter = db.authorsPageQueries,
         context = dispatcherProvider.databaseRead,
@@ -49,7 +49,7 @@ class AuthorsPagerFactory(
         },
         mapper = {
           it.asDomainModel()
-        }
+        },
       )
     }
   }

@@ -202,6 +202,12 @@ include(
   ":features:stats:ui",
 )
 include(
+  ":features:filters:api",
+  ":features:filters:impl",
+  ":features:filters:test",
+  ":features:filters:ui",
+)
+include(
   ":ui:appbar",
   ":ui:navigation",
   ":ui:attribution",

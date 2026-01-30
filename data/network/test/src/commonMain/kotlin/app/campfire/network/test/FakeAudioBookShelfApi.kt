@@ -59,8 +59,15 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
-  var series: Result<List<Series>> = Result.failure(IllegalStateException("missing fake"))
-  override suspend fun getSeries(libraryId: String): Result<List<Series>> {
+  var series: Result<PagedResponse<Series>> = Result.failure(IllegalStateException("missing fake"))
+  override suspend fun getSeries(
+    libraryId: String,
+    filter: LibraryItemFilter?,
+    sortMode: String?,
+    sortDescending: Boolean,
+    page: Int,
+    limit: Int,
+  ): Result<PagedResponse<Series>> {
     return series
   }
 
@@ -76,7 +83,7 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     sortMode: String?,
     sortDescending: Boolean,
     page: Int,
-    limit: Int
+    limit: Int,
   ): Result<PagedResponse<Author>> {
     TODO("Not yet implemented")
   }

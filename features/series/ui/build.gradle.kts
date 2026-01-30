@@ -7,12 +7,14 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.series.api)
+        implementation(projects.features.filters.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation)
 
         implementation(compose.components.resources)
 
+        implementation(libs.androidx.paging.compose)
         // Need encodeUrlParameter() ext function
         implementation(libs.ktor.http)
       }

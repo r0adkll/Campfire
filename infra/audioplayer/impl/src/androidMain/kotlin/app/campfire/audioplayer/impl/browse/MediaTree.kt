@@ -38,7 +38,6 @@ import kotlin.collections.firstOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import me.tatarka.inject.annotations.Inject
 
@@ -65,7 +64,12 @@ class MediaTree(
       )
       .build()
 
-  suspend fun getChildren(parentId: String): List<MediaItem> {
+  // TODO: Support paging through this api
+  suspend fun getChildren(
+    parentId: String,
+    page: Int,
+    pageSize: Int,
+  ): List<MediaItem> {
     return when (parentId) {
       ROOT_ID -> TopLevelMediaItem.All.map {
         it.asBrowsableMediaItem(

@@ -7,7 +7,7 @@ import app.cash.sqldelight.SuspendingTransacter
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.withContext
 
-fun <DomainType : Any, DatabaseType: Any> QueryPagingSource(
+fun <DomainType : Any, DatabaseType : Any> QueryPagingSource(
   countQuery: Query<Long>,
   transacter: SuspendingTransacter,
   context: CoroutineContext,

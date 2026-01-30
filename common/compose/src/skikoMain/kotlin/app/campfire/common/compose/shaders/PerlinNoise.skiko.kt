@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.RenderEffect
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import app.campfire.core.extensions.fluentIf
 import org.jetbrains.skia.ImageFilter

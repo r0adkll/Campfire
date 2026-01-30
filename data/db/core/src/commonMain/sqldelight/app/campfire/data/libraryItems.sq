@@ -48,7 +48,7 @@ selectForSeries:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN seriesBookJoin ON seriesBookJoin.libraryItemId = libraryItem.id
-WHERE seriesBookJoin.seriesId = :seriesId OR media.metadata_series_id = :seriesId
+WHERE seriesBookJoin.seriesId = :seriesId
 ORDER BY media.metadata_series_sequence ASC;
 
 selectForShelf:

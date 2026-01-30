@@ -1,0 +1,103 @@
+import kotlin.Int;
+
+CREATE TABLE seriesPage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  input TEXT NOT NULL,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+  total INTEGER AS Int NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE seriesPageJoin (
+  pageId INTEGER NOT NULL,
+  -- The index in the list of page results that this library item was returned
+  pageIndex INTEGER AS Int NOT NULL,
+  seriesId TEXT NOT NULL,
+
+  PRIMARY KEY (pageId, seriesId),
+  FOREIGN KEY (pageId) REFERENCES seriesPage(id) ON DELETE CASCADE
+);
+
+-- Inserts
+
+insertPage:
+INSERT OR REPLACE INTO seriesPage
+VALUES (:id, :input, :page, :nextPage, :total, :libraryId, :userId, :updatedAt);
+
+selectLastPageId:
+SELECT last_insert_rowid();
+
+insertPageJoin:
+INSERT OR REPLACE INTO seriesPageJoin
+VALUES ?;
+
+-- Get the last updated timestamp, in epoch MS, of a library item page
+-- for a given user/library.
+latestUpdated:
+SELECT updatedAt FROM seriesPage
+WHERE userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC
+LIMIT 1;
+
+-- Return the number of items current paged for a give user/library
+count:
+SELECT count(*) FROM seriesPageJoin
+INNER JOIN seriesPage ON seriesPageJoin.pageId = seriesPage.id
+WHERE seriesPage.userId = ?
+  AND seriesPage.libraryId = ?
+  AND seriesPage.input = ?;
+
+-- Delete
+
+deletePage:
+DELETE FROM seriesPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+deleteByInput:
+DELETE FROM seriesPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+-- Queries
+
+selectPage:
+SELECT * FROM seriesPage
+WHERE input = ?
+  AND page = ?
+  AND userId = ?
+  AND libraryId = ?;
+
+selectOldestPage:
+SELECT * FROM seriesPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC LIMIT 1;
+
+selectNextPage:
+SELECT nextPage FROM seriesPage
+WHERE input = ?
+  AND userId = ?
+  AND libraryId = ?
+ORDER BY page DESC LIMIT 1;
+
+selectSeriesWithLimitAndOffset:
+SELECT series.* FROM series
+INNER JOIN seriesPageJoin ON seriesPageJoin.seriesId = series.id
+INNER JOIN seriesPage ON seriesPage.id = seriesPageJoin.pageId
+WHERE seriesPage.userId = :userId
+  AND seriesPage.libraryId = :libraryId
+  AND seriesPage.input = :input
+ORDER BY seriesPage.page ASC, seriesPageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;

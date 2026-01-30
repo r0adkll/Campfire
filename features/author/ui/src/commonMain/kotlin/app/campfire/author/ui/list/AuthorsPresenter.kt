@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
@@ -20,13 +19,11 @@ import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.Author
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -56,7 +53,7 @@ class AuthorsPresenter(
 
     val sortDirection by remember {
       settings.observeAuthorsSortDirection()
-    }.collectAsState(settings.sortDirection)
+    }.collectAsState(settings.authorsSortDirection)
 
     val authorPagerState by remember(sortMode, sortDirection) {
       authorRepository.observeAuthorsPager(
@@ -86,7 +83,7 @@ class AuthorsPresenter(
       authorContentState = authorPagingContentState,
       numAuthors = authorCount,
       sortMode = sortMode,
-      sortDirection = sortDirection
+      sortDirection = sortDirection,
     ) { event ->
       when (event) {
         is AuthorsUiEvent.AuthorClick -> {

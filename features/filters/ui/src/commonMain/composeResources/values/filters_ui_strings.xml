@@ -1,0 +1,62 @@
+<resources>
+  <string name="sort_mode_sheet_title">Sort library by</string>
+  <string name="sort_mode_title">Title</string>
+  <string name="sort_mode_author_fl">Author (First Last)</string>
+  <string name="sort_mode_author_lf">Author (Last, First)</string>
+  <string name="sort_mode_publishyear">Publish year</string>
+  <string name="sort_mode_addedat">Added at</string>
+  <string name="sort_mode_size">Size</string>
+  <string name="sort_mode_duration">Duration</string>
+  <string name="sort_mode_updatedat">Updated at</string>
+  <string name="sort_mode_number_of_books">Number of Books</string>
+  <string name="sort_mode_name">Name</string>
+  <string name="sort_mode_last_book_added">Last book added</string>
+  <string name="sort_mode_last_book_updated">Last book updated</string>
+
+  <plurals name="genres_title">
+    <item quantity="one">Genre</item>
+    <item quantity="other">Genres</item>
+  </plurals>
+
+  <plurals name="tags_title">
+    <item quantity="one">Tag</item>
+    <item quantity="other">Tags</item>
+  </plurals>
+
+  <plurals name="filter_bar_book_count">
+    <item quantity="one">%1$d Book</item>
+    <item quantity="other">%1$d Books</item>
+  </plurals>
+
+  <string name="filter_category_genre">Genre</string>
+  <string name="filter_category_tag">Tag</string>
+  <string name="filter_category_series">Series</string>
+  <string name="filter_category_author">Author</string>
+  <string name="filter_category_narrator">Narrator</string>
+  <string name="filter_category_publisher">Publisher</string>
+  <string name="filter_category_language">Language</string>
+  <string name="filter_category_progress">Progress</string>
+  <string name="filter_category_missing">Missing</string>
+  <string name="filter_category_tracks">Tracks</string>
+
+  <string name="filter_value_progress_finished">Finished</string>
+  <string name="filter_value_progress_not_started">Not Started</string>
+  <string name="filter_value_progress_not_finished">Not Finished</string>
+  <string name="filter_value_progress_in_progress">In Progress</string>
+
+  <string name="filter_value_missing_asin">ASIN</string>
+  <string name="filter_value_missing_isbn">ISBN</string>
+  <string name="filter_value_missing_subtitle">Subtitle</string>
+  <string name="filter_value_missing_authors">Author</string>
+  <string name="filter_value_missing_publishedYear">Publish year</string>
+  <string name="filter_value_missing_series">Series</string>
+  <string name="filter_value_missing_description">Description</string>
+  <string name="filter_value_missing_genres">Genres</string>
+  <string name="filter_value_missing_tags">Tags</string>
+  <string name="filter_value_missing_narrators">Narrator</string>
+  <string name="filter_value_missing_publisher">Publisher</string>
+  <string name="filter_value_missing_language">Language</string>
+
+  <string name="filter_value_tracks_single">Single-track</string>
+  <string name="filter_value_tracks_multi">Multi-track</string>
+</resources>

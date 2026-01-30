@@ -5,9 +5,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
 
 @Preview
 @Composable
@@ -20,7 +20,7 @@ fun FilterBarPreview() {
         onDisplayStateClick = {},
         isFiltered = false,
         onFilterClick = {},
-        sortMode = SortMode.AuthorFL,
+        sortMode = ContentSortMode.AuthorFL,
         sortDirection = SortDirection.Ascending,
         onSortClick = {},
       )

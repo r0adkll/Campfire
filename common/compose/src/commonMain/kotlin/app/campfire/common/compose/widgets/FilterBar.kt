@@ -33,10 +33,10 @@ import app.campfire.common.compose.icons.rounded.SortAsc
 import app.campfire.common.compose.icons.rounded.SortDesc
 import app.campfire.common.compose.icons.rounded.SortNumericAsc
 import app.campfire.common.compose.icons.rounded.SortNumericDesc
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortDisplayMode
-import app.campfire.core.settings.SortMode
 
 private val FilterBarHeight = 56.dp
 
@@ -44,7 +44,7 @@ private val FilterBarHeight = 56.dp
 fun FilterBar(
   count: @Composable () -> Unit,
   itemDisplayState: ItemDisplayState,
-  sortMode: SortDisplayMode,
+  sortMode: ContentSortMode,
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -68,7 +68,7 @@ fun FilterBar(
             enabled = onDisplayStateClick != null,
             onClick = {
               onDisplayStateClick?.invoke()
-            }
+            },
           ),
         verticalAlignment = Alignment.CenterVertically,
       ) {

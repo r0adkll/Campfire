@@ -24,7 +24,7 @@ class LibraryItemPagerFactory(
   fun create(
     user: User,
     input: LibraryItemPagingInput,
-  ) : Pager<Int, LibraryItem> {
+  ): Pager<Int, LibraryItem> {
     return Pager(
       config = PagingConfig(
         pageSize = DEFAULT_PAGE_SIZE,
@@ -36,7 +36,7 @@ class LibraryItemPagerFactory(
         countQuery = db.libraryItemPageQueries.count(
           userId = user.id,
           libraryId = user.selectedLibraryId,
-          input = input.databaseKey
+          input = input.databaseKey,
         ),
         transacter = db.libraryItemPageQueries,
         context = dispatcherProvider.databaseRead,
@@ -52,7 +52,7 @@ class LibraryItemPagerFactory(
         },
         mapper = {
           libraryItemDao.hydrateItem(it)
-        }
+        },
       )
     }
   }

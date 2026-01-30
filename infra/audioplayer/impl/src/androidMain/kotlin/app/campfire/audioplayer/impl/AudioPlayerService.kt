@@ -238,7 +238,7 @@ class AudioPlayerService : MediaLibraryService() {
       pageSize: Int,
       params: LibraryParams?,
     ): LibraryResult<ImmutableList<MediaItem>> {
-      val children = userComponent.mediaTree.getChildren(parentId)
+      val children = userComponent.mediaTree.getChildren(parentId, page, pageSize)
       if (children.isNotEmpty()) {
         return LibraryResult.ofItemList(children, params)
       }

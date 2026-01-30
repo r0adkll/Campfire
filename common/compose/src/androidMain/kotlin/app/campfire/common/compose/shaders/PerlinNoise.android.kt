@@ -47,8 +47,6 @@ actual fun Modifier.applyNoiseEffect(
     }
   }
 
-
-
   return this
     .fluentIf(size == IntSize.Zero) {
       onSizeChanged {

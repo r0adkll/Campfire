@@ -1,6 +1,7 @@
 package app.campfire.series.ui.detail
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -12,6 +13,7 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
@@ -45,6 +47,21 @@ class SeriesDetailPresenter(
         .map { LoadState.Loaded(it) as LoadState<List<LibraryItem>> }
         .catch { emit(LoadState.Error as LoadState<List<LibraryItem>>) }
     }.collectAsState(LoadState.Loading)
+
+    LaunchedEffect(seriesContentState) {
+      val groupedBooks = seriesContentState.dataOrNull
+        ?.groupBy { item -> item.id }
+        ?: emptyMap()
+
+      groupedBooks.forEach { (key, value) ->
+        if (value.size > 1) {
+          bark { "Series Item Overlap! [$key]" }
+          value.forEach {
+            bark { "-- $it" }
+          }
+        }
+      }
+    }
 
     val offlineDownloads by remember {
       snapshotFlow { seriesContentState.dataOrNull }

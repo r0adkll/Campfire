@@ -24,6 +24,7 @@ kotlin {
         implementation(projects.features.user.api)
         implementation(libs.store)
         implementation(libs.store.cache)
+        implementation(libs.androidx.paging.common)
       }
     }
 

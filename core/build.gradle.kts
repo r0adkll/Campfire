@@ -1,6 +1,7 @@
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
+  id("app.campfire.parcelize")
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.burst)
 }

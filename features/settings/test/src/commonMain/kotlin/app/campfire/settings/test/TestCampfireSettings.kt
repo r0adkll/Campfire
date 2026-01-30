@@ -1,10 +1,9 @@
 package app.campfire.settings.test
 
 import app.campfire.core.model.UserId
-import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
@@ -34,21 +33,29 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
   override fun observeLibraryItemDisplayState(): Flow<ItemDisplayState> =
     observeEnum(::libraryItemDisplayState)
 
-  override var sortMode: SortMode by enum()
-  override fun observeSortMode(): Flow<SortMode> =
-    observeEnum(::sortMode)
+  override var librarySortMode: ContentSortMode by enum()
+  override fun observeLibrarySortMode(): Flow<ContentSortMode> =
+    observeEnum(::librarySortMode)
 
-  override var sortDirection: SortDirection by enum()
-  override fun observeSortDirection(): Flow<SortDirection> =
-    observeEnum(::sortDirection)
+  override var librarySortDirection: SortDirection by enum()
+  override fun observeLibrarySortDirection(): Flow<SortDirection> =
+    observeEnum(::librarySortDirection)
 
-  override var authorsSortMode: AuthorSortMode by enum()
-  override fun observeAuthorsSortMode(): Flow<AuthorSortMode> =
+  override var authorsSortMode: ContentSortMode by enum()
+  override fun observeAuthorsSortMode(): Flow<ContentSortMode> =
     observeEnum(::authorsSortMode)
 
   override var authorsSortDirection: SortDirection by enum()
   override fun observeAuthorsSortDirection(): Flow<SortDirection> =
     observeEnum(::authorsSortDirection)
+
+  override var seriesSortMode: ContentSortMode by enum()
+  override fun observeSeriesSortMode(): Flow<ContentSortMode> =
+    observeEnum(::seriesSortMode)
+
+  override var seriesSortDirection: SortDirection by enum()
+  override fun observeSeriesSortDirection(): Flow<SortDirection> =
+    observeEnum(::seriesSortDirection)
 
   override var currentUserId: UserId? by stringOrNull()
   override fun observeCurrentUserId(): Flow<UserId?> =

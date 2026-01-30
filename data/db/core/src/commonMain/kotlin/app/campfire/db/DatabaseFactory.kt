@@ -21,6 +21,8 @@ import app.campfire.data.MediaProgress
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
+import app.campfire.data.SeriesPage
+import app.campfire.data.SeriesPageJoin
 import app.campfire.data.Server
 import app.campfire.data.Session
 import app.campfire.data.Shelf
@@ -174,6 +176,14 @@ class DatabaseFactory(
       totalAdapter = IntColumnAdapter,
     ),
     authorsPageJoinAdapter = AuthorsPageJoin.Adapter(
+      pageIndexAdapter = IntColumnAdapter,
+    ),
+    seriesPageAdapter = SeriesPage.Adapter(
+      pageAdapter = IntColumnAdapter,
+      nextPageAdapter = IntColumnAdapter,
+      totalAdapter = IntColumnAdapter,
+    ),
+    seriesPageJoinAdapter = SeriesPageJoin.Adapter(
       pageIndexAdapter = IntColumnAdapter,
     ),
   )

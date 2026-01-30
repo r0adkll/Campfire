@@ -5,7 +5,6 @@ package app.campfire.common.compose.shaders
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 
 /* Copyright 2022 Google LLC.

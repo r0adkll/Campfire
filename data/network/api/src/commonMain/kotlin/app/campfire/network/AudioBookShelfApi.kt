@@ -76,7 +76,14 @@ interface AudioBookShelfApi {
   /**
    * Get a Library's list of series
    */
-  suspend fun getSeries(libraryId: String): Result<List<Series>>
+  suspend fun getSeries(
+    libraryId: String,
+    filter: LibraryItemFilter? = null,
+    sortMode: String? = null,
+    sortDescending: Boolean = false,
+    page: Int = INVALID,
+    limit: Int = INVALID,
+  ): Result<PagedResponse<Series>>
 
   /**
    * Get a specific series by its id

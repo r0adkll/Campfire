@@ -39,3 +39,23 @@ CREATE TABLE authorsPageJoin (
   PRIMARY KEY (pageId, authorId),
   FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
 );
+
+CREATE TABLE seriesPage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  input TEXT NOT NULL,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+  total INTEGER AS Int NOT NULL,
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE seriesPageJoin (
+  pageId INTEGER NOT NULL,
+  pageIndex INTEGER AS Int NOT NULL,
+  seriesId TEXT NOT NULL,
+  PRIMARY KEY (pageId, seriesId),
+  FOREIGN KEY (pageId) REFERENCES seriesPage(id) ON DELETE CASCADE
+);

@@ -48,7 +48,7 @@ fun CampfireLoadingIndicator(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
       elevation = elevation,
-      maxDistance = maxDistance
+      maxDistance = maxDistance,
     )
   }
 }
@@ -79,4 +79,3 @@ private fun NoisyCampfireLoadingIndicator(
     )
   }
 }
-

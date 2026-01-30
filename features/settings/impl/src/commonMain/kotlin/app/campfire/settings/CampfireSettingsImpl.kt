@@ -4,10 +4,9 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.model.UserId
-import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
@@ -64,24 +63,34 @@ class CampfireSettingsImpl(
     return flowSettings.getEnumFlow(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
   }
 
-  override var sortMode: SortMode by enumSetting(KEY_SORT_MODE, SortMode)
-  override fun observeSortMode(): Flow<SortMode> {
-    return flowSettings.getEnumFlow(KEY_SORT_MODE, SortMode)
+  override var librarySortMode: ContentSortMode by enumSetting(KEY_SORT_MODE, ContentSortMode.LibraryItemSortMode)
+  override fun observeLibrarySortMode(): Flow<ContentSortMode> {
+    return flowSettings.getEnumFlow(KEY_SORT_MODE, ContentSortMode.LibraryItemSortMode)
   }
 
-  override var sortDirection: SortDirection by enumSetting(KEY_SORT_DIRECTION, SortDirection)
-  override fun observeSortDirection(): Flow<SortDirection> {
+  override var librarySortDirection: SortDirection by enumSetting(KEY_SORT_DIRECTION, SortDirection)
+  override fun observeLibrarySortDirection(): Flow<SortDirection> {
     return flowSettings.getEnumFlow(KEY_SORT_DIRECTION, SortDirection)
   }
 
-  override var authorsSortMode: AuthorSortMode by enumSetting(KEY_AUTHOR_SORT_MODE, AuthorSortMode)
-  override fun observeAuthorsSortMode(): Flow<AuthorSortMode> {
-    return flowSettings.getEnumFlow(KEY_AUTHOR_SORT_MODE, AuthorSortMode)
+  override var authorsSortMode: ContentSortMode by enumSetting(KEY_AUTHOR_SORT_MODE, ContentSortMode.AuthorSortMode)
+  override fun observeAuthorsSortMode(): Flow<ContentSortMode> {
+    return flowSettings.getEnumFlow(KEY_AUTHOR_SORT_MODE, ContentSortMode.AuthorSortMode)
   }
 
   override var authorsSortDirection: SortDirection by enumSetting(KEY_AUTHORS_SORT_DIRECTION, SortDirection)
   override fun observeAuthorsSortDirection(): Flow<SortDirection> {
     return flowSettings.getEnumFlow(KEY_AUTHORS_SORT_DIRECTION, SortDirection)
+  }
+
+  override var seriesSortMode: ContentSortMode by enumSetting(KEY_SERIES_SORT_MODE, ContentSortMode.SeriesSortMode)
+  override fun observeSeriesSortMode(): Flow<ContentSortMode> {
+    return flowSettings.getEnumFlow(KEY_SERIES_SORT_MODE, ContentSortMode.SeriesSortMode)
+  }
+
+  override var seriesSortDirection: SortDirection by enumSetting(KEY_SERIES_SORT_DIRECTION, SortDirection)
+  override fun observeSeriesSortDirection(): Flow<SortDirection> {
+    return flowSettings.getEnumFlow(KEY_SERIES_SORT_DIRECTION, SortDirection)
   }
 
   override var currentUserId: UserId? by stringOrNullSetting(KEY_CURRENT_USER_ID)
@@ -114,9 +123,11 @@ internal const val KEY_CURRENT_THEME = "pref_current_theme"
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
 internal const val KEY_SORT_MODE = "pref_sort_mode"
-internal const val KEY_AUTHOR_SORT_MODE = "pref_author_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
+internal const val KEY_AUTHOR_SORT_MODE = "pref_authors_sort_mode"
 internal const val KEY_AUTHORS_SORT_DIRECTION = "pref_authors_sort_direction"
+internal const val KEY_SERIES_SORT_MODE = "pref_series_sort_mode"
+internal const val KEY_SERIES_SORT_DIRECTION = "pref_series_sort_direction"
 internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"

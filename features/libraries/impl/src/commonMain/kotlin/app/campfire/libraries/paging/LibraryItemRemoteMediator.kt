@@ -18,7 +18,6 @@ import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.nextPage
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -81,7 +80,7 @@ class LibraryItemRemoteMediator(
 
           nextPage
         }
-      } ?: 0 /* Default Page # */
+      } ?: 0
 
       ibark { "Mediator::loadKey($loadKey)" }
 
@@ -91,7 +90,7 @@ class LibraryItemRemoteMediator(
         filter = input.filter?.let {
           LibraryItemFilter(it.group, it.value)
         },
-        sortMode = input.sortMode.networkKey,
+        sortMode = input.sortMode.networkKey.libraryItemSortKey,
         sortDescending = input.sortDirection == SortDirection.Descending,
         page = loadKey,
         limit = state.config.pageSize,
@@ -142,7 +141,7 @@ class LibraryItemRemoteMediator(
                   pageId = pageId,
                   libraryItemId = item.id,
                   pageIndex = index,
-                )
+                ),
               )
             }
           }
@@ -153,7 +152,7 @@ class LibraryItemRemoteMediator(
         },
         onFailure = { t ->
           MediatorResult.Error(t)
-        }
+        },
       )
     } catch (e: Exception) {
       ebark(throwable = e) { "LibraryItem RemoteMediator Exception" }

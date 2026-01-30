@@ -2,21 +2,15 @@ package app.campfire.author.ui.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -24,13 +18,11 @@ import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import app.campfire.author.ui.list.sort.SortModeResult
-import app.campfire.author.ui.list.sort.showSortModeBottomSheet
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.AuthorCard
-import app.campfire.common.compose.widgets.CampfireLoadingIndicator
+import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LoadingListState
@@ -38,13 +30,15 @@ import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
-import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.AuthorSortModes
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
+import app.campfire.filters.SortModeUi
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.author.ui.generated.resources.Res
+import campfire.features.author.ui.generated.resources.empty_authors_message
 import campfire.features.author.ui.generated.resources.error_authors_items_message
 import campfire.features.author.ui.generated.resources.filter_bar_author_count
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -59,6 +53,7 @@ import org.jetbrains.compose.resources.stringResource
 fun Authors(
   state: AuthorsUiState,
   campfireAppBar: CampfireAppBar,
+  sortModeUi: SortModeUi,
   modifier: Modifier = Modifier,
 ) {
   val scope = rememberCoroutineScope()
@@ -93,9 +88,14 @@ fun Authors(
         onAuthorClick = { state.eventSink(AuthorsUiEvent.AuthorClick(it)) },
         onSortClick = {
           scope.launch {
-            val result = overlayHost.showSortModeBottomSheet(state.sortMode, state.sortDirection)
-            if (result is SortModeResult.Selected) {
-              state.eventSink(AuthorsUiEvent.SortModeSelected(result.mode))
+            val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
+              overlayHost,
+              state.sortMode,
+              state.sortDirection,
+              AuthorSortModes,
+            )
+            if (updatedSortMode != null) {
+              state.eventSink(AuthorsUiEvent.SortModeSelected(updatedSortMode))
             }
           }
         },
@@ -109,7 +109,7 @@ fun Authors(
 private fun LoadedState(
   items: Flow<PagingData<Author>>,
   numAuthors: Int,
-  sortMode: AuthorSortMode,
+  sortMode: ContentSortMode,
   sortDirection: SortDirection,
   onAuthorClick: (Author) -> Unit,
   onSortClick: () -> Unit,
@@ -118,26 +118,14 @@ private fun LoadedState(
   state: LazyGridState = rememberLazyGridState(),
 ) {
   val lazyPagingItems = items.collectAsLazyPagingItems()
-  val isRefreshing = lazyPagingItems.loadState.refresh == androidx.paging.LoadState.Loading
-  val ptrState = rememberPullToRefreshState()
-  PullToRefreshBox(
-    state = ptrState,
-    isRefreshing = isRefreshing,
-    onRefresh = { lazyPagingItems.refresh() },
+  ContentPagingScaffold(
     modifier = modifier,
-    indicator = {
-      CampfireLoadingIndicator(
-        state = ptrState,
-        isRefreshing = isRefreshing,
-        modifier = Modifier
-          .align(Alignment.TopCenter)
-          .padding(top = contentPadding.calculateTopPadding())
-      )
-    }
+    lazyPagingItems = lazyPagingItems,
+    emptyMessage = stringResource(Res.string.empty_authors_message),
+    indicatorPadding = contentPadding.calculateTopPadding(),
   ) {
     LazyCampfireGrid(
       state = state,
-      modifier = modifier,
       contentPadding = contentPadding + PaddingValues(
         horizontal = 16.dp,
       ),
@@ -166,30 +154,20 @@ private fun LoadedState(
       items(
         count = lazyPagingItems.itemCount,
         key = lazyPagingItems.itemKey { it.id },
-        contentType = lazyPagingItems.itemContentType { "author-card" }
+        contentType = lazyPagingItems.itemContentType { "author-card" },
       ) { index ->
         val author = lazyPagingItems[index]
         if (author == null) {
-          // TODO: Add placeholder composable
-        } else
+          PlaceholderItem()
+        } else {
           AuthorCard(
             author = author,
             onClick = { onAuthorClick(author) },
           )
-      }
-
-      if (lazyPagingItems.loadState.append is androidx.paging.LoadState.Loading) {
-        item(
-          span = { GridItemSpan(maxLineSpan) }
-        ) {
-          CircularProgressIndicator(
-            modifier =
-              Modifier
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally)
-          )
         }
       }
+
+      appendingIndicatorItem()
     }
   }
 }

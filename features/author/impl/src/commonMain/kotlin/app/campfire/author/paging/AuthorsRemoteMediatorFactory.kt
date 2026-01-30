@@ -13,7 +13,6 @@ import app.campfire.core.model.User
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.time.FatherTime
 import app.campfire.data.AuthorsPageJoin
-import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.nextPage
@@ -82,14 +81,14 @@ class AuthorsRemoteMediator(
 
           nextPage
         }
-      } ?: 0 /* Default Page # */
+      } ?: 0
 
       ibark { "Mediator::loadKey($loadKey)" }
 
       // Load the page from the network
       val response = api.getAuthors(
         libraryId = user.selectedLibraryId,
-        sortMode = input.sortMode.networkKey,
+        sortMode = input.sortMode.networkKey.authorSortKey,
         sortDescending = input.sortDirection == SortDirection.Descending,
         page = loadKey,
         limit = state.config.pageSize,
@@ -137,7 +136,7 @@ class AuthorsRemoteMediator(
                   pageId = pageId,
                   authorId = item.id,
                   pageIndex = index,
-                )
+                ),
               )
             }
           }
@@ -148,7 +147,7 @@ class AuthorsRemoteMediator(
         },
         onFailure = { t ->
           MediatorResult.Error(t)
-        }
+        },
       )
     } catch (e: Exception) {
       ebark(throwable = e) { "Authors RemoteMediator Exception" }

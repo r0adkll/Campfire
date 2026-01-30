@@ -14,7 +14,7 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.SeriesDetailScreen
-import app.campfire.libraries.api.LibraryItemFilter
+import app.campfire.core.filter.ContentFilter
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.search.api.SearchRepository
@@ -95,12 +95,12 @@ class SearchPresenter(
         }
         is SearchUiEvent.OnGenreClick -> {
           analytics.send(ContentSelected(ContentType.Genre))
-          navigateTo(LibraryScreen(LibraryItemFilter.Genres(event.genre.name)), true)
+          navigateTo(LibraryScreen(ContentFilter.Genres(event.genre.name)), true)
         }
         is SearchUiEvent.OnNarratorClick -> {
           analytics.send(ContentSelected(ContentType.Narrator))
           navigateTo(
-            screen = LibraryScreen(LibraryItemFilter.Narrators(event.narrator.name)),
+            screen = LibraryScreen(ContentFilter.Narrators(event.narrator.name)),
             resetRoot = true,
           )
         }
@@ -116,7 +116,7 @@ class SearchPresenter(
 
         is SearchUiEvent.OnTagClick -> {
           analytics.send(ContentSelected(ContentType.Tag))
-          navigateTo(LibraryScreen(LibraryItemFilter.Tags(event.tag.name)), true)
+          navigateTo(LibraryScreen(ContentFilter.Tags(event.tag.name)), true)
         }
       }
     }

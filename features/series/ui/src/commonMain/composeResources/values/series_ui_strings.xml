@@ -2,4 +2,9 @@
   <string name="error_series_items_message">Something went wrong when trying to load this library's list of series</string>
   <string name="empty_series_items_message">No series found in this library</string>
   <string name="error_series_detail_message">Something went wrong when trying to load this series</string>
+
+  <plurals name="filter_bar_series_count">
+    <item quantity="one">%1$d Series</item>
+    <item quantity="other">%1$d Series</item>
+  </plurals>
 </resources>

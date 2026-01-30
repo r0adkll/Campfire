@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
@@ -19,10 +18,8 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryRepository
-import app.campfire.libraries.api.filtering.FilteringRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
@@ -32,7 +29,6 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -49,7 +45,6 @@ class LibraryPresenter(
   @Assisted private val screen: LibraryScreen,
   @Assisted private val navigator: Navigator,
   private val repository: LibraryRepository,
-  private val filteringRepository: FilteringRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
   private val analytics: Analytics,
@@ -64,12 +59,12 @@ class LibraryPresenter(
     }
 
     val sortMode by remember {
-      settings.observeSortMode()
-    }.collectAsState(settings.sortMode)
+      settings.observeLibrarySortMode()
+    }.collectAsState(settings.librarySortMode)
 
     val sortDirection by remember {
-      settings.observeSortDirection()
-    }.collectAsState(settings.sortDirection)
+      settings.observeLibrarySortDirection()
+    }.collectAsState(settings.librarySortDirection)
 
     val contentPagerState by remember(sortMode, sortDirection, itemFilter) {
       repository.observeLibraryItemPager(
@@ -132,9 +127,9 @@ class LibraryPresenter(
         is LibraryUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            settings.sortDirection = sortDirection.flip()
+            settings.librarySortDirection = sortDirection.flip()
           }
-          settings.sortMode = event.mode
+          settings.librarySortMode = event.mode
         }
 
         is LibraryUiEvent.ItemFilterSelected -> {

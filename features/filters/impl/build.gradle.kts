@@ -1,0 +1,29 @@
+import app.campfire.convention.addKspDependencyForCommon
+
+plugins {
+  id("app.campfire.android.library")
+  id("app.campfire.multiplatform")
+  alias(libs.plugins.ksp)
+}
+
+@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
+kotlin {
+  sourceSets {
+    commonMain {
+      dependencies {
+        api(projects.features.filters.api)
+        api(projects.features.user.api)
+
+        implementation(projects.core)
+        implementation(projects.data.db.core)
+        implementation(projects.data.network.api)
+        implementation(projects.data.db.mapping)
+        implementation(projects.data.crashreporting.api)
+
+        implementation(libs.store)
+      }
+    }
+  }
+}
+
+addKspDependencyForCommon(libs.kimchi.compiler)

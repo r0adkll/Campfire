@@ -7,6 +7,8 @@ import org.mobilenativefoundation.store.store5.Fetcher
 internal class SeriesFetcherFactory(val api: AudioBookShelfApi) {
 
   fun create() = Fetcher.ofResult { key: SeriesStore.Key ->
-    api.getSeries(key.libraryId).asFetcherResult()
+    api.getSeries(key.libraryId)
+      .map { it.data }
+      .asFetcherResult()
   }
 }

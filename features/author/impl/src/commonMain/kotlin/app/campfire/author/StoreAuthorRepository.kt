@@ -1,6 +1,5 @@
 package app.campfire.author
 
-import androidx.paging.Pager
 import app.campfire.CampfireDatabase
 import app.campfire.author.api.AuthorPager
 import app.campfire.author.api.AuthorRepository
@@ -12,12 +11,11 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
-import app.campfire.core.settings.AuthorSortMode
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
-import app.cash.sqldelight.coroutines.mapToOneOrDefault
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,8 +61,8 @@ class StoreAuthorRepository(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeAuthorsPager(
-    sortMode: AuthorSortMode,
-    sortDirection: SortDirection
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
   ): Flow<AuthorPager> {
     return userRepository.observeCurrentUser()
       .mapLatest { user ->
@@ -79,7 +77,7 @@ class StoreAuthorRepository(
             )
             .asFlow()
             .mapToOneOrNull(dispatcherProvider.databaseRead)
-            .map { it?.total }
+            .map { it?.total },
         )
       }
   }

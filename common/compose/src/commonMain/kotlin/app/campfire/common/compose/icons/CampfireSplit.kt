@@ -1,15 +1,9 @@
 package app.campfire.common.compose.icons
 
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.EaseInCubic
-import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.EaseInOutSine
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
-import androidx.compose.animation.core.StartOffsetType
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -236,7 +230,7 @@ fun NoisyCampfireIcon(
           frequencyY = 3f,
           speed = 0.7f,
           amplitude = 0.02f,
-        )
+        ),
     )
     Image(
       CampfireIcons.CampfireFireInner,
@@ -264,7 +258,7 @@ fun LoadingCampfireIcon(
   }
 
   Box(
-    modifier = modifier
+    modifier = modifier,
   ) {
     Image(
       CampfireIcons.CampfireLogs,
@@ -302,7 +296,7 @@ fun LoadingCampfireIcon(
           amplitude = 0.03f,
           size = pixelSize,
         )
-        .scale(outerScale)
+        .scale(outerScale),
     )
 
     val innerScale by infiniteTransition.animateFloat(

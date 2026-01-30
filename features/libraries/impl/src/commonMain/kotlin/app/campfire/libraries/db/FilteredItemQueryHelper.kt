@@ -1,13 +1,13 @@
 package app.campfire.libraries.db
 
+import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.MediaType
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.db.DatabaseAdapters
-import app.campfire.libraries.api.LibraryItemFilter
 import app.cash.sqldelight.Query
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlCursor
@@ -22,8 +22,8 @@ class FilteredItemQueryHelper(
 ) {
 
   fun count(
-    filter: LibraryItemFilter?,
-    sortMode: SortMode,
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
     sortDirection: SortDirection,
     libraryId: LibraryId,
   ): Query<Long> {
@@ -37,8 +37,8 @@ class FilteredItemQueryHelper(
   }
 
   fun select(
-    filter: LibraryItemFilter?,
-    sortMode: SortMode,
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
     sortDirection: SortDirection,
     libraryId: LibraryId,
     page: Page? = null,
@@ -179,8 +179,8 @@ class FilteredItemQueryHelper(
   }
 
   private inner class SelectFilteredItemQuery<out T : Any>(
-    val filter: LibraryItemFilter?,
-    val sortMode: SortMode,
+    val filter: ContentFilter?,
+    val sortMode: ContentSortMode,
     val sortDirection: SortDirection,
     val libraryId: LibraryId,
     val page: Page? = null,
@@ -227,8 +227,8 @@ class FilteredItemQueryHelper(
   }
 
   private inner class CountForFilteredItemQuery<out T : Any>(
-    val filter: LibraryItemFilter?,
-    val sortMode: SortMode,
+    val filter: ContentFilter?,
+    val sortMode: ContentSortMode,
     val sortDirection: SortDirection,
     val libraryId: LibraryId,
     mapper: (SqlCursor) -> T,
@@ -274,8 +274,8 @@ class FilteredItemQueryHelper(
 
   private fun PreparedSqlStatementBinderBuilder.buildQuery(
     initialQuery: String,
-    filter: LibraryItemFilter?,
-    sortMode: SortMode,
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
     sortDirection: SortDirection,
     page: Page? = null,
   ): String {
@@ -283,122 +283,129 @@ class FilteredItemQueryHelper(
       appendLine(initialQuery)
 
       when (filter) {
-        is LibraryItemFilter.Authors -> {
+        is ContentFilter.Authors -> {
           appendLine("AND media.metadata_authorName = ?")
           bind {
             bindString(filter.authorName)
           }
         }
 
-        is LibraryItemFilter.Genres -> {
+        is ContentFilter.Genres -> {
           appendLine("AND media.metadata_genres = ?")
           bind {
             bindString(filter.value)
           }
         }
 
-        is LibraryItemFilter.Languages -> {
+        is ContentFilter.Languages -> {
           appendLine("AND media.metadata_language = ?")
           bind {
             bindString(filter.value)
           }
         }
 
-        is LibraryItemFilter.Missing -> when (filter.type) {
-          LibraryItemFilter.Missing.Type.ASIN -> {
+        is ContentFilter.Missing -> when (filter.type) {
+          ContentFilter.Missing.Type.ASIN -> {
             appendLine("AND media.metadata_asin IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.ISBN -> {
+          ContentFilter.Missing.Type.ISBN -> {
             appendLine("AND media.metadata_isbn IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.SUBTITLE -> {
+          ContentFilter.Missing.Type.SUBTITLE -> {
             appendLine("AND media.metadata_subtitle IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.AUTHORS -> {
+          ContentFilter.Missing.Type.AUTHORS -> {
             appendLine("AND media.metadata_authorName IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.PUBLISHED_YEAR -> {
+          ContentFilter.Missing.Type.PUBLISHED_YEAR -> {
             appendLine("AND media.metadata_publishedYear IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.SERIES -> {
+          ContentFilter.Missing.Type.SERIES -> {
             appendLine("AND media.metadata_seriesName IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.DESCRIPTION -> {
+          ContentFilter.Missing.Type.DESCRIPTION -> {
             appendLine("AND media.metadata_description IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.GENRES -> {
+          ContentFilter.Missing.Type.GENRES -> {
             appendLine("AND media.metadata_genres IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.TAGS -> {
+          ContentFilter.Missing.Type.TAGS -> {
             appendLine("AND media.tags IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.NARRATORS -> {
+          ContentFilter.Missing.Type.NARRATORS -> {
             appendLine("AND media.metadata_narratorName IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.PUBLISHER -> {
+          ContentFilter.Missing.Type.PUBLISHER -> {
             appendLine("AND media.metadata_publisher IS NULL")
           }
 
-          LibraryItemFilter.Missing.Type.LANGUAGE -> {
+          ContentFilter.Missing.Type.LANGUAGE -> {
             appendLine("AND media.metadata_language IS NULL")
           }
         }
 
-        is LibraryItemFilter.Narrators -> {
+        is ContentFilter.Narrators -> {
           appendLine("AND media.metadata_narratorName LIKE ?")
           bind {
             bindString("%${filter.value}%")
           }
         }
 
-        is LibraryItemFilter.Progress -> when (filter.type) {
-          LibraryItemFilter.Progress.Type.Finished -> {
+        is ContentFilter.Publishers -> {
+          appendLine("AND media.metadata_publisher LIKE ?")
+          bind {
+            bindString("%${filter.value}%")
+          }
+        }
+
+        is ContentFilter.Progress -> when (filter.type) {
+          ContentFilter.Progress.Type.Finished -> {
             appendLine("AND mediaProgress.isFinished = 1")
           }
 
-          LibraryItemFilter.Progress.Type.NotFinished -> {
+          ContentFilter.Progress.Type.NotFinished -> {
             appendLine("AND mediaProgress.isFinished = 0")
           }
 
-          LibraryItemFilter.Progress.Type.NotStarted -> {
+          ContentFilter.Progress.Type.NotStarted -> {
             appendLine("AND mediaProgress.id IS NULL")
           }
 
-          LibraryItemFilter.Progress.Type.InProgress -> {
+          ContentFilter.Progress.Type.InProgress -> {
             appendLine("AND mediaProgress.id IS NOT NULL AND mediaProgress.isFinished = 0")
           }
         }
 
-        is LibraryItemFilter.Series -> {
+        is ContentFilter.Series -> {
           appendLine("AND media.metadata_seriesName = ?")
           bind {
             bindString(filter.value)
           }
         }
 
-        is LibraryItemFilter.Tags -> {
+        is ContentFilter.Tags -> {
           appendLine("AND media.tags LIKE ?")
           bind {
             bindString("%${filter.value}%")
           }
         }
 
-        is LibraryItemFilter.Tracks -> when (filter.type) {
-          LibraryItemFilter.Tracks.Type.Single -> {
+        is ContentFilter.Tracks -> when (filter.type) {
+          ContentFilter.Tracks.Type.Single -> {
             appendLine("AND media.numTracks = 1")
           }
 
-          LibraryItemFilter.Tracks.Type.Multi -> {
+          ContentFilter.Tracks.Type.Multi -> {
             appendLine("AND media.numTracks > 1")
           }
         }
@@ -422,13 +429,14 @@ class FilteredItemQueryHelper(
 
       append("ORDER BY ")
       when (sortMode) {
-        SortMode.Title -> appendOrderBy("media.metadata_title")
-        SortMode.AuthorFL -> appendOrderBy("media.metadata_authorName", "media.metadata_title")
-        SortMode.AuthorLF -> appendOrderBy("media.metadata_authorNameLF", "media.metadata_title")
-        SortMode.PublishYear -> appendOrderBy("media.metadata_publishedYear", "media.metadata_title")
-        SortMode.AddedAt -> appendOrderBy("libraryItem.addedAt")
-        SortMode.Size -> appendOrderBy("libraryItem.size")
-        SortMode.Duration -> appendOrderBy("media.durationInMillis")
+        ContentSortMode.Title -> appendOrderBy("media.metadata_title")
+        ContentSortMode.AuthorFL -> appendOrderBy("media.metadata_authorName", "media.metadata_title")
+        ContentSortMode.AuthorLF -> appendOrderBy("media.metadata_authorNameLF", "media.metadata_title")
+        ContentSortMode.PublishYear -> appendOrderBy("media.metadata_publishedYear", "media.metadata_title")
+        ContentSortMode.AddedAt -> appendOrderBy("libraryItem.addedAt")
+        ContentSortMode.Size -> appendOrderBy("libraryItem.size")
+        ContentSortMode.Duration -> appendOrderBy("media.durationInMillis")
+        else -> Unit
       }
 
       page?.let {

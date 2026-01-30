@@ -15,6 +15,7 @@ kotlin {
         api(projects.common.screens)
         api(projects.features.settings.api)
 
+        api(libs.androidx.paging.compose)
         api(libs.circuit.foundation)
         api(libs.circuit.overlay)
         api(libs.coil)

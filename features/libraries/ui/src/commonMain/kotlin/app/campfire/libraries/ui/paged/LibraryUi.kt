@@ -1,31 +1,25 @@
 package app.campfire.libraries.ui.paged
 
+// import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-//import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,8 +41,8 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
-import app.campfire.common.compose.widgets.CampfireLoadingIndicator
-import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.common.compose.widgets.ContentPagingScaffold
+import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
@@ -57,18 +51,18 @@ import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.OfflineStatusIndicator
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
+import app.campfire.core.settings.LibraryItemSortModes
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
-import app.campfire.libraries.api.LibraryItemFilter
+import app.campfire.filters.ContentFilterResult
+import app.campfire.filters.ContentFilterUi
+import app.campfire.filters.SortModeUi
 import app.campfire.libraries.api.screen.LibraryScreen
-import app.campfire.libraries.ui.paged.sheets.filters.LibraryItemFilterResult
-import app.campfire.libraries.ui.paged.sheets.filters.showItemFilterOverlay
-import app.campfire.libraries.ui.paged.sheets.sort.SortModeResult
-import app.campfire.libraries.ui.paged.sheets.sort.showSortModeBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.libraries.ui.generated.resources.Res
@@ -87,6 +81,8 @@ import org.jetbrains.compose.resources.stringResource
 fun LibraryUi(
   state: LibraryUiState,
   campfireAppBar: CampfireAppBar,
+  contentFilterUi: ContentFilterUi,
+  sortModeUi: SortModeUi,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -124,11 +120,12 @@ fun LibraryUi(
         filter = state.filter,
         onFilterClick = {
           coroutineScope.launch {
-            val result = overlayHost.showItemFilterOverlay(
-              filter = state.filter,
+            val result = contentFilterUi.showContentFilterBottomSheet(
+              overlayHost = overlayHost,
+              current = state.filter,
+              allowedCategories = contentFilterUi.libraryItemFilterCategories,
             )
-
-            if (result is LibraryItemFilterResult.Selected) {
+            if (result is ContentFilterResult.Selected) {
               state.eventSink(LibraryUiEvent.ItemFilterSelected(result.filter))
             }
           }
@@ -137,12 +134,14 @@ fun LibraryUi(
         sortDirection = state.sort.direction,
         onSortClick = {
           coroutineScope.launch {
-            val result = overlayHost.showSortModeBottomSheet(
-              currentMode = state.sort.mode,
-              currentDirection = state.sort.direction,
+            val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
+              overlayHost,
+              state.sort.mode,
+              state.sort.direction,
+              LibraryItemSortModes,
             )
-            if (result is SortModeResult.Selected) {
-              state.eventSink(LibraryUiEvent.SortModeSelected(result.mode))
+            if (updatedSortMode != null) {
+              state.eventSink(LibraryUiEvent.SortModeSelected(updatedSortMode))
             }
           }
         },
@@ -161,31 +160,20 @@ private fun LoadedContent(
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
-  filter: LibraryItemFilter?,
+  filter: ContentFilter?,
   onFilterClick: () -> Unit,
-  sortMode: SortMode,
+  sortMode: ContentSortMode,
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
 ) {
   val lazyPagingItems = pagingDataFlow.collectAsLazyPagingItems()
-  val isRefreshing = lazyPagingItems.loadState.refresh == androidx.paging.LoadState.Loading
-  val ptrState = rememberPullToRefreshState()
-  PullToRefreshBox(
-    state = ptrState,
-    isRefreshing = isRefreshing,
-    onRefresh = { lazyPagingItems.refresh() },
+  ContentPagingScaffold(
     modifier = modifier,
-    indicator = {
-      CampfireLoadingIndicator(
-        state = ptrState,
-        isRefreshing = isRefreshing,
-        modifier = Modifier
-          .align(Alignment.TopCenter)
-          .padding(top = contentPadding.calculateTopPadding())
-      )
-    }
+    lazyPagingItems = lazyPagingItems,
+    emptyMessage = stringResource(Res.string.empty_library_items_message),
+    indicatorPadding = contentPadding.calculateTopPadding(),
   ) {
     when (itemDisplayState) {
       ItemDisplayState.List -> LibraryList(
@@ -200,13 +188,12 @@ private fun LoadedContent(
         sortMode = sortMode,
         sortDirection = sortDirection,
         onSortClick = onSortClick,
-//        modifier = modifier,
         contentPadding = contentPadding,
       )
 
       ItemDisplayState.GridDense,
       ItemDisplayState.Grid,
-        -> LibraryGrid(
+      -> LibraryGrid(
         totalCount = totalCount,
         items = lazyPagingItems,
         offlineStates = offlineStates,
@@ -218,35 +205,26 @@ private fun LoadedContent(
         sortMode = sortMode,
         sortDirection = sortDirection,
         onSortClick = onSortClick,
-//        modifier = modifier,
         contentPadding = contentPadding + PaddingValues(
           horizontal = 16.dp,
         ),
       )
     }
   }
-
-
-
-  if (lazyPagingItems.itemCount == 0 && lazyPagingItems.loadState.isIdle) {
-    EmptyState(
-      message = stringResource(Res.string.empty_library_items_message),
-    )
-  }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun LibraryGrid(
+private fun ContentPagingScaffoldScope.LibraryGrid(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, OfflineDownload>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
-  filter: LibraryItemFilter?,
+  filter: ContentFilter?,
   onFilterClick: () -> Unit,
-  sortMode: SortMode,
+  sortMode: ContentSortMode,
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -272,7 +250,7 @@ private fun LibraryGrid(
         count = {
           if (totalCount != INVALID_ITEM_COUNT) {
             Text(
-              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount)
+              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount),
             )
           } else {
             Text("--")
@@ -288,7 +266,6 @@ private fun LibraryGrid(
       )
     }
 
-
     items(
       count = items.itemCount,
       key = items.itemKey { it.id },
@@ -296,15 +273,7 @@ private fun LibraryGrid(
     ) { index ->
       val item = items[index]
       if (item == null) {
-        // TODO: Placeholder
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-          contentAlignment = Alignment.Center,
-        ) {
-          Text("Placeholder for $index")
-        }
+        PlaceholderItem()
       } else {
         val offlineStatus = offlineStates[item.id]
         LibraryItemCard(
@@ -321,32 +290,21 @@ private fun LibraryGrid(
       }
     }
 
-    if (items.loadState.append is androidx.paging.LoadState.Loading) {
-      item(
-        span = { GridItemSpan(maxLineSpan) }
-      ) {
-        CircularProgressIndicator(
-          modifier =
-            Modifier
-              .fillMaxWidth()
-              .wrapContentWidth(Alignment.CenterHorizontally)
-        )
-      }
-    }
+    appendingIndicatorItem()
   }
 }
 
 @Composable
-fun LibraryList(
+private fun ContentPagingScaffoldScope.LibraryList(
   totalCount: Int,
   items: LazyPagingItems<LibraryItem>,
   offlineStates: Map<LibraryItemId, OfflineDownload>,
   onItemClick: (LibraryItem) -> Unit,
   itemDisplayState: ItemDisplayState,
   onDisplayStateClick: () -> Unit,
-  filter: LibraryItemFilter?,
+  filter: ContentFilter?,
   onFilterClick: () -> Unit,
-  sortMode: SortMode,
+  sortMode: ContentSortMode,
   sortDirection: SortDirection,
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -363,7 +321,7 @@ fun LibraryList(
         count = {
           if (totalCount != INVALID_ITEM_COUNT) {
             Text(
-              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount)
+              text = pluralStringResource(Res.plurals.filter_bar_book_count, totalCount, totalCount),
             )
           } else {
             Text("--")
@@ -387,15 +345,7 @@ fun LibraryList(
     ) { index ->
       val item = items[index]
       if (item == null) {
-        // TODO: Placeholder
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-          contentAlignment = Alignment.Center,
-        ) {
-          Text("Placeholder for $index")
-        }
+        PlaceholderItem()
       } else {
         val offlineStatus = offlineStates[item.id].asWidgetStatus()
         LibraryListItem(
@@ -414,16 +364,7 @@ fun LibraryList(
       }
     }
 
-    if (items.loadState.append is androidx.paging.LoadState.Loading) {
-      item {
-        CircularProgressIndicator(
-          modifier =
-            Modifier
-              .fillMaxWidth()
-              .wrapContentWidth(Alignment.CenterHorizontally)
-        )
-      }
-    }
+    appendingIndicatorItem()
   }
 }
 

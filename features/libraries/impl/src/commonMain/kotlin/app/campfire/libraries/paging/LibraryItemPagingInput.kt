@@ -1,8 +1,8 @@
 package app.campfire.libraries.paging
 
+import app.campfire.core.filter.ContentFilter
+import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
-import app.campfire.core.settings.SortMode
-import app.campfire.libraries.api.LibraryItemFilter
 
 /**
  * This keys any paging list of library items by its root request, in that
@@ -12,8 +12,8 @@ import app.campfire.libraries.api.LibraryItemFilter
  * a unique list of paged content.
  */
 data class LibraryItemPagingInput(
-  val filter: LibraryItemFilter?,
-  val sortMode: SortMode,
+  val filter: ContentFilter?,
+  val sortMode: ContentSortMode,
   val sortDirection: SortDirection,
 ) {
   // Generate the key used to serialize pages / requests in the database

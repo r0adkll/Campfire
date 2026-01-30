@@ -64,6 +64,9 @@ kotlin {
         api(projects.features.stats.impl)
         api(projects.features.stats.ui)
 
+        api(projects.features.filters.impl)
+        api(projects.features.filters.ui)
+
         api(projects.ui.navigation)
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)
