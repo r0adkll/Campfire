@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Paging Support! Library items, series, and authors are all now paginated for large library support
+
 ### Changed
 
 ### Deprecated
@@ -16,6 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+
+- Crash when opening series detail page
+- Death loop when using multiple accounts and all refresh tokens expire
 
 ### Other Notes & Contributions
 
