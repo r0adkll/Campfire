@@ -1,6 +1,5 @@
 package app.campfire.libraries
 
-import androidx.paging.ExperimentalPagingApi
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
@@ -8,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
@@ -34,7 +34,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -163,27 +162,33 @@ class StoreLibraryRepository(
       }
   }
 
-  @OptIn(ExperimentalPagingApi::class)
-  override fun observeLibraryItemPager(
+  override fun createLibraryItemPager(
+    user: User,
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<LibraryItemPager> {
+  ): LibraryItemPager {
+    val input = LibraryItemPagingInput(filter, sortMode, sortDirection)
+    return libraryItemPagingFactory.create(user, input)
+  }
+
+  override fun observeFilteredLibraryCount(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Int?> {
     return userRepository.observeCurrentUser()
-      .mapLatest { user ->
+      .flatMapLatest { user ->
         val input = LibraryItemPagingInput(filter, sortMode, sortDirection)
-        LibraryItemPager(
-          pager = libraryItemPagingFactory.create(user, input),
-          countFlow = db.libraryItemPageQueries
-            .selectOldestPage(
-              input = input.databaseKey,
-              userId = user.id,
-              libraryId = user.selectedLibraryId,
-            )
-            .asFlow()
-            .mapToOneOrNull(dispatcherProvider.databaseRead)
-            .map { it?.total },
-        )
+        db.libraryItemPageQueries
+          .selectOldestPage(
+            input = input.databaseKey,
+            userId = user.id,
+            libraryId = user.selectedLibraryId,
+          )
+          .asFlow()
+          .mapToOneOrNull(dispatcherProvider.databaseRead)
+          .map { it?.total }
       }
   }
 

@@ -1,11 +1,14 @@
 package app.campfire.user
 
 import app.campfire.CampfireDatabase
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUser
 import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
@@ -15,11 +18,14 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Fetcher
@@ -38,6 +44,7 @@ class StoreUserRepository(
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
   private val dispatcherProvider: DispatcherProvider,
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : UserRepository {
 
   private val userStore = StoreBuilder.from(
@@ -87,6 +94,18 @@ class StoreUserRepository(
       .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
       .map { it.requireData() }
       .distinctUntilChanged()
+  }
+
+  override fun observeStatefulCurrentUser(): StateFlow<User> {
+    return userStore.stream(StoreReadRequest.cached(Unit, refresh = false))
+      .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
+      .map { it.requireData() }
+      .distinctUntilChanged()
+      .stateIn(
+        scope = coroutineScopeHolder.get(),
+        started = SharingStarted.Eagerly,
+        initialValue = userSession.requiredUser,
+      )
   }
 
   override suspend fun getCurrentUser(): User {

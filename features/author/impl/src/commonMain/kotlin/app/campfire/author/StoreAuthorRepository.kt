@@ -11,6 +11,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
+import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 import app.campfire.data.mapping.asDomainModel
@@ -22,7 +23,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -59,26 +59,29 @@ class StoreAuthorRepository(
       }
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  override fun observeAuthorsPager(
+  override fun createAuthorsPager(
+    user: User,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<AuthorPager> {
+  ): AuthorPager {
+    val input = AuthorsPagingInput(sortMode, sortDirection)
+    return authorsPagerFactory.create(user, input)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeFilteredAuthorsCount(sortMode: ContentSortMode, sortDirection: SortDirection): Flow<Int?> {
     return userRepository.observeCurrentUser()
-      .mapLatest { user ->
+      .flatMapLatest { user ->
         val input = AuthorsPagingInput(sortMode, sortDirection)
-        AuthorPager(
-          pager = authorsPagerFactory.create(user, input),
-          countFlow = db.authorsPageQueries
-            .selectOldestPage(
-              input = input.databaseKey,
-              userId = user.id,
-              libraryId = user.selectedLibraryId,
-            )
-            .asFlow()
-            .mapToOneOrNull(dispatcherProvider.databaseRead)
-            .map { it?.total },
-        )
+        db.authorsPageQueries
+          .selectOldestPage(
+            input = input.databaseKey,
+            userId = user.id,
+            libraryId = user.selectedLibraryId,
+          )
+          .asFlow()
+          .mapToOneOrNull(dispatcherProvider.databaseRead)
+          .map { it?.total }
       }
   }
 

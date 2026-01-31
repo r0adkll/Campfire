@@ -1,9 +1,8 @@
 package app.campfire.libraries.ui.paged
 
 import androidx.compose.runtime.Immutable
-import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
 import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
@@ -12,10 +11,9 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
-import kotlinx.coroutines.flow.Flow
 
 data class LibraryUiState(
-  val contentState: LoadState<out Flow<PagingData<LibraryItem>>>,
+  val lazyPagingItems: LazyPagingItems<LibraryItem>,
   val itemDisplayState: ItemDisplayState,
   val totalItemCount: Int,
   val sort: LibrarySort,

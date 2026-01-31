@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -21,8 +20,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import app.campfire.common.compose.CampfireWindowInsets
@@ -30,12 +28,9 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.ContentPagingScaffold
-import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.ItemCollectionCard
-import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.SeriesScreen
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Series
@@ -50,11 +45,9 @@ import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.empty_series_items_message
-import campfire.features.series.ui.generated.resources.error_series_items_message
 import campfire.features.series.ui.generated.resources.filter_bar_series_count
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -86,48 +79,40 @@ fun Series(
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
-    when (state.seriesContentState) {
-      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LoadState.Error -> ErrorListState(
-        message = stringResource(Res.string.error_series_items_message),
-        modifier = Modifier.padding(paddingValues),
-      )
-
-      is LoadState.Loaded -> LoadedState(
-        totalCount = state.totalCount,
-        filter = state.filter,
-        sortMode = state.sortMode,
-        sortDirection = state.sortDirection,
-        items = state.seriesContentState.data,
-        onSeriesClick = { state.eventSink(SeriesUiEvent.SeriesClicked(it)) },
-        onFilterClick = {
-          scope.launch {
-            val result = contentFilterUi.showContentFilterBottomSheet(
-              overlayHost = overlayHost,
-              current = state.filter,
-              allowedCategories = contentFilterUi.seriesFilterCategories,
-            )
-            if (result is ContentFilterResult.Selected) {
-              state.eventSink(SeriesUiEvent.FilterChanged(result.filter))
-            }
+    LoadedState(
+      totalCount = state.totalCount,
+      lazyPagingItems = state.lazyPagingItems,
+      filter = state.filter,
+      sortMode = state.sortMode,
+      sortDirection = state.sortDirection,
+      onSeriesClick = { state.eventSink(SeriesUiEvent.SeriesClicked(it)) },
+      onFilterClick = {
+        scope.launch {
+          val result = contentFilterUi.showContentFilterBottomSheet(
+            overlayHost = overlayHost,
+            current = state.filter,
+            allowedCategories = contentFilterUi.seriesFilterCategories,
+          )
+          if (result is ContentFilterResult.Selected) {
+            state.eventSink(SeriesUiEvent.FilterChanged(result.filter))
           }
-        },
-        onSortClick = {
-          scope.launch {
-            val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
-              overlayHost = overlayHost,
-              current = state.sortMode,
-              currentDirection = state.sortDirection,
-              config = SeriesSortModes,
-            )
-            if (updatedSortMode != null) {
-              state.eventSink(SeriesUiEvent.SortModeChanged(updatedSortMode))
-            }
+        }
+      },
+      onSortClick = {
+        scope.launch {
+          val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
+            overlayHost = overlayHost,
+            current = state.sortMode,
+            currentDirection = state.sortDirection,
+            config = SeriesSortModes,
+          )
+          if (updatedSortMode != null) {
+            state.eventSink(SeriesUiEvent.SortModeChanged(updatedSortMode))
           }
-        },
-        contentPadding = paddingValues,
-      )
-    }
+        }
+      },
+      contentPadding = paddingValues,
+    )
   }
 }
 
@@ -135,10 +120,10 @@ fun Series(
 @Composable
 private fun LoadedState(
   totalCount: Int,
+  lazyPagingItems: LazyPagingItems<Series>,
   filter: ContentFilter?,
   sortMode: ContentSortMode,
   sortDirection: SortDirection,
-  items: Flow<PagingData<Series>>,
   onSeriesClick: (Series) -> Unit,
   onFilterClick: () -> Unit,
   onSortClick: () -> Unit,
@@ -146,7 +131,6 @@ private fun LoadedState(
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyGridState = rememberLazyGridState(),
 ) {
-  val lazyPagingItems = items.collectAsLazyPagingItems()
   ContentPagingScaffold(
     modifier = modifier,
     lazyPagingItems = lazyPagingItems,

@@ -1,9 +1,8 @@
 package app.campfire.libraries.api
 
-import androidx.paging.Pager
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 import app.campfire.libraries.api.paging.LibraryItemPager
@@ -21,17 +20,18 @@ interface LibraryRepository {
    */
   fun observeAllLibraries(refresh: Boolean = true): Flow<List<Library>>
 
-  /**
-   * Observe an up-to-date pager for the provided input parameters.
-   * If the user changes their library, then this will emit a new pager
-   * that is keyed to that library.
-   * @return a [Flow] that will emit a [Pager] of [LibraryItem]s for the given inputs and users selected library
-   */
-  fun observeLibraryItemPager(
+  fun createLibraryItemPager(
+    user: User,
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<LibraryItemPager>
+  ): LibraryItemPager
+
+  fun observeFilteredLibraryCount(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Int?>
 
   /**
    * Set a library as the currently selected one

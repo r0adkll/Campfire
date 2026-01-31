@@ -13,6 +13,7 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
@@ -135,12 +136,6 @@ class StoreSeriesRepository(
 
             // Insert the books
             networkResult.books.forEach { item ->
-              // TODO: Update when https://github.com/advplyr/audiobookshelf/pull/3945 is merged
-//              libraryItemDao.insert(
-//                item = item,
-//                asTransaction = false,
-//              )
-
               val libraryItem = item.asDbModel(serverUrl)
               val media = item.media.asDbModel(item.id)
               db.libraryItemsQueries.insertOrIgnore(libraryItem)
@@ -198,27 +193,34 @@ class StoreSeriesRepository(
       }
   }
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  override fun observeSeriesPager(
+  override fun createSeriesPager(
+    user: User,
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<SeriesPager> {
+  ): SeriesPager {
+    val input = SeriesPagingInput(filter, sortMode, sortDirection)
+    return seriesPagerFactory.create(user, input)
+  }
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  override fun observeFilteredSeriesCount(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Int?> {
     return userRepository.observeCurrentUser()
-      .mapLatest { user ->
+      .flatMapLatest { user ->
         val input = SeriesPagingInput(filter, sortMode, sortDirection)
-        SeriesPager(
-          pager = seriesPagerFactory.create(user, input),
-          countFlow = db.seriesPageQueries
-            .selectOldestPage(
-              input = input.databaseKey,
-              userId = user.id,
-              libraryId = user.selectedLibraryId,
-            )
-            .asFlow()
-            .mapToOneOrNull(dispatcherProvider.databaseRead)
-            .map { it?.total },
-        )
+        db.seriesPageQueries
+          .selectOldestPage(
+            input = input.databaseKey,
+            userId = user.id,
+            libraryId = user.selectedLibraryId,
+          )
+          .asFlow()
+          .mapToOneOrNull(dispatcherProvider.databaseRead)
+          .map { it?.total }
       }
   }
 

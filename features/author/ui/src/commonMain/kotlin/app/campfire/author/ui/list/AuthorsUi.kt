@@ -2,7 +2,6 @@ package app.campfire.author.ui.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -14,8 +13,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingData
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import app.campfire.common.compose.CampfireWindowInsets
@@ -23,11 +21,8 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ContentPagingScaffold
-import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
-import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorsScreen
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.core.settings.AuthorSortModes
@@ -39,11 +34,9 @@ import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.author.ui.generated.resources.Res
 import campfire.features.author.ui.generated.resources.empty_authors_message
-import campfire.features.author.ui.generated.resources.error_authors_items_message
 import campfire.features.author.ui.generated.resources.filter_bar_author_count
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -73,41 +66,33 @@ fun Authors(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     val overlayHost = LocalOverlayHost.current
-    when (state.authorContentState) {
-      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LoadState.Error -> ErrorListState(
-        message = stringResource(Res.string.error_authors_items_message),
-        modifier = Modifier.padding(paddingValues),
-      )
-
-      is LoadState.Loaded -> LoadedState(
-        items = state.authorContentState.data,
-        numAuthors = state.numAuthors,
-        sortMode = state.sortMode,
-        sortDirection = state.sortDirection,
-        onAuthorClick = { state.eventSink(AuthorsUiEvent.AuthorClick(it)) },
-        onSortClick = {
-          scope.launch {
-            val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
-              overlayHost,
-              state.sortMode,
-              state.sortDirection,
-              AuthorSortModes,
-            )
-            if (updatedSortMode != null) {
-              state.eventSink(AuthorsUiEvent.SortModeSelected(updatedSortMode))
-            }
+    LoadedState(
+      lazyPagingItems = state.lazyPagingItems,
+      numAuthors = state.numAuthors,
+      sortMode = state.sortMode,
+      sortDirection = state.sortDirection,
+      onAuthorClick = { state.eventSink(AuthorsUiEvent.AuthorClick(it)) },
+      onSortClick = {
+        scope.launch {
+          val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
+            overlayHost,
+            state.sortMode,
+            state.sortDirection,
+            AuthorSortModes,
+          )
+          if (updatedSortMode != null) {
+            state.eventSink(AuthorsUiEvent.SortModeSelected(updatedSortMode))
           }
-        },
-        contentPadding = paddingValues,
-      )
-    }
+        }
+      },
+      contentPadding = paddingValues,
+    )
   }
 }
 
 @Composable
 private fun LoadedState(
-  items: Flow<PagingData<Author>>,
+  lazyPagingItems: LazyPagingItems<Author>,
   numAuthors: Int,
   sortMode: ContentSortMode,
   sortDirection: SortDirection,
@@ -117,7 +102,6 @@ private fun LoadedState(
   modifier: Modifier = Modifier,
   state: LazyGridState = rememberLazyGridState(),
 ) {
-  val lazyPagingItems = items.collectAsLazyPagingItems()
   ContentPagingScaffold(
     modifier = modifier,
     lazyPagingItems = lazyPagingItems,

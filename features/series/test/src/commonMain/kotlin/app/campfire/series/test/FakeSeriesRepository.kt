@@ -3,6 +3,7 @@ package app.campfire.series.test
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
+import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 import app.campfire.series.api.SeriesRepository
@@ -22,11 +23,20 @@ class FakeSeriesRepository : SeriesRepository {
     return seriesLibraryItemsFlow
   }
 
-  override fun observeSeriesPager(
+  override fun createSeriesPager(
+    user: User,
     filter: ContentFilter?,
     sortMode: ContentSortMode,
     sortDirection: SortDirection,
-  ): Flow<SeriesPager> {
+  ): SeriesPager {
+    TODO("Not yet implemented")
+  }
+
+  override fun observeFilteredSeriesCount(
+    filter: ContentFilter?,
+    sortMode: ContentSortMode,
+    sortDirection: SortDirection,
+  ): Flow<Int?> {
     TODO("Not yet implemented")
   }
 }
