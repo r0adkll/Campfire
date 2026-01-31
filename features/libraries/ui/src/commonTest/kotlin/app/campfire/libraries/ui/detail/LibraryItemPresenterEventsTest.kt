@@ -13,7 +13,6 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
-import app.campfire.libraries.api.LibraryItemFilter
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.user.test.FakeMediaProgressRepository
