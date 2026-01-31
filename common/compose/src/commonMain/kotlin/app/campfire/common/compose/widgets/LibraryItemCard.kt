@@ -373,7 +373,7 @@ private fun MediaFinishedIndicator(
   modifier: Modifier = Modifier,
   size: Dp = 24.dp,
   contentColor: Color = Color.Green,
-  containerColor: Color = MaterialTheme.colorScheme.surfaceDim,
+  containerColor: Color = MaterialTheme.colorScheme.surface,
 ) {
   Box(
     modifier = modifier
