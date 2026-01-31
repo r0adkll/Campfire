@@ -14,6 +14,7 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -119,7 +120,7 @@ class CollectionsSourceOfTruthFactory(
         db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
         // Insert the collection books
-        collection.books.forEach { book ->
+        collection.books.forEachIndexed { index, book ->
 
           // These books are expanded objects, so they should be safe to insert/replace
           libraryItemDao.insert(
@@ -132,6 +133,7 @@ class CollectionsSourceOfTruthFactory(
             CollectionsBookJoin(
               collectionsId = collection.id,
               libraryItemId = book.id,
+              itemOrder = index,
             ),
           )
         }
@@ -149,7 +151,7 @@ class CollectionsSourceOfTruthFactory(
       db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
       // Insert the collection books
-      collection.books.forEach { book ->
+      collection.books.forEachIndexed { index, book ->
 
         // These books are expanded objects, so they should be safe to insert/replace
         libraryItemDao.insert(
@@ -162,6 +164,7 @@ class CollectionsSourceOfTruthFactory(
           CollectionsBookJoin(
             collectionsId = collection.id,
             libraryItemId = book.id,
+            itemOrder = index,
           ),
         )
       }
@@ -187,11 +190,12 @@ class CollectionsSourceOfTruthFactory(
           ),
         )
 
-      mutation.bookIds.forEach { bookId ->
+      mutation.bookIds.forEachIndexed { index, bookId ->
         db.collectionsBookJoinQueries.insert(
           CollectionsBookJoin(
             collectionsId = mutation.creationId.toHexDashString(),
             libraryItemId = bookId,
+            itemOrder = index,
           ),
         )
       }
@@ -221,13 +225,20 @@ class CollectionsSourceOfTruthFactory(
 
   private suspend fun handleAdd(
     mutation: CollectionsStore.Operation.Mutation.Add,
-  ) = withContext(dispatcherProvider.databaseWrite) {
-    db.collectionsBookJoinQueries.insert(
-      CollectionsBookJoin(
-        collectionsId = mutation.collectionId,
-        libraryItemId = mutation.bookId,
-      ),
-    )
+  ) = withContext(dispatcherProvider.databaseRead) {
+    val collectionCount = db.collectionsBookJoinQueries
+      .countForCollection(mutation.collectionId)
+      .awaitAsOne()
+
+    withContext(dispatcherProvider.databaseWrite) {
+      db.collectionsBookJoinQueries.insert(
+        CollectionsBookJoin(
+          collectionsId = mutation.collectionId,
+          libraryItemId = mutation.bookId,
+          itemOrder = collectionCount.toInt()
+        ),
+      )
+    }
   }
 
   private suspend fun handleRemove(

@@ -197,7 +197,9 @@ private fun LoadedState(
             sharedTransitionKey = series.id,
             name = series.name,
             description = series.description,
-            items = series.books ?: emptyList(),
+            items = series.books
+              ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+              ?: emptyList(),
             onClick = { onSeriesClick(series) },
             modifier = Modifier
               .fillMaxWidth()

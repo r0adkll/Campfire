@@ -122,7 +122,6 @@ private fun MultiBookLayout(
   Layout(
     content = {
       items
-        .sortedBy { it.media.metadata.seriesSequence?.sequence }
         .take(MaxBookDisplay)
         .forEachIndexed { i, item ->
           ItemImage(

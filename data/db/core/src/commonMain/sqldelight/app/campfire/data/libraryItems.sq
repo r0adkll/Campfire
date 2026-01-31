@@ -63,7 +63,8 @@ selectForCollection:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN collectionsBookJoin ON collectionsBookJoin.libraryItemId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
-WHERE collectionsBookJoin.collectionsId = ?;
+WHERE collectionsBookJoin.collectionsId = ?
+ORDER BY collectionsBookJoin.itemOrder ASC;
 
 selectForAuthorName:
 SELECT libraryItem.*,media.* FROM libraryItem

@@ -1,6 +1,9 @@
+import kotlin.Int;
+
 CREATE TABLE IF NOT EXISTS collectionsBookJoin (
   collectionsId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
+  itemOrder INTEGER AS Int NOT NULL,
 
   PRIMARY KEY (collectionsId, libraryItemId),
   FOREIGN KEY (collectionsId) REFERENCES collections(id) ON UPDATE NO ACTION ON DELETE CASCADE,
@@ -10,8 +13,12 @@ CREATE TABLE IF NOT EXISTS collectionsBookJoin (
 CREATE INDEX IF NOT EXISTS index_collections_book_join_libraryItemId ON collectionsBookJoin(libraryItemId);
 
 insert:
-INSERT OR IGNORE INTO collectionsBookJoin
+INSERT OR REPLACE INTO collectionsBookJoin
 VALUES ?;
+
+countForCollection:
+SELECT count(*) FROM collectionsBookJoin
+WHERE collectionsId = ?;
 
 delete:
 DELETE FROM collectionsBookJoin

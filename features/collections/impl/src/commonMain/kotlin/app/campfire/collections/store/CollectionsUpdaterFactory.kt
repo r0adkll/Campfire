@@ -73,9 +73,9 @@ class CollectionsUpdaterFactory(
         db.collectionsQueries.insert(collection.asDbModel(userId))
 
         // Copy over the junction entries
-        collection.books.forEach { book ->
+        collection.books.forEachIndexed { index, book ->
           db.collectionsBookJoinQueries.insert(
-            CollectionsBookJoin(collection.id, book.id),
+            CollectionsBookJoin(collection.id, book.id, index),
           )
         }
 

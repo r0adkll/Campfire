@@ -195,7 +195,9 @@ private fun SuccessContent(
           sharedTransitionKey = s.id,
           name = s.name,
           description = s.description,
-          items = s.books ?: emptyList(),
+          items = s.books
+            ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+            ?: emptyList(),
           itemSize = 100.dp,
           onClick = { onSeriesClick(s) },
           colors = CardDefaults.elevatedCardColors(

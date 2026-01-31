@@ -173,7 +173,9 @@ private fun LoadedShelfContent(
           sharedTransitionKey = entity.id,
           name = entity.name,
           description = entity.description,
-          items = entity.books ?: emptyList(),
+          items = entity.books
+            ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+            ?: emptyList(),
           onClick = { onItemClick(entity) },
           modifier = Modifier
             .width(SeriesCardWidth)

@@ -8,6 +8,7 @@ import app.campfire.data.AuthorsPageJoin
 import app.campfire.data.BookmarkFailedCreate
 import app.campfire.data.BookmarkFailedDelete
 import app.campfire.data.Bookmarks
+import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.FilterData
 import app.campfire.data.Library
 import app.campfire.data.LibraryItem
@@ -185,6 +186,9 @@ class DatabaseFactory(
     ),
     seriesPageJoinAdapter = SeriesPageJoin.Adapter(
       pageIndexAdapter = IntColumnAdapter,
+    ),
+    collectionsBookJoinAdapter = CollectionsBookJoin.Adapter(
+      itemOrderAdapter = IntColumnAdapter,
     ),
   )
 }

@@ -59,3 +59,9 @@ CREATE TABLE seriesPageJoin (
   PRIMARY KEY (pageId, seriesId),
   FOREIGN KEY (pageId) REFERENCES seriesPage(id) ON DELETE CASCADE
 );
+
+-- Collection Page Order
+-- Delete all collections, add order to the joins table.
+DELETE FROM collections;
+ALTER TABLE collectionsBookJoin
+ADD COLUMN itemOrder INTEGER NOT NULL;
