@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -41,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -49,6 +51,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIfNotNull
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.FatCheck
 import app.campfire.common.compose.util.rememberThemeDispatcherListener
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -189,18 +193,30 @@ private fun LibraryItemCardImage(
     }
 
     progress?.let { mediaProgress ->
-      AnimatedVisibility(
-        visible = isTransitionVisible,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = Modifier
-          .align(Alignment.BottomCenter),
-      ) {
-        MediaProgressBar(
-          mediaProgress = mediaProgress,
+      if (mediaProgress.isFinished) {
+        AnimatedVisibility(
+          visible = isTransitionVisible,
+          enter = fadeIn(),
+          exit = fadeOut(),
           modifier = Modifier
-            .fillMaxWidth(),
-        )
+            .align(Alignment.TopStart),
+        ) {
+          MediaFinishedIndicator()
+        }
+      } else {
+        AnimatedVisibility(
+          visible = isTransitionVisible,
+          enter = fadeIn(),
+          exit = fadeOut(),
+          modifier = Modifier
+            .align(Alignment.BottomCenter),
+        ) {
+          MediaProgressBar(
+            mediaProgress = mediaProgress,
+            modifier = Modifier
+              .fillMaxWidth(),
+          )
+        }
       }
     }
 
@@ -348,6 +364,35 @@ private fun MediaProgressBar(
       topLeft = Offset(x = -cornerRadiusPx, y = 0f),
       size = progressSize,
       cornerRadius = CornerRadius(cornerRadiusPx),
+    )
+  }
+}
+
+@Composable
+private fun MediaFinishedIndicator(
+  modifier: Modifier = Modifier,
+  size: Dp = 24.dp,
+  contentColor: Color = Color.Green,
+  containerColor: Color = MaterialTheme.colorScheme.surfaceDim,
+) {
+  Box(
+    modifier = modifier
+      .padding(8.dp)
+      .shadow(
+        elevation = 1.dp,
+        shape = CircleShape,
+      )
+      .background(
+        color = containerColor,
+        shape = CircleShape
+      ),
+  ) {
+    Icon(
+      CampfireIcons.Rounded.FatCheck,
+      contentDescription = null,
+      tint = contentColor,
+      modifier = modifier
+        .size(size),
     )
   }
 }
