@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Paging Support! Library items, series, and authors are all now paginated for large library support
+- Item progress now displays in contexts other than the Home feed
 
 ### Changed
 

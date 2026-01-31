@@ -321,7 +321,6 @@ fun mapToLibraryItemWithProgress(
     id_,
     libraryItemId_,
     userId,
-    episodeId,
     mediaItemId,
     mediaItemType,
     duration,
