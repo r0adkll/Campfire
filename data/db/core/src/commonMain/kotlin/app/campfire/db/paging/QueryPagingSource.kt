@@ -8,7 +8,7 @@ abstract class QueryPagingSource<Key : Any, RowType : Any, DatabaseType : Any> :
   PagingSource<Key, RowType>(),
   Query.Listener {
 
-  protected var currentQuery: Query<DatabaseType>? by Delegates.observable(null) { _, old, new ->
+  protected var currentQuery: Query<*>? by Delegates.observable(null) { _, old, new ->
     old?.removeListener(this)
     new?.addListener(this)
   }

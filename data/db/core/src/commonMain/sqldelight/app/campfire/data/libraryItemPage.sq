@@ -112,3 +112,12 @@ WHERE libraryItemPage.userId = :userId
 ORDER BY libraryItemPage.page ASC, libraryItemPageJoin.pageIndex ASC
 LIMIT :limit OFFSET :offset;
 
+selectLibraryItemsPagesWithLimitOffset:
+SELECT * FROM libraryItemPageJoin
+INNER JOIN libraryItemPage ON libraryItemPage.id = libraryItemPageJoin.pageId
+WHERE libraryItemPage.userId = :userId
+  AND libraryItemPage.libraryId = :libraryId
+  AND libraryItemPage.input = :input
+ORDER BY libraryItemPage.page ASC, libraryItemPageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;
+

@@ -29,6 +29,7 @@ class LibraryItemPagerFactory(
       config = PagingConfig(
         pageSize = DEFAULT_PAGE_SIZE,
         initialLoadSize = DEFAULT_PAGE_SIZE,
+        enablePlaceholders = false,
       ),
       remoteMediator = remoteMediatorFactory(user, input),
     ) {
@@ -48,6 +49,26 @@ class LibraryItemPagerFactory(
             limit = limit,
             offset = offset,
             ::mapToLibraryItemWithProgress,
+          )
+        },
+        queryObserverProvider = { limit: Long, offset: Long ->
+          /*
+           * Provide an alternative observable sqldelight [Query] here to prevent unnecessary churn
+           * when opening an item detail. This is because the detail screen downloads a fully expanded library
+           * item object and updates the underlying datastore. Due to the that table being included in the
+           * query above it will cause the PagingSource to invalidate and create a ton of visual churn
+           * which is an un-ideal user experience.
+           *
+           * The data from this query is never actually requested or used and instead is used as an
+           * observability trigger against the remote page keys in the database. These only change with the
+           * paging setup itself.
+           */
+          db.libraryItemPageQueries.selectLibraryItemsPagesWithLimitOffset(
+            userId = user.id,
+            libraryId = user.selectedLibraryId,
+            input = input.databaseKey,
+            limit = limit,
+            offset = offset,
           )
         },
         mapper = {
