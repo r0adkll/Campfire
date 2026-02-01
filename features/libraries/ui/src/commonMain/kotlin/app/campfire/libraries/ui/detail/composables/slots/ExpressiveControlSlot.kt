@@ -22,6 +22,7 @@ class ExpressiveControlSlot(
   private val libraryItem: LibraryItem,
   private val offlineDownload: OfflineDownload?,
   private val mediaProgress: MediaProgress?,
+  private val isCurrentSession: Boolean,
   @get:VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
 ) : ContentSlot {
 
@@ -39,6 +40,7 @@ class ExpressiveControlSlot(
     }
 
     ExpressiveControlBar(
+      isCurrentSession = isCurrentSession,
       offlineDownload = offlineDownload,
       mediaProgress = mediaProgress,
       onPlayClick = {

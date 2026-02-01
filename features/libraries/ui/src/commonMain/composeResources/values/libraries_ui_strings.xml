@@ -16,6 +16,7 @@
   <string name="sort_mode_duration">Duration</string>
 
   <string name="action_resume_listening">Continue listening</string>
+  <string name="action_currently_playing">Currently playing</string>
   <string name="action_play">Play</string>
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>

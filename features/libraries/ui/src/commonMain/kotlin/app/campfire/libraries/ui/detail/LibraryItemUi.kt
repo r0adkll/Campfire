@@ -314,6 +314,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
               offlineDownload = offlineDownload,
               mediaProgress = mediaProgress,
               showConfirmDownloadDialogSetting = true,
+              isCurrentSession = false,
             ),
             SpacerSlot.medium("summary_spacer"),
             SummarySlot(libraryItem.media.metadata.description!!),

@@ -64,6 +64,7 @@ import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.MarkFinished
+import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
@@ -74,6 +75,7 @@ import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
 import campfire.features.libraries.ui.generated.resources.action_play
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
@@ -90,6 +92,7 @@ import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
 @Composable
 internal fun ExpressiveControlBar(
+  isCurrentSession: Boolean,
   mediaProgress: MediaProgress?,
   offlineDownload: OfflineDownload?,
   onPlayClick: () -> Unit,
@@ -118,9 +121,10 @@ internal fun ExpressiveControlBar(
 
       PlayAndDownloadButtons(
         offlineDownload = offlineDownload,
-        hasProgress = hasProgress,
         onPlayClick = onPlayClick,
         onDownloadClick = onDownloadClick,
+        hasProgress = hasProgress,
+        isCurrentSession = isCurrentSession,
       )
 
       if (!offlineDownload.isNullOrNone()) {
@@ -526,8 +530,9 @@ private fun ProgressModifierButtons(
 private fun PlayAndDownloadButtons(
   offlineDownload: OfflineDownload?,
   onPlayClick: () -> Unit,
-  hasProgress: Boolean,
   onDownloadClick: () -> Unit,
+  hasProgress: Boolean,
+  isCurrentSession: Boolean,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -545,6 +550,7 @@ private fun PlayAndDownloadButtons(
     )
 
     Button(
+      enabled = !isCurrentSession,
       onClick = onPlayClick,
       modifier = Modifier
         .heightIn(size)
@@ -567,16 +573,20 @@ private fun PlayAndDownloadButtons(
       contentPadding = ButtonDefaults.MediumContentPadding,
     ) {
       Icon(
-        if (hasProgress) Icons.Outlined.Autoplay else Icons.Rounded.PlayArrow,
+        when {
+          isCurrentSession -> CampfireIcons.Rounded.MotionPlay
+          hasProgress -> Icons.Outlined.Autoplay
+          else -> Icons.Rounded.PlayArrow
+        },
         contentDescription = null,
         modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
       )
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
       Text(
-        text = if (hasProgress) {
-          stringResource(Res.string.action_resume_listening)
-        } else {
-          stringResource(Res.string.action_play)
+        text = when {
+          isCurrentSession -> stringResource(Res.string.action_currently_playing)
+          hasProgress -> stringResource(Res.string.action_resume_listening)
+          else -> stringResource(Res.string.action_play)
         },
         style = ButtonDefaults.textStyleFor(size),
       )
@@ -636,12 +646,21 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       libraryItem = libraryItem(),
       offlineDownload = null,
       mediaProgress = null,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
       offlineDownload = null,
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
+      showConfirmDownloadDialogSetting = false,
+    ),
+    ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = mediaProgress(),
+      isCurrentSession = true,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -653,6 +672,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
         progress = OfflineDownload.Progress(0L, 0f, true),
       ),
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -667,6 +687,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
         ),
       ),
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -682,6 +703,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
         ),
       ),
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -696,6 +718,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
         ),
       ),
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     ),
   )

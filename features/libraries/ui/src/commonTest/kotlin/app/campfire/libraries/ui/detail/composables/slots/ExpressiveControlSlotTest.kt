@@ -26,6 +26,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = null,
       mediaProgress = null,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -52,6 +53,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = null,
       mediaProgress = mediaProgress,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -78,6 +80,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = null,
       mediaProgress = mediaProgress,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -106,6 +109,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = offlineDownload,
       mediaProgress = null,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -133,6 +137,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = offlineDownload,
       mediaProgress = null,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -162,6 +167,7 @@ class ExpressiveControlSlotTest {
       libraryItem = libraryItem,
       offlineDownload = offlineDownload,
       mediaProgress = null,
+      isCurrentSession = false,
       showConfirmDownloadDialogSetting = false,
     )
 
