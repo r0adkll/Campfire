@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- "Play/Continue listening" button on item details is now disabled if it is the current play session
+
 ### Deprecated
 
 ### Removed
@@ -24,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Death loop when using multiple accounts and all refresh tokens expire
 - Collection book ordering not being consistent with web/server
 - Fast Forward / Rewind not working on Android Auto
+- Collections not being editable if you were a "root" user
+- Playback view now maintains expansion state on configuration changes
 
 ### Other Notes & Contributions
 
