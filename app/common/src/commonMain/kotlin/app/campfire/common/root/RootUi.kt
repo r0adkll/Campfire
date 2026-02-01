@@ -66,6 +66,7 @@ import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.NavigableCircuitContent
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.overlay.rememberOverlayHost
+import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
 import com.slack.circuitx.gesturenavigation.GestureNavigationDecorationFactory
@@ -154,7 +155,7 @@ internal fun RootUi(
     }
   }
 
-  var playbackBarExpanded by remember { mutableStateOf(false) }
+  var playbackBarExpanded by rememberRetainedSaveable { mutableStateOf(false) }
   NavigationBackHandler(
     state = rememberNavigationEventState(NavigationEventInfo.None),
     isBackEnabled = playbackBarExpanded,
