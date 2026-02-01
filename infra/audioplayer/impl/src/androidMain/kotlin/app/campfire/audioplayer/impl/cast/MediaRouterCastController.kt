@@ -52,7 +52,7 @@ class MediaRouterCastController(
       state.value = context.castState.asDomain()
 
       ibark { "CastController:initialize(state = ${context.castState.asDomain()})" }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       wbark(throwable = e) { "Unable to initialize CastContext" }
     }
   }
@@ -62,7 +62,7 @@ class MediaRouterCastController(
     try {
       val context = CastContext.getSharedInstance(application)
       context.removeCastStateListener(this)
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to destroy CastContext" }
     } finally {
       state.value = CastState.Unavailable
@@ -83,7 +83,7 @@ class MediaRouterCastController(
       mediaRouter.addCallback(selector, this, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
 
       ibark { "CastController:scanForDevices()" }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to start device scan" }
     }
   }
@@ -94,7 +94,7 @@ class MediaRouterCastController(
       val mediaRouter = MediaRouter.getInstance(application)
       mediaRouter.removeCallback(this)
       ibark { "Stop scanning for devices" }
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to stop scanning for devices" }
     }
   }
@@ -105,7 +105,7 @@ class MediaRouterCastController(
       val mediaRouter = MediaRouter.getInstance(application)
       ibark { "Connecting route: ${mediaRouteCastDevice.route}" }
       mediaRouter.selectRoute(mediaRouteCastDevice.route)
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to connect to device" }
     }
   }

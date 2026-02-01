@@ -49,6 +49,9 @@ class DefaultAuthRepository(
 
     if (result.isSuccess) {
       val response = result.getOrThrow()
+      if (!validateResponse(response)) {
+        return Result.failure(IllegalStateException("Unable to authenticate user. No valid tokens."))
+      }
 
       handleLoginResponse(
         serverUrl = serverUrl,
@@ -79,7 +82,7 @@ class DefaultAuthRepository(
 
     if (result.isSuccess) {
       val response = result.getOrThrow()
-      if (response.user.accessToken == null) {
+      if (!validateResponse(response)) {
         return Result.failure(IllegalStateException("Unable to authenticate user. No valid tokens."))
       }
 
@@ -136,5 +139,9 @@ class DefaultAuthRepository(
       extraHeaders = networkSettings?.extraHeaders,
       user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
     )
+  }
+
+  private fun validateResponse(response: LoginResponse): Boolean {
+    return response.user.accessToken != null
   }
 }

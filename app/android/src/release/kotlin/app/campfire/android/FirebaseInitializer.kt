@@ -100,7 +100,7 @@ object FirebaseBark : Heartwood.Bark {
           },
         )
 
-        append(message)
+        append(message())
       },
     )
   }
