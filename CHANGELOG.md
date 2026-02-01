@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash when opening series detail page
 - Death loop when using multiple accounts and all refresh tokens expire
 - Collection book ordering not being consistent with web/server
+- Fast Forward / Rewind not working on Android Auto
 
 ### Other Notes & Contributions
 

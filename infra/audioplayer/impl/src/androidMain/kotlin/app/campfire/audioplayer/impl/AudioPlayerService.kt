@@ -182,9 +182,12 @@ class AudioPlayerService : MediaLibraryService() {
       session: MediaSession,
       controller: MediaSession.ControllerInfo,
     ): ConnectionResult {
-      if (session.isMediaNotificationController(controller)) {
+      if (
+        session.isMediaNotificationController(controller) ||
+        session.isAutoCompanionController(controller)
+      ) {
         val customLayoutCommandButtons = createCustomLayoutCommandButtons()
-        val sessionCommands = ConnectionResult.DEFAULT_SESSION_COMMANDS.buildUpon()
+        val sessionCommands = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
           .apply {
             customLayoutCommandButtons.forEach { cmd ->
               cmd.sessionCommand?.let(::add)
