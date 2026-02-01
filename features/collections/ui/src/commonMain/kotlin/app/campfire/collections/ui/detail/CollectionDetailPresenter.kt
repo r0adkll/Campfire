@@ -16,7 +16,6 @@ import app.campfire.common.screens.CollectionDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.user
 import app.campfire.libraries.api.screen.LibraryItemScreen
