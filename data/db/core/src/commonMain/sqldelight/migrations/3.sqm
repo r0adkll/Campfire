@@ -37,7 +37,7 @@ CREATE TABLE authorsPageJoin (
   pageIndex INTEGER AS Int NOT NULL,
   authorId TEXT NOT NULL,
   PRIMARY KEY (pageId, authorId),
-  FOREIGN KEY (pageId) REFERENCES libraryItemPage(id) ON DELETE CASCADE
+  FOREIGN KEY (pageId) REFERENCES authorsPage(id) ON DELETE CASCADE
 );
 
 CREATE TABLE seriesPage (
