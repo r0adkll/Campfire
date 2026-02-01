@@ -83,18 +83,21 @@ class DefaultAccountManager(
     changeSession {
       val allAccounts = serverRepository.getAllServers()
       val remainingAccounts = allAccounts.filter { it.user.id != user.id }
+      val currentAccount = allAccounts.firstOrNull { it.user.id == user.id }
 
       if (remainingAccounts.isEmpty()) {
-        val currentAccount = allAccounts.firstOrNull {
-          it.user.id == user.id &&
-            tokenStorage.get(user.id) != null
-        }
         currentAccount?.let { server ->
           UserSession.NeedsAuthentication(server)
         } ?: UserSession.LoggedOut
       } else {
-        val newAccount = remainingAccounts.first()
-        UserSession.LoggedIn(newAccount.user)
+        val newAccount = remainingAccounts.firstOrNull { account ->
+          tokenStorage.get(account.user.id) != null
+        }
+        newAccount?.let { server ->
+          UserSession.LoggedIn(server.user)
+        } ?: currentAccount?.let { server ->
+          UserSession.NeedsAuthentication(server)
+        } ?: UserSession.LoggedOut
       }
     }
   }
