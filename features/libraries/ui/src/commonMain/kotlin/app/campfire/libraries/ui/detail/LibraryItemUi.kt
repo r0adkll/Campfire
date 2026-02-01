@@ -158,7 +158,7 @@ fun LibraryItemContent(
             )
           }
 
-          if (state.user.type == Type.Admin) {
+          if (state.user.canEditCollections) {
             IconButton(
               onClick = {
                 Analytics.send(ActionEvent("add_to_collection", Click))

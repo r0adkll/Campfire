@@ -18,6 +18,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.user
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -43,8 +44,7 @@ class CollectionDetailPresenter(
 ) : NonPausablePresenter<CollectionDetailUiState> {
 
   private val canEdit by lazy {
-    (currentSession as? UserSession.LoggedIn)?.user
-      ?.type == User.Type.Admin
+    currentSession.user?.canEditCollections == true
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)

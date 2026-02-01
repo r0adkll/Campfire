@@ -15,6 +15,9 @@ data class User(
   val serverUrl: String,
 ) {
 
+  val canEditCollections: Boolean
+    get() = type == Type.Admin || type == Type.Root
+
   enum class Type {
     Root,
     Guest,

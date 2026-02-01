@@ -21,14 +21,10 @@ fun CollectionDetailTopAppBar(
   onBack: () -> Unit,
   onDelete: () -> Unit,
   modifier: Modifier = Modifier,
-  containerColor: Color = Color.Unspecified,
-  scrolledContainerColor: Color = Color.Unspecified,
 ) {
   CampfireTopAppBar(
     modifier = modifier,
     title = { Text(name) },
-    containerColor = containerColor,
-    scrolledContainerColor = scrolledContainerColor,
     scrollBehavior = scrollBehavior,
     navigationIcon = {
       IconButton(
