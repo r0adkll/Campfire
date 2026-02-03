@@ -23,7 +23,6 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.flow
-import kotlinx.datetime.LocalDate
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -76,7 +75,7 @@ class ChangelogPresenter(
 
     return ChangelogUiState(
       currentVersion = applicationInfo.versionName,
-      changeLogState = changeLogState
+      changeLogState = changeLogState,
     ) { event ->
       when (event) {
         ChangelogUiEvent.Back -> navigator.pop()
@@ -111,8 +110,8 @@ fun buildUiChangelog(
                   index == 0 -> Top
                   index == changeSet.changes.lastIndex -> Bottom
                   else -> Middle
-                }
-              )
+                },
+              ),
             )
           }
         }

@@ -67,9 +67,9 @@ class ComposeWhatsNewWidgetProvider(
     AnimatedVisibility(
       visible = showWhatsNewWidget,
       enter = slideInHorizontally { -it } + fadeIn(),
-      exit = slideOutHorizontally { -it }
-        + shrinkVertically(shrinkTowards = Alignment.CenterVertically) { 0 }
-        + fadeOut(),
+      exit = slideOutHorizontally { -it } +
+        shrinkVertically(shrinkTowards = Alignment.CenterVertically) { 0 } +
+        fadeOut(),
       modifier = modifier,
     ) {
       WhatsNewWidget(
@@ -79,7 +79,7 @@ class ComposeWhatsNewWidgetProvider(
           scope.launch {
             repository.dismissWhatsNew()
           }
-        }
+        },
       )
     }
   }
@@ -103,7 +103,7 @@ private fun WhatsNewWidget(
   ) {
     Row(
       modifier = Modifier,
-      verticalAlignment = Alignment.CenterVertically
+      verticalAlignment = Alignment.CenterVertically,
     ) {
       val scrim = Color.White
         .copy(alpha = 0.55f)
@@ -115,9 +115,9 @@ private fun WhatsNewWidget(
               0f to scrim,
               .5f to scrim.copy(alpha = .4f),
               1f to Color.Transparent,
-            )
+            ),
           )
-          .padding(12.dp)
+          .padding(12.dp),
       ) {
         LoadingCampfireIcon(
           size = 48.dp,
@@ -127,12 +127,12 @@ private fun WhatsNewWidget(
       }
 
       Column(
-        modifier = Modifier.weight(1f)
+        modifier = Modifier.weight(1f),
       ) {
         Text(
           text = "See what's new!",
           style = MaterialTheme.typography.titleMedium,
-          fontFamily = PaytoneOneFontFamily
+          fontFamily = PaytoneOneFontFamily,
         )
 
         Text(
@@ -168,7 +168,7 @@ private fun WhatsNewWidgetPreview() {
           onDismiss = {},
           modifier = Modifier
             .padding(8.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
         )
       }
     }

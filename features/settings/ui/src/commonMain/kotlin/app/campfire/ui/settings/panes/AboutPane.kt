@@ -136,7 +136,7 @@ internal fun AboutPane(
     ActionSetting(
       leadingContent = { Icon(CampfireIcons.Rounded.LogoDev, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_changelog_title)) },
-      onClick = { sendEvent(ChangelogClick) }
+      onClick = { sendEvent(ChangelogClick) },
     )
 
     val toast = LocalToast.current

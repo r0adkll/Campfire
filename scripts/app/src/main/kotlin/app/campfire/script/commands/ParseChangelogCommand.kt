@@ -185,7 +185,6 @@ object ChangelogParser {
     }
   }
 
-
   private fun Changelog.Changes.asMarkdownString(): String = buildString {
     val nonEmptyChanges = changes.filter { it.changes.isNotEmpty() }
     nonEmptyChanges.forEachIndexed { index, (name, changes) ->

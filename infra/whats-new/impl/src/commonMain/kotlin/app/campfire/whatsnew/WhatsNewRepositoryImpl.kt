@@ -40,14 +40,13 @@ class WhatsNewRepositoryImpl(
     settings.lastSeenVersion = applicationInfo.versionName
   }
 
-
   private suspend fun loadFromDisk(): Changelog = withContext(dispatcherProvider.io) {
     try {
       val json = Json { isLenient = true }
       val changelogBytes = Res.readBytes("files/changelog.json")
       val changes: List<VersionChanges> = json.decodeFromString(changelogBytes.decodeToString())
       Changelog(changes)
-    } catch (e : Exception) {
+    } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "Unable to read changelog from disk" }
       Changelog(emptyList())
     }
