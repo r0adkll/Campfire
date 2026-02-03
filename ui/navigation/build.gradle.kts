@@ -9,10 +9,8 @@ kotlin {
         api(projects.common.compose)
         api(projects.data.account.api)
 
-        // FIXME: This is an unintended dependency cycle. We should probably extract this element
-        //  or abstract it to projects.data.account.api
-//        api(projects.data.account.ui)
         api(projects.infra.updates.api)
+        api(projects.infra.whatsNew.api)
         api(projects.features.libraries.api)
         api(projects.ui.theming.api)
 

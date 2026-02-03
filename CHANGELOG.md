@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- What's New / Changelog screen and widget
+
 ### Changed
 
 ### Deprecated

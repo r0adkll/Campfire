@@ -51,6 +51,8 @@ import app.campfire.core.reflect.instanceOf
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.updates.AppUpdateWidget
+import app.campfire.whatsnew.api.WhatsNewWidgetProvider
+import app.campfire.whatsnew.api.screen.ChangelogScreen
 import campfire.ui.navigation.generated.resources.Res
 import campfire.ui.navigation.generated.resources.nav_authors_content_description
 import campfire.ui.navigation.generated.resources.nav_authors_label
@@ -77,6 +79,7 @@ import org.jetbrains.compose.resources.stringResource
 @ContributesTo(AppScope::class)
 interface CampfireDrawerComponent {
   val appUpdateWidget: AppUpdateWidget
+  val whatsNewWidget: WhatsNewWidgetProvider
 }
 
 @Composable
@@ -95,6 +98,18 @@ fun CampfireDrawer(
     modifier = modifier,
   ) {
     accountSwitcher()
+
+    component.whatsNewWidget.Content(
+      onClick = {
+        navigator.goTo(ChangelogScreen)
+        scope.launch {
+          drawerState.close()
+        }
+      },
+      modifier = Modifier.padding(
+        horizontal = 16.dp,
+      ),
+    )
 
     Spacer(Modifier.height(8.dp))
 

@@ -1,8 +1,10 @@
 package app.campfire.ui.settings.panes
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.LogoDev
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Copyright
+import androidx.compose.material.icons.rounded.LogoDev
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +19,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AreaChart
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.Github
+import app.campfire.common.compose.icons.rounded.LogoDev
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.toast.LocalToast
@@ -25,6 +28,7 @@ import app.campfire.core.toast.Toast
 import app.campfire.core.toast.ToastHandle
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
@@ -35,6 +39,7 @@ import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.about_attributions_title
+import campfire.features.settings.ui.generated.resources.about_changelog_title
 import campfire.features.settings.ui.generated.resources.about_data_analytic_reporting_subtitle
 import campfire.features.settings.ui.generated.resources.about_data_analytic_reporting_title
 import campfire.features.settings.ui.generated.resources.about_data_crash_reporting_subtitle
@@ -126,6 +131,12 @@ internal fun AboutPane(
       leadingContent = { Icon(Icons.Rounded.Code, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_attributions_title)) },
       onClick = { sendEvent(AttributionsClick) },
+    )
+
+    ActionSetting(
+      leadingContent = { Icon(CampfireIcons.Rounded.LogoDev, contentDescription = null) },
+      headlineContent = { Text(stringResource(Res.string.about_changelog_title)) },
+      onClick = { sendEvent(ChangelogClick) }
     )
 
     val toast = LocalToast.current

@@ -30,6 +30,8 @@ kotlin {
         api(projects.infra.audioplayer.impl)
         api(projects.infra.audioplayer.publicUi)
         api(projects.infra.updates.impl)
+        api(projects.infra.whatsNew.impl)
+        api(projects.infra.whatsNew.ui)
 
         // Feature Modules
         api(projects.features.home.impl)

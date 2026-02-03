@@ -6,6 +6,7 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import kotlinx.coroutines.flow.Flow
 
+// TODO: Break-up the CampfireSettings monolith into appScope/userScope layers
 interface CampfireSettings {
 
   var deviceId: String
@@ -56,4 +57,7 @@ interface CampfireSettings {
 
   var showTimeInBook: Boolean
   fun observeShowTimeInBook(): Flow<Boolean>
+
+  var lastSeenVersion: String?
+  fun observeLastSeenVersion(): Flow<String?>
 }

@@ -161,6 +161,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object PrivacyPolicyClick : AboutSettingEvent
     data object TermsOfServiceClick : AboutSettingEvent
     data object AttributionsClick : AboutSettingEvent
+    data object ChangelogClick : AboutSettingEvent
     data class CrashReportingEnabled(val enabled: Boolean) : AboutSettingEvent
     data class AnalyticReportingEnabled(val enabled: Boolean) : AboutSettingEvent
   }

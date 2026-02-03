@@ -31,6 +31,7 @@ import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.shake.ShakeDetector
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
@@ -60,6 +61,7 @@ import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
+import app.campfire.whatsnew.api.screen.ChangelogScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
@@ -267,6 +269,7 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.AboutSettingEvent -> when (event) {
+          ChangelogClick -> navigator.goTo(ChangelogScreen)
           AttributionsClick -> navigator.goTo(AttributionScreen)
           DeveloperClick -> navigator.goTo(UrlScreen(applicationUrls.developerHomepage))
           GithubClick -> navigator.goTo(UrlScreen(applicationUrls.githubDiscussion))

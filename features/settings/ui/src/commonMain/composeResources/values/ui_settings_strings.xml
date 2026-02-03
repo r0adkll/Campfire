@@ -101,6 +101,7 @@
   <string name="about_privacy_policy_title">Privacy policy</string>
   <string name="about_tos_title">Terms of service</string>
   <string name="about_attributions_title">Open source attributions</string>
+  <string name="about_changelog_title">Changelog</string>
   <string name="about_version_title">Version</string>
 
   <!-- Developer setting -->

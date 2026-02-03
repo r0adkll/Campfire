@@ -28,6 +28,7 @@ class ParseChangelogCommand : SuspendingCliktCommand(
     help = "Output the changes ONLY for this version. Otherwise prints latest version",
   )
   private val json by option("-j", "--json", help = "Output the requested version in JSON format").flag()
+  private val all by option("-a", "--all", help = "Output ALL versions").flag()
 
   private val config by requireObject<CampfireConfig>()
 
@@ -49,7 +50,13 @@ class ParseChangelogCommand : SuspendingCliktCommand(
       changelog = changelog,
       verbose = config.verbose,
       jsonFormat = json,
-      version = version,
+      version = version?.let {
+        ChangelogParser.OutputVersion.Version(it)
+      } ?: if (all) {
+        ChangelogParser.OutputVersion.All
+      } else {
+        ChangelogParser.OutputVersion.Latest
+      },
     )
     echo(output)
   }
@@ -117,7 +124,7 @@ object ChangelogParser {
 
             currentChangeSet = line.removePrefix("### ").trim()
           } else {
-            currentChanges += line.trim()
+            currentChanges += line.trim().removePrefix("- ")
           }
         }
       }
@@ -126,30 +133,58 @@ object ChangelogParser {
     return Changelog(changes)
   }
 
+  sealed interface OutputVersion {
+    data object All : OutputVersion
+    data object Latest : OutputVersion
+    data class Version(val version: String) : OutputVersion
+  }
+
+  sealed interface Output {
+    data class Single(val changes: Changelog.Changes) : Output
+    data class Multiple(val changes: List<Changelog.Changes>) : Output
+  }
+
   @OptIn(ExperimentalSerializationApi::class)
   fun format(
     changelog: Changelog,
     verbose: Boolean = false,
     jsonFormat: Boolean = false,
-    version: String? = null,
+    version: OutputVersion = OutputVersion.Latest,
   ): String? {
-    val changes = when {
-      version != null -> changelog.changes.find { it.version == version }
-      else -> changelog.changes.firstOrNull { it.version != "Unreleased" }
-    }
+    val output = when (version) {
+      OutputVersion.All -> Output.Multiple(changelog.changes.filter { it.version != "Unreleased" })
+      OutputVersion.Latest -> changelog.changes.firstOrNull { it.version != "Unreleased" }?.let { Output.Single(it) }
+      is OutputVersion.Version -> changelog.changes.find { it.version == version.version }?.let { Output.Single(it) }
+    } ?: return null
 
-    return changes?.let { versionChanges ->
-      if (jsonFormat) {
-        val json = Json {
-          prettyPrint = verbose
-          prettyPrintIndent = "  "
+    return when (output) {
+      is Output.Single -> {
+        if (jsonFormat) {
+          val json = Json {
+            prettyPrint = verbose
+            if (verbose) prettyPrintIndent = "  "
+          }
+          json.encodeToString(output.changes)
+        } else {
+          output.changes.asMarkdownString()
         }
-        json.encodeToString(versionChanges)
-      } else {
-        versionChanges.asMarkdownString()
+      }
+      is Output.Multiple -> {
+        if (jsonFormat) {
+          val json = Json {
+            prettyPrint = verbose
+            if (verbose) prettyPrintIndent = "  "
+          }
+          json.encodeToString(output.changes)
+        } else {
+          output.changes.joinToString("\n") {
+            it.asMarkdownString()
+          }
+        }
       }
     }
   }
+
 
   private fun Changelog.Changes.asMarkdownString(): String = buildString {
     val nonEmptyChanges = changes.filter { it.changes.isNotEmpty() }
@@ -157,7 +192,7 @@ object ChangelogParser {
       appendLine("### $name")
       appendLine("  ")
       changes.forEach { change ->
-        appendLine(change)
+        appendLine("- $change")
       }
       if (index != nonEmptyChanges.lastIndex) {
         appendLine("  ")

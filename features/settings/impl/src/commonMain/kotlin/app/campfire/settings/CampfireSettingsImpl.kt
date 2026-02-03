@@ -112,6 +112,11 @@ class CampfireSettingsImpl(
   override fun observeShowTimeInBook(): Flow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_SHOW_TIME_IN_BOOK, true)
   }
+
+  override var lastSeenVersion: String? by stringOrNullSetting(KEY_LAST_SEEN_WHATS_NEW)
+  override fun observeLastSeenVersion(): Flow<String?> {
+    return flowSettings.getStringOrNullFlow(KEY_LAST_SEEN_WHATS_NEW)
+  }
 }
 
 internal const val KEY_DEVICE_ID = "pref_device_id"
@@ -132,6 +137,7 @@ internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"
 internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
+internal const val KEY_LAST_SEEN_WHATS_NEW = "pref_last_seen_whats_new"
 
 // Dead keys
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"

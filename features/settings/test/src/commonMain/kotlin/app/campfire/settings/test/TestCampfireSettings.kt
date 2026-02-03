@@ -72,4 +72,8 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
   override var showTimeInBook: Boolean by boolean()
   override fun observeShowTimeInBook(): Flow<Boolean> =
     observeBoolean(::showTimeInBook)
+
+  override var lastSeenVersion: String? by stringOrNull()
+  override fun observeLastSeenVersion(): Flow<String?> =
+    observeStringOrNull(::lastSeenVersion)
 }

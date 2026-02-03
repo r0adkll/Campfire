@@ -3,6 +3,9 @@ package app.campfire.common.compose.widgets
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
@@ -14,6 +17,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireTopAppBarInsets
@@ -103,6 +107,50 @@ fun CampfireMediumTopAppBar(
         title()
       }
     },
+    navigationIcon = navigationIcon,
+    actions = actions,
+    colors = colors,
+    scrollBehavior = scrollBehavior,
+    windowInsets = windowInsets,
+    modifier = modifier,
+  )
+}
+
+/**
+ * A common [TopAppBar] implementation for use across the entire app. This commonizes
+ * the title font family and scroll container colors based on [ContentLayout].
+ * @see TopAppBar
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun CampfireLargeTopAppBar(
+  title: @Composable () -> Unit,
+  modifier: Modifier = Modifier,
+  subtitle: (@Composable () -> Unit)? = null,
+  navigationIcon: @Composable () -> Unit = {},
+  actions: @Composable RowScope.() -> Unit = {},
+  windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
+  scrollBehavior: TopAppBarScrollBehavior? = null,
+) {
+  val currentContentLayout = LocalContentLayout.current
+  val colors = TopAppBarDefaults.topAppBarColors(
+    scrolledContainerColor = MaterialTheme.colorScheme.primaryContainer,
+    containerColor = if (currentContentLayout == ContentLayout.Supporting) {
+      MaterialTheme.colorScheme.surfaceColorAtElevation(SupportingContentElevation)
+    } else {
+      Color.Unspecified
+    },
+  )
+
+  LargeFlexibleTopAppBar(
+    title = {
+      ProvideTextStyle(
+        TextStyle(fontFamily = PaytoneOneFontFamily),
+      ) {
+        title()
+      }
+    },
+    subtitle = subtitle,
     navigationIcon = navigationIcon,
     actions = actions,
     colors = colors,

@@ -1,0 +1,4 @@
+<resources>
+  <string name="changelog_title">Changelog</string>
+  <string name="error_changelog_message">Uh-oh! Something went wrong trying to load the changelog.</string>
+</resources>

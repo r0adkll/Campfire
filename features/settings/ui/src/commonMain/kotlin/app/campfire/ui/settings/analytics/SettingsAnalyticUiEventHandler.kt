@@ -8,6 +8,7 @@ import app.campfire.analytics.events.Verb
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
@@ -90,6 +91,7 @@ class SettingsAnalyticUiEventHandler(
     }
 
     is SettingsUiEvent.AboutSettingEvent -> when (event) {
+      ChangelogClick -> send("changelog", Click)
       AttributionsClick -> send("attributions", Click)
       DeveloperClick -> send("developer", Click)
       GithubClick -> send("contribute", Click)

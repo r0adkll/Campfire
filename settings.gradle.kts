@@ -108,6 +108,10 @@ include(
   ":infra:debug",
   ":infra:updates:api",
   ":infra:updates:impl",
+  ":infra:whats-new:api",
+  ":infra:whats-new:impl",
+  ":infra:whats-new:test",
+  ":infra:whats-new:ui",
   ":infra:tracing",
 )
 include(
