@@ -219,16 +219,16 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.AuthorClick -> {
           analytics.send(ActionEvent("author", Click))
-          event.item.media.metadata.authors.firstOrNull()?.let { author ->
-            navigator.goTo(AuthorDetailScreen(author.id, author.name))
-          }
+          event.item.media.metadata.authors
+            .find { it.name == event.author }
+            ?.let { author ->
+              navigator.goTo(AuthorDetailScreen(author.id, author.name))
+            }
         }
 
         is LibraryItemUiEvent.NarratorClick -> {
           analytics.send(ActionEvent("narrator", Click))
-          event.item.media.metadata.narratorName?.let { narrator ->
-            navigator.goTo(LibraryScreen(ContentFilter.Narrators(narrator)))
-          }
+          navigator.goTo(LibraryScreen(ContentFilter.Narrators(event.narrator)))
         }
 
         is LibraryItemUiEvent.SeriesClick -> {
