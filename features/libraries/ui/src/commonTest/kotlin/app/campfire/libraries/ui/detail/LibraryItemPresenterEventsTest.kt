@@ -141,7 +141,7 @@ private val NarratorClick = EventTest(
         }
       }
     },
-    "test_narrator"
+    "test_narrator",
   ),
   assert = {
     assertThat(analytics.events)
