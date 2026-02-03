@@ -23,7 +23,9 @@ class TitleAndAuthorSlotTest {
           title = "test_title"
           subtitle = "test_subtitle"
           authorName = "test_author_name"
+          authors = emptyList()
           narratorName = "test_narrator_name"
+          narrators = emptyList()
         }
       }
     }
