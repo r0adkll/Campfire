@@ -1,0 +1,10 @@
+import kotlin.Int;
+
+CREATE TABLE sessionQueue (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  queueIndex INTEGER AS Int NOT NULL,
+
+  PRIMARY KEY (userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);

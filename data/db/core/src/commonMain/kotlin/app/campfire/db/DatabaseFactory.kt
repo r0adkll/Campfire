@@ -35,13 +35,6 @@ import app.cash.sqldelight.db.SqlDriver
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
 
-/**
- * This is used to migrate the database.
- * Checkout [CampfireDatabaseImpl.Schema.version] for the current version. This should match
- * the latest migration file (if > 1) in `sqldelight/migrations`.
- */
-private const val OLD_DB_VERSION = 3
-
 @ContributesBinding(AppScope::class)
 @Inject
 class DatabaseFactory(
@@ -66,14 +59,6 @@ class DatabaseFactory(
       metadata_genresAdapter = StringListAdapter,
       metadata_series_sequenceAdapter = IntColumnAdapter,
     )
-
-  fun migrate() {
-    CampfireDatabase.Schema.migrate(
-      driver = driver,
-      oldVersion = OLD_DB_VERSION.toLong(),
-      newVersion = CampfireDatabase.Schema.version,
-    )
-  }
 
   fun build(): CampfireDatabase = CampfireDatabase(
     driver = driver,
