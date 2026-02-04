@@ -48,6 +48,7 @@ import app.campfire.core.logging.bark
 import app.campfire.sessions.ui.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.PlaybackBarState.Hidden
+import app.campfire.sessions.ui.expanded.ExpandedPlaybackBar
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.runtime.Navigator

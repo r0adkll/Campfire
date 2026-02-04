@@ -1,6 +1,7 @@
 package app.campfire.core.model
 
 import app.campfire.core.extensions.asSeconds
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 typealias MediaId = String
@@ -25,6 +26,9 @@ data class Media(
 ) {
   val durationInSeconds: Float
     get() = durationInMillis.milliseconds.asSeconds()
+
+  val duration: Duration
+    get() = durationInMillis.milliseconds
 
   data class Metadata(
     val title: String?,
