@@ -44,7 +44,9 @@ import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
 import app.campfire.series.api.SeriesRepository
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.sessions.api.observeContains
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
@@ -79,6 +81,7 @@ class LibraryItemPresenter(
   private val repository: LibraryItemRepository,
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
+  private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
@@ -149,6 +152,10 @@ class LibraryItemPresenter(
         .distinctUntilChanged()
     }.collectAsState(false)
 
+    val isQueued by remember {
+      sessionQueue.observeContains(screen.libraryItemId)
+    }.collectAsState(false)
+
     val showConfirmDownloadDialog by remember {
       settings.observeShowConfirmDownload()
     }.collectAsState(true)
@@ -198,10 +205,26 @@ class LibraryItemPresenter(
       theme = theme,
       swatch = swatch,
       contentState = slots,
+      isQueued = isQueued,
+      isCurrentlyPlaying = currentSession.sessionOrNull() != null,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
+
+        LibraryItemUiEvent.AddToQueue -> {
+          val item = libraryItemContentState.dataOrNull!!
+          scope.launch {
+            sessionQueue.add(item)
+          }
+        }
+
+        LibraryItemUiEvent.RemoveFromQueue -> {
+          val item = libraryItemContentState.dataOrNull!!
+          scope.launch {
+            sessionQueue.remove(item)
+          }
+        }
 
         is LibraryItemUiEvent.SeedColorChange -> {
           scope.launch(dispatcherProvider.computation) {

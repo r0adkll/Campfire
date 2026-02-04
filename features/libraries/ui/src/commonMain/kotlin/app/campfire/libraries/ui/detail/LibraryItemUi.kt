@@ -45,10 +45,14 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.extensions.thenIf
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.colorScheme
+import app.campfire.common.compose.toast.LocalToast
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
@@ -63,6 +67,7 @@ import app.campfire.core.model.User.Type
 import app.campfire.core.model.UserId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
+import app.campfire.core.toast.Toast
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.composables.SwatchToolbar
 import app.campfire.libraries.ui.detail.composables.slots.ChapterContainerColor
@@ -154,7 +159,6 @@ fun LibraryItemContent(
               onColorClicked = {
                 state.eventSink(LibraryItemUiEvent.SeedColorChange(it))
               },
-              modifier = Modifier.padding(end = 8.dp),
             )
           }
 
@@ -168,6 +172,41 @@ fun LibraryItemContent(
               Icon(
                 Icons.Rounded.LibraryAdd,
                 contentDescription = stringResource(Res.string.cd_add_to_collection),
+              )
+            }
+          }
+
+          val toaster = LocalToast.current
+          AnimatedVisibility(
+            visible = !state.isCurrentlyPlaying,
+            modifier = Modifier,
+            enter = fadeIn(),
+            exit = fadeOut(),
+          ) {
+            IconButton(
+              enabled = state.libraryItem != null,
+              onClick = {
+                if (state.isQueued) {
+                  Analytics.send(ActionEvent("remove_from_queue", Click))
+                  state.eventSink(LibraryItemUiEvent.RemoveFromQueue)
+                  toaster.show(
+                    "\"${state.libraryItem!!.media.metadata.title}\" removed from playback queue",
+                    Toast.Duration.SHORT,
+                  )
+                } else {
+                  Analytics.send(ActionEvent("add_to_queue", Click))
+                  state.eventSink(LibraryItemUiEvent.AddToQueue)
+                  toaster.show(
+                    "\"${state.libraryItem!!.media.metadata.title}\" added to playback queue",
+                    Toast.Duration.SHORT,
+                  )
+                }
+              },
+            ) {
+              Icon(
+                if (state.isQueued) CampfireIcons.Filled.QueuePlayNext
+                else CampfireIcons.Rounded.QueuePlayNext,
+                contentDescription = null,
               )
             }
           }
@@ -353,6 +392,8 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
           ),
         ),
         showConfirmDownloadDialog = false,
+        isQueued = false,
+        isCurrentlyPlaying = false,
         eventSink = {},
       )
 

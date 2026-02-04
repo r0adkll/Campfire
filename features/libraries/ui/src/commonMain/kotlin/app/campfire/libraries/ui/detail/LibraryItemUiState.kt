@@ -22,6 +22,8 @@ data class LibraryItemUiState(
   val theme: Theme? = null,
   val contentState: LoadState<out List<ContentSlot>>,
   val showConfirmDownloadDialog: Boolean,
+  val isCurrentlyPlaying: Boolean,
+  val isQueued: Boolean,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -33,6 +35,8 @@ sealed interface SessionUiState {
 }
 
 sealed interface LibraryItemUiEvent : CircuitUiEvent {
+  data object AddToQueue : LibraryItemUiEvent
+  data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
 
   data class PlayClick(val item: LibraryItem) : LibraryItemUiEvent
