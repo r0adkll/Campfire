@@ -39,6 +39,12 @@ SELECT * FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 WHERE libraryItem.id = ?;
 
+selectForIdFull:
+SELECT libraryItem.*, media.*, mediaProgress.* FROM libraryItem
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+WHERE libraryItem.id = ?;
+
 selectForLibrary:
 SELECT * FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id

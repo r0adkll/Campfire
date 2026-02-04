@@ -26,9 +26,17 @@ DELETE FROM sessionQueue
 WHERE userId = ?
   AND libraryItemId = ?;
 
+getHighestIndex:
+SELECT queueIndex FROM sessionQueue
+ORDER BY queueIndex DESC LIMIT 1;
+
+selectAll:
+SELECT * FROM sessionQueue
+WHERE userId = ?;
+
 selectForUser:
-SELECT libraryItem.*, media.*, mediaProgress.*, sessionQueue.queueIndex FROM sessionQueue
-INNER JOIN libraryItem ON libraryItem.id = sessionQueue.libraryItemId
+SELECT libraryItem.*, media.*, mediaProgress.* FROM libraryItem
+INNER JOIN sessionQueue ON sessionQueue.libraryItemId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
 WHERE sessionQueue.userId = ?

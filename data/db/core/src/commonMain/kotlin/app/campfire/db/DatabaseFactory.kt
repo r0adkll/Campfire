@@ -26,6 +26,7 @@ import app.campfire.data.SeriesPage
 import app.campfire.data.SeriesPageJoin
 import app.campfire.data.Server
 import app.campfire.data.Session
+import app.campfire.data.SessionQueue
 import app.campfire.data.Shelf
 import app.campfire.data.ShelfJoin
 import app.campfire.data.User
@@ -174,6 +175,9 @@ class DatabaseFactory(
     ),
     collectionsBookJoinAdapter = CollectionsBookJoin.Adapter(
       itemOrderAdapter = IntColumnAdapter,
+    ),
+    sessionQueueAdapter = SessionQueue.Adapter(
+      queueIndexAdapter = IntColumnAdapter,
     ),
   )
 }
