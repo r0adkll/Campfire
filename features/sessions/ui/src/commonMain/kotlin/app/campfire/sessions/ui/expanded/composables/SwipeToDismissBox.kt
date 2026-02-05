@@ -269,31 +269,4 @@ object SwipeToDismissBoxDefaults {
     @Composable get() = with(LocalDensity.current) { { 56.dp.toPx() } }
 }
 
-@Composable
-@Deprecated(
-  level = DeprecationLevel.HIDDEN,
-  message =
-    "Maintained for binary compatibility. Use updated signature with onDismissed " +
-      "parameter.",
-)
-fun SwipeToDismissBox(
-  state: SwipeToDismissBoxState,
-  backgroundContent: @Composable RowScope.() -> Unit,
-  modifier: Modifier = Modifier,
-  enableDismissFromStartToEnd: Boolean = true,
-  enableDismissFromEndToStart: Boolean = true,
-  gesturesEnabled: Boolean = true,
-  content: @Composable RowScope.() -> Unit,
-) =
-  SwipeToDismissBox(
-    state = state,
-    backgroundContent = backgroundContent,
-    modifier = modifier,
-    enableDismissFromStartToEnd = enableDismissFromStartToEnd,
-    enableDismissFromEndToStart = enableDismissFromEndToStart,
-    gesturesEnabled = gesturesEnabled,
-    onDismiss = {},
-    content = content,
-  )
-
 private val DismissVelocityThreshold = 125.dp

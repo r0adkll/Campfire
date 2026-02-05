@@ -57,7 +57,9 @@ class DiskSessionQueue(
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
-        .filter { it.libraryItemId != libraryItem.id }
+        .sortedBy { it.queueIndex }
+        .map { it.libraryItemId }
+        .filter { it != libraryItem.id }
     }
 
     db.sessionQueueQueries.transaction {
@@ -67,7 +69,7 @@ class DiskSessionQueue(
       )
 
       // Now re-index queue
-      reindexQueue(queue.map { it.libraryItemId })
+      reindexQueue(queue)
     }
   }
 
