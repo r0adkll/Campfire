@@ -10,11 +10,11 @@ class FakeUrlHydrator : UrlHydrator {
     return absolutePath
   }
 
-  override suspend fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
+  override fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
     return "https://fakeserver.com/library/item/$libraryItemId"
   }
 
-  override suspend fun hydrateAuthor(authorId: AuthorId): String {
+  override fun hydrateAuthor(authorId: AuthorId): String {
     return "https://fakeserver.com/author/$authorId"
   }
 }

@@ -6,6 +6,6 @@ import app.campfire.core.model.LibraryItemId
 interface UrlHydrator {
 
   fun hydrateUrl(absolutePath: String): String
-  suspend fun hydrateLibraryItem(libraryItemId: LibraryItemId): String
-  suspend fun hydrateAuthor(authorId: AuthorId): String
+  fun hydrateLibraryItem(libraryItemId: LibraryItemId): String
+  fun hydrateAuthor(authorId: AuthorId): String
 }

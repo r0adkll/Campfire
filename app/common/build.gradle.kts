@@ -69,6 +69,9 @@ kotlin {
         api(projects.features.filters.impl)
         api(projects.features.filters.ui)
 
+        api(projects.features.playlists.impl)
+        api(projects.features.playlists.ui)
+
         api(projects.ui.navigation)
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)

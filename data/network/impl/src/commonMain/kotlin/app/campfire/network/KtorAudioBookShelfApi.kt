@@ -23,10 +23,13 @@ import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
+import app.campfire.network.envelopes.NewPlaylistRequest
+import app.campfire.network.envelopes.PlaylistsResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncSessionRequest
 import app.campfire.network.envelopes.UpdateCollectionRequest
+import app.campfire.network.envelopes.UpdatePlaylistRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
@@ -41,6 +44,8 @@ import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.PlaylistExpanded
+import app.campfire.network.models.PlaylistItem
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -365,6 +370,104 @@ class KtorAudioBookShelfApi(
     return trySendRequest({}) {
       hydratedClientRequest("/api/collections/$collectionId") {
         method = HttpMethod.Delete
+      }
+    }
+  }
+
+  override suspend fun createPlaylist(
+    libraryId: String,
+    name: String,
+    description: String?,
+    items: List<PlaylistItem.Minified>,
+  ): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists") {
+        method = HttpMethod.Post
+        setBody(
+          NewPlaylistRequest(
+            libraryId = libraryId,
+            name = name,
+            description = description,
+            items = items,
+          )
+        )
+      }
+    }
+  }
+
+  override suspend fun getPlaylists(libraryId: String): Result<List<PlaylistExpanded>> {
+    return trySendRequest<PlaylistsResponse> {
+      hydratedClientRequest("/api/libraries/$libraryId/playlists")
+    }.map { it.results }
+  }
+
+  override suspend fun getPlaylist(playlistId: String): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists/$playlistId")
+    }
+  }
+
+  override suspend fun updatePlaylist(
+    playlistId: String,
+    name: String,
+    description: String?,
+    items: List<PlaylistItem.Minified>,
+  ): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists/$playlistId") {
+        method = HttpMethod.Patch
+        setBody(
+          UpdatePlaylistRequest(
+            name = name,
+            description = description,
+            items = items,
+          )
+        )
+      }
+    }
+  }
+
+  override suspend fun deletePlaylist(playlistId: String): Result<Unit> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists/$playlistId") {
+        method = HttpMethod.Delete
+      }
+    }
+  }
+
+  override suspend fun addToPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists/$playlistId/item") {
+        method = HttpMethod.Post
+        setBody(item)
+      }
+    }
+  }
+
+  override suspend fun removeFromPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest({
+        appendPathSegments("api", "playlists", playlistId, "item", item.libraryItemId)
+        item.episodeId?.let { episodeId ->
+          appendPathSegments(episodeId)
+        }
+      }) {
+        method = HttpMethod.Delete
+        setBody(item)
+      }
+    }
+  }
+
+  override suspend fun createPlaylistFromCollection(collectionId: String): Result<PlaylistExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/playlists/collection/$collectionId") {
+        method = HttpMethod.Post
       }
     }
   }

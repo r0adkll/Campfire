@@ -19,11 +19,11 @@ class ServerUrlHydrator(
     return "${userSession.serverUrl}$absolutePath"
   }
 
-  override suspend fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
+  override fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
     return "${userSession.serverUrl}/api/items/$libraryItemId/cover"
   }
 
-  override suspend fun hydrateAuthor(authorId: AuthorId): String {
+  override fun hydrateAuthor(authorId: AuthorId): String {
     return "${userSession.serverUrl}/api/authors/$authorId/image"
   }
 }

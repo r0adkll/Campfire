@@ -15,6 +15,9 @@ import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.Playlist
+import app.campfire.network.models.PlaylistExpanded
+import app.campfire.network.models.PlaylistItem
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -73,6 +76,8 @@ interface AudioBookShelfApi {
    */
   suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>>
 
+  //region Series
+
   /**
    * Get a Library's list of series
    */
@@ -90,6 +95,10 @@ interface AudioBookShelfApi {
    */
   suspend fun getSeriesById(libraryId: String, seriesId: String): Result<Series>
 
+  //endregion
+
+  //region Authors
+
   /**
    * Get a Library's list of authors
    */
@@ -105,6 +114,10 @@ interface AudioBookShelfApi {
    * Get a specific author
    */
   suspend fun getAuthor(authorId: String): Result<Author>
+
+  //endregion
+
+  //region Collections
 
   /**
    * Get a Library's list of collections
@@ -164,6 +177,46 @@ interface AudioBookShelfApi {
    */
   suspend fun deleteCollection(collectionId: String): Result<Unit>
 
+  //endregion
+
+  //region Playlists
+
+  suspend fun createPlaylist(
+    libraryId: String,
+    name: String,
+    description: String? = null,
+    items: List<PlaylistItem.Minified> = emptyList(),
+  ): Result<PlaylistExpanded>
+
+  suspend fun getPlaylists(libraryId: String): Result<List<PlaylistExpanded>>
+
+  suspend fun getPlaylist(playlistId: String): Result<PlaylistExpanded>
+
+  suspend fun updatePlaylist(
+    playlistId: String,
+    name: String,
+    description: String? = null,
+    items: List<PlaylistItem.Minified>,
+  ): Result<PlaylistExpanded>
+
+  suspend fun deletePlaylist(playlistId: String): Result<Unit>
+
+  suspend fun addToPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded>
+
+  suspend fun removeFromPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded>
+
+  suspend fun createPlaylistFromCollection(collectionId: String): Result<PlaylistExpanded>
+
+  //endregion
+
+  //region MediaProgress
+
   /**
    * This endpoint retrieves your media progress that is associated with the given library item ID or
    * podcast episode ID.
@@ -185,6 +238,10 @@ interface AudioBookShelfApi {
    */
   suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit>
 
+  //endregion
+
+  //region Bookmarks
+
   /**
    * This endpoint creates a bookmark for a book library item and returns the created bookmark.
    */
@@ -194,6 +251,10 @@ interface AudioBookShelfApi {
    * This endpoint removes a bookmark(
    */
   suspend fun removeBookmark(libraryItemId: String, timeInSeconds: Int): Result<Unit>
+
+  //endregion
+
+  //region Sessions
 
   /**
    * This endpoint creates/updates multiple local listening sessions on the server. Used for syncing offline listening
@@ -206,6 +267,8 @@ interface AudioBookShelfApi {
    * This endpoint creates/updates a local listening session on the server. Used for syncing offline listening
    */
   suspend fun syncLocalSession(session: PlaybackSession): Result<Unit>
+
+  //endregion
 
   /**
    * This endpoint searches a library for the query and returns the results.

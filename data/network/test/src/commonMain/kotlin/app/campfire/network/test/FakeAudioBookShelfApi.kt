@@ -17,6 +17,8 @@ import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
+import app.campfire.network.models.PlaylistExpanded
+import app.campfire.network.models.PlaylistItem
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -139,6 +141,54 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun deleteCollection(collectionId: String): Result<Unit> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun createPlaylist(
+    libraryId: String,
+    name: String,
+    description: String?,
+    items: List<PlaylistItem.Minified>,
+  ): Result<PlaylistExpanded> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getPlaylists(libraryId: String): Result<List<PlaylistExpanded>> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getPlaylist(playlistId: String): Result<PlaylistExpanded> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun updatePlaylist(
+    playlistId: String,
+    name: String,
+    description: String?,
+    items: List<PlaylistItem.Minified>,
+  ): Result<PlaylistExpanded> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun deletePlaylist(playlistId: String): Result<Unit> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun addToPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun removeFromPlaylist(
+    playlistId: String,
+    item: PlaylistItem.Minified,
+  ): Result<PlaylistExpanded> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun createPlaylistFromCollection(collectionId: String): Result<PlaylistExpanded> {
     TODO("Not yet implemented")
   }
 

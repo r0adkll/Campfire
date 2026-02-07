@@ -242,7 +242,7 @@ private val String.lastFirst: String
     }
   }
 
-suspend fun LibraryItemExpanded.asDomainModel(
+fun LibraryItemExpanded.asDomainModel(
   urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(

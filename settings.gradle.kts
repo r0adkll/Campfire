@@ -212,6 +212,11 @@ include(
   ":features:filters:ui",
 )
 include(
+  ":features:playlists:api",
+  ":features:playlists:impl",
+  ":features:playlists:ui",
+)
+include(
   ":ui:appbar",
   ":ui:navigation",
   ":ui:attribution",
