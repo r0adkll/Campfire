@@ -68,6 +68,8 @@ class LibraryItemUiTest {
       swatch = null,
       contentState = LoadState.Error,
       showConfirmDownloadDialog = false,
+      isQueued = false,
+      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -87,6 +89,8 @@ class LibraryItemUiTest {
       swatch = null,
       contentState = LoadState.Loading,
       showConfirmDownloadDialog = false,
+      isQueued = false,
+      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -108,6 +112,8 @@ class LibraryItemUiTest {
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
+      isQueued = false,
+      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -132,6 +138,8 @@ class LibraryItemUiTest {
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
+      isQueued = false,
+      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -154,6 +162,8 @@ class LibraryItemUiTest {
         data = List(20) { TestContentSlot("slot_$it") },
       ),
       showConfirmDownloadDialog = false,
+      isQueued = false,
+      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 

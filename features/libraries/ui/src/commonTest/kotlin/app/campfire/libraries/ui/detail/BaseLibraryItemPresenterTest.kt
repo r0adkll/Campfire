@@ -13,6 +13,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.series.test.FakeSeriesRepository
+import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.TestCampfireSettings
 import app.campfire.settings.test.TestThemeSettings
@@ -29,6 +30,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val libraryItemRepository = FakeLibraryItemRepository()
   internal val seriesRepository = FakeSeriesRepository()
   internal val sessionsRepository = FakeSessionsRepository()
+  internal val sessionQueue = FakeSessionQueue()
   internal val mediaProgressRepository = FakeMediaProgressRepository()
   internal val playbackController = FakePlaybackController()
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
@@ -47,6 +49,7 @@ abstract class BaseLibraryItemPresenterTest {
     repository = libraryItemRepository,
     seriesRepository = seriesRepository,
     sessionsRepository = sessionsRepository,
+    sessionQueue = sessionQueue,
     mediaProgressRepository = mediaProgressRepository,
     playbackController = playbackController,
     audioPlayerHolder = audioPlayerHolder,
