@@ -2,6 +2,7 @@ package app.campfire.audioplayer.impl.browse
 
 import android.annotation.SuppressLint
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.LibraryResult
 import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
@@ -19,6 +20,7 @@ import kotlinx.coroutines.guava.future
  *
  * Each metho is implemented like for like,
  */
+@UnstableApi
 abstract class SuspendingMediaLibrarySessionCallback(
   private val serviceScope: CoroutineScope,
 ) : MediaLibrarySession.Callback {
@@ -207,4 +209,20 @@ abstract class SuspendingMediaLibrarySessionCallback(
     query: String,
     params: MediaLibraryService.LibraryParams?,
   ): LibraryResult<Void>
+
+  override fun onPlaybackResumption(
+    mediaSession: MediaSession,
+    controller: MediaSession.ControllerInfo,
+    isForPlayback: Boolean,
+  ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
+    return serviceScope.future {
+      onPlaybackResumptionInternal(mediaSession, controller, isForPlayback)
+    }
+  }
+
+  protected abstract suspend fun onPlaybackResumptionInternal(
+    mediaSession: MediaSession,
+    controller: MediaSession.ControllerInfo,
+    isForPlayback: Boolean,
+  ): MediaSession.MediaItemsWithStartPosition
 }
