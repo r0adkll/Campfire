@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - What's New / Changelog screen and widget
 - Setting to switch next/prev actions from remotes (i.e. Bluetooth) to fast forward / rewind
+- Playback Queue
 
 ### Changed
 
