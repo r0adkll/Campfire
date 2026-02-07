@@ -34,6 +34,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.infra.audioplayer.impl.R
+import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.PlaybackSettings
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -56,6 +57,7 @@ interface AudioPlayerComponent {
 @ContributesTo(UserScope::class)
 interface AudioPlayerUserComponent {
   val mediaTree: MediaTree
+  val sessionsRepository: SessionsRepository
   val playbackSessionManager: PlaybackSessionManager
 }
 
@@ -209,6 +211,24 @@ class AudioPlayerService : MediaLibraryService() {
       } else {
         return super.onConnect(session, controller)
       }
+    }
+
+    override suspend fun onPlaybackResumptionInternal(
+      mediaSession: MediaSession,
+      controller: MediaSession.ControllerInfo,
+      isForPlayback: Boolean,
+    ): MediaSession.MediaItemsWithStartPosition {
+      bark(LogPriority.INFO) {
+        "onPlaybackResumptionInternal(controller=${controller.packageName}, isForPlayback=$isForPlayback)"
+      }
+
+      userComponent.sessionsRepository.getCurrentSession()?.let { session ->
+        userComponent.playbackSessionManager.startSession(session.libraryItem.id, playImmediately = isForPlayback)
+      }
+
+      // Return an error from this response as we've take responsibility for starting playback and
+      // resolving / setting the media item(s).
+      error("Deliberately not return here")
     }
 
     override fun onMediaButtonEvent(

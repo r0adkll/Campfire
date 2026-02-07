@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - What's New / Changelog screen and widget
 - Setting to switch next/prev actions from remotes (i.e. Bluetooth) to fast forward / rewind
 - Playback Queue
+- Support the [playback resumption][media3-playback-resumption] API
 
 ### Changed
 
@@ -274,3 +275,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.1-alpha]: https://github.com/r0adkll/Campfire/compare/v0.1.0-alpha...v0.2.1-alpha
 [0.2.0-alpha]: https://github.com/r0adkll/Campfire/compare/v0.1.0-alpha...v0.2.0-alpha
 [0.1.0-alpha]: https://github.com/r0adkll/Campfire/releases/tag/v0.1.0
+
+[media3-playback-resumption]: https://developer.android.com/media/media3/session/background-playback?utm_source=android-studio-app&utm_medium=app#resumption
