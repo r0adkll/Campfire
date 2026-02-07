@@ -81,6 +81,8 @@ import app.campfire.sessions.ui.ActionState.Open
 import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.Thumbnail
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.clear_session_subtitle
+import campfire.features.sessions.ui.generated.resources.clear_session_title
 import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
 import org.jetbrains.compose.resources.stringResource
@@ -286,7 +288,7 @@ private fun CollapsedPlaybackBarContent(
         modifier = Modifier.weight(1f),
       ) {
         val playbackBarTitle = when (dragState.actionState) {
-          Dispose -> "Clear session"
+          Dispose -> stringResource(Res.string.clear_session_title)
           else -> title
         }
 
@@ -300,7 +302,7 @@ private fun CollapsedPlaybackBarContent(
         )
 
         val subtitle = when (dragState.actionState) {
-          Dispose -> "Stop playback?"
+          Dispose -> stringResource(Res.string.clear_session_subtitle)
           else -> stringResource(Res.string.time_remaining, timeRemaining)
         }
 

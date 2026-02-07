@@ -26,6 +26,10 @@ DELETE FROM sessionQueue
 WHERE userId = ?
   AND libraryItemId = ?;
 
+deleteAll:
+DELETE FROM sessionQueue
+WHERE userId = ?;
+
 getHighestIndex:
 SELECT queueIndex FROM sessionQueue
 ORDER BY queueIndex DESC LIMIT 1;

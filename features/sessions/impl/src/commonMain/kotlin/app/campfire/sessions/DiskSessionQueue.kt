@@ -112,16 +112,18 @@ class DiskSessionQueue(
     return null
   }
 
-  override suspend fun reorder(oldIndex: Int, newIndex: Int) {
+  override suspend fun reorder(fromItemId: LibraryItemId, toItemId: LibraryItemId) {
     val queue = read {
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
     }
 
+    val fromIndex = queue.indexOfFirst { it.libraryItemId == fromItemId }
+    val toIndex = queue.indexOfFirst { it.libraryItemId == toItemId }
+
     val mutableQueue = queue.toMutableList()
-    val item = mutableQueue.removeAt(oldIndex)
-    mutableQueue.add(newIndex, item)
+    mutableQueue.add(toIndex, mutableQueue.removeAt(fromIndex))
 
     write {
       db.sessionQueueQueries.transaction {
@@ -130,12 +132,18 @@ class DiskSessionQueue(
     }
   }
 
+  override suspend fun clear() {
+    write {
+      db.sessionQueueQueries.deleteAll(userSession.requiredUserId)
+    }
+  }
+
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeAll(): Flow<List<LibraryItem>> {
     return db.sessionQueueQueries
       .selectForUser(userSession.requiredUserId, ::mapToLibraryItemWithProgress)
       .asFlow()
-      .mapToList(dispatcherProvider.databaseWrite)
+      .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { entities ->
         entities.map {
           libraryItemDao.hydrateItem(it)

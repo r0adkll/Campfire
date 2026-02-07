@@ -1,4 +1,7 @@
 <resources>
+  <string name="clear_session_title">Clear session and queue?</string>
+  <string name="clear_session_subtitle">Stop playback?</string>
+
   <string name="time_remaining">%1$s left</string>
   <string name="buffering">Buffering…</string>
 
@@ -30,6 +33,9 @@
   <string name="action_clear_timer">Clear</string>
 
   <string name="action_queue">Queue</string>
+  <string name="action_remove">REMOVE</string>
+  <string name="queue_header_up_next">Up next</string>
+  <string name="queue_header_queue">Queue</string>
 
   <!-- Content Descriptions -->
   <string name="cd_forward_time">Forward %1$s seconds</string>

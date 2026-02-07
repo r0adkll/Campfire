@@ -54,6 +54,7 @@ baselineprofile = "1.4.1"
 profileinstaller = "1.4.1"
 material = "1.13.0"
 swatchbuckler = "0.1.1-SNAPSHOT"
+reorderable = "3.0.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -161,6 +162,7 @@ materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
 compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13"
 color-picker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker-compose" }
+reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
 # Kotlin
 kotlin-ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }

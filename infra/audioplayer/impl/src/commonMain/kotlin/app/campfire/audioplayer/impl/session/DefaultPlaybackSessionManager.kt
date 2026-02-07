@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.loggableId
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -18,6 +19,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class DefaultPlaybackSessionManager(
   private val sessionsRepository: SessionsRepository,
+  private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val dispatcherProvider: DispatcherProvider,
@@ -36,9 +38,18 @@ class DefaultPlaybackSessionManager(
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
-        // TODO: We should probably wire this into some sort of playlist functionality
-        //  where we want to mark the finished item as done, and start the next.
         mediaProgressRepository.markFinished(libraryItemId)
+
+        // Check if we have an item next in the queue
+        val nextItem = sessionQueue.pop()
+        if (nextItem != null) {
+          // Kick off the next item by calling this very function.
+          startSession(nextItem.id, playImmediately = true)
+        } else {
+          // If we don't have a next-of-queue, Mark the session as finished which maxes out its current time
+          // and marks it as inactive so it can be sync'd and then deleted
+          sessionsRepository.markFinished(session.libraryItem.id)
+        }
       }
     }
   }
@@ -46,6 +57,7 @@ class DefaultPlaybackSessionManager(
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
     ibark { "Stopping playback session for ${libraryItemId.loggableId}" }
     sessionsRepository.stopSession(libraryItemId)
+    sessionQueue.clear()
   }
 
   companion object : Corked("PlaybackSessionManager")

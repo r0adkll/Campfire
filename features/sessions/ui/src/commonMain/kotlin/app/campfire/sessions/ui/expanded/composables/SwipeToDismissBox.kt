@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.anchoredDraggable
 import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.snapTo
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -201,6 +202,7 @@ fun SwipeToDismissBox(
   state: SwipeToDismissBoxState,
   backgroundContent: @Composable RowScope.() -> Unit,
   modifier: Modifier = Modifier,
+  interactionSource: MutableInteractionSource? = null,
   enableDismissFromStartToEnd: Boolean = true,
   enableDismissFromEndToStart: Boolean = true,
   gesturesEnabled: Boolean = true,
@@ -211,6 +213,7 @@ fun SwipeToDismissBox(
     modifier =
       modifier.anchoredDraggable(
         state = state.anchoredDraggableState,
+        interactionSource = interactionSource,
         orientation = Orientation.Horizontal,
         enabled = gesturesEnabled && state.settledValue == SwipeToDismissBoxValue.Settled,
         flingBehavior =

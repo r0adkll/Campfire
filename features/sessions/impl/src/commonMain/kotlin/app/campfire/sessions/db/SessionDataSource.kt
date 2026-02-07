@@ -45,4 +45,8 @@ interface SessionDataSource {
   suspend fun stopSession(
     libraryItemId: LibraryItemId,
   )
+
+  suspend fun markFinished(
+    libraryItemId: LibraryItemId,
+  )
 }

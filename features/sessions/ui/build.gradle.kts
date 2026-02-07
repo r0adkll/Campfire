@@ -17,6 +17,7 @@ kotlin {
 
         implementation(libs.circuitx.overlays)
         implementation(libs.wavy.slider)
+        implementation(libs.reorderable)
       }
     }
 

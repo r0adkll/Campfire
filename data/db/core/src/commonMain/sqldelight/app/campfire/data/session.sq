@@ -78,3 +78,10 @@ SET isActive = 0
 WHERE libraryItemId = ?
   AND userId = ?;
 
+markFinished:
+UPDATE session
+SET currentTime = ?,
+    isActive = 0,
+    updatedAt = ?
+WHERE libraryItemId = ?
+  AND userId = ?;

@@ -55,6 +55,15 @@ interface SessionsRepository {
   )
 
   /**
+   * Mark a session as finished, remove it from active and let it be sync to the backend and
+   * then removed.
+   * @param libraryItemId the id of the session to mark as finished
+   */
+  suspend fun markFinished(
+    libraryItemId: LibraryItemId,
+  )
+
+  /**
    * Observe the current listening session if one exists
    * @return A flow of the current listening session
    */

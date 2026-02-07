@@ -29,6 +29,9 @@ class ExpandedPlaybackPresenter(
 
     return ExpandedPlaybackUiState(
       queue = queue,
+      reorderSink = { from, to ->
+        sessionQueue.reorder(from, to)
+      }
     ) { event ->
       when (event) {
         is ExpandedPlaybackUiEvent.QueueItemClick -> {

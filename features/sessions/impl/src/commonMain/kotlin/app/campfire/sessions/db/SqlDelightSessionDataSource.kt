@@ -200,6 +200,18 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+    val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
+    withContext(dispatcherProvider.databaseWrite) {
+      db.sessionQueries.markFinished(
+        currentTime = libraryItem.media.duration,
+        updatedAt = fatherTime.now(),
+        libraryItemId = libraryItemId,
+        userId = userSession.requiredUserId,
+      )
+    }
+  }
+
   private suspend fun hydrateSession(session: DbSession): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(session.libraryItemId)
     return Session(

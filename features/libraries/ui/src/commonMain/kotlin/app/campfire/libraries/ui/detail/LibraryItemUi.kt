@@ -176,7 +176,6 @@ fun LibraryItemContent(
             }
           }
 
-          val toaster = LocalToast.current
           AnimatedVisibility(
             visible = !state.isCurrentlyPlaying,
             modifier = Modifier,
@@ -189,17 +188,9 @@ fun LibraryItemContent(
                 if (state.isQueued) {
                   Analytics.send(ActionEvent("remove_from_queue", Click))
                   state.eventSink(LibraryItemUiEvent.RemoveFromQueue)
-                  toaster.show(
-                    "\"${state.libraryItem!!.media.metadata.title}\" removed from playback queue",
-                    Toast.Duration.SHORT,
-                  )
                 } else {
                   Analytics.send(ActionEvent("add_to_queue", Click))
                   state.eventSink(LibraryItemUiEvent.AddToQueue)
-                  toaster.show(
-                    "\"${state.libraryItem!!.media.metadata.title}\" added to playback queue",
-                    Toast.Duration.SHORT,
-                  )
                 }
               },
             ) {

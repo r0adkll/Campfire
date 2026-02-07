@@ -11,7 +11,8 @@ interface SessionQueue {
   suspend fun add(libraryItem: LibraryItem)
   suspend fun remove(libraryItem: LibraryItem)
   suspend fun pop(): LibraryItem?
-  suspend fun reorder(oldIndex: Int, newIndex: Int)
+  suspend fun reorder(fromItemId: LibraryItemId, toItemId: LibraryItemId)
+  suspend fun clear()
 
   fun observeAll(): Flow<List<LibraryItem>>
 }

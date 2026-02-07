@@ -51,6 +51,10 @@ class FakeSessionsRepository : SessionsRepository {
     invocations += Invocation.StopSession(libraryItemId)
   }
 
+  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+    invocations += Invocation.MarkFinished(libraryItemId)
+  }
+
   val currentSessionFlow = MutableStateFlow<Session?>(null)
   override fun observeCurrentSession(): Flow<Session?> {
     invocations += Invocation.ObserveCurrentSession
@@ -65,6 +69,7 @@ class FakeSessionsRepository : SessionsRepository {
     data class UpdateCurrentTime(val libraryItemId: LibraryItemId, val currentTime: Duration) : Invocation
     data class AddTimeListening(val libraryItemId: LibraryItemId, val amount: Duration) : Invocation
     data class StopSession(val libraryItemId: LibraryItemId) : Invocation
+    data class MarkFinished(val libraryItemId: LibraryItemId) : Invocation
     data object ObserveCurrentSession : Invocation
   }
 }

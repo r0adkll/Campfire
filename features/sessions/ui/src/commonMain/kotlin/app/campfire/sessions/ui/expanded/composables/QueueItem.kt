@@ -1,16 +1,10 @@
 package app.campfire.sessions.ui.expanded.composables
 
-import androidx.compose.animation.SplineBasedFloatDecayAnimationSpec
 import androidx.compose.animation.core.EaseInCubic
-import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.FloatDecayAnimationSpec
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.animateDecay
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.rememberSplineBasedDecay
-import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,13 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -54,10 +44,10 @@ import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.rounded.rememberMovingDeletePainter
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.core.animations.lerp
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_remove
+import org.jetbrains.compose.resources.stringResource
 
 private val ThumbnailSize = 88.dp
 
@@ -68,6 +58,7 @@ internal fun QueueItem(
   onClick: () -> Unit,
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
+  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
   val swipeDismissState = rememberSwipeToDismissBoxState()
   SwipeToDismissBox(
@@ -84,7 +75,11 @@ internal fun QueueItem(
     },
     modifier = modifier,
   ) {
-    QueueItemContent(item, onClick)
+    QueueItemContent(
+      item = item,
+      onClick = onClick,
+      interactionSource = interactionSource,
+    )
   }
 }
 
@@ -94,6 +89,7 @@ private fun QueueItemContent(
   item: LibraryItem,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
+  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
 ) {
   val shape = MaterialTheme.shapes.large
   ElevatedCard(
@@ -104,6 +100,7 @@ private fun QueueItemContent(
       contentColor = MaterialTheme.colorScheme.onSurface,
     ),
     shape = shape,
+    interactionSource = interactionSource,
   ) {
     Row(
       modifier = Modifier
@@ -212,7 +209,7 @@ private fun RowScope.QueueItemBackgroundContent(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
-      text = "REMOVE",
+      text = stringResource(Res.string.action_remove),
       style = MaterialTheme.typography.labelLarge,
       color = MaterialTheme.colorScheme.error,
       fontWeight = FontWeight.Bold,

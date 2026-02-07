@@ -89,4 +89,8 @@ class DefaultSessionsRepository(
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
     dataSource.stopSession(libraryItemId)
   }
+
+  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+    dataSource.markFinished(libraryItemId)
+  }
 }

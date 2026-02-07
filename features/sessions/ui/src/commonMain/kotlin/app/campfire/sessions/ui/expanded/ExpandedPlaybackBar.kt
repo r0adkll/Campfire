@@ -15,7 +15,6 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -79,6 +79,7 @@ import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.sessions.ui.FlingThreshold
@@ -86,13 +87,13 @@ import app.campfire.sessions.ui.ShadowElevation
 import app.campfire.sessions.ui.SharedBounds
 import app.campfire.sessions.ui.TonalElevation
 import app.campfire.sessions.ui.TranslationThreshold
+import app.campfire.sessions.ui.composables.PlaybackSpeedAction
+import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.expanded.composables.ActionRow
 import app.campfire.sessions.ui.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.expanded.composables.PlaybackActions
 import app.campfire.sessions.ui.expanded.composables.PlaybackSeekBar
-import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.expanded.composables.QueueButton
-import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.expanded.composables.QueueItem
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -101,6 +102,9 @@ import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.queue_header_queue
+import campfire.features.sessions.ui.generated.resources.queue_header_up_next
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
@@ -109,6 +113,9 @@ import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 private val ExpandedVerticalOffsetFactor = 56.dp
 private val ExpandedHorizontalOffsetFactor = 4.dp
@@ -337,6 +344,9 @@ internal fun ExpandedPlaybackBar(
             onRemoveItem = { item ->
               viewState.eventSink(ExpandedPlaybackUiEvent.RemoveQueueItem(item))
             },
+            onReorderItem = { from, to ->
+              viewState.reorderSink(from, to)
+            },
             modifier = Modifier.fillMaxSize(),
           )
         } else {
@@ -379,51 +389,62 @@ private fun QueueContent(
   queue: List<LibraryItem>,
   onItemClick: (LibraryItem) -> Unit,
   onRemoveItem: (LibraryItem) -> Unit,
+  onReorderItem: suspend (from: LibraryItemId, to: LibraryItemId) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val haptics = LocalHapticFeedback.current
+  val lazyListState = rememberLazyListState()
+  val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
+    onReorderItem(from.key as LibraryItemId, to.key as LibraryItemId)
+    haptics.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
+  }
   LazyColumn(
     modifier = modifier,
+    state = lazyListState,
     verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(
       horizontal = 16.dp,
     )
   ) {
-    queue.firstOrNull()?.let { upNext ->
-      stickyHeader {
-        MetadataHeader(
-          title = "Up next",
-        )
-      }
-
-      item {
-        QueueItem(
-          item = upNext,
-          onClick = { onItemClick(upNext) },
-          onRemove = { onRemoveItem(upNext) },
-          modifier = Modifier.animateItem(),
-        )
-      }
-    }
-
-    val remaining = queue.drop(1)
-    if (remaining.isNotEmpty()) {
-      stickyHeader {
-        MetadataHeader(
-          title = "Queue",
-          modifier = Modifier
-        )
+    queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, items) ->
+      if (isFirst) {
+        item {
+          MetadataHeader(
+            title = stringResource(Res.string.queue_header_up_next),
+          )
+        }
+      } else {
+        item {
+          MetadataHeader(
+            title = stringResource(Res.string.queue_header_queue),
+          )
+        }
       }
 
       items(
-        items = remaining,
+        items = items,
         key = { it.id },
       ) { item ->
-        QueueItem(
-          item = item,
-          onClick = { onItemClick(item) },
-          onRemove = { onRemoveItem(item) },
-          modifier = Modifier.animateItem(),
-        )
+        ReorderableItem(reorderableLazyListState, key = item.id) {
+          val interactionSource = remember { MutableInteractionSource() }
+          QueueItem(
+            item = item,
+            onClick = { onItemClick(item) },
+            onRemove = { onRemoveItem(item) },
+            interactionSource = interactionSource,
+            modifier = Modifier
+              .animateItem()
+              .longPressDraggableHandle(
+                onDragStarted = {
+                  haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                },
+                onDragStopped = {
+                  haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                },
+                interactionSource = interactionSource,
+              ),
+          )
+        }
       }
     }
   }
