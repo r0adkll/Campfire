@@ -404,7 +404,7 @@ private fun QueueContent(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(
       horizontal = 16.dp,
-    )
+    ),
   ) {
     queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, items) ->
       if (isFirst) {

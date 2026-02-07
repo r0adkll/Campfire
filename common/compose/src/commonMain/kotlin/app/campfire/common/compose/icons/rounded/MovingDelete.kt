@@ -150,7 +150,7 @@ fun MovingDeletePreview() {
       contentDescription = null,
       modifier = Modifier
         .size(56.dp)
-        .padding(16.dp)
+        .padding(16.dp),
     )
   }
 }

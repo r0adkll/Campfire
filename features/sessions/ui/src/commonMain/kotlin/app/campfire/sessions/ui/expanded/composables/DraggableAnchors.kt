@@ -43,7 +43,7 @@ internal fun <T> Modifier.draggableAnchorsV2(
 private class DraggableAnchorsElementV2<T>(
   private val state: AnchoredDraggableStateV2<T>,
   private val anchors:
-    (size: IntSize, constraints: Constraints) -> Pair<DraggableAnchorsV2<T>, T>,
+  (size: IntSize, constraints: Constraints) -> Pair<DraggableAnchorsV2<T>, T>,
   private val orientation: Orientation,
 ) : ModifierNodeElement<DraggableAnchorsNodeV2<T>>() {
 

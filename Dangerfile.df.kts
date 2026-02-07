@@ -2,7 +2,6 @@
 
 import com.gianluz.dangerkotlin.androidlint.AndroidLint
 import com.gianluz.dangerkotlin.androidlint.androidLint
-import java.io.File
 import systems.danger.kotlin.*
 import systems.danger.kotlin.models.github.GitHubUserType
 

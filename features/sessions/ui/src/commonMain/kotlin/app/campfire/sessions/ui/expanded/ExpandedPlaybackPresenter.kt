@@ -16,7 +16,7 @@ typealias ExpandedPlaybackPresenterFactory = () -> ExpandedPlaybackPresenter
 @Inject
 class ExpandedPlaybackPresenter(
   private val sessionQueue: SessionQueue,
-  private val playbackController: PlaybackController
+  private val playbackController: PlaybackController,
 ) : Presenter<ExpandedPlaybackUiState> {
 
   @Composable
@@ -31,7 +31,7 @@ class ExpandedPlaybackPresenter(
       queue = queue,
       reorderSink = { from, to ->
         sessionQueue.reorder(from, to)
-      }
+      },
     ) { event ->
       when (event) {
         is ExpandedPlaybackUiEvent.QueueItemClick -> {

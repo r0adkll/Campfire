@@ -1,6 +1,5 @@
 package app.campfire.sessions.ui.expanded.composables
 
-
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
 import androidx.compose.foundation.gestures.AnchoredDraggableState
@@ -211,50 +210,52 @@ fun SwipeToDismissBox(
 ) {
   Box(
     modifier =
-      modifier.anchoredDraggable(
-        state = state.anchoredDraggableState,
-        interactionSource = interactionSource,
-        orientation = Orientation.Horizontal,
-        enabled = gesturesEnabled && state.settledValue == SwipeToDismissBoxValue.Settled,
-        flingBehavior =
-          if (state.useFlingBehavior)
-            AnchoredDraggableDefaults.flingBehavior(
-              state = state.anchoredDraggableState,
-              positionalThreshold = state.positionalThreshold,
-            )
-          else null,
-      ),
+    modifier.anchoredDraggable(
+      state = state.anchoredDraggableState,
+      interactionSource = interactionSource,
+      orientation = Orientation.Horizontal,
+      enabled = gesturesEnabled && state.settledValue == SwipeToDismissBoxValue.Settled,
+      flingBehavior =
+      if (state.useFlingBehavior) {
+        AnchoredDraggableDefaults.flingBehavior(
+          state = state.anchoredDraggableState,
+          positionalThreshold = state.positionalThreshold,
+        )
+      } else {
+        null
+      },
+    ),
     propagateMinConstraints = true,
   ) {
     Row(content = backgroundContent, modifier = Modifier.matchParentSize())
     Row(
       content = content,
       modifier =
-        Modifier.draggableAnchorsV2(state.anchoredDraggableState, Orientation.Horizontal) {
-            size,
-            _,
-          ->
-          val newAnchors = DraggableAnchors {
-            val width = size.width.toFloat()
-            SwipeToDismissBoxValue.Settled at 0f
-            if (enableDismissFromStartToEnd) {
-              SwipeToDismissBoxValue.StartToEnd at width
-            }
-            if (enableDismissFromEndToStart) {
-              SwipeToDismissBoxValue.EndToStart at -width
-            }
+      Modifier.draggableAnchorsV2(state.anchoredDraggableState, Orientation.Horizontal) {
+          size,
+          _,
+        ->
+        val newAnchors = DraggableAnchors {
+          val width = size.width.toFloat()
+          SwipeToDismissBoxValue.Settled at 0f
+          if (enableDismissFromStartToEnd) {
+            SwipeToDismissBoxValue.StartToEnd at width
           }
-          val isInitialized = state.anchoredDraggableState.anchors.size > 0
-          val previousValue = state.currentValue
-          val targetValue = state.targetValue
-          val newTarget =
-            if (!isInitialized && newAnchors.hasPositionFor(previousValue)) {
-              previousValue
-            } else if (newAnchors.hasPositionFor(targetValue)) {
-              targetValue
-            } else SwipeToDismissBoxValue.Settled
-          return@draggableAnchorsV2 newAnchors to newTarget
-        },
+          if (enableDismissFromEndToStart) {
+            SwipeToDismissBoxValue.EndToStart at -width
+          }
+        }
+        val isInitialized = state.anchoredDraggableState.anchors.size > 0
+        val previousValue = state.currentValue
+        val targetValue = state.targetValue
+        val newTarget =
+          if (!isInitialized && newAnchors.hasPositionFor(previousValue)) {
+            previousValue
+          } else if (newAnchors.hasPositionFor(targetValue)) {
+            targetValue
+          } else SwipeToDismissBoxValue.Settled
+        return@draggableAnchorsV2 newAnchors to newTarget
+      },
     )
   }
   LaunchedEffect(state.settledValue, onDismiss) {

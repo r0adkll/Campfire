@@ -8,9 +8,6 @@ import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedIconToggleButton
 import androidx.compose.material3.OutlinedToggleButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButtonDefaults
@@ -27,7 +24,7 @@ internal fun QueueButton(
   checked: Boolean,
   onCheckedChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
-  buttonSize: Dp = ButtonDefaults.MediumContainerHeight
+  buttonSize: Dp = ButtonDefaults.MediumContainerHeight,
 ) {
   OutlinedToggleButton(
     checked = checked,
@@ -39,7 +36,7 @@ internal fun QueueButton(
     ),
     contentPadding = ButtonDefaults.contentPaddingFor(buttonSize),
     modifier = modifier
-      .heightIn(buttonSize)
+      .heightIn(buttonSize),
   ) {
     Icon(
       Icons.AutoMirrored.Rounded.QueueMusic,

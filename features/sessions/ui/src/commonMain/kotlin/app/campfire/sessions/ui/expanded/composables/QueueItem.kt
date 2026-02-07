@@ -58,7 +58,7 @@ internal fun QueueItem(
   onClick: () -> Unit,
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
-  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
   val swipeDismissState = rememberSwipeToDismissBoxState()
   SwipeToDismissBox(
@@ -89,7 +89,7 @@ private fun QueueItemContent(
   item: LibraryItem,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() }
+  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
   val shape = MaterialTheme.shapes.large
   ElevatedCard(
@@ -107,7 +107,6 @@ private fun QueueItemContent(
         .fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-
       ItemImage(
         imageUrl = item.media.coverImageUrl,
         contentDescription = null,
@@ -189,7 +188,7 @@ private fun RowScope.QueueItemBackgroundContent(
         animationSpec = spring(
           dampingRatio = Spring.DampingRatioMediumBouncy,
           stiffness = Spring.StiffnessLow,
-        )
+        ),
       ) { value, _ ->
         scale = value
       }
@@ -214,14 +213,14 @@ private fun RowScope.QueueItemBackgroundContent(
       color = MaterialTheme.colorScheme.error,
       fontWeight = FontWeight.Bold,
       modifier = Modifier
-        .alpha(inverseEasedProgress)
+        .alpha(inverseEasedProgress),
     )
 
     Icon(
       rememberMovingDeletePainter(rotation),
       contentDescription = null,
       tint = MaterialTheme.colorScheme.error,
-      modifier = modifier.size(56.dp)
+      modifier = modifier.size(56.dp),
     )
   }
 }

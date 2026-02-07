@@ -17,7 +17,6 @@ interface SessionQueue {
   fun observeAll(): Flow<List<LibraryItem>>
 }
 
-
 @OptIn(ExperimentalCoroutinesApi::class)
 fun SessionQueue.observeContains(libraryItemId: LibraryItemId): Flow<Boolean> {
   return observeAll()
