@@ -1,10 +1,50 @@
 import kotlin.Int;
 
+-- Sessions
+
 CREATE TABLE sessionQueue (
   userId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
   queueIndex INTEGER AS Int NOT NULL,
 
   PRIMARY KEY (userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Playlists
+
+CREATE TABLE IF NOT EXISTS playlists (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  lastUpdated INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS playlistItemJoin (
+  playlistId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  episodeId TEXT,
+  itemOrder INTEGER AS Int NOT NULL,
+
+  PRIMARY KEY (playlistId, libraryItemId),
+  FOREIGN KEY (playlistId) REFERENCES playlists(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE INDEX IF NOT EXISTS index_playlist_item_join_libraryItemId ON playlistItemJoin(libraryItemId);
+
+CREATE TABLE playlistsBookkeeping (
+  playlistId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  operation TEXT NOT NULL,
+
+  PRIMARY KEY (playlistId, userId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
