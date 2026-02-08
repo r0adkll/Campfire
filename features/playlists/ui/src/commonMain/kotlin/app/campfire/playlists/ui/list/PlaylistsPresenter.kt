@@ -14,6 +14,7 @@ import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -27,7 +28,7 @@ class PlaylistsPresenter(
   @Assisted private val navigator: Navigator,
   private val playlistsRepository: PlaylistsRepository,
   private val analytics: Analytics,
-) : Presenter<PlaylistsUiState> {
+) : NonPausablePresenter<PlaylistsUiState> {
 
   @Composable
   override fun present(): PlaylistsUiState {

@@ -7,6 +7,8 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.playlists.api)
+        implementation(projects.ui.appbar)
+        implementation(projects.ui.navigation)
       }
     }
   }

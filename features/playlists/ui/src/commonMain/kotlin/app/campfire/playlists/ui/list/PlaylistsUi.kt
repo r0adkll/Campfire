@@ -3,8 +3,11 @@ package app.campfire.playlists.ui.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -15,12 +18,14 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
@@ -33,6 +38,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Playlist
 import app.campfire.playlists.api.screen.PlaylistsScreen
+import app.campfire.ui.appbar.CampfireAppBar
+import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.playlists.ui.generated.resources.Res
 import campfire.features.playlists.ui.generated.resources.empty_playlists_message
 import campfire.features.playlists.ui.generated.resources.error_playlists_message
@@ -44,26 +51,24 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun Playlists(
   state: PlaylistsUiState,
+  campfireAppBar: CampfireAppBar,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-  val gridState = rememberLazyGridState()
+  val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
+  AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
 
+  val gridState = rememberLazyGridState()
   Scaffold(
     topBar = {
-      CampfireTopAppBar(
-        title = { Text(stringResource(Res.string.playlists_title)) },
-        scrollBehavior = scrollBehavior,
-        navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(PlaylistsUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
-          }
-        },
+      // Injected appbar that injects its own presenter to consistently load its state
+      // across multiple services.
+      campfireAppBar(
+        Modifier,
+        appBarBehavior,
       )
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.playlistContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
