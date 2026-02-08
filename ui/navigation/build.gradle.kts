@@ -12,6 +12,7 @@ kotlin {
         api(projects.infra.updates.api)
         api(projects.infra.whatsNew.api)
         api(projects.features.libraries.api)
+        api(projects.features.playlists.api)
         api(projects.ui.theming.api)
 
         implementation(compose.components.resources)

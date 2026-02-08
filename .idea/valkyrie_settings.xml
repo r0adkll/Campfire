@@ -2,7 +2,6 @@
 <project version="4">
   <component name="Valkyrie.Settings">
     <option name="addTrailingComma" value="true" />
-    <option name="generatePreview" value="true" />
     <option name="iconPackDestination" value="$PROJECT_DIR$/common/compose/src/commonMain/kotlin/app/campfire/common/compose/icons" />
     <option name="iconPackName" value="CampfireIcons" />
     <option name="iconPackPackage" value="app.campfire.common.compose.icons" />
@@ -11,6 +10,6 @@
     <option name="nestedPacks" value="Rounded,Tents,Theme,Filled" />
     <option name="outputFormat" value="lazy_property" />
     <option name="packageName" value="app.campfire.common.compose.icons" />
-    <option name="previewAnnotationType" value="jetbrains" />
+    <option name="previewAnnotationType" value="androidx" />
   </component>
 </project>

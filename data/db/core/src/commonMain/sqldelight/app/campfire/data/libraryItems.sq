@@ -72,6 +72,13 @@ INNER JOIN media ON media.libraryItemId = libraryItem.id
 WHERE collectionsBookJoin.collectionsId = ?
 ORDER BY collectionsBookJoin.itemOrder ASC;
 
+selectForPlaylist:
+SELECT libraryItem.*,media.* FROM libraryItem
+INNER JOIN playlistItemJoin ON playlistItemJoin.libraryItemId = libraryItem.id
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE playlistItemJoin.playlistId = ?
+ORDER BY playlistItemJoin.itemOrder ASC;
+
 selectForAuthorName:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id

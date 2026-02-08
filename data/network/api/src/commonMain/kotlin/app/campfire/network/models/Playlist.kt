@@ -10,7 +10,7 @@ data class Playlist<ItemType : PlaylistItem>(
   val id: String,
   val name: String,
   val description: String?,
-  val lastUpdated: Long,
+  val lastUpdate: Long,
   val createdAt: Long,
   val items: List<ItemType>,
 ) : Envelope() {
@@ -27,8 +27,8 @@ abstract class PlaylistItem : NetworkModel() {
   @Serializable
   data class Minified(
     override val libraryItemId: String,
-    override val episodeId: String? = null
-  ): PlaylistItem()
+    override val episodeId: String? = null,
+  ) : PlaylistItem()
 
   @Serializable
   data class Expanded(

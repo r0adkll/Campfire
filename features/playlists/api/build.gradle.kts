@@ -1,17 +1,15 @@
 plugins {
+  id("app.campfire.android.library")
   id("app.campfire.multiplatform")
-  id("app.campfire.compose")
+  id("app.campfire.parcelize")
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {
       dependencies {
         implementation(projects.core)
-
-        implementation(compose.foundation)
-        implementation(compose.runtime)
+        implementation(projects.common.screens)
       }
     }
   }

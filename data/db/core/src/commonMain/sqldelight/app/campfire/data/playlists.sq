@@ -1,0 +1,49 @@
+CREATE TABLE IF NOT EXISTS playlists (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT,
+  lastUpdated INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO playlists
+VALUES ?;
+
+updateName:
+UPDATE playlists
+SET name = ?,
+    lastUpdated = ?
+WHERE id = ?;
+
+updateDescription:
+UPDATE playlists
+SET description = ?,
+    lastUpdated = ?
+WHERE id = ?;
+
+selectAll:
+SELECT * FROM playlists
+WHERE userId = ?;
+
+selectById:
+SELECT * FROM playlists
+WHERE id = ?;
+
+selectByLibraryId:
+SELECT * FROM playlists
+WHERE libraryId = ?
+  AND userId = ?;
+
+delete:
+DELETE FROM playlists
+WHERE id = ?;
+
+deleteOld:
+DELETE FROM playlists
+WHERE id NOT IN ?;

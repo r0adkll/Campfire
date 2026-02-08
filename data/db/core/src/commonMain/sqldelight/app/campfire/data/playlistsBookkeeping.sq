@@ -1,0 +1,38 @@
+CREATE TABLE playlistsBookkeeping (
+  playlistId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  timestamp INTEGER NOT NULL,
+  operation TEXT NOT NULL,
+
+  PRIMARY KEY (playlistId, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+-- Queries
+
+insertFailedSync:
+INSERT OR REPLACE INTO playlistsBookkeeping
+VALUES ?;
+
+getLastFailedSync:
+SELECT MAX(timestamp) FROM playlistsBookkeeping
+WHERE playlistId = ?
+  AND userId = ?;
+
+getLastFailedSyncForOperation:
+SELECT MAX(timestamp) FROM playlistsBookkeeping
+WHERE operation = ?
+  AND userId = ?;
+
+getLastFailedSyncs:
+SELECT MAX(timestamp) FROM playlistsBookkeeping
+WHERE userId = ?;
+
+deleteFor:
+DELETE FROM playlistsBookkeeping
+WHERE playlistId = ?
+  AND userId = ?;
+
+deleteAll:
+DELETE FROM playlistsBookkeeping
+WHERE userId = ?;

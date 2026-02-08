@@ -389,7 +389,7 @@ class KtorAudioBookShelfApi(
             name = name,
             description = description,
             items = items,
-          )
+          ),
         )
       }
     }
@@ -421,7 +421,7 @@ class KtorAudioBookShelfApi(
             name = name,
             description = description,
             items = items,
-          )
+          ),
         )
       }
     }

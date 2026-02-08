@@ -18,4 +18,3 @@ class UpdatePlaylistRequest(
   val description: String? = null,
   val items: List<PlaylistItem.Minified> = emptyList(),
 )
-

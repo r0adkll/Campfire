@@ -1,0 +1,36 @@
+import kotlin.Int;
+
+CREATE TABLE IF NOT EXISTS playlistItemJoin (
+  playlistId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  episodeId TEXT,
+  itemOrder INTEGER AS Int NOT NULL,
+
+  PRIMARY KEY (playlistId, libraryItemId),
+  FOREIGN KEY (playlistId) REFERENCES playlists(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+CREATE INDEX IF NOT EXISTS index_playlist_item_join_libraryItemId ON playlistItemJoin(libraryItemId);
+
+selectForPlaylist:
+SELECT * FROM playlistItemJoin
+WHERE playlistId = ?
+ORDER BY itemOrder ASC;
+
+insert:
+INSERT OR REPLACE INTO playlistItemJoin
+VALUES ?;
+
+countForPlaylist:
+SELECT count(*) FROM playlistItemJoin
+WHERE playlistId = ?;
+
+delete:
+DELETE FROM playlistItemJoin
+WHERE playlistId = :playlistId;
+
+deleteForItem:
+DELETE FROM playlistItemJoin
+WHERE playlistId = :playlistId
+AND libraryItemId = :libraryItemId;

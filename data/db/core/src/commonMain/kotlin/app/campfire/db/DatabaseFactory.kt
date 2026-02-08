@@ -19,6 +19,7 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
+import app.campfire.data.PlaylistItemJoin
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
@@ -178,6 +179,9 @@ class DatabaseFactory(
     ),
     sessionQueueAdapter = SessionQueue.Adapter(
       queueIndexAdapter = IntColumnAdapter,
+    ),
+    playlistItemJoinAdapter = PlaylistItemJoin.Adapter(
+      itemOrderAdapter = IntColumnAdapter,
     ),
   )
 }

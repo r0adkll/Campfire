@@ -36,10 +36,7 @@ class CollectionsPresenter(
     val collectionContentState by remember {
       repository.observeAllCollections()
         .map { LoadState.Loaded(it) as LoadState<List<Collection>> }
-        .catch { e ->
-          CrashReporter.record(CollectionsObservationError(e))
-          emit(LoadState.Error as LoadState<List<Collection>>)
-        }
+        .catch<LoadState<out List<Collection>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     return CollectionsUiState(

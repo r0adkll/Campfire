@@ -1,0 +1,5 @@
+<resources>
+  <string name="playlists_title">Playlists</string>
+  <string name="empty_playlists_message">Doesn't look like you have any playlists. Try adding one now!</string>
+  <string name="error_playlists_message">Something went wrong when trying to load this library's playlists</string>
+</resources>

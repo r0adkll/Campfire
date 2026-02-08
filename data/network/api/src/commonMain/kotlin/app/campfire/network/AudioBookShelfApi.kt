@@ -15,7 +15,6 @@ import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
-import app.campfire.network.models.Playlist
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
 import app.campfire.network.models.SearchResult
