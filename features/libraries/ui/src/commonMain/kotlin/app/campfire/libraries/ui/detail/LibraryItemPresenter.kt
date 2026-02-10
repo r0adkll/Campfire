@@ -2,6 +2,7 @@ package app.campfire.libraries.ui.detail
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -101,10 +102,16 @@ class LibraryItemPresenter(
 
     val currentSession by remember {
       sessionsRepository.observeCurrentSession()
-        .filterNotNull()
-        .filter { it.libraryItem.id == screen.libraryItemId }
-        .map { SessionUiState.Current(it) }
-    }.collectAsState(SessionUiState.None)
+    }.collectAsState(null)
+
+    val itemSession by remember {
+      derivedStateOf {
+        currentSession
+          ?.takeIf { it.libraryItem.id == screen.libraryItemId }
+          ?.let { SessionUiState.Current(it) }
+          ?: SessionUiState.None
+      }
+    }
 
     val libraryItemContentState by remember {
       repository.observeLibraryItem(screen.libraryItemId)
@@ -195,7 +202,9 @@ class LibraryItemPresenter(
         seriesContentState = seriesContentState,
         showTimeInBook = showTimeInBook,
         showConfirmDownloadDialog = showConfirmDownloadDialog,
-        session = currentSession.sessionOrNull(),
+        hasSession = currentSession != null,
+        session = itemSession.sessionOrNull(),
+        isQueued = isQueued,
       )
     }
 
@@ -206,7 +215,7 @@ class LibraryItemPresenter(
       swatch = swatch,
       contentState = slots,
       isQueued = isQueued,
-      isCurrentlyPlaying = currentSession.sessionOrNull() != null,
+      isCurrentlyPlaying = itemSession.sessionOrNull() != null,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
     ) { event ->
       when (event) {
@@ -287,7 +296,7 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.ChapterClick -> {
           analytics.send(ActionEvent("chapter", Click))
-          val session = currentSession.sessionOrNull()
+          val session = itemSession.sessionOrNull()
           val currentPlayer = audioPlayerHolder.currentPlayer.value
           if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
             // Just seek to the chapter id
@@ -301,7 +310,7 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.AudioTrackClick -> {
           analytics.send(ActionEvent("track", Click))
-          val session = currentSession.sessionOrNull()
+          val session = itemSession.sessionOrNull()
           val currentPlayer = audioPlayerHolder.currentPlayer.value
           if (event.item.id == session?.libraryItem?.id && currentPlayer != null) {
             // Just seek to the track index
@@ -355,6 +364,8 @@ private fun buildSlots(
   seriesContentState: LoadState<out List<LibraryItem>>,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
+  hasSession: Boolean,
+  isQueued: Boolean,
   session: Session?,
 ): List<ContentSlot> {
   return buildList {
@@ -383,6 +394,8 @@ private fun buildSlots(
       offlineDownload = offlineDownloadState,
       mediaProgress = mediaProgressState.dataOrNull,
       isCurrentSession = session != null,
+      hasSession = hasSession,
+      isQueued = isQueued,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
     )
 

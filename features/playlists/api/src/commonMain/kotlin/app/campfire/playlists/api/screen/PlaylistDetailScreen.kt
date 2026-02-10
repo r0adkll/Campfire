@@ -1,6 +1,7 @@
 package app.campfire.playlists.api.screen
 
 import app.campfire.common.screens.BaseScreen
+import app.campfire.common.screens.Presentation
 import app.campfire.core.model.Playlist
 import app.campfire.core.parcelize.Parcelize
 
@@ -15,4 +16,7 @@ class PlaylistDetailScreen(
     playlistName = playlist.name,
     playlistDescription = playlist.description,
   )
+
+  override val presentation: Presentation
+    get() = Presentation.Fullscreen
 }

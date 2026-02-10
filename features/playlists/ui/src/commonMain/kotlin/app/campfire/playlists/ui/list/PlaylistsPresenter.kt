@@ -16,7 +16,6 @@ import app.campfire.playlists.api.screen.PlaylistsScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
-import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
@@ -43,6 +42,7 @@ class PlaylistsPresenter(
     ) { event ->
       when (event) {
         PlaylistsUiEvent.Back -> navigator.pop()
+
         is PlaylistsUiEvent.PlaylistClick -> {
           analytics.send(ContentSelected(ContentType.Collection))
           navigator.goTo(PlaylistDetailScreen(event.playlist))

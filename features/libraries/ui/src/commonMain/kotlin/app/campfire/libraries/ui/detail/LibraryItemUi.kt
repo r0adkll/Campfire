@@ -172,33 +172,6 @@ fun LibraryItemContent(
               )
             }
           }
-
-          AnimatedVisibility(
-            visible = !state.isCurrentlyPlaying,
-            modifier = Modifier,
-            enter = fadeIn(),
-            exit = fadeOut(),
-          ) {
-            IconButton(
-              enabled = state.libraryItem != null,
-              onClick = {
-                if (state.isQueued) {
-                  Analytics.send(ActionEvent("remove_from_queue", Click))
-                  state.eventSink(LibraryItemUiEvent.RemoveFromQueue)
-                } else {
-                  Analytics.send(ActionEvent("add_to_queue", Click))
-                  state.eventSink(LibraryItemUiEvent.AddToQueue)
-                }
-              },
-            ) {
-              Icon(
-                if (state.isQueued) {
-                  CampfireIcons.Filled.QueuePlayNext
-                } else CampfireIcons.Rounded.QueuePlayNext,
-                contentDescription = null,
-              )
-            }
-          }
         },
       )
     },
@@ -343,6 +316,8 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
               mediaProgress = mediaProgress,
               showConfirmDownloadDialogSetting = true,
               isCurrentSession = false,
+              hasSession = false,
+              isQueued = false,
             ),
             SpacerSlot.medium("summary_spacer"),
             SummarySlot(libraryItem.media.metadata.description!!),

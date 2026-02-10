@@ -4,6 +4,7 @@ package app.campfire.libraries.ui.detail.composables
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
@@ -23,6 +24,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
+import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DownloadDone
@@ -65,6 +67,7 @@ import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.common.compose.icons.rounded.MotionPlay
+import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
@@ -92,6 +95,8 @@ import org.jetbrains.compose.ui.tooling.preview.PreviewParameterProvider
 
 @Composable
 internal fun ExpressiveControlBar(
+  isQueued: Boolean,
+  hasSession: Boolean,
   isCurrentSession: Boolean,
   mediaProgress: MediaProgress?,
   offlineDownload: OfflineDownload?,
@@ -102,6 +107,8 @@ internal fun ExpressiveControlBar(
   onDiscardProgress: () -> Unit,
   onStopDownloadClick: () -> Unit,
   onDeleteDownloadClick: () -> Unit,
+  onAddToPlaylistClick: () -> Unit,
+  onAddToQueueClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Surface(
@@ -148,6 +155,13 @@ internal fun ExpressiveControlBar(
         mediaProgress = mediaProgress,
         onMarkFinished = onMarkFinished,
         onMarkNotFinished = onMarkNotFinished,
+      )
+
+      AddToButtons(
+        isQueued = isQueued,
+        canQueue = hasSession && !isCurrentSession,
+        onAddToPlaylistClick = onAddToPlaylistClick,
+        onAddToQueueClick = onAddToQueueClick
       )
     }
   }
@@ -429,7 +443,6 @@ private fun ProgressModifierButtons(
   val iconSize = ButtonDefaults.iconSizeFor(size)
   val iconSpacing = ButtonDefaults.iconSpacingFor(size)
   val textStyle = ButtonDefaults.textStyleFor(size)
-  ButtonDefaults.shapesFor(size)
 
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -519,6 +532,112 @@ private fun ProgressModifierButtons(
         Spacer(Modifier.size(iconSpacing))
         Text(
           text = stringResource(Res.string.menu_item_mark_not_finished),
+          style = textStyle,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun AddToButtons(
+  isQueued: Boolean,
+  canQueue: Boolean,
+  onAddToPlaylistClick: () -> Unit,
+  onAddToQueueClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val size = ButtonDefaults.MinHeight
+  val iconSize = ButtonDefaults.iconSizeFor(size)
+  val iconSpacing = ButtonDefaults.iconSpacingFor(size)
+  val textStyle = ButtonDefaults.textStyleFor(size)
+  val contentPadding = ButtonDefaults.contentPaddingFor(size)
+
+  Row(
+    horizontalArrangement = Arrangement.spacedBy(2.dp)
+  ) {
+    val smallCornerSize by animateDpAsState(
+      if (canQueue) 4.dp else 28.dp
+    )
+    Button(
+      onClick = onAddToPlaylistClick,
+      shapes = ButtonDefaults.shapes(
+        shape = RoundedCornerShape(
+          topStart = 28.dp,
+          bottomStart = 28.dp,
+          topEnd = smallCornerSize,
+          bottomEnd = smallCornerSize,
+        ),
+        pressedShape = RoundedCornerShape(8.dp),
+      ),
+      contentPadding = contentPadding,
+      colors = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+      ),
+      modifier = modifier
+        .weight(1f)
+        .heightIn(size)
+        .testTag("button_add_to_playlist"),
+    ) {
+      Icon(
+        Icons.AutoMirrored.Rounded.PlaylistAdd,
+        contentDescription = null,
+        modifier = Modifier.size(iconSize),
+      )
+      Spacer(Modifier.size(iconSpacing))
+      Text(
+        text = "Add to playlist",
+        style = textStyle,
+      )
+    }
+
+    AnimatedVisibility(
+      visible = canQueue,
+      modifier = Modifier.weight(1f)
+    ) {
+      val containerColor by animateColorAsState(
+        if (isQueued) MaterialTheme.colorScheme.secondary
+        else MaterialTheme.colorScheme.secondaryContainer
+      )
+      val contentColor by animateColorAsState(
+        if (isQueued) MaterialTheme.colorScheme.onSecondary
+        else MaterialTheme.colorScheme.onSecondaryContainer
+      )
+      Button(
+        onClick = onAddToQueueClick,
+        shapes = ButtonDefaults.shapes(
+          shape = RoundedCornerShape(
+            topStart = 4.dp,
+            bottomStart = 4.dp,
+            topEnd = 28.dp,
+            bottomEnd = 28.dp,
+          ),
+          pressedShape = RoundedCornerShape(8.dp),
+        ),
+        contentPadding = contentPadding,
+        colors = ButtonDefaults.buttonColors(
+          containerColor = containerColor,
+          contentColor = contentColor,
+        ),
+        modifier = modifier
+          .fillMaxWidth()
+          .heightIn(size)
+          .testTag("button_add_to_queue"),
+      ) {
+        Icon(
+          if (isQueued) CampfireIcons.Filled.QueuePlayNext
+          else CampfireIcons.Rounded.QueuePlayNext,
+          contentDescription = null,
+          modifier = Modifier.size(iconSize),
+        )
+        Spacer(Modifier.size(iconSpacing))
+        Text(
+          text = if (isQueued) {
+            "Remove from queue"
+          } else {
+            "Add to queue"
+          },
           style = textStyle,
         )
       }
@@ -647,6 +766,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       offlineDownload = null,
       mediaProgress = null,
       isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -654,6 +775,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       offlineDownload = null,
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
+      hasSession = true,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -661,6 +784,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       offlineDownload = null,
       mediaProgress = mediaProgress(),
       isCurrentSession = true,
+      hasSession = true,
+      isQueued = true,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -673,6 +798,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -688,6 +815,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -704,6 +833,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
     ExpressiveControlSlot(
@@ -719,6 +850,8 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       ),
       mediaProgress = mediaProgress(),
       isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
       showConfirmDownloadDialogSetting = false,
     ),
   )

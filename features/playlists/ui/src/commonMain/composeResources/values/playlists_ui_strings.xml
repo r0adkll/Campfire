@@ -2,4 +2,20 @@
   <string name="playlists_title">Playlists</string>
   <string name="empty_playlists_message">Doesn't look like you have any playlists. Try adding one now!</string>
   <string name="error_playlists_message">Something went wrong when trying to load this library's playlists</string>
+  <string name="empty_playlist_detail_message">No items in this playlist, go add some!</string>
+  <string name="error_playlist_detail_message">Uh-oh! Something went wrong trying to load this playlist</string>
+
+  <string name="create_playlist_bottomsheet_title">New playlist</string>
+  <string name="update_playlist_bottomsheet_title">Update playlist</string>
+  <string name="edit_playlist_bottomsheet_input_title_label">Name</string>
+  <string name="edit_playlist_bottomsheet_input_description_label">Description</string>
+  <string name="edit_playlist_bottomsheet_action_create">Create</string>
+  <string name="edit_playlist_bottomsheet_action_creating">Creating…</string>
+  <string name="edit_playlist_bottomsheet_action_update">Update</string>
+  <string name="edit_playlist_bottomsheet_action_updating">Saving…</string>
+
+  <string name="dialog_confirm_delete_title">Delete collection</string>
+  <string name="dialog_confirm_delete_message">Are you sure you want to delete</string>
+  <string name="dialog_confirm_delete_action_delete">Delete</string>
+  <string name="dialog_confirm_delete_action_cancel">Cancel</string>
 </resources>

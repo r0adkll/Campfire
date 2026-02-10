@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -74,13 +76,9 @@ internal fun ImageError(
       LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer,
     ) {
       Icon(
-        Icons.Rounded.ErrorOutline,
-        contentDescription = null,
-      )
-      Spacer(Modifier.height(16.dp))
-      Text(
-        text = errorMessage,
-        style = MaterialTheme.typography.labelMedium,
+        Icons.Rounded.WarningAmber,
+        contentDescription = errorMessage,
+        modifier = Modifier.size(32.dp)
       )
     }
   }

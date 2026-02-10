@@ -2,8 +2,8 @@ package app.campfire.playlists.ui.list
 
 import androidx.compose.runtime.Stable
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.model.Collection
 import app.campfire.core.model.Playlist
+import app.campfire.core.model.PlaylistId
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 

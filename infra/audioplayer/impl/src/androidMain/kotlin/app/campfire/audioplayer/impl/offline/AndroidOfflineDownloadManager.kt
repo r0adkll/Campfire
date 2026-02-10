@@ -2,6 +2,7 @@ package app.campfire.audioplayer.impl.offline
 
 import android.app.Application
 import androidx.core.net.toUri
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import app.campfire.audioplayer.offline.OfflineDownload
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.isActive
 import me.tatarka.inject.annotations.Inject
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
@@ -88,6 +90,10 @@ class AndroidOfflineDownloadManager(
         true,
       )
     }
+  }
+
+  override fun downloadAll(items: List<LibraryItem>) {
+    items.forEach { download(it) }
   }
 
   override fun delete(item: LibraryItem) {

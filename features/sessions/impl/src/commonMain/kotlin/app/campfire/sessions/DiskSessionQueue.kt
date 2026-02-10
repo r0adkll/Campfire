@@ -52,6 +52,30 @@ class DiskSessionQueue(
     }
   }
 
+  override suspend fun addAll(libraryItems: List<LibraryItem>) {
+    val newIndex = read {
+      db.sessionQueueQueries
+        .getHighestIndex()
+        .awaitAsOneOrNull()
+        ?.plus(1)
+        ?: 0
+    }
+
+    write {
+      db.sessionQueueQueries.transaction {
+        libraryItems.forEachIndexed { index, item ->
+          db.sessionQueueQueries.insert(
+            DbSessionQueue(
+              userId = userSession.requiredUserId,
+              libraryItemId = item.id,
+              queueIndex = newIndex + index,
+            ),
+          )
+        }
+      }
+    }
+  }
+
   override suspend fun remove(libraryItem: LibraryItem) {
     val queue = read {
       db.sessionQueueQueries

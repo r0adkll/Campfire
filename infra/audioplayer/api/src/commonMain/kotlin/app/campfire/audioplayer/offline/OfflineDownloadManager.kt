@@ -40,6 +40,12 @@ interface OfflineDownloadManager {
   fun download(item: LibraryItem)
 
   /**
+   * Download several [LibraryItem]s for offline playback.
+   * @param items The list of [LibraryItem] to download.
+   */
+  fun downloadAll(items: List<LibraryItem>)
+
+  /**
    * Delete the offline download of a [LibraryItem].
    * @param item The [LibraryItem] to delete the download for.
    */

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.mapLatest
 interface SessionQueue {
 
   suspend fun add(libraryItem: LibraryItem)
+  suspend fun addAll(libraryItems: List<LibraryItem>)
   suspend fun remove(libraryItem: LibraryItem)
   suspend fun pop(): LibraryItem?
   suspend fun reorder(fromItemId: LibraryItemId, toItemId: LibraryItemId)

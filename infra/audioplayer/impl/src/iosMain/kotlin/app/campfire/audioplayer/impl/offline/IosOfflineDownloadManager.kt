@@ -36,6 +36,10 @@ class IosOfflineDownloadManager : OfflineDownloadManager {
     bark { "Not implemented yet!" }
   }
 
+  override fun downloadAll(items: List<LibraryItem>) {
+    bark { "Not implemented yet!" }
+  }
+
   override fun delete(item: LibraryItem) {
     bark { "Not implemented yet!" }
   }

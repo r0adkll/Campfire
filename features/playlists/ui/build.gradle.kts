@@ -7,8 +7,13 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.features.playlists.api)
+        implementation(projects.features.sessions.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation)
+
+        implementation(libs.circuitx.overlays)
+        implementation(libs.reorderable)
       }
     }
   }

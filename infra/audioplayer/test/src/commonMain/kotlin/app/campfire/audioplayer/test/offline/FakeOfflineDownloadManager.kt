@@ -35,6 +35,10 @@ class FakeOfflineDownloadManager : OfflineDownloadManager {
     invocations += Invocation.Download(item)
   }
 
+  override fun downloadAll(items: List<LibraryItem>) {
+    invocations += Invocation.DownloadAll(items)
+  }
+
   override fun delete(item: LibraryItem) {
     invocations += Invocation.Delete(item)
   }
@@ -49,6 +53,7 @@ class FakeOfflineDownloadManager : OfflineDownloadManager {
 
   sealed interface Invocation {
     data class Download(val item: LibraryItem) : Invocation
+    data class DownloadAll(val items: List<LibraryItem>) : Invocation
     data class Delete(val item: LibraryItem) : Invocation
     data class Stop(val item: LibraryItem) : Invocation
     object ResumeDownloads : Invocation

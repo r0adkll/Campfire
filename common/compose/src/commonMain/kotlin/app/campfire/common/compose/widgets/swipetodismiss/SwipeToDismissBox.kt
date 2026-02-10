@@ -1,4 +1,4 @@
-package app.campfire.sessions.ui.expanded.composables
+package app.campfire.common.compose.widgets.swipetodismiss
 
 import androidx.annotation.FloatRange
 import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
@@ -20,7 +20,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import app.campfire.sessions.ui.expanded.composables.SwipeToDismissBoxState.Companion.Saver
+import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxState.Companion.Saver
 import kotlinx.coroutines.CancellationException
 
 /** The directions in which a [SwipeToDismissBox] can be dismissed. */
@@ -174,7 +174,7 @@ fun rememberSwipeToDismissBoxState(
     SwipeToDismissBoxDefaults.positionalThreshold,
 ): SwipeToDismissBoxState {
   return rememberSaveable(
-    saver = SwipeToDismissBoxState.Saver(positionalThreshold = positionalThreshold),
+    saver = Saver(positionalThreshold = positionalThreshold),
   ) {
     SwipeToDismissBoxState(initialValue, positionalThreshold)
   }

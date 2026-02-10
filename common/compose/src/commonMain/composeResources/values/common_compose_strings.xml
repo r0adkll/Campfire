@@ -18,6 +18,7 @@
 
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
+  <string name="action_remove">REMOVE</string>
 
   <string-array name="empty_screen_quotes">
     <item>May your compass always point to adventure.</item>

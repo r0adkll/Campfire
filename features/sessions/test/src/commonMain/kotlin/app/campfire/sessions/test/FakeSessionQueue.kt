@@ -16,6 +16,11 @@ class FakeSessionQueue : SessionQueue {
     emit()
   }
 
+  override suspend fun addAll(libraryItems: List<LibraryItem>) {
+    queue.addAll(libraryItems)
+    emit()
+  }
+
   override suspend fun remove(libraryItem: LibraryItem) {
     queue.remove(libraryItem)
     emit()

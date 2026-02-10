@@ -43,6 +43,11 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.rounded.rememberMovingDeletePainter
 import app.campfire.common.compose.widgets.ItemImage
+import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgroundContent
+import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
+import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxState
+import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
+import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
 import app.campfire.core.animations.lerp
 import app.campfire.core.model.LibraryItem
 import campfire.features.sessions.ui.generated.resources.Res
@@ -71,7 +76,7 @@ internal fun QueueItem(
     },
     backgroundContent = {
       Spacer(Modifier.weight(1f))
-      QueueItemBackgroundContent(swipeDismissState)
+      AnimatedRemoveBackgroundContent(swipeDismissState)
     },
     modifier = modifier,
   ) {
@@ -155,72 +160,5 @@ private fun QueueItemContent(
       }
       Spacer(Modifier.size(16.dp))
     }
-  }
-}
-
-private const val DefaultTextScale = 0.85f
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun RowScope.QueueItemBackgroundContent(
-  state: SwipeToDismissBoxState,
-  modifier: Modifier = Modifier,
-) {
-  val actualProgress = state
-    .progress(SwipeToDismissBoxValue.Settled, SwipeToDismissBoxValue.EndToStart)
-    .times(2f)
-    .coerceIn(0f, 1f)
-  val inverseEasedProgress = EaseInCubic.transform(actualProgress)
-
-  val rotation = lerp(0f, 20f, inverseEasedProgress)
-  val offset = androidx.compose.ui.unit.lerp(0.dp, 8.dp, inverseEasedProgress)
-  var scale by remember { mutableFloatStateOf(1f) }
-
-  val hapticFeedback = LocalHapticFeedback.current
-  LaunchedEffect(state.targetValue) {
-    if (state.targetValue == SwipeToDismissBoxValue.EndToStart) {
-      hapticFeedback.performHapticFeedback(HapticFeedbackType.Confirm)
-
-      animate(1f, 1.2f) { value, _ -> scale = value }
-      animate(
-        initialValue = 1.2f,
-        targetValue = 1f,
-        animationSpec = spring(
-          dampingRatio = Spring.DampingRatioMediumBouncy,
-          stiffness = Spring.StiffnessLow,
-        ),
-      ) { value, _ ->
-        scale = value
-      }
-    }
-  }
-
-  Row(
-    modifier = Modifier
-      .align(Alignment.CenterVertically)
-      .padding(
-        end = 4.dp,
-      )
-      .scale(scale)
-      .offset {
-        IntOffset(-offset.roundToPx(), 0)
-      },
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-      text = stringResource(Res.string.action_remove),
-      style = MaterialTheme.typography.labelLarge,
-      color = MaterialTheme.colorScheme.error,
-      fontWeight = FontWeight.Bold,
-      modifier = Modifier
-        .alpha(inverseEasedProgress),
-    )
-
-    Icon(
-      rememberMovingDeletePainter(rotation),
-      contentDescription = null,
-      tint = MaterialTheme.colorScheme.error,
-      modifier = modifier.size(56.dp),
-    )
   }
 }

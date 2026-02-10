@@ -195,7 +195,7 @@ fun CollectionDetail(
           ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-        zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
+        zIndexInOverlay = -1f,
       )
       .nestedScroll(scrollBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,

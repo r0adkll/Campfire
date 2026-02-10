@@ -1,4 +1,4 @@
-package app.campfire.sessions.ui.expanded.composables
+package app.campfire.common.compose.widgets.swipetodismiss
 
 /**
  * Material-specific anchor layout logic which considers lookahead. This internal code is expected
