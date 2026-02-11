@@ -162,7 +162,7 @@ internal fun ExpressiveControlBar(
         isQueued = isQueued,
         canQueue = hasSession && !isCurrentSession,
         onAddToPlaylistClick = onAddToPlaylistClick,
-        onAddToQueueClick = onAddToQueueClick
+        onAddToQueueClick = onAddToQueueClick,
       )
     }
   }
@@ -555,10 +555,10 @@ private fun AddToButtons(
   val contentPadding = ButtonDefaults.contentPaddingFor(size)
 
   Row(
-    horizontalArrangement = Arrangement.spacedBy(2.dp)
+    horizontalArrangement = Arrangement.spacedBy(2.dp),
   ) {
     val smallCornerSize by animateDpAsState(
-      if (canQueue) 4.dp else 28.dp
+      if (canQueue) 4.dp else 28.dp,
     )
     Button(
       onClick = onAddToPlaylistClick,
@@ -595,15 +595,17 @@ private fun AddToButtons(
 
     AnimatedVisibility(
       visible = canQueue,
-      modifier = Modifier.weight(1f)
+      modifier = Modifier.weight(1f),
     ) {
       val containerColor by animateColorAsState(
-        if (isQueued) MaterialTheme.colorScheme.secondary
-        else MaterialTheme.colorScheme.secondaryContainer
+        if (isQueued) {
+          MaterialTheme.colorScheme.secondary
+        } else MaterialTheme.colorScheme.secondaryContainer,
       )
       val contentColor by animateColorAsState(
-        if (isQueued) MaterialTheme.colorScheme.onSecondary
-        else MaterialTheme.colorScheme.onSecondaryContainer
+        if (isQueued) {
+          MaterialTheme.colorScheme.onSecondary
+        } else MaterialTheme.colorScheme.onSecondaryContainer,
       )
       Button(
         onClick = onAddToQueueClick,
@@ -627,8 +629,9 @@ private fun AddToButtons(
           .testTag("button_add_to_queue"),
       ) {
         Icon(
-          if (isQueued) CampfireIcons.Filled.QueuePlayNext
-          else CampfireIcons.Rounded.QueuePlayNext,
+          if (isQueued) {
+            CampfireIcons.Filled.QueuePlayNext
+          } else CampfireIcons.Rounded.QueuePlayNext,
           contentDescription = null,
           modifier = Modifier.size(iconSize),
         )

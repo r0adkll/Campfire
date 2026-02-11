@@ -88,7 +88,6 @@ internal fun PlaylistListItem(
     },
     modifier = modifier,
   ) {
-
     val handlePadding by animateDpAsState(
       targetValue = when {
         isDragging -> 20.dp
@@ -169,7 +168,7 @@ private fun PlaylistItemContent(
                   LibraryItemSharedTransitionKey(
                     id = sharedTransitionKey,
                     type = LibraryItemSharedTransitionKey.ElementType.Image,
-                  )
+                  ),
                 ),
                 animatedVisibilityScope = scope,
                 zIndexInOverlay = sharedTransitionZIndex,
@@ -184,7 +183,7 @@ private fun PlaylistItemContent(
           size = 20.dp,
           modifier = Modifier
             .align(Alignment.TopEnd)
-            .padding(8.dp)
+            .padding(8.dp),
         )
       }
 
@@ -232,7 +231,7 @@ private fun PlaylistItemContent(
         shapes = IconButtonDefaults.shapes(
           shape = MaterialTheme.shapes.small,
           pressedShape = CircleShape,
-        )
+        ),
       ) {
         AnimatedContent(
           isPlaying,

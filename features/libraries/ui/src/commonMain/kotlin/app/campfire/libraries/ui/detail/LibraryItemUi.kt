@@ -48,8 +48,6 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.LocalSnackBarHost
@@ -213,13 +211,13 @@ fun LibraryItemContent(
         CompositionLocalProvider(
           LocalSnackBarHost provides snackBarHost,
         ) {
-        LoadedState(
-          slots = contentState.data,
-          contentPadding = paddingValues,
-          modifier = modifier,
-          eventSink = state.eventSink,
-        )
-          }
+          LoadedState(
+            slots = contentState.data,
+            contentPadding = paddingValues,
+            modifier = modifier,
+            eventSink = state.eventSink,
+          )
+        }
       }
     }
   }

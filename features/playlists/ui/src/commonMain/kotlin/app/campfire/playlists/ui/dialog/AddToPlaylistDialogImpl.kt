@@ -65,7 +65,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
-import app.campfire.core.model.PlaylistId
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import campfire.features.playlists.ui.generated.resources.Res
@@ -248,7 +247,7 @@ class AddToPlaylistDialogImpl(
                   contentAlignment = Alignment.Center,
                 ) {
                   CircularWavyProgressIndicator(
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
                   )
                 }
               }
@@ -329,7 +328,7 @@ class AddToPlaylistDialogImpl(
         onClick = { onCreate(playlistName) },
       ) {
         AnimatedVisibility(
-          visible = isLoading
+          visible = isLoading,
         ) {
           Row {
             CircularProgressIndicator(Modifier.size(18.dp))
@@ -369,7 +368,7 @@ class AddToPlaylistDialogImpl(
         modifier = Modifier.fillMaxWidth(),
       ) {
         AnimatedVisibility(
-          visible = isLoading
+          visible = isLoading,
         ) {
           Row {
             CircularProgressIndicator(Modifier.size(18.dp))

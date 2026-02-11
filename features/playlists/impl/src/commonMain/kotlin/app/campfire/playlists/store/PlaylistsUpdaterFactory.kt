@@ -11,7 +11,6 @@ import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
 import app.campfire.playlists.store.PlaylistsStore.Operation
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
-import kotlin.uuid.Uuid
 import org.mobilenativefoundation.store.store5.OnUpdaterCompletion
 import org.mobilenativefoundation.store.store5.Updater
 import org.mobilenativefoundation.store.store5.UpdaterResult

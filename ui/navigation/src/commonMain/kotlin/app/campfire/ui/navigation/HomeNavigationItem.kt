@@ -5,13 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.campfire.common.compose.icons.filled.Author
-import app.campfire.common.compose.icons.filled.Collections
 import app.campfire.common.compose.icons.filled.Home
 import app.campfire.common.compose.icons.filled.Library
 import app.campfire.common.compose.icons.filled.Playlists
 import app.campfire.common.compose.icons.filled.Series
 import app.campfire.common.compose.icons.outline.Author
-import app.campfire.common.compose.icons.outline.Collections
 import app.campfire.common.compose.icons.outline.Home
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Playlists

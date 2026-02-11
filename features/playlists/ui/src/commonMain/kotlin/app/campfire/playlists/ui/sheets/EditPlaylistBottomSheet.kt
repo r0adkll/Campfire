@@ -106,7 +106,7 @@ suspend fun OverlayHost.showEditPlaylistBottomSheet(
             when (model) {
               is EditPlaylistModel.Existing -> stringResource(Res.string.update_playlist_bottomsheet_title)
               EditPlaylistModel.New -> stringResource(Res.string.create_playlist_bottomsheet_title)
-            }
+            },
           )
         },
       ) {

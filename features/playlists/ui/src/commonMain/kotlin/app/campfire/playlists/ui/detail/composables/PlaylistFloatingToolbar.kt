@@ -48,9 +48,9 @@ internal fun PlaylistFloatingToolbar(
     floatingActionButton = {
       TooltipBox(
         positionProvider =
-          TooltipDefaults.rememberTooltipPositionProvider(
-            TooltipAnchorPosition.Above,
-          ),
+        TooltipDefaults.rememberTooltipPositionProvider(
+          TooltipAnchorPosition.Above,
+        ),
         tooltip = { CampfireTooltip("Play all items in the playlist") },
         state = rememberTooltipState(),
       ) {
@@ -107,9 +107,9 @@ internal fun ToolbarButton(
 ) {
   TooltipBox(
     positionProvider =
-      TooltipDefaults.rememberTooltipPositionProvider(
-        TooltipAnchorPosition.Above,
-      ),
+    TooltipDefaults.rememberTooltipPositionProvider(
+      TooltipAnchorPosition.Above,
+    ),
     tooltip = { CampfireTooltip(contentDescription) },
     state = rememberTooltipState(),
     modifier = modifier,
@@ -138,9 +138,9 @@ internal fun ToggleToolbarButton(
 ) {
   TooltipBox(
     positionProvider =
-      TooltipDefaults.rememberTooltipPositionProvider(
-        TooltipAnchorPosition.Above,
-      ),
+    TooltipDefaults.rememberTooltipPositionProvider(
+      TooltipAnchorPosition.Above,
+    ),
     tooltip = { CampfireTooltip(contentDescription) },
     state = rememberTooltipState(),
     modifier = modifier,
@@ -170,7 +170,7 @@ private fun TooltipScope.CampfireTooltip(
       modifier = Modifier.padding(
         horizontal = 4.dp,
         vertical = 2.dp,
-      )
+      ),
     )
   }
 }

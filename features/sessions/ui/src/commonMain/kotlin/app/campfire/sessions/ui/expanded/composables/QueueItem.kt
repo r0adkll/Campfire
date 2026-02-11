@@ -1,18 +1,11 @@
 package app.campfire.sessions.ui.expanded.composables
 
-import androidx.compose.animation.core.EaseInCubic
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Schedule
@@ -23,36 +16,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
-import app.campfire.common.compose.icons.rounded.rememberMovingDeletePainter
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgroundContent
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
-import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxState
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
 import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
-import app.campfire.core.animations.lerp
 import app.campfire.core.model.LibraryItem
-import campfire.features.sessions.ui.generated.resources.Res
-import campfire.features.sessions.ui.generated.resources.action_remove
-import org.jetbrains.compose.resources.stringResource
 
 private val ThumbnailSize = 88.dp
 
