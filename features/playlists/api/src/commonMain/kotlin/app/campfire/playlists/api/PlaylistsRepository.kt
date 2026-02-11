@@ -17,9 +17,13 @@ interface PlaylistsRepository {
   /**
    * Observe a single playlist
    * @param playlistId the id of the playlist to observe
+   * @param isCreatedId the [playlistId] is a locally created id from a new playlist
    * @return a flow of the [Playlist]
    */
-  fun observePlaylist(playlistId: PlaylistId): Flow<Playlist>
+  fun observePlaylist(
+    playlistId: PlaylistId,
+    isCreatedId: Boolean = false,
+  ): Flow<Playlist>
 
   /**
    * Observe the list of [LibraryItem] for a given [Playlist]

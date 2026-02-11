@@ -50,7 +50,7 @@ class PlaylistsSourceOfTruthFactory(
     require(operation is PlaylistsStore.Operation.All || operation is PlaylistsStore.Operation.Single)
     return when (operation) {
       is PlaylistsStore.Operation.All -> readAll(operation.userId, operation.libraryId)
-      is PlaylistsStore.Operation.Single -> readSingle(operation.playlistId)
+      is PlaylistsStore.Operation.Single -> readSingle(operation.playlistId, operation.isCreatedId)
       else -> throw IllegalArgumentException("Unknown operation: $operation")
     }
   }
@@ -68,8 +68,12 @@ class PlaylistsSourceOfTruthFactory(
       .map { PlaylistsStore.Output.Collection(it) }
   }
 
-  private fun readSingle(playlistId: PlaylistId): Flow<PlaylistsStore.Output.Single> {
-    return db.playlistsQueries.selectById(playlistId)
+  private fun readSingle(playlistId: PlaylistId, isCreatedId: Boolean): Flow<PlaylistsStore.Output.Single> {
+    return if (isCreatedId) {
+      db.playlistsQueries.selectByCreatedId(playlistId)
+    } else {
+      db.playlistsQueries.selectById(playlistId)
+    }
       .asFlow()
       .mapToOneOrNull(dispatcherProvider.databaseRead)
       .mapNotNull { playlist ->
@@ -200,7 +204,8 @@ class PlaylistsSourceOfTruthFactory(
       db.playlistsQueries
         .insert(
           Playlists(
-            id = mutation.creationId.toHexDashString(),
+            id = mutation.creationId,
+            creationId = mutation.creationId,
             userId = mutation.userId,
             name = mutation.name,
             description = mutation.description,
@@ -213,7 +218,7 @@ class PlaylistsSourceOfTruthFactory(
       mutation.items.forEachIndexed { index, item ->
         db.playlistItemJoinQueries.insert(
           PlaylistItemJoin(
-            playlistId = mutation.creationId.toHexDashString(),
+            playlistId = mutation.creationId,
             libraryItemId = item.libraryItemId,
             episodeId = item.episodeId,
             itemOrder = index,

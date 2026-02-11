@@ -36,9 +36,12 @@ class DesktopPlaybackController(
     }
   }
 
-  override fun stopSession(itemId: LibraryItemId) {
+  override fun stopSession(
+    itemId: LibraryItemId,
+    clearQueue: Boolean,
+  ) {
     userScopeHolder.get().launch {
-      playbackSessionManager.stopSession(itemId)
+      playbackSessionManager.stopSession(itemId, clearQueue)
       audioPlayerHolder.release()
     }
   }

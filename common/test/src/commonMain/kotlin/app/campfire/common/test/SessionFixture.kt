@@ -18,6 +18,7 @@ fun session(
   timeListening: Duration = Duration.ZERO,
   startTime: Duration = Duration.ZERO,
   currentTime: Duration = Duration.ZERO,
+  isDeleted: Boolean = false,
   startedAt: LocalDateTime = LocalDateTime(2025, 1, 1, 1, 1),
   updatedAt: LocalDateTime = LocalDateTime(2025, 1, 1, 1, 1),
 ) = Session(
@@ -31,4 +32,5 @@ fun session(
   currentTime = currentTime,
   startedAt = startedAt,
   updatedAt = updatedAt,
+  isDeleted = isDeleted,
 )

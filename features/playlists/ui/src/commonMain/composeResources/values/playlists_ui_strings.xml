@@ -18,4 +18,11 @@
   <string name="dialog_confirm_delete_message">Are you sure you want to delete</string>
   <string name="dialog_confirm_delete_action_delete">Delete</string>
   <string name="dialog_confirm_delete_action_cancel">Cancel</string>
+
+  <string name="dialog_add_playlist_action_dismiss">Cancel</string>
+  <string name="dialog_add_playlist_action_create">Create</string>
+  <string name="dialog_add_playlist_name_label">New playlist name</string>
+  <string name="dialog_add_playlist_title">Add to a playlist</string>
+  <string name="dialog_add_playlist_text">Choose an existing playlist or create a new one to add </string>
+  <string name="dialog_add_playlist_error_message">Something went wrong when trying to load your playlists</string>
 </resources>

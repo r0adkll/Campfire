@@ -1,4 +1,4 @@
-package app.campfire.collections.ui.dialog
+package app.campfire.common.compose.widgets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,7 +27,7 @@ import androidx.compose.ui.util.fastForEachIndexed
 import kotlin.math.max
 
 @Composable
-internal fun AlertDialogContent(
+fun AlertDialogContent(
   buttons: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   icon: (@Composable () -> Unit)?,
@@ -145,7 +145,7 @@ internal fun AlertDialogContent(
  * customization.
  */
 @Composable
-internal fun AlertDialogFlowRow(
+fun AlertDialogFlowRow(
   mainAxisSpacing: Dp,
   crossAxisSpacing: Dp,
   content: @Composable () -> Unit,
@@ -239,7 +239,7 @@ internal fun AlertDialogFlowRow(
 }
 
 @Composable
-internal fun ProvideContentColorTextStyle(
+fun ProvideContentColorTextStyle(
   contentColor: Color,
   textStyle: TextStyle,
   content: @Composable () -> Unit,
@@ -252,14 +252,10 @@ internal fun ProvideContentColorTextStyle(
   )
 }
 
-internal val DialogMinWidth = 280.dp
-internal val DialogMaxWidth = 560.dp
-
-internal val ButtonsMainAxisSpacing = 8.dp
-internal val ButtonsCrossAxisSpacing = 12.dp
+val ButtonsMainAxisSpacing = 8.dp
+val ButtonsCrossAxisSpacing = 12.dp
 
 // Paddings for each of the dialog's parts.
-private val DialogPadding = PaddingValues(all = 24.dp)
 private val IconPadding = PaddingValues(bottom = 16.dp)
 private val TitlePadding = PaddingValues(bottom = 16.dp)
 private val TextPadding = PaddingValues(bottom = 24.dp)

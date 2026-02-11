@@ -1,6 +1,7 @@
 package app.campfire.playlists.ui.detail.composables
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -37,11 +38,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.ItemImage
+import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.OfflineStatusIndicator
 import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgroundContent
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
@@ -50,6 +53,7 @@ import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismiss
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -60,6 +64,8 @@ internal fun PlaylistListItem(
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
   handleModifier: Modifier = Modifier,
+  sharedTransitionKey: String = item.id,
+  sharedTransitionZIndex: Float = 0f,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   isPlaying: Boolean = false,
   isDragging: Boolean = false,
@@ -111,6 +117,8 @@ internal fun PlaylistListItem(
       onClick = onClick,
       onPlayClick = onPlayClick,
       interactionSource = interactionSource,
+      sharedTransitionKey = sharedTransitionKey,
+      sharedTransitionZIndex = sharedTransitionZIndex,
       modifier = Modifier.weight(1f),
     )
 
@@ -118,7 +126,7 @@ internal fun PlaylistListItem(
   }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun PlaylistItemContent(
   item: LibraryItem,
@@ -127,8 +135,10 @@ private fun PlaylistItemContent(
   onClick: () -> Unit,
   onPlayClick: () -> Unit,
   modifier: Modifier = Modifier,
+  sharedTransitionKey: String = item.id,
+  sharedTransitionZIndex: Float = 0f,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-) {
+) = SharedElementTransitionScope {
   val shape = MaterialTheme.shapes.large
   ElevatedCard(
     onClick = onClick,
@@ -146,11 +156,25 @@ private fun PlaylistItemContent(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box {
+        val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
         ItemImage(
           imageUrl = item.media.coverImageUrl,
           contentDescription = null,
           contentScale = ContentScale.Crop,
           modifier = Modifier
+            .thenIfNotNull(animationScope) { scope ->
+              sharedElement(
+                sharedContentState = rememberSharedContentState(
+                  LibraryItemSharedTransitionKey(
+                    id = sharedTransitionKey,
+                    type = LibraryItemSharedTransitionKey.ElementType.Image,
+                  )
+                ),
+                animatedVisibilityScope = scope,
+                zIndexInOverlay = sharedTransitionZIndex,
+              )
+            }
             .clip(shape)
             .size(ThumbnailSize),
         )

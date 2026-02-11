@@ -68,6 +68,10 @@ class DefaultSessionsRepository(
     )
   }
 
+  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
+    dataSource.markDeleted(libraryItemId)
+  }
+
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
     dataSource.deleteSession(libraryItemId)
   }

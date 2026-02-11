@@ -71,10 +71,18 @@ class StorePlaylistsRepository(
       }
   }
 
-  override fun observePlaylist(playlistId: PlaylistId): Flow<Playlist> {
+  override fun observePlaylist(
+    playlistId: PlaylistId,
+    isCreatedId: Boolean,
+  ): Flow<Playlist> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
-        val operation = PlaylistsStore.Operation.Single(user.id, user.selectedLibraryId, playlistId)
+        val operation = PlaylistsStore.Operation.Single(
+          userId = user.id,
+          libraryId = user.selectedLibraryId,
+          playlistId = playlistId,
+          isCreatedId = isCreatedId,
+        )
         val request = StoreReadRequest.cached(operation, refresh = false)
 
         playlistsStore.stream<StoreReadResponse<PlaylistsStore.Output>>(request)
@@ -120,7 +128,7 @@ class StorePlaylistsRepository(
     return when (response) {
       is StoreWriteResponse.Success -> {
         PlaylistsStore.ibark { "Playlist Create -> $response" }
-        Result.success("TBD")
+        Result.success(operation.creationId)
       }
 
       is StoreWriteResponse.Error.Message -> Result.failure(Exception(response.message))
@@ -253,11 +261,12 @@ class StorePlaylistsRepository(
           .writeSingle(
             userId = currentUser.id,
             libraryId = currentUser.selectedLibraryId,
-            playlist = newPlaylist.asDomainModel(urlHydrator)
+            playlist = newPlaylist.asDomainModel(urlHydrator),
           )
 
         Result.success(newPlaylist.id)
       }
+
       is StoreWriteResponse.Success.Untyped -> Result.failure(Exception("Unknown response type"))
       is StoreWriteResponse.Error.Message -> Result.failure(Exception(response.message))
       is StoreWriteResponse.Error.Exception -> Result.failure(response.error)

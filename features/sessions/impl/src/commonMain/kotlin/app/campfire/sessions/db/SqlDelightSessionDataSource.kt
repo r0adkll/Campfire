@@ -26,6 +26,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -66,7 +67,7 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
-    return withContext(dispatcherProvider.databaseRead) {
+    return read {
       db.sessionQueries.getForId(libraryItemId, userSession.requiredUserId)
         .executeAsOneOrNull()
         ?.let { hydrateSession(it) }
@@ -74,7 +75,7 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun getSessions(userId: UserId): List<Session> {
-    return withContext(dispatcherProvider.databaseRead) {
+    return read {
       db.sessionQueries.getAll(userId)
         .awaitAsList()
         .map { hydrateSession(it) }
@@ -100,7 +101,7 @@ class SqlDelightSessionDataSource(
   ): Session {
     val currentUserId = userSession.requiredUserId
 
-    val existingSession = withContext(dispatcherProvider.databaseRead) {
+    val existingSession = read {
       db.sessionQueries.getForId(libraryItemId, currentUserId)
         .awaitAsOneOrNull()
     }
@@ -115,7 +116,7 @@ class SqlDelightSessionDataSource(
           "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], " +
             "returning it."
         }
-        withContext(dispatcherProvider.databaseWrite) {
+        write {
           db.sessionQueries.transaction {
             db.sessionQueries.deactivateAll(currentUserId)
             db.sessionQueries.activateOnly(libraryItemId, currentUserId)
@@ -137,7 +138,7 @@ class SqlDelightSessionDataSource(
 
     // If there is no existing, or its too old. Create a new session.
     bark { "Creating new session for library item" }
-    return withContext(dispatcherProvider.databaseWrite) {
+    return write {
       val dbSession = DbSession(
         id = Uuid.random(),
         userId = currentUserId,
@@ -145,6 +146,7 @@ class SqlDelightSessionDataSource(
         // Important! We deactivate all prior sessions before inserting this,
         // and this MUST be true for the change to be picked up
         isActive = true,
+        isDeleted = false,
         playMethod = playMethod,
         mediaPlayer = mediaPlayer,
         timeListening = 0.seconds,
@@ -166,7 +168,7 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
-    withContext(dispatcherProvider.databaseWrite) {
+    write {
       // Update the playback session information with the new time
       db.sessionQueries.updatePlayback(
         libraryItemId = libraryItemId,
@@ -178,7 +180,7 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
-    withContext(dispatcherProvider.databaseWrite) {
+    write {
       db.sessionQueries.addTimeListening(
         libraryItemId = libraryItemId,
         userId = userSession.requiredUserId,
@@ -188,21 +190,27 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
+    write {
+      db.sessionQueries.markDeleted(libraryItemId, userSession.requiredUserId)
+    }
+  }
+
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
-    withContext(dispatcherProvider.databaseWrite) {
+    write {
       db.sessionQueries.delete(libraryItemId, userSession.requiredUserId)
     }
   }
 
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
-    withContext(dispatcherProvider.databaseWrite) {
+    write {
       db.sessionQueries.disable(libraryItemId, userSession.requiredUserId)
     }
   }
 
   override suspend fun markFinished(libraryItemId: LibraryItemId) {
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
-    withContext(dispatcherProvider.databaseWrite) {
+    write {
       db.sessionQueries.markFinished(
         currentTime = libraryItem.media.duration,
         updatedAt = fatherTime.now(),
@@ -217,6 +225,7 @@ class SqlDelightSessionDataSource(
     return Session(
       id = session.id,
       userId = session.userId,
+      isDeleted = session.isDeleted,
       libraryItem = libraryItem,
       playMethod = session.playMethod,
       mediaPlayer = session.mediaPlayer,
@@ -227,4 +236,14 @@ class SqlDelightSessionDataSource(
       updatedAt = session.updatedAt,
     )
   }
+
+  private suspend fun <T> read(block: suspend CoroutineScope.() -> T) = withContext(
+    context = dispatcherProvider.databaseRead,
+    block = block,
+  )
+
+  private suspend fun <T> write(block: suspend CoroutineScope.() -> T) = withContext(
+    context = dispatcherProvider.databaseWrite,
+    block = block,
+  )
 }

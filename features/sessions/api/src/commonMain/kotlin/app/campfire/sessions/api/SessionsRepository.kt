@@ -19,6 +19,14 @@ interface SessionsRepository {
   suspend fun createSession(libraryItemId: LibraryItemId): Session
 
   /**
+   * Mark a session for deletion on next sync, deleting it instead of
+   * sync'ing it with the server
+   *
+   * @param libraryItemId The id of the session to mark for deletion
+   */
+  suspend fun markDeleted(libraryItemId: LibraryItemId)
+
+  /**
    * Delete a listening session and discard the media progress locally and remotely for the
    * item.
    *

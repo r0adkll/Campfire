@@ -38,6 +38,10 @@ interface SessionDataSource {
     amount: Duration,
   )
 
+  suspend fun markDeleted(
+    libraryItemId: LibraryItemId,
+  )
+
   suspend fun deleteSession(
     libraryItemId: LibraryItemId,
   )

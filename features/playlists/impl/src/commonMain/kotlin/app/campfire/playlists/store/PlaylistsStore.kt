@@ -84,6 +84,7 @@ object PlaylistsStore : Cork {
       val userId: UserId,
       val libraryId: LibraryId,
       val playlistId: PlaylistId,
+      val isCreatedId: Boolean = false,
     ) : Operation
 
     sealed class Mutation(
@@ -97,7 +98,7 @@ object PlaylistsStore : Cork {
         val description: String?,
         val libraryId: LibraryId,
         val items: List<Playlist.Item.Minified>,
-        val creationId: Uuid = Uuid.random(),
+        val creationId: String = Uuid.random().toHexDashString(),
       ) : Mutation("create")
 
       data class Update(

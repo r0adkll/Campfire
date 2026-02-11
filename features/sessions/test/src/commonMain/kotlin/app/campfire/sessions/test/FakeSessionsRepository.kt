@@ -29,6 +29,10 @@ class FakeSessionsRepository : SessionsRepository {
     return createSession
   }
 
+  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
+    invocations += Invocation.MarkDeleted(libraryItemId)
+  }
+
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
     invocations += Invocation.DeleteSession(libraryItemId)
   }
@@ -65,6 +69,7 @@ class FakeSessionsRepository : SessionsRepository {
     data class GetSession(val libraryItemId: LibraryItemId) : Invocation
     data object CurrentSession : Invocation
     data class CreateSession(val libraryItemId: LibraryItemId) : Invocation
+    data class MarkDeleted(val libraryItemId: LibraryItemId) : Invocation
     data class DeleteSession(val libraryItemId: LibraryItemId) : Invocation
     data class UpdateCurrentTime(val libraryItemId: LibraryItemId, val currentTime: Duration) : Invocation
     data class AddTimeListening(val libraryItemId: LibraryItemId, val amount: Duration) : Invocation

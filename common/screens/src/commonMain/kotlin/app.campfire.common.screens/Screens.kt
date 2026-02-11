@@ -83,10 +83,7 @@ data object SeriesScreen : BaseScreen(name = "Series")
 data class SeriesDetailScreen(
   val seriesId: SeriesId,
   val seriesName: String,
-) : DetailScreen(name = "SeriesDetail") {
-  override val presentation: Presentation
-    get() = Presentation(hideBottomNav = false)
-}
+) : DetailScreen(name = "SeriesDetail")
 
 @Parcelize
 data object CollectionsScreen : BaseScreen(name = "Collections")
@@ -95,10 +92,7 @@ data object CollectionsScreen : BaseScreen(name = "Collections")
 data class CollectionDetailScreen(
   val collectionId: CollectionId,
   val collectionName: String,
-) : DetailScreen(name = "CollectionDetail") {
-  override val presentation: Presentation
-    get() = Presentation(hideBottomNav = false)
-}
+) : DetailScreen(name = "CollectionDetail")
 
 @Parcelize
 data object AuthorsScreen : BaseScreen(name = "Authors")

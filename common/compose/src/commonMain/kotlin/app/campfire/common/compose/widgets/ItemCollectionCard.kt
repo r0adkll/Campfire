@@ -27,6 +27,7 @@ import androidx.compose.ui.util.fastSumBy
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.core.model.LibraryItem
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import kotlin.math.min
 
 private val BookImageSize = 180.dp
 private val BookCornerSize = 12.dp
@@ -69,7 +70,7 @@ fun ItemCollectionCard(
             ),
           ),
           animatedVisibilityScope = scope,
-          zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
+          zIndexInOverlay = 0f,
         )
       },
     onClick = onClick,
@@ -121,6 +122,7 @@ private fun MultiBookLayout(
   val bookImageSize = itemSize.takeIf { it != Dp.Unspecified } ?: BookImageSize
   Layout(
     content = {
+      val size = min(items.size, MaxBookDisplay)
       items
         .take(MaxBookDisplay)
         .forEachIndexed { i, item ->
@@ -137,9 +139,10 @@ private fun MultiBookLayout(
                     ),
                   ),
                   animatedVisibilityScope = it,
-                  zIndexInOverlay = -(i + 1f),
+                  zIndexInOverlay = ((size - i) + 1f),
                 )
               }
+              .clip(RoundedCornerShape(BookCornerSize))
               .size(bookImageSize),
           )
         }

@@ -48,3 +48,7 @@ CREATE TABLE playlistsBookkeeping (
   PRIMARY KEY (playlistId, userId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
+
+-- Playback Sessions
+
+ALTER TABLE session ADD COLUMN isDeleted INTEGER AS Boolean NOT NULL DEFAULT 0;

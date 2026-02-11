@@ -77,6 +77,7 @@ import app.campfire.core.model.Tent
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
@@ -769,6 +770,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = false,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -778,6 +780,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = true,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -787,6 +790,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = true,
       isQueued = true,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -801,6 +805,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = false,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -818,6 +823,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = false,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -836,6 +842,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = false,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
@@ -853,6 +860,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       hasSession = false,
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     ),
   )
 }

@@ -37,6 +37,9 @@ class DefaultPlaybackSessionManager(
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
 
+      // Remove this item from the queue, if exists.
+      sessionQueue.remove(session.libraryItem)
+
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         mediaProgressRepository.markFinished(libraryItemId)
 
@@ -54,10 +57,28 @@ class DefaultPlaybackSessionManager(
     }
   }
 
-  override suspend fun stopSession(libraryItemId: LibraryItemId) {
+  override suspend fun stopSession(
+    libraryItemId: LibraryItemId,
+    clearQueue: Boolean,
+  ) {
     ibark { "Stopping playback session for ${libraryItemId.loggableId}" }
-    sessionsRepository.stopSession(libraryItemId)
-    sessionQueue.clear()
+
+    if (clearQueue) {
+      sessionsRepository.stopSession(libraryItemId)
+      sessionQueue.clear()
+    } else {
+      // If the item is the current playing item, then pop the queue,
+      // and start playing the next item
+      val current = sessionsRepository.getCurrentSession()
+      if (current?.libraryItem?.id == libraryItemId) {
+        val nextItem = sessionQueue.pop()
+        if (nextItem != null) {
+          startSession(nextItem.id, playImmediately = true)
+        } else {
+          sessionsRepository.stopSession(libraryItemId)
+        }
+      }
+    }
   }
 
   companion object : Corked("PlaybackSessionManager")

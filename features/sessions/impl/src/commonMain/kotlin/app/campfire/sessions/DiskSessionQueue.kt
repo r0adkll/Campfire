@@ -87,13 +87,13 @@ class DiskSessionQueue(
     }
 
     db.sessionQueueQueries.transaction {
-      db.sessionQueueQueries.delete(
+      val success = db.sessionQueueQueries.delete(
         userId = userSession.requiredUserId,
         libraryItemId = libraryItem.id,
-      )
+      ) > 0
 
-      // Now re-index queue
-      reindexQueue(queue)
+      // Now re-index queue, if successful
+      if (success) reindexQueue(queue)
     }
   }
 

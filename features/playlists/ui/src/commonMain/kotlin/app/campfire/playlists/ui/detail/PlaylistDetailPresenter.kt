@@ -59,15 +59,23 @@ class PlaylistDetailPresenter(
     }.collectAsState(emptyMap())
 
     val playlistContentState by remember {
-      playlistsRepository.observePlaylist(screen.playlistId)
+      playlistsRepository.observePlaylist(screen.playlistId, screen.isCreatedId)
         .map { LoadState.Loaded(it) }
         .catch<LoadState<out Playlist>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
+
+    val playlistId by remember {
+      derivedStateOf {
+        playlistContentState.dataOrNull?.id
+          ?: screen.playlistId
+      }
+    }
 
     val playlistName by remember {
       derivedStateOf {
         playlistContentState.dataOrNull?.name
           ?: screen.playlistName
+          ?: ""
       }
     }
 
@@ -76,12 +84,12 @@ class PlaylistDetailPresenter(
         @Suppress("SimpleRedundantLet")
         playlistContentState.dataOrNull?.let {
           it.description
-        } ?: screen.playlistName
+        } ?: screen.playlistDescription
       }
     }
 
-    val playlistItemsState by remember {
-      playlistsRepository.observePlaylistItems(screen.playlistId)
+    val playlistItemsState by remember(playlistId) {
+      playlistsRepository.observePlaylistItems(playlistId)
         .map { LoadState.Loaded(it) }
         .catch<LoadState<out List<LibraryItem>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
@@ -122,7 +130,7 @@ class PlaylistDetailPresenter(
           navigator.goTo(
             LibraryItemScreen(
               libraryItemId = event.libraryItem.id,
-              sharedTransitionKey = event.libraryItem.id + screen.playlistId,
+              sharedTransitionKey = event.libraryItem.id + screen.playlistName,
             ),
           )
         }
@@ -158,6 +166,7 @@ class PlaylistDetailPresenter(
 
             playbackController.startSession(firstItem.id)
             if (queueItems.isNotEmpty()) {
+              sessionQueue.clear()
               sessionQueue.addAll(queueItems)
             }
           }

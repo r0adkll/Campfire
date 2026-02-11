@@ -75,10 +75,20 @@ class NetworkRemoteSessionsUpdater(
   private suspend fun syncLocalSessionsToServer() {
     // Read local sessions from db
     val currentUserId = userSession.userId ?: return
+    val allSessions = sessionDataSource.getSessions(currentUserId)
+
+    // Delete any sessions marked for deletion
+    val deletedSessions = allSessions.filter { it.isDeleted }
+    deletedSessions.forEach {
+      sessionDataSource.deleteSession(it.libraryItem.id)
+    }
+
+    // Filter out any non-deleted sessions with insufficient listening time
     val localSessions = sessionDataSource.getSessions(currentUserId).filter { session ->
-      // Omit sessions that have < 5s of listening time. These could likely be errant, or restoration sessions
-      // and we should hold off on uploading them until they have a significant amount of listening time
-      session.timeListening > 5.seconds
+      !session.isDeleted &&
+        // Omit sessions that have < 5s of listening time. These could likely be errant, or restoration sessions
+        // and we should hold off on uploading them until they have a significant amount of listening time
+        session.timeListening > 5.seconds
     }
 
     if (localSessions.isNotEmpty()) {

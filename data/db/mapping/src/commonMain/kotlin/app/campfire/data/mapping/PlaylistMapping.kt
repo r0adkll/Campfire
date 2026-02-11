@@ -32,9 +32,11 @@ fun NetworkPlaylist.asDomainModel(urlHydrator: UrlHydrator): Playlist {
 fun NetworkPlaylist.asDbModel(
   userId: UserId,
   libraryId: LibraryId,
+  creationId: String? = null,
 ): DbPlaylist {
   return DbPlaylist(
     id = id,
+    creationId = creationId,
     name = name,
     description = description,
     lastUpdated = lastUpdate,
@@ -50,6 +52,7 @@ fun Playlist.asDbModel(
 ): DbPlaylist {
   return DbPlaylist(
     id = id,
+    creationId = null,
     name = name,
     description = description,
     lastUpdated = lastUpdatedAt.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds(),

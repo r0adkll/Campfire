@@ -24,6 +24,9 @@ import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
@@ -49,6 +52,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.layout.LocalSnackBarHost
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -80,6 +84,7 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
 import campfire.features.libraries.ui.generated.resources.cd_back_arrow
@@ -125,9 +130,18 @@ fun LibraryItemContent(
 
   var showAddToCollectionDialog by remember { mutableStateOf(false) }
 
+  val snackBarHost = remember { SnackbarHostState() }
   val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current)
   Scaffold(
     containerColor = surfaceColor,
+    snackbarHost = {
+      SnackbarHost(snackBarHost) { data ->
+        Snackbar(
+          snackbarData = data,
+          shape = MaterialTheme.shapes.medium,
+        )
+      }
+    },
     topBar = {
       CampfireTopAppBar(
         title = {},
@@ -195,12 +209,18 @@ fun LibraryItemContent(
       )
 
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      is LoadState.Loaded<out List<ContentSlot>> -> LoadedState(
-        slots = contentState.data,
-        contentPadding = paddingValues,
-        modifier = modifier,
-        eventSink = state.eventSink,
-      )
+      is LoadState.Loaded<out List<ContentSlot>> -> {
+        CompositionLocalProvider(
+          LocalSnackBarHost provides snackBarHost,
+        ) {
+        LoadedState(
+          slots = contentState.data,
+          contentPadding = paddingValues,
+          modifier = modifier,
+          eventSink = state.eventSink,
+        )
+          }
+      }
     }
   }
 
@@ -318,6 +338,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
               isCurrentSession = false,
               hasSession = false,
               isQueued = false,
+              addToPlaylistDialog = AddToPlaylistDialog.NoOp,
             ),
             SpacerSlot.medium("summary_spacer"),
             SummarySlot(libraryItem.media.metadata.description!!),

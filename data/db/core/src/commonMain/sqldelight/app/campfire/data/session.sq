@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS session (
   userId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
   isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
+  isDeleted INTEGER AS Boolean NOT NULL DEFAULT 0,
 
   playMethod TEXT AS PlayMethod NOT NULL,
   mediaPlayer TEXT NOT NULL,
@@ -52,6 +53,12 @@ UPDATE session
 SET isActive = 1
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId;
+
+markDeleted:
+UPDATE session
+SET isDeleted = 1
+WHERE libraryItemId = ?
+  AND userId = ?;
 
 delete:
 DELETE FROM session

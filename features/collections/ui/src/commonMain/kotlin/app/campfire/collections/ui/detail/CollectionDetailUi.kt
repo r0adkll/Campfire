@@ -300,7 +300,7 @@ private fun LoadedState(
       LibraryItemCard(
         item = item,
         sharedTransitionKey = item.id + collectionName,
-        sharedTransitionZIndex = -(index + 1f),
+        sharedTransitionZIndex = (items.size - index) + 1f,
         offlineStatus = offlineStatus(item.id),
         isSelectable = isEditing,
         selected = selectedItems.contains(item),

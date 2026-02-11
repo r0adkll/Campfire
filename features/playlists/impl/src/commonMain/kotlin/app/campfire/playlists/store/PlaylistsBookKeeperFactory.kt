@@ -95,7 +95,7 @@ class PlaylistsBookKeeperFactory(
           .insertFailedSync(
             PlaylistsBookkeeping(
               userId = mutation.userId,
-              playlistId = mutation.creationId.toHexDashString(),
+              playlistId = mutation.creationId,
               operation = mutation.key,
               timestamp = time,
             ),

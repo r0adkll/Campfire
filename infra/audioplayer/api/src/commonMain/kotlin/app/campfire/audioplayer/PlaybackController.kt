@@ -20,5 +20,8 @@ interface PlaybackController {
   /**
    * Stop a current session
    */
-  fun stopSession(itemId: LibraryItemId)
+  fun stopSession(
+    itemId: LibraryItemId,
+    clearQueue: Boolean = false,
+  )
 }

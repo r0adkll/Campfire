@@ -25,7 +25,7 @@ class SessionStopUseCase(
     // Check for any current sessions and stop them
     val currentSession = sessionRepository.getCurrentSession()
     if (currentSession != null) {
-      playbackController.stopSession(currentSession.libraryItem.id)
+      playbackController.stopSession(currentSession.libraryItem.id, clearQueue = true)
 
       // Force wait until current session is null
       sessionRepository

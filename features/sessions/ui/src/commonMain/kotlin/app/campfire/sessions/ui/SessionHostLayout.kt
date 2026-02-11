@@ -90,7 +90,7 @@ fun SessionHostLayout(
     {
       currentSession?.let { s ->
         scope.launch {
-          comp.playbackController.stopSession(s.libraryItem.id)
+          comp.playbackController.stopSession(s.libraryItem.id, clearQueue = true)
         }
       }
     }

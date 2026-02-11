@@ -44,6 +44,8 @@ import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.series.api.SeriesRepository
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -91,6 +93,7 @@ class LibraryItemPresenter(
   private val analytics: Analytics,
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
+  private val addToPlaylistDialog: AddToPlaylistDialog,
   private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
@@ -205,6 +208,7 @@ class LibraryItemPresenter(
         hasSession = currentSession != null,
         session = itemSession.sessionOrNull(),
         isQueued = isQueued,
+        addToPlaylistDialog = addToPlaylistDialog,
       )
     }
 
@@ -273,7 +277,7 @@ class LibraryItemPresenter(
           analytics.send(ActionEvent("discard_progress", Click))
           playbackController.stopSession(event.item.id)
           scope.launch {
-            sessionsRepository.deleteSession(event.item.id)
+            sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.deleteProgress(event.item.id)
           }
         }
@@ -282,7 +286,7 @@ class LibraryItemPresenter(
           analytics.send(ActionEvent("mark_finished", Click))
           playbackController.stopSession(event.item.id)
           scope.launch {
-            sessionsRepository.deleteSession(event.item.id)
+            sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.markFinished(event.item.id)
           }
         }
@@ -349,6 +353,11 @@ class LibraryItemPresenter(
           analytics.send(ActionEvent("time_in_book", Click))
           settings.showTimeInBook = event.enabled
         }
+
+        is LibraryItemUiEvent.OpenPlaylist -> {
+          analytics.send(ActionEvent("open_playlist", Click))
+          navigator.goTo(PlaylistDetailScreen(event.playlistId, null, null, event.isCreated))
+        }
       }
     }
   }
@@ -367,6 +376,7 @@ private fun buildSlots(
   hasSession: Boolean,
   isQueued: Boolean,
   session: Session?,
+  addToPlaylistDialog: AddToPlaylistDialog,
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
@@ -397,6 +407,7 @@ private fun buildSlots(
       hasSession = hasSession,
       isQueued = isQueued,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
+      addToPlaylistDialog = addToPlaylistDialog,
     )
 
     libraryItem.media.metadata.description?.let { desc ->

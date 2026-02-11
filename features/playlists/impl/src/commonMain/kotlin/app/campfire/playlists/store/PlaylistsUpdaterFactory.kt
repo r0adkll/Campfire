@@ -69,17 +69,18 @@ class PlaylistsUpdaterFactory(
   private suspend fun updateLocalCreate(
     userId: UserId,
     libraryId: LibraryId,
-    creationId: Uuid,
+    creationId: String,
     playlist: PlaylistExpanded,
   ) {
     val existing = db.playlistsQueries
-      .selectById(creationId.toHexDashString())
+      .selectById(creationId)
       .awaitAsOneOrNull()
 
     if (existing != null) {
       db.transaction {
-        // Insert a copy, with the real id
-        db.playlistsQueries.insert(playlist.asDbModel(userId, libraryId))
+        // Insert a copy, with the real id, while maintaining the creation id
+        // for any observers that need it.
+        db.playlistsQueries.insert(playlist.asDbModel(userId, libraryId, creationId))
 
         // Copy over the junction entries
         playlist.items.forEachIndexed { index, item ->
@@ -89,8 +90,8 @@ class PlaylistsUpdaterFactory(
         }
 
         // Delete the old stuff
-        db.playlistsQueries.delete(creationId.toHexDashString())
-        db.playlistItemJoinQueries.delete(creationId.toHexDashString())
+        db.playlistsQueries.delete(creationId)
+        db.playlistItemJoinQueries.delete(creationId)
       }
     }
   }

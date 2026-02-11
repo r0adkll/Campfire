@@ -12,6 +12,7 @@ import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
@@ -59,6 +60,7 @@ abstract class BaseLibraryItemPresenterTest {
     themeManager = themeManager,
     themeSettings = themeSettings,
     dispatcherProvider = dispatcherProvider,
+    addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
 }
 

@@ -14,5 +14,8 @@ interface PlaybackSessionManager {
     chapterId: Int? = null,
   )
 
-  suspend fun stopSession(libraryItemId: LibraryItemId)
+  suspend fun stopSession(
+    libraryItemId: LibraryItemId,
+    clearQueue: Boolean,
+  )
 }

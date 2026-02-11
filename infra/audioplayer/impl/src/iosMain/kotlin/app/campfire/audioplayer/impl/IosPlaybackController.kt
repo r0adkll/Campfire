@@ -45,11 +45,14 @@ class IosPlaybackController(
     }
   }
 
-  override fun stopSession(itemId: LibraryItemId) {
+  override fun stopSession(
+    itemId: LibraryItemId,
+    clearQueue: Boolean,
+  ) {
     userScopeHolder.get().launch {
       disableAudioSession()
       NowPlaying.reset()
-      playbackSessionManager.stopSession(itemId)
+      playbackSessionManager.stopSession(itemId, clearQueue)
       audioPlayerHolder.release()
     }
   }

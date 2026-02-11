@@ -26,6 +26,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
@@ -104,7 +106,13 @@ fun AdaptiveCampfireLayout(
         gesturesEnabled = isLoggedIn && drawerEnabled,
         modifier = Modifier.weight(1f),
       ) {
+        val snackBarHost = remember { SnackbarHostState() }
         Scaffold(
+          snackbarHost = {
+            SnackbarHost(
+              hostState = snackBarHost,
+            )
+          },
           bottomBar = {
             if (navigationType == NavigationType.BottomNavigation) {
               AnimatedVisibility(
@@ -157,6 +165,7 @@ fun AdaptiveCampfireLayout(
                 CompositionLocalProvider(
                   LocalContentLayout provides ContentLayout.Root,
                   LocalSupportingContentState provides supportingContentState,
+                  LocalSnackBarHost provides snackBarHost,
                 ) {
                   Box {
                     content()
@@ -198,6 +207,7 @@ fun AdaptiveCampfireLayout(
                   CompositionLocalProvider(
                     LocalContentLayout provides ContentLayout.Supporting,
                     LocalSupportingContentState provides supportingContentState,
+                    LocalSnackBarHost provides snackBarHost,
                   ) {
                     supportingContent()
                   }

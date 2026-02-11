@@ -14,6 +14,7 @@ import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.composables.setCampfireContent
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSharedTransitionApi::class)
@@ -27,6 +28,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = null,
       mediaProgress = null,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -54,6 +58,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = null,
       mediaProgress = mediaProgress,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -81,6 +88,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = null,
       mediaProgress = mediaProgress,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -110,6 +120,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = offlineDownload,
       mediaProgress = null,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -138,6 +151,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = offlineDownload,
       mediaProgress = null,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 
@@ -168,6 +184,9 @@ class ExpressiveControlSlotTest {
       offlineDownload = offlineDownload,
       mediaProgress = null,
       isCurrentSession = false,
+      isQueued = false,
+      hasSession = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
       showConfirmDownloadDialogSetting = false,
     )
 

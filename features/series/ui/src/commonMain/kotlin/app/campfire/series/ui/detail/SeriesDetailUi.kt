@@ -120,7 +120,7 @@ private fun LoadedState(
       LibraryItemCard(
         item = item,
         sharedTransitionKey = item.id + seriesName,
-        sharedTransitionZIndex = -(index + 1f),
+        sharedTransitionZIndex = (items.size - index) + 1f,
         offlineStatus = offlineStatus(item.id),
         onClick = { onLibraryItemClick(item) },
       )

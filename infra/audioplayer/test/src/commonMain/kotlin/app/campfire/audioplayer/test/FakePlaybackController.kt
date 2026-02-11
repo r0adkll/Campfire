@@ -19,9 +19,10 @@ class FakePlaybackController : PlaybackController {
     )
   }
 
-  override fun stopSession(itemId: LibraryItemId) {
+  override fun stopSession(itemId: LibraryItemId, clearQueue: Boolean) {
     session = PlaybackControllerSession.Stopped(
       itemId = itemId,
+      clearQueue = clearQueue,
     )
   }
 }
@@ -37,5 +38,6 @@ sealed interface PlaybackControllerSession {
 
   data class Stopped(
     val itemId: LibraryItemId,
+    val clearQueue: Boolean,
   ) : PlaybackControllerSession
 }

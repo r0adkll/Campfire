@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
@@ -53,6 +54,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class DownloadClick(val doNotShowAgain: Boolean = true) : LibraryItemUiEvent
   data object RemoveDownloadClick : LibraryItemUiEvent
   data object StopDownloadClick : LibraryItemUiEvent
+
+  data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }

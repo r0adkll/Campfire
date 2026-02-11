@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS playlists (
   id TEXT NOT NULL PRIMARY KEY,
+  creationId TEXT,
   name TEXT NOT NULL,
   description TEXT,
   lastUpdated INTEGER NOT NULL,
@@ -34,6 +35,10 @@ WHERE userId = ?;
 selectById:
 SELECT * FROM playlists
 WHERE id = ?;
+
+selectByCreatedId:
+SELECT * FROM playlists
+WHERE creationId = ?;
 
 selectByLibraryId:
 SELECT * FROM playlists

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -32,6 +33,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -40,11 +42,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.MaxBookDisplay
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
@@ -128,6 +132,7 @@ fun PlaylistDetail(
     },
     floatingActionButtonPosition = FabPosition.Center,
     modifier = modifier
+      .nestedScroll(scrollBehavior.nestedScrollConnection)
       .sharedBounds(
         sharedContentState = rememberSharedContentState(
           ItemCollectionSharedTransitionKey(
@@ -136,7 +141,7 @@ fun PlaylistDetail(
           ),
         ),
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
-        zIndexInOverlay = -1f,
+        zIndexInOverlay = 0f,
       ),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
@@ -150,6 +155,7 @@ fun PlaylistDetail(
       )
 
       is LoadState.Loaded -> LoadedContent(
+        name = state.name,
         description = state.description,
         items = state.playlistItems,
         onItemClick = { item ->
@@ -169,7 +175,10 @@ fun PlaylistDetail(
         },
         offlineStateSelector = { itemId -> state.offlineStates[itemId].asWidgetStatus() },
         isPlayingSelector = { itemId -> state.currentSession?.libraryItem?.id == itemId },
-        contentPadding = paddingValues,
+        contentPadding = paddingValues + PaddingValues(
+          // 2 x 16dp (padding) + 56dp (toolbar)
+          bottom = 104.dp,
+        ),
         isReordering = isReordering,
         modifier = Modifier
           .fillMaxSize(),
@@ -204,6 +213,7 @@ private fun PlaylistTopBar(
 
 @Composable
 private fun LoadedContent(
+  name: String,
   description: String?,
   items: List<LibraryItem>,
   isReordering: Boolean,
@@ -236,14 +246,16 @@ private fun LoadedContent(
       )
     }
 
-    items(
+    itemsIndexed(
       items = items,
-      key = { item -> item.id },
-    ) { item ->
+      key = { _, item -> item.id },
+    ) { index, item ->
       ReorderableItem(reorderableLazyListState, key = item.id) { isDragging ->
         val interactionSource = remember { MutableInteractionSource() }
         PlaylistListItem(
           item = item,
+          sharedTransitionKey = item.id + name,
+          sharedTransitionZIndex = (items.size - index) + 1f,
           offlineStatus = offlineStateSelector(item.id),
           isPlaying = isPlayingSelector(item.id),
           onClick = {
