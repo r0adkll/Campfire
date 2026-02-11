@@ -10,8 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - What's New / Changelog screen and widget
-- Setting to switch next/prev actions from remotes (i.e. Bluetooth) to fast forward / rewind
 - Playback Queue
+- Playlists
+- Setting to switch next/prev actions from remotes (i.e. Bluetooth) to fast forward / rewind
 - Support the [playback resumption][media3-playback-resumption] API
 
 ### Changed
