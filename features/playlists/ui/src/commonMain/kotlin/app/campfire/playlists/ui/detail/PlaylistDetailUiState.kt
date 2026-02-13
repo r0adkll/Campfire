@@ -15,6 +15,7 @@ data class PlaylistDetailUiState(
   val name: String,
   val description: String?,
   val currentSession: Session?,
+  val showConfirmDownloadDialog: Boolean,
   val playlistState: LoadState<out Playlist>,
   val playlistContentState: LoadState<out List<LibraryItem>>,
   val playlistItems: List<LibraryItem>,
@@ -29,8 +30,8 @@ sealed interface PlaylistDetailUiEvent : CircuitUiEvent {
   data class ItemClick(val libraryItem: LibraryItem) : PlaylistDetailUiEvent
   data class PlayClick(val libraryItem: LibraryItem) : PlaylistDetailUiEvent
   data class RemoveItem(val libraryItem: LibraryItem) : PlaylistDetailUiEvent
+  data class DownloadAll(val doNotShowAgain: Boolean = true) : PlaylistDetailUiEvent
 
   data object PlayAll : PlaylistDetailUiEvent
-  data object DownloadAll : PlaylistDetailUiEvent
   data object ReorderStopped : PlaylistDetailUiEvent
 }

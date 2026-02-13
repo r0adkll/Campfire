@@ -43,11 +43,14 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.permission.PermissionState
+import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
@@ -97,6 +100,31 @@ fun PlaylistDetail(
     )
   }
 
+  var showConfirmDownloadDialog by remember { mutableStateOf(false) }
+  var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
+  val postNotificationPermissionState = rememberPostNotificationPermissionState {
+    if (it) {
+      state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowDownloadConfirmationAgain))
+      showConfirmDownloadDialog = false
+    }
+  }
+
+  if (showConfirmDownloadDialog) {
+    ConfirmDownloadDialog(
+      state.playlistItems,
+      onConfirm = { doNotShowAgain ->
+        if (postNotificationPermissionState is PermissionState.Granted) {
+          state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowAgain))
+          showConfirmDownloadDialog = false
+        } else {
+          doNotShowDownloadConfirmationAgain = doNotShowAgain
+          postNotificationPermissionState.launchPermissionRequest()
+        }
+      },
+      onDismissRequest = { showConfirmDownloadDialog = false },
+    )
+  }
+
   var isReordering by remember { mutableStateOf(false) }
 
   val overlayHost = LocalOverlayHost.current
@@ -122,7 +150,11 @@ fun PlaylistDetail(
           }
         },
         onDownloadClick = {
-          state.eventSink(PlaylistDetailUiEvent.DownloadAll)
+          if (state.showConfirmDownloadDialog) {
+            showConfirmDownloadDialog = true
+          } else {
+            state.eventSink(PlaylistDetailUiEvent.DownloadAll())
+          }
         },
         isReordering = isReordering,
         onReorderChange = { isReordering = it },

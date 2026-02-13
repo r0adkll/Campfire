@@ -23,6 +23,7 @@ import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -43,6 +44,7 @@ class PlaylistDetailPresenter(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val downloadManager: OfflineDownloadManager,
+  private val settings: CampfireSettings,
 ) : Presenter<PlaylistDetailUiState> {
 
   @Composable
@@ -101,10 +103,15 @@ class PlaylistDetailPresenter(
         ?: mutableStateListOf()
     }
 
+    val showConfirmDownloadDialog by remember {
+      settings.observeShowConfirmDownload()
+    }.collectAsState(settings.showConfirmDownload)
+
     return PlaylistDetailUiState(
       name = playlistName,
       description = playlistDescription,
       currentSession = session,
+      showConfirmDownloadDialog = showConfirmDownloadDialog,
       playlistState = playlistContentState,
       playlistContentState = playlistItemsState,
       playlistItems = playlistItems,
@@ -172,8 +179,9 @@ class PlaylistDetailPresenter(
           }
         }
 
-        PlaylistDetailUiEvent.DownloadAll -> {
+        is PlaylistDetailUiEvent.DownloadAll -> {
           analytics.send(ActionEvent("playlist", "download"))
+          settings.showConfirmDownload = !event.doNotShowAgain
           downloadManager.downloadAll(playlistItems)
         }
       }

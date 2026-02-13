@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.detail.permission
+package app.campfire.common.compose.permission
 
 import android.os.Build
 import androidx.compose.runtime.Composable

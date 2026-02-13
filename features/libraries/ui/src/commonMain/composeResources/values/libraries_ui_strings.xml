@@ -55,12 +55,6 @@
   <string name="action_delete_offline">Delete</string>
   <string name="action_stop_downloading">Stop downloading</string>
 
-  <string name="dialog_download_message_prefix">This will download</string>
-  <string name="dialog_download_message_suffix">onto your devices internal storage.</string>
-  <string name="dialog_download_do_not_show_label">Do not show again</string>
-  <string name="dialog_download_action_confirm">Download</string>
-  <string name="dialog_download_action_dismiss">Cancel</string>
-
   <plurals name="filter_bar_book_count">
     <item quantity="one">%1$d Book</item>
     <item quantity="other">%1$d Books</item>

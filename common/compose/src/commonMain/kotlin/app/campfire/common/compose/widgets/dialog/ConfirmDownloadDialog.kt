@@ -1,4 +1,4 @@
-package app.campfire.libraries.ui.detail.dialog
+package app.campfire.common.compose.widgets.dialog
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,17 +30,32 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
-import campfire.features.libraries.ui.generated.resources.Res
-import campfire.features.libraries.ui.generated.resources.dialog_download_action_confirm
-import campfire.features.libraries.ui.generated.resources.dialog_download_action_dismiss
-import campfire.features.libraries.ui.generated.resources.dialog_download_do_not_show_label
-import campfire.features.libraries.ui.generated.resources.dialog_download_message_prefix
-import campfire.features.libraries.ui.generated.resources.dialog_download_message_suffix
+import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.dialog_download_action_confirm
+import campfire.common.compose.generated.resources.dialog_download_action_dismiss
+import campfire.common.compose.generated.resources.dialog_download_do_not_show_label
+import campfire.common.compose.generated.resources.dialog_download_message_prefix
+import campfire.common.compose.generated.resources.dialog_download_message_suffix
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ConfirmDownloadDialog(
   item: LibraryItem,
+  onConfirm: (doNotShowAgain: Boolean) -> Unit,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  ConfirmDownloadDialog(
+    items = listOf(item),
+    onConfirm = onConfirm,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier,
+  )
+}
+
+@Composable
+fun ConfirmDownloadDialog(
+  items: List<LibraryItem>,
   onConfirm: (doNotShowAgain: Boolean) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
@@ -58,19 +73,24 @@ fun ConfirmDownloadDialog(
         buildAnnotatedString {
           append("Download ")
           withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-            append("\"${item.media.metadata.title}\"")
+            if (items.size == 1) {
+              append("\"${items.first().media.metadata.title}\"")
+            } else {
+              append("${items.size} items")
+            }
           }
         },
       )
     },
     text = {
+      val totalSize = items.sumOf { it.media.sizeInBytes }
       Column {
         Text(
           buildAnnotatedString {
             append(stringResource(Res.string.dialog_download_message_prefix))
             append(" ")
             withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-              append(item.media.sizeInBytes.asReadableBytes())
+              append(totalSize.asReadableBytes())
             }
             append(" ")
             append(stringResource(Res.string.dialog_download_message_suffix))

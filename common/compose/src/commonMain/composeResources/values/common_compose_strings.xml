@@ -20,6 +20,12 @@
   <string name="action_show_more">Show more</string>
   <string name="action_remove">REMOVE</string>
 
+  <string name="dialog_download_message_prefix">This will download</string>
+  <string name="dialog_download_message_suffix">onto your devices internal storage.</string>
+  <string name="dialog_download_do_not_show_label">Do not show again</string>
+  <string name="dialog_download_action_confirm">Download</string>
+  <string name="dialog_download_action_dismiss">Cancel</string>
+
   <string-array name="empty_screen_quotes">
     <item>May your compass always point to adventure.</item>
     <item>Leave a trail of footprints and a heart full of stories.</item>

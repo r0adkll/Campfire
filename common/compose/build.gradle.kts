@@ -61,6 +61,7 @@ kotlin {
       dependsOn(jvmCommon)
 
       dependencies {
+        implementation(libs.accompanist.permissions)
         implementation(libs.androidx.activity.compose)
 
         implementation(compose.preview)

@@ -40,11 +40,5 @@ kotlin {
         implementation(projects.ui.theming.test)
       }
     }
-
-    androidMain {
-      dependencies {
-        implementation(libs.accompanist.permissions)
-      }
-    }
   }
 }
