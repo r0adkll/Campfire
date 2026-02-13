@@ -203,8 +203,8 @@ private val DiscardProgress = EventTest(
       .isEqualTo(TestLibraryItemId)
 
     assertThat(sessionsRepository.invocations)
-      .firstInstanceOf<FakeSessionsRepository.Invocation.DeleteSession>()
-      .prop(FakeSessionsRepository.Invocation.DeleteSession::libraryItemId)
+      .firstInstanceOf<FakeSessionsRepository.Invocation.MarkDeleted>()
+      .prop(FakeSessionsRepository.Invocation.MarkDeleted::libraryItemId)
       .isEqualTo(TestLibraryItemId)
 
     assertThat(mediaProgressRepository.invocations)
@@ -228,8 +228,8 @@ private val MarkFinished = EventTest(
       .isEqualTo(TestLibraryItemId)
 
     assertThat(sessionsRepository.invocations)
-      .firstInstanceOf<FakeSessionsRepository.Invocation.DeleteSession>()
-      .prop(FakeSessionsRepository.Invocation.DeleteSession::libraryItemId)
+      .firstInstanceOf<FakeSessionsRepository.Invocation.MarkDeleted>()
+      .prop(FakeSessionsRepository.Invocation.MarkDeleted::libraryItemId)
       .isEqualTo(TestLibraryItemId)
 
     assertThat(mediaProgressRepository.invocations)
