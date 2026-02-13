@@ -104,6 +104,7 @@ class SqlDelightSessionDataSource(
     val existingSession = read {
       db.sessionQueries.getForId(libraryItemId, currentUserId)
         .awaitAsOneOrNull()
+        ?.takeIf { !it.isDeleted }
     }
 
     // If an existing session has been updated withing allowed time interval,

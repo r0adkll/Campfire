@@ -20,6 +20,10 @@
   <string name="action_play">Play</string>
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
+  <string name="action_add_to_playlist_long">Add to playlist</string>
+  <string name="action_add_to_playlist_short">Playlist</string>
+  <string name="action_add_to_enqueue">Enqueue</string>
+  <string name="action_add_to_dequeue">Dequeue</string>
 
   <string name="menu_item_mark_finished">Mark as finished</string>
   <string name="menu_item_mark_finished_short">Finished</string>

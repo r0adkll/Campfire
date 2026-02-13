@@ -11,13 +11,16 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
@@ -79,6 +82,10 @@ import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.action_add_to_dequeue
+import campfire.features.libraries.ui.generated.resources.action_add_to_enqueue
+import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_long
+import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_short
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
 import campfire.features.libraries.ui.generated.resources.action_play
@@ -446,7 +453,9 @@ private fun ProgressModifierButtons(
   val textStyle = ButtonDefaults.textStyleFor(size)
 
   Row(
-    modifier = Modifier.fillMaxWidth(),
+    modifier = Modifier
+      .fillMaxWidth()
+      .heightIn(size),
     horizontalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     val shapes = ButtonDefaults.shapes(
@@ -556,6 +565,7 @@ private fun AddToButtons(
 
   Row(
     horizontalArrangement = Arrangement.spacedBy(2.dp),
+    modifier = Modifier.height(IntrinsicSize.Min)
   ) {
     val smallCornerSize by animateDpAsState(
       if (canQueue) 4.dp else 28.dp,
@@ -588,7 +598,11 @@ private fun AddToButtons(
       )
       Spacer(Modifier.size(iconSpacing))
       Text(
-        text = "Add to playlist",
+        text = if (canQueue) {
+          stringResource(Res.string.action_add_to_playlist_short)
+        } else {
+          stringResource(Res.string.action_add_to_playlist_long)
+        },
         style = textStyle,
       )
     }
@@ -638,9 +652,9 @@ private fun AddToButtons(
         Spacer(Modifier.size(iconSpacing))
         Text(
           text = if (isQueued) {
-            "Remove from queue"
+            stringResource(Res.string.action_add_to_dequeue)
           } else {
-            "Add to queue"
+            stringResource(Res.string.action_add_to_enqueue)
           },
           style = textStyle,
         )
@@ -789,6 +803,16 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       libraryItem = libraryItem(),
       offlineDownload = null,
       mediaProgress = mediaProgress(),
+      isCurrentSession = false,
+      hasSession = true,
+      isQueued = true,
+      showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    ),
+    ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = mediaProgress(),
       isCurrentSession = true,
       hasSession = true,
       isQueued = true,
@@ -868,7 +892,7 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
   )
 }
 
-@Preview
+@Preview(widthDp = 365)
 @Composable
 fun ExpressiveControlSlotPreview(
   @PreviewParameter(ControlSlotProvider::class) slot: ExpressiveControlSlot,
