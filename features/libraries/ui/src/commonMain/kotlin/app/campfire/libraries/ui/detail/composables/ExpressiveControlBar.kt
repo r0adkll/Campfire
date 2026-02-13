@@ -15,12 +15,10 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
@@ -565,7 +563,7 @@ private fun AddToButtons(
 
   Row(
     horizontalArrangement = Arrangement.spacedBy(2.dp),
-    modifier = Modifier.height(IntrinsicSize.Min)
+    modifier = Modifier.height(IntrinsicSize.Min),
   ) {
     val smallCornerSize by animateDpAsState(
       if (canQueue) 4.dp else 28.dp,
