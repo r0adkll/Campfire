@@ -10,6 +10,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.playlists.api.PlaylistsRepository
@@ -40,6 +42,7 @@ class StorePlaylistsRepository(
   private val userRepository: UserRepository,
   private val db: CampfireDatabase,
   private val urlHydrator: UrlHydrator,
+  private val libraryItemDao: LibraryItemDao,
   private val storeFactory: PlaylistsStore.Factory,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaylistsRepository {
@@ -97,12 +100,13 @@ class StorePlaylistsRepository(
 
   override fun observePlaylistItems(playlistId: PlaylistId): Flow<List<LibraryItem>> {
     return db.libraryItemsQueries
-      .selectForPlaylist(playlistId)
+      .selectForPlaylist(playlistId, ::mapToLibraryItemWithProgress)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
-      .mapLatest { selectForPlaylist ->
-        selectForPlaylist
-          .map { it.asDomainModel(urlHydrator) }
+      .mapLatest { itemWithProgress ->
+        itemWithProgress.map {
+          libraryItemDao.hydrateItem(it)
+        }
       }
   }
 
