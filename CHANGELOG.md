@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Revamped the sleep timer bottom sheet UI in the player view
+
 ### Deprecated
 
 ### Removed
