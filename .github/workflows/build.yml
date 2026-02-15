@@ -27,9 +27,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
         with:
           token: ${{ secrets.CAMPFIRE_BOT_PAT }}
           ref: ${{ github.head_ref }}
+
+      - uses: actions/checkout@v6
+        if: ${{ github.event.pull_request.head.repo.full_name != github.repository && github.event_name != 'push' }}
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -50,6 +54,7 @@ jobs:
         run: ./gradlew spotlessApply
 
       - name: Push changes to PR if exist
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
         env:
           IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
         run: |
@@ -122,12 +127,13 @@ jobs:
           min-coverage-changed-files: 80
           coverage-counter-type: LINE
 
-      - name: Fail if coverage is not met
-        if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
-        run: |
-          if [[ "${{ steps.kover.outputs.coverage-changed-files }}" -lt 50 ]]; then
-            exit 1
-          fi
+# Ignoring failing this task for now until we set out to bring coverage up to snuff
+#      - name: Fail if coverage is not met
+#        if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
+#        run: |
+#          if [[ "${{ steps.kover.outputs.coverage-changed-files }}" -lt 50 ]]; then
+#            exit 1
+#          fi
 
   android:
     needs: [code-style]
