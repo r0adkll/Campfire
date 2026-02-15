@@ -1,5 +1,5 @@
 <resources>
-  <string name="timer_bottomsheet_title">Timer</string>
+  <string name="timer_bottomsheet_title">Sleep Timer</string>
   <string name="timer_end_of_chapter">End of Chapter</string>
   <string name="timer_custom">Custom</string>
   <string name="label_current_timer">Current timer</string>
@@ -8,4 +8,7 @@
   <string name="label_this_phone">This phone</string>
   <string name="label_connecting">Connecting…</string>
   <string name="media_route_dialog_title">Devices</string>
+
+  <string name="option_shake_to_reset_title">Shake-to-reset</string>
+  <string name="option_shake_to_reset_subtitle">Enable shaking to reset the current or previous timer</string>
 </resources>

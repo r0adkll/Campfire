@@ -32,6 +32,8 @@ class SleepSettingsImpl(
   private val settingsScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
   private val flowSettings by lazy { settings.toFlowSettings(dispatcherProvider.io) }
 
+  override var lastSetSleepTimer: Duration by durationSetting(KEY_LAST_SET_SLEEP_TIMER, Duration.ZERO)
+
   override var shakeToResetEnabled: Boolean by booleanSetting(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
   override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
     return flowSettings.getBooleanFlow(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
@@ -120,6 +122,7 @@ class SleepSettingsImpl(
   }
 }
 
+private const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"
 private const val KEY_SHAKE_TO_RESET = "pref_sleep_shake_to_reset"
 private const val KEY_SHAKE_SENSITIVITY = "pref_sleep_shake_sensitivity"
 private const val KEY_AUTO_SLEEP_TIMER_ENABLED = "pref_sleep_auto_timer_enabled"

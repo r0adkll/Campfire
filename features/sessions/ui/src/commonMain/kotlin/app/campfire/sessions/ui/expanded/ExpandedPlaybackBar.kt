@@ -64,9 +64,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
-import app.campfire.audioplayer.ui.TimerResult
 import app.campfire.audioplayer.ui.cast.CastButton
-import app.campfire.audioplayer.ui.showTimerBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -99,6 +97,8 @@ import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
+import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
+import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
@@ -597,7 +597,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           playbackSpeed = playbackSpeed,
           onClick = {
             scope.launch {
-              when (val result = overlayHost.showTimerBottomSheet(runningTimer)) {
+              when (val result = overlayHost.showSleepTimerBottomSheet(runningTimer)) {
                 is TimerResult.Selected -> onTimerSelected(result.timer)
                 TimerResult.Cleared -> onTimerCleared()
                 else -> Unit

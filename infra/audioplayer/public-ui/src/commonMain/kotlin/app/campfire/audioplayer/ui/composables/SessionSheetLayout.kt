@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-internal fun SessionSheetLayout(
+fun SessionSheetLayout(
   title: @Composable () -> Unit,
   modifier: Modifier = Modifier,
   content: @Composable ColumnScope.() -> Unit,

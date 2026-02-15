@@ -23,16 +23,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.common.compose.icons.animated.AnimatedTimerPainter
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
 import campfire.infra.audioplayer.public_ui.generated.resources.action_clear_timer
 import campfire.infra.audioplayer.public_ui.generated.resources.label_current_timer
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun RunningTimerCard(
+fun RunningTimerCard(
   runningTimer: RunningTimer,
-  onTimerCleared: () -> Unit,
   modifier: Modifier = Modifier,
+  onTimerCleared: (() -> Unit)? = null,
 ) {
   Surface(
     modifier = modifier
@@ -50,7 +51,7 @@ internal fun RunningTimerCard(
         modifier = Modifier.padding(16.dp),
       ) {
         Icon(
-          Icons.Outlined.Timer,
+          AnimatedTimerPainter,
           contentDescription = null,
         )
         Spacer(Modifier.width(8.dp))
@@ -72,19 +73,23 @@ internal fun RunningTimerCard(
         modifier = Modifier.align(Alignment.CenterHorizontally),
       )
 
-      Row(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp)
-          .height(56.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically,
-      ) {
-        TextButton(
-          onClick = onTimerCleared,
+      if (onTimerCleared != null) {
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .height(56.dp),
+          horizontalArrangement = Arrangement.End,
+          verticalAlignment = Alignment.CenterVertically,
         ) {
-          Text(stringResource(Res.string.action_clear_timer))
+          TextButton(
+            onClick = onTimerCleared,
+          ) {
+            Text(stringResource(Res.string.action_clear_timer))
+          }
         }
+      } else {
+        Spacer(Modifier.height(56.dp))
       }
     }
   }
