@@ -74,7 +74,6 @@ import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
@@ -156,7 +155,6 @@ internal suspend fun OverlayHost.showSleepTimerBottomSheet(
   )
 }
 
-
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TimerBottomSheetV2(
@@ -213,7 +211,7 @@ private fun ActiveTimerSheetContent(
       modifier = Modifier
         .padding(
           horizontal = 16.dp,
-        )
+        ),
     )
   }
 }
@@ -230,7 +228,7 @@ private fun InactiveTimerSheetContent(
     TimerTypeSelector(
       isEpochTimeSelection = isEpochTimeSelection,
       onTimerTypeChange = { isEpochTimeSelection = it },
-      modifier = Modifier.padding(horizontal = 24.dp)
+      modifier = Modifier.padding(horizontal = 24.dp),
     )
 
     Spacer(Modifier.height(24.dp))
@@ -238,7 +236,7 @@ private fun InactiveTimerSheetContent(
     val timerInputState = rememberTimePickerState(
       initialHour = component.sleepSettings.lastSetSleepTimer.inWholeHours.toInt(),
       initialMinute = (component.sleepSettings.lastSetSleepTimer.inWholeMinutes % 60).toInt(),
-      is24Hour = true
+      is24Hour = true,
     )
 
     LaunchedEffect(timerInputState.hour, timerInputState.minute) {
@@ -259,7 +257,7 @@ private fun InactiveTimerSheetContent(
           slideIntoContainer(SlideDirection.Start) togetherWith
             slideOutOfContainer(SlideDirection.Start)
         }
-      }
+      },
     ) { isTimeSelection ->
       if (isTimeSelection) {
         EpochTimerContent(
@@ -304,7 +302,7 @@ private fun InactiveTimerSheetContent(
       modifier = Modifier
         .padding(
           horizontal = 16.dp,
-        )
+        ),
     )
   }
 }
@@ -412,7 +410,7 @@ private fun EpochTimerContent(
     }
     Slider(
       value = sliderValue,
-      steps = timers.size-2,
+      steps = timers.size - 2,
       onValueChange = { value ->
         sliderValue = value
         val index = value.roundToInt()
@@ -470,7 +468,6 @@ private fun EndOfChapterContent(
         .clockFormat()
     } ?: "--"
 
-
     Text(
       text = "Time remaining",
       style = MaterialTheme.typography.labelMediumEmphasized,
@@ -494,7 +491,7 @@ private fun EndOfChapterContent(
         maxLines = 3,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier
-          .fillMaxWidth()
+          .fillMaxWidth(),
       )
     }
   }
@@ -580,7 +577,7 @@ fun TimerBottomSheetV2Preview() {
             timer = PlaybackTimer.Epoch(15_000L),
             startedAt = Clock.System.now().toEpochMilliseconds() - 7500L,
             isShakeToRestartEnabled = true,
-          )
+          ),
         )
       }
 
@@ -598,73 +595,73 @@ fun TimerBottomSheetV2Preview() {
         },
         component = object : SleepTimerBottomSheetComponent {
           override val sleepSettings: SleepSettings = object : SleepSettings {
-              override var lastSetSleepTimer: Duration = 5.minutes
+            override var lastSetSleepTimer: Duration = 5.minutes
 
-              val mutableShakeToReset = MutableStateFlow(true)
-              override var shakeToResetEnabled: Boolean
-                get() = mutableShakeToReset.value
-                set(value) { mutableShakeToReset.value = value }
+            val mutableShakeToReset = MutableStateFlow(true)
+            override var shakeToResetEnabled: Boolean
+              get() = mutableShakeToReset.value
+              set(value) { mutableShakeToReset.value = value }
 
-              override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
-                return mutableShakeToReset
-              }
-
-              override var shakeSensitivity: SleepSettings.ShakeSensitivity
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeShakeSensitivity(): StateFlow<SleepSettings.ShakeSensitivity> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoSleepTimerEnabled: Boolean
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoSleepStart: LocalTime
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoSleepStart(): StateFlow<LocalTime> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoSleepEnd: LocalTime
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoSleepEnd(): StateFlow<LocalTime> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoSleepTimer: SleepSettings.AutoSleepTimer
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoSleepTimer(): StateFlow<SleepSettings.AutoSleepTimer> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoRewindEnabled: Boolean
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoRewindEnabled(): StateFlow<Boolean> {
-                TODO("Not yet implemented")
-              }
-
-              override var autoRewindAmount: Duration
-                get() = TODO("Not yet implemented")
-                set(value) {}
-
-              override fun observeAutoRewindAmount(): StateFlow<Duration> {
-                TODO("Not yet implemented")
-              }
+            override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
+              return mutableShakeToReset
             }
+
+            override var shakeSensitivity: SleepSettings.ShakeSensitivity
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeShakeSensitivity(): StateFlow<SleepSettings.ShakeSensitivity> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoSleepTimerEnabled: Boolean
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoSleepStart: LocalTime
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoSleepStart(): StateFlow<LocalTime> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoSleepEnd: LocalTime
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoSleepEnd(): StateFlow<LocalTime> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoSleepTimer: SleepSettings.AutoSleepTimer
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoSleepTimer(): StateFlow<SleepSettings.AutoSleepTimer> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoRewindEnabled: Boolean
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoRewindEnabled(): StateFlow<Boolean> {
+              TODO("Not yet implemented")
+            }
+
+            override var autoRewindAmount: Duration
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeAutoRewindAmount(): StateFlow<Duration> {
+              TODO("Not yet implemented")
+            }
+          }
           override val sessionsRepository: SessionsRepository
             get() = object : SessionsRepository {
               override suspend fun getSession(libraryItemId: LibraryItemId): Session? = null
@@ -699,11 +696,11 @@ fun TimerBottomSheetV2Preview() {
                     currentTime = 5.hours,
                     startedAt = LocalDateTime(2026, 1, 1, 1, 1),
                     updatedAt = LocalDateTime(2026, 1, 1, 1, 1),
-                  )
+                  ),
                 )
               }
             }
-        }
+        },
       )
     }
   }

@@ -46,7 +46,7 @@ fun SettingPaneListItem(
         contentAlignment = Alignment.Center,
       ) {
         CompositionLocalProvider(
-          LocalContentColor provides MaterialTheme.colorScheme.primary
+          LocalContentColor provides MaterialTheme.colorScheme.primary,
         ) {
           icon()
         }
