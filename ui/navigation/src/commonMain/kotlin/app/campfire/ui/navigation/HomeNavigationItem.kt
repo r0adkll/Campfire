@@ -67,18 +67,18 @@ internal fun buildNavigationItems(): List<HomeNavigationItem> {
       selectedImageVector = Icons.Filled.Series,
     ),
     HomeNavigationItem(
-      screen = PlaylistsScreen,
-      label = stringResource(Res.string.nav_playlists_label),
-      contentDescription = stringResource(Res.string.nav_playlists_content_description),
-      iconImageVector = Icons.Outlined.Playlists,
-      selectedImageVector = Icons.Filled.Playlists,
-    ),
-    HomeNavigationItem(
       screen = AuthorsScreen,
       label = stringResource(Res.string.nav_authors_label),
       contentDescription = stringResource(Res.string.nav_authors_content_description),
       iconImageVector = Icons.Outlined.Author,
       selectedImageVector = Icons.Filled.Author,
+    ),
+    HomeNavigationItem(
+      screen = PlaylistsScreen,
+      label = stringResource(Res.string.nav_playlists_label),
+      contentDescription = stringResource(Res.string.nav_playlists_content_description),
+      iconImageVector = Icons.Outlined.Playlists,
+      selectedImageVector = Icons.Filled.Playlists,
     ),
   )
 }
