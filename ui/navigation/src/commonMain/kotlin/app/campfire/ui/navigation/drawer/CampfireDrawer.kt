@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
-import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.Author
 import app.campfire.common.compose.icons.filled.Collections
 import app.campfire.common.compose.icons.filled.Home
@@ -35,18 +34,15 @@ import app.campfire.common.compose.icons.outline.Author
 import app.campfire.common.compose.icons.outline.Collections
 import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.outline.Series
-import app.campfire.common.compose.icons.rounded.LogFile
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.common.screens.CollectionsScreen
-import app.campfire.common.screens.DebugScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.AppScope
-import app.campfire.core.isDebug
 import app.campfire.core.reflect.instanceOf
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.ui.navigation.HomeNavigationItem
