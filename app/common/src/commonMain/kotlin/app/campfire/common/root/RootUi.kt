@@ -219,7 +219,9 @@ internal fun RootUi(
       }
 
       LaunchedEffect(shouldHideNavBar) {
-        navigationBarState.updateShouldHide(shouldHideNavBar)
+        with (navigationBarState) {
+          updateShouldHide(shouldHideNavBar)
+        }
       }
 
       CampfireNavigationBar(
@@ -271,10 +273,6 @@ internal fun RootUi(
             .calculateBottomPadding().toPx()
         }
 
-        val bottomBarOffset = withDensity {
-          bottomSystemInset + 8.dp.toPx()
-        }
-
         PlaybackBar(
           enabled = currentPresentation?.hidePlaybackBar != true,
           expanded = playbackBarExpanded,
@@ -287,7 +285,7 @@ internal fun RootUi(
           themeSettings = themeSettings,
           offset = {
             if (!windowSizeClass.isSupportingPaneEnabled) {
-              val dy = navigationBarState.playbackBarOffset(bottomBarOffset).roundToInt()
+              val dy = navigationBarState.playbackBarOffset().roundToInt()
               IntOffset(0, -dy)
             } else {
               IntOffset(0, -bottomSystemInset.fastRoundToInt())

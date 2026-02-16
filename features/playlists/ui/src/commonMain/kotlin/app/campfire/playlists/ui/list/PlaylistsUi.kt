@@ -3,8 +3,12 @@ package app.campfire.playlists.ui.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -43,6 +47,7 @@ import app.campfire.playlists.ui.sheets.EditPlaylistResult
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
+import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
 import campfire.features.playlists.ui.generated.resources.Res
 import campfire.features.playlists.ui.generated.resources.empty_playlists_message
 import campfire.features.playlists.ui.generated.resources.error_playlists_message
@@ -98,7 +103,9 @@ fun Playlists(
       )
     },
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets
+      .exclude(WindowInsets.navigationBars)
+      .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
     when (state.playlistContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

@@ -86,7 +86,10 @@ data class SeriesDetailScreen(
 ) : DetailScreen(name = "SeriesDetail")
 
 @Parcelize
-data object CollectionsScreen : BaseScreen(name = "Collections")
+data object CollectionsScreen : BaseScreen(name = "Collections") {
+  override val presentation: Presentation
+    get() = Presentation.Fullscreen
+}
 
 @Parcelize
 data class CollectionDetailScreen(

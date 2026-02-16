@@ -158,15 +158,6 @@ fun AdaptiveCampfireLayout(
                 ) {
                   bottomBarNavigation()
                 }
-//
-//                androidx.compose.animation.AnimatedVisibility(
-//                  visible = !hideBottomNav,
-//                  enter = slideInVertically { it },
-//                  exit = slideOutVertically { it },
-//                  modifier = Modifier.align(Alignment.BottomCenter)
-//                ) {
-//                  bottomBarNavigation()
-//                }
               }
 
               if (isSupportingPaneEnabled && isLoggedIn) {
