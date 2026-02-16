@@ -105,7 +105,6 @@ include(
   ":infra:audioplayer:public-ui",
   ":infra:audioplayer:test",
   ":infra:shake",
-  ":infra:debug",
   ":infra:updates:api",
   ":infra:updates:impl",
   ":infra:whats-new:api",

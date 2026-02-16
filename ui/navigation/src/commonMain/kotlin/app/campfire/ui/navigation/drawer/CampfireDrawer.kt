@@ -246,17 +246,5 @@ private fun buildDrawerItems(): List<HomeNavigationItem> {
         selectedImageVector = Icons.Filled.Settings,
       ),
     )
-
-    if (isDebug) {
-      add(
-        HomeNavigationItem(
-          screen = DebugScreen,
-          label = "Debug",
-          contentDescription = "Debug",
-          iconImageVector = CampfireIcons.Rounded.LogFile,
-          selectedImageVector = CampfireIcons.Rounded.LogFile,
-        ),
-      )
-    }
   }
 }

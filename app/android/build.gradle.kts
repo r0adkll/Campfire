@@ -160,8 +160,6 @@ dependencies {
   baselineProfile(projects.app.baselineprofile)
   implementation(libs.androidx.compose.runtime.tracing)
 
-  debugImplementation(projects.infra.debug)
-
   "betaImplementation"(libs.google.firebase.appdistribution)
   "alphaImplementation"(libs.google.firebase.appdistribution)
 
