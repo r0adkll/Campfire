@@ -219,7 +219,7 @@ internal fun RootUi(
       }
 
       LaunchedEffect(shouldHideNavBar) {
-        with (navigationBarState) {
+        with(navigationBarState) {
           updateShouldHide(shouldHideNavBar)
         }
       }

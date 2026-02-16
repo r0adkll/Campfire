@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Bottom navigation bar now transitions smoothly between shared screen transitions
+
 ### Other Notes & Contributions
 
 ## [0.10.0-beta] - 2026-02-01
