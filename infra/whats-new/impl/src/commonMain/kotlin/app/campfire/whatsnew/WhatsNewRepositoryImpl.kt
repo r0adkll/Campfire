@@ -45,7 +45,15 @@ class WhatsNewRepositoryImpl(
       val json = Json { isLenient = true }
       val changelogBytes = Res.readBytes("files/changelog.json")
       val changes: List<VersionChanges> = json.decodeFromString(changelogBytes.decodeToString())
-      Changelog(changes)
+      Changelog(
+        changes.map { versionChanges ->
+          versionChanges.copy(
+            changes = versionChanges.changes.filter {
+              it.changes.isNotEmpty()
+            }
+          )
+        }
+      )
     } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "Unable to read changelog from disk" }
       Changelog(emptyList())

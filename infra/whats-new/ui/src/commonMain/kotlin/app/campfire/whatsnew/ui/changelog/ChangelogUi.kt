@@ -184,13 +184,13 @@ private fun ChangeCategoryRow(
     modifier = modifier
       .padding(
         horizontal = 16.dp,
-        vertical = 8.dp,
+        vertical = 12.dp,
       ),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Text(
       text = category.name,
-      style = MaterialTheme.typography.titleMediumEmphasized,
+      style = MaterialTheme.typography.titleLargeEmphasized,
       fontWeight = FontWeight.SemiBold,
       color = MaterialTheme.colorScheme.secondary,
     )
@@ -248,7 +248,7 @@ private fun ChangeListItem(
     ) {
       Text(
         text = change.text,
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onSurface,
       )
     }

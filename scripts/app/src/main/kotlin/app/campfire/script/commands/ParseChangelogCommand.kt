@@ -29,6 +29,11 @@ class ParseChangelogCommand : SuspendingCliktCommand(
   )
   private val json by option("-j", "--json", help = "Output the requested version in JSON format").flag()
   private val all by option("-a", "--all", help = "Output ALL versions").flag()
+  private val includeUnreleased by option(
+    "-u",
+    "--unreleased",
+    help = "Include 'Unreleased' in output if applicable",
+  ).flag()
 
   private val config by requireObject<CampfireConfig>()
 
@@ -53,7 +58,7 @@ class ParseChangelogCommand : SuspendingCliktCommand(
       version = version?.let {
         ChangelogParser.OutputVersion.Version(it)
       } ?: if (all) {
-        ChangelogParser.OutputVersion.All
+        ChangelogParser.OutputVersion.All(includeUnreleased)
       } else {
         ChangelogParser.OutputVersion.Latest
       },
@@ -134,7 +139,7 @@ object ChangelogParser {
   }
 
   sealed interface OutputVersion {
-    data object All : OutputVersion
+    data class All(val includeUnreleased: Boolean) : OutputVersion
     data object Latest : OutputVersion
     data class Version(val version: String) : OutputVersion
   }
@@ -152,7 +157,12 @@ object ChangelogParser {
     version: OutputVersion = OutputVersion.Latest,
   ): String? {
     val output = when (version) {
-      OutputVersion.All -> Output.Multiple(changelog.changes.filter { it.version != "Unreleased" })
+      is OutputVersion.All -> Output.Multiple(
+        changelog.changes.filter {
+          version.includeUnreleased || it.version != "Unreleased"
+        },
+      )
+
       OutputVersion.Latest -> changelog.changes.firstOrNull { it.version != "Unreleased" }?.let { Output.Single(it) }
       is OutputVersion.Version -> changelog.changes.find { it.version == version.version }?.let { Output.Single(it) }
     } ?: return null
@@ -169,6 +179,7 @@ object ChangelogParser {
           output.changes.asMarkdownString()
         }
       }
+
       is Output.Multiple -> {
         if (jsonFormat) {
           val json = Json {
