@@ -15,9 +15,9 @@ import app.campfire.core.reflect.instanceOf
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.ui.navigation.HomeNavigationItemIcon
 import app.campfire.ui.navigation.buildNavigationItems
-import campfire.ui.navigation.generated.resources.Res
-import campfire.ui.navigation.generated.resources.settings
-import campfire.ui.navigation.generated.resources.settings_content_description
+import campfire.ui.navigation.ui.generated.resources.Res
+import campfire.ui.navigation.ui.generated.resources.settings
+import campfire.ui.navigation.ui.generated.resources.settings_content_description
 import com.slack.circuit.runtime.screen.Screen
 import org.jetbrains.compose.resources.stringResource
 

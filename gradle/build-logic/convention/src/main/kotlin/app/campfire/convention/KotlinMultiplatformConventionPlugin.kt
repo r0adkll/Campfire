@@ -29,6 +29,7 @@ class KotlinMultiplatformConventionPlugin : Plugin<Project> {
     extensions.configure<KotlinMultiplatformExtension> {
       compilerOptions {
         freeCompilerArgs.addAll(
+          "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
           "-opt-in=kotlin.uuid.ExperimentalUuidApi",
           "-opt-in=kotlin.time.ExperimentalTime",
           "-Xexpect-actual-classes",

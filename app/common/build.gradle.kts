@@ -72,7 +72,8 @@ kotlin {
         api(projects.features.playlists.impl)
         api(projects.features.playlists.ui)
 
-        api(projects.ui.navigation)
+        api(projects.ui.navigation.ui)
+        api(projects.ui.navigation.impl)
         api(projects.ui.attribution)
         api(projects.ui.widgets.impl)
         api(projects.ui.theming.impl)

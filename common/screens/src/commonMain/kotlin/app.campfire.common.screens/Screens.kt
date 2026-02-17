@@ -116,6 +116,8 @@ data object StorageScreen : BaseScreen(name = "Storage")
 data class SettingsScreen(
   val page: Page = Page.Root,
 ) : BaseScreen(name = "Settings.$page") {
+  override val presentation: Presentation
+    get() = Presentation.Fullscreen
 
   enum class Page {
     Root,

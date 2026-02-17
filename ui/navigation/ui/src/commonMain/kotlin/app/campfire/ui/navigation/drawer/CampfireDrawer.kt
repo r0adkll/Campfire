@@ -49,23 +49,23 @@ import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.updates.AppUpdateWidget
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import app.campfire.whatsnew.api.screen.ChangelogScreen
-import campfire.ui.navigation.generated.resources.Res
-import campfire.ui.navigation.generated.resources.nav_authors_content_description
-import campfire.ui.navigation.generated.resources.nav_authors_label
-import campfire.ui.navigation.generated.resources.nav_collections_content_description
-import campfire.ui.navigation.generated.resources.nav_collections_label
-import campfire.ui.navigation.generated.resources.nav_downloads_content_description
-import campfire.ui.navigation.generated.resources.nav_downloads_label
-import campfire.ui.navigation.generated.resources.nav_home_content_description
-import campfire.ui.navigation.generated.resources.nav_home_label
-import campfire.ui.navigation.generated.resources.nav_library_content_description
-import campfire.ui.navigation.generated.resources.nav_library_label
-import campfire.ui.navigation.generated.resources.nav_series_content_description
-import campfire.ui.navigation.generated.resources.nav_series_label
-import campfire.ui.navigation.generated.resources.nav_settings_content_description
-import campfire.ui.navigation.generated.resources.nav_settings_label
-import campfire.ui.navigation.generated.resources.nav_statistics_content_description
-import campfire.ui.navigation.generated.resources.nav_statistics_label
+import campfire.ui.navigation.ui.generated.resources.Res
+import campfire.ui.navigation.ui.generated.resources.nav_authors_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_authors_label
+import campfire.ui.navigation.ui.generated.resources.nav_collections_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_collections_label
+import campfire.ui.navigation.ui.generated.resources.nav_downloads_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_downloads_label
+import campfire.ui.navigation.ui.generated.resources.nav_home_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_home_label
+import campfire.ui.navigation.ui.generated.resources.nav_library_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_library_label
+import campfire.ui.navigation.ui.generated.resources.nav_series_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_series_label
+import campfire.ui.navigation.ui.generated.resources.nav_settings_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_settings_label
+import campfire.ui.navigation.ui.generated.resources.nav_statistics_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_statistics_label
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
@@ -109,26 +109,16 @@ fun CampfireDrawer(
 
     Spacer(Modifier.height(8.dp))
 
-    for (item in drawerItems) {
-      NavigationDrawerItem(
-        icon = {
-          Icon(
-            imageVector = item.iconImageVector,
-            contentDescription = item.contentDescription,
-          )
-        },
-        label = { Text(text = item.label) },
-        selected = item.screen.instanceOf(rootScreen::class),
+    drawerItems.forEach { item ->
+      DestinationListItem(
+        item = item,
+        rootScreen = rootScreen,
         onClick = {
           navigator.goTo(item.screen)
           scope.launch {
             drawerState.close()
           }
         },
-        modifier = Modifier
-          .padding(
-            horizontal = 16.dp,
-          ),
       )
     }
 
@@ -139,6 +129,30 @@ fun CampfireDrawer(
         .fillMaxWidth(),
     )
   }
+}
+
+@Composable
+private fun DestinationListItem(
+  item: HomeNavigationItem,
+  rootScreen: Screen,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  NavigationDrawerItem(
+    icon = {
+      Icon(
+        imageVector = item.iconImageVector,
+        contentDescription = item.contentDescription,
+      )
+    },
+    label = { Text(text = item.label) },
+    selected = item.screen.instanceOf(rootScreen::class),
+    onClick = onClick,
+    modifier = modifier
+      .padding(
+        horizontal = 16.dp,
+      ),
+  )
 }
 
 @Composable

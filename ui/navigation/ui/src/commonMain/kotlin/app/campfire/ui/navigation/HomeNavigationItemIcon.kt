@@ -6,10 +6,11 @@ import androidx.compose.runtime.Composable
 
 @Composable
 internal fun HomeNavigationItemIcon(item: HomeNavigationItem, selected: Boolean) {
-  if (item.selectedImageVector != null) {
+  val selectedImageVector = item.selectedImageVector
+  if (selectedImageVector != null) {
     Crossfade(targetState = selected) { s ->
       Icon(
-        imageVector = if (s) item.selectedImageVector else item.iconImageVector,
+        imageVector = if (s) selectedImageVector else item.iconImageVector,
         contentDescription = item.contentDescription,
       )
     }

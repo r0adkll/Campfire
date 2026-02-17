@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
 import app.campfire.search.api.ui.SearchComponent
@@ -102,6 +103,8 @@ private fun CampfireSearchAppBar(
           Text(
             modifier = Modifier.clearAndSetSemantics {},
             text = stringResource(Res.string.search_placeholder_text),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
           )
         },
         leadingIcon = {

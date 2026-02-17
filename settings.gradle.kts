@@ -217,7 +217,9 @@ include(
 )
 include(
   ":ui:appbar",
-  ":ui:navigation",
+  ":ui:navigation:api",
+  ":ui:navigation:impl",
+  ":ui:navigation:ui",
   ":ui:attribution",
 )
 include(

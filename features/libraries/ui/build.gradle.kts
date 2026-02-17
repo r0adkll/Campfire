@@ -16,7 +16,8 @@ kotlin {
         implementation(projects.features.user.api)
         implementation(projects.features.filters.api)
         implementation(projects.ui.appbar)
-        implementation(projects.ui.navigation)
+        implementation(projects.features.playlists.api)
+        implementation(projects.ui.navigation.api)
         implementation(projects.ui.theming.api)
 
         implementation(libs.circuitx.overlays)

@@ -10,7 +10,7 @@ kotlin {
         implementation(projects.data.crashreporting.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
-        implementation(projects.ui.navigation)
+        implementation(projects.ui.navigation.api)
 
         implementation(compose.components.resources)
 

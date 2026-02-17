@@ -1,27 +1,19 @@
 package app.campfire.libraries.ui.detail.composables.slots
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.layout.ContentLayout
-import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.CoverImage
-import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.placeholder_book
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.painterResource
-
-private val RootCoverImageSize = 300.dp
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 class CoverImageSlot(
@@ -34,14 +26,10 @@ class CoverImageSlot(
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) = SharedElementTransitionScope {
-    Box(
-      modifier = modifier,
+    BoxWithConstraints(
+      modifier = modifier.fillMaxWidth(),
     ) {
-      val size = if (LocalContentLayout.current == ContentLayout.Supporting) {
-        CoverImageSize
-      } else {
-        RootCoverImageSize
-      }
+      val size = minWidth * 0.75f
       CoverImage(
         imageUrl = imageUrl,
         contentDescription = contentDescription,

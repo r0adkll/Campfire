@@ -10,7 +10,7 @@ kotlin {
         api(projects.features.libraries.api)
         api(projects.infra.audioplayer.api)
         api(projects.ui.appbar)
-        api(projects.ui.navigation)
+        api(projects.ui.navigation.api)
 
         implementation(compose.components.resources)
       }
