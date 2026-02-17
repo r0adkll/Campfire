@@ -50,9 +50,9 @@ class WhatsNewRepositoryImpl(
           versionChanges.copy(
             changes = versionChanges.changes.filter {
               it.changes.isNotEmpty()
-            }
+            },
           )
-        }
+        },
       )
     } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "Unable to read changelog from disk" }
