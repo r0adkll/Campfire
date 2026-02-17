@@ -42,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -50,6 +51,7 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.isDebug
 import app.campfire.ui.settings.composables.SettingPaneListItem
+import app.campfire.ui.settings.composables.SettingsPaneDefaults
 import app.campfire.ui.settings.panes.AboutPane
 import app.campfire.ui.settings.panes.AccountPane
 import app.campfire.ui.settings.panes.AppearancePane
@@ -143,7 +145,7 @@ private fun TwoPaneLayout(
     modifier = modifier.fillMaxSize(),
   ) {
     SettingsRootPane(
-      hideTopBar = true,
+      isTwoPane = true,
       pane = forcedPane,
       onPaneClick = onPaneClick,
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
@@ -237,11 +239,11 @@ private fun SettingsRootPane(
   onBackClick: () -> Unit,
   showDeveloperPane: Boolean,
   modifier: Modifier = Modifier,
-  hideTopBar: Boolean = false,
+  isTwoPane: Boolean = false,
 ) {
   Scaffold(
     topBar = {
-      if (!hideTopBar) {
+      if (!isTwoPane) {
         CampfireTopAppBar(
           title = { Text(stringResource(Res.string.settings_title)) },
           navigationIcon = {
@@ -264,14 +266,17 @@ private fun SettingsRootPane(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     Column(
-      verticalArrangement = Arrangement.spacedBy(8.dp),
+      verticalArrangement = Arrangement.spacedBy(SettingsPaneDefaults.ContentSpacing),
       modifier = Modifier
         .padding(paddingValues)
+        .thenIf(!isTwoPane) {
+          padding(horizontal = 16.dp)
+        }
         .verticalScroll(rememberScrollState()),
     ) {
       // Account
       SettingPaneListItem(
-        selected = pane == SettingsPane.Account && hideTopBar,
+        selected = pane == SettingsPane.Account && isTwoPane,
         icon = {
           Icon(
             Icons.Rounded.AccountCircle,
@@ -283,11 +288,12 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Account)
         },
+        shape = SettingsPaneDefaults.topShape(),
       )
 
       // Appearance
       SettingPaneListItem(
-        selected = pane == SettingsPane.Appearance && hideTopBar,
+        selected = pane == SettingsPane.Appearance && isTwoPane,
         icon = {
           Icon(
             Icons.Rounded.Palette,
@@ -303,7 +309,7 @@ private fun SettingsRootPane(
 
       // Appearance
       SettingPaneListItem(
-        selected = pane == SettingsPane.Downloads && hideTopBar,
+        selected = pane == SettingsPane.Downloads && isTwoPane,
         icon = {
           Icon(
             Icons.Rounded.Download,
@@ -319,7 +325,7 @@ private fun SettingsRootPane(
 
       // Playback
       SettingPaneListItem(
-        selected = pane == SettingsPane.Playback && hideTopBar,
+        selected = pane == SettingsPane.Playback && isTwoPane,
         icon = {
           Icon(
             Icons.AutoMirrored.Rounded.VolumeUp,
@@ -335,7 +341,7 @@ private fun SettingsRootPane(
 
       // Sleep
       SettingPaneListItem(
-        selected = pane == SettingsPane.Sleep && hideTopBar,
+        selected = pane == SettingsPane.Sleep && isTwoPane,
         icon = {
           Icon(
             Icons.Rounded.NotificationsPaused,
@@ -351,7 +357,7 @@ private fun SettingsRootPane(
 
       // About
       SettingPaneListItem(
-        selected = pane == SettingsPane.About && hideTopBar,
+        selected = pane == SettingsPane.About && isTwoPane,
         icon = {
           Icon(
             Icons.Rounded.Info,
@@ -363,12 +369,17 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.About)
         },
+        shape = if (showDeveloperPane) {
+          SettingsPaneDefaults.middleShape()
+        } else {
+          SettingsPaneDefaults.bottomShape()
+        },
       )
 
       // Developer - DEBUG ONLY
       if (showDeveloperPane) {
         SettingPaneListItem(
-          selected = pane == SettingsPane.Developer && hideTopBar,
+          selected = pane == SettingsPane.Developer && isTwoPane,
           icon = {
             Icon(
               Icons.Rounded.DeveloperMode,
@@ -380,6 +391,7 @@ private fun SettingsRootPane(
           onClick = {
             onPaneClick(SettingsPane.Developer)
           },
+          shape = SettingsPaneDefaults.bottomShape(),
         )
       }
     }
