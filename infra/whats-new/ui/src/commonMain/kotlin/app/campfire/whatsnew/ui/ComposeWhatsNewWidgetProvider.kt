@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.LoadingCampfireIcon
 import app.campfire.common.compose.theme.CampfireTheme
@@ -45,7 +46,6 @@ import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Inject
 @ContributesBinding(AppScope::class)

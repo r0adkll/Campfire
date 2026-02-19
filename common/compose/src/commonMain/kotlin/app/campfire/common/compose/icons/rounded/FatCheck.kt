@@ -9,9 +9,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 val CampfireIcons.Rounded.FatCheck: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
   ImageVector.Builder(

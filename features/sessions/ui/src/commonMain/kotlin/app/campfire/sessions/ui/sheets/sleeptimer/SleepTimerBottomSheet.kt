@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
@@ -104,7 +105,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 internal sealed interface TimerResult {
   data object None : TimerResult

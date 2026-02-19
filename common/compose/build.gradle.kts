@@ -33,7 +33,7 @@ kotlin {
         api(libs.compose.material.icons.extended)
         api(libs.compose.animation)
         api(libs.compose.components.resources)
-        api(libs.compose.components.ui.tooling.preview)
+        api(libs.compose.ui.tooling.preview)
       }
     }
 
@@ -52,9 +52,6 @@ kotlin {
     jvmMain {
       dependsOn(skikoMain)
       dependsOn(jvmCommon)
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
     }
 
     androidMain {
@@ -63,9 +60,6 @@ kotlin {
       dependencies {
         implementation(libs.accompanist.permissions)
         implementation(libs.androidx.activity.compose)
-
-        implementation(libs.compose.ui.tooling.preview)
-        implementation(libs.compose.ui.tooling)
       }
     }
 
@@ -76,6 +70,10 @@ kotlin {
       }
     }
   }
+}
+
+dependencies {
+  debugImplementation(libs.compose.ui.tooling)
 }
 
 addKspDependencyForCommon(libs.kimchi.compiler)

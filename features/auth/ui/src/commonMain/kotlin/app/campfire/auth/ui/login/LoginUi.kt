@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.login.composables.ServerCard
@@ -71,7 +72,6 @@ import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @CircuitInject(LoginScreen::class, UserScope::class)
 @Composable

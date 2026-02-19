@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.MotionPlay
@@ -40,7 +41,6 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable

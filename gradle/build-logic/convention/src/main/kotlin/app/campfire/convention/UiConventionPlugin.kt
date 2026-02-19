@@ -9,13 +9,12 @@ import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.get
 import org.jetbrains.compose.ComposePlugin
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSetTree
 
 class UiConventionPlugin : Plugin<Project> {
-  @OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalComposeLibrary::class)
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
   override fun apply(target: Project) = with(target) {
     // Apply other conventions
     with(pluginManager) {
@@ -45,10 +44,10 @@ class UiConventionPlugin : Plugin<Project> {
          */
         implementation(project(":common:compose"))
 
-        implementation(compose.runtime)
-        implementation(compose.ui)
-        implementation(compose.components.resources)
-        implementation(compose.components.uiToolingPreview)
+        libs.findLibrary("compose-runtime").ifPresent { implementation(it) }
+        libs.findLibrary("compose-ui").ifPresent { implementation(it) }
+        libs.findLibrary("compose-ui-tooling-preview").ifPresent { implementation(it) }
+        libs.findLibrary("compose-components-resources").ifPresent { implementation(it) }
         libs.findLibrary("compose-material3-expressive").ifPresent { implementation(it) }
 
         // Add Circuit Dependencies
@@ -64,7 +63,7 @@ class UiConventionPlugin : Plugin<Project> {
         implementation(project(":common:test"))
         libs.findBundle("test-common").ifPresent { implementation(it) }
         libs.findBundle("test-ui").ifPresent { implementation(it) }
-        implementation(compose.uiTest)
+        libs.findLibrary("compose-ui-test").ifPresent { implementation(it) }
       }
 
       sourceSets["jvmTest"].dependencies {
@@ -80,6 +79,7 @@ class UiConventionPlugin : Plugin<Project> {
     dependencies {
       libs.findLibrary("androidx-compose-ui-test-junit4").ifPresent { add("androidTestImplementation", it) }
       libs.findLibrary("androidx-compose-ui-test-manifest").ifPresent { add("debugImplementation", it) }
+      libs.findLibrary("compose-ui-tooling").ifPresent { add("debugImplementation", it) }
     }
   }
 }

@@ -10,13 +10,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.ItemDescription
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 class SummarySlot(
   private val description: String,

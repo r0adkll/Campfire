@@ -12,17 +12,5 @@ kotlin {
         implementation(libs.compose.components.resources)
       }
     }
-
-    jvmMain {
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
-    }
-
-    androidMain {
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
-    }
   }
 }

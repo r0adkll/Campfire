@@ -37,12 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.model.NetworkSettings
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 data class NetworkSettingsModel(val settings: NetworkSettings?)
 

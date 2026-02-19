@@ -16,15 +16,8 @@ kotlin {
       }
     }
 
-    jvmMain {
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
-    }
-
     androidMain {
       dependencies {
-        implementation(libs.compose.ui.tooling.preview)
         implementation(libs.play.services.cast.framework)
       }
     }

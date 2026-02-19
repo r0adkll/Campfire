@@ -20,17 +20,5 @@ kotlin {
         implementation(libs.reorderable)
       }
     }
-
-    jvmMain {
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
-    }
-
-    androidMain {
-      dependencies {
-        implementation(libs.compose.ui.tooling.preview)
-      }
-    }
   }
 }
