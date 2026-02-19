@@ -4,6 +4,7 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.SeriesSequence
 import kotlin.time.Duration
@@ -29,6 +30,7 @@ fun libraryItem(
   tags: List<String> = listOf("Lit", "RPG", "NoPants", "Tootsies"),
   seriesSequence: SeriesSequence? = null,
   numOfChapters: Int = 20,
+  userMediaProgress: MediaProgress? = null,
 ) = LibraryItem(
   id = id,
   ino = "",
@@ -47,6 +49,7 @@ fun libraryItem(
   sizeInBytes = 1L * 1024L * 1024L,
   addedAtMillis = 0L,
   updatedAtMillis = 0L,
+  userMediaProgress = userMediaProgress,
   media = Media(
     id = "preview_media_id",
     metadata = Media.Metadata(

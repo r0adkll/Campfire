@@ -354,7 +354,7 @@ private fun LibraryItemCardEditingScrim(
 }
 
 @Composable
-private fun MediaProgressBar(
+fun MediaProgressBar(
   mediaProgress: MediaProgress,
   modifier: Modifier = Modifier,
   trackColor: Color = MaterialTheme.colorScheme.primaryContainer,
@@ -386,7 +386,7 @@ private fun MediaProgressBar(
 }
 
 @Composable
-private fun MediaFinishedIndicator(
+fun MediaFinishedIndicator(
   modifier: Modifier = Modifier,
   size: Dp = 24.dp,
   contentColor: Color = Color.Green,
@@ -465,6 +465,6 @@ fun OfflineStatusIndicator(
 
 private val LibraryItemMarqueeVelocity = 40.dp
 
-private val SmallProgressBarHeight = 8.dp
-private val LargeProgressBarHeight = 12.dp
+val SmallProgressBarHeight = 8.dp
+val LargeProgressBarHeight = 12.dp
 private const val ProgressBarAlpha = 0.5f

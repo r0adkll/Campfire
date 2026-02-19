@@ -1,10 +1,7 @@
 package app.campfire.libraries.ui.paged
 
-// import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +11,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -24,10 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
@@ -43,13 +37,12 @@ import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
-import app.campfire.common.compose.widgets.LibraryListItem
-import app.campfire.common.compose.widgets.OfflineStatusIndicator
+import app.campfire.common.compose.widgets.LibraryItemListItem
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.offline.OfflineStatus
+import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.LibraryItemSortModes
@@ -299,6 +292,7 @@ private fun ContentPagingScaffoldScope.LibraryList(
     state = state,
     contentPadding = contentPadding,
     modifier = modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     stickyHeader(key = "filter-bar") {
       FilterBar(
@@ -332,51 +326,21 @@ private fun ContentPagingScaffoldScope.LibraryList(
         PlaceholderItem()
       } else {
         val offlineStatus = offlineStates[item.id].asWidgetStatus()
-        LibraryListItem(
-          item = item,
-          modifier = Modifier
-            .animateItem()
-            .clickable { onItemClick(item) },
-          trailingContent = {
-            if (offlineStatus != OfflineStatus.None) {
-              OfflineStatusRow(
-                status = offlineStatus,
-              )
-            }
+        LibraryItemListItem(
+          libraryItem = item,
+          onClick = {
+            onItemClick(item)
           },
+          offlineStatus = offlineStatus,
+          modifier = Modifier
+            .padding(
+              horizontal = 16.dp,
+            )
+            .animateItem(),
         )
       }
     }
 
     appendingIndicatorItem()
-  }
-}
-
-@Composable
-private fun OfflineStatusRow(
-  status: OfflineStatus,
-  modifier: Modifier = Modifier,
-) {
-  Row(
-    modifier = modifier.padding(ButtonDefaults.TextButtonWithIconContentPadding),
-    horizontalArrangement = Arrangement.spacedBy(ButtonDefaults.IconSpacing),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    Text(
-      text = when (status) {
-        OfflineStatus.Available -> "Available"
-        is OfflineStatus.Downloading -> "Downloading"
-        OfflineStatus.Failed -> "Failed"
-        OfflineStatus.Queued -> "Queued"
-        OfflineStatus.None -> ""
-      },
-      style = MaterialTheme.typography.bodyMedium,
-      fontWeight = FontWeight.SemiBold,
-    )
-
-    OfflineStatusIndicator(
-      status = status,
-      tint = MaterialTheme.colorScheme.onSurface,
-    )
   }
 }
