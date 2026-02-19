@@ -13,7 +13,7 @@ kotlin {
         implementation(projects.ui.appbar)
         implementation(projects.ui.navigation.api)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
 
         implementation(libs.androidx.paging.compose)
         // Need encodeUrlParameter() ext function
@@ -23,13 +23,13 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

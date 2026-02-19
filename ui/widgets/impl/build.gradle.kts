@@ -26,8 +26,8 @@ kotlin {
         implementation(projects.features.sessions.api)
         implementation(projects.infra.audioplayer.api)
 
-        implementation(compose.runtime)
-        implementation(compose.ui)
+        implementation(libs.compose.runtime)
+        implementation(libs.compose.ui)
       }
     }
 

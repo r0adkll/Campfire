@@ -154,8 +154,20 @@ multiplatformsettings-core = { module = "com.russhwolf:multiplatform-settings", 
 multiplatformsettings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatformsettings" }
 multiplatformsettings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatformsettings" }
 
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-multiplatform" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-multiplatform" }
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-multiplatform" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "compose-multiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-multiplatform" }
+compose-animation = { module = "org.jetbrains.compose.animation:animation", version.ref = "compose-multiplatform" }
+compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-multiplatform" }
+compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version="1.7.3" }
 compose-material3-windowsizeclass = "com.r0adkll.material3:material3-window-size-class-multiplatform:0.1.0"
 compose-material3-expressive = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-m3" }
+compose-material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "compose-m3" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
+compose-components-ui-tooling-preview = { module = "org.jetbrains.compose.components:components-ui-tooling-preview", version.ref = "compose-multiplatform" }
+compose-desktop-currentOs = { module = "org.jetbrains.compose.desktop:desktop-jvm-currentOs", version.ref = "compose-multiplatform" }
 compose-navigationevent = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "jb-compose-navigationevent" }
 
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"

@@ -9,8 +9,8 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.core)
-        implementation(compose.runtime)
-        implementation(compose.ui)
+        implementation(libs.compose.runtime)
+        implementation(libs.compose.ui)
       }
     }
   }

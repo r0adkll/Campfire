@@ -21,19 +21,19 @@ kotlin {
 
         implementation(libs.circuitx.overlays)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
       }
     }
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

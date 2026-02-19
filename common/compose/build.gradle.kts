@@ -28,12 +28,12 @@ kotlin {
         api(libs.swatchbuckler.compose)
         api(libs.swatchbuckler.coil)
 
-        api(compose.foundation)
-        api(compose.material)
-        api(compose.materialIconsExtended)
-        api(compose.animation)
-        api(compose.components.resources)
-        api(compose.components.uiToolingPreview)
+        api(libs.compose.foundation)
+        api(libs.compose.material)
+        api(libs.compose.material.icons.extended)
+        api(libs.compose.animation)
+        api(libs.compose.components.resources)
+        api(libs.compose.components.ui.tooling.preview)
       }
     }
 
@@ -53,7 +53,7 @@ kotlin {
       dependsOn(skikoMain)
       dependsOn(jvmCommon)
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
@@ -64,8 +64,8 @@ kotlin {
         implementation(libs.accompanist.permissions)
         implementation(libs.androidx.activity.compose)
 
-        implementation(compose.preview)
-        implementation(compose.uiTooling)
+        implementation(libs.compose.ui.tooling.preview)
+        implementation(libs.compose.ui.tooling)
       }
     }
 

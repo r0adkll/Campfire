@@ -19,7 +19,7 @@ kotlin {
         implementation(projects.features.auth.api)
         implementation(projects.data.account.api)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
 
         implementation(libs.circuitx.overlays)
       }
@@ -27,13 +27,13 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

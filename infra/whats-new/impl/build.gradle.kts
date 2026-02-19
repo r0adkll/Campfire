@@ -20,7 +20,7 @@ kotlin {
 
         implementation(libs.kotlinx.serialization.json)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
       }
     }
   }

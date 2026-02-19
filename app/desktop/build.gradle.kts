@@ -15,7 +15,7 @@ kotlin {
 
 dependencies {
   implementation(projects.app.common)
-  implementation(compose.desktop.currentOs)
+  implementation(libs.compose.desktop.currentOs)
 
   implementation(libs.kimchi.annotations)
   implementation(libs.kotlininject.runtime)

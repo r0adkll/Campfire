@@ -13,7 +13,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.common.screens)
 
-        api(compose.foundation)
+        api(libs.compose.foundation)
       }
     }
   }

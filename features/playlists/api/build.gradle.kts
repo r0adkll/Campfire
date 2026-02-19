@@ -12,7 +12,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.common.screens)
 
-        implementation(compose.foundation)
+        implementation(libs.compose.foundation)
       }
     }
   }

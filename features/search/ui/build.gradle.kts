@@ -10,7 +10,7 @@ kotlin {
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
 
         implementation(libs.circuitx.overlays)
       }
@@ -18,13 +18,13 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

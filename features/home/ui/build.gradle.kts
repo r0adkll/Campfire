@@ -12,7 +12,7 @@ kotlin {
         api(projects.ui.appbar)
         api(projects.ui.navigation.api)
 
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
       }
     }
 
@@ -28,13 +28,13 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }

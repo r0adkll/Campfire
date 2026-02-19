@@ -10,8 +10,8 @@ kotlin {
       dependencies {
         implementation(projects.core)
 
-        implementation(compose.foundation)
-        implementation(compose.runtime)
+        implementation(libs.compose.foundation)
+        implementation(libs.compose.runtime)
       }
     }
   }

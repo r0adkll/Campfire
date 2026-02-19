@@ -30,8 +30,8 @@ kotlin {
         implementation(projects.common.compose)
         implementation(projects.features.settings.api)
 
-        implementation(compose.runtime)
-        implementation(compose.ui)
+        implementation(libs.compose.runtime)
+        implementation(libs.compose.ui)
 
         implementation(libs.stately.concurrent.collections)
         implementation(libs.sqldelight.coroutines)

@@ -31,7 +31,7 @@ kotlin {
         api(projects.infra.audioplayer.api)
         api(projects.infra.shake)
 
-        implementation(compose.runtime)
+        implementation(libs.compose.runtime)
 
         implementation(projects.core)
         implementation(projects.features.settings.api)

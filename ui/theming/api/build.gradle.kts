@@ -14,8 +14,8 @@ kotlin {
         implementation(projects.core)
         implementation(projects.common.screens)
         implementation(projects.common.compose)
-        implementation(compose.runtime)
-        implementation(compose.ui)
+        implementation(libs.compose.runtime)
+        implementation(libs.compose.ui)
 
         api(libs.swatchbuckler.compose)
       }

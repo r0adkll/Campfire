@@ -9,19 +9,19 @@ kotlin {
         api(projects.common.compose)
 
         implementation(libs.about.libraries.compose.m3)
-        implementation(compose.components.resources)
+        implementation(libs.compose.components.resources)
       }
     }
 
     jvmMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
 
     androidMain {
       dependencies {
-        implementation(compose.preview)
+        implementation(libs.compose.ui.tooling.preview)
       }
     }
   }
