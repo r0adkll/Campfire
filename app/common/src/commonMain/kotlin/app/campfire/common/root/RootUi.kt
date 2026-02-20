@@ -211,12 +211,7 @@ internal fun RootUi(
       )
     },
     bottomBarNavigation = {
-      val shouldHideNavBar by remember {
-        derivedStateOf {
-          currentPresentation?.hideBottomNav == true ||
-            playbackBarExpanded
-        }
-      }
+      val shouldHideNavBar = currentPresentation?.hideBottomNav == true || playbackBarExpanded
 
       LaunchedEffect(shouldHideNavBar) {
         with(navigationBarState) {
