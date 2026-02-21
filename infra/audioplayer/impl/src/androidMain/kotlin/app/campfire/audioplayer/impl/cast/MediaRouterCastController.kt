@@ -166,8 +166,8 @@ class MediaRouterCastController(
             if (extras.getString("com.google.android.gms.cast.EXTRA_SESSION_ID") != null) {
               return@filter false
             }
-          } catch (e: ClassNotFoundException) {
-            bark(LogPriority.ERROR, throwable = e) { "Unable to find class for EXTRA_SESSION_ID" }
+          } catch (t: Throwable) {
+            bark(LogPriority.ERROR, throwable = t) { "Unable to find class for EXTRA_SESSION_ID" }
           }
         }
         true
