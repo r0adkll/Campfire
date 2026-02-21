@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bottom navigation bar now transitions smoothly between shared screen transitions
 - Series on the item detail page not appearing until loading them in the series screen
+- App crashing on system reboot due to offline download resumption
 
 ### Other Notes & Contributions
 

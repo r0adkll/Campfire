@@ -73,6 +73,7 @@ class MainActivity : ComponentActivity() {
     with(component) {
       mediaControllerConnector.connect()
       mediaRouterCastController.scanForDevices()
+      offlineDownloadManager.resumeDownloads()
     }
   }
 

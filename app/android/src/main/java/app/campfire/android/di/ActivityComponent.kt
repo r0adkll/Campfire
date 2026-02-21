@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.core.os.ConfigurationCompat
 import app.campfire.audioplayer.impl.MediaControllerConnector
 import app.campfire.audioplayer.impl.cast.MediaRouterCastController
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.root.CampfireContent
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
@@ -23,6 +24,7 @@ interface ActivityComponent {
   val mediaControllerConnector: MediaControllerConnector
   val mediaRouterCastController: MediaRouterCastController
   val componentActivityPlugins: Set<ComponentActivityPlugin>
+  val offlineDownloadManager: OfflineDownloadManager
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {

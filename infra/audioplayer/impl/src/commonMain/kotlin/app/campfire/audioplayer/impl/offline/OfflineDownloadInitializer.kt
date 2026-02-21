@@ -6,8 +6,12 @@ import app.campfire.core.di.AppScope
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(AppScope::class)
-@Inject
+// TODO: This requires the Activity to be fore-grounded or otherwise it can
+//  cause ForegroundService from Background errors on newer Android API versions.
+//  We should bake in some sort of background/foreground state mechanisms into the
+//  app initializer re-write. See (#471)
+//@ContributesMultibinding(AppScope::class)
+//@Inject
 class OfflineDownloadInitializer(
   private val offlineDownloadManager: OfflineDownloadManager,
 ) : AppInitializer {
