@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MetadataHeader(
   title: String,
+  leadingContent: (@Composable () -> Unit)? = null,
   trailingContent: (@Composable () -> Unit)? = null,
   modifier: Modifier = Modifier,
   textStyle: TextStyle = MaterialTheme.typography.titleLarge,
@@ -27,6 +28,10 @@ fun MetadataHeader(
     modifier = modifier.heightIn(min = 56.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
+    leadingContent?.let { leading ->
+      leading()
+      Spacer(Modifier.width(8.dp))
+    }
     Text(
       text = title,
       style = textStyle,

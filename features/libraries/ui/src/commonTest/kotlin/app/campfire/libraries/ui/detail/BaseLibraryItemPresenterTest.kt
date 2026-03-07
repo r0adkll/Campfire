@@ -10,8 +10,10 @@ import app.campfire.common.test.user
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.session.UserSession
+import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
+import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
@@ -29,6 +31,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val screen = LibraryItemScreen(TestLibraryItemId)
   internal val navigator = FakeNavigator(screen)
   internal val libraryItemRepository = FakeLibraryItemRepository()
+  internal val libraryItemValidator = FakeLibraryItemValidator()
   internal val seriesRepository = FakeSeriesRepository()
   internal val sessionsRepository = FakeSessionsRepository()
   internal val sessionQueue = FakeSessionQueue()
@@ -48,6 +51,7 @@ abstract class BaseLibraryItemPresenterTest {
     screen = screen,
     navigator = navigator,
     repository = libraryItemRepository,
+    validator = libraryItemValidator,
     seriesRepository = seriesRepository,
     sessionsRepository = sessionsRepository,
     sessionQueue = sessionQueue,
