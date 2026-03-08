@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Revamped the sleep timer bottom sheet UI in the player view
 - Warnings when an item has misaligned chapter information that needs to be corrected on the server
+- Rewind action will jump to previous chapter with the rewind duration from the end instead of just to the start of the item
 
 ### Deprecated
 

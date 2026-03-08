@@ -396,7 +396,20 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun seekBackward() {
-    player.seekBack()
+    if (player.currentPosition < player.seekBackIncrement && player.currentMediaItemIndex > 0) {
+      val previousIndex = player.currentMediaItemIndex - 1
+      val previousDurationMs = player.getMediaItemAt(previousIndex)
+        .mediaMetadata
+        .durationMs
+      if (previousDurationMs != null) {
+        val seekPositionMs = (previousDurationMs - player.seekBackIncrement).coerceAtLeast(0L)
+        player.seekTo(previousIndex, seekPositionMs)
+      } else {
+        player.seekBack()
+      }
+    } else {
+      player.seekBack()
+    }
   }
 
   override fun setPlaybackSpeed(speed: Float) {
@@ -451,6 +464,30 @@ class ExoPlayerAudioPlayer(
       title = mediaMetadata.title?.toString(),
       artworkUri = mediaMetadata.artworkUri?.toString(),
     )
+  }
+
+  override fun onPositionDiscontinuity(
+    oldPosition: Player.PositionInfo,
+    newPosition: Player.PositionInfo,
+    reason: Int,
+  ) {
+    val reasonReadable = when (reason) {
+      Player.DISCONTINUITY_REASON_AUTO_TRANSITION -> "DISCONTINUITY_REASON_AUTO_TRANSITION"
+      Player.DISCONTINUITY_REASON_SEEK -> "DISCONTINUITY_REASON_SEEK"
+      Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT -> "DISCONTINUITY_REASON_SEEK_ADJUSTMENT"
+      Player.DISCONTINUITY_REASON_SKIP -> "DISCONTINUITY_REASON_SKIP"
+      Player.DISCONTINUITY_REASON_REMOVE -> "DISCONTINUITY_REASON_REMOVE"
+      Player.DISCONTINUITY_REASON_INTERNAL -> "DISCONTINUITY_REASON_INTERNAL"
+      Player.DISCONTINUITY_REASON_SILENCE_SKIP -> "DISCONTINUITY_REASON_SILENCE_SKIP"
+      else -> "Unknown"
+    }
+    ibark {
+      """onPositionDiscontinuity(
+        |  oldPosition = $oldPosition,
+        |  newPosition = $newPosition,
+        |  reason = $reasonReadable,
+      |)""".trimMargin()
+    }
   }
 
   override fun onEvents(player: Player, events: Player.Events) {
