@@ -486,7 +486,8 @@ class ExoPlayerAudioPlayer(
         |  oldPosition = $oldPosition,
         |  newPosition = $newPosition,
         |  reason = $reasonReadable,
-      |)""".trimMargin()
+      |)
+      """.trimMargin()
     }
   }
 
