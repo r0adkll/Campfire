@@ -6,17 +6,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.core.model.LibraryItem
+import app.campfire.libraries.api.LibraryItemValidation
+import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
 import com.slack.circuit.runtime.presenter.Presenter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias ExpandedPlaybackPresenterFactory = () -> ExpandedPlaybackPresenter
+typealias ExpandedPlaybackPresenterFactory = (LibraryItem) -> ExpandedPlaybackPresenter
 
 @Inject
 class ExpandedPlaybackPresenter(
+  @Assisted private val libraryItem: LibraryItem,
   private val sessionQueue: SessionQueue,
   private val playbackController: PlaybackController,
+  private val libraryItemValidator: LibraryItemValidator,
 ) : Presenter<ExpandedPlaybackUiState> {
 
   @Composable
@@ -27,7 +34,15 @@ class ExpandedPlaybackPresenter(
       sessionQueue.observeAll()
     }.collectAsState(emptyList())
 
+    val itemValidation by remember {
+      flow {
+        val validation = libraryItemValidator.validate(libraryItem)
+        emit(validation)
+      }
+    }.collectAsState(LibraryItemValidation.Success)
+
     return ExpandedPlaybackUiState(
+      validation = itemValidation,
       queue = queue,
       reorderSink = { from, to ->
         sessionQueue.reorder(from, to)
