@@ -43,6 +43,13 @@ kotlin {
       }
     }
 
+    commonTest {
+      dependencies {
+        implementation(libs.kotlin.test)
+        implementation(libs.assertk)
+      }
+    }
+
     androidMain {
       dependencies {
         api(libs.media3.exoplayer)
