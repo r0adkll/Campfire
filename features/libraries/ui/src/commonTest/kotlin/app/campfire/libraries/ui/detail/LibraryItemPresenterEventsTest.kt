@@ -10,7 +10,6 @@ import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.session
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.SeriesSequence
-import app.campfire.core.model.Session
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
 import app.campfire.home.ui.libraryItem
