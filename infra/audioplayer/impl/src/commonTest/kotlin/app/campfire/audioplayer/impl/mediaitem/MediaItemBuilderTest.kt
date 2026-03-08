@@ -163,7 +163,7 @@ class MediaItemBuilderTest {
     val tracks = listOf(
       track(index = 0, duration = 60f, tagTitle = "My Track"),
     )
-    val meta = metadata(authorName = "Author A", description = "Desc", seriesName = "Series X")
+    val meta = metadata(authorName = "Author A", description = "Desc", title = "Book X")
     val item = libraryItem(media = media(tracks = tracks, metadata = meta))
 
     val result = MediaItemBuilder.build(item)
@@ -173,7 +173,7 @@ class MediaItemBuilderTest {
     assertThat(m.title).isEqualTo("My Track")
     assertThat(m.artist).isEqualTo("Author A")
     assertThat(m.description).isEqualTo("Desc")
-    assertThat(m.albumTitle).isEqualTo("Series X")
+    assertThat(m.albumTitle).isEqualTo("Book X")
     assertThat(m.durationMs).isEqualTo(60.seconds.inWholeMilliseconds)
   }
 
@@ -212,7 +212,7 @@ class MediaItemBuilderTest {
   fun `build with 1-to-1 chapters and tracks uses chapter metadata`() {
     val chapters = listOf(chapter(id = 5, start = 0f, end = 120f, title = "Opening"))
     val tracks = listOf(track(index = 0, startOffset = 0f, duration = 120f))
-    val meta = metadata(authorName = "Jane", description = "Desc", subtitle = "Sub", seriesName = "S")
+    val meta = metadata(authorName = "Jane", description = "Desc", subtitle = "Sub", title = "Title")
     val item = libraryItem(media = media(chapters = chapters, tracks = tracks, metadata = meta))
 
     val result = MediaItemBuilder.build(item)
@@ -223,7 +223,7 @@ class MediaItemBuilderTest {
     assertThat(m.artist).isEqualTo("Jane")
     assertThat(m.description).isEqualTo("Desc")
     assertThat(m.subtitle).isEqualTo("Sub")
-    assertThat(m.albumTitle).isEqualTo("S")
+    assertThat(m.albumTitle).isEqualTo("Title")
     assertThat(m.durationMs).isEqualTo(120.seconds.inWholeMilliseconds)
   }
 
@@ -545,7 +545,7 @@ class MediaItemBuilderTest {
         authorName = "Author",
         description = "Desc",
         subtitle = "Sub",
-        seriesName = "Series",
+        title = "Title",
       ),
     )
 
@@ -556,7 +556,7 @@ class MediaItemBuilderTest {
     assertThat(result.artist).isEqualTo("Author")
     assertThat(result.description).isEqualTo("Desc")
     assertThat(result.subtitle).isEqualTo("Sub")
-    assertThat(result.albumTitle).isEqualTo("Series")
+    assertThat(result.albumTitle).isEqualTo("Title")
     assertThat(result.artworkUri).isEqualTo("/cover.png")
     assertThat(result.durationMs).isEqualTo(60.seconds.inWholeMilliseconds)
   }
@@ -584,7 +584,7 @@ class MediaItemBuilderTest {
         authorName = "Writer",
         description = "Info",
         subtitle = "Vol 1",
-        seriesName = "Saga",
+        title = "Saga",
       ),
     )
 
