@@ -37,6 +37,7 @@
 
   <string name="action_queue">Queue</string>
   <string name="action_remove">REMOVE</string>
+  <string name="action_clear_queue">Clear queue?</string>
   <string name="queue_header_up_next">Up next</string>
   <string name="queue_header_queue">Queue</string>
 

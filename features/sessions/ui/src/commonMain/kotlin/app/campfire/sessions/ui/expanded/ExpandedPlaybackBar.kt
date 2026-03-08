@@ -7,6 +7,8 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -17,6 +19,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -90,6 +93,7 @@ import app.campfire.sessions.ui.TranslationThreshold
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.expanded.composables.ActionRow
+import app.campfire.sessions.ui.expanded.composables.ClearQueueButton
 import app.campfire.sessions.ui.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.expanded.composables.PlaybackActions
 import app.campfire.sessions.ui.expanded.composables.PlaybackSeekBar
@@ -303,8 +307,10 @@ internal fun ExpandedPlaybackBar(
 
       TopAppBar(
         title = {
-          AnimatedVisibility(
+          androidx.compose.animation.AnimatedVisibility(
             visible = hasQueue,
+            enter = fadeIn(),
+            exit = fadeOut(),
           ) {
             QueueButton(
               checked = showQueue,
@@ -321,7 +327,25 @@ internal fun ExpandedPlaybackBar(
           }
         },
         actions = {
-          CastButton()
+          AnimatedContent(
+            targetState = hasQueue && showQueue,
+          ) { isQueueVisible ->
+            if (isQueueVisible) {
+              Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 8.dp),
+              ) {
+                ClearQueueButton(
+                  onConfirmClick = {
+                    viewState.eventSink(ExpandedPlaybackUiEvent.ClearQueue)
+                  },
+                )
+              }
+            } else {
+              CastButton()
+            }
+          }
         },
         colors = TopAppBarDefaults.topAppBarColors(
           containerColor = containerColor,

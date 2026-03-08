@@ -7,6 +7,10 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import app.campfire.common.compose.theme.color.CampfireColorScheme
+import app.campfire.common.compose.theme.color.LocalCampfireColorScheme
+import app.campfire.common.compose.theme.color.darkCampfireColorScheme
+import app.campfire.common.compose.theme.color.lightCampfireColorScheme
 import app.campfire.core.model.Tent
 import com.r0adkll.swatchbuckler.compose.Theme
 
@@ -20,8 +24,11 @@ fun CampfireTheme(
 ) {
   ApplyStatusBar(useDarkColors)
 
+  val campfireColorScheme = if (useDarkColors) darkCampfireColorScheme() else lightCampfireColorScheme()
+
   CompositionLocalProvider(
     LocalUseDarkColors provides useDarkColors,
+    LocalCampfireColorScheme provides campfireColorScheme,
   ) {
     val colorPalette = tent.colorPalette
     val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
@@ -44,8 +51,11 @@ fun CampfireTheme(
 ) {
   ApplyStatusBar(useDarkColors)
 
+  val campfireColorScheme = if (useDarkColors) darkCampfireColorScheme() else lightCampfireColorScheme()
+
   CompositionLocalProvider(
     LocalUseDarkColors provides useDarkColors,
+    LocalCampfireColorScheme provides campfireColorScheme,
   ) {
     val colorScheme = colorScheme()
 
@@ -56,6 +66,12 @@ fun CampfireTheme(
       content = content,
     )
   }
+}
+
+object CampfireTheme {
+
+  val colorScheme: CampfireColorScheme
+    @Composable get() = LocalCampfireColorScheme.current
 }
 
 val LocalUseDarkColors = compositionLocalOf { false }

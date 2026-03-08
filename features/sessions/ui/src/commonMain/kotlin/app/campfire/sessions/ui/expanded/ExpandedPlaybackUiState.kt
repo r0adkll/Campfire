@@ -19,5 +19,6 @@ sealed interface ExpandedPlaybackUiEvent : CircuitUiEvent {
   data class QueueItemClick(val item: LibraryItem) : ExpandedPlaybackUiEvent
   data class RemoveQueueItem(val item: LibraryItem) : ExpandedPlaybackUiEvent
 
+  data object ClearQueue : ExpandedPlaybackUiEvent
   data object ReorderStopped : ExpandedPlaybackUiEvent
 }

@@ -62,6 +62,12 @@ class ExpandedPlaybackPresenter(
           }
         }
 
+        ExpandedPlaybackUiEvent.ClearQueue -> {
+          scope.launch {
+            sessionQueue.clear()
+          }
+        }
+
         is ExpandedPlaybackUiEvent.QueueItemClick -> {
           playbackController.startSession(event.item.id)
           scope.launch {
