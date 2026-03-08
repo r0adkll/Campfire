@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Series on the item detail page not appearing until loading them in the series screen
 - App crashing on system reboot due to offline download resumption
 - Playback issues when chapter information is mis-aligned with the audio tracks
+- Bluetooth metadata not showing the title of the book
 
 ### Other Notes & Contributions
 
