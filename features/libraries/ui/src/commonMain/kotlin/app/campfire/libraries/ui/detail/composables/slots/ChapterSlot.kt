@@ -24,7 +24,6 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
-import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.DurationListItem
 

@@ -31,7 +31,6 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
-import app.campfire.libraries.ui.detail.composables.ControlSlotProvider
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.header_audio_tracks
 import campfire.features.libraries.ui.generated.resources.header_chapters
@@ -61,7 +60,6 @@ class ChapterHeaderSlot(
       color = ChapterContainerColor,
     ) {
       Column {
-
         Spacer(Modifier.height(8.dp))
 
         // Header
@@ -78,7 +76,7 @@ class ChapterHeaderSlot(
             .padding(
               horizontal = 24.dp,
             ),
-          leadingContent = if (validation is LibraryItemValidation.Error.InvalidChapters){
+          leadingContent = if (validation is LibraryItemValidation.Error.InvalidChapters) {
             {
               Icon(
                 CampfireIcons.Rounded.Warning,
@@ -86,7 +84,9 @@ class ChapterHeaderSlot(
                 tint = MaterialTheme.colorScheme.error,
               )
             }
-          } else null,
+          } else {
+            null
+          },
           trailingContent = {
             Switch(
               checked = showTimeInBook,
@@ -119,7 +119,7 @@ class ChapterHeaderSlot(
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(
               horizontal = 24.dp,
-            )
+            ),
           )
           Spacer(Modifier.height(8.dp))
         }
@@ -140,7 +140,7 @@ class ChapterHeaderSlotProvider : PreviewParameterProvider<ChapterHeaderSlot> {
     ),
     ChapterHeaderSlot(
       showTimeInBook = true,
-      validation = LibraryItemValidation.Error.InvalidChapters(setOf(1))
+      validation = LibraryItemValidation.Error.InvalidChapters(setOf(1)),
     ),
   )
 }

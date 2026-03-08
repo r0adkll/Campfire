@@ -10,7 +10,6 @@ import app.campfire.common.test.user
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.session.UserSession
-import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator

@@ -470,7 +470,7 @@ private fun buildSlots(
           chapter = chapter,
           showTimeInBook = showTimeInBook,
           mediaProgress = mediaProgressState.dataOrNull,
-          isValid = invalidChapterIds?.contains(chapter.id) != true
+          isValid = invalidChapterIds?.contains(chapter.id) != true,
         )
       }
     } else if (libraryItem.media.tracks.isNotEmpty()) {
