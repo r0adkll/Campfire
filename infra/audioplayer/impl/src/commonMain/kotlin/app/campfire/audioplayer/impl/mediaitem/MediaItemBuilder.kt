@@ -173,7 +173,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       artist = media.metadata.authorName,
       description = media.metadata.description ?: "",
       subtitle = media.metadata.subtitle,
-      albumTitle = media.metadata.seriesName,
+      albumTitle = media.metadata.title,
       artworkUri = media.coverImageUrl,
       durationMs = chapter.duration.inWholeMilliseconds,
     )
@@ -189,7 +189,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       artist = media.metadata.authorName,
       description = media.metadata.description ?: "",
       subtitle = media.metadata.subtitle,
-      albumTitle = media.metadata.seriesName,
+      albumTitle = media.metadata.title,
       artworkUri = media.coverImageUrl,
       durationMs = track.duration.seconds.inWholeMilliseconds,
     )
