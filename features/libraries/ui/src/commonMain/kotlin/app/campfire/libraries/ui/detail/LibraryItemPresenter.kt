@@ -274,7 +274,12 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.DiscardProgress -> {
           analytics.send(ActionEvent("discard_progress", Click))
-          playbackController.stopSession(event.item.id)
+
+          // Only stop session if this item is the current playing item
+          if (currentSession?.libraryItem?.id == event.item.id) {
+            playbackController.stopSession(event.item.id)
+          }
+
           scope.launch {
             sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.deleteProgress(event.item.id)
@@ -283,7 +288,12 @@ class LibraryItemPresenter(
 
         is LibraryItemUiEvent.MarkFinished -> {
           analytics.send(ActionEvent("mark_finished", Click))
-          playbackController.stopSession(event.item.id)
+
+          // Only stop session if this item is the current playing item
+          if (currentSession?.libraryItem?.id == event.item.id) {
+            playbackController.stopSession(event.item.id)
+          }
+
           scope.launch {
             sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.markFinished(event.item.id)
