@@ -42,6 +42,12 @@ class FakeSessionQueue : SessionQueue {
     emit()
   }
 
+  override suspend fun reorder(libraryItems: List<LibraryItem>) {
+    queue.clear()
+    queue.addAll(libraryItems)
+    emit()
+  }
+
   override suspend fun clear() {
     queue.clear()
     emit()

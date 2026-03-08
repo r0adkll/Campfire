@@ -352,6 +352,9 @@ internal fun ExpandedPlaybackBar(
             onReorderItem = { from, to ->
               viewState.reorderSink(from, to)
             },
+            onReorderStopped = {
+              viewState.eventSink(ExpandedPlaybackUiEvent.ReorderStopped)
+            },
             modifier = Modifier.fillMaxSize(),
           )
         } else {
@@ -396,6 +399,7 @@ private fun QueueContent(
   onItemClick: (LibraryItem) -> Unit,
   onRemoveItem: (LibraryItem) -> Unit,
   onReorderItem: suspend (from: LibraryItemId, to: LibraryItemId) -> Unit,
+  onReorderStopped: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val haptics = LocalHapticFeedback.current
@@ -446,6 +450,7 @@ private fun QueueContent(
                 },
                 onDragStopped = {
                   haptics.performHapticFeedback(HapticFeedbackType.GestureEnd)
+                  onReorderStopped()
                 },
                 interactionSource = interactionSource,
               ),

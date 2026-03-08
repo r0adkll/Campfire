@@ -156,6 +156,22 @@ class DiskSessionQueue(
     }
   }
 
+  override suspend fun reorder(libraryItems: List<LibraryItem>) {
+    val queue = read {
+      db.sessionQueueQueries
+        .selectAll(userSession.requiredUserId)
+        .awaitAsList()
+    }
+
+    // No-op if we have a difference
+    if (queue.size != libraryItems.size) return
+
+    // Re-index the current queue
+    write {
+      reindexQueue(libraryItems.map { it.id })
+    }
+  }
+
   override suspend fun clear() {
     write {
       db.sessionQueueQueries.deleteAll(userSession.requiredUserId)
