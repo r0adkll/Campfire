@@ -13,11 +13,17 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.preview.libraryItem
+import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.DurationListItem
 
@@ -26,6 +32,7 @@ class ChapterSlot(
   private val chapter: Chapter,
   private val showTimeInBook: Boolean,
   private val mediaProgress: MediaProgress?,
+  private val isValid: Boolean = true,
 ) : ContentSlot {
 
   override val id: String = "chapter_${chapter.id}"
@@ -67,6 +74,7 @@ class ChapterSlot(
             chapter.duration
           },
           progress = progress,
+          isValid = isValid,
           modifier = Modifier
             .clickable {
               eventSink(LibraryItemUiEvent.ChapterClick(libraryItem, chapter))
@@ -78,5 +86,67 @@ class ChapterSlot(
         Spacer(Modifier.height(2.dp))
       }
     }
+  }
+}
+
+class ChapterSlotProvider : PreviewParameterProvider<ChapterSlot> {
+  override val values: Sequence<ChapterSlot> = sequenceOf(
+    ChapterSlot(
+      libraryItem = libraryItem(),
+      chapter = Chapter(
+        id = 1,
+        title = "Chapter 1",
+        start = 0f,
+        end = 600f,
+      ),
+      showTimeInBook = true,
+      mediaProgress = null,
+    ),
+    ChapterSlot(
+      libraryItem = libraryItem(),
+      chapter = Chapter(
+        id = 1,
+        title = "Chapter 1",
+        start = 0f,
+        end = 600f,
+      ),
+      showTimeInBook = false,
+      mediaProgress = null,
+    ),
+    ChapterSlot(
+      libraryItem = libraryItem(),
+      chapter = Chapter(
+        id = 1,
+        title = "Chapter 1",
+        start = 0f,
+        end = 600f,
+      ),
+      showTimeInBook = false,
+      mediaProgress = mediaProgress(
+        duration = 600f.seconds,
+      ),
+    ),
+    ChapterSlot(
+      libraryItem = libraryItem(),
+      chapter = Chapter(
+        id = 1,
+        title = "Chapter 1",
+        start = 0f,
+        end = 600f,
+      ),
+      showTimeInBook = false,
+      mediaProgress = null,
+      isValid = false,
+    ),
+  )
+}
+
+@Preview
+@Composable
+fun ChapterSlotPreview(
+  @PreviewParameter(ChapterSlotProvider::class) slot: ChapterSlot,
+) {
+  CampfireTheme {
+    slot.Content(Modifier) {}
   }
 }

@@ -56,6 +56,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -79,6 +80,7 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
+import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.sessions.ui.FlingThreshold
 import app.campfire.sessions.ui.ShadowElevation
@@ -103,6 +105,7 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.queue_header_queue
 import campfire.features.sessions.ui.generated.resources.queue_header_up_next
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -257,7 +260,9 @@ internal fun ExpandedPlaybackBar(
   }
 
   // Presentation / ViewState
-  val presenter = remember { component.expandedPlaybackPresenterFactory() }
+  val presenter = remember(session.libraryItem) {
+    component.expandedPlaybackPresenterFactory(session.libraryItem)
+  }
   val viewState = presenter.present()
 
   Surface(
@@ -360,6 +365,7 @@ internal fun ExpandedPlaybackBar(
             currentMetadata = currentMetadata,
             runningTimer = runningTimer,
             session = session,
+            itemValidation = viewState.validation,
             onPlayPauseClick = onPlayPauseClick,
             onRewindClick = onRewindClick,
             onForwardClick = onForwardClick,
@@ -462,6 +468,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   runningTimer: RunningTimer?,
 
   session: Session,
+  itemValidation: LibraryItemValidation,
   onPlayPauseClick: () -> Unit,
   onRewindClick: () -> Unit,
   onForwardClick: () -> Unit,
@@ -539,6 +546,20 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             .padding(horizontal = 24.dp)
             .alpha(50f),
         )
+
+        if (itemValidation is LibraryItemValidation.Error.InvalidChapters) {
+          Spacer(Modifier.height(4.dp))
+          Text(
+            text = stringResource(Res.string.misaligned_chapters_error_message),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+              .align(Alignment.CenterHorizontally)
+              .padding(horizontal = 64.dp),
+          )
+        }
       }
 
       val interactionSource = remember { MutableInteractionSource() }

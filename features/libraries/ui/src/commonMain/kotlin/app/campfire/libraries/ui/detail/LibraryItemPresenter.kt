@@ -29,6 +29,8 @@ import app.campfire.core.model.Session
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.LibraryItemValidation
+import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.libraries.ui.detail.composables.slots.AudioTrackSlot
@@ -81,6 +83,7 @@ class LibraryItemPresenter(
   @Assisted private val navigator: Navigator,
   private val userSession: UserSession,
   private val repository: LibraryItemRepository,
+  private val validator: LibraryItemValidator,
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
@@ -148,6 +151,14 @@ class LibraryItemPresenter(
         }
     }.collectAsState(null)
 
+    val itemValidation by remember {
+      snapshotFlow { libraryItemContentState.dataOrNull }
+        .filterNotNull()
+        .mapLatest { item ->
+          validator.validate(item)
+        }
+    }.collectAsState(LibraryItemValidation.Success)
+
     val isPlaying by remember {
       audioPlayerHolder.currentPlayer
         .flatMapLatest {
@@ -197,6 +208,7 @@ class LibraryItemPresenter(
     val slots = libraryItemContentState.map { libraryItem ->
       buildSlots(
         libraryItem = libraryItem,
+        libraryItemValidation = itemValidation,
         sharedTransitionKey = screen.sharedTransitionKey,
         isPlaying = isPlaying,
         mediaProgressState = mediaProgressState,
@@ -375,6 +387,7 @@ class LibraryItemPresenter(
 @Composable
 private fun buildSlots(
   libraryItem: LibraryItem,
+  libraryItemValidation: LibraryItemValidation,
   sharedTransitionKey: String,
   isPlaying: Boolean,
   mediaProgressState: LoadState<out MediaProgress?>,
@@ -458,13 +471,16 @@ private fun buildSlots(
       this += SpacerSlot.large("chapters_spacer")
       this += ChapterHeaderSlot(
         showTimeInBook = showTimeInBook,
+        validation = libraryItemValidation,
       )
+      val invalidChapterIds = (libraryItemValidation as? LibraryItemValidation.Error.InvalidChapters)?.chapterIds
       libraryItem.media.chapters.forEach { chapter ->
         this += ChapterSlot(
           libraryItem = libraryItem,
           chapter = chapter,
           showTimeInBook = showTimeInBook,
           mediaProgress = mediaProgressState.dataOrNull,
+          isValid = invalidChapterIds?.contains(chapter.id) != true,
         )
       }
     } else if (libraryItem.media.tracks.isNotEmpty()) {

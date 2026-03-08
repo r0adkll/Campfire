@@ -219,11 +219,12 @@ fun PlaybackBar(
             }
 
             Expanded -> {
+              if (currentSession == null) return@AnimatedContent
               ExpandedPlaybackBar(
                 containerColor = sheetContainerColor,
                 contentColor = sheetContentColor,
                 navigator = navigator,
-                session = currentSession!!,
+                session = currentSession,
                 state = playerState.value,
                 playbackSpeed = playbackSpeed.value,
                 currentTime = currentTime.value,
