@@ -466,31 +466,6 @@ class ExoPlayerAudioPlayer(
     )
   }
 
-  override fun onPositionDiscontinuity(
-    oldPosition: Player.PositionInfo,
-    newPosition: Player.PositionInfo,
-    reason: Int,
-  ) {
-    val reasonReadable = when (reason) {
-      Player.DISCONTINUITY_REASON_AUTO_TRANSITION -> "DISCONTINUITY_REASON_AUTO_TRANSITION"
-      Player.DISCONTINUITY_REASON_SEEK -> "DISCONTINUITY_REASON_SEEK"
-      Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT -> "DISCONTINUITY_REASON_SEEK_ADJUSTMENT"
-      Player.DISCONTINUITY_REASON_SKIP -> "DISCONTINUITY_REASON_SKIP"
-      Player.DISCONTINUITY_REASON_REMOVE -> "DISCONTINUITY_REASON_REMOVE"
-      Player.DISCONTINUITY_REASON_INTERNAL -> "DISCONTINUITY_REASON_INTERNAL"
-      Player.DISCONTINUITY_REASON_SILENCE_SKIP -> "DISCONTINUITY_REASON_SILENCE_SKIP"
-      else -> "Unknown"
-    }
-    ibark {
-      """onPositionDiscontinuity(
-        |  oldPosition = $oldPosition,
-        |  newPosition = $newPosition,
-        |  reason = $reasonReadable,
-      |)
-      """.trimMargin()
-    }
-  }
-
   override fun onEvents(player: Player, events: Player.Events) {
     eventLogger.vbark {
       buildString {
