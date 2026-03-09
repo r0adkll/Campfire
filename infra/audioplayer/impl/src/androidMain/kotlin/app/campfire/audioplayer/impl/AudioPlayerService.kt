@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import android.view.KeyEvent
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
@@ -20,9 +19,7 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
-import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
-import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.browse.SuspendingMediaLibrarySessionCallback
@@ -37,7 +34,6 @@ import app.campfire.infra.audioplayer.impl.R
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.PlaybackSettings
 import com.google.common.collect.ImmutableList
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
@@ -425,7 +421,7 @@ class AudioPlayerService : MediaLibraryService() {
     private val BLUETOOTH_PACKAGE_NAMES = arrayOf(
       "com.google.android.bluetooth",
       // Pixel Buds use this package name when triggering next/previous actions
-      "com.google.android.googlequicksearchbox"
+      "com.google.android.googlequicksearchbox",
     )
   }
 }
