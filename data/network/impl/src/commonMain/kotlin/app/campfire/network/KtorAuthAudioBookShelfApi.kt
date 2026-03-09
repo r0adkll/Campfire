@@ -147,38 +147,6 @@ class KtorAuthAudioBookShelfApi(
       maybeHeaders(extraHeaders)
     }
   }
-
-  private suspend inline fun <reified T> trySendRequest(
-    noinline responseMapper: suspend (HttpResponse) -> T = { it.body<T>() },
-    crossinline request: suspend () -> HttpResponse,
-  ): Result<T> = withContext(dispatcherProvider.io) {
-    try {
-      val response = request()
-      if (response.status.isSuccess()) {
-        val originServerUrl = response.call.request.headers[HttpHeaders.ServerUrl]
-        val body = responseMapper(response)
-        if (body is NetworkModel && originServerUrl != null) {
-          body.applyOrigin(RequestOrigin.Url(originServerUrl))
-        }
-
-        Result.success(body)
-      } else {
-        Result.failure(ApiException(response.status.value, response.bodyAsText()))
-      }
-    } catch (e: IOException) {
-      e.printStackTrace()
-      Result.failure(e)
-    } catch (e: NoTransformationFoundException) {
-      e.printStackTrace()
-      Result.failure(e)
-    } catch (e: IllegalArgumentException) {
-      e.printStackTrace()
-      Result.failure(e)
-    } catch (e: URLParserException) {
-      e.printStackTrace()
-      Result.failure(e)
-    }
-  }
 }
 
 private fun HttpRequestBuilder.maybeHeaders(headers: Map<String, String>?) {

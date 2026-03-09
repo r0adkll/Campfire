@@ -74,6 +74,8 @@ import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.util.encodeBase64
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
@@ -564,39 +566,6 @@ class KtorAudioBookShelfApi(
   override suspend fun getFilterData(libraryId: String): Result<FilterData> {
     return trySendRequest {
       hydratedClientRequest("api/libraries/$libraryId/filterdata")
-    }
-  }
-
-  private suspend inline fun <reified T> trySendRequest(
-    noinline responseMapper: suspend (HttpResponse) -> T = { it.body<T>() },
-    crossinline request: suspend () -> HttpResponse,
-  ): Result<T> = withContext(dispatcherProvider.io) {
-    try {
-      val response = request()
-      if (response.status.isSuccess()) {
-        val originServerUrl = response.call.request.headers[HttpHeaders.ServerUrl]
-        val body = responseMapper(response)
-        if (body is NetworkModel && originServerUrl != null) {
-          body.applyOrigin(RequestOrigin.Url(originServerUrl))
-        }
-
-        // If our response is an iterable, check each item to attach
-        // metadata.
-        if (body is Iterable<*> && originServerUrl != null) {
-          val originUrl = RequestOrigin.Url(originServerUrl)
-          body.forEach {
-            if (it is NetworkModel) {
-              it.applyOrigin(originUrl)
-            }
-          }
-        }
-
-        Result.success(body)
-      } else {
-        Result.failure(ApiException(response.status.value, "Network request failed"))
-      }
-    } catch (e: IOException) {
-      Result.failure(e)
     }
   }
 

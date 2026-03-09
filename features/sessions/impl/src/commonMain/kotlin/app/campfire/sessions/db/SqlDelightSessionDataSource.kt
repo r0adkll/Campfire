@@ -67,8 +67,9 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun getSession(libraryItemId: LibraryItemId): Session? {
+    val currentUserId = userSession.userId ?: return null
     return read {
-      db.sessionQueries.getForId(libraryItemId, userSession.requiredUserId)
+      db.sessionQueries.getForId(libraryItemId, currentUserId)
         .executeAsOneOrNull()
         ?.let { hydrateSession(it) }
     }
@@ -169,11 +170,12 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
+    val currentUserId = userSession.userId ?: return
     write {
       // Update the playback session information with the new time
       db.sessionQueries.updatePlayback(
         libraryItemId = libraryItemId,
-        userId = userSession.requiredUserId,
+        userId = currentUserId,
         currentTime = currentTime,
         updatedAt = fatherTime.now(),
       )
@@ -181,10 +183,11 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
+    val currentUserId = userSession.userId ?: return
     write {
       db.sessionQueries.addTimeListening(
         libraryItemId = libraryItemId,
-        userId = userSession.requiredUserId,
+        userId = currentUserId,
         timeListening = amount,
         updatedAt = fatherTime.now(),
       )
@@ -192,31 +195,35 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun markDeleted(libraryItemId: LibraryItemId) {
+    val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.markDeleted(libraryItemId, userSession.requiredUserId)
+      db.sessionQueries.markDeleted(libraryItemId, currentUserId)
     }
   }
 
   override suspend fun deleteSession(libraryItemId: LibraryItemId) {
+    val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.delete(libraryItemId, userSession.requiredUserId)
+      db.sessionQueries.delete(libraryItemId, currentUserId)
     }
   }
 
   override suspend fun stopSession(libraryItemId: LibraryItemId) {
+    val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.disable(libraryItemId, userSession.requiredUserId)
+      db.sessionQueries.disable(libraryItemId, currentUserId)
     }
   }
 
   override suspend fun markFinished(libraryItemId: LibraryItemId) {
+    val currentUserId = userSession.userId ?: return
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     write {
       db.sessionQueries.markFinished(
         currentTime = libraryItem.media.duration,
         updatedAt = fatherTime.now(),
         libraryItemId = libraryItemId,
-        userId = userSession.requiredUserId,
+        userId = currentUserId,
       )
     }
   }
