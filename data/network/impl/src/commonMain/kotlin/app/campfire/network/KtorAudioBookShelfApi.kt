@@ -42,7 +42,6 @@ import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.MinifiedBookMetadata
-import app.campfire.network.models.NetworkModel
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -74,10 +73,6 @@ import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.util.encodeBase64
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlinx.coroutines.withContext
-import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
 
 @Inject

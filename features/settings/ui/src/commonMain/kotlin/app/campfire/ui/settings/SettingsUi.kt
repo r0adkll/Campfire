@@ -325,7 +325,7 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Downloads)
         },
-        shape = SettingsPaneDefaults.topShape()
+        shape = SettingsPaneDefaults.topShape(),
       )
 
       // Playback
@@ -358,9 +358,8 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Sleep)
         },
-        shape = SettingsPaneDefaults.bottomShape()
+        shape = SettingsPaneDefaults.bottomShape(),
       )
-
 
       Spacer(Modifier.height(8.dp))
 
