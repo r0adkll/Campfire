@@ -147,7 +147,7 @@ private fun PlaybackSpeedBottomSheet(
         }
       }
 
-      val sliderProgressNormalized = sliderValue / (speedOptions.min() + speedOptions.length)
+      val sliderProgressNormalized = sliderValue / (DefaultSpeedRange.start + DefaultSpeedRange.length)
       val waveLength = lerp(WavelengthRange.endInclusive, WavelengthRange.start, sliderProgressNormalized)
       val waveHeight = lerp(WaveHeightRange.start, WaveHeightRange.endInclusive, sliderProgressNormalized)
       val waveVelocity = lerp(WaveVelocityRange.start, WaveVelocityRange.endInclusive, sliderProgressNormalized)
@@ -155,7 +155,7 @@ private fun PlaybackSpeedBottomSheet(
 
       WavySlider(
         value = sliderValue,
-        valueRange = speedOptions.asRange,
+        valueRange = DefaultSpeedRange,
         onValueChange = {
           sliderValue = it
           Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("speed" to it)))
@@ -217,7 +217,5 @@ private val WaveHeightRange = 0.dp.rangeTo(40.dp)
 private val WaveVelocityRange = 50.dp.rangeTo(120.dp)
 private val WaveThicknessRange = 16.dp.rangeTo(6.dp)
 
-private val List<Float>.asRange: ClosedFloatingPointRange<Float>
-  get() = min().rangeTo(max())
-
-private val List<Float>.length: Float get() = max() - min()
+internal val DefaultSpeedRange = 0.5f.rangeTo(2f)
+private val ClosedFloatingPointRange<Float>.length: Float get() = endInclusive - start

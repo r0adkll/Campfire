@@ -96,6 +96,9 @@ object SettingsPaneDefaults {
   fun middleShape(): Shape = RoundedCornerShape(smallRadius)
 
   @Composable
+  fun singleShape(): Shape = RoundedCornerShape(largeRadius)
+
+  @Composable
   fun selectedShape(): Shape = MaterialTheme.shapes.large
 
   @Composable

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
@@ -305,7 +306,10 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Appearance)
         },
+        shape = SettingsPaneDefaults.bottomShape(),
       )
+
+      Spacer(Modifier.height(8.dp))
 
       // Appearance
       SettingPaneListItem(
@@ -321,6 +325,7 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Downloads)
         },
+        shape = SettingsPaneDefaults.topShape()
       )
 
       // Playback
@@ -353,7 +358,11 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Sleep)
         },
+        shape = SettingsPaneDefaults.bottomShape()
       )
+
+
+      Spacer(Modifier.height(8.dp))
 
       // About
       SettingPaneListItem(
@@ -370,9 +379,9 @@ private fun SettingsRootPane(
           onPaneClick(SettingsPane.About)
         },
         shape = if (showDeveloperPane) {
-          SettingsPaneDefaults.middleShape()
+          SettingsPaneDefaults.topShape()
         } else {
-          SettingsPaneDefaults.bottomShape()
+          SettingsPaneDefaults.singleShape()
         },
       )
 
