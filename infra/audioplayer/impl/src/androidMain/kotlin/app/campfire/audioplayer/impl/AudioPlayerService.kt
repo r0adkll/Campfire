@@ -195,18 +195,22 @@ class AudioPlayerService : MediaLibraryService() {
         session.isMediaNotificationController(controller) ||
         session.isAutoCompanionController(controller)
       ) {
-        val customLayoutCommandButtons = createCustomLayoutCommandButtons()
-        val sessionCommands = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
-          .apply {
-            customLayoutCommandButtons.forEach { cmd ->
-              cmd.sessionCommand?.let(::add)
-            }
-          }
-          .build()
+        val mediaButtonPreferences = listOf(
+          CommandButton.Builder(CommandButton.ICON_PREVIOUS)
+            .setDisplayName(getString(R.string.exo_controls_skip_previous))
+            .setPlayerCommand(Player.COMMAND_SEEK_TO_PREVIOUS)
+            .setSlots(CommandButton.SLOT_BACK)
+            .build(),
+          CommandButton.Builder(CommandButton.ICON_NEXT)
+            .setDisplayName(getString(R.string.exo_controls_skip_next))
+            .setPlayerCommand(Player.COMMAND_SEEK_TO_NEXT)
+            .setSlots(CommandButton.SLOT_FORWARD)
+            .build(),
+          *createCustomLayoutCommandButtons().toTypedArray(),
+        )
 
         return AcceptedResultBuilder(session)
-          .setAvailableSessionCommands(sessionCommands)
-          .setCustomLayout(customLayoutCommandButtons)
+          .setMediaButtonPreferences(mediaButtonPreferences)
           .build()
       } else {
         return super.onConnect(session, controller)
@@ -226,7 +230,7 @@ class AudioPlayerService : MediaLibraryService() {
         userComponent.playbackSessionManager.startSession(session.libraryItem.id, playImmediately = isForPlayback)
       }
 
-      // Return an error from this response as we've take responsibility for starting playback and
+      // Return an error from this response as we've taken responsibility for starting playback and
       // resolving / setting the media item(s).
       error("Deliberately not return here")
     }
@@ -239,7 +243,7 @@ class AudioPlayerService : MediaLibraryService() {
       // Handle Bluetooth next/prev based on user settings.
       // Media3 routes Bluetooth key events through this callback before processing them,
       // allowing us to intercept and redirect next/prev to seek when the setting is disabled.
-      if (controllerInfo.packageName == BLUETOOTH_PACKAGE_NAME &&
+      if (controllerInfo.packageName in BLUETOOTH_PACKAGE_NAMES &&
         !component.playbackSettings.remoteNextPrevSkipsChapters
       ) {
         val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
@@ -257,27 +261,6 @@ class AudioPlayerService : MediaLibraryService() {
         }
       }
       return super.onMediaButtonEvent(session, controllerInfo, intent)
-    }
-
-    override fun onCustomCommand(
-      session: MediaSession,
-      controller: MediaSession.ControllerInfo,
-      customCommand: SessionCommand,
-      args: Bundle,
-    ): ListenableFuture<SessionResult> {
-      return when (customCommand.customAction) {
-        CUSTOM_COMMAND_SEEK_BACKWARD -> {
-          player.seekBackward()
-          Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
-        }
-
-        CUSTOM_COMMAND_SEEK_FORWARD -> {
-          player.seekForward()
-          Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
-        }
-
-        else -> Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
-      }
     }
 
     override suspend fun onGetLibraryRootInternal(
@@ -421,11 +404,13 @@ class AudioPlayerService : MediaLibraryService() {
     return listOf(
       CommandButton.Builder(skipBackIcon)
         .setDisplayName(getString(R.string.exo_controls_skip_backward))
-        .setSessionCommand(SessionCommand(CUSTOM_COMMAND_SEEK_BACKWARD, Bundle.EMPTY))
+        .setPlayerCommand(Player.COMMAND_SEEK_BACK)
+        .setSlots(CommandButton.SLOT_OVERFLOW)
         .build(),
       CommandButton.Builder(skipForwardIcon)
         .setDisplayName(getString(R.string.exo_controls_skip_forward))
-        .setSessionCommand(SessionCommand(CUSTOM_COMMAND_SEEK_FORWARD, Bundle.EMPTY))
+        .setPlayerCommand(Player.COMMAND_SEEK_FORWARD)
+        .setSlots(CommandButton.SLOT_OVERFLOW)
         .build(),
     )
   }
@@ -434,9 +419,13 @@ class AudioPlayerService : MediaLibraryService() {
     private const val CHANNEL_ID = "app.campfire.notifications.playback"
     private const val NOTIFICATION_ID = 100
 
-    private const val CUSTOM_COMMAND_SEEK_FORWARD = "app.campfire.media3.SEEK_FORWARD"
-    private const val CUSTOM_COMMAND_SEEK_BACKWARD = "app.campfire.media3.SEEK_BACKWARD"
-
-    private const val BLUETOOTH_PACKAGE_NAME = "com.google.android.bluetooth"
+    /**
+     * List of known package names used by bluetooth devices
+     */
+    private val BLUETOOTH_PACKAGE_NAMES = arrayOf(
+      "com.google.android.bluetooth",
+      // Pixel Buds use this package name when triggering next/previous actions
+      "com.google.android.googlequicksearchbox"
+    )
   }
 }

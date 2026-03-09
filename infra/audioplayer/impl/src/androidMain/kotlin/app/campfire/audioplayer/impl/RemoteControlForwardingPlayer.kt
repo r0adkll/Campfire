@@ -95,23 +95,4 @@ class RemoteControlForwardingPlayer(
       super.seekToPrevious()
     }
   }
-
-  /**
-   * Always report seek to next/previous commands as available.
-   *
-   * This is necessary because when the setting redirects next/prev to seek forward/backward,
-   * we want Bluetooth/remote commands to work even at playlist boundaries (first/last chapter).
-   * Without this, the Android system drops remote commands before they reach the player
-   * when Media3 reports the command as unavailable.
-   *
-   * See: https://github.com/androidx/media/issues/249
-   */
-  override fun getAvailableCommands(): Player.Commands {
-    return super.getAvailableCommands().buildUpon()
-      .add(Player.COMMAND_SEEK_TO_NEXT)
-      .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
-      .add(Player.COMMAND_SEEK_TO_PREVIOUS)
-      .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-      .build()
-  }
 }
