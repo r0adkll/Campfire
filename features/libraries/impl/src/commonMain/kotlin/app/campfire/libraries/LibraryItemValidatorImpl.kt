@@ -22,7 +22,7 @@ class LibraryItemValidatorImpl : LibraryItemValidator {
     // compute total duration of all tracks so to compare chapters against it
     // Floor the value so we don't get snagged by rounding errors
     val totalDuration = floor(
-      item.media.tracks.sumOf { it.duration.toDouble() }
+      item.media.tracks.sumOf { it.duration.toDouble() },
     ).seconds
 
     // Check if any chapters exist outside the actual duration of tracks
