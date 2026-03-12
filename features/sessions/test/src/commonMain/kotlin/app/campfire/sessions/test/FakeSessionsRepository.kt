@@ -1,5 +1,6 @@
 package app.campfire.sessions.test
 
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
@@ -44,6 +45,12 @@ class FakeSessionsRepository : SessionsRepository {
     invocations += Invocation.UpdateCurrentTime(libraryItemId, currentTime)
   }
 
+  override suspend fun updateLastPlayed(
+    libraryItemId: LibraryItemId
+  ) {
+    invocations += Invocation.UpdateLastPlayed(libraryItemId)
+  }
+
   override suspend fun addTimeListening(
     libraryItemId: LibraryItemId,
     amount: Duration,
@@ -72,6 +79,7 @@ class FakeSessionsRepository : SessionsRepository {
     data class MarkDeleted(val libraryItemId: LibraryItemId) : Invocation
     data class DeleteSession(val libraryItemId: LibraryItemId) : Invocation
     data class UpdateCurrentTime(val libraryItemId: LibraryItemId, val currentTime: Duration) : Invocation
+    data class UpdateLastPlayed(val libraryItemId: LibraryItemId) : Invocation
     data class AddTimeListening(val libraryItemId: LibraryItemId, val amount: Duration) : Invocation
     data class StopSession(val libraryItemId: LibraryItemId) : Invocation
     data class MarkFinished(val libraryItemId: LibraryItemId) : Invocation

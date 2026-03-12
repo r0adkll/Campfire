@@ -5,6 +5,7 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import com.slack.circuit.runtime.Navigator
+import com.slack.circuit.runtime.navigation.NavStackList
 import com.slack.circuit.runtime.popUntil
 import com.slack.circuit.runtime.screen.PopResult
 import com.slack.circuit.runtime.screen.Screen
@@ -26,9 +27,20 @@ class HomeNavigator(
     }
   }
 
+  override fun forward(): Boolean {
+    return rootNavigator.forward()
+  }
+
+  override fun backward(): Boolean {
+    return rootNavigator.backward()
+  }
+
   override fun peek(): Screen? = rootNavigator.peek()
 
   override fun peekBackStack(): List<Screen> = rootNavigator.peekBackStack()
+  override fun peekNavStack(): NavStackList<Screen>? {
+    TODO("Not yet implemented")
+  }
 
   override fun pop(result: PopResult?): Screen? = rootNavigator.pop()
 

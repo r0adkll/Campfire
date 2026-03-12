@@ -4,6 +4,7 @@ import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.Corked
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.MediaProgress
@@ -49,7 +50,7 @@ class DefaultMediaProgressSynchronizer(
   }
 
   private suspend fun syncInternal(mediaProgress: MediaProgress) = measureTime {
-    // push to the network
+    dbark { "--> Updating MediaProgress(${mediaProgress.libraryItemId.loggableId})" }
     val result = api.updateMediaProgress(
       libraryItemId = mediaProgress.libraryItemId,
       update = mediaProgress.asNetworkUpdate(),
@@ -67,7 +68,7 @@ class DefaultMediaProgressSynchronizer(
             )
           }
 
-          bark(LogPriority.DEBUG) {
+          dbark {
             "New MediaProgress Id ${updatedMediaProgress.libraryItemId.loggableId} " +
               "--> ${updatedMediaProgress.id}"
           }
@@ -80,6 +81,8 @@ class DefaultMediaProgressSynchronizer(
       }
     }
   }
+
+  companion object : Corked("MediaProgressSynchronizer")
 }
 
 private const val MIN_SYNC_TIME = 15_000L // 15 seconds

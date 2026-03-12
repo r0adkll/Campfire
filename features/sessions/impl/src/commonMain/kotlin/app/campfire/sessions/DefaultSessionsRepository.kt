@@ -83,6 +83,12 @@ class DefaultSessionsRepository(
     )
   }
 
+  override suspend fun updateLastPlayed(libraryItemId: LibraryItemId) {
+    dataSource.updateLastPlayed(
+      libraryItemId = libraryItemId,
+    )
+  }
+
   override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
     dataSource.addTimeListening(
       libraryItemId = libraryItemId,

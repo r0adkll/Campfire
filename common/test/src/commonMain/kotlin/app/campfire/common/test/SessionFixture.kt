@@ -21,6 +21,7 @@ fun session(
   isDeleted: Boolean = false,
   startedAt: LocalDateTime = LocalDateTime(2025, 1, 1, 1, 1),
   updatedAt: LocalDateTime = LocalDateTime(2025, 1, 1, 1, 1),
+  lastPlayedAt: LocalDateTime? = null
 ) = Session(
   id = id,
   libraryItem = libraryItem,
@@ -30,6 +31,7 @@ fun session(
   timeListening = timeListening,
   startTime = startTime,
   currentTime = currentTime,
+  lastPlayedAt = lastPlayedAt,
   startedAt = startedAt,
   updatedAt = updatedAt,
   isDeleted = isDeleted,

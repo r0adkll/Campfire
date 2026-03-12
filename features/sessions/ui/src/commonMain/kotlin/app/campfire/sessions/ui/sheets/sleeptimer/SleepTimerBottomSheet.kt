@@ -673,6 +673,7 @@ fun TimerBottomSheetV2Preview() {
                 libraryItemId: LibraryItemId,
                 currentTime: Duration,
               ) = Unit
+              override suspend fun updateLastPlayed(libraryItemId: LibraryItemId) = Unit
               override suspend fun addTimeListening(
                 libraryItemId: LibraryItemId,
                 amount: Duration,
@@ -696,6 +697,7 @@ fun TimerBottomSheetV2Preview() {
                     currentTime = 5.hours,
                     startedAt = LocalDateTime(2026, 1, 1, 1, 1),
                     updatedAt = LocalDateTime(2026, 1, 1, 1, 1),
+                    lastPlayedAt = null,
                   ),
                 )
               }

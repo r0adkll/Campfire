@@ -22,6 +22,7 @@ data class Session(
   val timeListening: Duration,
   val startTime: Duration,
   val currentTime: Duration,
+  val lastPlayedAt: LocalDateTime?,
 
   // Date / Time
   val startedAt: LocalDateTime,

@@ -5,6 +5,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.epochMilliseconds
+import app.campfire.core.logging.Corked
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
@@ -46,6 +47,7 @@ class SqlDelightSessionDataSource(
   private val devSettings: DevSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionDataSource {
+  companion object : Corked("SqlDelightSessionDataSource")
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeCurrentSession(): Flow<Session?> {
@@ -110,11 +112,11 @@ class SqlDelightSessionDataSource(
 
     // If an existing session has been updated withing allowed time interval,
     // just re-use the session
-    if (existingSession != null && !forceNew) {
+    if (existingSession != null && !existingSession.isDeleted && !forceNew ) {
       val now = fatherTime.now()
       val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
       if (elapsed <= devSettings.sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
-        bark {
+        ibark {
           "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], " +
             "returning it."
         }
@@ -126,7 +128,7 @@ class SqlDelightSessionDataSource(
         }
         return hydrateSession(existingSession)
       } else {
-        bark {
+        ibark {
           "Existing session is too old, creating new. Age [${elapsed.milliseconds}], " +
             "Session Age [${devSettings.sessionAge}]"
         }
@@ -137,9 +139,12 @@ class SqlDelightSessionDataSource(
     // timestamps.
     val newStartTime = existingSession?.currentTime ?: currentTime
     val newCurrentTime = existingSession?.currentTime ?: currentTime
+    val lastPlayedAt = existingSession?.lastPlayedAt
+      ?: existingSession?.updatedAt
 
     // If there is no existing, or its too old. Create a new session.
-    bark { "Creating new session for library item" }
+    ibark { "Creating new session for library item [lastPlayed=$lastPlayedAt]" }
+    val now = fatherTime.now()
     return write {
       val dbSession = DbSession(
         id = Uuid.random(),
@@ -154,8 +159,11 @@ class SqlDelightSessionDataSource(
         timeListening = 0.seconds,
         startTime = newStartTime,
         currentTime = newCurrentTime,
-        startedAt = fatherTime.now(),
-        updatedAt = fatherTime.now(),
+        // This is important to track when the user last played/updated the local
+        // playback session for this item.
+        lastPlayedAt = lastPlayedAt,
+        startedAt = now,
+        updatedAt = now,
       )
 
       // Insert, replacing any existing session and disable any other active sessions
@@ -170,6 +178,7 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
+    ibark { "updateCurrentTime($currentTime)" }
     val currentUserId = userSession.userId ?: return
     write {
       // Update the playback session information with the new time
@@ -182,13 +191,26 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  override suspend fun updateLastPlayed(libraryItemId: LibraryItemId) {
+    ibark { "updateLastPlayed()" }
+    val currentUserId = userSession.userId ?: return
+    write {
+      db.sessionQueries.updateLastPlayed(
+        lastPlayedAt = fatherTime.now(),
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+      )
+    }
+  }
+
   override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
+    ibark { "addTimeListening($amount)" }
     val currentUserId = userSession.userId ?: return
     write {
       db.sessionQueries.addTimeListening(
         libraryItemId = libraryItemId,
         userId = currentUserId,
-        timeListening = amount,
+        additionalTime = amount,
         updatedAt = fatherTime.now(),
       )
     }
@@ -240,6 +262,7 @@ class SqlDelightSessionDataSource(
       timeListening = session.timeListening,
       startTime = session.startTime,
       currentTime = session.currentTime,
+      lastPlayedAt = session.lastPlayedAt,
       startedAt = session.startedAt,
       updatedAt = session.updatedAt,
     )

@@ -1,0 +1,3 @@
+-- Add lastPlayedAt timestamp to the session table
+ALTER TABLE session
+ADD COLUMN lastPlayedAt TEXT;

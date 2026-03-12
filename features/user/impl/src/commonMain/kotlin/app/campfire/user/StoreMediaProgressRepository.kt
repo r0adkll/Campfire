@@ -53,8 +53,11 @@ class StoreMediaProgressRepository(
 
   private val store: Store<Operation, Output> by lazy { storeFactory.create() }
 
-  override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress?> {
-    val request = StoreReadRequest.cached(Operation.Query.One(userSession.requiredUserId, libraryItemId), false)
+  override fun observeProgress(
+    libraryItemId: LibraryItemId,
+    refresh: Boolean,
+  ): Flow<MediaProgress?> {
+    val request = StoreReadRequest.cached(Operation.Query.One(userSession.requiredUserId, libraryItemId), refresh)
     return store.stream(request)
       .debugLogging("MediaProgressStore::observeProgress")
       .map { it.dataOrNull() }

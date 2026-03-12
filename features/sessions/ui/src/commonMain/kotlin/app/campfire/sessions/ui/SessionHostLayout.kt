@@ -33,6 +33,8 @@ private fun rememberSessionHostComponent(): State<SessionHostComponent> {
   }.collectAsState(ComponentHolder.component<SessionHostComponent>())
 }
 
+// TODO: This is cruft and we should migrate the entire PlaybackBar stack to a central Presenter/Ui
+//  architecture rather than this DI wrapper.
 @Composable
 fun SessionHostLayout(
   component: State<SessionHostComponent> = rememberSessionHostComponent(),

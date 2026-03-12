@@ -2,6 +2,7 @@ package app.campfire.core.extensions
 
 import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -12,9 +13,10 @@ fun Int.formattedPlace(): String = when (this) {
   else -> "${this}th"
 }
 
-fun Long.asDate(): LocalDate = Instant.fromEpochMilliseconds(this)
+fun Long.asDateTime(): LocalDateTime = Instant.fromEpochMilliseconds(this)
   .toLocalDateTime(TimeZone.currentSystemDefault())
-  .date
+
+fun Long.asDate(): LocalDate = asDateTime().date
 
 fun Long.asReadableBytes(): String {
   val kb = this.toDouble() / 1024.0

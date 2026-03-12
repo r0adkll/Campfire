@@ -33,6 +33,10 @@ interface SessionDataSource {
     currentTime: Duration,
   )
 
+  suspend fun updateLastPlayed(
+    libraryItemId: LibraryItemId,
+  )
+
   suspend fun addTimeListening(
     libraryItemId: LibraryItemId,
     amount: Duration,

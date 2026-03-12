@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS session (
   timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
   startTime INTEGER AS Duration NOT NULL DEFAULT 0,
   currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  lastPlayedAt TEXT AS LocalDateTime,
 
   startedAt TEXT AS LocalDateTime NOT NULL,
   updatedAt TEXT AS LocalDateTime NOT NULL,
@@ -67,21 +68,28 @@ WHERE libraryItemId = ?
 
 updatePlayback:
 UPDATE session
-SET currentTime = ?,
-    updatedAt = ?
-WHERE libraryItemId = ?
-  AND userId = ?;
+SET currentTime = :currentTime,
+    updatedAt = :updatedAt
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;
+
+updateLastPlayed:
+UPDATE session
+SET lastPlayedAt = :lastPlayedAt
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;
 
 addTimeListening:
 UPDATE session
-SET timeListening = timeListening + ?,
-    updatedAt = ?
-WHERE libraryItemId = ?
-  AND userId = ?;
+SET timeListening = timeListening + :additionalTime,
+    updatedAt = :updatedAt
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;
 
 disable:
 UPDATE session
-SET isActive = 0
+SET isActive = 0,
+    isDeleted = 1
 WHERE libraryItemId = ?
   AND userId = ?;
 

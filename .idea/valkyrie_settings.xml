@@ -6,10 +6,10 @@
     <option name="iconPackName" value="CampfireIcons" />
     <option name="iconPackPackage" value="app.campfire.common.compose.icons" />
     <option name="indentSize" value="2" />
+    <option name="materialFontWeight" value="600" />
     <option name="mode" value="IconPack" />
     <option name="nestedPacks" value="Rounded,Tents,Theme,Filled" />
     <option name="outputFormat" value="lazy_property" />
     <option name="packageName" value="app.campfire.common.compose.icons" />
-    <option name="previewAnnotationType" value="androidx" />
   </component>
 </project>

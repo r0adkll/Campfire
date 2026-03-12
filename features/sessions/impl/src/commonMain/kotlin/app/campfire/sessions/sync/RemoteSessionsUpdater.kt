@@ -75,20 +75,12 @@ class NetworkRemoteSessionsUpdater(
   private suspend fun syncLocalSessionsToServer() {
     // Read local sessions from db
     val currentUserId = userSession.userId ?: return
-    val allSessions = sessionDataSource.getSessions(currentUserId)
 
-    // Delete any sessions marked for deletion
-    val deletedSessions = allSessions.filter { it.isDeleted }
-    deletedSessions.forEach {
-      sessionDataSource.deleteSession(it.libraryItem.id)
-    }
-
-    // Filter out any non-deleted sessions with insufficient listening time
+    // Filter out any with insufficient listening time
     val localSessions = sessionDataSource.getSessions(currentUserId).filter { session ->
-      !session.isDeleted &&
-        // Omit sessions that have < 5s of listening time. These could likely be errant, or restoration sessions
-        // and we should hold off on uploading them until they have a significant amount of listening time
-        session.timeListening > 5.seconds
+      // Omit sessions that have < 5s of listening time. These could likely be errant, or restoration sessions
+      // and we should hold off on uploading them until they have a significant amount of listening time
+      session.timeListening > 5.seconds
     }
 
     if (localSessions.isNotEmpty()) {
@@ -100,9 +92,9 @@ class NetworkRemoteSessionsUpdater(
           r.results.forEach { result ->
             dbark { "--> Sync Result $result" }
             if (result.success) {
-              // Check if session is a completed one,
+              // Check if session is a completed or deleted session
               val localSession = localSessions.find { it.id.toString() == result.id }
-              if (localSession?.isFinished == true) {
+              if (localSession?.isFinished == true || localSession?.isDeleted == true) {
                 sessionDataSource.deleteSession(localSession.libraryItem.id)
                 ibark { "Completed Local Session Deleted!" }
               }

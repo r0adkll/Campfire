@@ -11,6 +11,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
+import app.campfire.sessions.api.SessionsRepository
+import app.campfire.user.api.MediaProgressRepository
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
@@ -25,6 +27,8 @@ class ExpandedPlaybackPresenter(
   private val sessionQueue: SessionQueue,
   private val playbackController: PlaybackController,
   private val libraryItemValidator: LibraryItemValidator,
+  private val mediaProgressRepository: MediaProgressRepository,
+  private val sessionsRepository: SessionsRepository,
 ) : Presenter<ExpandedPlaybackUiState> {
 
   @Composable
@@ -46,9 +50,14 @@ class ExpandedPlaybackPresenter(
       }
     }.collectAsState(LibraryItemValidation.Success)
 
+    val mediaProgress by remember {
+      mediaProgressRepository.observeProgress(libraryItem.id, refresh = true)
+    }.collectAsState(null)
+
     return ExpandedPlaybackUiState(
       validation = itemValidation,
       queue = localQueue,
+      mediaProgress = mediaProgress,
       reorderSink = { from, to ->
         val fromIndex = localQueue.indexOfFirst { it.id == from }
         val toIndex = localQueue.indexOfFirst { it.id == to }
@@ -78,6 +87,12 @@ class ExpandedPlaybackPresenter(
         is ExpandedPlaybackUiEvent.RemoveQueueItem -> {
           scope.launch {
             sessionQueue.remove(event.item)
+          }
+        }
+
+        is ExpandedPlaybackUiEvent.Sync -> {
+          scope.launch {
+            sessionsRepository.updateLastPlayed(event.item.id)
           }
         }
       }

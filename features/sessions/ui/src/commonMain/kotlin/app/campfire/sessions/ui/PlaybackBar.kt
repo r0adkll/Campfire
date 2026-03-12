@@ -38,6 +38,7 @@ import app.campfire.analytics.events.Seek
 import app.campfire.analytics.events.Selected
 import app.campfire.analytics.events.SkipNext
 import app.campfire.analytics.events.SkipPrevious
+import app.campfire.analytics.events.Sync
 import app.campfire.analytics.events.Timer
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.Metadata
@@ -258,6 +259,9 @@ fun PlaybackBar(
                   audioPlayer?.skipToNext()
                 },
                 onClose = { onExpansionChange(false) },
+                onSync = { duration ->
+                  audioPlayer?.seekTo(duration)
+                },
                 onSeek = { progress ->
                   Analytics.send(
                     PlaybackActionEvent(

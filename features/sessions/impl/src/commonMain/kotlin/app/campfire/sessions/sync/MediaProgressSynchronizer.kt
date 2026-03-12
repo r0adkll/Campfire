@@ -7,6 +7,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.epochMilliseconds
+import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.sessions.api.SessionsRepository
@@ -26,6 +27,7 @@ interface MediaProgressSynchronizerUserComponent {
 @ContributesMultibinding(AppScope::class)
 @Inject
 class MediaProgressSynchronizer : PlaybackSynchronizer {
+  companion object : Corked("MediaProgressSynchronizer")
 
   private val component: MediaProgressSynchronizerUserComponent
     get() = ComponentHolder.component()
@@ -35,7 +37,7 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
   override val rank: Int = PlaybackSynchronizer.RANK_HIGHEST
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-    syncProgress(libraryItemId)
+//    syncProgress(libraryItemId)
   }
 
   override suspend fun onStateChanged(
@@ -45,6 +47,7 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
     previousState: AudioPlayer.State,
   ) {
     if (state == AudioPlayer.State.Paused && previousState == AudioPlayer.State.Playing) {
+      ibark { "onStateChange($state)" }
       syncProgress(libraryItemId, force = true)
     }
   }

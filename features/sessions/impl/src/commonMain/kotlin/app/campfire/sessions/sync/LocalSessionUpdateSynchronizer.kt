@@ -7,6 +7,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Cork
+import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import app.campfire.sessions.api.SessionsRepository
@@ -45,6 +46,7 @@ class LocalSessionUpdateSynchronizer(
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
+    ibark { "onStateChanged: $state from $previousState" }
     if (state == AudioPlayer.State.Playing) {
       lastPlayedTime = fatherTime.nowInEpochMillis()
       ibark { "Setting lastPlayedTime to $lastPlayedTime" }
@@ -60,6 +62,17 @@ class LocalSessionUpdateSynchronizer(
         component.remoteSessionsUpdater.update(skipInterval = true)
         lastPlayedTime = null
       }
+    }
+
+    // Update the sessions last "Played" time. This way we can keep track of when
+    // the local session was last "Played" to compare against the current MediaProgress
+    // from the backend. If the progress is newer than the last played time on the device
+    // then the user might want to sync their progress, or enable auto-sync on new-sessions
+    if (
+      state == AudioPlayer.State.Playing ||
+      (state == AudioPlayer.State.Paused && previousState == AudioPlayer.State.Playing)
+    ) {
+      component.sessionsRepository.updateLastPlayed(libraryItemId)
     }
   }
 
@@ -77,12 +90,10 @@ class LocalSessionUpdateSynchronizer(
     }
 
     // Trigger an update if conditions are right
-    component.remoteSessionsUpdater.update()
+//    component.remoteSessionsUpdater.update()
   }
 
-  companion object : Cork {
-    override val tag: String = LocalSessionUpdateSynchronizer::class.simpleName!!
-
+  companion object : Corked("LocalSessionUpdateSynchronizer") {
     private val MAX_TIME_LISTENING_INTERVAL = 1.minutes
   }
 }

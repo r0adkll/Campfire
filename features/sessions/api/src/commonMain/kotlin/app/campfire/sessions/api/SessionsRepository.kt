@@ -45,6 +45,14 @@ interface SessionsRepository {
   )
 
   /**
+   * Update the last time the item was played, this is used
+   * for synchronizing the session against external progress updates
+   */
+  suspend fun updateLastPlayed(
+    libraryItemId: LibraryItemId,
+  )
+
+  /**
    * Add the [amount] of time to the timeListening for the current [libraryItemId] session
    * @param libraryItemId the id of the session to update
    * @param amount the amount of time to add to the cumulative listening time
@@ -55,7 +63,15 @@ interface SessionsRepository {
   )
 
   /**
-   * Stop the current active session, if one exists
+   * Stop the current active session, if one exists, and mark it to be deleted.
+   * After the stopped session is synchronized to the server, it will be removed.
+   *
+   * If a new session for the same libraryItemId is started matching this session,
+   * then a new one will replace it, using the mediaProgress to configure its active time
+   * and the stopped session will NOT be synced to the server.
+   *
+   * TODO: We should think about de-coupling the active/session persistence with session synchronization.
+   *
    * @param libraryItemId the id of the session to stop
    */
   suspend fun stopSession(

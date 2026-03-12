@@ -9,6 +9,7 @@ import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -27,12 +28,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -47,6 +50,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,12 +80,19 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.asDate
+import app.campfire.core.extensions.asDateTime
+import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.fluentIf
+import app.campfire.core.extensions.readableFormat
+import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -93,6 +104,7 @@ import app.campfire.sessions.ui.TranslationThreshold
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.expanded.composables.ActionRow
+import app.campfire.sessions.ui.expanded.composables.AvailableSyncButton
 import app.campfire.sessions.ui.expanded.composables.ClearQueueButton
 import app.campfire.sessions.ui.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.expanded.composables.PlaybackActions
@@ -157,6 +169,7 @@ internal fun ExpandedPlaybackBar(
   onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
+  onSync: (Duration) -> Unit,
   sharedTransitionScope: SharedTransitionScope,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
@@ -190,6 +203,7 @@ internal fun ExpandedPlaybackBar(
       onAudioTrackSelected = onAudioTrackSelected,
       onBookmarkSelected = onBookmarkSelected,
       onClose = onClose,
+      onSync = onSync,
       sharedTransitionScope = sharedTransitionScope,
       animatedVisibilityScope = animatedVisibilityScope,
     )
@@ -229,6 +243,7 @@ internal fun ExpandedPlaybackBar(
   onBookmarkSelected: (Bookmark) -> Unit,
 
   onClose: () -> Unit,
+  onSync: (Duration) -> Unit,
   sharedTransitionScope: SharedTransitionScope,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
@@ -392,6 +407,7 @@ internal fun ExpandedPlaybackBar(
             currentMetadata = currentMetadata,
             runningTimer = runningTimer,
             session = session,
+            mediaProgress = viewState.mediaProgress,
             itemValidation = viewState.validation,
             onPlayPauseClick = onPlayPauseClick,
             onRewindClick = onRewindClick,
@@ -405,6 +421,12 @@ internal fun ExpandedPlaybackBar(
             onAudioTrackSelected = onAudioTrackSelected,
             onBookmarkSelected = onBookmarkSelected,
             onClose = onClose,
+            onSync = { newTime ->
+              viewState.eventSink(ExpandedPlaybackUiEvent.Sync(session.libraryItem))
+              // This will update the audio player from [SessionHostLayout]. This
+              // should be refactored later to avoid this disconnected logic
+              onSync(newTime)
+            },
             windowSizeClass = windowSizeClass,
             animatedVisibilityScope = animatedVisibilityScope,
             modifier = Modifier.fillMaxSize(),
@@ -497,6 +519,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   runningTimer: RunningTimer?,
 
   session: Session,
+  mediaProgress: MediaProgress?,
   itemValidation: LibraryItemValidation,
   onPlayPauseClick: () -> Unit,
   onRewindClick: () -> Unit,
@@ -510,6 +533,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   onAudioTrackSelected: (AudioTrack) -> Unit,
   onBookmarkSelected: (Bookmark) -> Unit,
   onClose: () -> Unit,
+  onSync: (Duration) -> Unit,
 
   windowSizeClass: WindowSizeClass,
   animatedVisibilityScope: AnimatedVisibilityScope,
@@ -587,6 +611,36 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             modifier = Modifier
               .align(Alignment.CenterHorizontally)
               .padding(horizontal = 64.dp),
+          )
+        }
+      }
+
+      bark("SYNC") {
+        """
+          |ExpandedPlaybackBar-Progress(
+          |  sessionUpdatedAt         = ${session.lastPlayedAt?.epochMilliseconds},
+          |  mediaProgressUpdatedAt   = ${mediaProgress?.lastUpdate},
+          |  sessionCurrentTime       = ${session.currentTime},
+          |  mediaProgressCurrentTime = ${mediaProgress?.currentTime?.seconds},
+          |  currentTime              = ${currentTime},
+          |)
+        """.trimMargin()
+      }
+
+      if (mediaProgress != null) {
+        if (
+          (session.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress.lastUpdate &&
+          session.currentTime.inWholeSeconds != mediaProgress.currentTime.seconds.inWholeSeconds
+        ) {
+          AvailableSyncButton(
+            currentTime = session.currentTime,
+            mediaProgress = mediaProgress,
+            onClick = {
+              onSync(mediaProgress.currentTime.seconds)
+            },
+            modifier = Modifier
+              .align(Alignment.CenterHorizontally)
+              .padding(vertical = 8.dp),
           )
         }
       }
