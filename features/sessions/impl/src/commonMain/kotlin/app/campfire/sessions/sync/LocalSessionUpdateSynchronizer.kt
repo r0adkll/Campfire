@@ -6,7 +6,6 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime

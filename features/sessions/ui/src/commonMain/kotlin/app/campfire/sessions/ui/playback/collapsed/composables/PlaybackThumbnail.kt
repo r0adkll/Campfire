@@ -27,13 +27,12 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CloudSync
-import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.sessions.ui.composables.Thumbnail
 import app.campfire.sessions.ui.playback.AvailableSync
+import app.campfire.sessions.ui.playback.SharedImage
 import app.campfire.sessions.ui.playback.collapsed.ActionState.Dispose
 import app.campfire.sessions.ui.playback.collapsed.PlaybackBarDragState
-import app.campfire.sessions.ui.playback.SharedImage
 
 @Composable
 internal fun SharedTransitionScope.PlaybackThumbnail(
@@ -73,7 +72,7 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
       visible = dragState.actionState == Dispose,
       imageVector = Icons.Rounded.DeleteSweep,
       containerColor = ErrorIconScrim,
-      contentColor = MaterialTheme.colorScheme.onError
+      contentColor = MaterialTheme.colorScheme.onError,
     )
 
     // AvailableSync

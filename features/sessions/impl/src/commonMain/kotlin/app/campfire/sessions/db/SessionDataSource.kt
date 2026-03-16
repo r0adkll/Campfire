@@ -7,7 +7,6 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
-import kotlinx.datetime.LocalDateTime
 
 interface SessionDataSource {
 

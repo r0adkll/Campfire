@@ -68,7 +68,7 @@ class StoreMediaProgressRepository(
 
   override suspend fun getProgress(
     libraryItemId: LibraryItemId,
-    fresh: Boolean
+    fresh: Boolean,
   ): MediaProgress? {
     val userId = userSession.userId ?: return null
     val operation = Operation.Query.One(userId, libraryItemId)

@@ -2,7 +2,6 @@ package app.campfire.sessions.ui
 
 import androidx.compose.ui.unit.dp
 
-
 internal const val FlingThreshold = 4000f
 internal const val TranslationThreshold = 0.75f
 

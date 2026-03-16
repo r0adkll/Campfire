@@ -51,7 +51,6 @@ private fun rememberCampfirePlaybackBarComponent(): State<CampfirePlaybackBarCom
   }.collectAsState(ComponentHolder.component<CampfirePlaybackBarComponent>())
 }
 
-
 @Composable
 fun CampfirePlaybackBar(
   enabled: Boolean,
@@ -119,7 +118,7 @@ private fun CampfirePlaybackBar(
         when {
           (initialState == Hidden && targetState == Collapsed) ||
             (initialState == Collapsed && targetState == Hidden)
-            -> slideInVertically { it } togetherWith slideOutVertically { it }
+          -> slideInVertically { it } togetherWith slideOutVertically { it }
 
           else -> scaleIn() togetherWith scaleOut()
         }

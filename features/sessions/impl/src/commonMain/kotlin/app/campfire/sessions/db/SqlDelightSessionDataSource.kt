@@ -7,13 +7,11 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
-import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
-import app.campfire.core.model.preview.mediaProgress
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
@@ -37,7 +35,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.LocalDateTime
 import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
@@ -118,7 +115,7 @@ class SqlDelightSessionDataSource(
 
     // If an existing session has been updated withing allowed time interval,
     // just re-use the session
-    if (existingSession != null && !existingSession.isDeleted && !forceNew ) {
+    if (existingSession != null && !existingSession.isDeleted && !forceNew) {
       val now = fatherTime.now()
       val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
       if (elapsed <= devSettings.sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
@@ -166,7 +163,6 @@ class SqlDelightSessionDataSource(
       existingSession?.lastPlayedAt
         ?: existingSession?.updatedAt
     }
-
 
     // If there is no existing, or its too old. Create a new session.
     ibark { "Creating new session for library item [lastPlayed=$lastPlayedAt]" }

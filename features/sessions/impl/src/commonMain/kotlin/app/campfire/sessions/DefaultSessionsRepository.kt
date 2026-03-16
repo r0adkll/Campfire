@@ -3,7 +3,6 @@ package app.campfire.sessions
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
@@ -14,8 +13,6 @@ import app.campfire.sessions.db.SessionDataSource
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import me.tatarka.inject.annotations.Inject
 

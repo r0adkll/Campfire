@@ -1,6 +1,5 @@
 package app.campfire.sessions.test
 
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
@@ -46,7 +45,7 @@ class FakeSessionsRepository : SessionsRepository {
   }
 
   override suspend fun updateLastPlayed(
-    libraryItemId: LibraryItemId
+    libraryItemId: LibraryItemId,
   ) {
     invocations += Invocation.UpdateLastPlayed(libraryItemId)
   }

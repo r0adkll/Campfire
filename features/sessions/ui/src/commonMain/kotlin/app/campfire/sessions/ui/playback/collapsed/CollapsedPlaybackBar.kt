@@ -10,7 +10,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.draggable2D
@@ -50,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -58,7 +56,6 @@ import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -66,11 +63,9 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
-import androidx.compose.ui.zIndex
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
-import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Sync
@@ -250,7 +245,7 @@ private fun CollapsedPlaybackBarContent(
           modifier = Modifier.basicMarquee(),
         )
 
-        val subtitle = when  {
+        val subtitle = when {
           dragState.actionState == Dispose -> stringResource(Res.string.clear_session_subtitle)
           availableSync != null -> "Update to ${availableSync.targetTime.readoutFormat()}"
           else -> stringResource(Res.string.time_remaining, timeRemaining)
@@ -332,7 +327,6 @@ private fun CollapsedPlaybackBarContent(
     )
   }
 }
-
 
 private val VerticalOffsetFactor = 24.dp
 private val HorizontalOffsetFactor = 8.dp

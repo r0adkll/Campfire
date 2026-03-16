@@ -119,7 +119,7 @@ class PlaybackPresenter(
           playerSessionId != currentSession.id ||
           playerState == AudioPlayer.State.Disabled
         ) {
-          dbark { "<~~ Player not initialized [${playerSessionId}, $playerState]" }
+          dbark { "<~~ Player not initialized [$playerSessionId, $playerState]" }
 
           // Since we want to auto-sync listening session progress let's make sure to refresh the current
           // sessions libraryItem media progress, if possible.
@@ -144,7 +144,7 @@ class PlaybackPresenter(
             playImmediately = false,
           )
         } else {
-          dbark { "<!-- Player already initialized [${playerSessionId}, $playerState]" }
+          dbark { "<!-- Player already initialized [$playerSessionId, $playerState]" }
         }
       }
     }
