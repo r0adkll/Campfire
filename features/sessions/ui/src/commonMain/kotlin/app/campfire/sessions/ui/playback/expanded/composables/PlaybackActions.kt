@@ -1,4 +1,4 @@
-package app.campfire.sessions.ui.expanded.composables
+package app.campfire.sessions.ui.playback.expanded.composables
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.expandIn

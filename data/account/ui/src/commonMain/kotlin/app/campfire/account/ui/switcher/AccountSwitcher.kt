@@ -47,8 +47,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
-import app.campfire.common.compose.icons.filled.Library
-import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -65,7 +63,7 @@ import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface AccountSwitcherComponent {
-  val presenterFactory: AccountSwitcherPresenterFactory
+  val accountSwitcherPresenterFactory: AccountSwitcherPresenterFactory
 }
 
 @Composable
@@ -74,7 +72,7 @@ fun AccountSwitcher(
   modifier: Modifier = Modifier,
   component: AccountSwitcherComponent = rememberComponent(),
 ) {
-  val presenter = remember(component) { component.presenterFactory() }
+  val presenter = remember(component) { component.accountSwitcherPresenterFactory() }
   val state = presenter.present()
   AccountSwitcher(
     state = state,

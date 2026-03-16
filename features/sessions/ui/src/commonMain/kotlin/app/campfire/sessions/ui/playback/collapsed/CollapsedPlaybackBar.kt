@@ -1,21 +1,16 @@
-package app.campfire.sessions.ui
+package app.campfire.sessions.ui.playback.collapsed
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseOutCubic
-import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,10 +28,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Snooze
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,16 +63,21 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.audioplayer.AudioPlayer
-import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
-import app.campfire.sessions.ui.ActionState.Dispose
-import app.campfire.sessions.ui.ActionState.None
-import app.campfire.sessions.ui.ActionState.Open
 import app.campfire.sessions.ui.composables.RewindIcon
-import app.campfire.sessions.ui.composables.Thumbnail
+import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
+import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
+import app.campfire.sessions.ui.playback.PlayerUiEvent
+import app.campfire.sessions.ui.playback.PlayerUiState
+import app.campfire.sessions.ui.playback.SharedBounds
+import app.campfire.sessions.ui.playback.collapsed.ActionState.Dispose
+import app.campfire.sessions.ui.playback.collapsed.ActionState.None
+import app.campfire.sessions.ui.playback.collapsed.ActionState.Open
+import app.campfire.sessions.ui.playback.collapsed.composables.PlaybackThumbnail
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.clear_session_subtitle
 import campfire.features.sessions.ui.generated.resources.clear_session_title
@@ -87,28 +85,25 @@ import campfire.features.sessions.ui.generated.resources.time_remaining
 import kotlin.math.abs
 import org.jetbrains.compose.resources.stringResource
 
+internal val BaseShadowElevation = 2.dp
+internal val ShadowElevation = 4.dp
+internal val TonalElevation = 2.dp
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-internal fun CollapsedPlaybackBar(
-  containerColor: Color,
-  contentColor: Color,
-  session: Session,
-  state: AudioPlayer.State,
-  progress: () -> Float,
-  currentMetadata: Metadata,
-  runningTimer: RunningTimer?,
+internal fun <T> T.CollapsedPlaybackBar(
+  session: Session?,
+  playerState: PlayerUiState,
   onClick: () -> Unit,
-  onPlayPauseClick: () -> Unit,
-  onRewindClick: () -> Unit,
-  onClearSession: () -> Unit,
-  sharedTransitionScope: SharedTransitionScope,
-  animatedVisibilityScope: AnimatedVisibilityScope,
+  onDispose: () -> Unit,
   modifier: Modifier = Modifier,
-) = with(sharedTransitionScope) {
+  containerColor: Color = DefaultNonThemedSheetColor,
+  contentColor: Color = DefaultNonThemedContentColor,
+) where T : AnimatedVisibilityScope, T : SharedTransitionScope {
   val dragState = remember {
     PlaybackBarDragState(
       onOpen = onClick,
-      onDispose = onClearSession,
+      onDispose = onDispose,
     )
   }
 
@@ -120,7 +115,7 @@ internal fun CollapsedPlaybackBar(
       Dispose -> MaterialTheme.colorScheme.errorContainer
       Open,
       None,
-      -> containerColor
+        -> containerColor
     },
   )
 
@@ -129,7 +124,7 @@ internal fun CollapsedPlaybackBar(
       Dispose -> MaterialTheme.colorScheme.onErrorContainer
       Open,
       None,
-      -> contentColor
+        -> contentColor
     },
   )
 
@@ -139,11 +134,12 @@ internal fun CollapsedPlaybackBar(
     shape = RoundedCornerShape(12.dp),
     shadowElevation = shadowElevation,
     tonalElevation = tonalElevation,
+    onClick = onClick,
     modifier = modifier
       .wrapContentWidth()
       .sharedBounds(
         rememberSharedContentState(SharedBounds),
-        animatedVisibilityScope = animatedVisibilityScope,
+        animatedVisibilityScope = this@CollapsedPlaybackBar,
       )
       .draggablePlaybackBar(dragState),
     border = when (dragState.actionState) {
@@ -152,25 +148,30 @@ internal fun CollapsedPlaybackBar(
       Dispose -> BorderStroke(2.dp, MaterialTheme.colorScheme.error)
     },
   ) {
-    val title = currentMetadata.title ?: session.title
-    val thumbnailUrl = currentMetadata.artworkUri ?: session.libraryItem.media.coverImageUrl
-    val thumbnailContentDescription = session.libraryItem.media.metadata.title
-    val timeRemaining = session.timeRemaining.readoutFormat()
+    val title = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER
+    val thumbnailUrl = playerState.metadata.artworkUri ?: session?.libraryItem?.media?.coverImageUrl
+    val thumbnailContentDescription = session?.libraryItem?.media?.metadata?.title
+    val timeRemaining = session?.timeRemaining?.readoutFormat() ?: "--"
 
     CollapsedPlaybackBarContent(
       dragState = dragState,
       title = title,
       thumbnailUrl = thumbnailUrl,
       thumbnailContentDescription = thumbnailContentDescription,
-      state = state,
-      progress = progress,
+      state = playerState.state,
+      progress = {
+        playerState.time progressOver playerState.duration
+      },
       timeRemaining = timeRemaining,
-      runningTimer = runningTimer,
-      onClick = onClick,
-      onPlayPauseClick = onPlayPauseClick,
-      onRewindClick = onRewindClick,
-      sharedTransitionScope = sharedTransitionScope,
-      animatedVisibilityScope = animatedVisibilityScope,
+      runningTimer = playerState.timer,
+      onPlayPauseClick = {
+        playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+      },
+      onRewindClick = {
+        playerState.eventSink(PlayerUiEvent.RewindClick)
+      },
+      sharedTransitionScope = this,
+      animatedVisibilityScope = this@CollapsedPlaybackBar,
     )
   }
 }
@@ -180,13 +181,12 @@ internal fun CollapsedPlaybackBar(
 private fun CollapsedPlaybackBarContent(
   dragState: PlaybackBarDragState,
   title: String,
-  thumbnailUrl: String,
+  thumbnailUrl: String?,
   thumbnailContentDescription: String?,
   state: AudioPlayer.State,
   progress: () -> Float,
   timeRemaining: String,
   runningTimer: RunningTimer?,
-  onClick: () -> Unit,
   onPlayPauseClick: () -> Unit,
   onRewindClick: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -195,9 +195,6 @@ private fun CollapsedPlaybackBarContent(
 ) = with(sharedTransitionScope) {
   Box(
     modifier = modifier
-      .clickable(
-        onClick = onClick,
-      )
       .fillMaxWidth()
       .padding(dragState.contentPadding),
   ) {
@@ -205,82 +202,13 @@ private fun CollapsedPlaybackBarContent(
       verticalAlignment = Alignment.CenterVertically,
       modifier = Modifier.fillMaxWidth(),
     ) {
-      Box(
-        modifier = Modifier.padding(4.dp),
-        contentAlignment = Alignment.Center,
-      ) {
-        Thumbnail(
-          imageUrl = thumbnailUrl,
-          contentDescription = thumbnailContentDescription,
-          modifier = Modifier
-            .sharedElement(
-              rememberSharedContentState(SharedImage),
-              animatedVisibilityScope = animatedVisibilityScope,
-            ),
-        )
-
-        // Sleep / Snooze Icon
-        androidx.compose.animation.AnimatedVisibility(
-          visible = runningTimer != null && dragState.actionState != Dispose,
-          enter = fadeIn(),
-          exit = fadeOut(),
-        ) {
-          val cornerRadius by transition.animateDp {
-            if (it == EnterExitState.Visible) 8.dp else 28.dp
-          }
-
-          val size by transition.animateDp {
-            if (it == EnterExitState.Visible) 56.dp else 0.dp
-          }
-
-          Box(
-            modifier = Modifier
-              .background(
-                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.4f),
-                shape = RoundedCornerShape(cornerRadius),
-              )
-              .size(size),
-            contentAlignment = Alignment.Center,
-          ) {
-            Icon(
-              Icons.Rounded.Snooze,
-              contentDescription = null,
-              tint = Color.White,
-            )
-          }
-        }
-
-        // Delete/Dispose Icon
-        androidx.compose.animation.AnimatedVisibility(
-          visible = dragState.actionState == Dispose,
-          enter = fadeIn(),
-          exit = fadeOut(),
-        ) {
-          val cornerRadius by transition.animateDp {
-            if (it == EnterExitState.Visible) 8.dp else 28.dp
-          }
-
-          val size by transition.animateDp {
-            if (it == EnterExitState.Visible) 56.dp else 0.dp
-          }
-
-          Box(
-            modifier = Modifier
-              .background(
-                color = MaterialTheme.colorScheme.error.copy(0.6f),
-                shape = RoundedCornerShape(cornerRadius),
-              )
-              .size(size),
-            contentAlignment = Alignment.Center,
-          ) {
-            Icon(
-              Icons.Rounded.DeleteSweep,
-              contentDescription = null,
-              tint = Color.White,
-            )
-          }
-        }
-      }
+      PlaybackThumbnail(
+        thumbnailUrl = thumbnailUrl,
+        thumbnailContentDescription = thumbnailContentDescription,
+        animatedVisibilityScope = animatedVisibilityScope,
+        runningTimer = runningTimer,
+        dragState = dragState,
+      )
 
       Spacer(Modifier.width(16.dp))
 
@@ -315,7 +243,7 @@ private fun CollapsedPlaybackBarContent(
 
       Spacer(Modifier.width(16.dp))
 
-      androidx.compose.animation.AnimatedVisibility(
+      AnimatedVisibility(
         visible = dragState.actionState != Dispose,
       ) {
         IconButton(
@@ -325,7 +253,7 @@ private fun CollapsedPlaybackBarContent(
         }
       }
 
-      androidx.compose.animation.AnimatedVisibility(
+      AnimatedVisibility(
         visible = dragState.actionState != Dispose,
       ) {
         Box {
@@ -369,6 +297,8 @@ private fun CollapsedPlaybackBarContent(
     )
   }
 }
+
+
 
 private val VerticalOffsetFactor = 24.dp
 private val HorizontalOffsetFactor = 8.dp

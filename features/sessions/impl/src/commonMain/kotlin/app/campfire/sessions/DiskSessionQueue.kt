@@ -7,6 +7,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
+import app.campfire.core.session.userId
 import app.campfire.data.SessionQueue as DbSessionQueue
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
@@ -19,6 +20,7 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -180,6 +182,7 @@ class DiskSessionQueue(
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeAll(): Flow<List<LibraryItem>> {
+    if (userSession.userId == null) return emptyFlow()
     return db.sessionQueueQueries
       .selectForUser(userSession.requiredUserId, ::mapToLibraryItemWithProgress)
       .asFlow()

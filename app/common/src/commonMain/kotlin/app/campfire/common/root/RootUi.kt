@@ -50,8 +50,8 @@ import app.campfire.common.screens.LoginScreen
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
-import app.campfire.sessions.ui.PlaybackBar
 import app.campfire.sessions.ui.PlaybackBottomBar
+import app.campfire.sessions.ui.playback.CampfirePlaybackBar
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.bar.CampfireNavigationBar
 import app.campfire.ui.navigation.bar.LocalNavigationBarState
@@ -268,7 +268,7 @@ internal fun RootUi(
             .calculateBottomPadding().toPx()
         }
 
-        PlaybackBar(
+        CampfirePlaybackBar(
           enabled = currentPresentation?.hidePlaybackBar != true,
           expanded = playbackBarExpanded,
           onExpansionChange = {
@@ -276,8 +276,6 @@ internal fun RootUi(
             playbackBarExpanded = it
           },
           navigator = homeNavigator,
-          themeManager = themeManager,
-          themeSettings = themeSettings,
           offset = {
             if (!windowSizeClass.isSupportingPaneEnabled) {
               val dy = navigationBarState.playbackBarOffset().roundToInt()

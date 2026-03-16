@@ -20,7 +20,6 @@ data class MediaProgress(
   val startedAt: Long,
   val finishedAt: Long? = null,
 ) {
-
   val actualProgress: Float
     get() = if (isFinished) {
       1f

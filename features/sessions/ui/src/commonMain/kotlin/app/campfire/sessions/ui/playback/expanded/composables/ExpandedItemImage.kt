@@ -1,4 +1,4 @@
-package app.campfire.sessions.ui.expanded.composables
+package app.campfire.sessions.ui.playback.expanded.composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -31,7 +31,7 @@ import app.campfire.sessions.ui.composables.RunningTimerText
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 internal fun SharedTransitionScope.ExpandedItemImage(
-  session: Session,
+  session: Session?,
   currentMetadata: Metadata,
   runningTimer: RunningTimer?,
   animatedVisibilityScope: AnimatedVisibilityScope,
@@ -43,10 +43,10 @@ internal fun SharedTransitionScope.ExpandedItemImage(
     modifier = modifier,
   ) {
     val mediaUrl = currentMetadata.artworkUri
-      ?: session.libraryItem.media.coverImageUrl
+      ?: session?.libraryItem?.media?.coverImageUrl
     CoverImage(
       imageUrl = mediaUrl,
-      contentDescription = session.libraryItem.media.metadata.title,
+      contentDescription = session?.libraryItem?.media?.metadata?.title,
       size = size,
       modifier = Modifier.sharedElement(
         rememberSharedContentState(SharedImage),

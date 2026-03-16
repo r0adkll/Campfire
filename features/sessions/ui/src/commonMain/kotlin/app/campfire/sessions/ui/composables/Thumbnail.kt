@@ -15,7 +15,7 @@ import coil3.compose.AsyncImage
 
 @Composable
 internal fun Thumbnail(
-  imageUrl: String,
+  imageUrl: String?,
   contentDescription: String?,
   modifier: Modifier = Modifier,
   size: Dp = ThumbnailSize,

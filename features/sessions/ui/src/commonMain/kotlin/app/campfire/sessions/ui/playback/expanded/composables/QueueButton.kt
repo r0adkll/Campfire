@@ -1,4 +1,4 @@
-package app.campfire.sessions.ui.expanded.composables
+package app.campfire.sessions.ui.playback.expanded.composables
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
