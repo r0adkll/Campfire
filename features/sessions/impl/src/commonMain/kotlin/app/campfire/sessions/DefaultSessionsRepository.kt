@@ -43,7 +43,6 @@ class DefaultSessionsRepository(
   }
 
   override suspend fun createSession(libraryItemId: LibraryItemId): Session {
-    val startedAt = fatherTime.now()
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     val progress = mediaProgressRepository.getProgress(libraryItemId)
     val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
@@ -55,16 +54,7 @@ class DefaultSessionsRepository(
       } else {
         PlayMethod.DirectPlay
       },
-      mediaPlayer = "campfire",
-      duration = libraryItem.media.durationInMillis.milliseconds,
-      currentTime = if (progress?.isFinished == true) {
-        // Reset to beginning for finished audiobooks so playback can restart
-        0.seconds
-      } else {
-        progress?.currentTime?.seconds ?: 0.seconds
-      },
-      startedAt = startedAt,
-      forceNew = progress?.isFinished == true,
+      progress = progress,
     )
   }
 

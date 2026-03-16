@@ -1,5 +1,8 @@
 package app.campfire.core.model
 
+import app.campfire.core.extensions.seconds
+import kotlin.time.Duration
+
 typealias MediaProgressId = String
 
 data class MediaProgress(
@@ -20,6 +23,13 @@ data class MediaProgress(
   val startedAt: Long,
   val finishedAt: Long? = null,
 ) {
+  /**
+   * Get the [currentTime] in [Duration] units, accounting for [isFinished],
+   * where if true, it returns 0 duration.
+   */
+  val actualTime: Duration
+    get() = if (isFinished) Duration.ZERO else currentTime.seconds
+
   val actualProgress: Float
     get() = if (isFinished) {
       1f

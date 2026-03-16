@@ -9,6 +9,8 @@ import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TimeJumpSetting
 import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_title
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_subtitle
@@ -81,6 +83,15 @@ internal fun PlaybackPane(
       },
       headlineContent = { Text(stringResource(Res.string.setting_playback_remote_skip_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.autoSyncEnabled,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.AutoSync(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_auto_sync_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_auto_sync_subtitle)) },
     )
   }
 }

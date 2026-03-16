@@ -1,6 +1,7 @@
 package app.campfire.sessions.db
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
@@ -21,11 +22,7 @@ interface SessionDataSource {
   suspend fun createOrStartSession(
     libraryItemId: LibraryItemId,
     playMethod: PlayMethod,
-    mediaPlayer: String,
-    duration: Duration,
-    currentTime: Duration,
-    startedAt: LocalDateTime,
-    forceNew: Boolean = false,
+    progress: MediaProgress?,
   ): Session
 
   suspend fun updateCurrentTime(

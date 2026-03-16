@@ -45,6 +45,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSync
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
@@ -124,6 +125,7 @@ class SettingsPresenter(
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
+    val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -191,6 +193,7 @@ class SettingsPresenter(
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
+        autoSyncEnabled = autoSyncEnabled,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -258,6 +261,7 @@ class SettingsPresenter(
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
+          is AutoSync -> playbackSettings.autoSyncEnabled = event.enabled
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

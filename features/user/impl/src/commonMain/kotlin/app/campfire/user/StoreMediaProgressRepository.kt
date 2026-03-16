@@ -35,6 +35,7 @@ import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreReadRequest
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 @OptIn(ExperimentalCoroutinesApi::class, ExperimentalStoreApi::class)
@@ -65,10 +66,17 @@ class StoreMediaProgressRepository(
       .map { it.requireSingle() }
   }
 
-  override suspend fun getProgress(libraryItemId: LibraryItemId): MediaProgress? {
+  override suspend fun getProgress(
+    libraryItemId: LibraryItemId,
+    fresh: Boolean
+  ): MediaProgress? {
     val userId = userSession.userId ?: return null
     val operation = Operation.Query.One(userId, libraryItemId)
-    return store.get(operation).requireSingle()
+    return if (fresh) {
+      store.fresh(operation).requireSingle()
+    } else {
+      store.get(operation).requireSingle()
+    }
   }
 
   override fun observeAllProgress(): Flow<List<MediaProgress>> {

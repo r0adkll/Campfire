@@ -5,35 +5,31 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.Modifier
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.core.extensions.asDateTime
 import app.campfire.core.extensions.epochMilliseconds
+import app.campfire.core.extensions.readableFormat
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
-import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.sessions.ui.playback.expanded.composables.SyncContent
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
-import com.slack.circuit.runtime.presenter.Presenter
-import kotlin.math.exp
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTimedValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -41,8 +37,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
 
 typealias PlaybackPresenterFactory = () -> PlaybackPresenter
@@ -124,6 +120,22 @@ class PlaybackPresenter(
           playerState == AudioPlayer.State.Disabled
         ) {
           dbark { "<~~ Player not initialized [${playerSessionId}, $playerState]" }
+
+          // Since we want to auto-sync listening session progress let's make sure to refresh the current
+          // sessions libraryItem media progress, if possible.
+          dbark { "~~> Refreshing media progress…" }
+          val (progress, duration) = measureTimedValue {
+            // Since this is a network operation we want to timebox refreshing the current progress
+            // So we don't create an awkward delay when initialing the playback session for the UI
+            withTimeoutOrNull(1.seconds) {
+              mediaProgressRepository.getProgress(currentSession.libraryItem.id, fresh = true)
+            }
+          }
+          dbark {
+            "<~~ Refreshed media progress in $duration [${progress?.actualTime} @ " +
+              "${progress?.lastUpdate?.asDateTime()?.readableFormat}]"
+          }
+
           ibark { "--> Starting playback controller initialization" }
           // Okay either the player is not initialized, or is in its default disabled state (no session)
           // so let's fire-n-forget the init, without starting playback
@@ -217,6 +229,7 @@ class PlaybackPresenter(
             player?.playPause()
           }
         }
+
         PlayerUiEvent.NextClick -> player?.skipToNext()
         PlayerUiEvent.PreviousClick -> player?.skipToPrevious()
         PlayerUiEvent.FastForwardClick -> player?.seekForward()
@@ -253,6 +266,7 @@ class PlaybackPresenter(
           val toIndex = localQueue.indexOfFirst { it.id == event.toItemId }
           localQueue.add(toIndex, localQueue.removeAt(fromIndex))
         }
+
         QueueUiEvent.ReorderStopped -> scope.launch {
           sessionQueue.reorder(localQueue)
         }
@@ -260,12 +274,14 @@ class PlaybackPresenter(
         QueueUiEvent.ClearQueue -> scope.launch {
           sessionQueue.clear()
         }
+
         is QueueUiEvent.QueueItemClick -> {
           playbackController.startSession(event.item.id)
           scope.launch {
             sessionQueue.remove(event.item)
           }
         }
+
         is QueueUiEvent.RemoveQueueItem -> scope.launch {
           sessionQueue.remove(event.item)
         }
