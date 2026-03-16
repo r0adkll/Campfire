@@ -150,7 +150,7 @@ internal fun TargetSyncContent(
       .padding(
         horizontal = 16.dp,
         vertical = 8.dp,
-      )
+      ),
   ) {
     Text(
       text = targetContentTitle,
@@ -187,8 +187,8 @@ fun AvailableSyncButtonChapterPreview() {
         syncTimeInMillis = 1500L,
         targetContent = {
           TargetSyncContent(
-            targetContentTitle = "8 - The very next chapter to play is this title yay, let's GOOOOO. Oh there is more " +
-              "as it is a very long chapter name"
+            targetContentTitle = "8 - The very next chapter to play is this title yay, " +
+              "let's GOOOOO. Oh there is more as it is a very long chapter name",
           )
         },
         onClick = {},
