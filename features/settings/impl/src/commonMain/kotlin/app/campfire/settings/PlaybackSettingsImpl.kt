@@ -83,6 +83,16 @@ class PlaybackSettingsImpl(
       .stateIn(settingsScope, SharingStarted.Lazily, remoteNextPrevSkipsChapters)
   }
 
+  override var autoSyncEnabled: Boolean by booleanSetting(
+    PREF_AUTO_SYNC,
+    DEFAULT_AUTO_SYNC,
+  )
+
+  override fun observeAutoSyncEnabled(): StateFlow<Boolean> {
+    return flowSettings.getBooleanFlow(PREF_AUTO_SYNC, DEFAULT_AUTO_SYNC)
+      .stateIn(settingsScope, SharingStarted.Lazily, autoSyncEnabled)
+  }
+
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 }
 
@@ -92,6 +102,7 @@ internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
 internal const val PREF_TRACK_RESET_THRESHOLD = "pref_playback_track_reset_threshold"
 internal const val PREF_PLAYBACK_RATES = "pref_playback_rates"
 internal const val PREF_PLAYBACK_SPEED = "pref_playback_speed"
+internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 
 internal const val PLAYBACK_RATES_SEPARATOR = "::"
 
@@ -102,3 +113,4 @@ internal val DEFAULT_PLAYBACK_RATES = listOf(1f, 1.1f, 1.25f, 1.5f, 2f)
 internal const val DEFAULT_PLAYBACK_SPEED = 1f
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
 internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = true
+internal const val DEFAULT_AUTO_SYNC = true

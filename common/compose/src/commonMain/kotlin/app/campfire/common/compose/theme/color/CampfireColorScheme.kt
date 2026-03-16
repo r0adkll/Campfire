@@ -27,16 +27,22 @@ import app.campfire.common.compose.theme.CampfireTheme
 class CampfireColorScheme(
   val success: Color,
   val onSuccess: Color,
+  val successContainer: Color,
+  val onSuccessContainer: Color,
 )
 
 fun lightCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
   success = Color(0xFF008000),
   onSuccess = Color(0xFFD3FFC2),
+  successContainer = Color(0xFFC1EFAF),
+  onSuccessContainer = Color(0xFF012200),
 )
 
 fun darkCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
   success = Color(0xFF008000),
   onSuccess = Color(0xFFC5F0C8),
+  successContainer = Color(0xFF719C63),
+  onSuccessContainer = Color(0xFF000000),
 )
 
 val LocalCampfireColorScheme = staticCompositionLocalOf {
@@ -74,6 +80,22 @@ fun CampfireColorSchemePreview(
             CampfireIcons.Rounded.FatCheck,
             contentDescription = null,
             tint = scheme.onSuccess,
+          )
+        }
+
+        Box(
+          modifier = Modifier
+            .size(40.dp)
+            .background(
+              color = scheme.successContainer,
+              shape = CircleShape,
+            ),
+          contentAlignment = Alignment.Center,
+        ) {
+          Icon(
+            CampfireIcons.Rounded.FatCheck,
+            contentDescription = null,
+            tint = scheme.onSuccessContainer,
           )
         }
       }

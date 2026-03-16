@@ -64,7 +64,6 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImageSize
-import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Session
@@ -79,7 +78,6 @@ import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
 import app.campfire.sessions.ui.playback.expanded.composables.QueueButton
-import app.campfire.sessions.ui.playback.expanded.composables.SyncContent
 import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
 import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
 import app.campfire.sessions.ui.playback.PlaybackUiState
@@ -93,6 +91,7 @@ import app.campfire.sessions.ui.playback.SyncUiState
 import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.QueueContent
+import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -427,45 +426,27 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
         }
       }
 
-      if (syncState.mediaProgress != null && session != null) {
-        if (
-          (session.lastPlayedAt?.epochMilliseconds ?: 0L) < syncState.mediaProgress.lastUpdate &&
-          session.currentTime.inWholeSeconds != syncState.mediaProgress.currentTime.seconds.inWholeSeconds
-        ) {
-          val syncTimeInMillis = syncState.mediaProgress.currentTime.seconds.inWholeMilliseconds
-          val content = session.libraryItem.getChapterForDuration(syncTimeInMillis)
-            ?.let { chapter ->
-              if (session.chapter?.id == chapter.id) {
-                SyncContent.None
-              } else {
-                SyncContent.TargetChapter(chapter)
-              }
+      syncState.availableSync?.let { sync ->
+        AvailableSyncButton(
+          currentTime = sync.currentTime,
+          targetTime = sync.targetTime,
+          syncTimeInMillis = sync.syncTimeInMillis,
+          targetContent = {
+            sync.targetChapterTitle?.let { title ->
+              TargetSyncContent(title)
             }
-            ?: session.libraryItem.getAudioTrackForDuration(syncTimeInMillis)?.let {
-              if (session.audioTrack?.index == it.index) {
-                SyncContent.None
-              } else {
-                SyncContent.TargetAudioTrack(it)
-              }
-            }
-            ?: SyncContent.None
-
-          AvailableSyncButton(
-            currentTime = session.currentTime,
-            mediaProgress = syncState.mediaProgress,
-            content = content,
-            onClick = {
-              playerState.eventSink(PlayerUiEvent.Seek.Position(syncState.mediaProgress.currentTime.seconds))
-              syncState.eventSink(SyncUiEvent.Sync(session.libraryItem.id))
-            },
-            modifier = Modifier
-              .align(Alignment.CenterHorizontally)
-              .padding(
-                horizontal = 16.dp,
-                vertical = 8.dp,
-              ),
-          )
-        }
+          },
+          onClick = {
+            playerState.eventSink(PlayerUiEvent.Seek.Position(sync.targetTime))
+            syncState.eventSink(SyncUiEvent.Sync(sync.itemId))
+          },
+          modifier = Modifier
+            .align(Alignment.CenterHorizontally)
+            .padding(
+              horizontal = 16.dp,
+              vertical = 8.dp,
+            ),
+        )
       }
 
       val interactionSource = remember { MutableInteractionSource() }

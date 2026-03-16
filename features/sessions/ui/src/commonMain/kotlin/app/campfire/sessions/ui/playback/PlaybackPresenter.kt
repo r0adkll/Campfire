@@ -3,6 +3,7 @@ package app.campfire.sessions.ui.playback
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
 import app.campfire.core.logging.bark
@@ -24,6 +26,7 @@ import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.sessions.ui.playback.expanded.composables.SyncContent
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
@@ -286,8 +289,37 @@ class PlaybackPresenter(
         }
     }.collectAsState(null)
 
+    val availableSync by remember(session) {
+      derivedStateOf {
+        if (
+          session != null && mediaProgress != null &&
+          (session.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
+          session.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
+        ) {
+//          val syncTimeInMillis = mediaProgress!!.currentTime.seconds.inWholeMilliseconds
+//          val targetContentTitle = session.libraryItem.getChapterForDuration(syncTimeInMillis)
+//            ?.takeIf { it.id != session.chapter?.id }
+//            ?.title
+//            ?: session.libraryItem.getAudioTrackForDuration(syncTimeInMillis)
+//              ?.takeIf { it.index != session.audioTrack?.index }
+//              ?.taggedTitle
+
+          AvailableSync(
+            itemId = session.libraryItem.id,
+            currentTime = session.currentTime,
+            targetTime = mediaProgress!!.currentTime.seconds,
+            syncTimeInMillis = mediaProgress!!.lastUpdate,
+            targetChapterTitle = null,
+          )
+        } else {
+          null
+        }
+      }
+    }
+
     return SyncUiState(
-      mediaProgress = mediaProgress
+      mediaProgress = mediaProgress,
+      availableSync = availableSync,
     ) { event ->
       when (event) {
         is SyncUiEvent.Sync -> {

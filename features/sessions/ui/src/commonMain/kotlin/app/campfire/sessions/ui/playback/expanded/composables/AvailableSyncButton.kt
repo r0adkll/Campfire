@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,14 +33,9 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.extensions.timeAgo
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
-import app.campfire.core.model.MediaProgress
-import app.campfire.core.model.preview.mediaProgress
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -55,10 +49,11 @@ sealed interface SyncContent {
 @Composable
 internal fun AvailableSyncButton(
   currentTime: Duration,
-  mediaProgress: MediaProgress,
+  targetTime: Duration,
+  syncTimeInMillis: Long,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
-  content: SyncContent = SyncContent.None,
+  targetContent: @Composable () -> Unit = {},
 ) {
   val shape = MaterialTheme.shapes.medium
   Surface(
@@ -77,12 +72,13 @@ internal fun AvailableSyncButton(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
+          .width(IntrinsicSize.Max)
           .padding(
             horizontal = 16.dp,
             vertical = 8.dp,
           ),
       ) {
-        val diff = mediaProgress.currentTime.seconds - currentTime
+        val diff = targetTime - currentTime
         val sign = if (diff > Duration.ZERO) "+" else ""
         val diffColor = if (diff > Duration.ZERO) {
           CampfireTheme.colorScheme.success
@@ -92,7 +88,7 @@ internal fun AvailableSyncButton(
 
         Column {
           Text(
-            text = "Sync Available from ${mediaProgress.lastUpdate.timeAgo}",
+            text = "Sync Available from ${syncTimeInMillis.timeAgo}",
             style = MaterialTheme.typography.labelLarge,
             fontStyle = FontStyle.Italic,
             fontWeight = FontWeight.SemiBold,
@@ -100,7 +96,7 @@ internal fun AvailableSyncButton(
           Spacer(Modifier.height(2.dp))
           Text(
             text = buildAnnotatedString {
-              append("Update to ${mediaProgress.currentTime.seconds.readoutFormat()}")
+              append("Update to ${targetTime.readoutFormat()}")
               append("   ")
               withStyle(
                 SpanStyle(
@@ -117,31 +113,22 @@ internal fun AvailableSyncButton(
           )
         }
 
-        Spacer(Modifier.width(IntrinsicSize.Max))
-
         Icon(
           Icons.AutoMirrored.Rounded.ArrowForward,
           contentDescription = null,
-          modifier = Modifier.size(20.dp),
+          modifier = Modifier
+            .size(20.dp),
         )
       }
 
-      when (content) {
-        SyncContent.None -> Unit
-        is SyncContent.TargetAudioTrack -> AudioTrackContent(content.track)
-        is SyncContent.TargetChapter -> ChapterContent(
-          chapter = content.chapter,
-          modifier = Modifier
-            .align(Alignment.CenterHorizontally)
-        )
-      }
+      targetContent()
     }
   }
 }
 
 @Composable
-private fun ChapterContent(
-  chapter: Chapter,
+internal fun TargetSyncContent(
+  targetContentTitle: String,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -166,22 +153,9 @@ private fun ChapterContent(
       )
   ) {
     Text(
-      text = "Chapter: ${chapter.title}",
+      text = targetContentTitle,
       style = MaterialTheme.typography.labelMedium,
       color = MaterialTheme.colorScheme.onPrimaryContainer,
-    )
-  }
-}
-
-@Composable
-private fun AudioTrackContent(
-  track: AudioTrack,
-  modifier: Modifier = Modifier,
-) {
-  Column(modifier) {
-    Text(
-      text = track.taggedTitle,
-      style = MaterialTheme.typography.labelMedium,
     )
   }
 }
@@ -193,13 +167,10 @@ fun AvailableSyncButtonPreview() {
     Surface {
       AvailableSyncButton(
         currentTime = 15.minutes,
-        mediaProgress = mediaProgress(
-          progress = 0.423f,
-          duration = 20.hours,
-        ),
+        targetTime = 8.hours,
+        syncTimeInMillis = 1000,
         onClick = {},
-        modifier = Modifier
-          .padding(16.dp),
+        modifier = Modifier.padding(16.dp),
       )
     }
   }
@@ -212,18 +183,14 @@ fun AvailableSyncButtonChapterPreview() {
     Surface {
       AvailableSyncButton(
         currentTime = 15.minutes,
-        mediaProgress = mediaProgress(
-          progress = 0.423f,
-          duration = 20.hours,
-        ),
-        content = SyncContent.TargetChapter(
-          chapter = Chapter(
-            id = 0,
-            start = 0f,
-            end = 1f,
-            title = "This is the next chapter"
+        targetTime = 4.hours,
+        syncTimeInMillis = 1500L,
+        targetContent = {
+          TargetSyncContent(
+            targetContentTitle = "8 - The very next chapter to play is this title yay, let's GOOOOO. Oh there is more " +
+              "as it is a very long chapter name"
           )
-        ),
+        },
         onClick = {},
         modifier = Modifier
           .padding(16.dp),

@@ -25,7 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.CloudSync
+import app.campfire.common.compose.icons.rounded.Sync
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.sessions.ui.composables.Thumbnail
+import app.campfire.sessions.ui.playback.AvailableSync
 import app.campfire.sessions.ui.playback.collapsed.ActionState.Dispose
 import app.campfire.sessions.ui.playback.collapsed.PlaybackBarDragState
 import app.campfire.sessions.ui.playback.SharedImage
@@ -36,6 +41,7 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
   thumbnailContentDescription: String?,
   animatedVisibilityScope: AnimatedVisibilityScope,
   runningTimer: RunningTimer?,
+  availableSync: AvailableSync?,
   dragState: PlaybackBarDragState,
 ) {
   Box(
@@ -54,14 +60,28 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
 
     // Sleep / Snooze Icon
     AnimatedVisibleIcon(
-      visible = runningTimer != null && dragState.actionState != Dispose,
+      visible = availableSync == null &&
+        runningTimer != null &&
+        dragState.actionState != Dispose,
       imageVector = Icons.Rounded.Snooze,
+      containerColor = NeutralIconScrim,
+      contentColor = Color.White,
     )
 
     // Delete/Dispose Icon
     AnimatedVisibleIcon(
       visible = dragState.actionState == Dispose,
       imageVector = Icons.Rounded.DeleteSweep,
+      containerColor = ErrorIconScrim,
+      contentColor = MaterialTheme.colorScheme.onError
+    )
+
+    // AvailableSync
+    AnimatedVisibleIcon(
+      visible = availableSync != null && dragState.actionState != Dispose,
+      imageVector = CampfireIcons.Rounded.CloudSync,
+      containerColor = SuccessIconScrim,
+      contentColor = CampfireTheme.colorScheme.onSuccess,
     )
   }
 }
@@ -70,6 +90,8 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
 private fun AnimatedVisibleIcon(
   visible: Boolean,
   imageVector: ImageVector,
+  containerColor: Color,
+  contentColor: Color,
   modifier: Modifier = Modifier,
 ) {
   AnimatedVisibility(
@@ -89,7 +111,7 @@ private fun AnimatedVisibleIcon(
     Box(
       modifier = Modifier
         .background(
-          color = MaterialTheme.colorScheme.error.copy(0.6f),
+          color = containerColor,
           shape = RoundedCornerShape(cornerRadius),
         )
         .size(size),
@@ -98,8 +120,17 @@ private fun AnimatedVisibleIcon(
       Icon(
         imageVector,
         contentDescription = null,
-        tint = Color.White,
+        tint = contentColor,
       )
     }
   }
 }
+
+val NeutralIconScrim: Color
+  @Composable get() = MaterialTheme.colorScheme.scrim.copy(0.4f)
+
+val ErrorIconScrim: Color
+  @Composable get() = MaterialTheme.colorScheme.error.copy(0.6f)
+
+val SuccessIconScrim: Color
+  @Composable get() = CampfireTheme.colorScheme.success.copy(0.6f)

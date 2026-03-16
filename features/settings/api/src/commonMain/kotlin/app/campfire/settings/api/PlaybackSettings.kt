@@ -27,4 +27,11 @@ interface PlaybackSettings {
    */
   var remoteNextPrevSkipsChapters: Boolean
   fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean>
+
+  /**
+   * When true, a new session will use the media progress if it is newer than the previous session when resuming playback.
+   * When false, it will continue to use the local session progress
+   */
+  var autoSyncEnabled: Boolean
+  fun observeAutoSyncEnabled(): StateFlow<Boolean>
 }

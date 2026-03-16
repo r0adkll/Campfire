@@ -135,6 +135,7 @@ private fun CampfirePlaybackBar(
         Collapsed -> scope.CollapsedPlaybackBar(
           session = uiState.session,
           playerState = uiState.playerState,
+          syncState = uiState.syncUiState,
           containerColor = sheetContainerColor,
           contentColor = sheetContentColor,
           onClick = { onExpansionChange(!expanded) },

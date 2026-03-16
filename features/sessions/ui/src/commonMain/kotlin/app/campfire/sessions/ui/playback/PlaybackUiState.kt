@@ -16,6 +16,7 @@ import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
 import com.r0adkll.swatchbuckler.compose.Theme
 import kotlin.time.Duration
+import kotlinx.datetime.LocalDateTime
 
 @Immutable
 data class PlaybackUiState(
@@ -48,7 +49,17 @@ data class QueueUiState(
 @Immutable
 data class SyncUiState(
   val mediaProgress: MediaProgress?,
+  val availableSync: AvailableSync?,
   val eventSink: (SyncUiEvent) -> Unit,
+)
+
+@Immutable
+data class AvailableSync(
+  val itemId: LibraryItemId,
+  val currentTime: Duration,
+  val targetTime: Duration,
+  val syncTimeInMillis: Long,
+  val targetChapterTitle: String? = null,
 )
 
 @Immutable
