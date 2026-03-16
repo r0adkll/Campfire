@@ -34,17 +34,9 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.core.model.AudioTrack
-import app.campfire.core.model.Chapter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-
-sealed interface SyncContent {
-  data object None : SyncContent
-  data class TargetChapter(val chapter: Chapter) : SyncContent
-  data class TargetAudioTrack(val track: AudioTrack) : SyncContent
-}
 
 @Composable
 internal fun AvailableSyncButton(
