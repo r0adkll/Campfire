@@ -78,7 +78,7 @@ internal fun AppearancePane(
     )
 
     Header(
-      title = { Text(stringResource(Res.string.header_item_cards)) }
+      title = { Text(stringResource(Res.string.header_item_cards)) },
     )
 
     SwitchSetting(
@@ -87,6 +87,5 @@ internal fun AppearancePane(
       headlineContent = { Text(stringResource(Res.string.setting_item_card_marquee_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_item_card_marquee_subtitle)) },
     )
-
   }
 }

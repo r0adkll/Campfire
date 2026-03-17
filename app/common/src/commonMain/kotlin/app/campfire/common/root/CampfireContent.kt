@@ -110,7 +110,6 @@ fun CampfireContentWithInsets(
           colorScheme = { colorScheme(appTheme) },
           useDarkColors = settings.shouldUseDarkColors(),
         ) {
-
           // Observe here and wire as composition local to avoid N-number of parameter
           // burials to wire all usages of this component
           val itemCardMarqueeEnabled by remember {
