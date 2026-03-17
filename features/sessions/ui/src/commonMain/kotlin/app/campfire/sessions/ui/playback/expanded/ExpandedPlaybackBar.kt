@@ -436,8 +436,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             }
           },
           onClick = {
-            playerState.eventSink(PlayerUiEvent.Seek.Position(sync.targetTime))
-            syncState.eventSink(SyncUiEvent.Sync(sync.itemId))
+            syncState.eventSink(SyncUiEvent.Sync)
           },
           modifier = Modifier
             .align(Alignment.CenterHorizontally)

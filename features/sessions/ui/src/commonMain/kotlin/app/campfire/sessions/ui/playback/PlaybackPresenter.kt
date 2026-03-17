@@ -2,6 +2,7 @@ package app.campfire.sessions.ui.playback
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -31,12 +32,11 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
@@ -62,7 +62,11 @@ class PlaybackPresenter(
     // Check if we should initializer the playback session
     CheckInitializePlayerSession()
 
-    val currentSession by remember {
+    // Don't use the getValue delegate here as the sub-uiState functions rely on
+    // snapshotFlow and other mechanisms that require reading this state's value directly.
+    // Otherwise, these functions that rely on the Compose snapshot/read mechanisms won't
+    // work when reading the session.
+    val currentSession = remember {
       sessionsRepository.observeCurrentSession()
     }.collectAsState(null)
 
@@ -73,7 +77,7 @@ class PlaybackPresenter(
     val itemValidation = observeItemValidation(currentSession)
 
     return PlaybackUiState(
-      session = currentSession,
+      session = currentSession.value,
       playerState = playerState,
       queueState = queueState,
       themeState = themeState,
@@ -82,7 +86,7 @@ class PlaybackPresenter(
     ) { event ->
       when (event) {
         PlaybackUiEvent.ClearSession -> {
-          currentSession?.let { s ->
+          currentSession.value?.let { s ->
             scope.launch {
               playbackController.stopSession(s.libraryItem.id, clearQueue = true)
             }
@@ -90,7 +94,7 @@ class PlaybackPresenter(
         }
 
         PlaybackUiEvent.StartSession -> {
-          currentSession?.let { s ->
+          currentSession.value?.let { s ->
             scope.launch {
               playbackController.startSession(s.libraryItem.id)
             }
@@ -153,7 +157,7 @@ class PlaybackPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   private fun observePlayerState(
-    session: Session?,
+    session: State<Session?>,
   ): PlayerUiState {
     val scope = rememberCoroutineScope()
 
@@ -221,9 +225,10 @@ class PlaybackPresenter(
     ) { event ->
       when (event) {
         PlayerUiEvent.PlayPauseClick -> {
-          if (state == AudioPlayer.State.Disabled && session != null) {
+          val sessionValue = session.value
+          if (state == AudioPlayer.State.Disabled && sessionValue != null) {
             scope.launch {
-              playbackController.startSession(session.libraryItem.id)
+              playbackController.startSession(sessionValue.libraryItem.id)
             }
           } else {
             player?.playPause()
@@ -292,26 +297,31 @@ class PlaybackPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   private fun observeSyncState(
-    session: Session?,
+    session: State<Session?>,
     expanded: Boolean,
   ): SyncUiState {
     val scope = rememberCoroutineScope()
 
     val mediaProgress by remember(expanded) {
-      snapshotFlow { session?.libraryItem?.id }
+      snapshotFlow { session.value?.libraryItem?.id }
         .filterNotNull()
         .flatMapLatest { libraryItemId ->
           mediaProgressRepository.observeProgress(libraryItemId, refresh = true)
+            .onEach {
+              dbark { "<-- Media Progress Updated: ${it?.lastUpdate}" }
+            }
         }
     }.collectAsState(null)
 
-    val availableSync by remember(session) {
+    val availableSync by remember {
       derivedStateOf {
+        val sessionValue = session.value
         if (
-          session != null && mediaProgress != null &&
-          (session.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
-          session.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
+          sessionValue != null && mediaProgress != null &&
+          (sessionValue.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
+          sessionValue.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
         ) {
+          ibark { "Available Sync State [${sessionValue.lastPlayedAt?.epochMilliseconds}] ==> [${mediaProgress?.currentTime?.seconds}]" }
 //          val syncTimeInMillis = mediaProgress!!.currentTime.seconds.inWholeMilliseconds
 //          val targetContentTitle = session.libraryItem.getChapterForDuration(syncTimeInMillis)
 //            ?.takeIf { it.id != session.chapter?.id }
@@ -321,13 +331,14 @@ class PlaybackPresenter(
 //              ?.taggedTitle
 
           AvailableSync(
-            itemId = session.libraryItem.id,
-            currentTime = session.currentTime,
+            itemId = sessionValue.libraryItem.id,
+            currentTime = sessionValue.currentTime,
             targetTime = mediaProgress!!.currentTime.seconds,
             syncTimeInMillis = mediaProgress!!.lastUpdate,
             targetChapterTitle = null,
           )
         } else {
+          wbark { "Sync NOT available [${sessionValue?.lastPlayedAt?.epochMilliseconds}] ==> [${mediaProgress?.lastUpdate}]" }
           null
         }
       }
@@ -338,9 +349,11 @@ class PlaybackPresenter(
       availableSync = availableSync,
     ) { event ->
       when (event) {
-        is SyncUiEvent.Sync -> {
+        SyncUiEvent.Sync -> {
+          if (availableSync == null) return@SyncUiState
           scope.launch {
-            sessionsRepository.updateLastPlayed(event.libraryItemId)
+            sessionsRepository.updateLastPlayed(availableSync!!.itemId)
+            audioPlayerHolder.currentPlayer.value?.seekTo(availableSync!!.targetTime)
           }
         }
       }
@@ -350,23 +363,21 @@ class PlaybackPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   private fun observeThemeState(
-    session: Session?,
+    session: State<Session?>,
   ): ThemeUiState {
     val isDynamicThemingEnabled by remember {
       themeSettings.observeDynamicallyThemePlayback()
     }.collectAsState()
 
-    val theme by remember(session?.libraryItem?.id, isDynamicThemingEnabled) {
-      if (!isDynamicThemingEnabled) {
-        flowOf(null)
-      } else {
-        val itemId = session?.libraryItem?.id
-        if (itemId != null) {
-          themeManager.observeThemeFor(itemId)
-        } else {
-          emptyFlow()
-        }
+    val theme by remember {
+      snapshotFlow {
+        if (isDynamicThemingEnabled) session.value?.libraryItem?.id
+        else null
       }
+        .filterNotNull()
+        .flatMapLatest { libraryItemId ->
+          themeManager.observeThemeFor(libraryItemId)
+        }
     }.collectAsState(null)
 
     return ThemeUiState(
@@ -378,10 +389,10 @@ class PlaybackPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   private fun observeItemValidation(
-    session: Session?,
+    session: State<Session?>,
   ): LibraryItemValidation {
     val itemValidation by remember {
-      snapshotFlow { session?.libraryItem }
+      snapshotFlow { session.value?.libraryItem }
         .filterNotNull()
         .mapLatest { item ->
           libraryItemValidator.validate(item)

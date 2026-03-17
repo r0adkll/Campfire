@@ -165,7 +165,14 @@ class SqlDelightSessionDataSource(
     }
 
     // If there is no existing, or its too old. Create a new session.
-    ibark { "Creating new session for library item [lastPlayed=$lastPlayedAt]" }
+    ibark {
+      """
+        |Creating new session for library item
+        |  => autoSync = $autoSync,
+        |  => lastPlayed = $lastPlayedAt,
+        |  => newTime = $newTime,
+      """.trimMargin()
+    }
     return write {
       val dbSession = DbSession(
         id = Uuid.random(),

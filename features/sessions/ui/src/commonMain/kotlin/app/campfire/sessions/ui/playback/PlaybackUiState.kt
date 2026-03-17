@@ -108,5 +108,5 @@ sealed interface QueueUiEvent {
 
 @Stable
 sealed interface SyncUiEvent {
-  data class Sync(val libraryItemId: LibraryItemId) : SyncUiEvent
+  data object Sync : SyncUiEvent
 }

@@ -174,7 +174,7 @@ internal fun <T> T.CollapsedPlaybackBar(
       runningTimer = playerState.timer,
       availableSync = syncState.availableSync,
       onSync = {
-        syncState.eventSink(SyncUiEvent.Sync(session!!.libraryItem.id))
+        syncState.eventSink(SyncUiEvent.Sync)
       },
       onPlayPauseClick = {
         playerState.eventSink(PlayerUiEvent.PlayPauseClick)

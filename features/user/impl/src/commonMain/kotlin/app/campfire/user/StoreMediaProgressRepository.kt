@@ -72,10 +72,14 @@ class StoreMediaProgressRepository(
   ): MediaProgress? {
     val userId = userSession.userId ?: return null
     val operation = Operation.Query.One(userId, libraryItemId)
-    return if (fresh) {
-      store.fresh(operation).requireSingle()
-    } else {
-      store.get(operation).requireSingle()
+    return try {
+      if (fresh) {
+        store.fresh(operation).requireSingle()
+      } else {
+        store.get(operation).requireSingle()
+      }
+    } catch (_: Exception) {
+      null
     }
   }
 

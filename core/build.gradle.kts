@@ -17,6 +17,7 @@ kotlin {
         api(libs.kotlininject.runtime)
         api(libs.kotlinx.datetime)
         api(libs.kotlinx.immutable)
+        api(libs.stately.concurrent.collections)
         api(libs.uuid)
 
         api(projects.data.analytics.api)

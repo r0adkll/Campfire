@@ -2,6 +2,7 @@ package app.campfire.core.di
 
 import app.campfire.core.di.ComponentHolder.components
 import app.campfire.core.logging.bark
+import co.touchlab.stately.collections.ConcurrentMutableSet
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
@@ -33,7 +34,7 @@ import kotlinx.coroutines.launch
  */
 object ComponentHolder {
 
-  val components = mutableSetOf<Any>()
+  val components = ConcurrentMutableSet<Any>()
   val componentSharedFlow = MutableSharedFlow<Any>(
     replay = 8,
     extraBufferCapacity = 20,

@@ -11,13 +11,19 @@ class FakeMediaProgressRepository : MediaProgressRepository {
   val invocations = mutableListOf<Invocation>()
 
   val progressFlow = MutableStateFlow<MediaProgress?>(null)
-  override fun observeProgress(libraryItemId: LibraryItemId): Flow<MediaProgress?> {
+  override fun observeProgress(
+    libraryItemId: LibraryItemId,
+    refresh: Boolean,
+  ): Flow<MediaProgress?> {
     invocations += Invocation.ObserveProgress(libraryItemId)
     return progressFlow
   }
 
   var progress: MediaProgress? = null
-  override suspend fun getProgress(libraryItemId: LibraryItemId): MediaProgress? {
+  override suspend fun getProgress(
+    libraryItemId: LibraryItemId,
+    fresh: Boolean,
+  ): MediaProgress? {
     invocations += Invocation.GetProgress(libraryItemId)
     return progress
   }
