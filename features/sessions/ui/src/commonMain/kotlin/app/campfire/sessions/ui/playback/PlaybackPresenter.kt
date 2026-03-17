@@ -312,8 +312,11 @@ class PlaybackPresenter(
 
     val mediaProgress by remember(expanded) {
       snapshotFlow {
-        if (syncEnabled) session.value?.libraryItem?.id
-        else null
+        if (syncEnabled) {
+          session.value?.libraryItem?.id
+        } else {
+          null
+        }
       }
         .filterNotNull()
         .flatMapLatest { libraryItemId ->
@@ -332,7 +335,6 @@ class PlaybackPresenter(
           (sessionValue.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
           sessionValue.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
         ) {
-          ibark { "Available Sync State [${sessionValue.lastPlayedAt?.epochMilliseconds}] ==> [${mediaProgress?.currentTime?.seconds}]" }
 //          val syncTimeInMillis = mediaProgress!!.currentTime.seconds.inWholeMilliseconds
 //          val targetContentTitle = session.libraryItem.getChapterForDuration(syncTimeInMillis)
 //            ?.takeIf { it.id != session.chapter?.id }
@@ -349,7 +351,6 @@ class PlaybackPresenter(
             targetChapterTitle = null,
           )
         } else {
-          wbark { "Sync NOT available [${sessionValue?.lastPlayedAt?.epochMilliseconds}] ==> [${mediaProgress?.lastUpdate}]" }
           null
         }
       }
@@ -382,8 +383,11 @@ class PlaybackPresenter(
 
     val theme by remember {
       snapshotFlow {
-        if (isDynamicThemingEnabled) session.value?.libraryItem?.id
-        else null
+        if (isDynamicThemingEnabled) {
+          session.value?.libraryItem?.id
+        } else {
+          null
+        }
       }
         .filterNotNull()
         .flatMapLatest { libraryItemId ->

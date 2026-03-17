@@ -91,7 +91,7 @@ internal fun PlaybackPane(
     )
 
     Header(
-      title = { Text(stringResource(Res.string.header_synchronization)) }
+      title = { Text(stringResource(Res.string.header_synchronization)) },
     )
 
     SwitchSetting(
@@ -104,7 +104,7 @@ internal fun PlaybackPane(
     )
 
     AnimatedVisibility(
-      visible = state.playbackSettings.syncEnabled
+      visible = state.playbackSettings.syncEnabled,
     ) {
       SwitchSetting(
         value = state.playbackSettings.autoSyncEnabled,
