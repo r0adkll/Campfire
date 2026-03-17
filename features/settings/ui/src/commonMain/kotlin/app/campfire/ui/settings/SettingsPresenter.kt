@@ -41,6 +41,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
@@ -117,6 +118,9 @@ class SettingsPresenter(
     val themeMode by remember { settings.observeTheme() }.collectAsState(settings.themeMode)
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
+    val itemCardMarqueeEnabled by remember {
+      settings.observeLibraryItemMarqueeEnabled()
+    }.collectAsState(settings.libraryItemMarqueeEnabled)
 
     // Playback Settings
     val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
@@ -184,6 +188,7 @@ class SettingsPresenter(
         themeMode = themeMode,
         dynamicItemDetailTheming = dynamicItemDetailTheming,
         dynamicPlaybackTheming = dynamicPlaybackTheming,
+        itemCardMarqueeEnabled = itemCardMarqueeEnabled,
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
@@ -248,6 +253,7 @@ class SettingsPresenter(
           is Theme -> settings.themeMode = event.themeMode
           is DynamicItemDetailTheming -> themeSettings.dynamicallyThemeItemDetail = event.enabled
           is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
+          is ItemCardMarqueeEnabled -> settings.libraryItemMarqueeEnabled = event.enabled
           SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> navigator.goTo(ThemePickerScreen)
         }
 

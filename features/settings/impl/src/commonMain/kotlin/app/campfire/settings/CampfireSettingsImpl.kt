@@ -63,6 +63,11 @@ class CampfireSettingsImpl(
     return flowSettings.getEnumFlow(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
   }
 
+  override var libraryItemMarqueeEnabled: Boolean by booleanSetting(KEY_LIBRARY_ITEM_MARQUEE, true)
+  override fun observeLibraryItemMarqueeEnabled(): Flow<Boolean> {
+    return flowSettings.getBooleanFlow(KEY_LIBRARY_ITEM_MARQUEE, true)
+  }
+
   override var librarySortMode: ContentSortMode by enumSetting(KEY_SORT_MODE, ContentSortMode.LibraryItemSortMode)
   override fun observeLibrarySortMode(): Flow<ContentSortMode> {
     return flowSettings.getEnumFlow(KEY_SORT_MODE, ContentSortMode.LibraryItemSortMode)
@@ -127,6 +132,7 @@ internal const val KEY_ANALYTIC_REPORTING = "pref_analytic_reporting"
 internal const val KEY_CURRENT_THEME = "pref_current_theme"
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_LIBRARY_ITEM_DISPLAY_STATE = "pref_library_item_display_state"
+internal const val KEY_LIBRARY_ITEM_MARQUEE = "pref_library_item_marquee"
 internal const val KEY_SORT_MODE = "pref_sort_mode"
 internal const val KEY_SORT_DIRECTION = "pref_sort_direction"
 internal const val KEY_AUTHOR_SORT_MODE = "pref_authors_sort_mode"

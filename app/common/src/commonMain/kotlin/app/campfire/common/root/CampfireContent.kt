@@ -23,6 +23,7 @@ import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
+import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeSettings
@@ -109,9 +110,17 @@ fun CampfireContentWithInsets(
           colorScheme = { colorScheme(appTheme) },
           useDarkColors = settings.shouldUseDarkColors(),
         ) {
+
+          // Observe here and wire as composition local to avoid N-number of parameter
+          // burials to wire all usages of this component
+          val itemCardMarqueeEnabled by remember {
+            settings.observeLibraryItemMarqueeEnabled()
+          }.collectAsState(settings.libraryItemMarqueeEnabled)
+
           CompositionLocalProvider(
             LocalPlaybackSession provides currentSession,
             LocalThemeDispatcher provides themeManagerDispatcher,
+            LocalItemCardMarquee provides itemCardMarqueeEnabled,
           ) {
             RootUi(
               backstack = backStack,

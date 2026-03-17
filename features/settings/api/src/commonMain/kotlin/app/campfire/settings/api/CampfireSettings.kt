@@ -28,6 +28,9 @@ interface CampfireSettings {
   var libraryItemDisplayState: ItemDisplayState
   fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
 
+  var libraryItemMarqueeEnabled: Boolean
+  fun observeLibraryItemMarqueeEnabled(): Flow<Boolean>
+
   var librarySortMode: ContentSortMode
   fun observeLibrarySortMode(): Flow<ContentSortMode>
 

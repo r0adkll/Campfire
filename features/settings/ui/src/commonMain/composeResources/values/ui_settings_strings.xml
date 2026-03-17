@@ -38,6 +38,9 @@
   <string name="setting_dynamic_item_detail_description">Theme the item detail screen based on it's thumbnail image</string>
   <string name="setting_dynamic_playback_title">Playback UI</string>
   <string name="setting_dynamic_playback_description">Theme the player view based on the current item's thumbnail image</string>
+  <string name="header_item_cards">Item cards</string>
+  <string name="setting_item_card_marquee_title">Marquee scrolling</string>
+  <string name="setting_item_card_marquee_subtitle">Allow long title / author text on item cards to scroll while on screen</string>
 
   <!-- Downloads setting strings-->
   <string name="setting_show_download_confirmation_title">Show download confirmation dialog</string>

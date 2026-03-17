@@ -15,11 +15,14 @@ import app.campfire.ui.theming.api.AppThemeImage
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_appearance_dynamic
 import campfire.features.settings.ui.generated.resources.header_appearance_overall
+import campfire.features.settings.ui.generated.resources.header_item_cards
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
 import campfire.features.settings.ui.generated.resources.setting_dynamic_item_detail_description
 import campfire.features.settings.ui.generated.resources.setting_dynamic_item_detail_title
 import campfire.features.settings.ui.generated.resources.setting_dynamic_playback_description
 import campfire.features.settings.ui.generated.resources.setting_dynamic_playback_title
+import campfire.features.settings.ui.generated.resources.setting_item_card_marquee_subtitle
+import campfire.features.settings.ui.generated.resources.setting_item_card_marquee_title
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -73,5 +76,17 @@ internal fun AppearancePane(
       headlineContent = { Text(stringResource(Res.string.setting_dynamic_playback_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_dynamic_playback_description)) },
     )
+
+    Header(
+      title = { Text(stringResource(Res.string.header_item_cards)) }
+    )
+
+    SwitchSetting(
+      value = state.appearanceSettings.itemCardMarqueeEnabled,
+      onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_item_card_marquee_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_item_card_marquee_subtitle)) },
+    )
+
   }
 }

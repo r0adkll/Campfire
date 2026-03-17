@@ -33,6 +33,10 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
   override fun observeLibraryItemDisplayState(): Flow<ItemDisplayState> =
     observeEnum(::libraryItemDisplayState)
 
+  override var libraryItemMarqueeEnabled: Boolean by boolean()
+  override fun observeLibraryItemMarqueeEnabled(): Flow<Boolean> =
+    observeBoolean(::libraryItemMarqueeEnabled)
+
   override var librarySortMode: ContentSortMode by enum()
   override fun observeLibrarySortMode(): Flow<ContentSortMode> =
     observeEnum(::librarySortMode)

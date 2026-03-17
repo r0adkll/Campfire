@@ -18,6 +18,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
+import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
@@ -62,6 +63,7 @@ class SettingsAnalyticUiEventHandler(
       is Theme -> send("theme", Updated, event.themeMode.storageKey)
       is DynamicItemDetailTheming -> send("dynamic_item_detail_theme", Updated, event.enabled.toString())
       is DynamicPlaybackTheming -> send("dynamic_playback_theme", Updated, event.enabled.toString())
+      is ItemCardMarqueeEnabled -> send("item_card_marquee", Updated, event.enabled.toString())
       SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> send("edit_theme", Click)
     }
 

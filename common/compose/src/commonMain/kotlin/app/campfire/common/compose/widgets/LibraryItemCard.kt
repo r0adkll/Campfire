@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -48,6 +49,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIf
@@ -63,6 +65,7 @@ import campfire.common.compose.generated.resources.placeholder_book
 import campfire.common.compose.generated.resources.unknown_author_name
 import campfire.common.compose.generated.resources.unknown_library_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import kotlin.random.Random
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -79,6 +82,8 @@ data class LibraryItemSharedTransitionKey(
   }
 }
 
+val LocalItemCardMarquee = compositionLocalOf { true }
+
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryItemCard(
@@ -90,6 +95,7 @@ fun LibraryItemCard(
   isSelectable: Boolean = false,
   selected: Boolean = false,
   showInformation: Boolean = true,
+  marqueeEnabled: Boolean = LocalItemCardMarquee.current,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   progress: MediaProgress? = item.userMediaProgress,
   shape: Shape = MaterialTheme.shapes.largeIncreased,
@@ -130,6 +136,7 @@ fun LibraryItemCard(
         if (showInformation) {
           LibraryItemCardInformation(
             item = item,
+            marqueeEnabled = marqueeEnabled,
             sharedTransitionKey = sharedTransitionKey,
           )
         }
@@ -261,8 +268,17 @@ private fun LibraryItemCardInformation(
   item: LibraryItem,
   sharedTransitionKey: String,
   modifier: Modifier = Modifier,
+  marqueeEnabled: Boolean = true,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
+
+  val marqueeDelay = remember {
+    Random.nextInt(1_200, 2_000)
+  }
+
+  val marqueeVelocity = remember {
+    LibraryItemMarqueeVelocityRange.random().dp
+  }
 
   Column(
     modifier.padding(
@@ -274,6 +290,7 @@ private fun LibraryItemCardInformation(
       style = MaterialTheme.typography.titleSmall,
       fontStyle = if (item.media.metadata.title == null) FontStyle.Italic else null,
       maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
       modifier = Modifier
         .thenIfNotNull(animationScope) { scope ->
           sharedBounds(
@@ -286,9 +303,12 @@ private fun LibraryItemCardInformation(
             animatedVisibilityScope = scope,
           )
         }
-        .basicMarquee(
-          velocity = LibraryItemMarqueeVelocity,
-        )
+        .thenIf(marqueeEnabled) {
+          basicMarquee(
+            velocity = marqueeVelocity,
+            initialDelayMillis = marqueeDelay,
+          )
+        }
         .padding(horizontal = 16.dp),
     )
     Text(
@@ -298,10 +318,14 @@ private fun LibraryItemCardInformation(
       style = MaterialTheme.typography.bodySmall,
       fontStyle = if (item.media.metadata.authorName == null) FontStyle.Italic else null,
       maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
       modifier = Modifier
-        .basicMarquee(
-          velocity = LibraryItemMarqueeVelocity,
-        )
+        .thenIf(marqueeEnabled) {
+          basicMarquee(
+            velocity = marqueeVelocity,
+            initialDelayMillis = marqueeDelay,
+          )
+        }
         .padding(horizontal = 16.dp),
     )
   }
@@ -463,7 +487,7 @@ fun OfflineStatusIndicator(
   }
 }
 
-private val LibraryItemMarqueeVelocity = 40.dp
+private val LibraryItemMarqueeVelocityRange = 30..40
 
 val SmallProgressBarHeight = 8.dp
 val LargeProgressBarHeight = 12.dp
