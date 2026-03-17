@@ -22,11 +22,12 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
-import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSync
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindAmount
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindEnabled
@@ -80,7 +81,8 @@ class SettingsAnalyticUiEventHandler(
         Updated,
         event.remoteNextPrevSkipsChapters,
       )
-      is AutoSync -> send("auto_sync", Updated, event.enabled)
+      is SyncEnabled -> send("sync", Updated, event.enabled)
+      is AutoSyncEnabled -> send("auto_sync", Updated, event.enabled)
     }
 
     is SettingsUiEvent.SleepSettingEvent -> when (event) {

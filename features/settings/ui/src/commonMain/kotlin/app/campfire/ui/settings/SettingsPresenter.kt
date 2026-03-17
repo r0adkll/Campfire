@@ -45,11 +45,12 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
-import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSync
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindAmount
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindEnabled
@@ -125,6 +126,7 @@ class SettingsPresenter(
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
     }.collectAsState()
+    val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
 
     // Downloads Settings
@@ -193,7 +195,8 @@ class SettingsPresenter(
         trackResetThreshold = trackResetThreshold,
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
-        autoSyncEnabled = autoSyncEnabled,
+        syncEnabled = syncEnabled,
+        autoSyncEnabled = syncEnabled && autoSyncEnabled,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -261,7 +264,8 @@ class SettingsPresenter(
           is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
           is RemoteNextPrevSkipsChapters ->
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
-          is AutoSync -> playbackSettings.autoSyncEnabled = event.enabled
+          is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
+          is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

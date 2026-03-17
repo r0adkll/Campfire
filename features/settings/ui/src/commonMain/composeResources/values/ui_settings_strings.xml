@@ -59,7 +59,10 @@
   <string name="setting_playback_track_reset_subtitle">How far into a track that skip previous will just restart it</string>
   <string name="setting_playback_remote_skip_title">Bluetooth next/prev skips chapters</string>
   <string name="setting_playback_remote_skip_subtitle">When enabled, Bluetooth next/previous buttons skip to next/previous chapter. When disabled, they seek forward/backward by the configured time.</string>
-  <string name="setting_playback_auto_sync_title">Auto-sync progress</string>
+  <string name="header_synchronization">Synchronization</string>
+  <string name="setting_playback_sync_title">Enable synchronization</string>
+  <string name="setting_playback_sync_subtitle">Show available playback updates from the server when there is a newer position available</string>
+  <string name="setting_playback_auto_sync_title">Enable automatic synchronization</string>
   <string name="setting_playback_auto_sync_subtitle">When resuming playback if there is a new position from the server, continue using that timestamp. Otherwise, resume with the locally tracked progress.</string>
   <string name="header_shake_to_reset">Reset</string>
   <string name="setting_playback_sleep_shake_to_reset_title">Shake-to-reset</string>

@@ -1,14 +1,17 @@
 package app.campfire.ui.settings.panes
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent
 import app.campfire.ui.settings.SettingsUiState
+import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TimeJumpSetting
 import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.header_synchronization
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_subtitle
@@ -19,6 +22,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_mp3see
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_title
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_title
+import campfire.features.settings.ui.generated.resources.setting_playback_sync_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_title
 import campfire.features.settings.ui.generated.resources.setting_playback_track_reset_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_track_reset_title
@@ -85,14 +90,31 @@ internal fun PlaybackPane(
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
     )
 
-    SwitchSetting(
-      value = state.playbackSettings.autoSyncEnabled,
-      onValueChange = {
-        state.eventSink(PlaybackSettingEvent.AutoSync(it))
-      },
-      headlineContent = { Text(stringResource(Res.string.setting_playback_auto_sync_title)) },
-      supportingContent = { Text(stringResource(Res.string.setting_playback_auto_sync_subtitle)) },
+    Header(
+      title = { Text(stringResource(Res.string.header_synchronization)) }
     )
+
+    SwitchSetting(
+      value = state.playbackSettings.syncEnabled,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.SyncEnabled(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_sync_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_sync_subtitle)) },
+    )
+
+    AnimatedVisibility(
+      visible = state.playbackSettings.syncEnabled
+    ) {
+      SwitchSetting(
+        value = state.playbackSettings.autoSyncEnabled,
+        onValueChange = {
+          state.eventSink(PlaybackSettingEvent.AutoSyncEnabled(it))
+        },
+        headlineContent = { Text(stringResource(Res.string.setting_playback_auto_sync_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_playback_auto_sync_subtitle)) },
+      )
+    }
   }
 }
 

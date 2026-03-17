@@ -25,6 +25,7 @@ import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
@@ -50,6 +51,7 @@ class PlaybackPresenter(
   private val libraryItemValidator: LibraryItemValidator,
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackController: PlaybackController,
+  private val playbackSettings: PlaybackSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val themeSettings: ThemeSettings,
   private val themeManager: ThemeManager,
@@ -126,18 +128,20 @@ class PlaybackPresenter(
           dbark { "<~~ Player not initialized [$playerSessionId, $playerState]" }
 
           // Since we want to auto-sync listening session progress let's make sure to refresh the current
-          // sessions libraryItem media progress, if possible.
-          dbark { "~~> Refreshing media progress…" }
-          val (progress, duration) = measureTimedValue {
-            // Since this is a network operation we want to timebox refreshing the current progress
-            // So we don't create an awkward delay when initialing the playback session for the UI
-            withTimeoutOrNull(1.seconds) {
-              mediaProgressRepository.getProgress(currentSession.libraryItem.id, fresh = true)
+          // sessions libraryItem media progress, if possible and enabled
+          if (playbackSettings.syncEnabled && playbackSettings.autoSyncEnabled) {
+            dbark { "~~> Refreshing media progress…" }
+            val (progress, duration) = measureTimedValue {
+              // Since this is a network operation we want to timebox refreshing the current progress
+              // So we don't create an awkward delay when initialing the playback session for the UI
+              withTimeoutOrNull(1.seconds) {
+                mediaProgressRepository.getProgress(currentSession.libraryItem.id, fresh = true)
+              }
             }
-          }
-          dbark {
-            "<~~ Refreshed media progress in $duration [${progress?.actualTime} @ " +
-              "${progress?.lastUpdate?.asDateTime()?.readableFormat}]"
+            dbark {
+              "<~~ Refreshed media progress in $duration [${progress?.actualTime} @ " +
+                "${progress?.lastUpdate?.asDateTime()?.readableFormat}]"
+            }
           }
 
           ibark { "--> Starting playback controller initialization" }
@@ -302,8 +306,15 @@ class PlaybackPresenter(
   ): SyncUiState {
     val scope = rememberCoroutineScope()
 
+    val syncEnabled by remember {
+      playbackSettings.observeSyncEnabled()
+    }.collectAsState()
+
     val mediaProgress by remember(expanded) {
-      snapshotFlow { session.value?.libraryItem?.id }
+      snapshotFlow {
+        if (syncEnabled) session.value?.libraryItem?.id
+        else null
+      }
         .filterNotNull()
         .flatMapLatest { libraryItemId ->
           mediaProgressRepository.observeProgress(libraryItemId, refresh = true)
@@ -317,7 +328,7 @@ class PlaybackPresenter(
       derivedStateOf {
         val sessionValue = session.value
         if (
-          sessionValue != null && mediaProgress != null &&
+          syncEnabled && sessionValue != null && mediaProgress != null &&
           (sessionValue.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
           sessionValue.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
         ) {

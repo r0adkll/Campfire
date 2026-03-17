@@ -111,6 +111,8 @@ class SqlDelightSessionDataSource(
         ?.takeIf { !it.isDeleted }
     }
 
+    // If the current progress is finished, skip check the existing session
+    // and force the creation of a new one using the progress as the source of time.
     val forceNew = progress?.isFinished == true
 
     // If an existing session has been updated withing allowed time interval,
@@ -143,7 +145,9 @@ class SqlDelightSessionDataSource(
     val hasSync = existingSession != null && progress != null &&
       (existingSession.lastPlayedAt?.epochMilliseconds ?: 0L) < progress.lastUpdate &&
       existingSession.currentTime.inWholeSeconds != progress.currentTime.seconds.inWholeSeconds
-    val autoSync = hasSync && playbackSettings.autoSyncEnabled
+    val autoSync = hasSync &&
+      playbackSettings.syncEnabled &&
+      playbackSettings.autoSyncEnabled
 
     // If we DID have an old session, we'll want to re-use its time stamps instead of the passed, media progress,
     // timestamps.

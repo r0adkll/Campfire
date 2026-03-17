@@ -55,6 +55,7 @@ data class PlaybackSettingsInfo(
   val trackResetThreshold: Duration,
   val mp3IndexSeeking: Boolean,
   val remoteNextPrevSkipsChapters: Boolean,
+  val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
 )
 
@@ -144,7 +145,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class TrackResetThreshold(val trackResetThreshold: Duration) : PlaybackSettingEvent
     data class Mp3IndexSeeking(val mp3IndexSeeking: Boolean) : PlaybackSettingEvent
     data class RemoteNextPrevSkipsChapters(val remoteNextPrevSkipsChapters: Boolean) : PlaybackSettingEvent
-    data class AutoSync(val enabled: Boolean) : PlaybackSettingEvent
+    data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
+    data class AutoSyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
   }
 
   // Sleep Setting Events
