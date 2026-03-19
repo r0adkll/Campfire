@@ -45,9 +45,11 @@ class ChapterSlot(
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
-    val progress = mediaProgress?.let { mediaProgress ->
-      (mediaProgress.currentTime.seconds - chapter.start.seconds) / chapter.duration
-    }?.toFloat() ?: 0f
+    val progress = mediaProgress
+      ?.takeIf { !it.isFinished }
+      ?.let { mediaProgress ->
+        (mediaProgress.currentTime.seconds - chapter.start.seconds) / chapter.duration
+      }?.toFloat() ?: 0f
 
     val topCornerSize = if (isFirst) CornerSize(20.dp) else CornerSize(4.dp)
     val bottomCornerSize = if (isLast) CornerSize(20.dp) else CornerSize(4.dp)
