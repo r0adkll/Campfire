@@ -7,15 +7,12 @@ plugins {
   alias(libs.plugins.ksp)
 }
 
-android {
-  namespace = "app.campfire.widgets"
-  buildFeatures {
-    resValues = true
-  }
-}
-
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+  android {
+    namespace = "app.campfire.widgets"
+  }
+
   sourceSets {
     commonMain {
       dependencies {

@@ -73,7 +73,7 @@ kotlin {
 }
 
 dependencies {
-  debugImplementation(libs.compose.ui.tooling)
+  "androidRuntimeClasspath"(libs.compose.ui.tooling)
 }
 
 addKspDependencyForCommon(libs.kimchi.compiler)

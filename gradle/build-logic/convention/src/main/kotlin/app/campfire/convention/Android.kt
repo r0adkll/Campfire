@@ -3,31 +3,34 @@
 
 package app.campfire.convention
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.ApplicationBaseFlavor
+import com.android.build.api.dsl.CommonExtension
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 
-fun Project.configureAndroid(computeNamespace: Boolean = true) {
-  android {
+internal fun Project.configureAndroid(computeNamespace: Boolean = true) {
+  extensions.configure<CommonExtension> {
     if (computeNamespace) {
       namespace = "app.campfire.${path.substring(1).replace(':', '.').replace("-", "_")}"
     }
-    compileSdkVersion(Versions.compileSdk)
+    compileSdk { version = release(Versions.compileSdk) }
 
-    defaultConfig {
+    with(defaultConfig) {
       minSdk = Versions.minSdk
-      targetSdk = Versions.targetSdk
+      if (this is ApplicationBaseFlavor) {
+        targetSdk = Versions.targetSdk
+      }
 
       testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    compileOptions {
+    with(compileOptions) {
       // https://developer.android.com/studio/write/java8-support
       isCoreLibraryDesugaringEnabled = true
     }
 
-    testOptions {
+    with(testOptions) {
       unitTests.isReturnDefaultValues = true
 
       unitTests {
@@ -47,5 +50,3 @@ fun Project.configureAndroid(computeNamespace: Boolean = true) {
     "coreLibraryDesugaring"(libs.findLibrary("tools.desugarjdklibs").get())
   }
 }
-
-private fun Project.android(action: BaseExtension.() -> Unit) = extensions.configure<BaseExtension>(action)

@@ -1,5 +1,5 @@
 [versions]
-agp = "8.13.2"
+agp = "9.1.0"
 about-libraries = "13.2.1"
 accompanist = "0.37.3"
 androidxlifecycle = "2.10.0"
@@ -50,7 +50,7 @@ core = "1.18.0"
 vlcj = "4.12.1"
 uiautomator = "2.4.0-beta02"
 benchmark-macro-junit4 = "1.4.1"
-baselineprofile = "1.4.1"
+baselineprofile = "1.5.0-alpha04"
 profileinstaller = "1.4.1"
 material = "1.13.0"
 swatchbuckler = "0.1.1-SNAPSHOT"
@@ -59,6 +59,7 @@ reorderable = "3.0.0"
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 android-lint = { id = "com.android.lint", version.ref = "agp" }
 android-test = { id = "com.android.test", version.ref = "agp" }
 about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "about-libraries" }
