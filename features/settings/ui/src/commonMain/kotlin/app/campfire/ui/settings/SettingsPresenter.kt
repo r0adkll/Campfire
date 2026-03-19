@@ -223,7 +223,7 @@ class SettingsPresenter(
         analyticReportingEnabled = analyticReportingEnabled,
       ),
       developerSettings = DeveloperSettingsInfo(
-        developerModeEnabled = developerModeEnabled,
+        developerModeEnabled = developerModeEnabled || applicationInfo.debugBuild,
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
         analyticsDebugState = analytics.debugState,

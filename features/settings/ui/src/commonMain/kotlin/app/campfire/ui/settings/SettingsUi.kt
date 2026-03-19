@@ -50,7 +50,6 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
-import app.campfire.core.isDebug
 import app.campfire.ui.settings.composables.SettingPaneListItem
 import app.campfire.ui.settings.composables.SettingsPaneDefaults
 import app.campfire.ui.settings.panes.AboutPane
@@ -150,7 +149,7 @@ private fun TwoPaneLayout(
       pane = forcedPane,
       onPaneClick = onPaneClick,
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
-      showDeveloperPane = isDebug || state.developerSettings.developerModeEnabled,
+      showDeveloperPane = state.developerSettings.developerModeEnabled,
       modifier = Modifier
         .padding(top = 16.dp)
         .fillMaxHeight()
@@ -206,7 +205,7 @@ private fun OnePaneLayout(
     pane = pane,
     onPaneClick = onPaneClick,
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
-    showDeveloperPane = isDebug || state.developerSettings.developerModeEnabled,
+    showDeveloperPane = state.developerSettings.developerModeEnabled,
     modifier = modifier
       .systemBarsPadding()
       .fillMaxSize(),

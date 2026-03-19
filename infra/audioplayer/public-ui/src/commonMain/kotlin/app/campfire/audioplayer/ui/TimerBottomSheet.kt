@@ -41,7 +41,6 @@ import app.campfire.audioplayer.ui.composables.SessionSheetLayout
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.core.isDebug
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
 import campfire.infra.audioplayer.public_ui.generated.resources.action_set_timer
 import campfire.infra.audioplayer.public_ui.generated.resources.timer_bottomsheet_title
@@ -52,7 +51,6 @@ import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
 
@@ -120,7 +118,6 @@ private fun TimerBottomSheet(
 
       val timers = remember {
         buildList {
-          if (isDebug) add(10.seconds)
           addAll(DefaultTimers.map { it.minutes })
         }
       }
