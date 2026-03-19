@@ -48,6 +48,7 @@ internal fun DurationListItem(
   selectedColor: Color = MaterialTheme.colorScheme.secondaryContainer,
 ) {
   val isActiveChapter = progress > 0f && progress < 1f
+  val isListened = progress >= 1f
 
   Row(
     modifier = modifier
@@ -103,12 +104,17 @@ internal fun DurationListItem(
       )
       Spacer(Modifier.width(8.dp))
     }
+    val listenedAlpha = 0.38f
     Text(
       text = title,
       style = MaterialTheme.typography.labelLarge,
       fontWeight = if (isActiveChapter || !isValid) FontWeight.Bold else null,
       fontStyle = if (!isValid) FontStyle.Italic else null,
-      color = if (!isValid) MaterialTheme.colorScheme.error else Color.Unspecified,
+      color = when {
+        !isValid -> MaterialTheme.colorScheme.error
+        isListened -> MaterialTheme.colorScheme.onSurface.copy(alpha = listenedAlpha)
+        else -> Color.Unspecified
+      },
       modifier = Modifier.weight(1f),
     )
     Spacer(Modifier.width(16.dp))
@@ -117,6 +123,11 @@ internal fun DurationListItem(
       style = MaterialTheme.typography.labelLarge,
       fontFamily = FontFamily.Monospace,
       fontWeight = if (isActiveChapter) FontWeight.Bold else null,
+      color = if (isListened) {
+        MaterialTheme.colorScheme.onSurface.copy(alpha = listenedAlpha)
+      } else {
+        Color.Unspecified
+      },
     )
   }
 }
