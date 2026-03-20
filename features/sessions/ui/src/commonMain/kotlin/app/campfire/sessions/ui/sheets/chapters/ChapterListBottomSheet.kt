@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -184,6 +185,8 @@ private fun ChapterListBottomSheet(
             Text(
               text = chapter.title,
               fontWeight = if (isCurrentChapter) FontWeight.Bold else null,
+              color = if (isCurrentChapter) MaterialTheme.colorScheme.contentColorFor(progressColor)
+              else Color.Unspecified,
             )
           },
           trailingContent = {
@@ -199,7 +202,11 @@ private fun ChapterListBottomSheet(
               fontWeight = if (isCurrentChapter) FontWeight.Bold else FontWeight.SemiBold,
               fontFamily = FontFamily.Monospace,
               fontStyle = if (isAccelerated) FontStyle.Italic else null,
-              color = if (isAccelerated) MaterialTheme.colorScheme.secondary else Color.Unspecified,
+              color = when {
+                isCurrentChapter -> MaterialTheme.colorScheme.contentColorFor(progressColor)
+                isAccelerated -> MaterialTheme.colorScheme.secondary
+                else -> Color.Unspecified
+              },
             )
           },
           modifier = Modifier
