@@ -48,6 +48,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class AuthorClick(val item: LibraryItem, val author: String) : LibraryItemUiEvent
   data class NarratorClick(val item: LibraryItem, val narrator: String) : LibraryItemUiEvent
   data class ChapterClick(val item: LibraryItem, val chapter: Chapter) : LibraryItemUiEvent
+  data object ExpandChaptersClick : LibraryItemUiEvent
   data class AudioTrackClick(val item: LibraryItem, val track: AudioTrack) : LibraryItemUiEvent
   data class TimeInBookChange(val enabled: Boolean) : LibraryItemUiEvent
 

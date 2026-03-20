@@ -40,4 +40,4 @@ val CampfireWindowInsets: WindowInsets
     }
   }
 
-private val PlaybackBarInsetSize = 56.dp + 16.dp
+private val PlaybackBarInsetSize = 56.dp + 32.dp

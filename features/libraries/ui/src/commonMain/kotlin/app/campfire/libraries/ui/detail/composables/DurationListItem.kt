@@ -31,9 +31,7 @@ import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.core.extensions.fluentIf
 import kotlin.time.Duration
 
-private val ListItemHeight = 48.dp
-private val IndicatorSize = 8.dp
-private val IndicatorPadding = 0.dp
+internal val ListItemHeight = 48.dp
 private val ProgressCornerRadius = 24.dp
 private val ProgressHeight = 8.dp
 
@@ -63,7 +61,7 @@ internal fun DurationListItem(
         background(selectedColor)
       }
       .thenIf(isListened) {
-        background(selectedColor.copy(0.8f))
+        background(selectedColor.copy(DefocusedChapterAlpha))
       }
       .defaultMinSize(minHeight = ListItemHeight)
       .fillMaxWidth()
@@ -107,7 +105,6 @@ internal fun DurationListItem(
       )
       Spacer(Modifier.width(8.dp))
     }
-    val listenedAlpha = 0.38f
     Text(
       text = title,
       style = MaterialTheme.typography.labelLarge,
@@ -115,7 +112,7 @@ internal fun DurationListItem(
       fontStyle = if (!isValid || isListened) FontStyle.Italic else null,
       color = when {
         !isValid -> MaterialTheme.colorScheme.error
-        isListened -> contentColor.copy(alpha = listenedAlpha)
+        isListened -> contentColor.copy(alpha = DefocusedChapterTextAlpha)
         else -> contentColor
       },
       modifier = Modifier.weight(1f),
@@ -128,10 +125,13 @@ internal fun DurationListItem(
       fontWeight = if (isActiveChapter) FontWeight.Bold else null,
       fontStyle = if (!isValid || isListened) FontStyle.Italic else null,
       color = if (isListened) {
-        contentColor.copy(alpha = listenedAlpha)
+        contentColor.copy(alpha = DefocusedChapterTextAlpha)
       } else {
         contentColor
       },
     )
   }
 }
+
+internal const val DefocusedChapterAlpha = 0.8f
+internal const val DefocusedChapterTextAlpha = 0.38f

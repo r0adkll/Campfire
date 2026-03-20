@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
@@ -38,6 +40,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ChapterHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
+import app.campfire.libraries.ui.detail.composables.slots.CollapsedChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
@@ -204,6 +207,8 @@ class LibraryItemPresenter(
       } else themeManager.observeSwatchFor(screen.libraryItemId)
     }.collectAsState(null)
 
+    var collapseListenedChapters by remember { mutableStateOf(true) }
+
     // Build the Slots
     val slots = libraryItemContentState.map { libraryItem ->
       buildSlots(
@@ -220,6 +225,7 @@ class LibraryItemPresenter(
         session = itemSession.sessionOrNull(),
         isQueued = isQueued,
         addToPlaylistDialog = addToPlaylistDialog,
+        collapseListenedChapters = collapseListenedChapters,
       )
     }
 
@@ -333,6 +339,11 @@ class LibraryItemPresenter(
           }
         }
 
+        is LibraryItemUiEvent.ExpandChaptersClick -> {
+          analytics.send(ActionEvent("expand_chapters", Click))
+          collapseListenedChapters = !collapseListenedChapters
+        }
+
         is LibraryItemUiEvent.AudioTrackClick -> {
           analytics.send(ActionEvent("track", Click))
           val session = itemSession.sessionOrNull()
@@ -399,6 +410,7 @@ private fun buildSlots(
   isQueued: Boolean,
   session: Session?,
   addToPlaylistDialog: AddToPlaylistDialog,
+  collapseListenedChapters: Boolean,
 ): List<ContentSlot> {
   return buildList {
     this += CoverImageSlot(
@@ -474,14 +486,37 @@ private fun buildSlots(
         validation = libraryItemValidation,
       )
       val invalidChapterIds = (libraryItemValidation as? LibraryItemValidation.Error.InvalidChapters)?.chapterIds
-      libraryItem.media.chapters.forEach { chapter ->
-        this += ChapterSlot(
-          libraryItem = libraryItem,
-          chapter = chapter,
-          showTimeInBook = showTimeInBook,
-          mediaProgress = mediaProgressState.dataOrNull,
-          isValid = invalidChapterIds?.contains(chapter.id) != true,
-        )
+      val progress = mediaProgressState.dataOrNull
+      var collapsedCount = 0
+      libraryItem.media.chapters.forEachIndexed { index, chapter ->
+        if (
+          collapseListenedChapters &&
+          index > 0 &&
+          progress != null &&
+          !progress.isFinished &&
+          progress.currentTime > chapter.end
+        ) {
+          collapsedCount++
+        } else {
+          if (
+            collapseListenedChapters &&
+            collapsedCount > 0 &&
+            progress != null &&
+            progress.currentTime in chapter.start.rangeUntil(chapter.end)
+          ) {
+            this += CollapsedChapterSlot(
+              numOfCollapsedChapters = collapsedCount,
+            )
+          }
+
+          this += ChapterSlot(
+            libraryItem = libraryItem,
+            chapter = chapter,
+            showTimeInBook = showTimeInBook,
+            mediaProgress = mediaProgressState.dataOrNull,
+            isValid = invalidChapterIds?.contains(chapter.id) != true,
+          )
+        }
       }
     } else if (libraryItem.media.tracks.isNotEmpty()) {
       this += SpacerSlot.large("chapters_spacer")
