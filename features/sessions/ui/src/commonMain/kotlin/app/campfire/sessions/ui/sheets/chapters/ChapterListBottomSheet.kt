@@ -185,8 +185,9 @@ private fun ChapterListBottomSheet(
             Text(
               text = chapter.title,
               fontWeight = if (isCurrentChapter) FontWeight.Bold else null,
-              color = if (isCurrentChapter) MaterialTheme.colorScheme.contentColorFor(progressColor)
-              else Color.Unspecified,
+              color = if (isCurrentChapter) {
+                MaterialTheme.colorScheme.contentColorFor(progressColor)
+              } else Color.Unspecified,
             )
           },
           trailingContent = {
