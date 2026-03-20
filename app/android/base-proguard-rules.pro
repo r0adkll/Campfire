@@ -48,3 +48,7 @@
 # Don't obfuscate the MainActivity name since we use a string literal in our Widget
 # to launch it when the DI graph is not available
 -keepnames class app.campfire.android.MainActivity
+
+# For some reason the Room consumer rules are not getting absorbed and
+# we see this R8 crash since AGP9. Apply the rule manually here to prevent crashing.
+-keep class * extends androidx.room.RoomDatabase { <init>(); }
