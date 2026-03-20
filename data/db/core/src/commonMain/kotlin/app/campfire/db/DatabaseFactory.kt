@@ -19,6 +19,7 @@ import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
+import app.campfire.data.PlaybackAction
 import app.campfire.data.PlaylistItemJoin
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
@@ -183,6 +184,12 @@ class DatabaseFactory(
     ),
     playlistItemJoinAdapter = PlaylistItemJoin.Adapter(
       itemOrderAdapter = IntColumnAdapter,
+    ),
+    playbackActionAdapter = PlaybackAction.Adapter(
+      typeAdapter = EnumColumnAdapter(),
+      timestampAdapter = LocalDateTimeAdapter,
+      fromPositionAdapter = DurationAdapter,
+      toPositionAdapter = DurationAdapter,
     ),
   )
 }

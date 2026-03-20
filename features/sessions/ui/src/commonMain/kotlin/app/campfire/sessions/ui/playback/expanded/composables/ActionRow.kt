@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.List
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -22,6 +23,7 @@ internal fun ActionRow(
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
   onChapterListClick: () -> Unit,
+  onHistoryClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Row(
@@ -65,6 +67,17 @@ internal fun ActionRow(
         onClick = onChapterListClick,
       ) {
         Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+      }
+    }
+
+    Box(
+      modifier = Modifier.weight(1f),
+      contentAlignment = Alignment.Center,
+    ) {
+      IconButton(
+        onClick = onHistoryClick,
+      ) {
+        Icon(Icons.Rounded.History, contentDescription = null)
       }
     }
   }

@@ -53,7 +53,7 @@ android {
       versionNameSuffix = "-alpha"
       firebaseAppDistribution {
         artifactType = "APK"
-        groups = "internal"
+        groups = "internal,alpha-public"
       }
     }
 

@@ -42,6 +42,16 @@
   <string name="queue_header_up_next">Up next</string>
   <string name="queue_header_queue">Queue</string>
 
+  <string name="history_bottomsheet_title">Playback History</string>
+  <string name="history_empty_message">No playback history yet</string>
+  <string name="history_context_play">Played</string>
+  <string name="history_context_pause">Paused</string>
+  <string name="history_context_seek">Seeked</string>
+  <string name="history_context_skip_next">Skipped next</string>
+  <string name="history_context_skip_previous">Skipped previous</string>
+  <string name="history_context_seek_forward">Skipped forward</string>
+  <string name="history_context_seek_backward">Skipped backward</string>
+
   <!-- Content Descriptions -->
   <string name="cd_forward_time">Forward %1$s seconds</string>
   <string name="cd_rewind_time">Rewind %1$s seconds</string>

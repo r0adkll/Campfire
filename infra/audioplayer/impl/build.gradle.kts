@@ -34,6 +34,7 @@ kotlin {
         implementation(libs.compose.runtime)
 
         implementation(projects.core)
+        implementation(projects.data.db.core)
         implementation(projects.features.settings.api)
         implementation(projects.data.account.api)
         implementation(projects.data.crashreporting.api)

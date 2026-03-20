@@ -98,6 +98,7 @@ import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
 import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
+import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
@@ -556,6 +557,11 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
               playerState.eventSink(PlayerUiEvent.AudioTrackSelected(result.audioTrack))
             }
           }
+        }
+      },
+      onHistoryClick = {
+        scope.launch {
+          overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
         }
       },
     )

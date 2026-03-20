@@ -1,0 +1,37 @@
+import app.campfire.core.model.PlaybackActionType;
+import kotlin.time.Duration;
+import kotlinx.datetime.LocalDateTime;
+
+CREATE TABLE IF NOT EXISTS playbackAction (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  type TEXT AS PlaybackActionType NOT NULL,
+  timestamp TEXT AS LocalDateTime NOT NULL,
+  fromPosition INTEGER AS Duration NOT NULL DEFAULT 0,
+  toPosition INTEGER AS Duration NOT NULL DEFAULT 0,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_playbackAction_libraryItem
+ON playbackAction(userId, libraryItemId);
+
+getForLibraryItem:
+SELECT * FROM playbackAction
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+ORDER BY timestamp DESC;
+
+insert:
+INSERT INTO playbackAction(libraryItemId, userId, type, timestamp, fromPosition, toPosition)
+VALUES (?, ?, ?, ?, ?, ?);
+
+deleteForLibraryItem:
+DELETE FROM playbackAction
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;
+
+deleteAll:
+DELETE FROM playbackAction
+WHERE userId = :userId;
