@@ -14,6 +14,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.core.coroutines.flatMapIfNotNull
 import app.campfire.core.extensions.asDateTime
 import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.readableFormat
@@ -389,8 +390,7 @@ class PlaybackPresenter(
           null
         }
       }
-        .filterNotNull()
-        .flatMapLatest { libraryItemId ->
+        .flatMapIfNotNull { libraryItemId ->
           themeManager.observeThemeFor(libraryItemId)
         }
     }.collectAsState(null)

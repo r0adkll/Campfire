@@ -2,15 +2,12 @@ package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.audioplayer.history.PlaybackHistoryRecorder
-import app.campfire.audioplayer.impl.history.RecordingAudioPlayer
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.core.time.FatherTime
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -27,8 +24,6 @@ import me.tatarka.inject.annotations.Inject
 class DefaultAudioPlayerHolder(
   @ForScope(AppScope::class) private val scope: CoroutineScope,
   private val synchronizer: PlaybackSynchronizer,
-  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
-  private val fatherTime: FatherTime,
 ) : AudioPlayerHolder {
 
   private var synchronizerJobs: List<Job> = emptyList()
@@ -36,12 +31,9 @@ class DefaultAudioPlayerHolder(
   override val currentPlayer = MutableStateFlow<AudioPlayer?>(null)
 
   override fun setCurrentPlayer(player: AudioPlayer?) {
-    val recordingPlayer = player?.let {
-      RecordingAudioPlayer(it, playbackHistoryRecorder, fatherTime, scope)
-    }
-    currentPlayer.value = recordingPlayer
+    currentPlayer.value = player
     cancelSynchronizer()
-    recordingPlayer?.let { registerSynchronizer(it) }
+    player?.let { registerSynchronizer(it) }
   }
 
   override fun release() {

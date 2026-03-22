@@ -1,32 +1,39 @@
 package app.campfire.audioplayer.history
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlaybackActionType
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 /**
  * Records and provides access to playback action history for library items.
  */
-interface PlaybackHistoryRecorder {
+interface PlaybackHistoryRepository {
 
   /**
    * Record a playback action.
    */
-  suspend fun record(action: PlaybackAction)
+  suspend fun record(
+    libraryItemId: LibraryItemId,
+    type: PlaybackActionType,
+    fromPosition: Duration,
+    toPosition: Duration? = null,
+  )
 
   /**
    * Observe all playback actions for a given library item, ordered by most recent first.
    */
-  fun observeActions(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>>
+  fun observe(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>>
 
   /**
    * Get all playback actions for a given library item, ordered by most recent first.
    */
-  suspend fun getActions(libraryItemId: LibraryItemId): List<PlaybackAction>
+  suspend fun get(libraryItemId: LibraryItemId): List<PlaybackAction>
 
   /**
    * Delete all playback history for a given library item.
    */
-  suspend fun clearActions(libraryItemId: LibraryItemId)
+  suspend fun clear(libraryItemId: LibraryItemId)
 
   /**
    * Delete all playback history for the current user.

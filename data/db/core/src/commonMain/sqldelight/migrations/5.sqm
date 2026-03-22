@@ -1,3 +1,16 @@
 -- Add lastPlayedAt timestamp to the session table
 ALTER TABLE session
 ADD COLUMN lastPlayedAt TEXT;
+
+-- Add playback history table
+CREATE TABLE IF NOT EXISTS playbackAction (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  type TEXT NOT NULL,
+  timestamp TEXT NOT NULL,
+  fromPosition INTEGER NOT NULL DEFAULT 0,
+  toPosition INTEGER,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);

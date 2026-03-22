@@ -15,6 +15,7 @@ import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AuthorDetailScreen
@@ -91,6 +92,7 @@ class LibraryItemPresenter(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
@@ -301,6 +303,7 @@ class LibraryItemPresenter(
           scope.launch {
             sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.deleteProgress(event.item.id)
+            playbackHistoryRepository.clear(event.item.id)
           }
         }
 
@@ -315,6 +318,7 @@ class LibraryItemPresenter(
           scope.launch {
             sessionsRepository.markDeleted(event.item.id)
             mediaProgressRepository.markFinished(event.item.id)
+            playbackHistoryRepository.clear(event.item.id)
           }
         }
 

@@ -95,6 +95,7 @@ import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
+import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
 import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
 import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
@@ -561,7 +562,11 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
       },
       onHistoryClick = {
         scope.launch {
-          overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
+          val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
+          if (result is PlaybackHistoryResult.Selected) {
+            val position = result.action.toPosition ?: result.action.fromPosition
+            playerState.eventSink(PlayerUiEvent.Seek.Position(position))
+          }
         }
       },
     )

@@ -49,8 +49,9 @@
   <string name="history_context_seek">Seeked</string>
   <string name="history_context_skip_next">Skipped next</string>
   <string name="history_context_skip_previous">Skipped previous</string>
-  <string name="history_context_seek_forward">Skipped forward</string>
-  <string name="history_context_seek_backward">Skipped backward</string>
+  <string name="history_context_seek_forward">Fast forward</string>
+  <string name="history_context_seek_backward">Rewind</string>
+  <string name="history_context_sync">Remote sync</string>
 
   <!-- Content Descriptions -->
   <string name="cd_forward_time">Forward %1$s seconds</string>

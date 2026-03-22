@@ -45,13 +45,13 @@ class StatsPresenter(
     val libraryStats by remember {
       statsRepository.getLibraryStats()
         .map { LoadState.Loaded(processStats(it)) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out List<StatsUiModel>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     val listeningStats by remember {
       statsRepository.getUserStats()
         .map { LoadState.Loaded(processStats(it)) }
-        .catch { LoadState.Error }
+        .catch<LoadState<out List<StatsUiModel>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     return StatsUiState(

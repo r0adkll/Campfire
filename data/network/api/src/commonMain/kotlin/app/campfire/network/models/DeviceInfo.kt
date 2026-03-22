@@ -15,7 +15,7 @@ data class DeviceInfo(
   val deviceType: String? = null,
   val manufacturer: String? = null,
   val model: String? = null,
-  val sdkVersion: Int? = null,
+  val sdkVersion: String? = null,
   val clientName: String,
   val clientVersion: String,
 )

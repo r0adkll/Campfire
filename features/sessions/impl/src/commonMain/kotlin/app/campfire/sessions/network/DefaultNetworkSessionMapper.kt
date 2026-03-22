@@ -105,7 +105,7 @@ class DefaultNetworkSessionMapper(
         clientVersion = applicationInfo.versionName,
         manufacturer = applicationInfo.manufacturer,
         model = applicationInfo.model,
-        sdkVersion = applicationInfo.sdkVersion,
+        sdkVersion = applicationInfo.sdkVersion?.toString(),
       ),
       serverVersion = currentServer.settings.version,
       date = session.startedAt.date.format(LocalDate.Formats.ISO),

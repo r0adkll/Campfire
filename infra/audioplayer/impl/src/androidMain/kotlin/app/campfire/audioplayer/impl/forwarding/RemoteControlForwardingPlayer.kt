@@ -1,6 +1,5 @@
-package app.campfire.audioplayer.impl
+package app.campfire.audioplayer.impl.forwarding
 
-import androidx.annotation.OptIn
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -8,9 +7,9 @@ import androidx.media3.session.MediaSession
 import app.campfire.settings.api.PlaybackSettings
 
 /**
- * A [ForwardingPlayer] that intercepts next/previous media item commands from external controllers
+ * A [androidx.media3.common.ForwardingPlayer] that intercepts next/previous media item commands from external controllers
  * (e.g., car stereos with their own package) and redirects them based on the
- * [PlaybackSettings.remoteNextPrevSkipsChapters] setting.
+ * [app.campfire.settings.api.PlaybackSettings.remoteNextPrevSkipsChapters] setting.
  *
  * When [remoteNextPrevSkipsChapters] is true (default), external next/prev commands skip chapters.
  * When false, they seek forward/backward by the configured time instead.
@@ -19,7 +18,7 @@ import app.campfire.settings.api.PlaybackSettings
  * routes Bluetooth key events through the app's own package. Media notification and Android Auto
  * always use chapter skip because they have dedicated custom seek buttons in their layout.
  */
-@OptIn(UnstableApi::class)
+@UnstableApi
 class RemoteControlForwardingPlayer(
   player: Player,
   private val settings: PlaybackSettings,
@@ -28,7 +27,7 @@ class RemoteControlForwardingPlayer(
 
   /**
    * Reference to the MediaSession, set after session creation.
-   * Used to identify the source of commands via [MediaSession.controllerForCurrentRequest].
+   * Used to identify the source of commands via [androidx.media3.session.MediaSession.controllerForCurrentRequest].
    */
   var session: MediaSession? = null
 

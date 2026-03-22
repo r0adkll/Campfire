@@ -23,6 +23,9 @@ import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.impl.cast.SafeCastContext
+import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
+import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
+import app.campfire.audioplayer.impl.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
@@ -60,6 +63,7 @@ class ExoPlayerAudioPlayer(
   private val context: Context,
   private val settings: PlaybackSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
 ) : AudioPlayer, Player.Listener, Cork {
 
@@ -74,6 +78,7 @@ class ExoPlayerAudioPlayer(
     private val settings: PlaybackSettings,
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
+    private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   ) {
 
     fun create(context: Context): ExoPlayerAudioPlayer {
@@ -81,6 +86,7 @@ class ExoPlayerAudioPlayer(
         context = context,
         settings = settings,
         mediaSourceFactory = mediaSourceFactory,
+        playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
       )
     }
@@ -129,7 +135,7 @@ class ExoPlayerAudioPlayer(
    * [castPlayer] which configures the [exoPlayer] as the local player to use when a MediaRoute
    * is not directed at remote playback.
    */
-  internal val player: Player = (castPlayer ?: exoPlayer).apply {
+  internal val internalPlayer: Player = (castPlayer ?: exoPlayer).apply {
     addListener(this@ExoPlayerAudioPlayer)
   }
 
@@ -138,12 +144,23 @@ class ExoPlayerAudioPlayer(
    * This should be used for MediaSession to handle remote control commands differently.
    */
   private val remoteControlForwardingPlayer = RemoteControlForwardingPlayer(
-    player = player,
+    player = internalPlayer,
     settings = settings,
     appPackageName = context.packageName,
   )
 
-  internal val remoteControlPlayer: Player get() = remoteControlForwardingPlayer
+  /**
+   * A wrapped version of the player that intercepts and records playback commands
+   * for the user
+   */
+  private val playbackHistoryForwardingPlayer = PlaybackHistoryForwardingPlayer(
+    player = remoteControlForwardingPlayer,
+    playbackSettings = settings,
+    recorder = playbackHistoryRecorder,
+    session = { preparedSession },
+  )
+
+  internal val player: Player get() = playbackHistoryForwardingPlayer
 
   /**
    * Binds the MediaSession to the remote control forwarding player.
@@ -535,16 +552,24 @@ class ExoPlayerAudioPlayer(
   private fun updateProgress(player: Player) {
     currentTime.value = player.currentPosition.milliseconds
     currentDuration.value = player.duration.milliseconds
-
-    var timelineOffsetMs = 0L
-    val currentIndex = player.currentMediaItemIndex
-    (0 until currentIndex).forEach { index ->
-      timelineOffsetMs += player.getMediaItemAt(index)
-        .mediaMetadata
-        .durationMs
-        ?: 0L
-    }
-
-    overallTime.value = (timelineOffsetMs + player.currentPosition).milliseconds
+    overallTime.value = player.overallPosition.milliseconds
   }
+}
+
+/**
+ * Helper property to compute the overall time in a library item that the playback is currently at.
+ * Since we divvy chapters into individual mediaItems, the [Player.getCurrentPosition] returns the postion
+ * relative to the current media item
+ */
+internal val Player.overallPosition: Long get() {
+  var timelineOffsetMs = 0L
+  val currentIndex = currentMediaItemIndex
+  (0 until currentIndex).forEach { index ->
+    timelineOffsetMs += getMediaItemAt(index)
+      .mediaMetadata
+      .durationMs
+      ?: 0L
+  }
+
+  return timelineOffsetMs + currentPosition
 }

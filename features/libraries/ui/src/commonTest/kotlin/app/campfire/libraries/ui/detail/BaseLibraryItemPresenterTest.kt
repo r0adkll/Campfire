@@ -4,6 +4,7 @@ import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
+import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
@@ -35,6 +36,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val sessionsRepository = FakeSessionsRepository()
   internal val sessionQueue = FakeSessionQueue()
   internal val mediaProgressRepository = FakeMediaProgressRepository()
+  internal val playbackHistoryRepository = FakePlaybackHistoryRepository()
   internal val playbackController = FakePlaybackController()
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
   internal val audioPlayer = FakeAudioPlayer()
@@ -55,6 +57,7 @@ abstract class BaseLibraryItemPresenterTest {
     sessionsRepository = sessionsRepository,
     sessionQueue = sessionQueue,
     mediaProgressRepository = mediaProgressRepository,
+    playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
     audioPlayerHolder = audioPlayerHolder,
     offlineDownloadManager = offlineDownloadManager,

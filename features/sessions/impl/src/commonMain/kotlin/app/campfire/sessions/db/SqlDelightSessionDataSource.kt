@@ -1,6 +1,7 @@
 package app.campfire.sessions.db
 
 import app.campfire.CampfireDatabase
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -10,6 +11,7 @@ import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
@@ -47,6 +49,7 @@ class SqlDelightSessionDataSource(
   private val libraryItemRepository: LibraryItemRepository,
   private val devSettings: DevSettings,
   private val playbackSettings: PlaybackSettings,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionDataSource {
   companion object : Corked("SqlDelightSessionDataSource") {
@@ -152,6 +155,14 @@ class SqlDelightSessionDataSource(
     // If we DID have an old session, we'll want to re-use its time stamps instead of the passed, media progress,
     // timestamps.
     val newTime = if (autoSync) {
+      // Record the sync action in the history
+      playbackHistoryRepository.record(
+        libraryItemId = libraryItemId,
+        type = PlaybackActionType.Sync,
+        fromPosition = existingSession.currentTime,
+        toPosition = progress.actualTime,
+      )
+
       progress.actualTime
     } else {
       existingSession?.currentTime

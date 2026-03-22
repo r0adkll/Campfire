@@ -40,12 +40,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.runBlocking
 
 @ContributesTo(AppScope::class)
 interface AudioPlayerComponent {
   val audioPlayerHolder: AudioPlayerHolder // AppScope
-  val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope
   val playbackSettings: PlaybackSettings // AppScope
   val activityIntentProvider: ActivityIntentProvider // AppScope
 }
@@ -55,6 +56,7 @@ interface AudioPlayerUserComponent {
   val mediaTree: MediaTree
   val sessionsRepository: SessionsRepository
   val playbackSessionManager: PlaybackSessionManager
+  val exoPlayerFactory: ExoPlayerAudioPlayer.Factory
 }
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -77,12 +79,19 @@ class AudioPlayerService : MediaLibraryService() {
     super.onCreate()
     bark(LogPriority.INFO) { "AudioPlayerService::onCreate()" }
 
+    // Since we need to inject the exoplayer factory from UserScope,
+    // let's make sure its available, and block until it is.
+    val userComponent = runBlocking {
+      ComponentHolder.subscribe<AudioPlayerUserComponent>()
+        .first()
+    }
+
     // Create ExoPlayer instance and MediaSession instance that encapsulates the background
     // playback on Android.
-    player = component.exoPlayerFactory.create(this)
+    player = userComponent.exoPlayerFactory.create(this)
     // Use remoteControlPlayer for MediaSession so remote control commands (Bluetooth, car stereo)
     // can be intercepted and handled based on user settings, while in-app UI uses the direct player.
-    session = MediaLibrarySession.Builder(this, player.remoteControlPlayer, MediaSessionCallback())
+    session = MediaLibrarySession.Builder(this, player.player, MediaSessionCallback())
       .setSessionActivity(
         PendingIntent.getActivity(
           this,
@@ -103,6 +112,7 @@ class AudioPlayerService : MediaLibraryService() {
 
     // Setup notification management and checks
     ensureNotificationChannel(NotificationManagerCompat.from(this))
+    @Suppress("UsePropertyAccessSyntax")
     setListener(MediaSessionServiceListener())
 
     // Customize the media notification provider

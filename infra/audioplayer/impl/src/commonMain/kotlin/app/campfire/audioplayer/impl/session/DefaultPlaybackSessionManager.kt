@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.session
 
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
@@ -21,6 +22,7 @@ class DefaultPlaybackSessionManager(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackSessionManager {
@@ -42,6 +44,7 @@ class DefaultPlaybackSessionManager(
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         mediaProgressRepository.markFinished(libraryItemId)
+        playbackHistoryRepository.clear(libraryItemId)
 
         // Check if we have an item next in the queue
         val nextItem = sessionQueue.pop()

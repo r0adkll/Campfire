@@ -51,7 +51,7 @@ private fun NetworkDeviceInfo.asDomainModel(): DeviceInfo {
     deviceType = deviceType,
     manufacturer = manufacturer,
     model = model,
-    sdkVersion = sdkVersion,
+    sdkVersion = sdkVersion?.toIntOrNull(),
     clientName = clientName,
     clientVersion = clientVersion,
   )

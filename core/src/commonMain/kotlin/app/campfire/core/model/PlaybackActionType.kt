@@ -11,4 +11,5 @@ enum class PlaybackActionType {
   SkipPrevious,
   SeekForward,
   SeekBackward,
+  Sync,
 }

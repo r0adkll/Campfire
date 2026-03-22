@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS playbackAction (
   type TEXT AS PlaybackActionType NOT NULL,
   timestamp TEXT AS LocalDateTime NOT NULL,
   fromPosition INTEGER AS Duration NOT NULL DEFAULT 0,
-  toPosition INTEGER AS Duration NOT NULL DEFAULT 0,
+  toPosition INTEGER AS Duration,
 
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
