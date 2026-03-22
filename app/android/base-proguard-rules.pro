@@ -36,14 +36,14 @@
 -keep public class * extends java.lang.Exception
 
 # Strip out all Logcat calls from release builds
-#-assumenosideeffects class android.util.Log {
-#    public static int v(...);
-#    public static int i(...);
-#    public static int w(...);
-#    public static int d(...);
-#    public static int e(...);
-#    public static int println(...);
-#}
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int i(...);
+    public static int w(...);
+    public static int d(...);
+    public static int e(...);
+    public static int println(...);
+}
 
 # Don't obfuscate the MainActivity name since we use a string literal in our Widget
 # to launch it when the DI graph is not available
