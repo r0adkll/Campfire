@@ -5,8 +5,10 @@ import android.content.ComponentName
 import androidx.core.content.ContextCompat
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
 /**
@@ -14,9 +16,12 @@ import me.tatarka.inject.annotations.Inject
  * upon completion, or coroutine cancellation
  */
 @Inject
-class OneShotMediaControllerConnector(private val application: Application) {
+class OneShotMediaControllerConnector(
+  private val application: Application,
+  private val dispatcherProvider: DispatcherProvider,
+) {
 
-  suspend fun fire(onConnected: suspend () -> Unit) {
+  suspend fun fire(onConnected: suspend () -> Unit) = withContext(dispatcherProvider.main) {
     val future = suspendCancellableCoroutine { continuation ->
       // Create new token and build new controller
       val sessionToken = SessionToken(application, ComponentName(application, AudioPlayerService::class.java))

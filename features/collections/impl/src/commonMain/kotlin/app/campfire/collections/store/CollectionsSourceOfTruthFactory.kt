@@ -51,7 +51,6 @@ class CollectionsSourceOfTruthFactory(
     return when (operation) {
       is CollectionsStore.Operation.All -> readAll(operation.userId, operation.libraryId)
       is CollectionsStore.Operation.Single -> readSingle(operation.collectionId)
-      else -> throw IllegalArgumentException("Unknown operation: $operation")
     }
   }
 

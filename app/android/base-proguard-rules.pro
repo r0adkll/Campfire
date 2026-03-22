@@ -36,14 +36,14 @@
 -keep public class * extends java.lang.Exception
 
 # Strip out all Logcat calls from release builds
--assumenosideeffects class android.util.Log {
-    public static int v(...);
-    public static int i(...);
-    public static int w(...);
-    public static int d(...);
-    public static int e(...);
-    public static int println(...);
-}
+#-assumenosideeffects class android.util.Log {
+#    public static int v(...);
+#    public static int i(...);
+#    public static int w(...);
+#    public static int d(...);
+#    public static int e(...);
+#    public static int println(...);
+#}
 
 # Don't obfuscate the MainActivity name since we use a string literal in our Widget
 # to launch it when the DI graph is not available
@@ -52,3 +52,18 @@
 # For some reason the Room consumer rules are not getting absorbed and
 # we see this R8 crash since AGP9. Apply the rule manually here to prevent crashing.
 -keep class * extends androidx.room.RoomDatabase { <init>(); }
+
+# libproto uses reflection to deserialize a Proto, which Proguard can't accurately detect.
+# Keep all the class members of any generated messages to ensure we can deserialize properly inside
+# these classes.
+-keepclassmembers class * extends androidx.glance.appwidget.protobuf.GeneratedMessageLite {
+  <fields>;
+}
+-keep public class * extends androidx.glance.appwidget.action.ActionCallback { void <init>(); }
+
+# Workmanager
+
+# Keep InputMerger if not removed during shrinking
+-keepnames class * extends androidx.work.InputMerger
+# Keep constructor on InputMerger if class is kept
+-keepclassmembers class * extends androidx.work.InputMerger { void <init>(); }

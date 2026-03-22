@@ -51,7 +51,6 @@ class PlaylistsSourceOfTruthFactory(
     return when (operation) {
       is PlaylistsStore.Operation.All -> readAll(operation.userId, operation.libraryId)
       is PlaylistsStore.Operation.Single -> readSingle(operation.playlistId, operation.isCreatedId)
-      else -> throw IllegalArgumentException("Unknown operation: $operation")
     }
   }
 

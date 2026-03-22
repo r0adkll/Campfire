@@ -28,7 +28,6 @@ class PlaylistsFetcherFactory(
         is PlaylistsStore.Operation.Single -> api.getPlaylist(operation.playlistId)
           .map { listOf(it.asDomainModel(urlHydrator)) }
           .asFetcherResult()
-        else -> throw IllegalArgumentException("Unknown operation: $operation")
       }
     }
   }

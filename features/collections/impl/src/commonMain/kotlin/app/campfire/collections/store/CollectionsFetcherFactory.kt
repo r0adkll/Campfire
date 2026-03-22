@@ -28,7 +28,6 @@ class CollectionsFetcherFactory(
         is CollectionsStore.Operation.Single -> api.getCollection(operation.collectionId)
           .map { listOf(it.asDomainModel(urlHydrator)) }
           .asFetcherResult()
-        else -> throw IllegalArgumentException("Unknown operation: $operation")
       }
     }
   }

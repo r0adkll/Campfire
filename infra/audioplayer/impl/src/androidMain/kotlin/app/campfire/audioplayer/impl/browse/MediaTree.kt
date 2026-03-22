@@ -2,10 +2,10 @@ package app.campfire.audioplayer.impl.browse
 
 import android.app.Application
 import android.content.Context
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.annotation.StringRes
 import androidx.core.net.toUri
-import androidx.core.os.bundleOf
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
@@ -241,9 +241,9 @@ class MediaTree(
         .setTotalTrackCount(media.numChapters)
         .fluentIf(titleHint != null) {
           setExtras(
-            bundleOf(
-              MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE to titleHint,
-            ),
+            Bundle().apply {
+              putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
+            },
           )
         }
         .setIsBrowsable(false)
@@ -271,9 +271,9 @@ class MediaTree(
         .setIsPlayable(false)
         .fluentIf(titleHint != null) {
           setExtras(
-            bundleOf(
-              MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE to titleHint,
-            ),
+            Bundle().apply {
+              putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
+            },
           )
         }
         .build(),
@@ -309,9 +309,9 @@ class MediaTree(
         .setIsPlayable(false)
         .fluentIf(titleHint != null) {
           setExtras(
-            bundleOf(
-              MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE to titleHint,
-            ),
+            Bundle().apply {
+              putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
+            },
           )
         }
         .build(),
@@ -344,10 +344,12 @@ enum class TopLevelMediaItem(
         .setIsPlayable(false)
         .fluentIf(isGridLayout) {
           setExtras(
-            bundleOf(
-              MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE to
+            Bundle().apply {
+              putInt(
+                MediaConstants.EXTRAS_KEY_CONTENT_STYLE_PLAYABLE,
                 MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_GRID_ITEM,
-            ),
+              )
+            },
           )
         }
         .build(),
