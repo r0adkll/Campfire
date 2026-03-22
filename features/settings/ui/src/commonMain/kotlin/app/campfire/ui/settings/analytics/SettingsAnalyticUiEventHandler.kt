@@ -27,6 +27,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEna
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHistoryEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
@@ -85,6 +86,7 @@ class SettingsAnalyticUiEventHandler(
       )
       is SyncEnabled -> send("sync", Updated, event.enabled)
       is AutoSyncEnabled -> send("auto_sync", Updated, event.enabled)
+      is PlaybackHistoryEnabled -> send("playback_history", Updated, event.enabled)
     }
 
     is SettingsUiEvent.SleepSettingEvent -> when (event) {

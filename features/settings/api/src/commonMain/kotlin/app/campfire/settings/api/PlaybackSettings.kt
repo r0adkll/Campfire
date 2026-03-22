@@ -40,4 +40,11 @@ interface PlaybackSettings {
    */
   var autoSyncEnabled: Boolean
   fun observeAutoSyncEnabled(): StateFlow<Boolean>
+
+  /**
+   * When true, playback actions (play, pause, seek, etc.) will be recorded to a local history.
+   * When false, playback history is disabled and all existing history is cleared.
+   */
+  var playbackHistoryEnabled: Boolean
+  fun observePlaybackHistoryEnabled(): StateFlow<Boolean>
 }

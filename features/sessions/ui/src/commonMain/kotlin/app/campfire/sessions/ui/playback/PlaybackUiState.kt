@@ -25,6 +25,7 @@ data class PlaybackUiState(
   val syncUiState: SyncUiState,
   val themeState: ThemeUiState,
   val validation: LibraryItemValidation,
+  val playbackHistoryEnabled: Boolean,
   val eventSink: (PlaybackUiEvent) -> Unit,
 )
 

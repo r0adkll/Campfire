@@ -58,6 +58,7 @@ data class PlaybackSettingsInfo(
   val remoteNextPrevSkipsChapters: Boolean,
   val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
+  val playbackHistoryEnabled: Boolean,
 )
 
 @Immutable
@@ -149,6 +150,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class RemoteNextPrevSkipsChapters(val remoteNextPrevSkipsChapters: Boolean) : PlaybackSettingEvent
     data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoSyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
+    data class PlaybackHistoryEnabled(val enabled: Boolean) : PlaybackSettingEvent
   }
 
   // Sleep Setting Events

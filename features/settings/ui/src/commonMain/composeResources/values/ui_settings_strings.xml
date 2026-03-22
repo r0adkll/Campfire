@@ -63,6 +63,9 @@
   <string name="setting_playback_remote_skip_title">Bluetooth next/prev skips chapters</string>
   <string name="setting_playback_remote_skip_subtitle">When enabled, Bluetooth next/previous buttons skip to next/previous chapter. When disabled, they seek forward/backward by the configured time.</string>
   <string name="header_synchronization">Synchronization</string>
+  <string name="header_playback_history">History</string>
+  <string name="setting_playback_history_title">Enable playback history</string>
+  <string name="setting_playback_history_subtitle">Record playback actions like play, pause, and seek. Disabling this will clear all existing history.</string>
   <string name="setting_playback_sync_title">Enable synchronization</string>
   <string name="setting_playback_sync_subtitle">Show available playback updates from the server when there is a newer position available</string>
   <string name="setting_playback_auto_sync_title">Enable automatic synchronization</string>

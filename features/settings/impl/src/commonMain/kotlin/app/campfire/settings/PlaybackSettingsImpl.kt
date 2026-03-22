@@ -103,6 +103,16 @@ class PlaybackSettingsImpl(
       .stateIn(settingsScope, SharingStarted.Lazily, autoSyncEnabled)
   }
 
+  override var playbackHistoryEnabled: Boolean by booleanSetting(
+    PREF_PLAYBACK_HISTORY,
+    DEFAULT_PLAYBACK_HISTORY,
+  )
+
+  override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> {
+    return flowSettings.getBooleanFlow(PREF_PLAYBACK_HISTORY, DEFAULT_PLAYBACK_HISTORY)
+      .stateIn(settingsScope, SharingStarted.Lazily, playbackHistoryEnabled)
+  }
+
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 }
 
@@ -126,3 +136,5 @@ internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_
 internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = true
 internal const val DEFAULT_SYNCHRONIZATION = true
 internal const val DEFAULT_AUTO_SYNC = true
+internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
+internal const val DEFAULT_PLAYBACK_HISTORY = true

@@ -10,6 +10,7 @@ import androidx.compose.runtime.snapshotFlow
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.analytics.Analytics
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AttributionScreen
@@ -50,6 +51,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEna
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHistoryEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
@@ -98,6 +100,7 @@ class SettingsPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
 ) : NonPausablePresenter<SettingsUiState> {
@@ -132,6 +135,7 @@ class SettingsPresenter(
     }.collectAsState()
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
+    val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -202,6 +206,7 @@ class SettingsPresenter(
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         syncEnabled = syncEnabled,
         autoSyncEnabled = syncEnabled && autoSyncEnabled,
+        playbackHistoryEnabled = playbackHistoryEnabled,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -272,6 +277,12 @@ class SettingsPresenter(
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
           is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
           is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
+          is PlaybackHistoryEnabled -> {
+            playbackSettings.playbackHistoryEnabled = event.enabled
+            if (!event.enabled) {
+              scope.launch { playbackHistoryRepository.clearAll() }
+            }
+          }
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

@@ -10,6 +10,7 @@ import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
+import app.campfire.settings.api.PlaybackSettings
 import app.campfire.data.PlaybackAction as DbPlaybackAction
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
@@ -29,6 +30,7 @@ class SqlDelightPlaybackHistoryRepository(
   private val userSession: UserSession,
   private val database: CampfireDatabase,
   private val fatherTime: FatherTime,
+  private val playbackSettings: PlaybackSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackHistoryRepository {
 
@@ -38,6 +40,7 @@ class SqlDelightPlaybackHistoryRepository(
     fromPosition: Duration,
     toPosition: Duration?,
   ) {
+    if (!playbackSettings.playbackHistoryEnabled) return
     val userId = userSession.userId ?: return
     write {
       database.playbackActionQueries.insert(

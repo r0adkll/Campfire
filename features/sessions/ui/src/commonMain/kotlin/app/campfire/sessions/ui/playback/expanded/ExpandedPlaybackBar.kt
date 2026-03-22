@@ -146,6 +146,7 @@ internal fun <T> T.ExpandedPlaybackBar(
       playerState = playbackState.playerState,
       queueState = playbackState.queueState,
       syncState = playbackState.syncUiState,
+      playbackHistoryEnabled = playbackState.playbackHistoryEnabled,
       onClose = onClose,
       sharedTransitionScope = this,
       animatedVisibilityScope = this,
@@ -164,6 +165,7 @@ internal fun ExpandedPlaybackBar(
   playerState: PlayerUiState,
   queueState: QueueUiState,
   syncState: SyncUiState,
+  playbackHistoryEnabled: Boolean,
 
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -321,6 +323,7 @@ internal fun ExpandedPlaybackBar(
             playerState = playerState,
             syncState = syncState,
             itemValidation = itemValidation,
+            playbackHistoryEnabled = playbackHistoryEnabled,
             onClose = onClose,
             windowSizeClass = windowSizeClass,
             animatedVisibilityScope = animatedVisibilityScope,
@@ -343,6 +346,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   playerState: PlayerUiState,
   syncState: SyncUiState,
   itemValidation: LibraryItemValidation,
+  playbackHistoryEnabled: Boolean,
 
   onClose: () -> Unit,
 
@@ -569,6 +573,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           }
         }
       },
+      showHistory = playbackHistoryEnabled,
     )
   }
 }

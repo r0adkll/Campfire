@@ -78,6 +78,7 @@ class PlaybackPresenter(
     val syncState = observeSyncState(currentSession, expanded)
     val themeState = observeThemeState(currentSession)
     val itemValidation = observeItemValidation(currentSession)
+    val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
 
     return PlaybackUiState(
       session = currentSession.value,
@@ -86,6 +87,7 @@ class PlaybackPresenter(
       themeState = themeState,
       syncUiState = syncState,
       validation = itemValidation,
+      playbackHistoryEnabled = playbackHistoryEnabled,
     ) { event ->
       when (event) {
         PlaybackUiEvent.ClearSession -> {

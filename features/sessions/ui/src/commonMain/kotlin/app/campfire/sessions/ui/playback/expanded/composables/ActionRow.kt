@@ -24,6 +24,7 @@ internal fun ActionRow(
   timerContent: @Composable () -> Unit,
   onChapterListClick: () -> Unit,
   onHistoryClick: () -> Unit,
+  showHistory: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Row(
@@ -70,14 +71,16 @@ internal fun ActionRow(
       }
     }
 
-    Box(
-      modifier = Modifier.weight(1f),
-      contentAlignment = Alignment.Center,
-    ) {
-      IconButton(
-        onClick = onHistoryClick,
+    if (showHistory) {
+      Box(
+        modifier = Modifier.weight(1f),
+        contentAlignment = Alignment.Center,
       ) {
-        Icon(Icons.Rounded.History, contentDescription = null)
+        IconButton(
+          onClick = onHistoryClick,
+        ) {
+          Icon(Icons.Rounded.History, contentDescription = null)
+        }
       }
     }
   }

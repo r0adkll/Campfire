@@ -11,6 +11,7 @@ import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TimeJumpSetting
 import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.header_playback_history
 import campfire.features.settings.ui.generated.resources.header_synchronization
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_title
@@ -18,6 +19,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_backwa
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_title
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_title
+import campfire.features.settings.ui.generated.resources.setting_playback_history_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_history_title
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_title
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_subtitle
@@ -115,6 +118,19 @@ internal fun PlaybackPane(
         supportingContent = { Text(stringResource(Res.string.setting_playback_auto_sync_subtitle)) },
       )
     }
+
+    Header(
+      title = { Text(stringResource(Res.string.header_playback_history)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.playbackHistoryEnabled,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.PlaybackHistoryEnabled(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_history_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_history_subtitle)) },
+    )
   }
 }
 

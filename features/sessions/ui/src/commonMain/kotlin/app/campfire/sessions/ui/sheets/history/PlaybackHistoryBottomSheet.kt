@@ -5,11 +5,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,12 +49,12 @@ import app.campfire.audioplayer.history.PlaybackAction
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.clockFormat
+import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableFormat
-import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
@@ -160,7 +160,6 @@ private fun PlaybackHistoryBottomSheet(
       }
     },
   ) {
-
     if (actions.isEmpty()) {
       Column(
         modifier = Modifier
