@@ -6,6 +6,9 @@
   <string name="time_ago_months">%1$d months ago</string>
   <string name="time_ago_years">%1$d years ago</string>
 
+  <string name="relative_day_today">Today</string>
+  <string name="relative_day_yesterday">Yesterday</string>
+
   <string name="added_time_ago">Added %1$s</string>
 
   <string name="unknown_library_title">Unknown</string>

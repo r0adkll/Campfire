@@ -4,6 +4,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -34,8 +35,9 @@ internal val SessionSheetTitleHeight = 56.dp
 
 @Composable
 internal fun SessionSheetLayout(
-  title: @Composable BoxScope.() -> Unit,
+  title: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  subtitle: @Composable () -> Unit = {},
   trailingContent: @Composable BoxScope.() -> Unit = {},
   titleBarHeight: Dp = SessionSheetTitleHeight,
   colors: SessionSheetColors = SessionSheetDefaults.colors(),
@@ -70,12 +72,25 @@ internal fun SessionSheetLayout(
           .height(titleBarHeight),
         contentAlignment = Alignment.Center,
       ) {
-        ProvideTextStyle(
-          MaterialTheme.typography.titleLarge.copy(
-            fontWeight = FontWeight.SemiBold,
-          ),
+        Column(
+          verticalArrangement = Arrangement.spacedBy(2.dp),
+          horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-          title()
+          ProvideTextStyle(
+            MaterialTheme.typography.titleLarge.copy(
+              fontWeight = FontWeight.SemiBold,
+            ),
+          ) {
+            title()
+          }
+
+          ProvideTextStyle(
+            MaterialTheme.typography.labelMedium.copy(
+              fontWeight = FontWeight.SemiBold,
+            ),
+          ) {
+            subtitle()
+          }
         }
 
         trailingContent()

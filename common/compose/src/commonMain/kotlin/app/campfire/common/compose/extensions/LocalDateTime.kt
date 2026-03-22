@@ -1,8 +1,11 @@
 package app.campfire.common.compose.extensions
 
 import androidx.compose.runtime.Composable
+import app.campfire.core.extensions.capitalized
 import app.campfire.core.extensions.epochMilliseconds
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.relative_day_today
+import campfire.common.compose.generated.resources.relative_day_yesterday
 import campfire.common.compose.generated.resources.time_ago_days
 import campfire.common.compose.generated.resources.time_ago_hours
 import campfire.common.compose.generated.resources.time_ago_minutes
@@ -14,7 +17,12 @@ import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.minus
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 val LocalDateTime.timeAgo: String
@@ -41,5 +49,20 @@ val Long.timeAgo: String
         (elapsedDuration.inWholeDays / 30).toInt(),
       )
       else -> stringResource(Res.string.time_ago_years, (elapsedDuration.inWholeDays / 365).toInt())
+    }
+  }
+
+val LocalDate.relativeDayLabel: String
+  @Composable get() {
+    val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date
+    val yesterday = today.minus(1, DateTimeUnit.DAY)
+    return when (this) {
+      today -> stringResource(Res.string.relative_day_today)
+      yesterday -> stringResource(Res.string.relative_day_yesterday)
+      else -> if (year == today.year) {
+        "${month.name.capitalized()} $dayOfMonth"
+      } else {
+        "${month.name.capitalized()} $dayOfMonth, $year"
+      }
     }
   }

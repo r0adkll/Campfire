@@ -1,8 +1,11 @@
 package app.campfire.sessions.ui.sheets.history
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.history.PlaybackAction
@@ -50,6 +54,7 @@ import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableFormat
+import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
@@ -125,6 +130,15 @@ private fun PlaybackHistoryBottomSheet(
     title = {
       Text(stringResource(Res.string.history_bottomsheet_title))
     },
+    subtitle = {
+      Text(
+        text = "Tap an event to jump to that position",
+        style = MaterialTheme.typography.labelMedium,
+        fontStyle = FontStyle.Italic,
+        fontWeight = FontWeight.Medium,
+        color = MaterialTheme.colorScheme.tertiary,
+      )
+    },
     trailingContent = {
       AnimatedVisibility(
         visible = actions.isNotEmpty(),
@@ -146,6 +160,7 @@ private fun PlaybackHistoryBottomSheet(
       }
     },
   ) {
+
     if (actions.isEmpty()) {
       Column(
         modifier = Modifier
@@ -178,21 +193,45 @@ private fun PlaybackHistoryBottomSheet(
         sessionSheetState.isScrolled = isScrolled
       }
 
+      val groupedActions = remember(actions) {
+        actions.groupBy { it.timestamp.date }
+      }
+
       LazyColumn(
         state = lazyListState,
       ) {
-        items(
-          items = actions,
-          key = { it.id },
-        ) { action ->
-          PlaybackHistoryItem(
-            action = action,
-            modifier = Modifier.clickable {
-              navigator.finish(
-                PlaybackHistoryResult.Selected(action),
+        groupedActions.forEach { (date, dayActions) ->
+          item(key = date) {
+            Box(
+              modifier = Modifier
+                .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(horizontal = 16.dp),
+              contentAlignment = Alignment.CenterStart,
+            ) {
+              Text(
+                text = date.relativeDayLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.SemiBold,
               )
-            },
-          )
+            }
+          }
+
+          items(
+            items = dayActions,
+            key = { it.id },
+          ) { action ->
+            PlaybackHistoryItem(
+              action = action,
+              modifier = Modifier.clickable {
+                navigator.finish(
+                  PlaybackHistoryResult.Selected(action),
+                )
+              },
+            )
+          }
         }
       }
     }

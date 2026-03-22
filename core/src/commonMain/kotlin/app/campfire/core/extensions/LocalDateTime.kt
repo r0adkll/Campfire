@@ -12,7 +12,7 @@ val LocalDateTime.readableFormat: String
     val hourAdjusted = hour % 12
     val amPM = if (hour < 12) "AM" else "PM"
     return if (now.date == date) {
-      "$hourAdjusted:$minute $amPM"
+      "$hourAdjusted:${minute.withSignificantZero()} $amPM"
     } else {
       "${month.name.capitalized()} $day, $year $hourAdjusted:${minute.withSignificantZero()} $amPM"
     }
