@@ -14,8 +14,8 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.LogPriority
-import com.google.android.gms.cast.framework.CastStateListener
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
+import com.google.android.gms.cast.framework.CastStateListener
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
