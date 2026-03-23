@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Cast / Output device list not always showing available / current device(s)
+
 ### Other Notes & Contributions
 
 ## [0.11.0-beta]
