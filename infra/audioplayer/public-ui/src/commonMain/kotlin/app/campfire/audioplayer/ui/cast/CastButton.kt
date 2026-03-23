@@ -53,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -352,14 +353,14 @@ private fun CastDeviceListItem(
     RoundedCornerShape(16.dp)
   }
   val containerColor = if (device.isSelected) {
-    MaterialTheme.colorScheme.primaryContainer
-  } else {
-    MaterialTheme.colorScheme.secondaryContainer
-  }
-  val contentColor = if (device.isSelected) {
     MaterialTheme.colorScheme.primary
   } else {
-    MaterialTheme.colorScheme.onSecondaryContainer
+    MaterialTheme.colorScheme.surfaceContainerHighest
+  }
+  val contentColor = if (device.isSelected) {
+    MaterialTheme.colorScheme.onPrimary
+  } else {
+    MaterialTheme.colorScheme.onSurfaceVariant
   }
   Row(
     modifier = modifier
@@ -390,6 +391,7 @@ private fun CastDeviceListItem(
           AsyncImage(
             model = uri,
             contentDescription = null,
+            colorFilter = ColorFilter.tint(contentColor),
             modifier = Modifier
               .size(24.dp),
           )
@@ -406,7 +408,7 @@ private fun CastDeviceListItem(
       ) {
         Text(
           text = device.displayName,
-          style = MaterialTheme.typography.titleSmall,
+          style = MaterialTheme.typography.titleMedium,
         )
 
         device.description?.let { desc ->

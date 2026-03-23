@@ -14,9 +14,8 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.LogPriority
-import com.google.android.gms.cast.framework.CastContext
-import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
+import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
@@ -37,21 +36,18 @@ class MediaRouterCastController(
   override val tag: String = "CastContextController"
 
   override val state = MutableStateFlow(CastState.Unavailable)
-
-  private var selectedRoute: RouteInfo? = null
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
 
   @MainThread
   fun initialize() {
     try {
-      val context = CastContext.getSharedInstance(application)
-
-      context.addCastStateListener(this)
+      val castContext = SafeCastContext.getContext(application) ?: return
+      castContext.addCastStateListener(this)
 
       // Emit the current state, if any
-      state.value = context.castState.asDomain()
+      state.value = castContext.castState.asDomain()
 
-      ibark { "CastController:initialize(state = ${context.castState.asDomain()})" }
+      ibark { "CastController:initialize(state = ${castContext.castState.asDomain()})" }
     } catch (e: Throwable) {
       wbark(throwable = e) { "Unable to initialize CastContext" }
     }
@@ -60,12 +56,12 @@ class MediaRouterCastController(
   @MainThread
   fun destroy() {
     try {
-      val context = CastContext.getSharedInstance(application)
-      context.removeCastStateListener(this)
+      SafeCastContext.getContext(application)?.removeCastStateListener(this)
     } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to destroy CastContext" }
     } finally {
       state.value = CastState.Unavailable
+      availableDevices.value = emptyList()
     }
   }
 
@@ -81,6 +77,10 @@ class MediaRouterCastController(
       val mediaRouter = MediaRouter.getInstance(application)
 
       mediaRouter.addCallback(selector, this, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
+
+      // Enumerate existing routes immediately so devices that are already
+      // available appear without waiting for a callback event.
+      updateDevices(mediaRouter)
 
       ibark { "CastController:scanForDevices()" }
     } catch (e: Throwable) {
@@ -117,6 +117,14 @@ class MediaRouterCastController(
   override fun onCastStateChanged(castState: Int) {
     state.value = castState.asDomain()
     ibark { "CastController:onCastStateChanged(state = ${castState.asDomain()})" }
+
+    // Refresh device list so isSelected stays in sync with Cast state changes
+    try {
+      val mediaRouter = MediaRouter.getInstance(application)
+      updateDevices(mediaRouter)
+    } catch (e: Throwable) {
+      wbark(throwable = e) { "Failed to update devices after cast state change" }
+    }
   }
 
   /*
@@ -128,13 +136,12 @@ class MediaRouterCastController(
       "CastController:onRouteSelected(device = ${selectedRoute.id}, reason = $reason, " +
         "requestedRoute = ${requestedRoute.id})"
     }
-    this.selectedRoute = requestedRoute
-    updateDevices(router)
+    updateDevicesAndState(router)
   }
 
   override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
     ibark { "CastController:onRouteUnselected(device = ${route.id}, reason = $reason)" }
-    updateDevices(router)
+    updateDevicesAndState(router)
   }
 
   override fun onRouteAdded(
@@ -142,7 +149,7 @@ class MediaRouterCastController(
     route: RouteInfo,
   ) {
     ibark { "CastController:onRouteAdded(route = ${route.id})" }
-    updateDevices(router)
+    updateDevicesAndState(router)
   }
 
   override fun onRouteRemoved(
@@ -150,15 +157,39 @@ class MediaRouterCastController(
     route: RouteInfo,
   ) {
     ibark { "CastController:onRouteRemoved(route = ${route.id})" }
+    updateDevicesAndState(router)
+  }
+
+  override fun onRouteChanged(
+    router: MediaRouter,
+    route: RouteInfo,
+  ) {
+    ibark { "CastController:onRouteChanged(route = ${route.id})" }
+    updateDevicesAndState(router)
+  }
+
+  /**
+   * Update both the device list and derive connection state from
+   * the MediaRouter's selected route so non-Cast devices (Bluetooth,
+   * wired headphones, etc.) are accurately reflected.
+   */
+  private fun updateDevicesAndState(router: MediaRouter) {
     updateDevices(router)
+
+    val selected = router.selectedRoute
+    if (!selected.isDefaultOrBluetooth()) {
+      // A non-default, non-system route is selected – treat as connected
+      state.value = CastState.Connected
+    }
+    // Otherwise let the CastStateListener drive the state value
   }
 
   private fun updateDevices(router: MediaRouter) {
+    val selectedRouteId = router.selectedRoute.id
+
     availableDevices.value = router.routes
-      .filter {
-        it.isEnabled ||
-          it.description == "Google Cast Multizone Member"
-      }
+      .filter { it.isEnabled }
+      .filter { it.description != "Google Cast Multizone Member" }
       .filter { route ->
         val extras: Bundle? = route.extras
         if (extras != null) {
@@ -178,7 +209,9 @@ class MediaRouterCastController(
           else -> Int.MAX_VALUE
         }
       }
-      .map { MediaRouterCastDevice(it, it == selectedRoute) }
+      .map { route ->
+        MediaRouterCastDevice(route, isSelected = route.id == selectedRouteId)
+      }
   }
 }
 
