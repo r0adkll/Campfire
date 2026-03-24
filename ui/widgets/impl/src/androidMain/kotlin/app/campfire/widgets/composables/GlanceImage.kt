@@ -14,6 +14,7 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.appwidget.CircularProgressIndicator
+import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
@@ -30,6 +31,8 @@ import kotlinx.coroutines.withContext
 internal fun GlanceImage(
   url: Any?,
   modifier: GlanceModifier = GlanceModifier,
+  contentScale: ContentScale = ContentScale.Crop,
+  colorFilter: ColorFilter? = null,
 ) {
   val context = LocalContext.current
   var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
@@ -55,10 +58,8 @@ internal fun GlanceImage(
         provider = ImageProvider(bitmap!!),
         contentDescription = null,
         modifier = modifier,
-        contentScale = ContentScale.Crop,
-        colorFilter = ColorFilter.tint(
-          GlanceTheme.colors.secondary.withAlpha(0.75f),
-        ),
+        contentScale = contentScale,
+        colorFilter = colorFilter,
       )
     } else {
       Box(
@@ -67,6 +68,45 @@ internal fun GlanceImage(
       ) {
         CircularProgressIndicator()
       }
+    }
+  }
+}
+
+
+
+@Composable
+internal fun GlanceModifier.imageBackground(
+  url: Any?,
+  contentScale: ContentScale = ContentScale.Crop,
+  colorFilter: ColorFilter? = null,
+): GlanceModifier {
+  val context = LocalContext.current
+  var bitmap by remember(url) { mutableStateOf<Bitmap?>(null) }
+
+  LaunchedEffect(url) {
+    withContext(Dispatchers.IO) {
+      val request = ImageRequest.Builder(context)
+        .data(url)
+        .build()
+
+      bitmap = when (val result = context.imageLoader.execute(request)) {
+        is ErrorResult -> null
+        is SuccessResult -> {
+          result.image.toBitmap()
+        }
+      }
+    }
+  }
+
+  return bitmap.let {
+    if (bitmap != null) {
+      this.background(
+        imageProvider = ImageProvider(bitmap!!),
+        contentScale = contentScale,
+        colorFilter = colorFilter,
+      )
+    } else {
+      this
     }
   }
 }

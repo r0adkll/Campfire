@@ -24,10 +24,9 @@ import app.campfire.widgets.theme.withAlpha
 @Composable
 internal fun WidgetScaffold(
   sizeClass: WidgetSizeClass,
-  artworkUrl: String?,
   onClick: Action,
   modifier: GlanceModifier = GlanceModifier,
-  defaultBackground: ImageProvider = ImageProvider(R.drawable.default_background),
+  defaultBackground: ImageProvider? = null,
   playbackContent: @Composable () -> Unit,
   content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -39,13 +38,7 @@ internal fun WidgetScaffold(
       .background(GlanceTheme.colors.background),
     contentAlignment = Alignment.BottomStart,
   ) {
-    if (artworkUrl != null) {
-      GlanceImage(
-        url = artworkUrl,
-        modifier = GlanceModifier
-          .fillMaxSize(),
-      )
-    } else {
+    if (defaultBackground != null) {
       Image(
         provider = defaultBackground,
         contentScale = ContentScale.Crop,

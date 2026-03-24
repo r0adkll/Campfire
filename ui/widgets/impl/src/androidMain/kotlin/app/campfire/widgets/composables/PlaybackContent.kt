@@ -7,13 +7,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.RowScope
 import androidx.glance.layout.Spacer
@@ -31,14 +35,17 @@ import androidx.glance.unit.ColorProvider
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.fluentIf
+import app.campfire.widgets.R
 import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import app.campfire.widgets.theme.LocalContentColorProvider
+import app.campfire.widgets.theme.withAlpha
 import kotlin.time.Duration
 
 @Composable
 internal fun ConstrainedPlaybackContent(
   title: String,
   subtitle: String,
+  artworkUrl: String?,
   playbackState: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
@@ -47,7 +54,6 @@ internal fun ConstrainedPlaybackContent(
   modifier: GlanceModifier = GlanceModifier,
   height: Dp = 110.dp,
   backgroundColor: ColorProvider? = GlanceTheme.colors.secondaryContainer,
-  contentColor: ColorProvider = GlanceTheme.colors.onSecondaryContainer,
   content: @Composable RowScope.() -> Unit = {
     PlaybackContent(
       title = title,
@@ -73,6 +79,12 @@ internal fun ConstrainedPlaybackContent(
         .fluentIf(backgroundColor != null) {
           background(backgroundColor!!)
         }
+        .imageBackground(
+          url = artworkUrl,
+          colorFilter = ColorFilter.tint(
+            GlanceTheme.colors.secondary.withAlpha(0.75f),
+          ),
+        )
         .padding(
           horizontal = if (widthSizeClass == WidgetWidthClass.Expanded) {
             24.dp
@@ -87,11 +99,7 @@ internal fun ConstrainedPlaybackContent(
         Alignment.CenterHorizontally
       },
       content = {
-        CompositionLocalProvider(
-          LocalContentColorProvider provides contentColor,
-        ) {
-          content()
-        }
+        content()
       },
     )
 
@@ -113,17 +121,40 @@ internal fun ConstrainedPlaybackContent(
 internal fun FullPlaybackContent(
   title: String,
   subtitle: String,
+  artworkUrl: String?,
   playbackState: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
   playbackSpeed: Float,
   widthSizeClass: WidgetWidthClass,
   modifier: GlanceModifier = GlanceModifier,
+  defaultBackground: ImageProvider = ImageProvider(R.drawable.default_background),
 ) {
   Box(
     modifier = modifier,
     contentAlignment = Alignment.BottomStart,
   ) {
+    if (artworkUrl != null) {
+      GlanceImage(
+        url = artworkUrl,
+        modifier = GlanceModifier
+          .fillMaxSize(),
+        colorFilter = ColorFilter.tint(
+          GlanceTheme.colors.secondary.withAlpha(0.75f),
+        ),
+      )
+    } else {
+      Image(
+        provider = defaultBackground,
+        contentScale = ContentScale.Crop,
+        contentDescription = null,
+        colorFilter = ColorFilter.tint(
+          GlanceTheme.colors.secondary.withAlpha(0.5f),
+        ),
+        modifier = GlanceModifier.fillMaxSize(),
+      )
+    }
+
     Row(
       modifier = GlanceModifier
         .fillMaxSize()

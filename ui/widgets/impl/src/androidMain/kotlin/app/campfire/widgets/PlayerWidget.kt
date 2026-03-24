@@ -2,8 +2,6 @@ package app.campfire.widgets
 
 import android.content.ComponentName
 import android.content.Context
-import android.os.Build
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
@@ -38,28 +36,34 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.ShelfType
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.user
 import app.campfire.home.api.HomeRepository
+import app.campfire.home.api.model.ShelfIds
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
-import app.campfire.widgets.composables.ChapterListContent
 import app.campfire.widgets.composables.ConstrainedPlaybackContent
 import app.campfire.widgets.composables.FullPlaybackContent
 import app.campfire.widgets.composables.PlaybackInfo
+import app.campfire.widgets.composables.ShelfContent
 import app.campfire.widgets.composables.WidgetHeightClass
 import app.campfire.widgets.composables.WidgetScaffold
 import app.campfire.widgets.composables.WidgetSizeClass
 import app.campfire.widgets.composables.WidgetWidthClass
-import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onEach
 
 @ContributesTo(UserScope::class)
 interface PlayerWidgetComponent {
+  val playerWidgetUserSession: UserSession
   val sessionsRepository: SessionsRepository
   val audioPlayerHolder: AudioPlayerHolder
   val activityIntentProgression: ActivityIntentProvider
@@ -134,6 +138,21 @@ class PlayerWidget : GlanceAppWidget() {
         ?: emptyFlow()
     }.collectAsState(null)
 
+    val discoverShelf by remember(component, widgetSizeClass) {
+      val userSession = component?.playerWidgetUserSession
+      component?.homeRepository
+        ?.takeIf {
+          widgetSizeClass.widthSizeClass == WidgetWidthClass.Expanded &&
+            widgetSizeClass.heightSizeClass > WidgetHeightClass.Single
+        }
+        ?.observeShelf("${ShelfIds.Discover}_${userSession?.user?.id}_${userSession?.user?.selectedLibraryId}", ShelfType.BOOK)
+        ?.onEach {
+          bark("WidgetShelf") { "entities: $it" }
+        }
+        ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
+        ?: emptyFlow()
+    }.collectAsState(null)
+
     val audioPlayer by remember(component) {
       component?.audioPlayerHolder?.currentPlayer ?: MutableStateFlow(null)
     }.collectAsState()
@@ -147,10 +166,6 @@ class PlayerWidget : GlanceAppWidget() {
         audioPlayer?.state ?: MutableStateFlow(AudioPlayer.State.Disabled)
       }.collectAsState()
 
-      val showTimeInBook = remember(component) {
-        component?.settings?.observeShowTimeInBook() ?: emptyFlow()
-      }.collectAsState(true)
-
       val currentTime = currentState(KEY_CURRENT_TIME)?.seconds ?: Duration.ZERO
       val currentDuration = currentState(KEY_CURRENT_DURATION)?.seconds ?: Duration.ZERO
       val playbackSpeed = currentState(KEY_PLAYBACK_SPEED) ?: 1f
@@ -162,10 +177,9 @@ class PlayerWidget : GlanceAppWidget() {
         playbackState = state.value,
         currentTime = currentTime,
         currentDuration = currentDuration,
-        currentPlayingChapterId = -1,
         playbackSpeed = playbackSpeed,
         libraryItem = currentSession?.libraryItem,
-        showTimeInBook = showTimeInBook.value,
+        discoverItems = discoverShelf,
         onClick = mainActivityAction,
         widgetSizeClass = widgetSizeClass,
         modifier = modifier,
@@ -190,17 +204,15 @@ class PlayerWidget : GlanceAppWidget() {
     playbackState: AudioPlayer.State,
     currentTime: Duration,
     currentDuration: Duration,
-    currentPlayingChapterId: Int,
     playbackSpeed: Float,
     libraryItem: LibraryItem?,
-    showTimeInBook: Boolean,
+    discoverItems: List<LibraryItem>?,
     onClick: Action,
     widgetSizeClass: WidgetSizeClass,
     modifier: GlanceModifier = GlanceModifier,
   ) {
     WidgetScaffold(
       sizeClass = widgetSizeClass,
-      artworkUrl = artworkUrl,
       onClick = onClick,
       modifier = modifier,
       playbackContent = {
@@ -211,6 +223,7 @@ class PlayerWidget : GlanceAppWidget() {
           FullPlaybackContent(
             title = title,
             subtitle = subtitle,
+            artworkUrl = artworkUrl,
             playbackState = playbackState,
             currentTime = currentTime,
             currentDuration = currentDuration,
@@ -221,20 +234,20 @@ class PlayerWidget : GlanceAppWidget() {
           ConstrainedPlaybackContent(
             title = title,
             subtitle = subtitle,
+            artworkUrl = artworkUrl,
             playbackState = playbackState,
             currentTime = currentTime,
             currentDuration = currentDuration,
             playbackSpeed = playbackSpeed,
             widthSizeClass = widgetSizeClass.widthSizeClass,
+            backgroundColor = null
           )
         }
       },
       content = {
         if (libraryItem != null) {
-          ChapterListContent(
-            item = libraryItem,
-            currentPlayingChapterId = currentPlayingChapterId,
-            showTimeInBook = showTimeInBook,
+          ShelfContent(
+            discoverShelf = discoverItems,
           )
         } else {
           Box(
@@ -260,7 +273,6 @@ class PlayerWidget : GlanceAppWidget() {
   ) {
     WidgetScaffold(
       sizeClass = widgetSizeClass,
-      artworkUrl = null,
       defaultBackground = if (widgetSizeClass.heightSizeClass != WidgetHeightClass.Single) {
         ImageProvider(R.drawable.default_background_expanded)
       } else {
@@ -273,13 +285,13 @@ class PlayerWidget : GlanceAppWidget() {
           ConstrainedPlaybackContent(
             title = title,
             subtitle = subtitle,
+            artworkUrl = null,
             playbackState = AudioPlayer.State.Disabled,
             currentTime = 0.seconds,
             currentDuration = 0.seconds,
             playbackSpeed = 1f,
             widthSizeClass = widgetSizeClass.widthSizeClass,
             backgroundColor = null,
-            contentColor = GlanceTheme.colors.onSecondary,
           ) {
             PlaybackInfo(
               title = title,

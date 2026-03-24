@@ -15,3 +15,20 @@ data class Shelf(
   val type: ShelfType,
   val order: Int,
 )
+
+/**
+ * A concret list of shelf-ids one can expect in the personalized home feed
+ * response.
+ */
+@Suppress("ConstPropertyName")
+object ShelfIds {
+  const val ContinueListening = "continue-listening"
+  const val ContinueSeries = "continue-series"
+  const val ListenAgain = "listen-again"
+  const val EpisodesRecentlyAdded = "episodes-recently-added"
+  const val Recommended = "recommended"
+  const val RecentlyAdded = "recently-added"
+  const val RecentSeries = "recent-series"
+  const val Discover = "discover"
+  const val NewestAuthors = "newest-authors"
+}
