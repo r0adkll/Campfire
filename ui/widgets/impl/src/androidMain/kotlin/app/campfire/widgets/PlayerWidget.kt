@@ -36,6 +36,7 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
@@ -74,21 +75,19 @@ class PlayerWidget : GlanceAppWidget() {
     val KEY_PLAYBACK_SPEED get() = floatPreferencesKey("playback-speed")
   }
 
-  override val sizeMode: SizeMode = SizeMode.Exact
+  override val sizeMode: SizeMode = SizeMode.Responsive(WidgetSizeClass.ResponsiveSizes)
   override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
   override suspend fun provideGlance(context: Context, id: GlanceId) {
-    Log.i("PlayerWidget", "provideGlance[$id]")
     provideContent {
       GlanceTheme(
-        colors = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-          GlanceTheme.colors
-        } else {
-          CampfireGlanceColorScheme.colors
-        },
+        colors = GlanceTheme.colors,
       ) {
         val size = LocalSize.current
         val sizeClass = WidgetSizeClass.from(size)
+        bark {
+          "Widget[$id] - Size [$size]"
+        }
         PlayerWidgetContent(sizeClass)
       }
     }
