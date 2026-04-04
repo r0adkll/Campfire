@@ -24,3 +24,31 @@ fun Float.toString(numOfDec: Int): String {
   val floatDigits = ((thisAbs - integerDigits) * 10f.pow(numOfDec)).roundToInt()
   return "$sign$integerDigits.$floatDigits"
 }
+
+val Float.readable: String
+  get() {
+    val asInt = roundToInt()
+    val isWhole = this == asInt.toFloat()
+    val hasHalf = (this * 10) % 1 == 0.5f
+    return if (isWhole) {
+      "$asInt"
+    } else if (hasHalf) {
+      toString(2)
+    } else {
+      toString(1)
+    }
+  }
+
+val Float.readableHundredths: String
+  get() {
+    val asInt = roundToInt()
+    val isWhole = this == asInt.toFloat()
+    val hasFraction = (this * 10) % 1 != 0.0f
+    return if (isWhole) {
+      "$asInt"
+    } else if (hasFraction) {
+      toString(2)
+    } else {
+      toString(1)
+    }
+  }

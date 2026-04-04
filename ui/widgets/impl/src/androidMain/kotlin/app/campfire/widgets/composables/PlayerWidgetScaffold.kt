@@ -1,0 +1,37 @@
+package app.campfire.widgets.composables
+
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.action.Action
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.appWidgetBackground
+import androidx.glance.background
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.fillMaxSize
+import app.campfire.widgets.theme.LocalContentColorProvider
+
+@Composable
+internal fun PlayerWidgetScaffold(
+  onClick: Action,
+  modifier: GlanceModifier = GlanceModifier,
+  content: @Composable () -> Unit,
+) {
+  Box(
+    modifier = modifier
+      .fillMaxSize()
+      .clickable(onClick)
+      .appWidgetBackground()
+      .background(GlanceTheme.colors.primaryContainer),
+    contentAlignment = Alignment.BottomStart,
+  ) {
+    val localContentColor = GlanceTheme.colors.onSecondary
+    CompositionLocalProvider(
+      LocalContentColorProvider provides localContentColor,
+    ) {
+      content()
+    }
+  }
+}

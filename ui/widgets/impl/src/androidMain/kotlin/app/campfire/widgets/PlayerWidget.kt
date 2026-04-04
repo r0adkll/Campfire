@@ -2,11 +2,14 @@ package app.campfire.widgets
 
 import android.content.ComponentName
 import android.content.Context
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -16,50 +19,52 @@ import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.actionStartActivity
-import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.currentState
-import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
-import androidx.glance.layout.fillMaxWidth
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.common.compose.theme.LocalUseDarkColors
+import app.campfire.common.compose.theme.colorScheme
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
+import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.ShelfType
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.user
 import app.campfire.home.api.HomeRepository
-import app.campfire.home.api.model.ShelfIds
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.ui.theming.api.ThemeManager
+import app.campfire.widgets.composables.CompactPlaybackContent
 import app.campfire.widgets.composables.ConstrainedPlaybackContent
-import app.campfire.widgets.composables.FullPlaybackContent
+import app.campfire.widgets.composables.ExpandedPlaybackContent
+import app.campfire.widgets.composables.SinglePlaybackContent
 import app.campfire.widgets.composables.PlaybackInfo
-import app.campfire.widgets.composables.ShelfContent
+import app.campfire.widgets.composables.PlayerWidgetScaffold
 import app.campfire.widgets.composables.WidgetHeightClass
 import app.campfire.widgets.composables.WidgetScaffold
 import app.campfire.widgets.composables.WidgetSizeClass
 import app.campfire.widgets.composables.WidgetWidthClass
+import app.campfire.widgets.theme.asColorProviders
 import com.r0adkll.kimchi.annotations.ContributesTo
+import com.r0adkll.swatchbuckler.compose.Theme
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.onEach
 
 @ContributesTo(UserScope::class)
 interface PlayerWidgetComponent {
@@ -69,6 +74,7 @@ interface PlayerWidgetComponent {
   val activityIntentProgression: ActivityIntentProvider
   val homeRepository: HomeRepository
   val settings: CampfireSettings
+  val themeManager: ThemeManager
 }
 
 class PlayerWidget : GlanceAppWidget() {
@@ -89,8 +95,8 @@ class PlayerWidget : GlanceAppWidget() {
       ) {
         val size = LocalSize.current
         val sizeClass = WidgetSizeClass.from(size)
-        bark {
-          "Widget[$id] - Size [$size]"
+        bark("PlayerWidget") {
+          "Widget Size [$size] ==> $sizeClass"
         }
         PlayerWidgetContent(sizeClass)
       }
@@ -102,8 +108,11 @@ class PlayerWidget : GlanceAppWidget() {
     val id: String,
     val title: String,
     val libraryItem: LibraryItem,
+    val prevChapter: Chapter?,
+    val nextChapter: Chapter?,
   )
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   private fun PlayerWidgetContent(
     widgetSizeClass: WidgetSizeClass,
@@ -127,10 +136,24 @@ class PlayerWidget : GlanceAppWidget() {
       component?.sessionsRepository?.observeCurrentSession()
         ?.mapNotNull { session ->
           session?.let { s ->
+            val currentChapter = s.chapter
+            var prevChapter: Chapter? = null
+            var nextChapter: Chapter? = null
+            s.libraryItem.media.chapters.let { chapters ->
+              val currentIndex = chapters.indexOf(currentChapter)
+              if (currentIndex > 0) {
+                prevChapter = chapters[currentIndex - 1]
+              }
+              if (currentIndex < chapters.size - 1) {
+                nextChapter = chapters[currentIndex + 1]
+              }
+            }
             SessionLite(
               id = s.id.toHexDashString(),
               title = s.title,
               libraryItem = s.libraryItem,
+              prevChapter = prevChapter,
+              nextChapter = nextChapter,
             )
           }
         }
@@ -138,20 +161,30 @@ class PlayerWidget : GlanceAppWidget() {
         ?: emptyFlow()
     }.collectAsState(null)
 
-    val discoverShelf by remember(component, widgetSizeClass) {
-      val userSession = component?.playerWidgetUserSession
-      component?.homeRepository
-        ?.takeIf {
-          widgetSizeClass.widthSizeClass == WidgetWidthClass.Expanded &&
-            widgetSizeClass.heightSizeClass > WidgetHeightClass.Single
+    val theme by remember {
+      snapshotFlow { currentSession?.libraryItem?.id }
+        .filterNotNull()
+        .flatMapLatest { itemId ->
+          component?.themeManager
+            ?.observeThemeFor(itemId)
+            ?: emptyFlow()
         }
-        ?.observeShelf("${ShelfIds.Discover}_${userSession?.user?.id}_${userSession?.user?.selectedLibraryId}", ShelfType.BOOK)
-        ?.onEach {
-          bark("WidgetShelf") { "entities: $it" }
-        }
-        ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
-        ?: emptyFlow()
     }.collectAsState(null)
+
+//    val discoverShelf by remember(component, widgetSizeClass) {
+//      val userSession = component?.playerWidgetUserSession
+//      component?.homeRepository
+//        ?.takeIf {
+//          widgetSizeClass.width == WidgetWidthClass.Expanded &&
+//            widgetSizeClass.height > WidgetHeightClass.Single
+//        }
+//        ?.observeShelf("${ShelfIds.Discover}_${userSession?.user?.id}_${userSession?.user?.selectedLibraryId}", ShelfType.BOOK)
+//        ?.onEach {
+//          bark("WidgetShelf") { "entities: $it" }
+//        }
+//        ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
+//        ?: emptyFlow()
+//    }.collectAsState(null)
 
     val audioPlayer by remember(component) {
       component?.audioPlayerHolder?.currentPlayer ?: MutableStateFlow(null)
@@ -170,20 +203,26 @@ class PlayerWidget : GlanceAppWidget() {
       val currentDuration = currentState(KEY_CURRENT_DURATION)?.seconds ?: Duration.ZERO
       val playbackSpeed = currentState(KEY_PLAYBACK_SPEED) ?: 1f
 
-      ActiveWidgetContent(
-        title = currentMetadata.value.title ?: currentSession!!.title,
-        subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
-        artworkUrl = currentMetadata.value.artworkUri ?: currentSession!!.libraryItem.media.coverImageUrl,
-        playbackState = state.value,
-        currentTime = currentTime,
-        currentDuration = currentDuration,
-        playbackSpeed = playbackSpeed,
-        libraryItem = currentSession?.libraryItem,
-        discoverItems = discoverShelf,
-        onClick = mainActivityAction,
-        widgetSizeClass = widgetSizeClass,
-        modifier = modifier,
-      )
+      GlanceTheme(
+        colors = theme?.asColorProviders()
+          ?: GlanceTheme.colors
+      ) {
+        ActiveWidgetContent(
+          title = currentMetadata.value.title ?: currentSession!!.title,
+          subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
+          artworkUrl = currentMetadata.value.artworkUri ?: currentSession!!.libraryItem.media.coverImageUrl,
+          playbackState = state.value,
+          currentTime = currentTime,
+          currentDuration = currentDuration,
+          playbackSpeed = playbackSpeed,
+          libraryItem = currentSession?.libraryItem,
+          prevChapter = currentSession?.prevChapter,
+          nextChapter = currentSession?.nextChapter,
+          onClick = mainActivityAction,
+          widgetSizeClass = widgetSizeClass,
+          modifier = modifier,
+        )
+      }
     } else {
       val context = LocalContext.current
       InActiveWidgetContent(
@@ -206,58 +245,55 @@ class PlayerWidget : GlanceAppWidget() {
     currentDuration: Duration,
     playbackSpeed: Float,
     libraryItem: LibraryItem?,
-    discoverItems: List<LibraryItem>?,
+    prevChapter: Chapter?,
+    nextChapter: Chapter?,
     onClick: Action,
     widgetSizeClass: WidgetSizeClass,
     modifier: GlanceModifier = GlanceModifier,
   ) {
-    WidgetScaffold(
-      sizeClass = widgetSizeClass,
+    PlayerWidgetScaffold(
       onClick = onClick,
       modifier = modifier,
-      playbackContent = {
-        if (
-          widgetSizeClass.heightSizeClass == WidgetHeightClass.Single ||
-          widgetSizeClass.widthSizeClass != WidgetWidthClass.Expanded
-        ) {
-          FullPlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-            playbackState = playbackState,
-            currentTime = currentTime,
-            currentDuration = currentDuration,
-            playbackSpeed = playbackSpeed,
-            widthSizeClass = widgetSizeClass.widthSizeClass,
-          )
-        } else {
-          ConstrainedPlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-            playbackState = playbackState,
-            currentTime = currentTime,
-            currentDuration = currentDuration,
-            playbackSpeed = playbackSpeed,
-            widthSizeClass = widgetSizeClass.widthSizeClass,
-            backgroundColor = null
-          )
-        }
-      },
       content = {
-        if (libraryItem != null) {
-          ShelfContent(
-            discoverShelf = discoverItems,
+        when (widgetSizeClass.height) {
+          WidgetHeightClass.Single -> SinglePlaybackContent(
+            title = title,
+            subtitle = subtitle,
+            artworkUrl = artworkUrl,
+            playbackState = playbackState,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
+            sizeClass = widgetSizeClass,
           )
-        } else {
-          Box(
-            modifier = GlanceModifier
-              .fillMaxWidth()
-              .defaultWeight(),
-            contentAlignment = Alignment.Center,
-          ) {
-            CircularProgressIndicator()
-          }
+
+          WidgetHeightClass.LargeCompact,
+          WidgetHeightClass.Compact -> CompactPlaybackContent(
+            title = title,
+            subtitle = subtitle,
+            artworkUrl = artworkUrl,
+            playbackState = playbackState,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
+            prevChapter = prevChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
+            nextChapter = nextChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
+            sizeClass = widgetSizeClass,
+          )
+
+          WidgetHeightClass.Tall,
+          WidgetHeightClass.Expanded -> ExpandedPlaybackContent(
+            title = title,
+            subtitle = subtitle,
+            artworkUrl = artworkUrl,
+            playbackState = playbackState,
+            currentTime = currentTime,
+            currentDuration = currentDuration,
+            playbackSpeed = playbackSpeed,
+            prevChapter = prevChapter,
+            nextChapter = nextChapter,
+            sizeClass = widgetSizeClass,
+          )
         }
       },
     )
@@ -273,7 +309,7 @@ class PlayerWidget : GlanceAppWidget() {
   ) {
     WidgetScaffold(
       sizeClass = widgetSizeClass,
-      defaultBackground = if (widgetSizeClass.heightSizeClass != WidgetHeightClass.Single) {
+      defaultBackground = if (widgetSizeClass.height != WidgetHeightClass.Single) {
         ImageProvider(R.drawable.default_background_expanded)
       } else {
         ImageProvider(R.drawable.default_background)
@@ -281,7 +317,7 @@ class PlayerWidget : GlanceAppWidget() {
       onClick = onClick,
       modifier = modifier,
       playbackContent = {
-        if (widgetSizeClass.widthSizeClass == WidgetWidthClass.Expanded) {
+        if (widgetSizeClass.width == WidgetWidthClass.Expanded) {
           ConstrainedPlaybackContent(
             title = title,
             subtitle = subtitle,
@@ -290,7 +326,7 @@ class PlayerWidget : GlanceAppWidget() {
             currentTime = 0.seconds,
             currentDuration = 0.seconds,
             playbackSpeed = 1f,
-            widthSizeClass = widgetSizeClass.widthSizeClass,
+            sizeClass = widgetSizeClass,
             backgroundColor = null,
           ) {
             PlaybackInfo(

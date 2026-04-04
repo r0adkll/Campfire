@@ -31,6 +31,7 @@ kotlin {
     androidMain {
       dependencies {
         implementation(projects.features.home.api)
+        implementation(projects.ui.theming.api)
 
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.glance.appwidget)
