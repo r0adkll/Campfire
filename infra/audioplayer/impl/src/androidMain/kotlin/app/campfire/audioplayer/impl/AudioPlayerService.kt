@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.view.KeyEvent
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
@@ -19,11 +20,14 @@ import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSession.ConnectionResult.AcceptedResultBuilder
+import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.browse.SuspendingMediaLibrarySessionCallback
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
+import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -34,6 +38,7 @@ import app.campfire.infra.audioplayer.impl.R
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.PlaybackSettings
 import com.google.common.collect.ImmutableList
+import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
@@ -193,10 +198,18 @@ class AudioPlayerService : MediaLibraryService() {
 
   private inner class MediaSessionCallback : SuspendingMediaLibrarySessionCallback(serviceScope) {
 
+    private val cycleSpeedCommand = SessionCommand(WidgetSessionCommand.CYCLE_SPEED, Bundle.EMPTY)
+    private val sleepTimerCommand = SessionCommand(WidgetSessionCommand.SET_SLEEP_TIMER, Bundle.EMPTY)
+
     override fun onConnect(
       session: MediaSession,
       controller: MediaSession.ControllerInfo,
     ): ConnectionResult {
+      val availableCommands = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
+        .add(cycleSpeedCommand)
+        .add(sleepTimerCommand)
+        .build()
+
       if (
         session.isMediaNotificationController(controller) ||
         session.isAutoCompanionController(controller)
@@ -216,10 +229,38 @@ class AudioPlayerService : MediaLibraryService() {
         )
 
         return AcceptedResultBuilder(session)
+          .setAvailableSessionCommands(availableCommands)
           .setMediaButtonPreferences(mediaButtonPreferences)
           .build()
       } else {
-        return super.onConnect(session, controller)
+        return AcceptedResultBuilder(session)
+          .setAvailableSessionCommands(availableCommands)
+          .build()
+      }
+    }
+
+    override fun onCustomCommand(
+      session: MediaSession,
+      controller: MediaSession.ControllerInfo,
+      customCommand: SessionCommand,
+      args: Bundle,
+    ): ListenableFuture<SessionResult> {
+      when (customCommand.customAction) {
+        WidgetSessionCommand.CYCLE_SPEED -> {
+          val rates = component.playbackSettings.playbackRates
+          val currentSpeed = component.playbackSettings.playbackSpeed
+          val currentIndex = rates.indexOfFirst { it == currentSpeed }
+          val nextIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % rates.size
+          player.setPlaybackSpeed(rates[nextIndex])
+          return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+        WidgetSessionCommand.SET_SLEEP_TIMER -> {
+          val minutes = args.getInt(WidgetSessionCommand.ARG_TIMER_MINUTES, 15)
+          val epochMillis = System.currentTimeMillis() + (minutes * 60 * 1000L)
+          player.setTimer(PlaybackTimer.Epoch(epochMillis))
+          return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+        else -> return super.onCustomCommand(session, controller, customCommand, args)
       }
     }
 
@@ -429,6 +470,7 @@ class AudioPlayerService : MediaLibraryService() {
      * List of known package names used by bluetooth devices
      */
     private val BLUETOOTH_PACKAGE_NAMES = arrayOf(
+      "com.android.bluetooth",
       "com.google.android.bluetooth",
       // Pixel Buds use this package name when triggering next/previous actions
       "com.google.android.googlequicksearchbox",

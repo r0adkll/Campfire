@@ -46,7 +46,11 @@ import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.model.Chapter
 import app.campfire.widgets.R
+import app.campfire.widgets.callbacks.CycleSpeedActionCallback
 import app.campfire.widgets.callbacks.PlayPauseActionCallback
+import app.campfire.widgets.callbacks.SkipNextActionCallback
+import app.campfire.widgets.callbacks.SkipPreviousActionCallback
+import app.campfire.widgets.callbacks.SleepTimerActionCallback
 import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import app.campfire.widgets.theme.LocalContentColorProvider
 import app.campfire.widgets.theme.withAlpha
@@ -341,20 +345,16 @@ internal fun CompactPlaybackContent(
         OutlineButton(
           text = "${playbackSpeed.readableHundredths}x",
           icon = ImageProvider(R.drawable.ic_media_playbackspeed),
-          onClick = {
-
-          },
+          onClick = actionRunCallback(CycleSpeedActionCallback::class.java),
           contentColor = LocalContentColorProvider.current,
         )
 
         Spacer(GlanceModifier.width(8.dp))
 
         OutlineButton(
-          text = "15m", // TODO: Pull last known sleep time, or default to 15m
+          text = "15m",
           icon = ImageProvider(R.drawable.ic_media_snooze),
-          onClick = {
-
-          },
+          onClick = actionRunCallback(SleepTimerActionCallback::class.java),
           contentColor = LocalContentColorProvider.current,
         )
       }
@@ -373,9 +373,7 @@ internal fun CompactPlaybackContent(
               text = prevChapter.title,
               maxLines = 1,
               icon = ImageProvider(R.drawable.ic_media_chevron_left),
-              onClick = {
-
-              },
+              onClick = actionRunCallback(SkipPreviousActionCallback::class.java),
               contentColor = LocalContentColorProvider.current,
               modifier = GlanceModifier
                 .fillMaxWidth(),
@@ -391,9 +389,7 @@ internal fun CompactPlaybackContent(
               text = nextChapter.title,
               maxLines = 1,
               icon = ImageProvider(R.drawable.ic_media_chevron_right),
-              onClick = {
-
-              },
+              onClick = actionRunCallback(SkipNextActionCallback::class.java),
               contentColor = LocalContentColorProvider.current,
               modifier = GlanceModifier
                 .fillMaxWidth(),
@@ -533,9 +529,7 @@ internal fun ExpandedPlaybackContent(
           OutlineButton(
             text = "${playbackSpeed.readableHundredths}x",
             icon = ImageProvider(R.drawable.ic_media_playbackspeed),
-            onClick = {
-
-            },
+            onClick = actionRunCallback(CycleSpeedActionCallback::class.java),
             contentColor = GlanceTheme.colors.onPrimaryContainer,
             modifier = GlanceModifier.defaultWeight()
           )
@@ -543,11 +537,9 @@ internal fun ExpandedPlaybackContent(
           Spacer(GlanceModifier.width(8.dp))
 
           OutlineButton(
-            text = "15m", // TODO: Pull last known sleep time, or default to 15m
+            text = "15m",
             icon = ImageProvider(R.drawable.ic_media_snooze),
-            onClick = {
-
-            },
+            onClick = actionRunCallback(SleepTimerActionCallback::class.java),
             contentColor = GlanceTheme.colors.onPrimaryContainer,
             modifier = GlanceModifier.defaultWeight()
           )

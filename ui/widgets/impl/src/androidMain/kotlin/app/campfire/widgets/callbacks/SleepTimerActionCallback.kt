@@ -5,7 +5,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import app.campfire.widgets.di.AudioPlayerActionCallback
 
-class RewindActionCallback : AudioPlayerActionCallback() {
+class SleepTimerActionCallback : AudioPlayerActionCallback() {
 
   override suspend fun onAction(
     context: Context,
@@ -13,6 +13,12 @@ class RewindActionCallback : AudioPlayerActionCallback() {
     parameters: ActionParameters,
   ) {
     if (audioPlayer == null) return
-    commandSender.seekBackward()
+    val minutes = parameters[KEY_MINUTES] ?: DEFAULT_MINUTES
+    commandSender.setSleepTimer(minutes)
+  }
+
+  companion object {
+    val KEY_MINUTES = ActionParameters.Key<Int>("minutes")
+    private const val DEFAULT_MINUTES = 15
   }
 }

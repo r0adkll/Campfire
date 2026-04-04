@@ -2,6 +2,7 @@ package app.campfire.widgets.di
 
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.OneShotPlaybackController
+import app.campfire.audioplayer.WidgetMediaCommandSender
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -11,4 +12,5 @@ interface ActionCallbackComponent {
   val sessionsRepository: SessionsRepository
   val audioPlayerHolder: AudioPlayerHolder
   val oneShotPlaybackController: OneShotPlaybackController
+  val widgetMediaCommandSender: WidgetMediaCommandSender
 }

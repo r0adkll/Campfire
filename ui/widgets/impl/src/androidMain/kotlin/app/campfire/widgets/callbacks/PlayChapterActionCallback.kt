@@ -4,11 +4,10 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import app.campfire.widgets.di.AudioPlayerActionCallback
-import kotlin.IllegalStateException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class PlayChapterActionCallback() : AudioPlayerActionCallback() {
+class PlayChapterActionCallback : AudioPlayerActionCallback() {
 
   override suspend fun onAction(
     context: Context,
@@ -20,10 +19,9 @@ class PlayChapterActionCallback() : AudioPlayerActionCallback() {
 
     val currentSession = getCurrentSession() ?: return
     if (itemId == currentSession.libraryItem.id && audioPlayer != null) {
-      // Just seek to the chapter id
+      // Just seek to the chapter id via the in-process player
       withContext(Dispatchers.Main) {
         audioPlayer?.seekTo(chapterId)
-          ?: throw IllegalStateException("Current session doesn't have a player")
       }
     } else {
       // Start a new session for the item at the given chapter

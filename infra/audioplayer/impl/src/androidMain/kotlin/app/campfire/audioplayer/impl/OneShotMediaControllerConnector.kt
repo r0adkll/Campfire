@@ -21,7 +21,16 @@ class OneShotMediaControllerConnector(
   private val dispatcherProvider: DispatcherProvider,
 ) {
 
-  suspend fun fire(onConnected: suspend () -> Unit) = withContext(dispatcherProvider.main) {
+  suspend fun fire(onConnected: suspend () -> Unit) {
+    withController { onConnected() }
+  }
+
+  /**
+   * Connect a temporary [MediaController] to the [AudioPlayerService], execute [block] with it,
+   * then release the controller. This ensures the service is running and allows sending
+   * transport or custom commands even when the app process is cold.
+   */
+  suspend fun <T> withController(block: suspend (MediaController) -> T): T = withContext(dispatcherProvider.main) {
     val future = suspendCancellableCoroutine { continuation ->
       // Create new token and build new controller
       val sessionToken = SessionToken(application, ComponentName(application, AudioPlayerService::class.java))
@@ -43,9 +52,11 @@ class OneShotMediaControllerConnector(
       }
     }
 
-    onConnected()
-
-    MediaController.releaseFuture(future)
+    try {
+      block(future.get())
+    } finally {
+      MediaController.releaseFuture(future)
+    }
   }
 
   companion object : Cork {

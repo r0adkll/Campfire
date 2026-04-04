@@ -23,6 +23,8 @@ import app.campfire.widgets.R
 import app.campfire.widgets.callbacks.ForwardActionCallback
 import app.campfire.widgets.callbacks.PlayPauseActionCallback
 import app.campfire.widgets.callbacks.RewindActionCallback
+import app.campfire.widgets.callbacks.SkipNextActionCallback
+import app.campfire.widgets.callbacks.SkipPreviousActionCallback
 import app.campfire.widgets.theme.LocalContentColorProvider
 import app.campfire.widgets.theme.compositeOver
 import app.campfire.widgets.theme.withAlpha
@@ -113,9 +115,7 @@ internal fun FullPlaybackActions(
       contentDescription = null,
       contentColor = secondaryButtonContentColor,
       backgroundColor = secondaryButtonBackgroundColor,
-      onClick = {
-
-      },
+      onClick = actionRunCallback(SkipPreviousActionCallback::class.java),
       modifier = GlanceModifier,
     )
 
@@ -126,9 +126,7 @@ internal fun FullPlaybackActions(
       contentDescription = null,
       contentColor = secondaryButtonContentColor,
       backgroundColor = secondaryButtonBackgroundColor,
-      onClick = {
-
-      },
+      onClick = actionRunCallback(RewindActionCallback::class.java),
       modifier = GlanceModifier,
     )
 
@@ -166,9 +164,7 @@ internal fun FullPlaybackActions(
       contentDescription = null,
       contentColor = secondaryButtonContentColor,
       backgroundColor = secondaryButtonBackgroundColor,
-      onClick = {
-
-      },
+      onClick = actionRunCallback(ForwardActionCallback::class.java),
       modifier = GlanceModifier,
     )
 
@@ -179,9 +175,7 @@ internal fun FullPlaybackActions(
       contentDescription = null,
       contentColor = secondaryButtonContentColor,
       backgroundColor = secondaryButtonBackgroundColor,
-      onClick = {
-
-      },
+      onClick = actionRunCallback(SkipNextActionCallback::class.java),
       modifier = GlanceModifier,
     )
   }

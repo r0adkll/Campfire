@@ -4,8 +4,6 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import app.campfire.widgets.di.AudioPlayerActionCallback
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class PlayPauseActionCallback : AudioPlayerActionCallback() {
 
@@ -14,18 +12,14 @@ class PlayPauseActionCallback : AudioPlayerActionCallback() {
     glanceId: GlanceId,
     parameters: ActionParameters,
   ) {
-    val session = getCurrentSession()
-    if (audioPlayer == null && session != null) {
-      // Player is not initialized, but session exists so let's bootstrap the service
-      // and play the session.
-      component.oneShotPlaybackController.start(
-        libraryItemId = session.libraryItem.id,
-      )
+    if (audioPlayer == null) {
+      // Cold start — use session-based approach that holds the MediaController
+      // connection open during the full player.prepare() setup
+      val session = getCurrentSession() ?: return
+      component.oneShotPlaybackController.start(libraryItemId = session.libraryItem.id)
     } else {
-      // Audio player already exists! So just command it
-      withContext(Dispatchers.Main) {
-        audioPlayer?.playPause()
-      }
+      // Warm — service is running and playing, MediaController release is safe
+      commandSender.playPause()
     }
   }
 }
