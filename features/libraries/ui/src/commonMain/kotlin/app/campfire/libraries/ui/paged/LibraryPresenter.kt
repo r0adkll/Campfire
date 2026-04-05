@@ -59,11 +59,11 @@ class LibraryPresenter(
 
     val sortMode by remember {
       settings.observeLibrarySortMode()
-    }.collectAsState(settings.librarySortMode)
+    }.collectAsState()
 
     val sortDirection by remember {
       settings.observeLibrarySortDirection()
-    }.collectAsState(settings.librarySortDirection)
+    }.collectAsState()
 
     val currentUser by remember {
       userRepository.observeStatefulCurrentUser()
@@ -87,7 +87,7 @@ class LibraryPresenter(
     }.collectAsState(INVALID_ITEM_COUNT)
 
     val itemDisplayState by settings.observeLibraryItemDisplayState()
-      .collectAsState(ItemDisplayState.List)
+      .collectAsState()
 
     val offlineDownloads by remember {
       offlineDownloadManager.observeAll()

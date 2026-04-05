@@ -114,7 +114,7 @@ fun CampfireContentWithInsets(
           // burials to wire all usages of this component
           val itemCardMarqueeEnabled by remember {
             settings.observeLibraryItemMarqueeEnabled()
-          }.collectAsState(settings.libraryItemMarqueeEnabled)
+          }.collectAsState()
 
           CompositionLocalProvider(
             LocalPlaybackSession provides currentSession,

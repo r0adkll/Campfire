@@ -183,11 +183,11 @@ class LibraryItemPresenter(
 
     val showConfirmDownloadDialog by remember {
       settings.observeShowConfirmDownload()
-    }.collectAsState(true)
+    }.collectAsState()
 
     val showTimeInBook by remember {
       settings.observeShowTimeInBook()
-    }.collectAsState(true)
+    }.collectAsState()
 
     val isDynamicThemingEnabled by remember {
       themeSettings.observeDynamicallyThemeItemDetail()

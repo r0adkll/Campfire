@@ -5,6 +5,7 @@ import app.campfire.audioplayer.OneShotPlaybackController
 import app.campfire.audioplayer.WidgetMediaCommandSender
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.SleepSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
 
 @ContributesTo(UserScope::class)
@@ -13,4 +14,5 @@ interface ActionCallbackComponent {
   val audioPlayerHolder: AudioPlayerHolder
   val oneShotPlaybackController: OneShotPlaybackController
   val widgetMediaCommandSender: WidgetMediaCommandSender
+  val sleepSettings: SleepSettings
 }

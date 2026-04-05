@@ -67,4 +67,13 @@ class AndroidWidgetMediaCommandSender(
       )
     }
   }
+
+  override suspend fun clearSleepTimer() {
+    connector.withController { controller ->
+      controller.sendCustomCommand(
+        SessionCommand(WidgetSessionCommand.CLEAR_SLEEP_TIMER, Bundle.EMPTY),
+        Bundle.EMPTY,
+      )
+    }
+  }
 }

@@ -5,7 +5,7 @@ import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import app.campfire.widgets.di.AudioPlayerActionCallback
 
-class SleepTimerActionCallback : AudioPlayerActionCallback() {
+class ClearSleepTimerActionCallback : AudioPlayerActionCallback() {
 
   override suspend fun onAction(
     context: Context,
@@ -13,12 +13,6 @@ class SleepTimerActionCallback : AudioPlayerActionCallback() {
     parameters: ActionParameters,
   ) {
     if (audioPlayer == null) return
-    val minutes = parameters[KEY_MINUTES]
-      ?: component.sleepSettings.lastSetSleepTimer.inWholeMinutes.toInt()
-    commandSender.setSleepTimer(minutes)
-  }
-
-  companion object {
-    val KEY_MINUTES = ActionParameters.Key<Int>("minutes")
+    commandSender.clearSleepTimer()
   }
 }

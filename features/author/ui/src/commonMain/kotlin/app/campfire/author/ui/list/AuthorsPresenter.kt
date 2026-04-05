@@ -48,11 +48,11 @@ class AuthorsPresenter(
 
     val sortMode by remember {
       settings.observeAuthorsSortMode()
-    }.collectAsState(settings.authorsSortMode)
+    }.collectAsState()
 
     val sortDirection by remember {
       settings.observeAuthorsSortDirection()
-    }.collectAsState(settings.authorsSortDirection)
+    }.collectAsState()
 
     val currentUser by remember {
       userRepository.observeStatefulCurrentUser()

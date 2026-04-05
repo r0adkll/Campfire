@@ -10,6 +10,7 @@ import kotlinx.datetime.LocalTime
 interface SleepSettings {
 
   var lastSetSleepTimer: Duration
+  fun observeLastSetSleepTimer(): StateFlow<Duration>
 
   var shakeToResetEnabled: Boolean
   fun observeShakeToResetEnabled(): StateFlow<Boolean>

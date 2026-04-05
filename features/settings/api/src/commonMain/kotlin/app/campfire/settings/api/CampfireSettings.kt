@@ -4,7 +4,7 @@ import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 // TODO: Break-up the CampfireSettings monolith into appScope/userScope layers
 interface CampfireSettings {
@@ -15,52 +15,52 @@ interface CampfireSettings {
   var hasEverConsented: Boolean
 
   var crashReportingEnabled: Boolean
-  fun observeCrashReportingEnabled(): Flow<Boolean>
+  fun observeCrashReportingEnabled(): StateFlow<Boolean>
 
   var analyticReportingEnabled: Boolean
-  fun observeAnalyticReportingEnabled(): Flow<Boolean>
+  fun observeAnalyticReportingEnabled(): StateFlow<Boolean>
 
   var themeId: ThemeKey
 
   var themeMode: ThemeMode
-  fun observeTheme(): Flow<ThemeMode>
+  fun observeTheme(): StateFlow<ThemeMode>
 
   var libraryItemDisplayState: ItemDisplayState
-  fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
+  fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState>
 
   var libraryItemMarqueeEnabled: Boolean
-  fun observeLibraryItemMarqueeEnabled(): Flow<Boolean>
+  fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean>
 
   var librarySortMode: ContentSortMode
-  fun observeLibrarySortMode(): Flow<ContentSortMode>
+  fun observeLibrarySortMode(): StateFlow<ContentSortMode>
 
   var librarySortDirection: SortDirection
-  fun observeLibrarySortDirection(): Flow<SortDirection>
+  fun observeLibrarySortDirection(): StateFlow<SortDirection>
 
   var authorsSortMode: ContentSortMode
-  fun observeAuthorsSortMode(): Flow<ContentSortMode>
+  fun observeAuthorsSortMode(): StateFlow<ContentSortMode>
 
   var authorsSortDirection: SortDirection
-  fun observeAuthorsSortDirection(): Flow<SortDirection>
+  fun observeAuthorsSortDirection(): StateFlow<SortDirection>
 
   var seriesSortMode: ContentSortMode
-  fun observeSeriesSortMode(): Flow<ContentSortMode>
+  fun observeSeriesSortMode(): StateFlow<ContentSortMode>
 
   var seriesSortDirection: SortDirection
-  fun observeSeriesSortDirection(): Flow<SortDirection>
+  fun observeSeriesSortDirection(): StateFlow<SortDirection>
 
   var currentUserId: UserId?
-  fun observeCurrentUserId(): Flow<UserId?>
+  fun observeCurrentUserId(): StateFlow<UserId?>
 
   var showConfirmDownload: Boolean
-  fun observeShowConfirmDownload(): Flow<Boolean>
+  fun observeShowConfirmDownload(): StateFlow<Boolean>
 
   var hasShownWidgetPinning: Boolean
-  fun observeHasShownWidgetPinning(): Flow<Boolean>
+  fun observeHasShownWidgetPinning(): StateFlow<Boolean>
 
   var showTimeInBook: Boolean
-  fun observeShowTimeInBook(): Flow<Boolean>
+  fun observeShowTimeInBook(): StateFlow<Boolean>
 
   var lastSeenVersion: String?
-  fun observeLastSeenVersion(): Flow<String?>
+  fun observeLastSeenVersion(): StateFlow<String?>
 }

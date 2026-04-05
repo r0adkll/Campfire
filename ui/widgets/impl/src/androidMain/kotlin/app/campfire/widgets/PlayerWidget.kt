@@ -29,6 +29,7 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.model.Metadata
+import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.core.ActivityIntentProvider
@@ -42,6 +43,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.home.api.HomeRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.SleepSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.widgets.composables.CompactPlaybackContent
 import app.campfire.widgets.composables.ConstrainedPlaybackContent
@@ -74,6 +76,7 @@ interface PlayerWidgetComponent {
   val activityIntentProgression: ActivityIntentProvider
   val homeRepository: HomeRepository
   val settings: CampfireSettings
+  val sleepSettings: SleepSettings
   val themeManager: ThemeManager
 }
 
@@ -190,6 +193,14 @@ class PlayerWidget : GlanceAppWidget() {
       component?.audioPlayerHolder?.currentPlayer ?: MutableStateFlow(null)
     }.collectAsState()
 
+    val lastSetSleepTimer by remember(component) {
+      component?.sleepSettings?.observeLastSetSleepTimer() ?: MutableStateFlow(Duration.ZERO)
+    }.collectAsState()
+
+    val runningTimer by remember(audioPlayer) {
+      audioPlayer?.runningTimer ?: MutableStateFlow(null)
+    }.collectAsState()
+
     if (currentSession != null) {
       val currentMetadata = remember(audioPlayer) {
         audioPlayer?.currentMetadata ?: MutableStateFlow(Metadata())
@@ -215,6 +226,8 @@ class PlayerWidget : GlanceAppWidget() {
           currentTime = currentTime,
           currentDuration = currentDuration,
           playbackSpeed = playbackSpeed,
+          sleepTimerDuration = lastSetSleepTimer,
+          runningTimer = runningTimer,
           libraryItem = currentSession?.libraryItem,
           prevChapter = currentSession?.prevChapter,
           nextChapter = currentSession?.nextChapter,
@@ -244,6 +257,8 @@ class PlayerWidget : GlanceAppWidget() {
     currentTime: Duration,
     currentDuration: Duration,
     playbackSpeed: Float,
+    sleepTimerDuration: Duration,
+    runningTimer: RunningTimer?,
     libraryItem: LibraryItem?,
     prevChapter: Chapter?,
     nextChapter: Chapter?,
@@ -276,6 +291,8 @@ class PlayerWidget : GlanceAppWidget() {
             currentTime = currentTime,
             currentDuration = currentDuration,
             playbackSpeed = playbackSpeed,
+            sleepTimerDuration = sleepTimerDuration,
+            runningTimer = runningTimer,
             prevChapter = prevChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
             nextChapter = nextChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
             sizeClass = widgetSizeClass,
@@ -290,6 +307,8 @@ class PlayerWidget : GlanceAppWidget() {
             currentTime = currentTime,
             currentDuration = currentDuration,
             playbackSpeed = playbackSpeed,
+            sleepTimerDuration = sleepTimerDuration,
+            runningTimer = runningTimer,
             prevChapter = prevChapter,
             nextChapter = nextChapter,
             sizeClass = widgetSizeClass,

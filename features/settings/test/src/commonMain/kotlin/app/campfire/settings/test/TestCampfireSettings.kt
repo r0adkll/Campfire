@@ -7,9 +7,16 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 
-class TestCampfireSettings : TestSettings(), CampfireSettings {
+class TestCampfireSettings(
+  private val testScope: CoroutineScope = TestScope(StandardTestDispatcher()),
+) : TestSettings(), CampfireSettings {
 
   override var deviceId: String by string()
   override var analyticsId: String by string()
@@ -18,66 +25,82 @@ class TestCampfireSettings : TestSettings(), CampfireSettings {
 
   override var themeId: ThemeKey = ThemeKey.Tent
 
-  override fun observeCrashReportingEnabled(): Flow<Boolean> =
+  override fun observeCrashReportingEnabled(): StateFlow<Boolean> =
     observeBoolean(::crashReportingEnabled)
+      .stateIn(testScope, SharingStarted.Lazily, crashReportingEnabled)
 
   override var analyticReportingEnabled: Boolean by boolean()
-  override fun observeAnalyticReportingEnabled(): Flow<Boolean> =
+  override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> =
     observeBoolean(::analyticReportingEnabled)
+      .stateIn(testScope, SharingStarted.Lazily, analyticReportingEnabled)
 
   override var themeMode: ThemeMode by enum()
-  override fun observeTheme(): Flow<ThemeMode> =
+  override fun observeTheme(): StateFlow<ThemeMode> =
     observeEnum(::themeMode)
+      .stateIn(testScope, SharingStarted.Lazily, themeMode)
 
   override var libraryItemDisplayState: ItemDisplayState by enum()
-  override fun observeLibraryItemDisplayState(): Flow<ItemDisplayState> =
+  override fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState> =
     observeEnum(::libraryItemDisplayState)
+      .stateIn(testScope, SharingStarted.Lazily, libraryItemDisplayState)
 
   override var libraryItemMarqueeEnabled: Boolean by boolean()
-  override fun observeLibraryItemMarqueeEnabled(): Flow<Boolean> =
+  override fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean> =
     observeBoolean(::libraryItemMarqueeEnabled)
+      .stateIn(testScope, SharingStarted.Lazily, libraryItemMarqueeEnabled)
 
   override var librarySortMode: ContentSortMode by enum()
-  override fun observeLibrarySortMode(): Flow<ContentSortMode> =
+  override fun observeLibrarySortMode(): StateFlow<ContentSortMode> =
     observeEnum(::librarySortMode)
+      .stateIn(testScope, SharingStarted.Lazily, librarySortMode)
 
   override var librarySortDirection: SortDirection by enum()
-  override fun observeLibrarySortDirection(): Flow<SortDirection> =
+  override fun observeLibrarySortDirection(): StateFlow<SortDirection> =
     observeEnum(::librarySortDirection)
+      .stateIn(testScope, SharingStarted.Lazily, librarySortDirection)
 
   override var authorsSortMode: ContentSortMode by enum()
-  override fun observeAuthorsSortMode(): Flow<ContentSortMode> =
+  override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> =
     observeEnum(::authorsSortMode)
+      .stateIn(testScope, SharingStarted.Lazily, authorsSortMode)
 
   override var authorsSortDirection: SortDirection by enum()
-  override fun observeAuthorsSortDirection(): Flow<SortDirection> =
+  override fun observeAuthorsSortDirection(): StateFlow<SortDirection> =
     observeEnum(::authorsSortDirection)
+      .stateIn(testScope, SharingStarted.Lazily, authorsSortDirection)
 
   override var seriesSortMode: ContentSortMode by enum()
-  override fun observeSeriesSortMode(): Flow<ContentSortMode> =
+  override fun observeSeriesSortMode(): StateFlow<ContentSortMode> =
     observeEnum(::seriesSortMode)
+      .stateIn(testScope, SharingStarted.Lazily, seriesSortMode)
 
   override var seriesSortDirection: SortDirection by enum()
-  override fun observeSeriesSortDirection(): Flow<SortDirection> =
+  override fun observeSeriesSortDirection(): StateFlow<SortDirection> =
     observeEnum(::seriesSortDirection)
+      .stateIn(testScope, SharingStarted.Lazily, seriesSortDirection)
 
   override var currentUserId: UserId? by stringOrNull()
-  override fun observeCurrentUserId(): Flow<UserId?> =
+  override fun observeCurrentUserId(): StateFlow<UserId?> =
     observeStringOrNull(::currentUserId)
+      .stateIn(testScope, SharingStarted.Lazily, currentUserId)
 
   override var showConfirmDownload: Boolean by boolean()
-  override fun observeShowConfirmDownload(): Flow<Boolean> =
+  override fun observeShowConfirmDownload(): StateFlow<Boolean> =
     observeBoolean(::showConfirmDownload)
+      .stateIn(testScope, SharingStarted.Lazily, showConfirmDownload)
 
   override var hasShownWidgetPinning: Boolean by boolean()
-  override fun observeHasShownWidgetPinning(): Flow<Boolean> =
+  override fun observeHasShownWidgetPinning(): StateFlow<Boolean> =
     observeBoolean(::hasShownWidgetPinning)
+      .stateIn(testScope, SharingStarted.Lazily, hasShownWidgetPinning)
 
   override var showTimeInBook: Boolean by boolean()
-  override fun observeShowTimeInBook(): Flow<Boolean> =
+  override fun observeShowTimeInBook(): StateFlow<Boolean> =
     observeBoolean(::showTimeInBook)
+      .stateIn(testScope, SharingStarted.Lazily, showTimeInBook)
 
   override var lastSeenVersion: String? by stringOrNull()
-  override fun observeLastSeenVersion(): Flow<String?> =
+  override fun observeLastSeenVersion(): StateFlow<String?> =
     observeStringOrNull(::lastSeenVersion)
+      .stateIn(testScope, SharingStarted.Lazily, lastSeenVersion)
 }

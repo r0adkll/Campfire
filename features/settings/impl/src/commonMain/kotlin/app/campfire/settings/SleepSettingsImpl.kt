@@ -1,23 +1,18 @@
 package app.campfire.settings
 
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
-import com.russhwolf.settings.coroutines.toFlowSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.LocalTime
 import me.tatarka.inject.annotations.Inject
 
@@ -27,56 +22,43 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class SleepSettingsImpl(
   override val settings: ObservableSettings,
-  private val dispatcherProvider: DispatcherProvider,
+  @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : SleepSettings, AppSettings() {
-  private val settingsScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
-  private val flowSettings by lazy { settings.toFlowSettings(dispatcherProvider.io) }
 
-  override var lastSetSleepTimer: Duration by durationSetting(KEY_LAST_SET_SLEEP_TIMER, Duration.ZERO)
+  private val lastSetSleepTimerProperty = durationSetting(KEY_LAST_SET_SLEEP_TIMER, 10.minutes)
+  override var lastSetSleepTimer: Duration by lastSetSleepTimerProperty
+  override fun observeLastSetSleepTimer(): StateFlow<Duration> = lastSetSleepTimerProperty.observe()
 
-  override var shakeToResetEnabled: Boolean by booleanSetting(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
-  override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, shakeToResetEnabled)
-  }
+  private val shakeToResetEnabledProperty = booleanSetting(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
+  override var shakeToResetEnabled: Boolean by shakeToResetEnabledProperty
+  override fun observeShakeToResetEnabled(): StateFlow<Boolean> = shakeToResetEnabledProperty.observe()
 
-  override var shakeSensitivity: ShakeSensitivity by enumSetting(KEY_SHAKE_SENSITIVITY, ShakeSensitivity)
-  override fun observeShakeSensitivity(): StateFlow<ShakeSensitivity> {
-    return flowSettings.getEnumFlow(KEY_SHAKE_SENSITIVITY, ShakeSensitivity)
-      .stateIn(settingsScope, SharingStarted.Lazily, shakeSensitivity)
-  }
+  private val shakeSensitivityProperty = enumSetting(KEY_SHAKE_SENSITIVITY, ShakeSensitivity)
+  override var shakeSensitivity: ShakeSensitivity by shakeSensitivityProperty
+  override fun observeShakeSensitivity(): StateFlow<ShakeSensitivity> = shakeSensitivityProperty.observe()
 
-  override var autoSleepTimerEnabled: Boolean by booleanSetting(
+  private val autoSleepTimerEnabledProperty = booleanSetting(
     KEY_AUTO_SLEEP_TIMER_ENABLED,
     DefaultAutoSleepTimerEnabled,
   )
-
-  override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(KEY_AUTO_SLEEP_TIMER_ENABLED, DefaultAutoSleepTimerEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepTimerEnabled)
-  }
+  override var autoSleepTimerEnabled: Boolean by autoSleepTimerEnabledProperty
+  override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> = autoSleepTimerEnabledProperty.observe()
 
   // 10:00 PM
   private val defaultStartTime: LocalTime
     get() = LocalTime(22, 0)
 
-  override var autoSleepStart: LocalTime by localTimeSetting(KEY_AUTO_SLEEP_START, defaultStartTime)
-  override fun observeAutoSleepStart(): StateFlow<LocalTime> {
-    return flowSettings.getStringOrNullFlow(KEY_AUTO_SLEEP_START)
-      .map { value -> value?.let { LocalTime.parse(it) } ?: defaultStartTime }
-      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepStart)
-  }
+  private val autoSleepStartProperty = localTimeSetting(KEY_AUTO_SLEEP_START, defaultStartTime)
+  override var autoSleepStart: LocalTime by autoSleepStartProperty
+  override fun observeAutoSleepStart(): StateFlow<LocalTime> = autoSleepStartProperty.observe()
 
   // 6:00 AM
   private val defaultEndTime: LocalTime
     get() = LocalTime(6, 0)
 
-  override var autoSleepEnd: LocalTime by localTimeSetting(KEY_AUTO_SLEEP_END, defaultEndTime)
-  override fun observeAutoSleepEnd(): StateFlow<LocalTime> {
-    return flowSettings.getStringOrNullFlow(KEY_AUTO_SLEEP_END)
-      .map { value -> value?.let { LocalTime.parse(it) } ?: defaultEndTime }
-      .stateIn(settingsScope, SharingStarted.Lazily, defaultEndTime)
-  }
+  private val autoSleepEndProperty = localTimeSetting(KEY_AUTO_SLEEP_END, defaultEndTime)
+  override var autoSleepEnd: LocalTime by autoSleepEndProperty
+  override fun observeAutoSleepEnd(): StateFlow<LocalTime> = autoSleepEndProperty.observe()
 
   private val timerTypeSeparator = ";;"
   private val timerFromString: (String) -> AutoSleepTimer = { value ->
@@ -96,30 +78,22 @@ class SleepSettingsImpl(
     }
   }
 
-  override var autoSleepTimer: AutoSleepTimer by customSetting(
+  private val autoSleepTimerProperty = customSetting(
     key = KEY_AUTO_SLEEP_TIMER,
     defaultValue = AutoSleepTimer.Default,
     getter = timerFromString,
     setter = timerToString,
   )
+  override var autoSleepTimer: AutoSleepTimer by autoSleepTimerProperty
+  override fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer> = autoSleepTimerProperty.observe()
 
-  override fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer> {
-    return flowSettings.getStringOrNullFlow(KEY_AUTO_SLEEP_TIMER)
-      .map { value -> value?.let(timerFromString) ?: AutoSleepTimer.Default }
-      .stateIn(settingsScope, SharingStarted.Lazily, autoSleepTimer)
-  }
+  private val autoRewindEnabledProperty = booleanSetting(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
+  override var autoRewindEnabled: Boolean by autoRewindEnabledProperty
+  override fun observeAutoRewindEnabled(): StateFlow<Boolean> = autoRewindEnabledProperty.observe()
 
-  override var autoRewindEnabled: Boolean by booleanSetting(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
-  override fun observeAutoRewindEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
-      .stateIn(settingsScope, SharingStarted.Lazily, autoRewindEnabled)
-  }
-
-  override var autoRewindAmount: Duration by durationSetting(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
-  override fun observeAutoRewindAmount(): StateFlow<Duration> {
-    return flowSettings.getDurationFlow(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
-      .stateIn(settingsScope, SharingStarted.Lazily, autoRewindAmount)
-  }
+  private val autoRewindAmountProperty = durationSetting(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
+  override var autoRewindAmount: Duration by autoRewindAmountProperty
+  override fun observeAutoRewindAmount(): StateFlow<Duration> = autoRewindAmountProperty.observe()
 }
 
 private const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"

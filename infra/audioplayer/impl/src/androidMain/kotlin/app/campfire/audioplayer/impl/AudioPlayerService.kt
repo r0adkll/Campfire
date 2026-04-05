@@ -41,6 +41,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.r0adkll.kimchi.annotations.ContributesTo
+import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -200,6 +201,7 @@ class AudioPlayerService : MediaLibraryService() {
 
     private val cycleSpeedCommand = SessionCommand(WidgetSessionCommand.CYCLE_SPEED, Bundle.EMPTY)
     private val sleepTimerCommand = SessionCommand(WidgetSessionCommand.SET_SLEEP_TIMER, Bundle.EMPTY)
+    private val clearSleepTimerCommand = SessionCommand(WidgetSessionCommand.CLEAR_SLEEP_TIMER, Bundle.EMPTY)
 
     override fun onConnect(
       session: MediaSession,
@@ -208,6 +210,7 @@ class AudioPlayerService : MediaLibraryService() {
       val availableCommands = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
         .add(cycleSpeedCommand)
         .add(sleepTimerCommand)
+        .add(clearSleepTimerCommand)
         .build()
 
       if (
@@ -255,9 +258,12 @@ class AudioPlayerService : MediaLibraryService() {
           return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
         WidgetSessionCommand.SET_SLEEP_TIMER -> {
-          val minutes = args.getInt(WidgetSessionCommand.ARG_TIMER_MINUTES, 15)
-          val epochMillis = System.currentTimeMillis() + (minutes * 60 * 1000L)
-          player.setTimer(PlaybackTimer.Epoch(epochMillis))
+          val minutes = args.getInt(WidgetSessionCommand.ARG_TIMER_MINUTES, 15).minutes
+          player.setTimer(PlaybackTimer.Epoch(minutes.inWholeMilliseconds))
+          return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+        }
+        WidgetSessionCommand.CLEAR_SLEEP_TIMER -> {
+          player.clearTimer()
           return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
         }
         else -> return super.onCustomCommand(session, controller, customCommand, args)
@@ -472,6 +478,8 @@ class AudioPlayerService : MediaLibraryService() {
     private val BLUETOOTH_PACKAGE_NAMES = arrayOf(
       "com.android.bluetooth",
       "com.google.android.bluetooth",
+      // Google Bluetooth APEX services (renamed package in newer Android versions)
+      "com.google.android.btservices",
       // Pixel Buds use this package name when triggering next/previous actions
       "com.google.android.googlequicksearchbox",
     )

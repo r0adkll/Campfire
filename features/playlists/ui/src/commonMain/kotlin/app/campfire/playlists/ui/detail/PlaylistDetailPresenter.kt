@@ -105,7 +105,7 @@ class PlaylistDetailPresenter(
 
     val showConfirmDownloadDialog by remember {
       settings.observeShowConfirmDownload()
-    }.collectAsState(settings.showConfirmDownload)
+    }.collectAsState()
 
     return PlaylistDetailUiState(
       name = playlistName,

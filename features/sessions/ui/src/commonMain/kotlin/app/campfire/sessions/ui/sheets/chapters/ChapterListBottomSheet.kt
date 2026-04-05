@@ -121,7 +121,7 @@ private fun ChapterListBottomSheet(
 ) {
   val showTimeInBook by remember {
     component.settings.observeShowTimeInBook()
-  }.collectAsState(true)
+  }.collectAsState()
 
   val sessionSheetState = rememberSessionSheetTitleState(
     // It is likely that this list will be pre-scrolled when the sheet is open

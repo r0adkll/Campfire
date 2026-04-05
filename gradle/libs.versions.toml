@@ -4,14 +4,14 @@ about-libraries = "14.0.0-b03"
 accompanist = "0.37.3"
 androidxlifecycle = "2.10.0"
 androidxactivity = "1.13.0"
-androidxcomposeui = "1.10.5"
+androidxcomposeui = "1.10.6"
 androidxtracing = "1.3.0"
 androidxtracingperfetto = "1.0.1"
 androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 appcompat = "1.7.1"
 appdistribution = "16.0.0-beta17"
-burst = "2.11.0"
+burst = "2.12.1"
 clikt = "5.1.0"
 colorpicker-compose = "1.1.3"
 core-ktx = "1.18.0"
@@ -25,14 +25,14 @@ glance = "1.2.0-rc01"
 jb-compose-navigationevent = "1.0.1"
 junit = "4.13.2"
 kimchi = "0.7.0"
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 kotlin-inject = "0.9.0"
 kotlinpoet = "2.2.0"
 ksoup = "0.6.0"
 ksp = "2.3.6"
 ktlint = "0.49.1"
-ktor = "3.4.1"
-media3 = "1.9.3"
+ktor = "3.4.2"
+media3 = "1.10.0"
 mixpanel = "8.4.0"
 mosaic = "0.18.0"
 molecule = "2.2.0"
@@ -50,7 +50,7 @@ core = "1.18.0"
 vlcj = "4.12.1"
 uiautomator = "2.4.0-beta02"
 benchmark-macro-junit4 = "1.4.1"
-baselineprofile = "1.5.0-alpha04"
+baselineprofile = "1.5.0-alpha05"
 profileinstaller = "1.4.1"
 material = "1.13.0"
 swatchbuckler = "0.1.1-SNAPSHOT"
@@ -95,7 +95,7 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "androidxlifecycle" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-archCoreTesting = "androidx.arch.core:core-testing:2.2.0"
-androidx-browser = "androidx.browser:browser:1.9.0"
+androidx-browser = "androidx.browser:browser:1.10.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
 androidx-compose-runtime-tracing = { module = "androidx.compose.runtime:runtime-tracing", version.ref = "androidxcomposeui" }
@@ -179,7 +179,8 @@ reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reo
 kotlin-ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlin-extensions = { module = "org.jetbrains.kotlin:kotlin-android-extensions", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlinx-atomicfu = "org.jetbrains.kotlinx:atomicfu:0.32.0"
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlinx-atomicfu = "org.jetbrains.kotlinx:atomicfu:0.32.1"
 kotlinx-datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat"
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }

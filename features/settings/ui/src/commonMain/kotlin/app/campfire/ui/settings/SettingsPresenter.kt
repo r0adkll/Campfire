@@ -118,12 +118,12 @@ class SettingsPresenter(
 
     // Appearance Settings
     val appTheme by remember { themeRepository.observeCurrentAppTheme() }.collectAsState()
-    val themeMode by remember { settings.observeTheme() }.collectAsState(settings.themeMode)
+    val themeMode by remember { settings.observeTheme() }.collectAsState()
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
     val itemCardMarqueeEnabled by remember {
       settings.observeLibraryItemMarqueeEnabled()
-    }.collectAsState(settings.libraryItemMarqueeEnabled)
+    }.collectAsState()
 
     // Playback Settings
     val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
@@ -139,7 +139,7 @@ class SettingsPresenter(
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
-      .collectAsState(settings.showConfirmDownload)
+      .collectAsState()
 
     val downloads by remember {
       offlineDownloadManager.observeAll()
@@ -173,14 +173,14 @@ class SettingsPresenter(
 
     // About Settings
     val crashReportingEnabled by remember { settings.observeCrashReportingEnabled() }
-      .collectAsState(settings.crashReportingEnabled)
+      .collectAsState()
     val analyticReportingEnabled by remember { settings.observeAnalyticReportingEnabled() }
-      .collectAsState(settings.analyticReportingEnabled)
+      .collectAsState()
 
     // Developer Settings
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
-    val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState(false)
+    val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState()
     val isAndroidAutoAvailable = remember { androidAuto.isAvailable() }
 
     return SettingsUiState(

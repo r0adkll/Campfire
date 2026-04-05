@@ -1,21 +1,16 @@
 package app.campfire.settings
 
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
-import com.russhwolf.settings.coroutines.toFlowSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -24,94 +19,57 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class PlaybackSettingsImpl(
   override val settings: ObservableSettings,
-  private val dispatcherProvider: DispatcherProvider,
+  @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : PlaybackSettings, AppSettings() {
-  private val settingsScope = CoroutineScope(SupervisorJob() + dispatcherProvider.io)
-  private val flowSettings by lazy { settings.toFlowSettings(dispatcherProvider.io) }
 
-  override var enableMp3IndexSeeking: Boolean by booleanSetting(PREF_MP3_SEEKING)
-  override fun observeMp3IndexSeeking(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(PREF_MP3_SEEKING, false)
-      .stateIn(settingsScope, SharingStarted.Lazily, enableMp3IndexSeeking)
-  }
+  private val enableMp3IndexSeekingProperty = booleanSetting(PREF_MP3_SEEKING)
+  override var enableMp3IndexSeeking: Boolean by enableMp3IndexSeekingProperty
+  override fun observeMp3IndexSeeking(): StateFlow<Boolean> = enableMp3IndexSeekingProperty.observe()
 
-  override var forwardTimeMs: Long by longSetting(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
-  override var backwardTimeMs: Long by longSetting(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
+  private val forwardTimeMsProperty = longSetting(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
+  override var forwardTimeMs: Long by forwardTimeMsProperty
+  override fun observeForwardTimeMs(): StateFlow<Long> = forwardTimeMsProperty.observe()
 
-  override fun observeForwardTimeMs(): StateFlow<Long> {
-    return flowSettings.getLongFlow(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
-      .stateIn(settingsScope, SharingStarted.Lazily, forwardTimeMs)
-  }
+  private val backwardTimeMsProperty = longSetting(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
+  override var backwardTimeMs: Long by backwardTimeMsProperty
+  override fun observeBackwardTimeMs(): StateFlow<Long> = backwardTimeMsProperty.observe()
 
-  override fun observeBackwardTimeMs(): StateFlow<Long> {
-    return flowSettings.getLongFlow(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
-      .stateIn(settingsScope, SharingStarted.Lazily, backwardTimeMs)
-  }
-
-  override var trackResetThreshold: Duration by durationSetting(
+  private val trackResetThresholdProperty = durationSetting(
     key = PREF_TRACK_RESET_THRESHOLD,
     defaultValue = DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds,
   )
+  override var trackResetThreshold: Duration by trackResetThresholdProperty
+  override fun observeTrackResetThreshold(): StateFlow<Duration> = trackResetThresholdProperty.observe()
 
-  override fun observeTrackResetThreshold(): StateFlow<Duration> {
-    return flowSettings.getDurationFlow(PREF_TRACK_RESET_THRESHOLD, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds)
-      .stateIn(settingsScope, SharingStarted.Lazily, DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds)
-  }
-
-  override var playbackRates: List<Float> by customSetting(
+  private val playbackRatesProperty = customSetting(
     key = PREF_PLAYBACK_RATES,
     defaultValue = DEFAULT_PLAYBACK_RATES,
     getter = { it.asFloatList() },
     setter = { rates -> rates.joinToString(PLAYBACK_RATES_SEPARATOR) },
   )
-
-  override fun observePlaybackRates(): StateFlow<List<Float>> {
-    return flowSettings.getStringOrNullFlow(PREF_PLAYBACK_RATES)
-      .mapNotNull { it?.asFloatList() }
-      .stateIn(settingsScope, SharingStarted.Lazily, DEFAULT_PLAYBACK_RATES)
-  }
+  override var playbackRates: List<Float> by playbackRatesProperty
+  override fun observePlaybackRates(): StateFlow<List<Float>> = playbackRatesProperty.observe()
 
   override var playbackSpeed: Float by floatSetting(PREF_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
 
-  override var remoteNextPrevSkipsChapters: Boolean by booleanSetting(
+  private val remoteNextPrevSkipsChaptersProperty = booleanSetting(
     PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
     DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
   )
+  override var remoteNextPrevSkipsChapters: Boolean by remoteNextPrevSkipsChaptersProperty
+  override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = remoteNextPrevSkipsChaptersProperty.observe()
 
-  override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS, DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS)
-      .stateIn(settingsScope, SharingStarted.Lazily, remoteNextPrevSkipsChapters)
-  }
+  private val syncEnabledProperty = booleanSetting(PREF_SYNC, DEFAULT_AUTO_SYNC)
+  override var syncEnabled: Boolean by syncEnabledProperty
+  override fun observeSyncEnabled(): StateFlow<Boolean> = syncEnabledProperty.observe()
 
-  override var syncEnabled: Boolean by booleanSetting(
-    PREF_SYNC,
-    DEFAULT_AUTO_SYNC,
-  )
+  private val autoSyncEnabledProperty = booleanSetting(PREF_AUTO_SYNC, DEFAULT_AUTO_SYNC)
+  override var autoSyncEnabled: Boolean by autoSyncEnabledProperty
+  override fun observeAutoSyncEnabled(): StateFlow<Boolean> = autoSyncEnabledProperty.observe()
 
-  override fun observeSyncEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(PREF_SYNC, DEFAULT_SYNCHRONIZATION)
-      .stateIn(settingsScope, SharingStarted.Lazily, syncEnabled)
-  }
-
-  override var autoSyncEnabled: Boolean by booleanSetting(
-    PREF_AUTO_SYNC,
-    DEFAULT_AUTO_SYNC,
-  )
-
-  override fun observeAutoSyncEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(PREF_AUTO_SYNC, DEFAULT_AUTO_SYNC)
-      .stateIn(settingsScope, SharingStarted.Lazily, autoSyncEnabled)
-  }
-
-  override var playbackHistoryEnabled: Boolean by booleanSetting(
-    PREF_PLAYBACK_HISTORY,
-    DEFAULT_PLAYBACK_HISTORY,
-  )
-
-  override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> {
-    return flowSettings.getBooleanFlow(PREF_PLAYBACK_HISTORY, DEFAULT_PLAYBACK_HISTORY)
-      .stateIn(settingsScope, SharingStarted.Lazily, playbackHistoryEnabled)
-  }
+  private val playbackHistoryEnabledProperty = booleanSetting(PREF_PLAYBACK_HISTORY, DEFAULT_PLAYBACK_HISTORY)
+  override var playbackHistoryEnabled: Boolean by playbackHistoryEnabledProperty
+  override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = playbackHistoryEnabledProperty.observe()
 
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 }

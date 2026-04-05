@@ -11,6 +11,7 @@
     <option name="scriptTemplatesClasspath" value="/opt/homebrew/opt/danger-kotlin/lib/danger/danger-kotlin.jar" />
   </component>
   <component name="KotlinJpsPluginSettings">
-    <option name="version" value="2.3.10" />
+    <option name="externalSystemId" value="Gradle" />
+    <option name="version" value="2.3.20" />
   </component>
 </project>

@@ -7,6 +7,7 @@ package app.campfire.audioplayer.impl
 object WidgetSessionCommand {
   const val CYCLE_SPEED = "app.campfire.action.CYCLE_PLAYBACK_SPEED"
   const val SET_SLEEP_TIMER = "app.campfire.action.SET_SLEEP_TIMER"
+  const val CLEAR_SLEEP_TIMER = "app.campfire.action.CLEAR_SLEEP_TIMER"
 
   const val ARG_TIMER_MINUTES = "minutes"
 }

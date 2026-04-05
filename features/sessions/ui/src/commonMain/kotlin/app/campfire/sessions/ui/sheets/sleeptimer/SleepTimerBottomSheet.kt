@@ -595,7 +595,14 @@ fun TimerBottomSheetV2Preview() {
         },
         component = object : SleepTimerBottomSheetComponent {
           override val sleepSettings: SleepSettings = object : SleepSettings {
-            override var lastSetSleepTimer: Duration = 5.minutes
+            override var lastSetSleepTimer: Duration
+              get() = mutableLastSetSleepTimer.value
+              set(value) { mutableLastSetSleepTimer.value = value }
+
+            val mutableLastSetSleepTimer = MutableStateFlow(lastSetSleepTimer)
+            override fun observeLastSetSleepTimer(): StateFlow<Duration> {
+              return mutableLastSetSleepTimer
+            }
 
             val mutableShakeToReset = MutableStateFlow(true)
             override var shakeToResetEnabled: Boolean

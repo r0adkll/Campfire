@@ -13,12 +13,9 @@ import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
-import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.components.CircleIconButton
 import androidx.glance.appwidget.components.OutlineButton
-import androidx.glance.appwidget.components.SquareIconButton
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -41,19 +38,18 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.model.Chapter
 import app.campfire.widgets.R
 import app.campfire.widgets.callbacks.CycleSpeedActionCallback
-import app.campfire.widgets.callbacks.PlayPauseActionCallback
 import app.campfire.widgets.callbacks.SkipNextActionCallback
 import app.campfire.widgets.callbacks.SkipPreviousActionCallback
-import app.campfire.widgets.callbacks.SleepTimerActionCallback
-import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import app.campfire.widgets.theme.LocalContentColorProvider
 import app.campfire.widgets.theme.withAlpha
+import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import kotlin.time.Duration
 
 val DefaultPlaybackControlsHeight = 132.dp
@@ -258,6 +254,8 @@ internal fun CompactPlaybackContent(
   currentTime: Duration,
   currentDuration: Duration,
   playbackSpeed: Float,
+  sleepTimerDuration: Duration,
+  runningTimer: RunningTimer?,
   prevChapter: Chapter?,
   nextChapter: Chapter?,
   sizeClass: WidgetSizeClass,
@@ -351,11 +349,9 @@ internal fun CompactPlaybackContent(
 
         Spacer(GlanceModifier.width(8.dp))
 
-        OutlineButton(
-          text = "15m",
-          icon = ImageProvider(R.drawable.ic_media_snooze),
-          onClick = actionRunCallback(SleepTimerActionCallback::class.java),
-          contentColor = LocalContentColorProvider.current,
+        SleepTimerButton(
+          sleepTimerDuration = sleepTimerDuration,
+          runningTimer = runningTimer,
         )
       }
 
@@ -423,6 +419,8 @@ internal fun ExpandedPlaybackContent(
   currentTime: Duration,
   currentDuration: Duration,
   playbackSpeed: Float,
+  sleepTimerDuration: Duration,
+  runningTimer: RunningTimer?,
   prevChapter: Chapter?,
   nextChapter: Chapter?,
   sizeClass: WidgetSizeClass,
@@ -474,7 +472,7 @@ internal fun ExpandedPlaybackContent(
       verticalAlignment = Alignment.CenterVertically,
       horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-
+      Spacer(GlanceModifier.defaultWeight())
 
       // Title / Subtitle
       Text(
@@ -518,7 +516,7 @@ internal fun ExpandedPlaybackContent(
 
       // Additional controls
       if (sizeClass.height >= WidgetHeightClass.Tall) {
-        Spacer(GlanceModifier.height(16.dp))
+        Spacer(GlanceModifier.defaultWeight())
         Row(
           modifier = GlanceModifier
             .fillMaxWidth()
@@ -536,14 +534,16 @@ internal fun ExpandedPlaybackContent(
 
           Spacer(GlanceModifier.width(8.dp))
 
-          OutlineButton(
-            text = "15m",
-            icon = ImageProvider(R.drawable.ic_media_snooze),
-            onClick = actionRunCallback(SleepTimerActionCallback::class.java),
-            contentColor = GlanceTheme.colors.onPrimaryContainer,
-            modifier = GlanceModifier.defaultWeight()
+          SleepTimerButton(
+            sleepTimerDuration = sleepTimerDuration,
+            runningTimer = runningTimer,
+            modifier = GlanceModifier.defaultWeight(),
+            inactiveColor = GlanceTheme.colors.onPrimaryContainer,
+            containerColor = GlanceTheme.colors.secondaryContainer,
+            contentColor = GlanceTheme.colors.onSecondaryContainer,
           )
         }
+        Spacer(GlanceModifier.height(8.dp))
       }
     }
   }
@@ -614,3 +614,4 @@ internal fun RowScope.PlaybackContentRow(
     }
   }
 }
+

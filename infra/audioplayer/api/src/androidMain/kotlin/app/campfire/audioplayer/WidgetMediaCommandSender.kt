@@ -15,4 +15,5 @@ interface WidgetMediaCommandSender {
   suspend fun skipToPrevious()
   suspend fun cyclePlaybackSpeed()
   suspend fun setSleepTimer(minutes: Int)
+  suspend fun clearSleepTimer()
 }

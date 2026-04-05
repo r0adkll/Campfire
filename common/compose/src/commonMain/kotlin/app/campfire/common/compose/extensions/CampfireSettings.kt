@@ -9,7 +9,7 @@ import app.campfire.settings.api.ThemeMode
 
 @Composable
 fun CampfireSettings.shouldUseDarkColors(): Boolean {
-  val themePreference = remember { observeTheme() }.collectAsState(initial = themeMode)
+  val themePreference = remember { observeTheme() }.collectAsState()
   return when (themePreference.value) {
     ThemeMode.LIGHT -> false
     ThemeMode.DARK -> true

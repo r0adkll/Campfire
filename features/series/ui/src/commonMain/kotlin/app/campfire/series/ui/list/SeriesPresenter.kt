@@ -57,11 +57,11 @@ class SeriesPresenter(
 
     val sortMode by remember {
       settings.observeSeriesSortMode()
-    }.collectAsState(settings.seriesSortMode)
+    }.collectAsState()
 
     val sortDirection by remember {
       settings.observeSeriesSortDirection()
-    }.collectAsState(settings.seriesSortDirection)
+    }.collectAsState()
 
     val currentUser by remember {
       userRepository.observeStatefulCurrentUser()
