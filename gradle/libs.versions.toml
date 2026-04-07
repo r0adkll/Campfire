@@ -239,7 +239,7 @@ media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 
 # This will force an upgrade in the 'media3-cast' library
-play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.0"
+play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.1"
 
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
