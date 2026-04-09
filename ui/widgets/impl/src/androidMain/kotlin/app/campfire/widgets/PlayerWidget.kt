@@ -2,22 +2,22 @@ package app.campfire.widgets
 
 import android.content.ComponentName
 import android.content.Context
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.action.Action
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.actionParametersOf
 import androidx.glance.action.actionStartActivity
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.SizeMode
@@ -26,12 +26,10 @@ import androidx.glance.appwidget.provideContent
 import androidx.glance.currentState
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.model.Metadata
-import app.campfire.audioplayer.model.RunningTimer
-import app.campfire.common.compose.theme.LocalUseDarkColors
-import app.campfire.common.compose.theme.colorScheme
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
@@ -39,42 +37,44 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.ShelfType
+import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.user
 import app.campfire.home.api.HomeRepository
+import app.campfire.home.api.model.ShelfIds
+import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.ui.theming.api.ThemeManager
-import app.campfire.widgets.composables.CompactPlaybackContent
-import app.campfire.widgets.composables.ConstrainedPlaybackContent
-import app.campfire.widgets.composables.ExpandedPlaybackContent
-import app.campfire.widgets.composables.SinglePlaybackContent
-import app.campfire.widgets.composables.PlaybackInfo
-import app.campfire.widgets.composables.PlayerWidgetScaffold
+import app.campfire.widgets.composables.ActiveWidgetContent
+import app.campfire.widgets.composables.DiscoverWidgetContent
+import app.campfire.widgets.composables.InActiveWidgetContent
 import app.campfire.widgets.composables.WidgetHeightClass
-import app.campfire.widgets.composables.WidgetScaffold
 import app.campfire.widgets.composables.WidgetSizeClass
 import app.campfire.widgets.composables.WidgetWidthClass
 import app.campfire.widgets.theme.asColorProviders
 import com.r0adkll.kimchi.annotations.ContributesTo
-import com.r0adkll.swatchbuckler.compose.Theme
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 
 @ContributesTo(UserScope::class)
 interface PlayerWidgetComponent {
-  val playerWidgetUserSession: UserSession
+  val userSessionManager: UserSessionManager
   val sessionsRepository: SessionsRepository
   val audioPlayerHolder: AudioPlayerHolder
   val activityIntentProgression: ActivityIntentProvider
   val homeRepository: HomeRepository
+  val sessionQueue: SessionQueue
   val settings: CampfireSettings
   val sleepSettings: SleepSettings
   val themeManager: ThemeManager
@@ -86,6 +86,8 @@ class PlayerWidget : GlanceAppWidget() {
     val KEY_CURRENT_TIME get() = floatPreferencesKey("current-time")
     val KEY_CURRENT_DURATION get() = floatPreferencesKey("current-duration")
     val KEY_PLAYBACK_SPEED get() = floatPreferencesKey("playback-speed")
+
+    val ACTION_KEY_LIBRARY_ITEM_ID get() = ActionParameters.Key<String>(DeepLinkKeys.LibraryItemId)
   }
 
   override val sizeMode: SizeMode = SizeMode.Responsive(WidgetSizeClass.ResponsiveSizes)
@@ -127,17 +129,33 @@ class PlayerWidget : GlanceAppWidget() {
       ComponentHolder.subscribe<PlayerWidgetComponent>()
     }.collectAsState(null)
 
-    val mainActivityAction: Action = if (component != null) {
-      actionStartActivity(component!!.activityIntentProgression.provide())
-    } else {
-      // NOTE: This works since we have a proguard rule to keep the MainActivity name
-      //  from being obfuscated
-      actionStartActivity(ComponentName("app.campfire.android", "app.campfire.android.MainActivity"))
+    fun createMainActivityAction(
+      parameters: ActionParameters = actionParametersOf(),
+    ): Action {
+      return if (component != null) {
+        actionStartActivity(
+          intent = component!!.activityIntentProgression.provide(),
+          parameters = parameters,
+        )
+      } else {
+        // NOTE: This works since we have a proguard rule to keep the MainActivity name
+        //  from being obfuscated
+        actionStartActivity(
+          componentName = ComponentName("app.campfire.android", "app.campfire.android.MainActivity"),
+          parameters = parameters,
+        )
+      }
     }
+
+    val userSession by remember(component) {
+      component?.userSessionManager
+        ?.observe()
+        ?: flowOf(UserSession.LoggedOut)
+    }.collectAsState(UserSession.Loading)
 
     val currentSession by remember(component) {
       component?.sessionsRepository?.observeCurrentSession()
-        ?.mapNotNull { session ->
+        ?.map { session ->
           session?.let { s ->
             val currentChapter = s.chapter
             var prevChapter: Chapter? = null
@@ -174,21 +192,6 @@ class PlayerWidget : GlanceAppWidget() {
         }
     }.collectAsState(null)
 
-//    val discoverShelf by remember(component, widgetSizeClass) {
-//      val userSession = component?.playerWidgetUserSession
-//      component?.homeRepository
-//        ?.takeIf {
-//          widgetSizeClass.width == WidgetWidthClass.Expanded &&
-//            widgetSizeClass.height > WidgetHeightClass.Single
-//        }
-//        ?.observeShelf("${ShelfIds.Discover}_${userSession?.user?.id}_${userSession?.user?.selectedLibraryId}", ShelfType.BOOK)
-//        ?.onEach {
-//          bark("WidgetShelf") { "entities: $it" }
-//        }
-//        ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
-//        ?: emptyFlow()
-//    }.collectAsState(null)
-
     val audioPlayer by remember(component) {
       component?.audioPlayerHolder?.currentPlayer ?: MutableStateFlow(null)
     }.collectAsState()
@@ -218,6 +221,18 @@ class PlayerWidget : GlanceAppWidget() {
         colors = theme?.asColorProviders()
           ?: GlanceTheme.colors
       ) {
+        val queue by remember(component, widgetSizeClass) {
+          if (
+            widgetSizeClass.width == WidgetWidthClass.Expanded &&
+            widgetSizeClass.height >= WidgetHeightClass.ExtraTall
+          ) {
+            component?.sessionQueue?.observeAll()
+              ?: flowOf(null)
+          } else {
+            flowOf(null)
+          }
+        }.collectAsState(null)
+
         ActiveWidgetContent(
           title = currentMetadata.value.title ?: currentSession!!.title,
           subtitle = currentSession!!.libraryItem.media.metadata.title ?: "",
@@ -228,136 +243,72 @@ class PlayerWidget : GlanceAppWidget() {
           playbackSpeed = playbackSpeed,
           sleepTimerDuration = lastSetSleepTimer,
           runningTimer = runningTimer,
-          libraryItem = currentSession?.libraryItem,
           prevChapter = currentSession?.prevChapter,
           nextChapter = currentSession?.nextChapter,
-          onClick = mainActivityAction,
+          queue = queue,
+          onClick = createMainActivityAction(),
           widgetSizeClass = widgetSizeClass,
           modifier = modifier,
         )
       }
+    } else if (userSession is UserSession.LoggedIn && widgetSizeClass.height > WidgetHeightClass.Single) {
+      val continueListeningShelf by remember(component, widgetSizeClass) {
+        component?.homeRepository
+          ?.observeShelf(
+            "${ShelfIds.ContinueListening}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfType.BOOK,
+          )
+          ?.map { shelfEntities ->
+            shelfEntities
+              .take(3)
+              .map { it as LibraryItem }
+          }
+          ?: emptyFlow()
+      }.collectAsState(null)
+
+      val discoverShelf by remember(component, widgetSizeClass) {
+        component?.homeRepository
+          ?.observeShelf(
+            "${ShelfIds.Discover}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfType.BOOK,
+          )
+          ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
+          ?: emptyFlow()
+      }.collectAsState(null)
+
+      val recentlyAddedShelf by remember(component, widgetSizeClass) {
+        component?.homeRepository
+          ?.observeShelf(
+            "${ShelfIds.RecentlyAdded}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfType.BOOK,
+          )
+          ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
+          ?: emptyFlow()
+      }.collectAsState(null)
+
+      DiscoverWidgetContent(
+        continueListeningShelf = continueListeningShelf,
+        discoverShelf = discoverShelf,
+        recentlyAddedShelf = recentlyAddedShelf,
+        onClick = createMainActivityAction(),
+        onItemClick = { item ->
+          createMainActivityAction(
+            actionParametersOf(
+              ACTION_KEY_LIBRARY_ITEM_ID to item.id
+            )
+          )
+        },
+        modifier = modifier,
+      )
     } else {
       val context = LocalContext.current
       InActiveWidgetContent(
         title = context.getString(R.string.player_widget_title_default),
         subtitle = context.getString(R.string.player_widget_subtitle_default),
-        onClick = mainActivityAction,
+        onClick = createMainActivityAction(),
         widgetSizeClass = widgetSizeClass,
         modifier = modifier,
       )
     }
-  }
-
-  @Composable
-  private fun ActiveWidgetContent(
-    title: String,
-    subtitle: String,
-    artworkUrl: String?,
-    playbackState: AudioPlayer.State,
-    currentTime: Duration,
-    currentDuration: Duration,
-    playbackSpeed: Float,
-    sleepTimerDuration: Duration,
-    runningTimer: RunningTimer?,
-    libraryItem: LibraryItem?,
-    prevChapter: Chapter?,
-    nextChapter: Chapter?,
-    onClick: Action,
-    widgetSizeClass: WidgetSizeClass,
-    modifier: GlanceModifier = GlanceModifier,
-  ) {
-    PlayerWidgetScaffold(
-      onClick = onClick,
-      modifier = modifier,
-      content = {
-        when (widgetSizeClass.height) {
-          WidgetHeightClass.Single -> SinglePlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-            playbackState = playbackState,
-            currentTime = currentTime,
-            currentDuration = currentDuration,
-            playbackSpeed = playbackSpeed,
-            sizeClass = widgetSizeClass,
-          )
-
-          WidgetHeightClass.LargeCompact,
-          WidgetHeightClass.Compact -> CompactPlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-            playbackState = playbackState,
-            currentTime = currentTime,
-            currentDuration = currentDuration,
-            playbackSpeed = playbackSpeed,
-            sleepTimerDuration = sleepTimerDuration,
-            runningTimer = runningTimer,
-            prevChapter = prevChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
-            nextChapter = nextChapter.takeIf { widgetSizeClass.height == WidgetHeightClass.LargeCompact },
-            sizeClass = widgetSizeClass,
-          )
-
-          WidgetHeightClass.Tall,
-          WidgetHeightClass.Expanded -> ExpandedPlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = artworkUrl,
-            playbackState = playbackState,
-            currentTime = currentTime,
-            currentDuration = currentDuration,
-            playbackSpeed = playbackSpeed,
-            sleepTimerDuration = sleepTimerDuration,
-            runningTimer = runningTimer,
-            prevChapter = prevChapter,
-            nextChapter = nextChapter,
-            sizeClass = widgetSizeClass,
-          )
-        }
-      },
-    )
-  }
-
-  @Composable
-  private fun InActiveWidgetContent(
-    title: String,
-    subtitle: String,
-    onClick: Action,
-    widgetSizeClass: WidgetSizeClass,
-    modifier: GlanceModifier = GlanceModifier,
-  ) {
-    WidgetScaffold(
-      sizeClass = widgetSizeClass,
-      defaultBackground = if (widgetSizeClass.height != WidgetHeightClass.Single) {
-        ImageProvider(R.drawable.default_background_expanded)
-      } else {
-        ImageProvider(R.drawable.default_background)
-      },
-      onClick = onClick,
-      modifier = modifier,
-      playbackContent = {
-        if (widgetSizeClass.width == WidgetWidthClass.Expanded) {
-          ConstrainedPlaybackContent(
-            title = title,
-            subtitle = subtitle,
-            artworkUrl = null,
-            playbackState = AudioPlayer.State.Disabled,
-            currentTime = 0.seconds,
-            currentDuration = 0.seconds,
-            playbackSpeed = 1f,
-            sizeClass = widgetSizeClass,
-            backgroundColor = null,
-          ) {
-            PlaybackInfo(
-              title = title,
-              subtitle = subtitle,
-              modifier = GlanceModifier.defaultWeight(),
-            )
-          }
-        }
-      },
-      content = {
-      },
-    )
   }
 }

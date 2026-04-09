@@ -25,10 +25,10 @@ private const val COLUMN_COUNT = 3
 
 @Composable
 internal fun ColumnScope.ShelfContent(
-  discoverShelf: List<LibraryItem>?,
+  content: List<LibraryItem>?,
   modifier: GlanceModifier = GlanceModifier,
 ) {
-  if (discoverShelf == null) return
+  if (content == null) return
 
   val outerPadding = 12.dp
   val itemSpacing = 4.dp
@@ -57,7 +57,7 @@ internal fun ColumnScope.ShelfContent(
       modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
     ) {
       items(
-        items = discoverShelf,
+        items = content,
         itemId = { item -> item.id.hashCode().toLong() },
       ) { item ->
         GlanceImage(

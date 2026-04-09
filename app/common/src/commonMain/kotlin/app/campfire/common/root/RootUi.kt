@@ -47,6 +47,8 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.LoginScreen
+import app.campfire.core.navigation.DeepLink
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
@@ -83,10 +85,9 @@ import org.jetbrains.compose.resources.stringResource
 internal fun RootUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
-  themeManager: ThemeManager,
-  themeSettings: ThemeSettings,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
   windowInsets: WindowInsets,
+  deepLink: DeepLink,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -113,16 +114,31 @@ internal fun RootUi(
   // If the user is switching between form factors, i.e. opening/closing a foldable
   // then we'll want to re-orientate the root and detail back stacks so the content
   // isn't rendered oddly.
-  LaunchedEffect(windowSizeClass.isSupportingPaneEnabled) {
+  // FIXME: Handle deep links in coordination with this bit
+  LaunchedEffect(windowSizeClass.isSupportingPaneEnabled, deepLink) {
     if (windowSizeClass.isSupportingPaneEnabled) {
       val detailScreens = backstack.popUntil { it.screen !is DetailScreen }
       detailScreens.asReversed().forEach {
         detailBackStack.push(it)
       }
+
+      when (deepLink) {
+        is DeepLink.ItemDetail -> {
+          detailBackStack.push(LibraryItemScreen(deepLink.libraryItemId))
+        }
+        DeepLink.None -> Unit
+      }
     } else {
       val detailScreens = detailBackStack.popUntil { it.screen is EmptyScreen }
       detailScreens.asReversed().forEach {
         backstack.push(it)
+      }
+
+      when (deepLink) {
+        is DeepLink.ItemDetail -> {
+          backstack.push(LibraryItemScreen(deepLink.libraryItemId))
+        }
+        DeepLink.None -> Unit
       }
     }
   }

@@ -23,6 +23,7 @@ import coil3.imageLoader
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
+import coil3.size.Size
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -31,6 +32,7 @@ import kotlinx.coroutines.withContext
 internal fun GlanceImage(
   url: Any?,
   modifier: GlanceModifier = GlanceModifier,
+  size: Size? = null,
   contentScale: ContentScale = ContentScale.Crop,
   colorFilter: ColorFilter? = null,
 ) {
@@ -41,6 +43,7 @@ internal fun GlanceImage(
     withContext(Dispatchers.IO) {
       val request = ImageRequest.Builder(context)
         .data(url)
+        .size { size ?: Size.ORIGINAL }
         .build()
 
       bitmap = when (val result = context.imageLoader.execute(request)) {

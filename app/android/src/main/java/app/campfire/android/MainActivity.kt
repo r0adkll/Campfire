@@ -8,6 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
@@ -19,13 +22,19 @@ import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
+import app.campfire.core.navigation.DeepLink
+import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.toast.GlobalToaster
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
 
 class MainActivity : ComponentActivity() {
 
   private lateinit var component: ActivityComponent
+
+  private val deepLinkFlow = MutableStateFlow<DeepLink>(DeepLink.None)
 
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
@@ -48,10 +57,23 @@ class MainActivity : ComponentActivity() {
 
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
+    // Parse Deeplink
+    if (intent != null) {
+      val libraryItemId = intent.extras?.getString(DeepLinkKeys.LibraryItemId)
+      if (libraryItemId != null) {
+        deepLinkFlow.value = DeepLink.ItemDetail(libraryItemId)
+      }
+    }
+
+    // Configure toaster
     val toaster = AndroidToast(this)
     GlobalToaster.register(toaster)
 
     setContent {
+      val deepLink by remember {
+        deepLinkFlow
+      }.collectAsState()
+
       CompositionLocalProvider(
         LocalToast provides toaster,
       ) {
@@ -61,9 +83,20 @@ class MainActivity : ComponentActivity() {
             val intent = CustomTabsIntent.Builder().build()
             intent.launchUrl(this@MainActivity, url.toUri())
           },
+          deepLink,
           Modifier,
         )
       }
+    }
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+
+    // Parse DeepLink parameters
+    val libraryItemId = intent.extras?.getString(DeepLinkKeys.LibraryItemId)
+    if (libraryItemId != null) {
+      deepLinkFlow.value = DeepLink.ItemDetail(libraryItemId)
     }
   }
 

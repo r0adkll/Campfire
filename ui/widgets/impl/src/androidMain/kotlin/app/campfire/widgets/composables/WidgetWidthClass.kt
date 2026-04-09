@@ -15,6 +15,7 @@ enum class WidgetHeightClass {
   LargeCompact,
   Expanded,
   Tall,
+  ExtraTall,
 }
 
 data class WidgetSizeClass(
@@ -33,6 +34,7 @@ data class WidgetSizeClass(
     val EXPANDED_LARGE_COMPACT = DpSize(340.dp, 210.dp)
     val EXPANDED_EXPANDED = DpSize(340.dp, 340.dp)
     val EXPANDED_TALL = DpSize(340.dp, 480.dp)
+    val EXPANDED_EXTRA_TALL = DpSize(340.dp, 620.dp)
 
     val ResponsiveSizes = setOf(
       SINGLE_SINGLE,
@@ -42,9 +44,11 @@ data class WidgetSizeClass(
       EXPANDED_LARGE_COMPACT,
       EXPANDED_EXPANDED,
       EXPANDED_TALL,
+      EXPANDED_EXTRA_TALL,
     )
 
     fun from(size: DpSize): WidgetSizeClass = when (size) {
+      EXPANDED_EXTRA_TALL -> WidgetSizeClass(WidgetWidthClass.Expanded, WidgetHeightClass.ExtraTall)
       EXPANDED_TALL -> WidgetSizeClass(WidgetWidthClass.Expanded, WidgetHeightClass.Tall)
       EXPANDED_EXPANDED -> WidgetSizeClass(WidgetWidthClass.Expanded, WidgetHeightClass.Expanded)
       EXPANDED_COMPACT -> WidgetSizeClass(WidgetWidthClass.Expanded, WidgetHeightClass.Compact)

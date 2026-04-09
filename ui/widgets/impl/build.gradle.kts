@@ -33,6 +33,7 @@ kotlin {
       dependencies {
         implementation(projects.features.home.api)
         implementation(projects.ui.theming.api)
+        implementation(projects.data.account.api)
 
         implementation(libs.androidx.core.ktx)
         implementation(libs.androidx.glance.appwidget)

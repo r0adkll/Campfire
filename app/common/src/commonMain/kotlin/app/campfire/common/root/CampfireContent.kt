@@ -25,6 +25,8 @@ import app.campfire.common.compose.util.LocalThemeDispatcher
 import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.navigator.OpenUrlNavigator
+import app.campfire.core.navigation.DeepLink
+import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
@@ -44,6 +46,7 @@ typealias CampfireContentWithInsets = @Composable (
   onRootPop: () -> Unit,
   onOpenUrl: (String) -> Unit,
   windowInsets: WindowInsets,
+  deepLink: DeepLink,
   modifier: Modifier,
 ) -> Unit
 
@@ -54,10 +57,10 @@ fun CampfireContentWithInsets(
   @Assisted onRootPop: () -> Unit,
   @Assisted onOpenUrl: (String) -> Unit,
   @Assisted windowInsets: WindowInsets,
+  @Assisted deepLink: DeepLink,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
-  themeSettings: ThemeSettings,
   themeRepository: AppThemeRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
@@ -75,7 +78,17 @@ fun CampfireContentWithInsets(
     LocalUriHandler provides appUriHandler,
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
-      val backStack = key(userComponent.currentUserSession) { rememberSaveableBackStack(userComponent.rootScreen()) }
+      val backStack = key(userComponent.currentUserSession) {
+        rememberSaveableBackStack(userComponent.rootScreen()) {
+//          when (deepLink) {
+//            // FIXME: This technically works, but won't apply for Hot Starts.
+//            //  should investigate piping this a layer down
+//            is DeepLink.ItemDetail -> push(LibraryItemScreen(deepLink.libraryItemId))
+//            DeepLink.None -> Unit
+//          }
+        }
+      }
+
       val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
       val navigator = rememberInterceptingNavigator(
         navigator = baseNavigator,
@@ -124,10 +137,9 @@ fun CampfireContentWithInsets(
             RootUi(
               backstack = backStack,
               navigator = urlNavigator,
-              themeManager = themeManager,
-              themeSettings = themeSettings,
               windowInsets = windowInsets,
               navigationEventListeners = userComponent.navigationEventListeners,
+              deepLink = deepLink,
               modifier = modifier,
             )
           }
@@ -140,6 +152,7 @@ fun CampfireContentWithInsets(
 typealias CampfireContent = @Composable (
   onRootPop: () -> Unit,
   onOpenUrl: (String) -> Unit,
+  deepLink: DeepLink,
   modifier: Modifier,
 ) -> Unit
 
@@ -148,10 +161,10 @@ typealias CampfireContent = @Composable (
 fun CampfireContent(
   @Assisted onRootPop: () -> Unit,
   @Assisted onOpenUrl: (String) -> Unit,
+  @Assisted deepLink: DeepLink,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
-  themeSettings: ThemeSettings,
   themeRepository: AppThemeRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
@@ -160,12 +173,12 @@ fun CampfireContent(
     settings = settings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
-    themeSettings = themeSettings,
     themeRepository = themeRepository,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars
       .exclude(WindowInsets.statusBars)
       .exclude(WindowInsets.navigationBars),
+    deepLink = deepLink,
     modifier = modifier,
   )
 }

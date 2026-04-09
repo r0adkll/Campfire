@@ -11,12 +11,15 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.unit.ColorProvider
+import app.campfire.core.extensions.fluentIf
 import app.campfire.widgets.theme.LocalContentColorProvider
 
 @Composable
 internal fun PlayerWidgetScaffold(
   onClick: Action,
   modifier: GlanceModifier = GlanceModifier,
+  backgroundColor: ColorProvider? = GlanceTheme.colors.primaryContainer,
   content: @Composable () -> Unit,
 ) {
   Box(
@@ -24,7 +27,9 @@ internal fun PlayerWidgetScaffold(
       .fillMaxSize()
       .clickable(onClick)
       .appWidgetBackground()
-      .background(GlanceTheme.colors.primaryContainer),
+      .fluentIf(backgroundColor != null) {
+        background(backgroundColor!!)
+      },
     contentAlignment = Alignment.BottomStart,
   ) {
     val localContentColor = GlanceTheme.colors.onSecondary

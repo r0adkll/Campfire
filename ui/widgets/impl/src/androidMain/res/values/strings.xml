@@ -4,4 +4,8 @@
   <string name="player_widget_description">Control the playback of your audio content</string>
   <string name="player_widget_title_default">Open Campfire</string>
   <string name="player_widget_subtitle_default">to listen to your next tale</string>
+  <string name="player_widget_up_next">Up next</string>
+  <string name="player_widget_continue_listening">Continue listening</string>
+  <string name="player_widget_discover">Discover</string>
+  <string name="player_widget_recently_added">Recently added</string>
 </resources>

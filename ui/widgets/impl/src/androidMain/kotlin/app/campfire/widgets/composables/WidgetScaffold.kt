@@ -56,6 +56,7 @@ internal fun WidgetScaffold(
       when (sizeClass.height) {
         WidgetHeightClass.Single -> playbackContent()
 
+        WidgetHeightClass.ExtraTall,
         WidgetHeightClass.Tall,
         WidgetHeightClass.Expanded,
         WidgetHeightClass.Compact,

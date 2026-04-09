@@ -1,9 +1,12 @@
 package app.campfire.widgets.composables
 
 import android.annotation.SuppressLint
+import android.widget.Space
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +46,7 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.model.Chapter
+import app.campfire.core.model.LibraryItem
 import app.campfire.widgets.R
 import app.campfire.widgets.callbacks.CycleSpeedActionCallback
 import app.campfire.widgets.callbacks.SkipNextActionCallback
@@ -50,117 +54,8 @@ import app.campfire.widgets.callbacks.SkipPreviousActionCallback
 import app.campfire.widgets.theme.LocalContentColorProvider
 import app.campfire.widgets.theme.withAlpha
 import app.campfire.widgets.theme.CampfireGlanceColorScheme
+import app.campfire.widgets.util.glanceStringResource
 import kotlin.time.Duration
-
-val DefaultPlaybackControlsHeight = 132.dp
-val DefaultPlaybackExtraControlsHeight = 48.dp
-
-@SuppressLint("RestrictedApi")
-@Composable
-internal fun ConstrainedPlaybackContent(
-  title: String,
-  subtitle: String,
-  artworkUrl: String?,
-  playbackState: AudioPlayer.State,
-  currentTime: Duration,
-  currentDuration: Duration,
-  playbackSpeed: Float,
-  sizeClass: WidgetSizeClass,
-  modifier: GlanceModifier = GlanceModifier,
-  height: Dp = DefaultPlaybackControlsHeight,
-  backgroundColor: ColorProvider? = GlanceTheme.colors.secondaryContainer,
-  content: @Composable RowScope.() -> Unit = {
-    PlaybackContentRow(
-      title = title,
-      subtitle = subtitle,
-      playbackState = playbackState,
-      currentTime = currentTime,
-      currentDuration = currentDuration,
-      playbackSpeed = playbackSpeed,
-      sizeClass = sizeClass,
-    )
-  },
-) {
-  Box(
-    modifier = modifier
-      .fillMaxWidth()
-      .wrapContentHeight(),
-    contentAlignment = Alignment.BottomStart,
-  ) {
-    Column(
-      modifier = GlanceModifier
-        .fillMaxWidth()
-        .height(DefaultPlaybackControlsHeight)
-        .fluentIf(backgroundColor != null) {
-          background(backgroundColor!!)
-        }
-        .imageBackground(
-          url = artworkUrl,
-          colorFilter = ColorFilter.tint(
-            GlanceTheme.colors.secondary.withAlpha(0.75f),
-          ),
-        )
-    ) {
-      // Playback Info + Actions
-      Row(
-        modifier = GlanceModifier
-          .height(DefaultPlaybackControlsHeight)
-          .fillMaxWidth()
-          .padding(
-            horizontal = if (sizeClass.width == WidgetWidthClass.Expanded) {
-              24.dp
-            } else {
-              8.dp
-            },
-          ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalAlignment = if (sizeClass.width == WidgetWidthClass.Expanded) {
-          Alignment.Start
-        } else {
-          Alignment.CenterHorizontally
-        },
-        content = content,
-      )
-
-//      if (sizeClass.width >= WidgetWidthClass.Compact) {
-//        Row(
-//          modifier = GlanceModifier
-//            .fillMaxWidth()
-//            .height(DefaultPlaybackExtraControlsHeight)
-//            .padding(
-//              horizontal = if (sizeClass.width == WidgetWidthClass.Expanded) {
-//                24.dp
-//              } else {
-//                8.dp
-//              },
-//            ),
-//          verticalAlignment = Alignment.Top,
-//        ) {
-//          OutlineButton(
-//            text = "Speed 1x",
-//            icon = ImageProvider(R.drawable.ic_media_playbackspeed),
-//            onClick = {
-//
-//            },
-//            contentColor = LocalContentColorProvider.current,
-//          )
-//        }
-//      }
-    }
-
-    if (currentDuration > Duration.ZERO && sizeClass.width == WidgetWidthClass.Expanded) {
-      val progress = currentTime / currentDuration
-      LinearProgressIndicator(
-        progress = progress.toFloat(),
-        color = CampfireGlanceColorScheme.colors.primary,
-        backgroundColor = ColorProvider(Color.Black.copy(0.75f)),
-        modifier = GlanceModifier
-          .fillMaxWidth()
-          .height(4.dp),
-      )
-    }
-  }
-}
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -174,6 +69,7 @@ internal fun SinglePlaybackContent(
   playbackSpeed: Float,
   sizeClass: WidgetSizeClass,
   modifier: GlanceModifier = GlanceModifier,
+  showPlaybackActions: Boolean = true,
   defaultBackground: ImageProvider = ImageProvider(R.drawable.default_background),
 ) {
   Box(
@@ -227,6 +123,7 @@ internal fun SinglePlaybackContent(
         currentDuration = currentDuration,
         playbackSpeed = playbackSpeed,
         sizeClass = sizeClass,
+        showPlaybackActions = showPlaybackActions,
       )
     }
 
@@ -409,6 +306,8 @@ internal fun CompactPlaybackContent(
   }
 }
 
+private val ExpandedEdgePadding = 24.dp
+
 @SuppressLint("RestrictedApi")
 @Composable
 internal fun ExpandedPlaybackContent(
@@ -421,8 +320,7 @@ internal fun ExpandedPlaybackContent(
   playbackSpeed: Float,
   sleepTimerDuration: Duration,
   runningTimer: RunningTimer?,
-  prevChapter: Chapter?,
-  nextChapter: Chapter?,
+  queue: List<LibraryItem>?,
   sizeClass: WidgetSizeClass,
   modifier: GlanceModifier = GlanceModifier,
   defaultBackground: ImageProvider = ImageProvider(R.drawable.default_background),
@@ -431,15 +329,16 @@ internal fun ExpandedPlaybackContent(
     modifier = modifier
       .fillMaxSize()
       .padding(
-        top = 24.dp,
+        top = ExpandedEdgePadding,
         bottom = 16.dp,
       ),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
 
     val thumbnailFactor = when (sizeClass.height) {
-      WidgetHeightClass.Expanded -> 2.5f
+      WidgetHeightClass.Expanded -> 2.25f
       WidgetHeightClass.Tall -> 1.75f
+      WidgetHeightClass.ExtraTall -> 1.5f
       else -> 1f
     }
     val artSize = LocalSize.current.width / thumbnailFactor
@@ -500,7 +399,7 @@ internal fun ExpandedPlaybackContent(
           modifier = GlanceModifier
             .fillMaxWidth()
             .padding(
-              horizontal = 24.dp,
+              horizontal = ExpandedEdgePadding,
               vertical = 16.dp,
             )
         )
@@ -520,7 +419,7 @@ internal fun ExpandedPlaybackContent(
         Row(
           modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+            .padding(horizontal = ExpandedEdgePadding),
           verticalAlignment = Alignment.CenterVertically,
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -545,6 +444,91 @@ internal fun ExpandedPlaybackContent(
         }
         Spacer(GlanceModifier.height(8.dp))
       }
+
+      // Queue
+      if (!queue.isNullOrEmpty()) {
+        QueueItem(
+          queue = queue,
+          modifier = GlanceModifier
+            .fillMaxWidth()
+            .padding(horizontal = ExpandedEdgePadding)
+        )
+        Spacer(GlanceModifier.height(8.dp))
+      }
+    }
+  }
+}
+
+@Composable
+private fun QueueItem(
+  queue: List<LibraryItem>,
+  modifier: GlanceModifier = GlanceModifier,
+) {
+  Column(
+    modifier = modifier,
+  ) {
+    Text(
+      text = glanceStringResource(R.string.player_widget_up_next),
+      style = TextStyle(
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+      ),
+      modifier = GlanceModifier
+        .padding(
+          vertical = 8.dp,
+        )
+    )
+
+    val nextItem = queue.first()
+    Row(
+      modifier = GlanceModifier.fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      // Thumbnail
+      val thumbSize = 64.dp
+      GlanceImage(
+        url = nextItem.media.coverImageUrl,
+        modifier = GlanceModifier
+          .size(thumbSize)
+          .cornerRadius(16.dp),
+      )
+
+      Spacer(GlanceModifier.size(16.dp))
+
+      // Description
+      Column(
+        modifier = GlanceModifier
+          .defaultWeight()
+      ) {
+
+        Text(
+          text = nextItem.media.metadata.title ?: "--",
+          style = TextStyle(
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+          ),
+          maxLines = 2,
+        )
+
+        Text(
+          text = nextItem.media.metadata.authorName ?: "--",
+          style = TextStyle(
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+          ),
+          maxLines = 1,
+        )
+
+        Text(
+          text = nextItem.media.duration.readoutFormat(),
+          style = TextStyle(
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Normal,
+          ),
+          maxLines = 1,
+        )
+
+      }
     }
   }
 }
@@ -558,6 +542,7 @@ internal fun RowScope.PlaybackContentRow(
   currentDuration: Duration,
   playbackSpeed: Float,
   sizeClass: WidgetSizeClass,
+  showPlaybackActions: Boolean = true,
 ) = key("playback-content") {
   if (sizeClass.width == WidgetWidthClass.Expanded) {
     PlaybackInfo(
@@ -582,35 +567,37 @@ internal fun RowScope.PlaybackContentRow(
     Spacer(GlanceModifier.width(16.dp))
   }
 
-  Column(
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    val showTimeRemaining = currentDuration > Duration.ZERO &&
-      sizeClass.width == WidgetWidthClass.Compact
+  if (showPlaybackActions) {
+    Column(
+      horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+      val showTimeRemaining = currentDuration > Duration.ZERO &&
+        sizeClass.width == WidgetWidthClass.Compact
 
-    if (showTimeRemaining) {
-      Spacer(GlanceModifier.height(8.dp))
-    }
+      if (showTimeRemaining) {
+        Spacer(GlanceModifier.height(8.dp))
+      }
 
-    PlaybackActions(
-      size = sizeClass.width,
-      playbackState = playbackState,
-    )
-
-    if (showTimeRemaining) {
-      Spacer(GlanceModifier.height(8.dp))
-
-      val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
-      Text(
-        text = currentRemainingDuration.readoutFormat(largestOnly = true) + " remaining",
-        style = TextStyle(
-          color = LocalContentColorProvider.current,
-          fontSize = 11.sp,
-          fontWeight = FontWeight.Medium,
-          textAlign = TextAlign.Center,
-        ),
-        modifier = GlanceModifier.fillMaxWidth(),
+      PlaybackActions(
+        size = sizeClass.width,
+        playbackState = playbackState,
       )
+
+      if (showTimeRemaining) {
+        Spacer(GlanceModifier.height(8.dp))
+
+        val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
+        Text(
+          text = currentRemainingDuration.readoutFormat(largestOnly = true) + " remaining",
+          style = TextStyle(
+            color = LocalContentColorProvider.current,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center,
+          ),
+          modifier = GlanceModifier.fillMaxWidth(),
+        )
+      }
     }
   }
 }
