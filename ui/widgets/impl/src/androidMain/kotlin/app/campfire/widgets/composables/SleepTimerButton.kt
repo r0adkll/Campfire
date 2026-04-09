@@ -5,7 +5,6 @@ import android.os.SystemClock
 import android.widget.RemoteViews
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier

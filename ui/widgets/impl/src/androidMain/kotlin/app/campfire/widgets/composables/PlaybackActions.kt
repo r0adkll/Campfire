@@ -1,7 +1,6 @@
 package app.campfire.widgets.composables
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.glance.ColorFilter
@@ -96,7 +95,7 @@ internal fun PlaybackActions(
 internal fun FullPlaybackActions(
   playbackState: AudioPlayer.State,
   modifier: GlanceModifier = GlanceModifier,
-  spacing: Dp = 6.dp
+  spacing: Dp = 6.dp,
 ) {
   Row(
     modifier = modifier
@@ -104,7 +103,6 @@ internal fun FullPlaybackActions(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalAlignment = Alignment.CenterVertically,
   ) {
-
     val secondaryButtonContentColor = GlanceTheme.colors.onPrimaryContainer
     val secondaryButtonBackgroundColor =
       GlanceTheme.colors.primaryContainer.withAlpha(0.75f)
@@ -144,12 +142,12 @@ internal fun FullPlaybackActions(
             AudioPlayer.State.Buffering -> error("This state should never be reached")
 
             AudioPlayer.State.Playing,
-              -> R.drawable.ic_media_pause
+            -> R.drawable.ic_media_pause
 
             AudioPlayer.State.Paused,
             AudioPlayer.State.Disabled,
             AudioPlayer.State.Finished,
-              -> R.drawable.ic_media_play
+            -> R.drawable.ic_media_play
           },
         ),
         contentDescription = null,

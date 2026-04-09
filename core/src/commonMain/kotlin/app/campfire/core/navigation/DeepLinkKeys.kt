@@ -14,5 +14,4 @@ sealed interface DeepLink {
   data class ItemDetail(
     val libraryItemId: LibraryItemId,
   ) : DeepLink
-
 }

@@ -44,8 +44,8 @@ internal fun ActiveWidgetContent(
         )
 
         WidgetHeightClass.LargeCompact,
-        WidgetHeightClass.Compact
-          -> CompactPlaybackContent(
+        WidgetHeightClass.Compact,
+        -> CompactPlaybackContent(
           title = title,
           subtitle = subtitle,
           artworkUrl = artworkUrl,
@@ -62,8 +62,8 @@ internal fun ActiveWidgetContent(
 
         WidgetHeightClass.Tall,
         WidgetHeightClass.ExtraTall,
-        WidgetHeightClass.Expanded
-          -> ExpandedPlaybackContent(
+        WidgetHeightClass.Expanded,
+        -> ExpandedPlaybackContent(
           title = title,
           subtitle = subtitle,
           artworkUrl = artworkUrl,

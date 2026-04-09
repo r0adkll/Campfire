@@ -54,13 +54,11 @@ import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
 import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.sessions.ui.playback.CampfirePlaybackBar
-import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.bar.CampfireNavigationBar
 import app.campfire.ui.navigation.bar.LocalNavigationBarState
 import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
 import app.campfire.ui.navigation.drawer.CampfireDrawer
 import app.campfire.ui.navigation.rail.CampfireNavigationRail
-import app.campfire.ui.theming.api.ThemeManager
 import campfire.app.common.generated.resources.Res
 import campfire.app.common.generated.resources.empty_supporting_pane_message
 import com.slack.circuit.backstack.SaveableBackStack

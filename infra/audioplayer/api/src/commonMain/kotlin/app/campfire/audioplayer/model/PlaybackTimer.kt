@@ -1,7 +1,5 @@
 package app.campfire.audioplayer.model
 
-import kotlin.time.Duration
-
 sealed interface PlaybackTimer {
   val isAutoSleepTimer: Boolean
 

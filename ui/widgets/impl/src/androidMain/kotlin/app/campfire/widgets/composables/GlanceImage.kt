@@ -9,7 +9,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
@@ -18,7 +17,6 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.ContentScale
-import app.campfire.widgets.theme.withAlpha
 import coil3.imageLoader
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
@@ -74,8 +72,6 @@ internal fun GlanceImage(
     }
   }
 }
-
-
 
 @Composable
 internal fun GlanceModifier.imageBackground(

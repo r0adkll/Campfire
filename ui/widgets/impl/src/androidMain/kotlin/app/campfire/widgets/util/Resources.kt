@@ -6,7 +6,7 @@ import androidx.glance.LocalContext
 
 @Composable
 internal fun glanceStringResource(
-  @StringRes resId: Int
+  @StringRes resId: Int,
 ): String {
   return LocalContext.current.getString(resId)
 }

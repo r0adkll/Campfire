@@ -1,8 +1,6 @@
 package app.campfire.widgets.composables
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -33,7 +31,6 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import app.campfire.core.model.LibraryItem
-import app.campfire.home.api.model.Shelf
 import app.campfire.widgets.R
 import app.campfire.widgets.util.glanceStringResource
 import coil3.size.Size
@@ -60,7 +57,7 @@ internal fun DiscoverWidgetContent(
         onClick = onClick,
         onItemClick = onItemClick,
       )
-    }
+    },
   )
 }
 
@@ -99,14 +96,14 @@ private fun DiscoverContent(
         style = TextStyle(
           fontSize = 20.sp,
           fontWeight = FontWeight.Bold,
-        )
+        ),
       )
     }
 
     // Content
     val outerPadding = 16.dp
     val itemSpacing = 4.dp
-    val totalSpacing = /*outerPadding * 2 +*/ itemSpacing * (COLUMN_COUNT - 1)
+    val totalSpacing = itemSpacing * (COLUMN_COUNT - 1)
     val cellSize = (LocalSize.current.width - totalSpacing) / COLUMN_COUNT
 
     LazyColumn(
@@ -172,7 +169,7 @@ private fun LazyListScope.ShelfContent(
         .padding(
           horizontal = 16.dp,
           vertical = 12.dp,
-        )
+        ),
     )
   }
 
@@ -188,8 +185,8 @@ private fun LazyListScope.ShelfContent(
       modifier = GlanceModifier
         .padding(
           horizontal = outerPadding - itemSpacing,
-          vertical = itemSpacing
-        )
+          vertical = itemSpacing,
+        ),
     )
   }
 }
@@ -217,7 +214,7 @@ private fun ShelfHeader(
       provider = ImageProvider(R.drawable.ic_media_chevron_right),
       contentDescription = "open",
       modifier = GlanceModifier
-        .size(24.dp)
+        .size(24.dp),
     )
   }
 }
@@ -231,7 +228,7 @@ private fun ShelfItemRow(
   modifier: GlanceModifier = GlanceModifier,
 ) {
   Row(
-    modifier = modifier
+    modifier = modifier,
   ) {
     chunk.forEach { item ->
       Box(

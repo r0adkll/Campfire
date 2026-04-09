@@ -9,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -65,7 +64,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapNotNull
 
 @ContributesTo(UserScope::class)
 interface PlayerWidgetComponent {
@@ -219,7 +217,7 @@ class PlayerWidget : GlanceAppWidget() {
 
       GlanceTheme(
         colors = theme?.asColorProviders()
-          ?: GlanceTheme.colors
+          ?: GlanceTheme.colors,
       ) {
         val queue by remember(component, widgetSizeClass) {
           if (
@@ -294,8 +292,8 @@ class PlayerWidget : GlanceAppWidget() {
         onItemClick = { item ->
           createMainActivityAction(
             actionParametersOf(
-              ACTION_KEY_LIBRARY_ITEM_ID to item.id
-            )
+              ACTION_KEY_LIBRARY_ITEM_ID to item.id,
+            ),
           )
         },
         modifier = modifier,

@@ -1,13 +1,9 @@
 package app.campfire.widgets.composables
 
 import android.annotation.SuppressLint
-import android.widget.Space
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.ColorFilter
@@ -20,7 +16,6 @@ import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.components.OutlineButton
 import androidx.glance.appwidget.cornerRadius
-import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -34,7 +29,6 @@ import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.layout.wrapContentHeight
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
@@ -43,7 +37,6 @@ import androidx.glance.unit.ColorProvider
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
@@ -53,7 +46,6 @@ import app.campfire.widgets.callbacks.SkipNextActionCallback
 import app.campfire.widgets.callbacks.SkipPreviousActionCallback
 import app.campfire.widgets.theme.LocalContentColorProvider
 import app.campfire.widgets.theme.withAlpha
-import app.campfire.widgets.theme.CampfireGlanceColorScheme
 import app.campfire.widgets.util.glanceStringResource
 import kotlin.time.Duration
 
@@ -193,7 +185,7 @@ internal fun CompactPlaybackContent(
           } else {
             8.dp
           },
-        )
+        ),
     ) {
       val playbackInfoModifier = if (sizeClass.height == WidgetHeightClass.Compact) {
         GlanceModifier.defaultWeight()
@@ -334,7 +326,6 @@ internal fun ExpandedPlaybackContent(
       ),
     horizontalAlignment = Alignment.CenterHorizontally,
   ) {
-
     val thumbnailFactor = when (sizeClass.height) {
       WidgetHeightClass.Expanded -> 2.25f
       WidgetHeightClass.Tall -> 1.75f
@@ -387,7 +378,7 @@ internal fun ExpandedPlaybackContent(
         style = TextStyle(
           fontSize = 16.sp,
           fontWeight = FontWeight.Medium,
-        )
+        ),
       )
 
       if (currentDuration > Duration.ZERO) {
@@ -401,7 +392,7 @@ internal fun ExpandedPlaybackContent(
             .padding(
               horizontal = ExpandedEdgePadding,
               vertical = 16.dp,
-            )
+            ),
         )
       } else {
         Spacer(GlanceModifier.height(16.dp))
@@ -428,7 +419,7 @@ internal fun ExpandedPlaybackContent(
             icon = ImageProvider(R.drawable.ic_media_playbackspeed),
             onClick = actionRunCallback(CycleSpeedActionCallback::class.java),
             contentColor = GlanceTheme.colors.onPrimaryContainer,
-            modifier = GlanceModifier.defaultWeight()
+            modifier = GlanceModifier.defaultWeight(),
           )
 
           Spacer(GlanceModifier.width(8.dp))
@@ -451,7 +442,7 @@ internal fun ExpandedPlaybackContent(
           queue = queue,
           modifier = GlanceModifier
             .fillMaxWidth()
-            .padding(horizontal = ExpandedEdgePadding)
+            .padding(horizontal = ExpandedEdgePadding),
         )
         Spacer(GlanceModifier.height(8.dp))
       }
@@ -476,7 +467,7 @@ private fun QueueItem(
       modifier = GlanceModifier
         .padding(
           vertical = 8.dp,
-        )
+        ),
     )
 
     val nextItem = queue.first()
@@ -498,9 +489,8 @@ private fun QueueItem(
       // Description
       Column(
         modifier = GlanceModifier
-          .defaultWeight()
+          .defaultWeight(),
       ) {
-
         Text(
           text = nextItem.media.metadata.title ?: "--",
           style = TextStyle(
@@ -527,7 +517,6 @@ private fun QueueItem(
           ),
           maxLines = 1,
         )
-
       }
     }
   }
@@ -601,4 +590,3 @@ internal fun RowScope.PlaybackContentRow(
     }
   }
 }
-

@@ -26,7 +26,6 @@ import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.toast.GlobalToaster
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
 

@@ -26,9 +26,7 @@ import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.core.navigation.DeepLink
-import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.settings.api.CampfireSettings
-import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.api.colorScheme
