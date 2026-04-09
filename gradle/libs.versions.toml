@@ -1,6 +1,6 @@
 [versions]
 agp = "9.1.0"
-about-libraries = "14.0.0-b03"
+about-libraries = "14.0.0"
 accompanist = "0.37.3"
 androidxlifecycle = "2.10.0"
 androidxactivity = "1.13.0"
@@ -10,7 +10,7 @@ androidxtracingperfetto = "1.0.1"
 androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
 appcompat = "1.7.1"
-appdistribution = "16.0.0-beta17"
+appdistribution = "16.0.0-beta18"
 burst = "2.12.1"
 clikt = "5.1.0"
 colorpicker-compose = "1.1.3"
@@ -33,7 +33,7 @@ ksp = "2.3.6"
 ktlint = "0.49.1"
 ktor = "3.4.2"
 media3 = "1.10.0"
-mixpanel = "8.4.0"
+mixpanel = "8.5.0"
 mosaic = "0.18.0"
 molecule = "2.2.0"
 multiplatformsettings = "1.3.0"
@@ -240,7 +240,7 @@ media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 
 # This will force an upgrade in the 'media3-cast' library
-play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.0"
+play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.1"
 
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
