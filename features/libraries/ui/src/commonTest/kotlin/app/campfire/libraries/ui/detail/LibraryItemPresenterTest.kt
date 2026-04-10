@@ -23,7 +23,6 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
-import assertk.assertions.isTrue
 import assertk.assertions.prop
 import com.slack.circuit.test.test
 import kotlin.test.Test
