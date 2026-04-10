@@ -8,6 +8,7 @@ import androidx.compose.ui.interop.LocalUIViewController
 import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.ui.window.ComposeUIViewController
 import app.campfire.common.root.CampfireContent
+import app.campfire.core.navigation.DeepLink
 import me.tatarka.inject.annotations.Inject
 import platform.Foundation.NSURL
 import platform.SafariServices.SFSafariViewController
@@ -27,6 +28,7 @@ fun CampfireUiViewController(
       val safari = SFSafariViewController(NSURL(string = url))
       uiViewController.presentViewController(safari, animated = true, completion = null)
     },
+    DeepLink.None,
     Modifier,
   )
 }
