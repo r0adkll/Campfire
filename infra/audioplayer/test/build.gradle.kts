@@ -8,6 +8,7 @@ kotlin {
     commonMain {
       dependencies {
         api(projects.infra.audioplayer.api)
+        implementation(libs.kotlinx.atomicfu)
       }
     }
   }

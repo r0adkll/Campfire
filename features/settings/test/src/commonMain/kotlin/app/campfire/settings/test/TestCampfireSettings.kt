@@ -8,14 +8,17 @@ import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TestCampfireSettings(
-  private val testScope: CoroutineScope = TestScope(StandardTestDispatcher()),
+  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
 ) : TestSettings(), CampfireSettings {
 
   override var deviceId: String by string()
