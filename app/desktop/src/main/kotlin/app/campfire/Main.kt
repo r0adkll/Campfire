@@ -26,6 +26,7 @@ import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.navigation.DeepLink
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
 import java.awt.Desktop
@@ -114,6 +115,7 @@ fun main() = application {
           top = 24.dp,
           bottom = 24.dp,
         ),
+        DeepLink.None,
         Modifier,
       )
     }

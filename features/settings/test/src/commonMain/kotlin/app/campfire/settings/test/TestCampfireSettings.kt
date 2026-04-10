@@ -36,12 +36,12 @@ class TestCampfireSettings(
 
   override var themeMode: ThemeMode by enum()
   override fun observeTheme(): StateFlow<ThemeMode> =
-    observeEnum(::themeMode)
+    observeEnum<ThemeMode>(::themeMode)
       .stateIn(testScope, SharingStarted.Lazily, themeMode)
 
   override var libraryItemDisplayState: ItemDisplayState by enum()
   override fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState> =
-    observeEnum(::libraryItemDisplayState)
+    observeEnum<ItemDisplayState>(::libraryItemDisplayState)
       .stateIn(testScope, SharingStarted.Lazily, libraryItemDisplayState)
 
   override var libraryItemMarqueeEnabled: Boolean by boolean()
@@ -51,32 +51,32 @@ class TestCampfireSettings(
 
   override var librarySortMode: ContentSortMode by enum()
   override fun observeLibrarySortMode(): StateFlow<ContentSortMode> =
-    observeEnum(::librarySortMode)
+    observeEnum<ContentSortMode>(::librarySortMode)
       .stateIn(testScope, SharingStarted.Lazily, librarySortMode)
 
   override var librarySortDirection: SortDirection by enum()
   override fun observeLibrarySortDirection(): StateFlow<SortDirection> =
-    observeEnum(::librarySortDirection)
+    observeEnum<SortDirection>(::librarySortDirection)
       .stateIn(testScope, SharingStarted.Lazily, librarySortDirection)
 
   override var authorsSortMode: ContentSortMode by enum()
   override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> =
-    observeEnum(::authorsSortMode)
+    observeEnum<ContentSortMode>(::authorsSortMode)
       .stateIn(testScope, SharingStarted.Lazily, authorsSortMode)
 
   override var authorsSortDirection: SortDirection by enum()
   override fun observeAuthorsSortDirection(): StateFlow<SortDirection> =
-    observeEnum(::authorsSortDirection)
+    observeEnum<SortDirection>(::authorsSortDirection)
       .stateIn(testScope, SharingStarted.Lazily, authorsSortDirection)
 
   override var seriesSortMode: ContentSortMode by enum()
   override fun observeSeriesSortMode(): StateFlow<ContentSortMode> =
-    observeEnum(::seriesSortMode)
+    observeEnum<ContentSortMode>(::seriesSortMode)
       .stateIn(testScope, SharingStarted.Lazily, seriesSortMode)
 
   override var seriesSortDirection: SortDirection by enum()
   override fun observeSeriesSortDirection(): StateFlow<SortDirection> =
-    observeEnum(::seriesSortDirection)
+    observeEnum<SortDirection>(::seriesSortDirection)
       .stateIn(testScope, SharingStarted.Lazily, seriesSortDirection)
 
   override var currentUserId: UserId? by stringOrNull()
