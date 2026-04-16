@@ -2,7 +2,6 @@ package app.campfire.network
 
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requireServerUrl
 import app.campfire.core.session.userId

@@ -40,7 +40,7 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
 
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
     if (userPlayCache[libraryItemId] ?: false) {
-       syncProgress(libraryItemId)
+      syncProgress(libraryItemId)
     }
   }
 

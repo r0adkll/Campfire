@@ -30,7 +30,6 @@ class StartupInitializer(
   internal var timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
 
   fun initialize() {
-
     dbark { "--> UserInitializer is starting" }
     val userInitDuration = Trace.trace("UserComponent") {
       runBlocking {

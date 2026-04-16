@@ -72,7 +72,7 @@ internal class AsyncTrackTracer {
     return try {
       Trace::class.java.getDeclaredMethod(name, *params)
         .also { it.isAccessible = true }
-    } catch (_: Throwable){
+    } catch (_: Throwable) {
       null
     }
   }
