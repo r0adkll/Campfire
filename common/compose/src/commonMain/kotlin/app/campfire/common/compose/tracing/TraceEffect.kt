@@ -16,11 +16,9 @@ fun TraceEffect(
   cookie: Int = 0,
 ) {
   DisposableEffect(Unit) {
-    // TODO: Replace this when asyncSectionWithTrackName is correctly implemented
-    val methodName = "$trackName: $label"
-    Trace.beginAsyncSectionWithTrackName(trackName, methodName, cookie)
+    Trace.beginAsyncSectionWithTrackName(trackName, label, cookie)
     onDispose {
-      Trace.endAsyncSectionWithTrackName(trackName, methodName, cookie)
+      Trace.endAsyncSectionWithTrackName(trackName, label, cookie)
     }
   }
 }
