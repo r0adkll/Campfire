@@ -4,7 +4,6 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.network.di.BaseClient
 import app.campfire.network.di.UserClient
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
