@@ -36,8 +36,12 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
   // have the chance to update the local database with the latest information.
   override val rank: Int = PlaybackSynchronizer.RANK_HIGHEST
 
+  private val userPlayCache = mutableMapOf<String, Boolean>()
+
   override suspend fun onOverallTimeChanged(libraryItemId: LibraryItemId, overallTime: Duration) {
-//    syncProgress(libraryItemId)
+    if (userPlayCache[libraryItemId] ?: false) {
+       syncProgress(libraryItemId)
+    }
   }
 
   override suspend fun onStateChanged(
@@ -49,6 +53,21 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
     if (state == AudioPlayer.State.Paused && previousState == AudioPlayer.State.Playing) {
       ibark { "onStateChange($state)" }
       syncProgress(libraryItemId, force = true)
+    }
+
+    // If the user has deliberately started playback, then we'll want
+    // to mark the [libraryItemId] has having been played and allow it to sync media progress
+    if (
+      state == AudioPlayer.State.Playing &&
+      previousState == AudioPlayer.State.Paused
+    ) {
+      userPlayCache[libraryItemId] = true
+    }
+
+    // Inversely, if the player finishes or loses state then we want to remove
+    // the playback mark to avoid erroneous progress syncs.
+    if (state == AudioPlayer.State.Finished || state == AudioPlayer.State.Disabled) {
+      userPlayCache.remove(libraryItemId)
     }
   }
 
