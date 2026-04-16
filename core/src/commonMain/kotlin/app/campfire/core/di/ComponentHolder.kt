@@ -4,11 +4,10 @@ import app.campfire.core.di.ComponentHolder.components
 import app.campfire.core.logging.bark
 import co.touchlab.stately.collections.ConcurrentMutableSet
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.filterIsInstance
-import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 /**
@@ -35,11 +34,7 @@ import kotlinx.coroutines.launch
 object ComponentHolder {
 
   val components = ConcurrentMutableSet<Any>()
-  val componentSharedFlow = MutableSharedFlow<Any>(
-    replay = 8,
-    extraBufferCapacity = 20,
-    onBufferOverflow = BufferOverflow.DROP_OLDEST,
-  )
+  val componentSharedFlow = MutableSharedFlow<Unit>(replay = 0)
 
   /**
    * Fetch a component of type [T] that has been added to the holder, automatically casting
@@ -70,19 +65,25 @@ object ComponentHolder {
     components += component
 
     scope.launch {
-      componentSharedFlow.emit(component)
+      componentSharedFlow.emit(Unit)
       bark("ComponentHolder") { "updateComponent($component) - Success" }
     }
   }
 
+  fun <T : Any> removeComponent(component: T) {
+    components.removeAll { it::class.isInstance(component) }
+  }
+
   inline fun <reified T> subscribe(): Flow<T> {
     return componentSharedFlow
-      .onSubscription {
+      .mapNotNull {
+        maybeComponent<T>()
+      }
+      .onStart {
         val existing = maybeComponent<T>()
         if (existing != null) {
           emit(existing)
         }
       }
-      .filterIsInstance<T>()
   }
 }
