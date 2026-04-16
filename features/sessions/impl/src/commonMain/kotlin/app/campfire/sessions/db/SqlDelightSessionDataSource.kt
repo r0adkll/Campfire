@@ -221,7 +221,6 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
-    ibark { "updateCurrentTime($currentTime)" }
     val currentUserId = userSession.userId ?: return
     write {
       // Update the playback session information with the new time
@@ -235,7 +234,6 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun updateLastPlayed(libraryItemId: LibraryItemId) {
-    ibark { "updateLastPlayed()" }
     val currentUserId = userSession.userId ?: return
     write {
       db.sessionQueries.updateLastPlayed(
@@ -247,7 +245,6 @@ class SqlDelightSessionDataSource(
   }
 
   override suspend fun addTimeListening(libraryItemId: LibraryItemId, amount: Duration) {
-    ibark { "addTimeListening($amount)" }
     val currentUserId = userSession.userId ?: return
     write {
       db.sessionQueries.addTimeListening(

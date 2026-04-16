@@ -8,6 +8,8 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        api(libs.kotlininject.runtime)
+
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.datetime)
         implementation(libs.kotlinx.serialization.json)

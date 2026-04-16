@@ -1,25 +1,19 @@
 package app.campfire.network
 
-import app.campfire.account.api.AccountManager
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requireServerUrl
-import app.campfire.core.session.requiredUser
-import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
-import app.campfire.network.di.RefreshToken
 import app.campfire.network.di.ServerUrl
+import app.campfire.network.di.UserClient
 import app.campfire.network.envelopes.AddBookToCollectionRequest
 import app.campfire.network.envelopes.AllLibrariesResponse
 import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.BatchBooksRequest
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
-import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
@@ -49,15 +43,10 @@ import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
-import app.campfire.network.plugins.suspendingDefaultHeaders
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
-import io.ktor.client.request.post
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -65,12 +54,10 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.http.encodeURLQueryComponent
-import io.ktor.http.isSuccess
 import io.ktor.http.takeFrom
 import io.ktor.util.encodeBase64
 import me.tatarka.inject.annotations.Inject
@@ -80,67 +67,8 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(UserScope::class)
 class KtorAudioBookShelfApi(
   private val userSession: UserSession,
-  private val httpClient: HttpClient,
-  private val accountManager: AccountManager,
-  private val dispatcherProvider: DispatcherProvider,
+  @UserClient private val client: HttpClient,
 ) : AudioBookShelfApi {
-
-  private val client by lazy {
-    httpClient.config {
-      install(Auth) {
-        bearer {
-          loadTokens {
-            accountManager.getToken(userSession.requiredUserId)?.asBearerTokens()
-          }
-
-          refreshTokens {
-            val tokens = accountManager.getToken(userSession.requiredUserId)
-            val newTokenResponse = client.post {
-              val currentServerUrl = userSession.requireServerUrl
-              url("${cleanServerUrl(currentServerUrl)}/auth/refresh")
-              tokens?.refreshToken?.let {
-                header(HttpHeaders.RefreshToken, it)
-              }
-              markAsRefreshTokenRequest()
-            }
-
-            return@refreshTokens if (newTokenResponse.status.isSuccess()) {
-              try {
-                val newToken = newTokenResponse.body<LoginResponse>().asAbsToken()
-                if (newToken != null) {
-                  accountManager.updateToken(userSession.requiredUserId, newToken)
-                  newToken.asBearerTokens()
-                } else {
-                  bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
-                  accountManager.invalidateAccount(userSession.requiredUser)
-                  null
-                }
-              } catch (e: Exception) {
-                bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
-                null
-              }
-            } else {
-              bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
-              if (
-                newTokenResponse.status == HttpStatusCode.Unauthorized ||
-                newTokenResponse.status == HttpStatusCode.Forbidden
-              ) {
-                accountManager.invalidateAccount(userSession.requiredUser)
-              }
-              null
-            }
-          }
-        }
-      }
-
-      suspendingDefaultHeaders {
-        val extraHeaders = accountManager.getExtraHeaders(userSession.requiredUserId)
-        extraHeaders?.forEach { (name, value) ->
-          header(name, value)
-        }
-      }
-    }
-  }
 
   override suspend fun getCurrentUser(): Result<User> = trySendRequest {
     hydratedClientRequest("/api/me")

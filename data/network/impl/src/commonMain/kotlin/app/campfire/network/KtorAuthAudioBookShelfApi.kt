@@ -3,6 +3,7 @@ package app.campfire.network
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.network.di.BaseClient
 import app.campfire.network.di.ReturnTokens
 import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginRequest
@@ -32,7 +33,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 @ContributesBinding(AppScope::class)
 class KtorAuthAudioBookShelfApi(
-  private val httpClient: HttpClient,
+  @BaseClient private val httpClient: HttpClient,
   private val dispatcherProvider: DispatcherProvider,
 ) : AuthAudioBookShelfApi {
 

@@ -21,6 +21,7 @@ kotlin {
         api(libs.uuid)
 
         api(projects.data.analytics.api)
+        api(projects.infra.tracing)
 
         implementation(libs.kotlinx.serialization.json)
       }

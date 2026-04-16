@@ -14,17 +14,22 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
+import app.campfire.audioplayer.impl.networking.AuthRefreshingHttpDataSource
+import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
+import app.campfire.network.di.UserClient
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
+import io.ktor.client.HttpClient
 import java.io.File
 import java.util.concurrent.Executors
 import kotlinx.coroutines.runBlocking
@@ -65,10 +70,12 @@ interface ExoPlayerAppComponent {
     databaseProvider: DatabaseProvider,
     simpleCache: SimpleCache,
     appInfo: ApplicationInfo,
+    @UserClient userClient: HttpClient,
   ): DownloadManager {
     val numCpus = Runtime.getRuntime().availableProcessors()
     val httpDataSourceFactory = DefaultHttpDataSource.Factory()
       .setUserAgent(appInfo.userAgent)
+    val authRetryFactory = AuthRefreshingHttpDataSource.Factory(httpDataSourceFactory, userClient)
     return DownloadManager(
       application,
       databaseProvider,
@@ -76,7 +83,7 @@ interface ExoPlayerAppComponent {
       createAuthenticatingDataSource(
         userSessionProvider = { sessionManager.current },
         accountManager = accountManager,
-        upstreamDataSourceFactory = httpDataSourceFactory,
+        upstreamDataSourceFactory = authRetryFactory,
       ),
       Executors.newFixedThreadPool(numCpus),
     ).apply {
@@ -93,15 +100,17 @@ interface ExoPlayerAppComponent {
     sessionManager: UserSessionManager,
     accountManager: AccountManager,
     appInfo: ApplicationInfo,
+    loadErrorHandlingPolicy: LoadErrorHandlingPolicy,
+    @UserClient userClient: HttpClient,
   ): MediaSource.Factory {
     val httpDataSourceFactory = DefaultHttpDataSource.Factory()
       .setUserAgent(appInfo.userAgent)
 
-    // Configure the DataSource.Factory with the cache and factory for the desired HTTP stack.
-    val cacheDataSourceFactory =
-      CacheDataSource.Factory()
-        .setCache(simpleCache)
-        .setUpstreamDataSourceFactory(httpDataSourceFactory)
+    val authRetryFactory = AuthRefreshingHttpDataSource.Factory(httpDataSourceFactory, userClient)
+
+    val cacheDataSourceFactory = CacheDataSource.Factory()
+      .setCache(simpleCache)
+      .setUpstreamDataSourceFactory(authRetryFactory)
 
     val extractorsFactory = DefaultExtractorsFactory()
 
@@ -118,7 +127,12 @@ interface ExoPlayerAppComponent {
           upstreamDataSourceFactory = cacheDataSourceFactory,
         ),
       )
+      .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
   }
+
+  @OptIn(UnstableApi::class)
+  @Provides
+  fun provideLoadErrorHandlingPolicy(): LoadErrorHandlingPolicy = CampfireLoadErrorHandlingPolicy()
 }
 
 @OptIn(UnstableApi::class)

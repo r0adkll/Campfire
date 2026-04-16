@@ -6,6 +6,8 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
+import app.campfire.tracing.Trace
+import app.campfire.tracing.trace
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
@@ -14,40 +16,34 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @Inject
 class StartupInitializer(
   private val userInitializer: UserInitializer,
-  private val initializers: Set<AppInitializer>,
+  private val initializers: Lazy<Set<AppInitializer>>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) {
 
   internal var timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
 
   fun initialize() {
-    applicationScope.launch {
-      // Filter out high priority initializers
-      val highPriorityInitializers = initializers.filter { initializer ->
-        initializer.priority in AppInitializer.FIRST_INIT_PRIORITY_RANGE
-      }
-      val deferredHighPriority = highPriorityInitializers.map { initializer ->
-        processInitializer(initializer)
-      }
-      deferredHighPriority.awaitAll()
 
+    dbark { "--> UserInitializer is starting" }
+    val userInitDuration = Trace.trace("UserComponent") {
+      runBlocking {
+        measureTime { userInitializer.initialize() }
+      }
+    }
+    dbark { "<-- UserInitializer has finished in $userInitDuration" }
+
+    applicationScope.launch {
       ibark { "Starting startup initialization" }
 
-      dbark { "--> UserInitializer is starting" }
-      val userInitDuration = measureTime { userInitializer.initialize() }
-      dbark { "<-- UserInitializer has finished in $userInitDuration" }
-
       // Process AppScope Initializers
-      val lowPriorityInitializers = initializers.filter { initializer ->
-        initializer.priority <= AppInitializer.HIGHEST_PRIORITY
-      }
-      val appInitializers = lowPriorityInitializers.sortedByDescending { it.priority }
+      val appInitializers = initializers.value.sortedByDescending { it.priority }
       val deferred = appInitializers.map { initializer ->
         processInitializer(initializer)
       }

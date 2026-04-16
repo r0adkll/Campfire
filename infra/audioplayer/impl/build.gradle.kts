@@ -32,11 +32,13 @@ kotlin {
         api(projects.infra.shake)
 
         implementation(libs.compose.runtime)
+        implementation(libs.ktor.client.core)
 
         implementation(projects.core)
         implementation(projects.data.db.core)
         implementation(projects.features.settings.api)
         implementation(projects.data.account.api)
+        implementation(projects.data.network.api)
         implementation(projects.data.crashreporting.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.sessions.api)
