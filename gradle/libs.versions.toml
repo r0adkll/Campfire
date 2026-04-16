@@ -32,6 +32,7 @@ ksoup = "0.6.0"
 ksp = "2.3.6"
 ktlint = "0.49.1"
 ktor = "3.4.2"
+leakcanary = "3.0-alpha-8"
 media3 = "1.10.0"
 mixpanel = "8.5.0"
 mosaic = "0.18.0"
@@ -241,17 +242,17 @@ media3-session = { module = "androidx.media3:media3-session", version.ref = "med
 
 # This will force an upgrade in the 'media3-cast' library
 play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.1"
-
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
 # Analytics
 mixpanel-android = { module = "com.mixpanel.android:mixpanel-android", version.ref = "mixpanel" }
 
+
 # Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 turbine = "app.cash.turbine:turbine:1.2.1"
-leakCanary = "com.squareup.leakcanary:leakcanary-android:2.14"
+leakCanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
 robolectric = "org.robolectric:robolectric:4.16.1"
 strikt-core = "io.strikt:strikt-core:0.35.1"
 assertk = "com.willowtreeapps.assertk:assertk:0.28.1"

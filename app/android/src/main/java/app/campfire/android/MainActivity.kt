@@ -25,6 +25,8 @@ import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.toast.GlobalToaster
+import app.campfire.tracing.Trace
+import app.campfire.tracing.trace
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.MutableStateFlow
 import me.tatarka.inject.annotations.Inject
@@ -35,15 +37,18 @@ class MainActivity : ComponentActivity() {
 
   private val deepLinkFlow = MutableStateFlow<DeepLink>(DeepLink.None)
 
-  override fun onCreate(savedInstanceState: Bundle?) {
+  override fun onCreate(savedInstanceState: Bundle?) = Trace.trace("MainActivity.onCreate") {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     bark { "MainActivity::onCreate()" }
-    component = ComponentHolder.component<ActivityComponent.Factory>()
-      .create(this)
-      .also {
-        ComponentHolder.updateComponent(lifecycleScope, it)
-      }
+
+    component = Trace.trace("MainActivity.inject") {
+      ComponentHolder.component<ActivityComponent.Factory>()
+        .create(this)
+        .also {
+          ComponentHolder.updateComponent(lifecycleScope, it)
+        }
+    }
 
     // Initialize the CastContext used for Google Cast
     // https://developers.google.com/cast/docs/android_sender/integrate#kotlin
@@ -126,6 +131,7 @@ class MainActivity : ComponentActivity() {
     component.componentActivityPlugins.forEach { launcher ->
       launcher.unregister()
     }
+    ComponentHolder.removeComponent(component)
   }
 }
 

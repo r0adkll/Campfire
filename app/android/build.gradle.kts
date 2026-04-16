@@ -166,6 +166,11 @@ dependencies {
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto)
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto.binary)
 
+  debugImplementation(libs.androidx.tracing.perfetto)
+  debugImplementation(libs.androidx.tracing.perfetto.binary)
+
+  debugImplementation(libs.leakCanary)
+
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
 }
