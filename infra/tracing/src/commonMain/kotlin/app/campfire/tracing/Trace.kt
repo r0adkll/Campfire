@@ -9,4 +9,16 @@ expect object Trace {
 
   fun beginAsyncSection(methodName: String, cookie: Int)
   fun endAsyncSection(methodName: String, cookie: Int)
+
+  fun beginAsyncSectionWithTrackName(trackName: String, methodName: String, cookie: Int)
+  fun endAsyncSectionWithTrackName(trackName: String, methodName: String, cookie: Int)
+}
+
+inline fun <T> Trace.trace(label: String, block: () -> T): T {
+  beginSection(label)
+  return try {
+    block()
+  } finally {
+    endSection()
+  }
 }

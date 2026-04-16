@@ -16,6 +16,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.tracing.TraceEffect
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
@@ -48,6 +49,8 @@ fun HomeScreen(
 ) {
   val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
   AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
+
+  TraceEffect("Home")
 
   Scaffold(
     topBar = {

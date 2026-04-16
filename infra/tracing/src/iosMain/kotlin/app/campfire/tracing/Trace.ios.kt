@@ -15,4 +15,10 @@ actual object Trace {
 
   actual fun endAsyncSection(methodName: String, cookie: Int) {
   }
+
+  actual fun beginAsyncSectionWithTrackName(trackName: String, methodName: String, cookie: Int) {
+  }
+
+  actual fun endAsyncSectionWithTrackName(trackName: String, methodName: String, cookie: Int) {
+  }
 }
