@@ -44,7 +44,7 @@ class AuthRefreshingHttpDataSource(
   private fun pingForRefresh(uri: Uri): Boolean {
     val scheme = uri.scheme ?: return false
     val authority = uri.authority ?: return false
-    val pingUrl = "$scheme://$authority/api/ping"
+    val pingUrl = "$scheme://$authority/api/me"
     return runBlocking {
       try {
         userClient.get(pingUrl).status.isSuccess()
