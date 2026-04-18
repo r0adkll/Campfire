@@ -1,3 +1,4 @@
+import app.campfire.core.model.MediaProgress.Source;
 import app.campfire.core.model.MediaType;
 import kotlin.Boolean;
 
@@ -18,6 +19,7 @@ CREATE TABLE IF NOT EXISTS mediaProgress (
   lastUpdate INTEGER NOT NULL,
   startedAt INTEGER NOT NULL,
   finishedAt INTEGER,
+  source TEXT AS Source NOT NULL DEFAULT "Local",
   PRIMARY KEY (libraryItemId, userId)
 );
 

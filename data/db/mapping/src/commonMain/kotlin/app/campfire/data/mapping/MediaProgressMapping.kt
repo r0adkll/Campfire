@@ -31,6 +31,7 @@ fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
     lastUpdate = lastUpdate,
     startedAt = startedAt,
     finishedAt = finishedAt,
+    source = MediaProgress.Source.Remote,
   )
 }
 
@@ -52,6 +53,7 @@ fun MediaProgress.asDbModel(existingId: MediaProgressId? = null): DatabaseMediaP
     lastUpdate = lastUpdate,
     startedAt = startedAt,
     finishedAt = finishedAt,
+    source = source,
   )
 }
 
@@ -92,6 +94,7 @@ fun NetworkMediaProgress.asDomainModel(): MediaProgress {
     lastUpdate = lastUpdate,
     startedAt = startedAt,
     finishedAt = finishedAt,
+    source = MediaProgress.Source.Remote,
   )
 }
 
@@ -113,5 +116,6 @@ fun DatabaseMediaProgress.asDomainModel(): MediaProgress {
     lastUpdate = lastUpdate,
     startedAt = startedAt,
     finishedAt = finishedAt,
+    source = source,
   )
 }

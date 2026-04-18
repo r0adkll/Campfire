@@ -107,6 +107,7 @@ class DatabaseFactory(
     ),
     mediaProgressAdapter = MediaProgress.Adapter(
       mediaItemTypeAdapter = EnumColumnAdapter(),
+      sourceAdapter = EnumColumnAdapter(),
     ),
     sessionAdapter = Session.Adapter(
       idAdapter = UuidAdapter,

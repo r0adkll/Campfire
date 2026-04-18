@@ -26,7 +26,7 @@ interface MediaProgressSynchronizerUserComponent {
 
 @ContributesMultibinding(AppScope::class)
 @Inject
-class MediaProgressSynchronizer : PlaybackSynchronizer {
+class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
   companion object : Corked("MediaProgressSynchronizer")
 
   private val component: MediaProgressSynchronizerUserComponent
@@ -95,8 +95,10 @@ class MediaProgressSynchronizer : PlaybackSynchronizer {
       },
       lastUpdate = session.updatedAt.epochMilliseconds,
       startedAt = session.startedAt.epochMilliseconds,
+      source = MediaProgress.Source.Local,
     )
 
+    ibark { "PLAYBACK::updateMediaProgress(${session.currentTime})" }
     component.mediaProgressRepository.updateProgress(updatedProgress, force)
   }
 }

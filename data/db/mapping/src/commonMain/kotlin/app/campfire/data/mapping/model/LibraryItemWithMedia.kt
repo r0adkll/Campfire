@@ -1,5 +1,6 @@
 package app.campfire.data.mapping.model
 
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
 import app.campfire.core.util.createIfNotNull
 
@@ -85,6 +86,7 @@ data class LibraryItemProgress(
   val lastUpdate: Long,
   val startedAt: Long,
   val finishedAt: Long?,
+  val source: MediaProgress.Source,
 )
 
 fun mapToLibraryItem(
@@ -264,6 +266,7 @@ fun mapToLibraryItemWithProgress(
   lastUpdate: Long?,
   startedAt: Long?,
   finishedAt: Long?,
+  source: MediaProgress.Source?,
 ): LibraryItemWithMedia = LibraryItemWithMedia(
   id = id,
   ino = ino,
@@ -330,6 +333,7 @@ fun mapToLibraryItemWithProgress(
     hideFromContinueListening,
     lastUpdate,
     startedAt,
+    source,
   ) {
     LibraryItemProgress(
       id = id_!!,
@@ -348,6 +352,7 @@ fun mapToLibraryItemWithProgress(
       lastUpdate = lastUpdate!!,
       startedAt = startedAt!!,
       finishedAt = finishedAt,
+      source = source!!,
     )
   },
 )

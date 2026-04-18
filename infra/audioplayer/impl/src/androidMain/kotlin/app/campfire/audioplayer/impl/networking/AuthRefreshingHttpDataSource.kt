@@ -22,6 +22,8 @@ private const val HTTP_UNAUTHORIZED = 401
  * Ktor's auth plugin sees the 401, runs its mutex-guarded `refreshTokens` flow, persists the new
  * token via `AccountManager`, and the original error is rethrown so the upper Loader retries —
  * by then the outer `ResolvingDataSource` will pull the fresh token.
+ *
+ * TODO: Replace with KtorDataSource when https://github.com/androidx/media/pull/3071 is available
  */
 @UnstableApi
 class AuthRefreshingHttpDataSource(

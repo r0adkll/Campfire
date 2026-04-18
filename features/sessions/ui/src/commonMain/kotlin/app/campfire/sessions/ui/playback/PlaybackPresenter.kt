@@ -20,6 +20,7 @@ import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.readableFormat
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.LibraryItemValidation
@@ -334,24 +335,17 @@ class PlaybackPresenter(
       derivedStateOf {
         val sessionValue = session.value
         if (
-          syncEnabled && sessionValue != null && mediaProgress != null &&
+          syncEnabled &&
+          sessionValue != null && mediaProgress != null &&
+          mediaProgress?.source != MediaProgress.Source.Local &&
           (sessionValue.lastPlayedAt?.epochMilliseconds ?: 0L) < mediaProgress!!.lastUpdate &&
           sessionValue.currentTime.inWholeSeconds != mediaProgress!!.currentTime.seconds.inWholeSeconds
         ) {
-//          val syncTimeInMillis = mediaProgress!!.currentTime.seconds.inWholeMilliseconds
-//          val targetContentTitle = session.libraryItem.getChapterForDuration(syncTimeInMillis)
-//            ?.takeIf { it.id != session.chapter?.id }
-//            ?.title
-//            ?: session.libraryItem.getAudioTrackForDuration(syncTimeInMillis)
-//              ?.takeIf { it.index != session.audioTrack?.index }
-//              ?.taggedTitle
-
           AvailableSync(
             itemId = sessionValue.libraryItem.id,
             currentTime = sessionValue.currentTime,
             targetTime = mediaProgress!!.currentTime.seconds,
             syncTimeInMillis = mediaProgress!!.lastUpdate,
-            targetChapterTitle = null,
           )
         } else {
           null
@@ -367,7 +361,6 @@ class PlaybackPresenter(
         SyncUiEvent.Sync -> {
           if (availableSync == null) return@SyncUiState
           scope.launch {
-            sessionsRepository.updateLastPlayed(availableSync!!.itemId)
             audioPlayerHolder.currentPlayer.value?.seekTo(availableSync!!.targetTime)
           }
         }

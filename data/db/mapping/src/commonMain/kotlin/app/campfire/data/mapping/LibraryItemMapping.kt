@@ -751,5 +751,6 @@ fun LibraryItemProgress.asDomainModel(): MediaProgress {
     lastUpdate = lastUpdate,
     startedAt = startedAt,
     finishedAt = finishedAt,
+    source = source,
   )
 }

@@ -22,7 +22,24 @@ data class MediaProgress(
   val lastUpdate: Long,
   val startedAt: Long,
   val finishedAt: Long? = null,
+  val source: Source,
 ) {
+
+  /**
+   * Describes where this media progress was written from
+   */
+  enum class Source {
+    /**
+     * The media progress was created locally
+     */
+    Local,
+
+    /**
+     * The media progress was written from the server
+     */
+    Remote,
+  }
+
   /**
    * Get the [currentTime] in [Duration] units, accounting for [isFinished],
    * where if true, it returns 0 duration.

@@ -215,6 +215,7 @@ fun LibraryItemListItemPreview() {
                 currentTime = 60f,
                 lastUpdate = 0,
                 startedAt = 0,
+                source = MediaProgress.Source.Local,
               ),
             ),
             onClick = {},

@@ -22,6 +22,7 @@ fun mediaProgress(
   lastUpdate: Long = 0L,
   startedAt: Long = 0L,
   finishedAt: Long? = null,
+  source: MediaProgress.Source = MediaProgress.Source.Local,
 ): MediaProgress = MediaProgress(
   id = id,
   userId = userId,
@@ -39,4 +40,5 @@ fun mediaProgress(
   lastUpdate = lastUpdate,
   startedAt = startedAt,
   finishedAt = finishedAt,
+  source = source,
 )

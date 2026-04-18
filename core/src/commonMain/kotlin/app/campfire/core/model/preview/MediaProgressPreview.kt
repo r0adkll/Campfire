@@ -22,4 +22,5 @@ fun mediaProgress(
   lastUpdate = 0L,
   startedAt = 0L,
   isFinished = isFinished,
+  source = MediaProgress.Source.Local,
 )

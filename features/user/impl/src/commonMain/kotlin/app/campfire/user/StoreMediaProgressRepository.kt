@@ -187,6 +187,7 @@ class StoreMediaProgressRepository(
           finishedAt = fatherTime.nowInEpochMillis(),
           lastUpdate = fatherTime.nowInEpochMillis(),
           startedAt = fatherTime.nowInEpochMillis(),
+          source = MediaProgress.Source.Local,
         )
 
         withContext(dispatcherProvider.databaseWrite) {
