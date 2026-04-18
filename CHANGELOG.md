@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Cast / Output device list not always showing available / current device(s)
+- Fixed media progress not syncing during playback
+- Fixed playback sessions dying due to token expiration
 
 ### Other Notes & Contributions
 
