@@ -28,27 +28,18 @@ import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.placeholder_person
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
-import com.r0adkll.material3.themebuilder.coil.collectAsSwatch
 import com.r0adkll.material3.themebuilder.coil.observeAsImageBitmap
-import com.r0adkll.swatchbuckler.compose.Swatch
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import org.jetbrains.compose.resources.painterResource
 
 val CoverImageSize = 256.dp
 val CoverImageCornerRadius = 32.dp
 val CoverImageShape = RoundedCornerShape(CoverImageCornerRadius)
 
-/**
- * Quantizing image pixels is a VERY intensive process and its best to perform this
- * using dedicated threads and not the default dispatcher
- */
-@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
-private val quantizerDispatcher = newFixedThreadPoolContext(2, "QuantizerThreads")
-
-@OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 fun CoverImage(
   imageUrl: String?,
@@ -58,7 +49,7 @@ fun CoverImage(
   placeholder: Painter? = null,
   size: Dp = CoverImageSize,
   shape: Shape = CoverImageShape,
-  swatchListener: (suspend (Swatch) -> Unit)? = null,
+  impressionThreshold: Duration = 500.milliseconds,
   imageBitmapListener: ((ImageBitmap) -> Unit)? = null,
 ) {
   Box(
@@ -72,23 +63,13 @@ fun CoverImage(
       )
     }
 
-    if (swatchListener != null) {
-      val palette by painter.collectAsSwatch(
-        dispatcher = quantizerDispatcher,
-      )
-      LaunchedEffect(palette) {
-        palette?.let {
-          swatchListener(it)
-        }
-      }
-    }
-
     if (imageBitmapListener != null) {
       LaunchedEffect(Unit) {
         painter.state
           .observeAsImageBitmap()
-          .collect {
-            imageBitmapListener(it)
+          .collectLatest { bitmap ->
+            delay(impressionThreshold)
+            imageBitmapListener(bitmap)
           }
       }
     }

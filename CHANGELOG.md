@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Already listened to chapters on items in-progress are collapsed by default
 - Overhauled playback homescreen widget UI
+- Theme color extraction from cover art now waits for a brief impression before dispatching, avoiding wasted work when scrolling past items
 
 ### Deprecated
 
