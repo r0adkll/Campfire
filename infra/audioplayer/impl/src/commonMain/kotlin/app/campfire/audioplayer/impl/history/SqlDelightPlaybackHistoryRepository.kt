@@ -6,17 +6,13 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
-import app.campfire.core.time.FatherTime
 import app.campfire.data.PlaybackAction as DbPlaybackAction
-import app.campfire.settings.api.PlaybackSettings
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow

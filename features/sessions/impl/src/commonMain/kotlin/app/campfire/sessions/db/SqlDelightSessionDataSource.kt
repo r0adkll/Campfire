@@ -2,7 +2,6 @@ package app.campfire.sessions.db
 
 import app.campfire.CampfireDatabase
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope

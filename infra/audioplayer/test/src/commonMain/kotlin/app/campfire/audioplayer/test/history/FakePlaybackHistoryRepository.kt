@@ -3,15 +3,11 @@ package app.campfire.audioplayer.test.history
 import app.campfire.audioplayer.history.PlaybackAction
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.PlaybackActionType
-import kotlin.time.Duration
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onStart
-import kotlinx.datetime.LocalDateTime
 
 class FakePlaybackHistoryRepository : PlaybackHistoryRepository {
 

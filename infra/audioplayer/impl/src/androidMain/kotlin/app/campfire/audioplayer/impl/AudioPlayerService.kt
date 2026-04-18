@@ -48,7 +48,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
-import kotlinx.coroutines.runBlocking
 
 @ContributesTo(AppScope::class)
 interface AudioPlayerComponent {

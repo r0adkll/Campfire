@@ -1,8 +1,6 @@
 package app.campfire.audioplayer.history
 
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.PlaybackActionType
-import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 /**

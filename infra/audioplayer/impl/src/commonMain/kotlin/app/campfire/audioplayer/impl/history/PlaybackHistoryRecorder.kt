@@ -3,11 +3,8 @@ package app.campfire.audioplayer.impl.history
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
-import app.campfire.audioplayer.history.PlaybackHistoryRepository
-import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
