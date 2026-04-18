@@ -1,6 +1,7 @@
 package app.campfire.sessions.db
 
 import app.campfire.CampfireDatabase
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
@@ -49,7 +50,7 @@ class SqlDelightSessionDataSource(
   private val libraryItemRepository: LibraryItemRepository,
   private val devSettings: DevSettings,
   private val playbackSettings: PlaybackSettings,
-  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionDataSource {
   companion object : Corked("SqlDelightSessionDataSource") {
@@ -156,7 +157,7 @@ class SqlDelightSessionDataSource(
     // timestamps.
     val newTime = if (autoSync) {
       // Record the sync action in the history
-      playbackHistoryRepository.record(
+      playbackHistoryRecorder.record(
         libraryItemId = libraryItemId,
         type = PlaybackActionType.Sync,
         fromPosition = existingSession.currentTime,

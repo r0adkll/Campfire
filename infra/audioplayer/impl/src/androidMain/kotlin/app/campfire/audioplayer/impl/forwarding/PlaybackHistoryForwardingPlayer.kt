@@ -3,7 +3,7 @@ package app.campfire.audioplayer.impl.forwarding
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import app.campfire.audioplayer.impl.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.overallPosition
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType

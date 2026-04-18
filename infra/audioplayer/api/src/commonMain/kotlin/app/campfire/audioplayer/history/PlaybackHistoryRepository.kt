@@ -11,16 +11,6 @@ import kotlinx.coroutines.flow.Flow
 interface PlaybackHistoryRepository {
 
   /**
-   * Record a playback action.
-   */
-  suspend fun record(
-    libraryItemId: LibraryItemId,
-    type: PlaybackActionType,
-    fromPosition: Duration,
-    toPosition: Duration? = null,
-  )
-
-  /**
    * Observe all playback actions for a given library item, ordered by most recent first.
    */
   fun observe(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>>

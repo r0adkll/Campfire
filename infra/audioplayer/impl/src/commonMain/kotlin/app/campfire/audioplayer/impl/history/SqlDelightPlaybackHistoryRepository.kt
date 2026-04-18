@@ -29,30 +29,8 @@ import me.tatarka.inject.annotations.Inject
 class SqlDelightPlaybackHistoryRepository(
   private val userSession: UserSession,
   private val database: CampfireDatabase,
-  private val fatherTime: FatherTime,
-  private val playbackSettings: PlaybackSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackHistoryRepository {
-
-  override suspend fun record(
-    libraryItemId: LibraryItemId,
-    type: PlaybackActionType,
-    fromPosition: Duration,
-    toPosition: Duration?,
-  ) {
-    if (!playbackSettings.playbackHistoryEnabled) return
-    val userId = userSession.userId ?: return
-    write {
-      database.playbackActionQueries.insert(
-        libraryItemId = libraryItemId,
-        userId = userId,
-        type = type,
-        timestamp = fatherTime.now(),
-        fromPosition = fromPosition,
-        toPosition = toPosition,
-      )
-    }
-  }
 
   override fun observe(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>> {
     val userId = userSession.userId ?: return emptyFlow()

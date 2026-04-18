@@ -15,29 +15,9 @@ import kotlinx.datetime.LocalDateTime
 
 class FakePlaybackHistoryRepository : PlaybackHistoryRepository {
 
-  private val idGenerator = atomic(0L)
   val history = mutableMapOf<LibraryItemId, List<PlaybackAction>>()
 
-  private val updatesFlow = MutableSharedFlow<Unit>()
-
-  override suspend fun record(
-    libraryItemId: LibraryItemId,
-    type: PlaybackActionType,
-    fromPosition: Duration,
-    toPosition: Duration?,
-  ) {
-    val itemHistory = history[libraryItemId]?.toMutableList() ?: mutableListOf()
-    itemHistory += PlaybackAction(
-      id = idGenerator.getAndIncrement(),
-      libraryItemId = libraryItemId,
-      userId = "test_user",
-      type = type,
-      fromPosition = fromPosition,
-      toPosition = toPosition,
-      timestamp = LocalDateTime(2026, 5, 1, 1, 0),
-    )
-    updatesFlow.emit(Unit)
-  }
+  val updatesFlow = MutableSharedFlow<Unit>()
 
   @OptIn(ExperimentalCoroutinesApi::class)
   override fun observe(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>> {
