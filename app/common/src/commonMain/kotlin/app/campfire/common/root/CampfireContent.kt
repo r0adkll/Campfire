@@ -77,14 +77,7 @@ fun CampfireContentWithInsets(
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
       val backStack = key(userComponent.currentUserSession) {
-        rememberSaveableBackStack(userComponent.rootScreen()) {
-//          when (deepLink) {
-//            // FIXME: This technically works, but won't apply for Hot Starts.
-//            //  should investigate piping this a layer down
-//            is DeepLink.ItemDetail -> push(LibraryItemScreen(deepLink.libraryItemId))
-//            DeepLink.None -> Unit
-//          }
-        }
+        rememberSaveableBackStack(userComponent.rootScreen())
       }
 
       val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }

@@ -9,6 +9,7 @@ app/android/campfire-app-distribution-service-account.json
 
 captures
 traces/
+.claude/worktrees
 
 /local.properties
 
