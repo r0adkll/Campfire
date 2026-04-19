@@ -242,6 +242,7 @@ internal fun LoginUiContent(
       onClick = {
         eventSink(LoginUiEvent.StartOpenIdAuth)
       },
+      modifier = Modifier.widthIn(max = MaxContentWidth),
     )
 
     Spacer(
