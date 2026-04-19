@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalSharedTransitionApi::class)
 
-package app.campfire.common.root
+package app.campfire.common.root.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,8 +16,10 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -39,30 +41,44 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.session.LocalPlaybackSession
+import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.util.LocalThemeDispatcher
+import app.campfire.common.compose.util.ThemeDispatcher
 import app.campfire.common.compose.util.withDensity
+import app.campfire.common.compose.widgets.LocalItemCardMarquee
+import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
+import app.campfire.common.navigator.OpenUrlNavigator
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.navigation.DeepLink
+import app.campfire.core.session.requiredUserId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchResultNavEvent
 import app.campfire.search.api.ui.goToSearchEvent
 import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.sessions.ui.playback.CampfirePlaybackBar
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.navigation.bar.CampfireNavigationBar
 import app.campfire.ui.navigation.bar.LocalNavigationBarState
 import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
 import app.campfire.ui.navigation.drawer.CampfireDrawer
 import app.campfire.ui.navigation.rail.CampfireNavigationRail
+import app.campfire.ui.theming.api.AppThemeRepository
+import app.campfire.ui.theming.api.ThemeManager
+import app.campfire.ui.theming.api.colorScheme
 import campfire.app.common.generated.resources.Res
 import campfire.app.common.generated.resources.empty_supporting_pane_message
 import com.slack.circuit.backstack.SaveableBackStack
 import com.slack.circuit.backstack.rememberSaveableBackStack
+import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.NavigableCircuitContent
 import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -74,13 +90,90 @@ import com.slack.circuitx.navigation.intercepting.NavigationEventListener
 import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import kotlin.math.roundToInt
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
+@Composable
+internal fun LoggedInWindow(
+  userComponent: UserComponent,
+  onRootPop: () -> Unit,
+  onOpenUrl: (String) -> Unit,
+  windowInsets: WindowInsets,
+  deepLink: DeepLink,
+  settings: CampfireSettings,
+  themeManager: ThemeManager,
+  themeRepository: AppThemeRepository,
+  modifier: Modifier = Modifier,
+) {
+  val backStack = key(userComponent.currentUserSession) {
+    rememberSaveableBackStack(userComponent.rootScreen())
+  }
+
+  val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
+  val navigator = rememberInterceptingNavigator(
+    navigator = baseNavigator,
+    eventListeners = userComponent.navigationEventListeners,
+  )
+
+  // Observe Current Session
+  val currentSession by remember(userComponent) {
+    userComponent.sessionsRepository.observeCurrentSession()
+  }.collectAsState(null)
+
+  val urlNavigator: Navigator = remember(navigator) {
+    OpenUrlNavigator(navigator, onOpenUrl)
+  }
+
+  // Remember an instance of the theme dispatcher
+  val themeManagerDispatcher = remember {
+    ThemeDispatcher { key, imageBitmap ->
+      themeManager.enqueue(
+        key = key,
+        image = imageBitmap,
+      )
+    }
+  }
+
+  val appTheme by remember {
+    themeRepository.observeCurrentAppTheme()
+  }.collectAsState()
+
+  CircuitCompositionLocals(userComponent.circuit) {
+    CampfireTheme(
+      colorScheme = { colorScheme(appTheme) },
+      useDarkColors = settings.shouldUseDarkColors(),
+    ) {
+      // Observe here and wire as composition local to avoid N-number of parameter
+      // burials to wire all usages of this component
+      val itemCardMarqueeEnabled by remember {
+        settings.observeLibraryItemMarqueeEnabled()
+      }.collectAsState()
+
+      CompositionLocalProvider(
+        LocalPlaybackSession provides currentSession,
+        LocalThemeDispatcher provides themeManagerDispatcher,
+        LocalItemCardMarquee provides itemCardMarqueeEnabled,
+      ) {
+        // The entire Compose hierarchy under this should be keyed and
+        // unique per-user.
+        key(userComponent.currentUserSession.requiredUserId) {
+          LoggedInUi(
+            backstack = backStack,
+            navigator = urlNavigator,
+            windowInsets = windowInsets,
+            navigationEventListeners = userComponent.navigationEventListeners,
+            deepLink = deepLink,
+            modifier = modifier,
+          )
+        }
+      }
+    }
+  }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun RootUi(
+private fun LoggedInUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
@@ -197,7 +290,7 @@ internal fun RootUi(
           AccountSwitcher(
             onClick = { eventSink ->
               coroutineScope.launch {
-                async {
+                launch {
                   drawerState.close()
                 }
                 when (val result = overlayHost.showAccountPicker()) {

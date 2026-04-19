@@ -9,34 +9,21 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.extensions.shouldUseDarkColors
-import app.campfire.common.compose.session.LocalPlaybackSession
-import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.common.compose.util.LocalThemeDispatcher
-import app.campfire.common.compose.util.ThemeDispatcher
-import app.campfire.common.compose.widgets.LocalItemCardMarquee
-import app.campfire.common.navigator.OpenUrlNavigator
+import app.campfire.common.root.ui.LoggedInWindow
+import app.campfire.common.root.ui.LoggedOutWindow
 import app.campfire.core.navigation.DeepLink
+import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
-import app.campfire.ui.theming.api.colorScheme
-import com.slack.circuit.backstack.rememberSaveableBackStack
-import com.slack.circuit.foundation.CircuitCompositionLocals
-import com.slack.circuit.foundation.rememberCircuitNavigator
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
-import com.slack.circuit.runtime.Navigator
-import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -76,65 +63,28 @@ fun CampfireContentWithInsets(
     LocalUriHandler provides appUriHandler,
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
-      val backStack = key(userComponent.currentUserSession) {
-        rememberSaveableBackStack(userComponent.rootScreen())
-      }
+      when (userComponent.currentUserSession) {
+        is UserSession.NeedsAuthentication,
+        UserSession.LoggedOut,
+        -> LoggedOutWindow(
+          userComponent = userComponent,
+          onRootPop = onRootPop,
+          windowInsets = windowInsets,
+          settings = settings,
+        )
 
-      val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
-      val navigator = rememberInterceptingNavigator(
-        navigator = baseNavigator,
-        eventListeners = userComponent.navigationEventListeners,
-      )
+        is UserSession.LoggedIn -> LoggedInWindow(
+          userComponent = userComponent,
+          onRootPop = onRootPop,
+          onOpenUrl = onOpenUrl,
+          windowInsets = windowInsets,
+          deepLink = deepLink,
+          settings = settings,
+          themeManager = themeManager,
+          themeRepository = themeRepository,
+        )
 
-      // Observe Current Session
-      val currentSession by remember(userComponent) {
-        userComponent.sessionsRepository.observeCurrentSession()
-      }.collectAsState(null)
-
-      val urlNavigator: Navigator = remember(navigator) {
-        OpenUrlNavigator(navigator, onOpenUrl)
-      }
-
-      // Remember an instance of the theme dispatcher
-      val themeManagerDispatcher = remember {
-        ThemeDispatcher { key, imageBitmap ->
-          themeManager.enqueue(
-            key = key,
-            image = imageBitmap,
-          )
-        }
-      }
-
-      val appTheme by remember {
-        themeRepository.observeCurrentAppTheme()
-      }.collectAsState()
-
-      CircuitCompositionLocals(userComponent.circuit) {
-        CampfireTheme(
-          colorScheme = { colorScheme(appTheme) },
-          useDarkColors = settings.shouldUseDarkColors(),
-        ) {
-          // Observe here and wire as composition local to avoid N-number of parameter
-          // burials to wire all usages of this component
-          val itemCardMarqueeEnabled by remember {
-            settings.observeLibraryItemMarqueeEnabled()
-          }.collectAsState()
-
-          CompositionLocalProvider(
-            LocalPlaybackSession provides currentSession,
-            LocalThemeDispatcher provides themeManagerDispatcher,
-            LocalItemCardMarquee provides itemCardMarqueeEnabled,
-          ) {
-            RootUi(
-              backstack = backStack,
-              navigator = urlNavigator,
-              windowInsets = windowInsets,
-              navigationEventListeners = userComponent.navigationEventListeners,
-              deepLink = deepLink,
-              modifier = modifier,
-            )
-          }
-        }
+        UserSession.Loading -> Unit
       }
     }
   }
