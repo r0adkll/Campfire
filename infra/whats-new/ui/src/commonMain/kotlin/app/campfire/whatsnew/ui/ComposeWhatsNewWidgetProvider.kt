@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,7 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.LoadingCampfireIcon
+import app.campfire.common.compose.icons.Campfire
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.app.ApplicationInfo
@@ -126,10 +128,11 @@ private fun WhatsNewWidget(
           )
           .padding(12.dp),
       ) {
-        LoadingCampfireIcon(
-          size = 48.dp,
+        Image(
+          CampfireIcons.Campfire,
+          contentDescription = null,
           modifier = Modifier
-            .size(48.dp),
+            .size(48.dp)
         )
       }
 
