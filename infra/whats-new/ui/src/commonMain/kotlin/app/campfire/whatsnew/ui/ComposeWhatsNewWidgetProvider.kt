@@ -132,7 +132,7 @@ private fun WhatsNewWidget(
           CampfireIcons.Campfire,
           contentDescription = null,
           modifier = Modifier
-            .size(48.dp)
+            .size(48.dp),
         )
       }
 
