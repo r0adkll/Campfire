@@ -46,7 +46,7 @@ data class AppearanceSettingsInfo(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
-  val downloads: Map<LibraryItem, OfflineDownload>,
+  val downloads: Map<OfflineDownload, LibraryItem>,
 )
 
 @Immutable

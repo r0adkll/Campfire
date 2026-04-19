@@ -145,18 +145,11 @@ class SettingsPresenter(
       offlineDownloadManager.observeAll()
     }.collectAsState(emptyList())
 
-    val downloadItemIds by remember {
-      derivedStateOf {
-        downloads.map { it.libraryItemId }.toSet()
-      }
-    }
-
     val downloadedLibraryItems by remember {
-      snapshotFlow { downloadItemIds }
-        .mapLatest { itemIds ->
-          itemIds.associate { itemId ->
-            libraryItemRepository.getLibraryItem(itemId) to
-              downloads.first { it.libraryItemId == itemId }
+      snapshotFlow { downloads }
+        .mapLatest {
+          it.associateWith { item ->
+            libraryItemRepository.getLibraryItem(item.libraryItemId)
           }
         }
     }.collectAsState(emptyMap())

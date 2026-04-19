@@ -93,7 +93,7 @@ internal fun DownloadsPane(
 
     state.downloadsSettings.downloads.ifNotEmpty {
       var showConfirmation by remember { mutableStateOf<LibraryItemId?>(null) }
-      forEach { (item, download) ->
+      forEach { (download, item) ->
         ConfirmationLayout(
           showConfirmation = showConfirmation == item.id,
           confirm = {
