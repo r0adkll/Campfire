@@ -157,7 +157,7 @@ jobs:
 
       - name: Build Android App
         run: |
-          ./gradlew --quiet :app:android:assembleAlphaRelease
+          ./gradlew :app:android:assembleAlphaRelease
 
       # FIXME: Disable for now as we need to figure out how to run the danger container from here
       # - name: Danger Lint
