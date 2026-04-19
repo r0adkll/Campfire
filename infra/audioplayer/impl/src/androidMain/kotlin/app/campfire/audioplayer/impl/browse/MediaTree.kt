@@ -12,6 +12,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaConstants
 import app.campfire.audioplayer.impl.asPlatformMediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
+import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.author.api.AuthorRepository
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.core.di.SingleIn
@@ -38,6 +40,7 @@ import kotlin.collections.firstOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import me.tatarka.inject.annotations.Inject
 
@@ -51,6 +54,7 @@ class MediaTree(
   private val collectionsRepository: CollectionsRepository,
   private val authorRepository: AuthorRepository,
   private val searchRepository: SearchRepository,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) {
 
   val root
@@ -82,6 +86,7 @@ class MediaTree(
       SERIES_ID -> loadSeries()
       COLLECTIONS_ID -> loadCollections()
       AUTHORS_ID -> loadAuthors()
+      DOWNLOADS_ID -> loadDownloads()
 
       else -> when {
         parentId.startsWith(SERIES_PREFIX) -> getSeriesItems(parentId.removePrefix(SERIES_PREFIX))
@@ -189,6 +194,23 @@ class MediaTree(
     }
   }
 
+  private suspend fun loadDownloads(): List<MediaItem> {
+    val downloadItems = offlineDownloadManager.observeAll()
+      .map { downloads ->
+        downloads.associateWith { download ->
+          libraryItemRepository.getLibraryItem(download.libraryItemId)
+        }
+      }
+      .firstOrNull { it.isNotEmpty() }
+      ?: return emptyList()
+
+    return downloadItems.map { (download, libraryItem) ->
+      libraryItem.asBrowsableMediaItem(
+        download = download,
+      )
+    }
+  }
+
   suspend fun getItem(mediaId: String): MediaItem? {
     // Don't attempt to fetch our folder media items.
     if (
@@ -227,6 +249,7 @@ class MediaTree(
   @OptIn(UnstableApi::class)
   private fun LibraryItem.asBrowsableMediaItem(
     titleHint: String? = null,
+    download: OfflineDownload? = null
   ) = MediaItem.Builder()
     .setMediaId(id)
     .setMediaMetadata(
@@ -239,13 +262,36 @@ class MediaTree(
         .setGenre(media.metadata.genres.firstOrNull())
         .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
         .setTotalTrackCount(media.numChapters)
-        .fluentIf(titleHint != null) {
-          setExtras(
-            Bundle().apply {
+        .setExtras(
+          Bundle().apply {
+            if (titleHint != null) {
               putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
-            },
-          )
-        }
+            }
+
+            if (download != null) {
+              putLong(
+                MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS,
+                when (download.state) {
+                  OfflineDownload.State.Stopped,
+                  OfflineDownload.State.Failed,
+                  OfflineDownload.State.None,
+                  -> MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED
+
+                  OfflineDownload.State.Queued,
+                  OfflineDownload.State.Downloading,
+                  -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADING
+
+                  OfflineDownload.State.Completed -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED
+                },
+              )
+
+              putFloat(
+                MediaConstants.EXTRAS_KEY_DOWNLOAD_PROGRESS,
+                download.progress.percent.coerceIn(0f..1f),
+              )
+            }
+          },
+        )
         .setIsBrowsable(false)
         .setIsPlayable(true)
         .build(),
@@ -328,6 +374,7 @@ enum class TopLevelMediaItem(
   Series(SERIES_ID, R.string.folder_series_title),
   Collections(COLLECTIONS_ID, R.string.folder_collections_title),
   Authors(AUTHORS_ID, R.string.folder_authors_title),
+  Downloads(DOWNLOADS_ID, R.string.folder_downloads_title)
   ;
 
   @OptIn(UnstableApi::class)
@@ -370,3 +417,4 @@ private const val COLLECTIONS_ID = "collections-campfire"
 private const val COLLECTIONS_PREFIX = "collections_"
 private const val AUTHORS_ID = "authors-campfire"
 private const val AUTHORS_PREFIX = "authors_"
+private const val DOWNLOADS_ID = "downloads-campfire"
