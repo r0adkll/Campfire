@@ -20,6 +20,7 @@ pluginManagement {
         content {
           includeGroup("com.r0adkll.swatchbuckler")
           includeGroup("app.cash.sqldelight")
+          includeGroup("io.coil-kt.coil3")
         }
       }
     }
@@ -48,6 +49,7 @@ dependencyResolutionManagement {
         content {
           includeGroup("com.r0adkll.swatchbuckler")
           includeGroup("app.cash.sqldelight")
+          includeGroup("io.coil-kt.coil3")
         }
       }
     }
