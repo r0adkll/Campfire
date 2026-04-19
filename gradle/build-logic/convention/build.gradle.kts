@@ -1,10 +1,8 @@
 // Copyright 2023, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: Apache-2.0
 
-
 plugins {
   `kotlin-dsl`
-  alias(libs.plugins.spotless)
 }
 
 java {
@@ -13,26 +11,11 @@ java {
   }
 }
 
-spotless {
-  kotlin {
-    target("src/**/*.kt")
-    ktlint(libs.versions.ktlint.get())
-    licenseHeaderFile(rootProject.file("../../spotless/dh-copyright.txt"))
-  }
-
-  kotlinGradle {
-    target("*.kts")
-    ktlint(libs.versions.ktlint.get())
-    licenseHeaderFile(rootProject.file("../../spotless/dh-copyright.txt"), "(^(?![\\/ ]\\**).*$)")
-  }
-}
-
 dependencies {
   compileOnly(libs.android.gradlePlugin)
   compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.compose.gradlePlugin)
   compileOnly(libs.composeCompiler.gradlePlugin)
-  compileOnly(libs.spotless.gradlePlugin)
 }
 
 gradlePlugin {

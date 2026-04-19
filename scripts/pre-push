@@ -4,9 +4,8 @@ echo "**** Running Pre-Push Check ****"
 
 git stash -q --keep-index
 
-./gradlew spotlessCheck
-./gradlew -P gradle/build-logic spotlessCheck
-
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"$SCRIPT_DIR/ktlint" --check
 status=$?
 
 git stash pop -q

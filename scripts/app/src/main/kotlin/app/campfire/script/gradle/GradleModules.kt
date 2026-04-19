@@ -47,7 +47,6 @@ private val skippableFolders = listOf(
   ".git",
   ".kotlin",
   ".idea",
-  "spotless",
   "build",
   "src",
 )

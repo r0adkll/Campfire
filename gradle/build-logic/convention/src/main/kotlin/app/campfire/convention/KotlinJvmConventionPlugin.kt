@@ -11,7 +11,6 @@ class KotlinJvmConventionPlugin : Plugin<Project> {
     with(target) {
       pluginManager.apply("org.jetbrains.kotlin.jvm")
 
-      configureSpotless()
       configureKotlin()
     }
   }

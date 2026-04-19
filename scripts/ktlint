@@ -1,0 +1,59 @@
+#!/bin/sh
+# Runs ktlint against the Campfire codebase.
+# Downloads the pinned ktlint release on first use and caches it under
+# ${XDG_CACHE_HOME:-~/.cache}/campfire.
+#
+# Usage:
+#   scripts/ktlint             # check only (exits non-zero on violations)
+#   scripts/ktlint --check     # check only
+#   scripts/ktlint --format    # apply fixes in place
+
+set -e
+
+KTLINT_VERSION="0.49.1"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/campfire"
+KTLINT_BIN="$CACHE_DIR/ktlint-$KTLINT_VERSION"
+KTLINT_URL="https://github.com/pinterest/ktlint/releases/download/$KTLINT_VERSION/ktlint"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+if [ ! -f "$KTLINT_BIN" ]; then
+  mkdir -p "$CACHE_DIR"
+  echo "Downloading ktlint $KTLINT_VERSION..."
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL -o "$KTLINT_BIN" "$KTLINT_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$KTLINT_BIN" "$KTLINT_URL"
+  else
+    echo "error: curl or wget is required to install ktlint" >&2
+    exit 1
+  fi
+  chmod +x "$KTLINT_BIN"
+fi
+
+MODE=""
+case "${1:-}" in
+  ""|--check) ;;
+  --format|-F) MODE="-F" ;;
+  -h|--help)
+    sed -n '2,10p' "$0"
+    exit 0
+    ;;
+  *)
+    echo "usage: $0 [--check|--format]" >&2
+    exit 2
+    ;;
+esac
+
+cd "$REPO_ROOT"
+
+# Globs mirror the previous Spotless targets:
+#   - Kotlin sources under any module's src/ tree
+#   - All Kotlin Gradle scripts (root + subprojects + included build)
+# Exclusions keep thirdparty modules and generated PagingSource files out.
+exec "$KTLINT_BIN" $MODE \
+  "**/src/**/*.kt" \
+  "**/*.kts" \
+  "!**/thirdparty/**" \
+  "!**/src/**/impl/**/*PagingSource.kt"

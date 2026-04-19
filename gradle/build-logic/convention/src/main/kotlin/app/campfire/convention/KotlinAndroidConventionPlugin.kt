@@ -9,7 +9,6 @@ import org.gradle.api.Project
 class KotlinAndroidConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
     with(target) {
-      configureSpotless()
       configureKotlin()
     }
   }

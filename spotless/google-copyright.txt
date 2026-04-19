@@ -1,3 +1,0 @@
-// Copyright $YEAR, Google LLC, Drew Heavner and the Campfire project contributors
-// SPDX-License-Identifier: Apache-2.0
-

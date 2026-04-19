@@ -17,7 +17,6 @@ plugins {
   alias(libs.plugins.kotlin.parcelize) apply false
   alias(libs.plugins.kotlin.serialization) apply false
   alias(libs.plugins.ksp) apply false
-  alias(libs.plugins.spotless) apply false
   alias(libs.plugins.sqldelight) apply false
   alias(libs.plugins.about.libraries) apply false
   alias(libs.plugins.baselineprofile) apply false

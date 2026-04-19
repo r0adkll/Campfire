@@ -10,7 +10,8 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 
 ```bash
 # Code formatting (required before commits, CI auto-commits fixes on PRs)
-./campfire -v spotless
+./scripts/ktlint --format        # apply fixes
+./scripts/ktlint --check         # verify only
 
 # Run tests with coverage
 ./gradlew test allTests koverXmlReport
@@ -31,7 +32,7 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 - **Networking**: Ktor Client with OIDC auth
 - **Database**: SQLDelight (multiplatform SQLite) + Store5 (cache layer)
 - **DI**: kotlin-inject + Kimchi (compile-time, annotation-based)
-- **Code Style**: ktlint via Spotless
+- **Code Style**: ktlint (invoked via `scripts/ktlint`)
 
 ## Architecture
 

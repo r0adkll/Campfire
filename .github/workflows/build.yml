@@ -45,20 +45,16 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
 
-      - name: Check convention plugins code style with Spotless
+      - name: Check code style with ktlint
         if: always()
-        run: ./gradlew -p gradle/build-logic spotlessApply
-
-      - name: Check code style with Spotless
-        if: always()
-        run: ./gradlew spotlessApply
+        run: ./scripts/ktlint --format
 
       - name: Push changes to PR if exist
         if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
         env:
           IS_PULL_REQUEST: ${{ github.event_name == 'pull_request' }}
         run: |
-          # If there are any changes from running spotlessApply, push to PR
+          # If there are any changes from running the formatter, push to PR
           if [[ $(git diff --stat .) != '' ]]; then
             echo "Changes detected…"
             # We only want to push changes to the branch if we are on a pull request
