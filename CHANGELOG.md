@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Overhauled playback homescreen widget UI
 - Theme color extraction from cover art now waits for a brief impression before dispatching, avoiding wasted work when scrolling past items
 - Time remaining on collapsed bar + item detail now reflect the current playback speed of a session
+- Improved home feed scrolling with mixed scrolling orientations
 
 ### Deprecated
 
