@@ -19,5 +19,6 @@
   <string name="folder_series_title">Series</string>
   <string name="folder_collections_title">Collections</string>
   <string name="folder_authors_title">Authors</string>
+  <string name="folder_playlists_title">Playlists</string>
   <string name="folder_downloads_title">Downloads</string>
 </resources>

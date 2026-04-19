@@ -26,6 +26,8 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.Playlist
+import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.loggableId
@@ -33,6 +35,7 @@ import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.series.api.SeriesRepository
@@ -51,6 +54,7 @@ class MediaTree(
   private val homeRepository: HomeRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val seriesRepository: SeriesRepository,
+  private val playlistsRepository: PlaylistsRepository,
   private val collectionsRepository: CollectionsRepository,
   private val authorRepository: AuthorRepository,
   private val searchRepository: SearchRepository,
@@ -84,12 +88,14 @@ class MediaTree(
 
       HOME_ID -> loadHome()
       SERIES_ID -> loadSeries()
-      COLLECTIONS_ID -> loadCollections()
       AUTHORS_ID -> loadAuthors()
+      PLAYLISTS_ID -> loadPlaylists()
+      COLLECTIONS_ID -> loadCollections()
       DOWNLOADS_ID -> loadDownloads()
 
       else -> when {
         parentId.startsWith(SERIES_PREFIX) -> getSeriesItems(parentId.removePrefix(SERIES_PREFIX))
+        parentId.startsWith(PLAYLISTS_PREFIX) -> getPlaylistItems(parentId.removePrefix(PLAYLISTS_PREFIX))
         parentId.startsWith(COLLECTIONS_PREFIX) -> getCollectionItems(parentId.removePrefix(COLLECTIONS_PREFIX))
         parentId.startsWith(AUTHORS_PREFIX) -> getAuthorItems(parentId.removePrefix(AUTHORS_PREFIX))
 
@@ -157,24 +163,6 @@ class MediaTree(
     }
   }
 
-  private suspend fun loadCollections(): List<MediaItem> {
-    val collections = collectionsRepository.observeAllCollections().firstOrNull() ?: return emptyList()
-
-    return collections.map { collection ->
-      collection.asBrowsableMediaItem()
-    }
-  }
-
-  private suspend fun getCollectionItems(collectionId: CollectionId): List<MediaItem> {
-    val items = collectionsRepository.observeCollectionItems(collectionId)
-      .firstOrNull()
-      ?: return emptyList()
-
-    return items.map { item ->
-      item.asBrowsableMediaItem()
-    }
-  }
-
   private suspend fun loadAuthors(): List<MediaItem> {
     val authors = authorRepository.observeAuthors().firstOrNull { it.isNotEmpty() } ?: return emptyList()
 
@@ -187,6 +175,42 @@ class MediaTree(
     val items = authorRepository.observeAuthor(authorId)
       .firstOrNull()
       ?.libraryItems
+      ?: return emptyList()
+
+    return items.map { item ->
+      item.asBrowsableMediaItem()
+    }
+  }
+
+  private suspend fun loadPlaylists(): List<MediaItem> {
+    val playlists = playlistsRepository.observeAllPlaylists().firstOrNull { it.isNotEmpty() } ?: return emptyList()
+
+    return playlists.map { playlist ->
+      playlist.asBrowsableMediaItem()
+    }
+  }
+
+  private suspend fun getPlaylistItems(playlistId: PlaylistId): List<MediaItem> {
+    val items = playlistsRepository.observePlaylistItems(playlistId)
+      .firstOrNull()
+      ?: return emptyList()
+
+    return items.map { item ->
+      item.asBrowsableMediaItem()
+    }
+  }
+
+  private suspend fun loadCollections(): List<MediaItem> {
+    val collections = collectionsRepository.observeAllCollections().firstOrNull() ?: return emptyList()
+
+    return collections.map { collection ->
+      collection.asBrowsableMediaItem()
+    }
+  }
+
+  private suspend fun getCollectionItems(collectionId: CollectionId): List<MediaItem> {
+    val items = collectionsRepository.observeCollectionItems(collectionId)
+      .firstOrNull()
       ?: return emptyList()
 
     return items.map { item ->
@@ -340,6 +364,20 @@ class MediaTree(
     )
     .build()
 
+  private fun Playlist.asBrowsableMediaItem() = MediaItem.Builder()
+    .setMediaId("$PLAYLISTS_PREFIX$id")
+    .setMediaMetadata(
+      MediaMetadata.Builder()
+        .setTitle(name)
+        .setDescription(description)
+        .setArtworkUri(items.firstOrNull()?.libraryItem?.media?.coverImageUrl?.toUri())
+        .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
+        .setIsBrowsable(true)
+        .setIsPlayable(false)
+        .build(),
+    )
+    .build()
+
   @OptIn(UnstableApi::class)
   private fun Author.asBrowsableMediaItem(
     titleHint: String? = null,
@@ -372,8 +410,9 @@ enum class TopLevelMediaItem(
 ) {
   Home(HOME_ID, R.string.folder_home_title, true),
   Series(SERIES_ID, R.string.folder_series_title),
-  Collections(COLLECTIONS_ID, R.string.folder_collections_title),
   Authors(AUTHORS_ID, R.string.folder_authors_title),
+  Playlists(PLAYLISTS_ID, R.string.folder_playlists_title),
+  Collections(COLLECTIONS_ID, R.string.folder_collections_title),
   Downloads(DOWNLOADS_ID, R.string.folder_downloads_title)
   ;
 
@@ -413,8 +452,10 @@ private const val ROOT_ID = "root-campfire"
 private const val HOME_ID = "home-campfire"
 private const val SERIES_ID = "series-campfire"
 private const val SERIES_PREFIX = "series_"
-private const val COLLECTIONS_ID = "collections-campfire"
-private const val COLLECTIONS_PREFIX = "collections_"
 private const val AUTHORS_ID = "authors-campfire"
 private const val AUTHORS_PREFIX = "authors_"
+private const val PLAYLISTS_ID = "playlists-campfire"
+private const val PLAYLISTS_PREFIX = "playlists_"
+private const val COLLECTIONS_ID = "collections-campfire"
+private const val COLLECTIONS_PREFIX = "collections_"
 private const val DOWNLOADS_ID = "downloads-campfire"

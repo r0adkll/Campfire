@@ -62,6 +62,7 @@ kotlin {
         // Android Auto support via the MediaLibraryService
         implementation(projects.features.home.api)
         implementation(projects.features.series.api)
+        implementation(projects.features.playlists.api)
         implementation(projects.features.collections.api)
         implementation(projects.features.author.api)
         implementation(projects.features.search.api)
