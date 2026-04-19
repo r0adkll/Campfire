@@ -118,5 +118,24 @@ class SettingsAnalyticUiEventHandler(
     }
 
     is SettingsUiEvent.DeveloperSettingEvent -> Unit
+
+    is SettingsUiEvent.AndroidAutoSettingEvent -> when (event) {
+      SettingsUiEvent.AndroidAutoSettingEvent.OpenAndroidAutoSettings -> send("open_android_auto_settings", Click)
+      is SettingsUiEvent.AndroidAutoSettingEvent.SetCategoryVisible -> send(
+        "android_auto_category_visible",
+        Updated,
+        "${event.category.storageKey}=${event.visible}",
+      )
+      is SettingsUiEvent.AndroidAutoSettingEvent.SetCategoryGridLayout -> send(
+        "android_auto_category_grid",
+        Updated,
+        "${event.category.storageKey}=${event.isGrid}",
+      )
+      is SettingsUiEvent.AndroidAutoSettingEvent.ReorderCategories -> send(
+        "android_auto_reorder",
+        Updated,
+        event.order.joinToString(",") { it.storageKey },
+      )
+    }
   }
 }

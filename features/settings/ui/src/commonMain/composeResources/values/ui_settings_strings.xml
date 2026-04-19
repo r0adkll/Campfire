@@ -12,6 +12,8 @@
   <string name="setting_playback_subtitle">Time jumps, and other playback settings</string>
   <string name="setting_sleep_title">Sleep</string>
   <string name="setting_sleep_subtitle">Timers, shake to reset, and haptics</string>
+  <string name="setting_android_auto_title">Android Auto</string>
+  <string name="setting_android_auto_subtitle">Categories, ordering, and layout</string>
   <string name="setting_about_title">About</string>
   <string name="setting_about_subtitle">Developer, attributions, and version</string>
   <string name="setting_developer_title">Developer</string>
@@ -116,6 +118,27 @@
   <string name="about_attributions_title">Open source attributions</string>
   <string name="about_changelog_title">Changelog</string>
   <string name="about_version_title">Version</string>
+
+  <!-- Android Auto setting -->
+  <string name="android_auto_unavailable_warning_title">Warning</string>
+  <string name="android_auto_unavailable_warning_body">This version of the app was installed from an "Unknown Source" (i.e. not the Google PlayStore) and will therefore not be visible in Android Auto by default. To enable it and access Android Auto functionality, you must do the following:</string>
+  <string name="android_auto_unavailable_step_1">Open the Android Auto settings (see below)</string>
+  <string name="android_auto_unavailable_step_2">Scroll down to 'Version' and click it until Developer mode is enabled</string>
+  <string name="android_auto_unavailable_step_3">Click the '⋮' icon, and then 'Developer settings'</string>
+  <string name="android_auto_unavailable_step_4">Enable 'Unknown sources'</string>
+  <string name="android_auto_unavailable_step_5">Re-connect Android Auto!</string>
+  <string name="android_auto_open_settings">Open Android Auto settings</string>
+  <string name="android_auto_header_categories">Categories</string>
+  <string name="android_auto_categories_description">Drag to reorder. Toggle each category's visibility and choose whether its contents appear as a grid or list.</string>
+  <string name="android_auto_category_home">Home</string>
+  <string name="android_auto_category_series">Series</string>
+  <string name="android_auto_category_authors">Authors</string>
+  <string name="android_auto_category_playlists">Playlists</string>
+  <string name="android_auto_category_collections">Collections</string>
+  <string name="android_auto_category_downloads">Downloads</string>
+  <string name="android_auto_layout_grid">Grid</string>
+  <string name="android_auto_layout_list">List</string>
+  <string name="android_auto_drag_handle_description">Drag to reorder</string>
 
   <!-- Developer setting -->
   <string name="developer_settings_title">Developer</string>

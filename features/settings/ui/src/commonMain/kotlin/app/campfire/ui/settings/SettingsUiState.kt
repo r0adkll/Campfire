@@ -10,6 +10,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
+import app.campfire.settings.api.AndroidAutoCategory
+import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
@@ -24,11 +26,13 @@ import kotlinx.datetime.LocalTime
 data class SettingsUiState(
   val server: LoadState<out Server>,
   val isShakingAvailable: Boolean,
+  val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
+  val androidAutoSettings: AndroidAutoSettingsInfo,
   val aboutSettings: AboutSettingsInfo,
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
@@ -85,12 +89,17 @@ data class AboutSettingsInfo(
 )
 
 @Immutable
+data class AndroidAutoSettingsInfo(
+  val isAndroidAutoAvailable: Boolean,
+  val categories: List<AndroidAutoCategoryConfig>,
+)
+
+@Immutable
 data class DeveloperSettingsInfo(
   val developerModeEnabled: Boolean,
   val sessionAge: Duration,
   val showWidgetPinningPrompt: Boolean,
   val analyticsDebugState: String,
-  val isAndroidAutoAvailable: Boolean,
 )
 
 enum class SettingsPane {
@@ -99,6 +108,7 @@ enum class SettingsPane {
   Downloads,
   Playback,
   Sleep,
+  AndroidAuto,
   About,
   Developer,
   ;
@@ -109,6 +119,7 @@ enum class SettingsPane {
     Downloads -> SettingsScreen.Page.Downloads
     Playback -> SettingsScreen.Page.Playback
     Sleep -> SettingsScreen.Page.Sleep
+    AndroidAuto -> SettingsScreen.Page.AndroidAuto
     About -> SettingsScreen.Page.About
     Developer -> SettingsScreen.Page.Developer
   }
@@ -178,9 +189,22 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {
     data object EnableDeveloperMode : DeveloperSettingEvent
-    data object OpenAndroidAutoSettings : DeveloperSettingEvent
     data object InvalidateCurrentAccount : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
+  }
+
+  // Android Auto Pane Events
+  sealed interface AndroidAutoSettingEvent : SettingsUiEvent {
+    data object OpenAndroidAutoSettings : AndroidAutoSettingEvent
+    data class SetCategoryVisible(
+      val category: AndroidAutoCategory,
+      val visible: Boolean,
+    ) : AndroidAutoSettingEvent
+    data class SetCategoryGridLayout(
+      val category: AndroidAutoCategory,
+      val isGrid: Boolean,
+    ) : AndroidAutoSettingEvent
+    data class ReorderCategories(val order: List<AndroidAutoCategory>) : AndroidAutoSettingEvent
   }
 }

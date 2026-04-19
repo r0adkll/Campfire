@@ -39,6 +39,8 @@ import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.series.api.SeriesRepository
+import app.campfire.settings.api.AndroidAutoCategory
+import app.campfire.settings.api.AndroidAutoSettings
 import kotlin.collections.firstOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNot
@@ -59,6 +61,7 @@ class MediaTree(
   private val authorRepository: AuthorRepository,
   private val searchRepository: SearchRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val androidAutoSettings: AndroidAutoSettings,
 ) {
 
   val root
@@ -79,12 +82,14 @@ class MediaTree(
     pageSize: Int,
   ): List<MediaItem> {
     return when (parentId) {
-      ROOT_ID -> TopLevelMediaItem.All.map {
-        it.asBrowsableMediaItem(
-          context = application,
-          isGridLayout = it.isGridLayout,
-        )
-      }
+      ROOT_ID -> androidAutoSettings.observeCategoryConfigs().value
+        .filter { it.visible }
+        .mapNotNull { config ->
+          config.category.toTopLevelMediaItem()?.asBrowsableMediaItem(
+            context = application,
+            isGridLayout = config.isGridLayout,
+          )
+        }
 
       HOME_ID -> loadHome()
       SERIES_ID -> loadSeries()
@@ -273,7 +278,7 @@ class MediaTree(
   @OptIn(UnstableApi::class)
   private fun LibraryItem.asBrowsableMediaItem(
     titleHint: String? = null,
-    download: OfflineDownload? = null
+    download: OfflineDownload? = null,
   ) = MediaItem.Builder()
     .setMediaId(id)
     .setMediaMetadata(
@@ -403,6 +408,15 @@ class MediaTree(
     .build()
 }
 
+private fun AndroidAutoCategory.toTopLevelMediaItem(): TopLevelMediaItem? = when (this) {
+  AndroidAutoCategory.Home -> TopLevelMediaItem.Home
+  AndroidAutoCategory.Series -> TopLevelMediaItem.Series
+  AndroidAutoCategory.Authors -> TopLevelMediaItem.Authors
+  AndroidAutoCategory.Playlists -> TopLevelMediaItem.Playlists
+  AndroidAutoCategory.Collections -> TopLevelMediaItem.Collections
+  AndroidAutoCategory.Downloads -> TopLevelMediaItem.Downloads
+}
+
 enum class TopLevelMediaItem(
   val mediaId: String,
   @get:StringRes val title: Int,
@@ -413,7 +427,7 @@ enum class TopLevelMediaItem(
   Authors(AUTHORS_ID, R.string.folder_authors_title),
   Playlists(PLAYLISTS_ID, R.string.folder_playlists_title),
   Collections(COLLECTIONS_ID, R.string.folder_collections_title),
-  Downloads(DOWNLOADS_ID, R.string.folder_downloads_title)
+  Downloads(DOWNLOADS_ID, R.string.folder_downloads_title),
   ;
 
   @OptIn(UnstableApi::class)

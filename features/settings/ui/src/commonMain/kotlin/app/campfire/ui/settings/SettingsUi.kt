@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.DeveloperMode
+import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsPaused
@@ -54,6 +55,7 @@ import app.campfire.ui.settings.composables.SettingPaneListItem
 import app.campfire.ui.settings.composables.SettingsPaneDefaults
 import app.campfire.ui.settings.panes.AboutPane
 import app.campfire.ui.settings.panes.AccountPane
+import app.campfire.ui.settings.panes.AndroidAutoPane
 import app.campfire.ui.settings.panes.AppearancePane
 import app.campfire.ui.settings.panes.DeveloperPane
 import app.campfire.ui.settings.panes.DownloadsPane
@@ -66,6 +68,8 @@ import campfire.features.settings.ui.generated.resources.setting_about_subtitle
 import campfire.features.settings.ui.generated.resources.setting_about_title
 import campfire.features.settings.ui.generated.resources.setting_account_subtitle
 import campfire.features.settings.ui.generated.resources.setting_account_title
+import campfire.features.settings.ui.generated.resources.setting_android_auto_subtitle
+import campfire.features.settings.ui.generated.resources.setting_android_auto_title
 import campfire.features.settings.ui.generated.resources.setting_appearance_subtitle
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
 import campfire.features.settings.ui.generated.resources.setting_developer_subtitle
@@ -104,6 +108,7 @@ fun SettingsUi(
         SettingsScreen.Page.Downloads -> SettingsPane.Downloads
         SettingsScreen.Page.Playback -> SettingsPane.Playback
         SettingsScreen.Page.Sleep -> SettingsPane.Sleep
+        SettingsScreen.Page.AndroidAuto -> SettingsPane.AndroidAuto
         SettingsScreen.Page.About -> SettingsPane.About
         SettingsScreen.Page.Developer -> SettingsPane.Developer
       },
@@ -150,6 +155,7 @@ private fun TwoPaneLayout(
       onPaneClick = onPaneClick,
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
       showDeveloperPane = state.developerSettings.developerModeEnabled,
+      showAndroidAutoPane = state.isAndroidAutoPaneVisible,
       modifier = Modifier
         .padding(top = 16.dp)
         .fillMaxHeight()
@@ -206,6 +212,7 @@ private fun OnePaneLayout(
     onPaneClick = onPaneClick,
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     showDeveloperPane = state.developerSettings.developerModeEnabled,
+    showAndroidAutoPane = state.isAndroidAutoPaneVisible,
     modifier = modifier
       .systemBarsPadding()
       .fillMaxSize(),
@@ -238,6 +245,7 @@ private fun SettingsRootPane(
   onPaneClick: (SettingsPane) -> Unit,
   onBackClick: () -> Unit,
   showDeveloperPane: Boolean,
+  showAndroidAutoPane: Boolean,
   modifier: Modifier = Modifier,
   isTwoPane: Boolean = false,
 ) {
@@ -357,8 +365,31 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Sleep)
         },
-        shape = SettingsPaneDefaults.bottomShape(),
+        shape = if (showAndroidAutoPane) {
+          SettingsPaneDefaults.middleShape()
+        } else {
+          SettingsPaneDefaults.bottomShape()
+        },
       )
+
+      // Android Auto (Android only)
+      if (showAndroidAutoPane) {
+        SettingPaneListItem(
+          selected = pane == SettingsPane.AndroidAuto && isTwoPane,
+          icon = {
+            Icon(
+              Icons.Rounded.DirectionsCar,
+              contentDescription = null,
+            )
+          },
+          title = { Text(stringResource(Res.string.setting_android_auto_title)) },
+          subtitle = { Text(stringResource(Res.string.setting_android_auto_subtitle)) },
+          onClick = {
+            onPaneClick(SettingsPane.AndroidAuto)
+          },
+          shape = SettingsPaneDefaults.bottomShape(),
+        )
+      }
 
       Spacer(Modifier.height(8.dp))
 
@@ -438,6 +469,12 @@ private fun SettingPaneContent(
     )
 
     SettingsPane.Sleep -> SleepPane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.AndroidAuto -> AndroidAutoPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,

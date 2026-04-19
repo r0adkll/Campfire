@@ -2,7 +2,6 @@ package app.campfire.ui.settings
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,15 +15,18 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
+import app.campfire.core.Platform
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
+import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Server
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
@@ -95,6 +97,7 @@ class SettingsPresenter(
   private val themeRepository: AppThemeRepository,
   private val playbackSettings: PlaybackSettings,
   private val sleepSettings: SleepSettings,
+  private val androidAutoSettings: AndroidAutoSettings,
   private val devSettings: DevSettings,
   private val serverRepository: ServerRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
@@ -170,15 +173,21 @@ class SettingsPresenter(
     val analyticReportingEnabled by remember { settings.observeAnalyticReportingEnabled() }
       .collectAsState()
 
+    // Android Auto Settings
+    val androidAutoCategories by remember {
+      androidAutoSettings.observeCategoryConfigs()
+    }.collectAsState()
+    val isAndroidAutoAvailable = remember { androidAuto.isAvailable() }
+
     // Developer Settings
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState()
-    val isAndroidAutoAvailable = remember { androidAuto.isAvailable() }
 
     return SettingsUiState(
       server = server,
       isShakingAvailable = remember { shakeDetector.isAvailable },
+      isAndroidAutoPaneVisible = currentPlatform == Platform.ANDROID,
       applicationInfo = applicationInfo,
       appearanceSettings = AppearanceSettingsInfo(
         appTheme = appTheme,
@@ -220,12 +229,15 @@ class SettingsPresenter(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
       ),
+      androidAutoSettings = AndroidAutoSettingsInfo(
+        isAndroidAutoAvailable = isAndroidAutoAvailable,
+        categories = androidAutoCategories,
+      ),
       developerSettings = DeveloperSettingsInfo(
         developerModeEnabled = developerModeEnabled || applicationInfo.debugBuild,
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
         analyticsDebugState = analytics.debugState,
-        isAndroidAutoAvailable = isAndroidAutoAvailable,
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)
@@ -313,12 +325,21 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
             settings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
-          is SettingsUiEvent.DeveloperSettingEvent.OpenAndroidAutoSettings -> androidAuto.openSettings()
           is SettingsUiEvent.DeveloperSettingEvent.InvalidateCurrentAccount -> {
             scope.launch {
               accountManager.invalidateAccount(userSession.requiredUser)
             }
           }
+        }
+
+        is SettingsUiEvent.AndroidAutoSettingEvent -> when (event) {
+          is SettingsUiEvent.AndroidAutoSettingEvent.OpenAndroidAutoSettings -> androidAuto.openSettings()
+          is SettingsUiEvent.AndroidAutoSettingEvent.SetCategoryVisible ->
+            androidAutoSettings.setCategoryVisible(event.category, event.visible)
+          is SettingsUiEvent.AndroidAutoSettingEvent.SetCategoryGridLayout ->
+            androidAutoSettings.setCategoryGridLayout(event.category, event.isGrid)
+          is SettingsUiEvent.AndroidAutoSettingEvent.ReorderCategories ->
+            androidAutoSettings.setCategoryOrder(event.order)
         }
       }
     }

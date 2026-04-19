@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Playback History
 - Multi-device progress synchronization
 - Setting to disable marquee scrolling on library item cards
+- Android Auto settings pane: toggle, reorder, and choose list/grid layout per top-level category
 
 ### Changed
 

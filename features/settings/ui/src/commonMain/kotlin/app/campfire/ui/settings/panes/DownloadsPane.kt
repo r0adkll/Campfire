@@ -315,8 +315,7 @@ private fun ItemDownloadImage(
             }
 
             drawContent()
-          }
-        ,
+          },
         contentAlignment = Alignment.Center,
       ) {
         Icon(

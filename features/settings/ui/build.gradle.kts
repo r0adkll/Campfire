@@ -20,6 +20,7 @@ kotlin {
         implementation(projects.ui.theming.api)
 
         implementation(libs.circuitx.overlays)
+        implementation(libs.reorderable)
 
         implementation(libs.compose.components.resources)
       }
