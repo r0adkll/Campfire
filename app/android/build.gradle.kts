@@ -69,7 +69,7 @@ android {
     matching {
       listOf("alphaRelease", "betaRelease").contains(it.name)
     }.configureEach {
-      kotlin.srcDir("src/preRelease/kotlin")
+      kotlin.directories.add("src/preRelease/kotlin")
     }
   }
 
