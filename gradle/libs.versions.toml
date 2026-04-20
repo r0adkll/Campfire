@@ -54,7 +54,7 @@ baselineprofile = "1.5.0-alpha05"
 profileinstaller = "1.4.1"
 material = "1.13.0"
 swatchbuckler = "0.1.1-SNAPSHOT"
-reorderable = "3.0.0"
+reorderable = "3.1.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
