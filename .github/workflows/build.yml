@@ -36,7 +36,7 @@ jobs:
         if: ${{ github.event.pull_request.head.repo.full_name != github.repository && github.event_name != 'push' }}
 
       - name: Cache ktlint
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.cache/campfire
           key: ktlint-${{ runner.os }}-${{ hashFiles('scripts/ktlint') }}
