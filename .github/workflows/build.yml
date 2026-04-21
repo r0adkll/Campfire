@@ -110,7 +110,7 @@ jobs:
       - name: Add coverage report to PR
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
         id: kover
-        uses: mi-kas/kover-report@v1
+        uses: mi-kas/kover-report@v2
         with:
           path: ${{ github.workspace }}/build/reports/kover/report.xml
           title: Code Coverage
