@@ -233,7 +233,7 @@ private fun CollapsedPlaybackBarContent(
         dragState = dragState,
       )
 
-      Spacer(Modifier.width(16.dp))
+      Spacer(Modifier.width(12.dp))
 
       Column(
         modifier = Modifier.weight(1f),
@@ -281,11 +281,10 @@ private fun CollapsedPlaybackBarContent(
               copy(
                 fontWeight = FontWeight.Bold,
                 fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.secondary,
                 fontSize = 12.sp,
               )
             },
-            modifier = Modifier.alpha(0.7f),
+            modifier = Modifier.alpha(0.75f),
           )
         }
       }

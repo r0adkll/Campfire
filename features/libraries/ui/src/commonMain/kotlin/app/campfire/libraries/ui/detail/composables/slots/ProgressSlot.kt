@@ -12,6 +12,7 @@ import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 
 class ProgressSlot(
   val isPlaying: Boolean,
+  val playbackSpeed: Float,
   @get:VisibleForTesting val mediaProgress: MediaProgress,
   val libraryItem: LibraryItem,
 ) : ContentSlot {
@@ -22,6 +23,7 @@ class ProgressSlot(
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
     MediaProgressBar(
       isPlaying = isPlaying,
+      playbackSpeed = playbackSpeed,
       progress = mediaProgress,
       libraryItem = libraryItem,
       modifier = modifier

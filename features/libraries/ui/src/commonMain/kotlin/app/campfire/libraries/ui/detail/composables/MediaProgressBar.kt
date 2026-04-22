@@ -1,5 +1,6 @@
 package app.campfire.libraries.ui.detail.composables
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -22,12 +24,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.util.withDensity
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asSeconds
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableFormat
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -43,6 +48,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun MediaProgressBar(
   isPlaying: Boolean,
+  playbackSpeed: Float,
   libraryItem: LibraryItem,
   progress: MediaProgress,
   modifier: Modifier = Modifier,
@@ -101,16 +107,37 @@ internal fun MediaProgressBar(
         )
         else -> {
           val duration = progress.duration ?: libraryItem.media.durationInMillis.milliseconds.asSeconds()
-          val remainingDurationMillis = (duration - (duration * progress.actualProgress)) * 1000f
+          val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
           val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
           stringResource(Res.string.remaining_duration_format, remainingDuration)
         }
       }
-      Text(
-        text = remainingText,
-        style = MaterialTheme.typography.labelSmall,
-        fontWeight = FontWeight.SemiBold,
-      )
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+      ) {
+        val isAccelerated = playbackSpeed != 1f && !progress.isFinished
+        AnimatedVisibility(
+          visible = isAccelerated,
+        ) {
+          Icon(
+            Icons.Rounded.KeyboardDoubleArrowRight,
+            contentDescription = null,
+            modifier = Modifier.size(16.dp),
+            tint = MaterialTheme.colorScheme.secondary,
+          )
+        }
+        Text(
+          text = remainingText,
+          style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
+            copy(
+              fontWeight = FontWeight.Bold,
+              fontStyle = FontStyle.Italic,
+              fontSize = 12.sp,
+            )
+          },
+          fontWeight = FontWeight.SemiBold,
+        )
+      }
 
       Spacer(Modifier.weight(1f))
 

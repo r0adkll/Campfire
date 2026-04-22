@@ -177,6 +177,18 @@ class LibraryItemPresenter(
         .distinctUntilChanged()
     }.collectAsState(false)
 
+    val playbackSpeed by remember {
+      audioPlayerHolder.currentPlayer
+        .flatMapLatest {
+          if (it?.preparedSession?.libraryItem?.id == screen.libraryItemId) {
+            it.playbackSpeed
+          } else {
+            flowOf(1f)
+          }
+        }
+        .distinctUntilChanged()
+    }.collectAsState(1f)
+
     val isQueued by remember {
       sessionQueue.observeContains(screen.libraryItemId)
     }.collectAsState(false)
@@ -218,6 +230,7 @@ class LibraryItemPresenter(
         libraryItemValidation = itemValidation,
         sharedTransitionKey = screen.sharedTransitionKey,
         isPlaying = isPlaying,
+        playbackSpeed = playbackSpeed,
         mediaProgressState = mediaProgressState,
         offlineDownloadState = offlineDownloadState,
         seriesContentState = seriesContentState,
@@ -405,6 +418,7 @@ private fun buildSlots(
   libraryItemValidation: LibraryItemValidation,
   sharedTransitionKey: String,
   isPlaying: Boolean,
+  playbackSpeed: Float,
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<LibraryItem>>,
@@ -431,7 +445,7 @@ private fun buildSlots(
     mediaProgressState.onLoaded { mediaProgress ->
       if (mediaProgress != null && mediaProgress.progress > 0f) {
         this += SpacerSlot.xlarge("progress_spacer_before")
-        this += ProgressSlot(isPlaying, mediaProgress, libraryItem)
+        this += ProgressSlot(isPlaying, playbackSpeed, mediaProgress, libraryItem)
         this += SpacerSlot.small("progress_spacer_after")
       }
     }
