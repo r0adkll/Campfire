@@ -261,6 +261,10 @@ jobs:
     timeout-minutes: 60
 
     steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - uses: actions/checkout@v6
 
       - name: Set up JDK
