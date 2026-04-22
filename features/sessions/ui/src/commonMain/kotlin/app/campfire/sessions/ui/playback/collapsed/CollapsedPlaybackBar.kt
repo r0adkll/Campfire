@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
@@ -56,12 +57,14 @@ import androidx.compose.ui.layout.findRootCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.RunningTimer
@@ -71,6 +74,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.RewindIcon
@@ -159,7 +163,9 @@ internal fun <T> T.CollapsedPlaybackBar(
     val title = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER
     val thumbnailUrl = playerState.metadata.artworkUri ?: session?.libraryItem?.media?.coverImageUrl
     val thumbnailContentDescription = session?.libraryItem?.media?.metadata?.title
-    val timeRemaining = session?.timeRemaining?.readoutFormat() ?: "--"
+    val timeRemaining = session?.timeRemaining
+      ?.div(playerState.speed.toDouble())
+      ?.readoutFormat() ?: "--"
 
     CollapsedPlaybackBarContent(
       dragState = dragState,
@@ -171,6 +177,7 @@ internal fun <T> T.CollapsedPlaybackBar(
         playerState.time progressOver playerState.duration
       },
       timeRemaining = timeRemaining,
+      isAccelerated = playerState.speed != 1f,
       runningTimer = playerState.timer,
       availableSync = syncState.availableSync,
       onSync = {
@@ -198,6 +205,7 @@ private fun CollapsedPlaybackBarContent(
   state: AudioPlayer.State,
   progress: () -> Float,
   timeRemaining: String,
+  isAccelerated: Boolean,
   runningTimer: RunningTimer?,
   availableSync: AvailableSync?,
   onSync: () -> Unit,
@@ -251,11 +259,35 @@ private fun CollapsedPlaybackBarContent(
           else -> stringResource(Res.string.time_remaining, timeRemaining)
         }
 
-        Text(
-          text = subtitle,
-          style = MaterialTheme.typography.labelSmall,
-          modifier = Modifier.alpha(0.7f),
-        )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+        ) {
+          AnimatedVisibility(
+            visible = isAccelerated &&
+              dragState.actionState != Dispose &&
+              availableSync == null,
+          ) {
+            Icon(
+              Icons.Rounded.KeyboardDoubleArrowRight,
+              contentDescription = null,
+              modifier = Modifier.size(16.dp),
+              tint = MaterialTheme.colorScheme.secondary,
+            )
+          }
+
+          Text(
+            text = subtitle,
+            style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
+              copy(
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 12.sp,
+              )
+            },
+            modifier = Modifier.alpha(0.7f),
+          )
+        }
       }
 
       Spacer(Modifier.width(16.dp))
