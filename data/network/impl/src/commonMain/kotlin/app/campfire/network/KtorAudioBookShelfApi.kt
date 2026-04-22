@@ -456,7 +456,12 @@ class KtorAudioBookShelfApi(
     return trySendRequest<SyncLocalSessionsResult> {
       hydratedClientRequest("/api/session/local-all") {
         method = HttpMethod.Post
-        setBody(SyncSessionRequest(sessions))
+        setBody(
+          SyncSessionRequest(
+            deviceInfo = sessions.first().deviceInfo,
+            sessions = sessions,
+          ),
+        )
       }
     }
   }
