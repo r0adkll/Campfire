@@ -122,8 +122,9 @@ internal fun MediaProgressBar(
           Icon(
             Icons.Rounded.KeyboardDoubleArrowRight,
             contentDescription = null,
-            modifier = Modifier.size(16.dp),
             tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(16.dp)
+              .testTag("accelerated_icon"),
           )
         }
         Text(

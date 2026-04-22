@@ -23,7 +23,7 @@ class ProgressSlotTest {
       currentTime = 20f,
       duration = 100f,
     )
-    val slot = ProgressSlot(false, mediaProgress, libraryItem)
+    val slot = ProgressSlot(false, 1f, mediaProgress, libraryItem)
 
     setContent {
       PreviewSharedElementTransitionLayout {
@@ -38,6 +38,29 @@ class ProgressSlotTest {
   }
 
   @Test
+  fun isAcceleratedTest() = runComposeUiTest {
+    val libraryItem = libraryItem()
+    val mediaProgress = mediaProgress(
+      libraryItemId = TestLibraryItemId,
+      currentTime = 20f,
+      duration = 100f,
+    )
+    val slot = ProgressSlot(false, 2f, mediaProgress, libraryItem)
+
+    setContent {
+      PreviewSharedElementTransitionLayout {
+        slot.Content(Modifier) {}
+      }
+    }
+
+    onNodeWithTag("progress_indicator").assertExists()
+    onNodeWithTag("icon_finished_check").assertDoesNotExist()
+    onNodeWithTag("accelerated_icon").assertExists()
+    onNodeWithText("40s left").assertExists()
+    onNodeWithText("20%").assertExists()
+  }
+
+  @Test
   fun isFinishedTest() = runComposeUiTest {
     val libraryItem = libraryItem()
     val mediaProgress = mediaProgress(
@@ -47,7 +70,7 @@ class ProgressSlotTest {
       isFinished = true,
       finishedAt = 0L,
     )
-    val slot = ProgressSlot(false, mediaProgress, libraryItem)
+    val slot = ProgressSlot(false, 1f, mediaProgress, libraryItem)
 
     setContent {
       PreviewSharedElementTransitionLayout {
