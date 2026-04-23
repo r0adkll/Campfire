@@ -64,6 +64,33 @@ internal fun DeveloperPane(
           Text("Next time content is played, the user will be prompted to pin the playback widget")
         },
       )
+
+      Header(
+        title = { Text("Media Buttons") },
+      )
+
+      val packages = state.developerSettings.mediaButtonPackages
+      ActionSetting(
+        headlineContent = { Text("Observed media button packages") },
+        supportingContent = {
+          Text(
+            text = if (packages.isEmpty()) {
+              "No skip-next / skip-previous events have been received yet. Trigger your Bluetooth " +
+                "or remote control to see which package sends the events."
+            } else {
+              packages.sorted().joinToString(separator = "\n")
+            },
+          )
+        },
+      )
+
+      ActionSetting(
+        headlineContent = { Text("Clear observed media button packages") },
+        supportingContent = { Text("Reset the list above.") },
+        onClick = {
+          state.eventSink(DeveloperSettingEvent.ClearMediaButtonPackages)
+        },
+      )
     }
 
     Header(

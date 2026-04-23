@@ -39,6 +39,15 @@
         "maven"
       ],
       "allowedVersions": "!/SNAPSHOT$/"
+    },
+    {
+      "description": "Restrict Compose dependencies to stable, alpha, beta, and rc releases only (no dev or other pre-releases)",
+      "matchPackageNames": [
+        "/^org\\.jetbrains\\.compose(\\.|:|$)/",
+        "/^org\\.jetbrains\\.androidx\\.navigationevent(\\.|:|$)/",
+        "/^androidx\\.compose(\\.|:|$)/"
+      ],
+      "allowedVersions": "/^\\d+(\\.\\d+)+(-(alpha|beta|rc)\\d+)?$/"
     }
   ]
 }

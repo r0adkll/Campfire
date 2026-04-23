@@ -33,7 +33,38 @@ class DevSettingsImpl(
   override var sessionAge: Duration by sessionAgeProperty
 
   override fun observeSessionAge(): StateFlow<Duration> = sessionAgeProperty.observe()
+
+  private val mediaButtonPackagesProperty = customSetting(
+    key = KEY_MEDIA_BUTTON_PACKAGES,
+    defaultValue = emptySet(),
+    getter = { raw -> raw.decodePackageSet() },
+    setter = { packages -> packages.encodePackageSet() },
+  )
+  private var mediaButtonPackages: Set<String> by mediaButtonPackagesProperty
+
+  override fun observeMediaButtonPackages(): StateFlow<Set<String>> =
+    mediaButtonPackagesProperty.observe()
+
+  override fun recordMediaButtonPackage(packageName: String) {
+    if (packageName.isBlank()) return
+    val existing = mediaButtonPackages
+    if (packageName in existing) return
+    mediaButtonPackages = existing + packageName
+  }
+
+  override fun clearMediaButtonPackages() {
+    mediaButtonPackages = emptySet()
+  }
 }
 
 internal const val KEY_DEVELOPER_MODE = "pref_developer_mode_enabled"
 internal const val KEY_SESSION_AGE = "pref_dev_setting_session_age"
+internal const val KEY_MEDIA_BUTTON_PACKAGES = "pref_dev_setting_media_button_packages"
+
+private const val PACKAGE_SEPARATOR = "|"
+
+private fun String.decodePackageSet(): Set<String> =
+  if (isEmpty()) emptySet() else split(PACKAGE_SEPARATOR).filter { it.isNotEmpty() }.toSet()
+
+private fun Set<String>.encodePackageSet(): String =
+  joinToString(PACKAGE_SEPARATOR)

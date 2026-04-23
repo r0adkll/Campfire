@@ -36,6 +36,7 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
@@ -53,6 +54,7 @@ import kotlinx.coroutines.guava.future
 interface AudioPlayerComponent {
   val audioPlayerHolder: AudioPlayerHolder // AppScope
   val playbackSettings: PlaybackSettings // AppScope
+  val devSettings: DevSettings // AppScope
   val activityIntentProvider: ActivityIntentProvider // AppScope
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope
 }
@@ -285,13 +287,25 @@ class AudioPlayerService : MediaLibraryService() {
       controllerInfo: MediaSession.ControllerInfo,
       intent: Intent,
     ): Boolean {
+      val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+
+      // Record any skip-next / skip-previous package so unknown Bluetooth / remote control
+      // senders can be surfaced in developer settings and added to the intercept list.
+      if (keyEvent?.action == KeyEvent.ACTION_DOWN &&
+        (
+          keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_NEXT ||
+            keyEvent.keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS
+          )
+      ) {
+        component.devSettings.recordMediaButtonPackage(controllerInfo.packageName)
+      }
+
       // Handle Bluetooth next/prev based on user settings.
       // Media3 routes Bluetooth key events through this callback before processing them,
       // allowing us to intercept and redirect next/prev to seek when the setting is disabled.
       if (controllerInfo.packageName in BLUETOOTH_PACKAGE_NAMES &&
         !component.playbackSettings.remoteNextPrevSkipsChapters
       ) {
-        val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
         if (keyEvent?.action == KeyEvent.ACTION_DOWN) {
           when (keyEvent.keyCode) {
             KeyEvent.KEYCODE_MEDIA_NEXT -> {

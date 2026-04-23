@@ -183,6 +183,7 @@ class SettingsPresenter(
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState()
+    val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState()
 
     return SettingsUiState(
       server = server,
@@ -238,6 +239,7 @@ class SettingsPresenter(
         sessionAge = sessionAge,
         showWidgetPinningPrompt = showWidgetPinningPrompt,
         analyticsDebugState = analytics.debugState,
+        mediaButtonPackages = mediaButtonPackages,
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)
@@ -325,6 +327,7 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
             settings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
+          is SettingsUiEvent.DeveloperSettingEvent.ClearMediaButtonPackages -> devSettings.clearMediaButtonPackages()
           is SettingsUiEvent.DeveloperSettingEvent.InvalidateCurrentAccount -> {
             scope.launch {
               accountManager.invalidateAccount(userSession.requiredUser)
