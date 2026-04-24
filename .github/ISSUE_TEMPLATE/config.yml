@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Audiobookshelf Server Support
+    url: https://www.audiobookshelf.org/support
+    about: Questions about the Audiobookshelf server itself belong here, not in Campfire.
+  - name: Discussions
+    url: https://github.com/r0adkll/Campfire/discussions
+    about: Have a question or want to chat with other users? Start a discussion.

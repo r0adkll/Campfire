@@ -1,0 +1,59 @@
+name: Question / Support
+description: Ask a question about using Campfire.
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about how to use Campfire? Ask away!
+
+        **Note:** Questions about the Audiobookshelf server itself should go to the [Audiobookshelf community](https://www.audiobookshelf.org/support).
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checks
+      options:
+        - label: I searched [existing issues](https://github.com/r0adkll/Campfire/issues) and [discussions](https://github.com/r0adkll/Campfire/discussions) for an answer.
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What would you like to know?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? What have you already tried?
+    validations:
+      required: false
+
+  - type: input
+    id: app-version
+    attributes:
+      label: Campfire version
+      placeholder: e.g. 1.2.3-alpha
+    validations:
+      required: false
+
+  - type: input
+    id: server-version
+    attributes:
+      label: Audiobookshelf server version
+      placeholder: e.g. 2.17.5
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / OS
+      placeholder: e.g. Pixel 8 Pro (Android 15)
+    validations:
+      required: false
