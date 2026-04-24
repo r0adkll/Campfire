@@ -5,7 +5,6 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.server.db.ServerWithUser
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
