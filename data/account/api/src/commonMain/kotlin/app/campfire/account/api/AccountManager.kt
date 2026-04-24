@@ -53,20 +53,6 @@ interface AccountManager {
   suspend fun getToken(userId: UserId): AbsToken?
 
   /**
-   * Get the legacy auth token for a given account to use to migrate
-   * to the new access/refresh bearer token system. \
-   *
-   * @param userId the id of the user to fetch a token for
-   * @return the legacy auth token, or null if none exists
-   */
-  suspend fun getLegacyToken(userId: UserId): String?
-
-  /**
-   * Delete the legacy token for a user
-   */
-  suspend fun removeLegacyToken(userId: UserId)
-
-  /**
    * Update the set of tokens for a given user
    */
   suspend fun updateToken(userId: UserId, newToken: AbsToken)

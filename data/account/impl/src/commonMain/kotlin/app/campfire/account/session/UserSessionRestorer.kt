@@ -43,13 +43,6 @@ class DatabaseUserSessionRestorer(
       return@measureTimedValue UserSession.LoggedOut
     }
 
-    // Check if user is using a legacy auth token and delete it as it will no longer be valid
-    val legacyToken = accountManager.getLegacyToken(server.user.id)
-    if (legacyToken != null) {
-      bark(LogPriority.WARN) { "Deleting legacy authentication token, requiring reauthentication…" }
-      accountManager.removeLegacyToken(server.user.id)
-    }
-
     // Validate that this account has valid credentials
     val tokens = accountManager.getToken(server.user.id)
     if (tokens != null) {
