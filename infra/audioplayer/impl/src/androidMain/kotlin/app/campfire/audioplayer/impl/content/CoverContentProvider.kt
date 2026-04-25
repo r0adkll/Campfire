@@ -8,8 +8,6 @@ import android.os.ParcelFileDescriptor
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Corked
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import java.io.FileNotFoundException
@@ -48,7 +46,7 @@ class CoverContentProvider : ContentProvider() {
         loader.execute(
           ImageRequest.Builder(ctx)
             .data(url)
-            .build()
+            .build(),
         )
       }
       if (warmed == null) {
