@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-device progress synchronization
 - Setting to disable marquee scrolling on library item cards
 - Android Auto settings pane: toggle, reorder, and choose list/grid layout per top-level category
+- 37 new theme icons (camping/nature/travel) selectable when building a custom theme
 
 ### Changed
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Theme color extraction from cover art now waits for a brief impression before dispatching, avoiding wasted work when scrolling past items
 - Time remaining on collapsed bar + item detail now reflect the current playback speed of a session
 - Improved home feed scrolling with mixed scrolling orientations
+- Theme builder icon picker is now a grid popup instead of a tall scrolling list
 
 ### Deprecated
 
