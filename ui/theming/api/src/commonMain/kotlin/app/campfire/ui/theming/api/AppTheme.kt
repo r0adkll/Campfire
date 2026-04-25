@@ -7,12 +7,49 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.theme.Airplane
+import app.campfire.common.compose.icons.theme.Axe
+import app.campfire.common.compose.icons.theme.BeachUmbrella
+import app.campfire.common.compose.icons.theme.Bicycle
+import app.campfire.common.compose.icons.theme.Binoculars
+import app.campfire.common.compose.icons.theme.Cactus
+import app.campfire.common.compose.icons.theme.Camera
+import app.campfire.common.compose.icons.theme.Camper
+import app.campfire.common.compose.icons.theme.Campfire
+import app.campfire.common.compose.icons.theme.Cloud
+import app.campfire.common.compose.icons.theme.Compass
+import app.campfire.common.compose.icons.theme.CrescentMoon
+import app.campfire.common.compose.icons.theme.Deer
+import app.campfire.common.compose.icons.theme.Dinghy
+import app.campfire.common.compose.icons.theme.Evergreen
+import app.campfire.common.compose.icons.theme.Fishing
+import app.campfire.common.compose.icons.theme.Flashlight
 import app.campfire.common.compose.icons.theme.Forest
+import app.campfire.common.compose.icons.theme.Globe
+import app.campfire.common.compose.icons.theme.HotAirBalloon
+import app.campfire.common.compose.icons.theme.Lake
+import app.campfire.common.compose.icons.theme.Lantern
 import app.campfire.common.compose.icons.theme.LifeFloat
+import app.campfire.common.compose.icons.theme.LogCabin
+import app.campfire.common.compose.icons.theme.MapleLeaf
 import app.campfire.common.compose.icons.theme.Mountain
+import app.campfire.common.compose.icons.theme.Mushroom
+import app.campfire.common.compose.icons.theme.Night
+import app.campfire.common.compose.icons.theme.Owl
+import app.campfire.common.compose.icons.theme.PaperMap
+import app.campfire.common.compose.icons.theme.ParkBench
 import app.campfire.common.compose.icons.theme.Rucksack
+import app.campfire.common.compose.icons.theme.SailBoat
+import app.campfire.common.compose.icons.theme.SleepingBag
+import app.campfire.common.compose.icons.theme.Snowflake
+import app.campfire.common.compose.icons.theme.Star
+import app.campfire.common.compose.icons.theme.Suitcase
+import app.campfire.common.compose.icons.theme.Sun
 import app.campfire.common.compose.icons.theme.Tent
+import app.campfire.common.compose.icons.theme.Train
+import app.campfire.common.compose.icons.theme.Trekking
 import app.campfire.common.compose.icons.theme.WaterBottle
+import app.campfire.common.compose.icons.theme.Waterfall
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.ColorPalette
 import app.campfire.common.compose.theme.LocalUseDarkColors
@@ -65,6 +102,43 @@ sealed interface AppTheme {
     Forest(icon = { CampfireIcons.Theme.Forest }),
     Mountain(icon = { CampfireIcons.Theme.Mountain }),
     LifeFloat(icon = { CampfireIcons.Theme.LifeFloat }),
+    Campfire(icon = { CampfireIcons.Theme.Campfire }),
+    Compass(icon = { CampfireIcons.Theme.Compass }),
+    Binoculars(icon = { CampfireIcons.Theme.Binoculars }),
+    Lantern(icon = { CampfireIcons.Theme.Lantern }),
+    PaperMap(icon = { CampfireIcons.Theme.PaperMap }),
+    Axe(icon = { CampfireIcons.Theme.Axe }),
+    SleepingBag(icon = { CampfireIcons.Theme.SleepingBag }),
+    Evergreen(icon = { CampfireIcons.Theme.Evergreen }),
+    Suitcase(icon = { CampfireIcons.Theme.Suitcase }),
+    LogCabin(icon = { CampfireIcons.Theme.LogCabin }),
+    Dinghy(icon = { CampfireIcons.Theme.Dinghy }),
+    Fishing(icon = { CampfireIcons.Theme.Fishing }),
+    HotAirBalloon(icon = { CampfireIcons.Theme.HotAirBalloon }),
+    Airplane(icon = { CampfireIcons.Theme.Airplane }),
+    Camera(icon = { CampfireIcons.Theme.Camera }),
+    Flashlight(icon = { CampfireIcons.Theme.Flashlight }),
+    Waterfall(icon = { CampfireIcons.Theme.Waterfall }),
+    Camper(icon = { CampfireIcons.Theme.Camper }),
+    Trekking(icon = { CampfireIcons.Theme.Trekking }),
+    Sun(icon = { CampfireIcons.Theme.Sun }),
+    CrescentMoon(icon = { CampfireIcons.Theme.CrescentMoon }),
+    SailBoat(icon = { CampfireIcons.Theme.SailBoat }),
+    Globe(icon = { CampfireIcons.Theme.Globe }),
+    MapleLeaf(icon = { CampfireIcons.Theme.MapleLeaf }),
+    Snowflake(icon = { CampfireIcons.Theme.Snowflake }),
+    Lake(icon = { CampfireIcons.Theme.Lake }),
+    ParkBench(icon = { CampfireIcons.Theme.ParkBench }),
+    Cactus(icon = { CampfireIcons.Theme.Cactus }),
+    Mushroom(icon = { CampfireIcons.Theme.Mushroom }),
+    Cloud(icon = { CampfireIcons.Theme.Cloud }),
+    Star(icon = { CampfireIcons.Theme.Star }),
+    Bicycle(icon = { CampfireIcons.Theme.Bicycle }),
+    Train(icon = { CampfireIcons.Theme.Train }),
+    BeachUmbrella(icon = { CampfireIcons.Theme.BeachUmbrella }),
+    Deer(icon = { CampfireIcons.Theme.Deer }),
+    Owl(icon = { CampfireIcons.Theme.Owl }),
+    Night(icon = { CampfireIcons.Theme.Night }),
   }
 }
 
