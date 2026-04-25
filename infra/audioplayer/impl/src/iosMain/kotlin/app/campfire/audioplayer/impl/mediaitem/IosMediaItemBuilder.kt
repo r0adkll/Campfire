@@ -30,7 +30,7 @@ object IosMediaItemBuilder {
           id = chapter.id,
           startMs = chapter.start.seconds.inWholeMilliseconds,
           endMs = chapter.end.seconds.inWholeMilliseconds,
-          metadata = MediaItemBuilder.createMediaMetadata(chapter, media),
+          metadata = MediaItemBuilder.createMediaMetadata(chapter, media, id),
         )
       } else {
         val audioFileRange = audio.startOffset.seconds..(audio.startOffset + audio.duration).seconds
@@ -41,7 +41,7 @@ object IosMediaItemBuilder {
               id = chapter.id,
               startMs = chapter.start.seconds.inWholeMilliseconds,
               endMs = chapter.end.seconds.inWholeMilliseconds,
-              metadata = MediaItemBuilder.createMediaMetadata(chapter, media),
+              metadata = MediaItemBuilder.createMediaMetadata(chapter, media, id),
             )
           }
         }
