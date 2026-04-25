@@ -5,12 +5,13 @@ import android.content.Context
 import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.annotation.StringRes
-import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaConstants
 import app.campfire.audioplayer.impl.asPlatformMediaItem
+import app.campfire.audioplayer.impl.content.coverContentUriForAuthor
+import app.campfire.audioplayer.impl.content.coverContentUriForItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
@@ -112,7 +113,7 @@ class MediaTree(
   suspend fun resolveMediaItem(libraryItemId: LibraryItemId): List<MediaItem> {
     return try {
       val item = libraryItemRepository.getLibraryItem(libraryItemId)
-      MediaItemBuilder.build(item).map { it.asPlatformMediaItem() }
+      MediaItemBuilder.build(item).map { it.asPlatformMediaItem(application) }
     } catch (e: Throwable) {
       bark(LogPriority.ERROR, throwable = e) {
         "Unable to find item for ${libraryItemId.loggableId}"
@@ -285,7 +286,7 @@ class MediaTree(
       MediaMetadata.Builder()
         .setTitle(media.metadata.title)
         .setArtist(media.metadata.authorName)
-        .setArtworkUri(media.coverImageUrl.toUri())
+        .setArtworkUri(coverContentUriForItem(application, id))
         .setDescription(media.metadata.description)
         .setDurationMs(media.durationInMillis)
         .setGenre(media.metadata.genres.firstOrNull())
@@ -339,7 +340,8 @@ class MediaTree(
           books
             ?.sortedBy { it.media.metadata.seriesSequence?.id }
             ?.firstOrNull()
-            ?.media?.coverImageUrl?.toUri(),
+            ?.id
+            ?.let { coverContentUriForItem(application, it) },
         )
         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
         .setIsBrowsable(true)
@@ -361,7 +363,7 @@ class MediaTree(
       MediaMetadata.Builder()
         .setTitle(name)
         .setDescription(description)
-        .setArtworkUri(books.firstOrNull()?.media?.coverImageUrl?.toUri())
+        .setArtworkUri(books.firstOrNull()?.id?.let { coverContentUriForItem(application, it) })
         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
         .setIsBrowsable(true)
         .setIsPlayable(false)
@@ -375,7 +377,9 @@ class MediaTree(
       MediaMetadata.Builder()
         .setTitle(name)
         .setDescription(description)
-        .setArtworkUri(items.firstOrNull()?.libraryItem?.media?.coverImageUrl?.toUri())
+        .setArtworkUri(
+          items.firstOrNull()?.libraryItem?.id?.let { coverContentUriForItem(application, it) },
+        )
         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
         .setIsBrowsable(true)
         .setIsPlayable(false)
@@ -392,7 +396,7 @@ class MediaTree(
       MediaMetadata.Builder()
         .setTitle(name)
         .setDescription(description)
-        .setArtworkUri(imagePath?.toUri())
+        .setArtworkUri(imagePath?.let { coverContentUriForAuthor(application, id) })
         .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
         .setIsBrowsable(true)
         .setIsPlayable(false)

@@ -175,6 +175,7 @@ class MediaItemBuilderTest {
     assertThat(m.description).isEqualTo("Desc")
     assertThat(m.albumTitle).isEqualTo("Book X")
     assertThat(m.durationMs).isEqualTo(60.seconds.inWholeMilliseconds)
+    assertThat(m.libraryItemId).isEqualTo("item-1")
   }
 
   // endregion
@@ -549,7 +550,7 @@ class MediaItemBuilderTest {
       ),
     )
 
-    val result = MediaItemBuilder.createMediaMetadata(ch, med)
+    val result = MediaItemBuilder.createMediaMetadata(ch, med, libraryItemId = "item-7")
 
     assertThat(result.id).isEqualTo(3)
     assertThat(result.title).isEqualTo("The Beginning")
@@ -559,6 +560,7 @@ class MediaItemBuilderTest {
     assertThat(result.albumTitle).isEqualTo("Title")
     assertThat(result.artworkUri).isEqualTo("/cover.png")
     assertThat(result.durationMs).isEqualTo(60.seconds.inWholeMilliseconds)
+    assertThat(result.libraryItemId).isEqualTo("item-7")
   }
 
   @Test
@@ -566,7 +568,7 @@ class MediaItemBuilderTest {
     val ch = chapter(id = 0, start = 0f, end = 10f)
     val med = media(metadata = metadata(description = null))
 
-    val result = MediaItemBuilder.createMediaMetadata(ch, med)
+    val result = MediaItemBuilder.createMediaMetadata(ch, med, libraryItemId = "item-1")
 
     assertThat(result.description).isEqualTo("")
   }
@@ -588,7 +590,7 @@ class MediaItemBuilderTest {
       ),
     )
 
-    val result = MediaItemBuilder.createMediaMetadata(tr, med)
+    val result = MediaItemBuilder.createMediaMetadata(tr, med, libraryItemId = "item-9")
 
     assertThat(result.id).isEqualTo(2)
     assertThat(result.title).isEqualTo("Track Title")
@@ -598,6 +600,7 @@ class MediaItemBuilderTest {
     assertThat(result.albumTitle).isEqualTo("Saga")
     assertThat(result.artworkUri).isEqualTo("/art.jpg")
     assertThat(result.durationMs).isEqualTo(120.seconds.inWholeMilliseconds)
+    assertThat(result.libraryItemId).isEqualTo("item-9")
   }
 
   @Test
@@ -605,7 +608,7 @@ class MediaItemBuilderTest {
     val tr = track(index = 0, title = "Fallback Title", tagTitle = "Tagged Title")
     val med = media()
 
-    val result = MediaItemBuilder.createMediaMetadata(tr, med)
+    val result = MediaItemBuilder.createMediaMetadata(tr, med, libraryItemId = "item-1")
 
     assertThat(result.title).isEqualTo("Tagged Title")
   }
@@ -615,7 +618,7 @@ class MediaItemBuilderTest {
     val tr = track(index = 0, title = "Fallback Title", tagTitle = null)
     val med = media()
 
-    val result = MediaItemBuilder.createMediaMetadata(tr, med)
+    val result = MediaItemBuilder.createMediaMetadata(tr, med, libraryItemId = "item-1")
 
     assertThat(result.title).isEqualTo("Fallback Title")
   }
@@ -625,7 +628,7 @@ class MediaItemBuilderTest {
     val tr = track(index = 0, duration = 10f)
     val med = media(metadata = metadata(description = null))
 
-    val result = MediaItemBuilder.createMediaMetadata(tr, med)
+    val result = MediaItemBuilder.createMediaMetadata(tr, med, libraryItemId = "item-1")
 
     assertThat(result.description).isEqualTo("")
   }

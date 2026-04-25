@@ -1,5 +1,6 @@
 package app.campfire.audioplayer.impl
 
+import android.content.Context
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem as PlatformMediaItem
@@ -7,15 +8,19 @@ import androidx.media3.common.MediaItem.ClippingConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_AUDIO_BOOK_CHAPTER
 import androidx.media3.common.util.UnstableApi
+import app.campfire.audioplayer.impl.content.coverContentUriForItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 
 /**
  * Convert our common [MediaItem] data class/holder into the Android
  * Media3 Platform version to be consumed by the likes of an [androidx.media3.exoplayer.ExoPlayer]
  * instance.
+ *
+ * The [context] is required so artwork can be exposed via the cover [android.content.ContentProvider]
+ * which the Android Auto host process and the system Media notification can read across processes.
  */
 @OptIn(UnstableApi::class)
-fun MediaItem.asPlatformMediaItem(): PlatformMediaItem {
+fun MediaItem.asPlatformMediaItem(context: Context): PlatformMediaItem {
   return PlatformMediaItem.Builder()
     .setMediaId(id)
     .setUri(uri)
@@ -34,6 +39,9 @@ fun MediaItem.asPlatformMediaItem(): PlatformMediaItem {
       }
 
       if (metadata != null) {
+        val artworkUri = metadata.libraryItemId
+          ?.let { coverContentUriForItem(context, it) }
+          ?: metadata.artworkUri?.toUri()
         setMediaMetadata(
           MediaMetadata.Builder()
             .setTitle(metadata.title)
@@ -42,7 +50,7 @@ fun MediaItem.asPlatformMediaItem(): PlatformMediaItem {
             .setDescription(metadata.description)
             .setSubtitle(metadata.subtitle)
             .setAlbumTitle(metadata.albumTitle)
-            .setArtworkUri(metadata.artworkUri?.toUri())
+            .setArtworkUri(artworkUri)
             .setDurationMs(metadata.durationMs)
             .build(),
         )
@@ -51,4 +59,5 @@ fun MediaItem.asPlatformMediaItem(): PlatformMediaItem {
     .build()
 }
 
-fun List<MediaItem>.asPlatformMediaItems(): List<PlatformMediaItem> = map { it.asPlatformMediaItem() }
+fun List<MediaItem>.asPlatformMediaItems(context: Context): List<PlatformMediaItem> =
+  map { it.asPlatformMediaItem(context) }

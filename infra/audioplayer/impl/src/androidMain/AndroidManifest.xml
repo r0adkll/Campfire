@@ -52,5 +52,13 @@
       android:value="app.campfire.audioplayer.impl.cast.CastOptionsProvider"
       />
 
+    <provider
+      android:name="app.campfire.audioplayer.impl.content.CoverContentProvider"
+      android:authorities="${applicationId}.covers"
+      android:exported="true"
+      android:grantUriPermissions="true">
+      <grant-uri-permission android:pathPattern="/.*" />
+    </provider>
+
   </application>
 </manifest>

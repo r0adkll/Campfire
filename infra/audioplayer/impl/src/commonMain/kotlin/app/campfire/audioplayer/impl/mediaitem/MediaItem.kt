@@ -25,6 +25,7 @@ data class MediaItem(
     val albumTitle: String?,
     val artworkUri: String?,
     val durationMs: Long?,
+    val libraryItemId: String? = null,
     val extras: Map<String, String>? = null,
   )
 }

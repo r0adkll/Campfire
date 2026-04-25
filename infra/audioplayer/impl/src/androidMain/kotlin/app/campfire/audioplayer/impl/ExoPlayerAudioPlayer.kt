@@ -200,7 +200,7 @@ class ExoPlayerAudioPlayer(
     finishedListener = onFinished
     state.value = AudioPlayer.State.Initializing
 
-    val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems()
+    val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems(context)
 
     ibark {
       """

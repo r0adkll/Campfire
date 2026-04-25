@@ -73,6 +73,7 @@ kotlin {
         implementation(libs.androidx.lifecycle.runtime)
         implementation(libs.androidx.activity.compose)
         implementation(libs.kotlinx.coroutines.guava)
+        implementation(libs.coil)
       }
     }
 

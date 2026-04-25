@@ -25,7 +25,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     // items from its audio tracks.
     if (chapters.isEmpty()) {
       return audioTracks.map { track ->
-        createMediaItem(track, media)
+        createMediaItem(track, media, id)
       }
     }
 
@@ -34,7 +34,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     if (chapters.size == audioTracks.size) {
       return audioTracks.mapIndexed { index, track ->
         val chapter = chapters[index]
-        createMediaItem(chapter, track, false, media)
+        createMediaItem(chapter, track, false, media, id)
       }
     }
 
@@ -67,8 +67,8 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
 
       // Regardless of state, slice the track to the chapters and let the user
       // see our error UI to correct the playback of this item
-      return@with chaptersForTrack.map { chapter ->
-        createMediaItem(chapter, track, true, media)
+      return chaptersForTrack.map { chapter ->
+        createMediaItem(chapter, track, true, media, id)
       }
     }
 
@@ -94,18 +94,18 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
           // If the chapter fail to fully cover the track, then just return the track and let the user fix
           // their item on the server
           recordMediaItemException("Remaining track after last chapter is too long", item)
-          listOf(createMediaItem(track, media))
+          listOf(createMediaItem(track, media, id))
         } else {
           // For each chapter filter to this track, cut a media item for each
           chaptersForTrack.map { chapter ->
-            createMediaItem(chapter, track, true, media)
+            createMediaItem(chapter, track, true, media, id)
           }
         }
       } else {
         // Otherwise, if we are unable to associate chapter data to this track,
         // just create a media item of just the track. This way we ensure playback occurs
         recordMediaItemException("Unable to find any chapters for the track[${track.index}]", item)
-        listOf(createMediaItem(track, media))
+        listOf(createMediaItem(track, media, id))
       }
     }
   }
@@ -126,6 +126,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     track: AudioTrack,
     clipAudio: Boolean,
     media: Media,
+    libraryItemId: String,
   ): MediaItem {
     return MediaItem(
       id = "${media.id}_${chapter.id}",
@@ -147,25 +148,27 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       } else {
         null
       },
-      metadata = createMediaMetadata(chapter, media),
+      metadata = createMediaMetadata(chapter, media, libraryItemId),
     )
   }
 
   private fun createMediaItem(
     track: AudioTrack,
     media: Media,
+    libraryItemId: String,
   ): MediaItem {
     return MediaItem(
       id = "${media.id}_${track.index}",
       uri = track.contentUrl,
       mimeType = track.mimeType,
-      metadata = createMediaMetadata(track, media),
+      metadata = createMediaMetadata(track, media, libraryItemId),
     )
   }
 
   internal fun createMediaMetadata(
     chapter: Chapter,
     media: Media,
+    libraryItemId: String,
   ): MediaItem.Metadata {
     return MediaItem.Metadata(
       id = chapter.id,
@@ -176,12 +179,14 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       albumTitle = media.metadata.title,
       artworkUri = media.coverImageUrl,
       durationMs = chapter.duration.inWholeMilliseconds,
+      libraryItemId = libraryItemId,
     )
   }
 
   internal fun createMediaMetadata(
     track: AudioTrack,
     media: Media,
+    libraryItemId: String,
   ): MediaItem.Metadata {
     return MediaItem.Metadata(
       id = track.index,
@@ -192,6 +197,7 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       albumTitle = media.metadata.title,
       artworkUri = media.coverImageUrl,
       durationMs = track.duration.seconds.inWholeMilliseconds,
+      libraryItemId = libraryItemId,
     )
   }
 
