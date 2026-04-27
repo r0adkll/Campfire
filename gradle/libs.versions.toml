@@ -170,7 +170,7 @@ compose-navigationevent = { module = "org.jetbrains.androidx.navigationevent:nav
 
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
-compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc13"
+compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0-rc14"
 color-picker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker-compose" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
