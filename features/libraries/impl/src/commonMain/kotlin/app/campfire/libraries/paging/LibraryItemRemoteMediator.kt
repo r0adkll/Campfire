@@ -5,6 +5,7 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import app.campfire.CampfireDatabase
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItem
@@ -36,6 +37,7 @@ class LibraryItemRemoteMediator(
   private val db: CampfireDatabase,
   private val dispatcherProvider: DispatcherProvider,
   private val fatherTime: FatherTime,
+  private val urlHydrator: UrlHydrator,
 ) : RemoteMediator<Int, LibraryItem>(), Cork {
 
   override val tag: String = "LibraryItemRemoteMediator"
@@ -110,8 +112,6 @@ class LibraryItemRemoteMediator(
               )
             }
 
-            // Insert items — only book items are persisted in this iteration; podcast persistence
-            // is a follow-up. Network deserialization handles both shapes via the sealed parent.
             pagedResponse.data.forEach { item ->
               when (item) {
                 is LibraryItemMinified.Book -> {
@@ -121,7 +121,10 @@ class LibraryItemRemoteMediator(
                   db.mediaQueries.insertOrIgnore(media)
                 }
                 is LibraryItemMinified.Podcast -> {
-                  // Podcast DB persistence is not yet wired through.
+                  val libraryItem = item.asDbModel(user.serverUrl)
+                  val podcastMedia = item.media.asDbModel(item.id, urlHydrator)
+                  db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                  db.podcastMediaQueries.insertOrIgnore(podcastMedia)
                 }
               }
             }

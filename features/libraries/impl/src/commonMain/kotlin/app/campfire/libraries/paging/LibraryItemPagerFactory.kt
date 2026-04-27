@@ -8,7 +8,6 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.data.mapping.dao.LibraryItemDao
-import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.db.paging.QueryPagingSource
 import me.tatarka.inject.annotations.Inject
 
@@ -48,7 +47,6 @@ class LibraryItemPagerFactory(
             input = input.databaseKey,
             limit = limit,
             offset = offset,
-            ::mapToLibraryItemWithProgress,
           )
         },
         queryObserverProvider = { limit: Long, offset: Long ->
@@ -72,7 +70,7 @@ class LibraryItemPagerFactory(
           )
         },
         mapper = {
-          libraryItemDao.hydrateItem(it)
+          libraryItemDao.hydratePagedItem(it)
         },
       )
     }

@@ -8,9 +8,11 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.loggableId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
+import app.campfire.data.LibraryItem as DbLibraryItem
 import app.campfire.data.MediaAudioFiles
 import app.campfire.data.MediaAudioTracks
 import app.campfire.data.MediaChapters
@@ -19,10 +21,13 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.data.mapping.model.PodcastLibraryItemWithMedia
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
+import app.campfire.data.mapping.model.mapToPodcastLibraryItemWithProgress
 import app.campfire.network.models.LibraryItemExpanded
 import app.cash.sqldelight.SuspendingTransacter
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
 import app.cash.sqldelight.async.coroutines.awaitAsList
+import app.cash.sqldelight.async.coroutines.awaitAsOne
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -46,6 +51,14 @@ interface LibraryItemDao {
    * the episodes pulled separately from the [podcastEpisode] table.
    */
   suspend fun hydratePodcastItem(item: PodcastLibraryItemWithMedia): LibraryItem
+
+  /**
+   * Hydrate a paged library item from its bare [libraryItem] row. Dispatches on
+   * [DbLibraryItem.mediaType] to read the matching media variant (book or podcast)
+   * with progress, then runs the corresponding hydrate path. Used by the paging
+   * source so a single page query can mix book and podcast items.
+   */
+  suspend fun hydratePagedItem(item: DbLibraryItem): LibraryItem
 
   /**
    * Insert an expanded library item and all of its relations in a transaction
@@ -119,6 +132,27 @@ class SqlDelightLibraryItemDao(
       .awaitAsList()
 
     item.asDomainModel(urlHydrator, episodes)
+  }
+
+  override suspend fun hydratePagedItem(
+    item: DbLibraryItem,
+  ): LibraryItem = when (item.mediaType) {
+    MediaType.Book -> {
+      val full = withContext(dispatcherProvider.databaseRead) {
+        db.libraryItemsQueries
+          .selectForIdFull(item.id, ::mapToLibraryItemWithProgress)
+          .awaitAsOne()
+      }
+      hydrateItem(full)
+    }
+    MediaType.Podcast -> {
+      val full = withContext(dispatcherProvider.databaseRead) {
+        db.libraryItemsQueries
+          .selectForPodcastIdFull(item.id, ::mapToPodcastLibraryItemWithProgress)
+          .awaitAsOne()
+      }
+      hydratePodcastItem(full)
+    }
   }
 
   private data class LibraryItemRelationalData(
