@@ -6,8 +6,10 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.PodcastEpisode as DomainPodcastEpisode
+import app.campfire.core.model.ShelfEntity
 import app.campfire.data.PodcastEpisode as DbPodcastEpisode
 import app.campfire.data.PodcastMedia as DbPodcastMedia
+import app.campfire.data.mapping.model.EpisodeShelfRow
 import app.campfire.data.mapping.model.PodcastLibraryItemWithMedia
 import app.campfire.network.models.Podcast as NetworkPodcast
 import app.campfire.network.models.PodcastEpisode as NetworkPodcastEpisode
@@ -305,5 +307,19 @@ fun PodcastLibraryItemWithMedia.asDomainModel(
     updatedAtMillis = updatedAt,
     media = podcast,
     userMediaProgress = userMediaProgress?.asDomainModel(),
+  )
+}
+
+/**
+ * Compose the home-feed [ShelfEntity.EpisodeShelfEntry] from a joined libraryItem +
+ * podcastMedia + podcastEpisode shelf row. The pairing tells the UI both which podcast
+ * the entry represents and which episode the shelf is highlighting.
+ */
+fun EpisodeShelfRow.asDomainModel(
+  urlHydrator: UrlHydrator,
+): ShelfEntity.EpisodeShelfEntry {
+  return ShelfEntity.EpisodeShelfEntry(
+    libraryItem = item.asDomainModel(urlHydrator, episodes = emptyList()),
+    recentEpisode = episode.asDomainModel(),
   )
 }

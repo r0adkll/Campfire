@@ -31,6 +31,7 @@ import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.loggableId
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
@@ -144,6 +145,10 @@ class MediaTree(
             is LibraryItem -> item.asBrowsableMediaItem(titleHint = shelf.label)
             is Series -> item.asBrowsableMediaItem(titleHint = shelf.label)
             is Author -> item.asBrowsableMediaItem(titleHint = shelf.label)
+
+            // TODO: This doesn't properly account for the episode information
+            //  and we should adapt the media item better
+            is ShelfEntity.EpisodeShelfEntry -> item.libraryItem.asBrowsableMediaItem(titleHint = shelf.label)
           }
         }
       }

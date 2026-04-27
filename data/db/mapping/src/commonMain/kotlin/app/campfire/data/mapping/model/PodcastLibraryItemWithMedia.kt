@@ -1,6 +1,7 @@
 package app.campfire.data.mapping.model
 
 import app.campfire.core.model.MediaType
+import app.campfire.data.PodcastEpisode as DbPodcastEpisode
 
 /**
  * Common representation of a podcast library item joined with its [podcastMedia] row.
@@ -161,4 +162,153 @@ fun mapToPodcastLibraryItem(
   metadata_explicit = metadata_explicit,
   metadata_language = metadata_language,
   metadata_podcastType = metadata_podcastType,
+)
+
+/**
+ * Row shape for `selectForEpisodeShelf` — the joined libraryItem + podcastMedia + podcastEpisode
+ * row, one per shelf entry. The episode is the specific recent episode the shelf is highlighting.
+ */
+data class EpisodeShelfRow(
+  val item: PodcastLibraryItemWithMedia,
+  val episode: DbPodcastEpisode,
+)
+
+/**
+ * Cursor mapper for `selectForEpisodeShelf` (libraryItem.* JOIN podcastMedia.* JOIN podcastEpisode.*).
+ * Argument order matches SELECT column order: 19 libraryItem + 26 podcastMedia + 16 podcastEpisode.
+ */
+@Suppress("LongParameterList")
+fun mapToEpisodeShelfRow(
+  // libraryItem columns (positions 0..18)
+  id: String,
+  ino: String,
+  libraryId: String,
+  oldLibraryItemId: String?,
+  folderId: String,
+  path: String,
+  relPath: String,
+  isFile: Boolean,
+  mtimeMs: Long,
+  ctimeMs: Long,
+  birthtimeMs: Long,
+  addedAt: Long,
+  updatedAt: Long,
+  isMissing: Boolean,
+  isInvalid: Boolean,
+  mediaType: MediaType,
+  numFiles: Int,
+  size: Long,
+  serverUrl: String,
+
+  // podcastMedia columns (positions 19..44)
+  mediaId: String,
+  podcastLibraryItemId: String,
+  coverPath: String?,
+  tags: List<String>?,
+  sizeInBytes: Long,
+  numEpisodes: Int,
+  autoDownloadEpisodes: Boolean,
+  autoDownloadSchedule: String?,
+  lastEpisodeCheckMillis: Long?,
+  maxEpisodesToKeep: Int,
+  maxNewEpisodesToDownload: Int,
+  latestEpisodePublishedAtMillis: Long?,
+  metadata_title: String?,
+  metadata_titleIgnorePrefix: String?,
+  metadata_author: String?,
+  metadata_description: String?,
+  metadata_releaseDate: String?,
+  metadata_genres: List<String>?,
+  metadata_feedUrl: String?,
+  metadata_imageUrl: String?,
+  metadata_itunesPageUrl: String?,
+  metadata_itunesId: String?,
+  metadata_itunesArtistId: String?,
+  metadata_explicit: Boolean,
+  metadata_language: String?,
+  metadata_podcastType: String?,
+
+  // podcastEpisode columns (positions 45..60)
+  episodeId: String,
+  episodeLibraryItemId: String,
+  episodePodcastMediaId: String,
+  episodeIndex: Int?,
+  episodeSeason: String?,
+  episodeNumber: String?,
+  episodeType: String?,
+  episodeTitle: String,
+  episodeSubtitle: String?,
+  episodeDescription: String?,
+  episodePubDate: String?,
+  episodePublishedAtMillis: Long?,
+  episodeAddedAtMillis: Long,
+  episodeUpdatedAtMillis: Long,
+  episodeDurationInMillis: Long,
+  episodeSizeInBytes: Long,
+): EpisodeShelfRow = EpisodeShelfRow(
+  item = mapToPodcastLibraryItem(
+    id = id,
+    ino = ino,
+    libraryId = libraryId,
+    oldLibraryItemId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
+    addedAt = addedAt,
+    updatedAt = updatedAt,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = mediaType,
+    numFiles = numFiles,
+    size = size,
+    serverUrl = serverUrl,
+    mediaId = mediaId,
+    podcastLibraryItemId = podcastLibraryItemId,
+    coverPath = coverPath,
+    tags = tags,
+    sizeInBytes = sizeInBytes,
+    numEpisodes = numEpisodes,
+    autoDownloadEpisodes = autoDownloadEpisodes,
+    autoDownloadSchedule = autoDownloadSchedule,
+    lastEpisodeCheckMillis = lastEpisodeCheckMillis,
+    maxEpisodesToKeep = maxEpisodesToKeep,
+    maxNewEpisodesToDownload = maxNewEpisodesToDownload,
+    latestEpisodePublishedAtMillis = latestEpisodePublishedAtMillis,
+    metadata_title = metadata_title,
+    metadata_titleIgnorePrefix = metadata_titleIgnorePrefix,
+    metadata_author = metadata_author,
+    metadata_description = metadata_description,
+    metadata_releaseDate = metadata_releaseDate,
+    metadata_genres = metadata_genres,
+    metadata_feedUrl = metadata_feedUrl,
+    metadata_imageUrl = metadata_imageUrl,
+    metadata_itunesPageUrl = metadata_itunesPageUrl,
+    metadata_itunesId = metadata_itunesId,
+    metadata_itunesArtistId = metadata_itunesArtistId,
+    metadata_explicit = metadata_explicit,
+    metadata_language = metadata_language,
+    metadata_podcastType = metadata_podcastType,
+  ),
+  episode = DbPodcastEpisode(
+    id = episodeId,
+    libraryItemId = episodeLibraryItemId,
+    podcastMediaId = episodePodcastMediaId,
+    episodeIndex = episodeIndex,
+    season = episodeSeason,
+    episodeNumber = episodeNumber,
+    episodeType = episodeType,
+    title = episodeTitle,
+    subtitle = episodeSubtitle,
+    description = episodeDescription,
+    pubDate = episodePubDate,
+    publishedAtMillis = episodePublishedAtMillis,
+    addedAtMillis = episodeAddedAtMillis,
+    updatedAtMillis = episodeUpdatedAtMillis,
+    durationInMillis = episodeDurationInMillis,
+    sizeInBytes = episodeSizeInBytes,
+  ),
 )
