@@ -270,7 +270,7 @@ fun LibraryItemExpanded.asDomainModel(
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
     media = with(this.media) {
-      DomainMedia(
+      DomainMedia.Book(
         id = id,
         metadata = metadata.asDomainModel(),
         coverImageUrl = urlHydrator.hydrateLibraryItem(id),
@@ -323,9 +323,9 @@ suspend fun SelectForSeries.asDomainModel(
     sizeInBytes = sizeInBytes,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = DomainMedia(
+    media = DomainMedia.Book(
       id = mediaId,
-      metadata = DomainMedia.Metadata(
+      metadata = DomainMedia.Metadata.Book(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,
@@ -392,9 +392,9 @@ suspend fun SelectForCollection.asDomainModel(
     sizeInBytes = sizeInBytes,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = DomainMedia(
+    media = DomainMedia.Book(
       id = mediaId,
-      metadata = DomainMedia.Metadata(
+      metadata = DomainMedia.Metadata.Book(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,
@@ -461,9 +461,9 @@ suspend fun SelectForAuthorName.asDomainModel(
     sizeInBytes = sizeInBytes,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = DomainMedia(
+    media = DomainMedia.Book(
       id = mediaId,
-      metadata = DomainMedia.Metadata(
+      metadata = DomainMedia.Metadata.Book(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,
@@ -530,9 +530,9 @@ suspend fun SelectForPlaylist.asDomainModel(
     sizeInBytes = sizeInBytes,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = DomainMedia(
+    media = DomainMedia.Book(
       id = mediaId,
-      metadata = DomainMedia.Metadata(
+      metadata = DomainMedia.Metadata.Book(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,
@@ -603,9 +603,9 @@ suspend fun LibraryItemWithMedia.asDomainModel(
     sizeInBytes = sizeInBytes,
     addedAtMillis = addedAt,
     updatedAtMillis = updatedAt,
-    media = DomainMedia(
+    media = DomainMedia.Book(
       id = mediaId,
-      metadata = DomainMedia.Metadata(
+      metadata = DomainMedia.Metadata.Book(
         title = metadata_title,
         titleIgnorePrefix = metadata_titleIgnorePrefix,
         subtitle = metadata_subtitle,

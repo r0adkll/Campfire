@@ -92,7 +92,7 @@ fun libraryItem(
   )
 }
 
-// Helper function to create a fake Media.Metadata object
+// Helper function to create a fake Media.Metadata.Book object
 fun mediaMetadata(
   title: String? = "The Great Fake Adventure",
   titleIgnorePrefix: String? = "The",
@@ -118,8 +118,8 @@ fun mediaMetadata(
   isAbridged: Boolean = false,
   authors: List<Media.AuthorMetadata> = listOf(authorMetadata()),
   narrators: List<String> = listOf("Voice Actor Prime"),
-): Media.Metadata {
-  return Media.Metadata(
+): Media.Metadata.Book {
+  return Media.Metadata.Book(
     title = title,
     titleIgnorePrefix = titleIgnorePrefix,
     subtitle = subtitle,
@@ -157,7 +157,7 @@ fun authorMetadata(
  */
 fun media(
   id: MediaId = "media_${Random.nextInt()}",
-  metadata: Media.Metadata = mediaMetadata(),
+  metadata: Media.Metadata.Book = mediaMetadata(),
   coverImageUrl: String = "https://example.com/cover.jpg",
   coverPath: String? = "/path/to/local/cover.jpg",
   tags: List<String> = listOf("tag1", "tag2"),
@@ -173,7 +173,7 @@ fun media(
   chapters: List<Chapter> = emptyList(),
   tracks: List<AudioTrack> = emptyList(),
 ): Media {
-  return Media(
+  return Media.Book(
     id = id,
     metadata = metadata,
     coverImageUrl = coverImageUrl,
@@ -255,7 +255,7 @@ class MetadataBuilder {
   var seriesName: String? = null
   var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0)
 
-  internal fun build(): Media.Metadata {
+  internal fun build(): Media.Metadata.Book {
     return mediaMetadata(
       title = title,
       subtitle = subtitle,

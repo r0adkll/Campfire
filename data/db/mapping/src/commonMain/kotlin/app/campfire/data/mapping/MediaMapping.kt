@@ -6,8 +6,8 @@ import app.campfire.core.model.SeriesSequence
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.MinifiedBookMetadata
 
-fun MinifiedBookMetadata.asDomainModel(): Media.Metadata {
-  return Media.Metadata(
+fun MinifiedBookMetadata.asDomainModel(): Media.Metadata.Book {
+  return Media.Metadata.Book(
     title = title,
     titleIgnorePrefix = titleIgnorePrefix,
     subtitle = subtitle,
@@ -35,8 +35,8 @@ fun MinifiedBookMetadata.asDomainModel(): Media.Metadata {
   )
 }
 
-fun ExpandedBookMetadata.asDomainModel(): Media.Metadata {
-  return Media.Metadata(
+fun ExpandedBookMetadata.asDomainModel(): Media.Metadata.Book {
+  return Media.Metadata.Book(
     title = title,
     titleIgnorePrefix = titleIgnorePrefix,
     subtitle = subtitle,

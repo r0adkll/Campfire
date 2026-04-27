@@ -60,7 +60,7 @@ private fun createItemListenedTo(
   id = id,
   timeListening = timeListening,
   coverImageUrl = coverImageUrl,
-  mediaMetadata = Media.Metadata(
+  mediaMetadata = Media.Metadata.Book(
     title = null,
     titleIgnorePrefix = null,
     subtitle = null,

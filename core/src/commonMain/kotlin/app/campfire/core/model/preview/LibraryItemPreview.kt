@@ -50,9 +50,9 @@ fun libraryItem(
   addedAtMillis = 0L,
   updatedAtMillis = 0L,
   userMediaProgress = userMediaProgress,
-  media = Media(
+  media = Media.Book(
     id = "preview_media_id",
-    metadata = Media.Metadata(
+    metadata = Media.Metadata.Book(
       title = "Dungeon Crawler Carl",
       titleIgnorePrefix = null,
       subtitle = "Dungeon Crawler Carl, Book 1",

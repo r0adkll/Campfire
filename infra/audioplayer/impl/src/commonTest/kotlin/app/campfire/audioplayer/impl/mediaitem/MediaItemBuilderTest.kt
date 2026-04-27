@@ -69,7 +69,7 @@ class MediaItemBuilderTest {
     description: String? = "A test book",
     subtitle: String? = null,
     seriesName: String? = null,
-  ) = Media.Metadata(
+  ) = Media.Metadata.Book(
     title = title,
     titleIgnorePrefix = title,
     subtitle = subtitle,
@@ -94,9 +94,9 @@ class MediaItemBuilderTest {
     id: String = "media-1",
     chapters: List<Chapter> = emptyList(),
     tracks: List<AudioTrack> = emptyList(),
-    metadata: Media.Metadata = metadata(),
+    metadata: Media.Metadata.Book = metadata(),
     coverImageUrl: String = "/cover.jpg",
-  ) = Media(
+  ) = Media.Book(
     id = id,
     metadata = metadata,
     coverImageUrl = coverImageUrl,
