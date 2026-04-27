@@ -7,6 +7,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Media
 import app.campfire.core.model.loggableId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.serverUrl
@@ -17,6 +18,7 @@ import app.campfire.data.MetadataAuthor
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.model.LibraryItemWithMedia
+import app.campfire.data.mapping.model.PodcastLibraryItemWithMedia
 import app.campfire.network.models.LibraryItemExpanded
 import app.cash.sqldelight.SuspendingTransacter
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
@@ -38,6 +40,12 @@ interface LibraryItemDao {
    * @return a fully hydrated [LibraryItem] domain model
    */
   suspend fun hydrateItem(item: LibraryItemWithMedia): LibraryItem
+
+  /**
+   * Hydrate a podcast library item — composes [Media.Podcast] from the joined wrapper plus
+   * the episodes pulled separately from the [podcastEpisode] table.
+   */
+  suspend fun hydratePodcastItem(item: PodcastLibraryItemWithMedia): LibraryItem
 
   /**
    * Insert an expanded library item and all of its relations in a transaction
@@ -103,6 +111,16 @@ class SqlDelightLibraryItemDao(
     )
   }
 
+  override suspend fun hydratePodcastItem(
+    item: PodcastLibraryItemWithMedia,
+  ): LibraryItem = withContext(dispatcherProvider.databaseRead) {
+    val episodes = db.podcastEpisodeQueries
+      .selectForLibraryItemId(item.id)
+      .awaitAsList()
+
+    item.asDomainModel(urlHydrator, episodes)
+  }
+
   private data class LibraryItemRelationalData(
     val audioFiles: List<MediaAudioFiles>,
     val audioTracks: List<MediaAudioTracks>,
@@ -116,10 +134,68 @@ class SqlDelightLibraryItemDao(
     ignoreOnInsert: Boolean,
   ) = when (item) {
     is LibraryItemExpanded.Book -> insertBook(item, asTransaction, ignoreOnInsert)
-    // Persistence for podcast library items is not yet wired through the data layer —
-    // network deserialization works (sealed polymorphic) but the DB write path is a follow-up.
-    is LibraryItemExpanded.Podcast ->
-      throw NotImplementedError("Podcast LibraryItem DB persistence is not yet implemented")
+    is LibraryItemExpanded.Podcast -> insertPodcast(item, asTransaction, ignoreOnInsert)
+  }
+
+  private suspend fun insertPodcast(
+    item: LibraryItemExpanded.Podcast,
+    asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    db.transactionIf(asTransaction) {
+      val libraryItem = item.asDbModel()
+
+      // 1) Root library item row
+      if (ignoreOnInsert) {
+        db.libraryItemsQueries.insertOrIgnore(libraryItem)
+      } else {
+        db.libraryItemsQueries.insert(libraryItem)
+      }
+
+      // 2) Podcast media row (mirrors the book write — different table)
+      val podcastMedia = item.media.asDbModel(libraryItem.id, urlHydrator)
+      if (ignoreOnInsert) {
+        db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+      } else {
+        db.podcastMediaQueries.insert(podcastMedia)
+      }
+
+      // 3) Episode rows
+      item.media.episodes?.forEach { episode ->
+        val row = episode.asDbModel(
+          libraryItemId = libraryItem.id,
+          podcastMediaId = podcastMedia.mediaId,
+        )
+        if (ignoreOnInsert) {
+          db.podcastEpisodeQueries.insertOrIgnore(row)
+        } else {
+          db.podcastEpisodeQueries.insert(row)
+        }
+      }
+
+      // 4) Item-level user progress (rare for podcasts but the server can report it)
+      item.userMediaProgress?.let { progress ->
+        val existing = db.mediaProgressQueries.selectForLibraryItem(
+          userId = progress.userId,
+          libraryItemId = libraryItem.id,
+        ).executeAsOneOrNull()
+        if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
+          db.mediaProgressQueries.insert(progress.asDbModel())
+        }
+      }
+
+      afterCommit {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItemExpandedPodcast[${item.id.loggableId}] inserted"
+        }
+      }
+
+      afterRollback {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItemExpandedPodcast[${item.id.loggableId}] insert failed, rolling back"
+        }
+      }
+    }
   }
 
   private suspend fun insertBook(

@@ -1,0 +1,59 @@
+import kotlin.Int;
+
+CREATE TABLE IF NOT EXISTS podcastEpisode (
+  id TEXT NOT NULL PRIMARY KEY,
+  libraryItemId TEXT NOT NULL,
+  podcastMediaId TEXT NOT NULL,
+  episodeIndex INTEGER AS Int,
+  season TEXT,
+  episodeNumber TEXT,
+  episodeType TEXT,
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  description TEXT,
+  pubDate TEXT,
+  publishedAtMillis INTEGER,
+  addedAtMillis INTEGER NOT NULL,
+  updatedAtMillis INTEGER NOT NULL,
+  durationInMillis INTEGER NOT NULL,
+  sizeInBytes INTEGER NOT NULL,
+
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE,
+  FOREIGN KEY (podcastMediaId) REFERENCES podcastMedia(mediaId) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS index_podcastEpisode_libraryItemId
+  ON podcastEpisode(libraryItemId);
+CREATE INDEX IF NOT EXISTS index_podcastEpisode_podcastMediaId
+  ON podcastEpisode(podcastMediaId);
+
+insert:
+INSERT OR REPLACE INTO podcastEpisode
+VALUES ?;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO podcastEpisode
+VALUES ?;
+
+-- Server's `index` column is mostly null in practice, so order by published date desc.
+selectForLibraryItemId:
+SELECT * FROM podcastEpisode
+WHERE libraryItemId = ?
+ORDER BY publishedAtMillis DESC;
+
+selectForPodcastMediaId:
+SELECT * FROM podcastEpisode
+WHERE podcastMediaId = ?
+ORDER BY publishedAtMillis DESC;
+
+selectForId:
+SELECT * FROM podcastEpisode
+WHERE id = ?;
+
+deleteForLibraryItem:
+DELETE FROM podcastEpisode
+WHERE libraryItemId = ?;
+
+deleteForId:
+DELETE FROM podcastEpisode
+WHERE id = ?;

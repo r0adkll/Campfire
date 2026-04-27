@@ -21,6 +21,8 @@ import app.campfire.data.MediaChapters
 import app.campfire.data.MediaProgress
 import app.campfire.data.PlaybackAction
 import app.campfire.data.PlaylistItemJoin
+import app.campfire.data.PodcastEpisode
+import app.campfire.data.PodcastMedia
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
 import app.campfire.data.Search_tags
@@ -191,6 +193,16 @@ class DatabaseFactory(
       timestampAdapter = LocalDateTimeAdapter,
       fromPositionAdapter = DurationAdapter,
       toPositionAdapter = DurationAdapter,
+    ),
+    podcastMediaAdapter = PodcastMedia.Adapter(
+      tagsAdapter = StringListAdapter,
+      numEpisodesAdapter = IntColumnAdapter,
+      maxEpisodesToKeepAdapter = IntColumnAdapter,
+      maxNewEpisodesToDownloadAdapter = IntColumnAdapter,
+      metadata_genresAdapter = StringListAdapter,
+    ),
+    podcastEpisodeAdapter = PodcastEpisode.Adapter(
+      episodeIndexAdapter = IntColumnAdapter,
     ),
   )
 }

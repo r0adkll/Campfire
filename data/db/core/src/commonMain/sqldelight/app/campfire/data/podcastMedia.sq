@@ -1,0 +1,52 @@
+import kotlin.Boolean;
+import kotlin.Int;
+import kotlin.collections.List;
+import kotlin.String;
+
+CREATE TABLE IF NOT EXISTS podcastMedia (
+  mediaId TEXT NOT NULL PRIMARY KEY,
+  libraryItemId TEXT NOT NULL,
+  coverPath TEXT,
+  tags TEXT AS List<String>,
+  sizeInBytes INTEGER NOT NULL,
+  numEpisodes INTEGER AS Int NOT NULL DEFAULT 0,
+  autoDownloadEpisodes INTEGER AS Boolean NOT NULL DEFAULT 0,
+  autoDownloadSchedule TEXT,
+  lastEpisodeCheckMillis INTEGER,
+  maxEpisodesToKeep INTEGER AS Int NOT NULL DEFAULT 0,
+  maxNewEpisodesToDownload INTEGER AS Int NOT NULL DEFAULT 3,
+  latestEpisodePublishedAtMillis INTEGER,
+
+  metadata_title TEXT,
+  metadata_titleIgnorePrefix TEXT,
+  metadata_author TEXT,
+  metadata_description TEXT,
+  metadata_releaseDate TEXT,
+  metadata_genres TEXT AS List<String>,
+  metadata_feedUrl TEXT,
+  metadata_imageUrl TEXT,
+  metadata_itunesPageUrl TEXT,
+  metadata_itunesId TEXT,
+  metadata_itunesArtistId TEXT,
+  metadata_explicit INTEGER AS Boolean NOT NULL DEFAULT 0,
+  metadata_language TEXT,
+  metadata_podcastType TEXT,
+
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO podcastMedia
+VALUES ?;
+
+insertOrIgnore:
+INSERT OR IGNORE INTO podcastMedia
+VALUES ?;
+
+selectForLibraryItem:
+SELECT * FROM podcastMedia
+WHERE libraryItemId = ?;
+
+deleteForLibraryItem:
+DELETE FROM podcastMedia
+WHERE libraryItemId = ?;

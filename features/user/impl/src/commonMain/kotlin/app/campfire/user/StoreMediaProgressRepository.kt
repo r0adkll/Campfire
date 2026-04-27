@@ -153,6 +153,8 @@ class StoreMediaProgressRepository(
             timestamp = fatherTime.nowInEpochMillis(),
             userId = currentUserId,
             libraryItemId = libraryItemId,
+            // Book-level progress lives at episodeId = "" (the DB sentinel for "no episode").
+            episodeId = "",
           )
         }
         MediaProgressStore.ibark { "MediaProgress[$libraryItemId] marked finished!" }
@@ -174,7 +176,7 @@ class StoreMediaProgressRepository(
           id = MediaProgress.UNKNOWN_ID,
           userId = userSession.requiredUserId,
           libraryItemId = libraryItemId,
-          episodeId = null,
+          episodeId = "",
           mediaItemId = libraryItem.mediaId,
           mediaItemType = libraryItem.mediaType,
           duration = libraryItem.durationInMillis.milliseconds.toDouble(DurationUnit.SECONDS),
@@ -212,7 +214,8 @@ class StoreMediaProgressRepository(
   override suspend fun markNotFinished(libraryItemId: LibraryItemId) {
     // First we just fetch the existing media progressId for the given library item id
     val mediaProgressId = db.mediaProgressQueries
-      .getMediaProgressId(userSession.requiredUserId, libraryItemId)
+      // Book progress only — episodes use a different episodeId here.
+      .getMediaProgressId(userSession.requiredUserId, libraryItemId, "")
       .awaitAsOneOrNull()
 
     // If it exists and is not an un-synced Id

@@ -207,6 +207,7 @@ class SqlDelightSessionDataSource(
         lastPlayedAt = lastPlayedAt,
         startedAt = now,
         updatedAt = now,
+        episodeId = null,
       )
 
       // Insert, replacing any existing session and disable any other active sessions

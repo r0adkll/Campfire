@@ -1,0 +1,106 @@
+import app.campfire.core.model.MediaProgress.Source;
+import app.campfire.core.model.MediaType;
+import kotlin.Boolean;
+import kotlin.Int;
+
+-- Migration 6: extend mediaProgress to support per-episode rows; add session.episodeId;
+-- introduce podcastMedia + podcastEpisode tables for podcast persistence.
+
+-- 1) Rebuild mediaProgress with the new composite PK (libraryItemId, userId, episodeId).
+-- SQLite can't ALTER PRIMARY KEY in place; we copy through a temp table. Existing rows
+-- (which had nullable episodeId) backfill with '' so books continue to satisfy the PK.
+CREATE TABLE mediaProgress_new (
+  id TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  episodeId TEXT NOT NULL DEFAULT '',
+  mediaItemId TEXT NOT NULL,
+  mediaItemType TEXT AS MediaType NOT NULL,
+  duration REAL,
+  progress REAL NOT NULL,
+  currentTime REAL NOT NULL,
+  isFinished INTEGER AS Boolean NOT NULL,
+  hideFromContinueListening INTEGER AS Boolean NOT NULL,
+  ebookLocation TEXT,
+  ebookProgress REAL,
+  lastUpdate INTEGER NOT NULL,
+  startedAt INTEGER NOT NULL,
+  finishedAt INTEGER,
+  source TEXT AS Source NOT NULL DEFAULT "Local",
+  PRIMARY KEY (libraryItemId, userId, episodeId)
+);
+
+INSERT INTO mediaProgress_new
+SELECT id, libraryItemId, userId, COALESCE(episodeId, ''), mediaItemId,
+       mediaItemType, duration, progress, currentTime, isFinished,
+       hideFromContinueListening, ebookLocation, ebookProgress, lastUpdate,
+       startedAt, finishedAt, source
+FROM mediaProgress;
+
+DROP TABLE mediaProgress;
+ALTER TABLE mediaProgress_new RENAME TO mediaProgress;
+
+-- 2) Track which episode a podcast session is playing. Books leave it null.
+ALTER TABLE session ADD COLUMN episodeId TEXT;
+
+-- 3) Podcast-shaped media table, parallel to `media`. Podcast library items live here
+-- so existing book queries that JOIN `media` stay book-only by construction.
+CREATE TABLE podcastMedia (
+  mediaId TEXT NOT NULL PRIMARY KEY,
+  libraryItemId TEXT NOT NULL,
+  coverPath TEXT,
+  tags TEXT AS List<String>,
+  sizeInBytes INTEGER NOT NULL,
+  numEpisodes INTEGER AS Int NOT NULL DEFAULT 0,
+  autoDownloadEpisodes INTEGER AS Boolean NOT NULL DEFAULT 0,
+  autoDownloadSchedule TEXT,
+  lastEpisodeCheckMillis INTEGER,
+  maxEpisodesToKeep INTEGER AS Int NOT NULL DEFAULT 0,
+  maxNewEpisodesToDownload INTEGER AS Int NOT NULL DEFAULT 3,
+  latestEpisodePublishedAtMillis INTEGER,
+
+  metadata_title TEXT,
+  metadata_titleIgnorePrefix TEXT,
+  metadata_author TEXT,
+  metadata_description TEXT,
+  metadata_releaseDate TEXT,
+  metadata_genres TEXT AS List<String>,
+  metadata_feedUrl TEXT,
+  metadata_imageUrl TEXT,
+  metadata_itunesPageUrl TEXT,
+  metadata_itunesId TEXT,
+  metadata_itunesArtistId TEXT,
+  metadata_explicit INTEGER AS Boolean NOT NULL DEFAULT 0,
+  metadata_language TEXT,
+  metadata_podcastType TEXT,
+
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE
+);
+
+-- 4) Per-episode rows keyed by the server-assigned episode id, FK'd to both libraryItem
+-- and podcastMedia. The server's `index` column is mostly null in practice — order by
+-- publishedAtMillis desc instead.
+CREATE TABLE podcastEpisode (
+  id TEXT NOT NULL PRIMARY KEY,
+  libraryItemId TEXT NOT NULL,
+  podcastMediaId TEXT NOT NULL,
+  episodeIndex INTEGER AS Int,
+  season TEXT,
+  episodeNumber TEXT,
+  episodeType TEXT,
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  description TEXT,
+  pubDate TEXT,
+  publishedAtMillis INTEGER,
+  addedAtMillis INTEGER NOT NULL,
+  updatedAtMillis INTEGER NOT NULL,
+  durationInMillis INTEGER NOT NULL,
+  sizeInBytes INTEGER NOT NULL,
+
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE,
+  FOREIGN KEY (podcastMediaId) REFERENCES podcastMedia(mediaId) ON DELETE CASCADE
+);
+
+CREATE INDEX index_podcastEpisode_libraryItemId ON podcastEpisode(libraryItemId);
+CREATE INDEX index_podcastEpisode_podcastMediaId ON podcastEpisode(podcastMediaId);

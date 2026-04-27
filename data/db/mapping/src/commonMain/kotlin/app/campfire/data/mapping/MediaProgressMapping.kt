@@ -14,7 +14,9 @@ fun NetworkMediaProgress.asDbModel(): DatabaseMediaProgress {
     id = id,
     userId = userId,
     libraryItemId = libraryItemId,
-    episodeId = episodeId,
+    // The DB column is NOT NULL with default '' so per-episode and book rows can share
+    // the (libraryItemId, userId, episodeId) PK. Domain/network keep nullable semantics.
+    episodeId = episodeId.orEmpty(),
     mediaItemId = mediaItemId,
     mediaItemType = when (mediaItemType) {
       NetworkMediaType.Book -> MediaType.Book
@@ -40,7 +42,7 @@ fun MediaProgress.asDbModel(existingId: MediaProgressId? = null): DatabaseMediaP
     id = existingId.takeIf { it != MediaProgress.UNKNOWN_ID } ?: id,
     userId = userId,
     libraryItemId = libraryItemId,
-    episodeId = episodeId,
+    episodeId = episodeId.orEmpty(),
     mediaItemId = mediaItemId,
     mediaItemType = mediaItemType,
     duration = duration?.toDouble(),
@@ -103,7 +105,8 @@ fun DatabaseMediaProgress.asDomainModel(): MediaProgress {
     id = id,
     userId = userId,
     libraryItemId = libraryItemId,
-    episodeId = episodeId,
+    // '' on the DB side represents "no episode" (book progress); domain keeps null semantics.
+    episodeId = episodeId.takeIf { it.isNotEmpty() },
     mediaItemId = mediaItemId,
     mediaItemType = mediaItemType,
     duration = duration?.toFloat(),

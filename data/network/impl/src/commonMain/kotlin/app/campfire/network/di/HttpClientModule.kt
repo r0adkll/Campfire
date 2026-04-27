@@ -74,7 +74,7 @@ interface HttpClientModule {
 
         filter { builder ->
           // Ignore image requests
-          builder.url.toString().endsWith("/cover")
+          !builder.url.toString().endsWith("/cover")
         }
 
         logger = object : Logger {

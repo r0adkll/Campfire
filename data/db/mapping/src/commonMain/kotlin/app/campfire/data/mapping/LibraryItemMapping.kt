@@ -248,10 +248,34 @@ fun LibraryItemExpanded.asDomainModel(
   urlHydrator: UrlHydrator,
 ): LibraryItem = when (this) {
   is LibraryItemExpanded.Book -> asDomainModelBook(urlHydrator)
-  // Domain mapping for podcast library items is not yet wired through the data layer —
-  // the network type is polymorphic, but downstream conversion is a follow-up.
-  is LibraryItemExpanded.Podcast ->
-    throw NotImplementedError("Podcast LibraryItem domain mapping is not yet implemented")
+  is LibraryItemExpanded.Podcast -> asDomainModelPodcast(urlHydrator)
+}
+
+private fun LibraryItemExpanded.Podcast.asDomainModelPodcast(
+  urlHydrator: UrlHydrator,
+): LibraryItem {
+  return LibraryItem(
+    id = id,
+    ino = ino,
+    libraryId = libraryId,
+    oldLibraryId = oldLibraryItemId,
+    folderId = folderId,
+    path = path,
+    relPath = relPath,
+    isFile = isFile,
+    mtimeMs = mtimeMs,
+    ctimeMs = ctimeMs,
+    birthtimeMs = birthtimeMs,
+    isMissing = isMissing,
+    isInvalid = isInvalid,
+    mediaType = DomainMediaType.Podcast,
+    numFiles = numFiles ?: -1,
+    sizeInBytes = size ?: -1,
+    addedAtMillis = addedAt,
+    updatedAtMillis = updatedAt,
+    media = media.asDomainModel(libraryItemId = id, urlHydrator = urlHydrator),
+    userMediaProgress = userMediaProgress?.asDomainModel(),
+  )
 }
 
 private fun LibraryItemExpanded.Book.asDomainModelBook(

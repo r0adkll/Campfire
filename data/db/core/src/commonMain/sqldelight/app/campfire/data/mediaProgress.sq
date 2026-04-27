@@ -6,7 +6,10 @@ CREATE TABLE IF NOT EXISTS mediaProgress (
   id TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
   userId TEXT NOT NULL,
-  episodeId TEXT,
+  -- For books: empty string. For podcast episodes: the episode id. Together with
+  -- (libraryItemId, userId) it forms the PK so per-episode progress can coexist with
+  -- the parent item's row.
+  episodeId TEXT NOT NULL DEFAULT '',
   mediaItemId TEXT NOT NULL,
   mediaItemType TEXT AS MediaType NOT NULL,
   duration REAL,
@@ -20,7 +23,7 @@ CREATE TABLE IF NOT EXISTS mediaProgress (
   startedAt INTEGER NOT NULL,
   finishedAt INTEGER,
   source TEXT AS Source NOT NULL DEFAULT "Local",
-  PRIMARY KEY (libraryItemId, userId)
+  PRIMARY KEY (libraryItemId, userId, episodeId)
 );
 
 insert:
@@ -40,7 +43,8 @@ updateCurrentTime:
 UPDATE OR IGNORE mediaProgress
 SET currentTime = ?,
     lastUpdate = ?
-WHERE libraryItemId = ?;
+WHERE libraryItemId = ?
+  AND episodeId = ?;
 
 markFinished:
 UPDATE OR IGNORE mediaProgress
@@ -51,7 +55,8 @@ SET isFinished = 1,
     lastUpdate = :timestamp,
     finishedAt = :timestamp
 WHERE userId = :userId
-  AND libraryItemId = :libraryItemId;
+  AND libraryItemId = :libraryItemId
+  AND episodeId = :episodeId;
 
 markNotFinished:
 UPDATE OR IGNORE mediaProgress
@@ -62,22 +67,37 @@ SET isFinished = 0,
     lastUpdate = :timestamp,
     finishedAt = NULL
 WHERE userId = :userId
-  AND libraryItemId = :libraryItemId;
+  AND libraryItemId = :libraryItemId
+  AND episodeId = :episodeId;
 
 getMediaProgressId:
 SELECT id FROM mediaProgress
 WHERE userId = ?
-  AND libraryItemId = ?;
+  AND libraryItemId = ?
+  AND episodeId = ?;
 
 selectForLibraryItem:
 SELECT * FROM mediaProgress
 WHERE userId = ?
+  AND libraryItemId = ?
+  AND episodeId = '';
+
+selectForLibraryItemAll:
+SELECT * FROM mediaProgress
+WHERE userId = ?
   AND libraryItemId = ?;
+
+selectForEpisode:
+SELECT * FROM mediaProgress
+WHERE userId = ?
+  AND libraryItemId = ?
+  AND episodeId = ?;
 
 selectForLibraryItems:
 SELECT * FROM mediaProgress
 WHERE userId = ?
-  AND libraryItemId IN ?;
+  AND libraryItemId IN ?
+  AND episodeId = '';
 
 selectForUser:
 SELECT * FROM mediaProgress
