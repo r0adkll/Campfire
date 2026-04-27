@@ -1,9 +1,21 @@
 package app.campfire.network.models
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 /**
  * A single item on the server, like a book or podcast. Minified media format.
+ *
+ * Sealed: kotlinx-serialization dispatches to [Book] or [Podcast] based on the JSON's
+ * `mediaType` field. Endpoints like `/api/libraries/:id/items` return a mix of either
+ * shape depending on the parent library's mediaType.
+ *
+ * Book-only contexts (Author.libraryItems, Series.books, Collection.books, etc.) should
+ * declare the field type as [Book] directly to skip dispatch and stay strongly typed.
  *
  * @param id The ID of library items after 2.3.0.
  * @param oldLibraryItemId The ID of library items on server version 2.2.23 and before.
@@ -21,30 +33,10 @@ import kotlinx.serialization.Serializable
  * @param isMissing Whether the library item was scanned and no longer exists.
  * @param isInvalid Whether the library item was scanned and no longer has media files.
  * @param mediaType
- * @param media
  */
-@Serializable
-data class LibraryItemMinified<Metadata : BookMetadata>(
-  override val id: String,
-  override val ino: String,
-  override val libraryId: String,
-  override val oldLibraryItemId: String? = null,
-  override val folderId: String,
-  override val path: String,
-  override val relPath: String,
-  override val isFile: Boolean,
-  override val mtimeMs: Long,
-  override val ctimeMs: Long,
-  override val birthtimeMs: Long,
-  override val addedAt: Long,
-  override val updatedAt: Long,
-  override val isMissing: Boolean,
-  override val isInvalid: Boolean,
-  override val mediaType: MediaType,
-  override val numFiles: Int? = null,
-  override val size: Long,
-  val media: MediaMinified<Metadata>,
-  val libraryFiles: List<LibraryFile>? = null,
+@Serializable(with = LibraryItemMinifiedSerializer::class)
+sealed class LibraryItemMinified : LibraryItemBase() {
+  abstract val libraryFiles: List<LibraryFile>?
 
   /**
    * When returned from the personalized library endpoint, and its shelf has an id of
@@ -52,38 +44,99 @@ data class LibraryItemMinified<Metadata : BookMetadata>(
    *
    * The recommendation weight of the library item.
    */
-  val weight: Double? = null,
+  abstract val weight: Double?
 
   /**
    * When returned from the personalized library endpoint, and its shelf has an id of
    * `continue-listening` then this field will be non-null.
-   *
-   * The time (in ms since POSIX epoch) when the book's or episode's progress was last updated.
    */
-  val progressLastUpdate: Long? = null,
-
-  /**
-   * When returned from the personalized library endpoint, and its shelf has an id of `listen-again`
-   * then this field will be non-null.
-   *
-   * The time (in ms since POSIX epoch) when the book or episode was finished.
-   */
-  val finishedAt: Long? = null,
-
-  /**
-   * When returned from the personalized library endpoint, and its shelf has an id of `continue-series`
-   * then this field will be non-null.
-   *
-   * The time (in ms since POSIX epoch) of the most recent progress update of any book in the series
-   */
-  val prevBookInProgressLastUpdate: Long? = null,
+  abstract val progressLastUpdate: Long?
 
   /**
    * When returned from the personalized library endpoint, and its shelf has an id of
-   * `continue-listening`, `listen-again`, or `episodes-recently-added`
-   * then this field will be non-null.
-   *
-   * See #244 - Add Podcast Support
+   * `listen-again` then this field will be non-null.
    */
-  // val recentEpisode: PodcastEpisode? = null,
-) : LibraryItemBase()
+  abstract val finishedAt: Long?
+
+  @Serializable
+  data class Book(
+    override val id: String,
+    override val ino: String,
+    override val libraryId: String,
+    override val oldLibraryItemId: String? = null,
+    override val folderId: String,
+    override val path: String,
+    override val relPath: String,
+    override val isFile: Boolean,
+    override val mtimeMs: Long,
+    override val ctimeMs: Long,
+    override val birthtimeMs: Long,
+    override val addedAt: Long,
+    override val updatedAt: Long,
+    override val isMissing: Boolean,
+    override val isInvalid: Boolean,
+    override val mediaType: MediaType,
+    override val numFiles: Int? = null,
+    override val size: Long,
+    val media: MediaMinified,
+    override val libraryFiles: List<LibraryFile>? = null,
+    override val weight: Double? = null,
+    override val progressLastUpdate: Long? = null,
+    override val finishedAt: Long? = null,
+
+    /**
+     * When returned from the personalized library endpoint, and its shelf has an id of
+     * `continue-series` then this field will be non-null.
+     *
+     * The time (in ms since POSIX epoch) of the most recent progress update of any book in the series
+     */
+    val prevBookInProgressLastUpdate: Long? = null,
+  ) : LibraryItemMinified()
+
+  @Serializable
+  data class Podcast(
+    override val id: String,
+    override val ino: String,
+    override val libraryId: String,
+    override val oldLibraryItemId: String? = null,
+    override val folderId: String,
+    override val path: String,
+    override val relPath: String,
+    override val isFile: Boolean,
+    override val mtimeMs: Long,
+    override val ctimeMs: Long,
+    override val birthtimeMs: Long,
+    override val addedAt: Long,
+    override val updatedAt: Long,
+    override val isMissing: Boolean,
+    override val isInvalid: Boolean,
+    override val mediaType: MediaType,
+    override val numFiles: Int? = null,
+    override val size: Long,
+    val media: app.campfire.network.models.Podcast,
+    override val libraryFiles: List<LibraryFile>? = null,
+    override val weight: Double? = null,
+    override val progressLastUpdate: Long? = null,
+    override val finishedAt: Long? = null,
+
+    /**
+     * Populated only when this item is returned from a personalized shelf with id
+     * `episodes-recently-added`, `continue-listening`, or `listen-again` — the specific
+     * episode the shelf is highlighting.
+     */
+    val recentEpisode: PodcastEpisode? = null,
+  ) : LibraryItemMinified()
+}
+
+internal object LibraryItemMinifiedSerializer :
+  JsonContentPolymorphicSerializer<LibraryItemMinified>(LibraryItemMinified::class) {
+  override fun selectDeserializer(
+    element: JsonElement,
+  ): DeserializationStrategy<LibraryItemMinified> {
+    val mediaType = element.jsonObject["mediaType"]?.jsonPrimitive?.content
+    return when (mediaType) {
+      "podcast", "podcastEpisode" -> LibraryItemMinified.Podcast.serializer()
+      else -> LibraryItemMinified.Book.serializer()
+    }
+  }
+}

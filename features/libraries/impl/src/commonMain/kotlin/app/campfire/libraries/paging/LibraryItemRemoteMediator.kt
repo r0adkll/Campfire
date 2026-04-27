@@ -15,6 +15,7 @@ import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
+import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.nextPage
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
@@ -109,13 +110,20 @@ class LibraryItemRemoteMediator(
               )
             }
 
-            // Insert items
+            // Insert items — only book items are persisted in this iteration; podcast persistence
+            // is a follow-up. Network deserialization handles both shapes via the sealed parent.
             pagedResponse.data.forEach { item ->
-              val libraryItem = item.asDbModel(user.serverUrl)
-              val media = item.media.asDbModel(item.id)
-
-              db.libraryItemsQueries.insertOrIgnore(libraryItem)
-              db.mediaQueries.insertOrIgnore(media)
+              when (item) {
+                is LibraryItemMinified.Book -> {
+                  val libraryItem = item.asDbModel(user.serverUrl)
+                  val media = item.media.asDbModel(item.id)
+                  db.libraryItemsQueries.insertOrIgnore(libraryItem)
+                  db.mediaQueries.insertOrIgnore(media)
+                }
+                is LibraryItemMinified.Podcast -> {
+                  // Podcast DB persistence is not yet wired through.
+                }
+              }
             }
 
             // Insert the Page + Joins

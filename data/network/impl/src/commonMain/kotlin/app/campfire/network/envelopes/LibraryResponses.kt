@@ -4,7 +4,6 @@ import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.MediaType
-import app.campfire.network.models.MinifiedBookMetadata
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -38,7 +37,7 @@ class LibraryItemsResponse(
 
 @Serializable
 class MinifiedLibraryItemsResponse(
-  val results: List<LibraryItemMinified<MinifiedBookMetadata>>,
+  val results: List<LibraryItemMinified>,
   val total: Int,
   val limit: Int,
   val page: Int,

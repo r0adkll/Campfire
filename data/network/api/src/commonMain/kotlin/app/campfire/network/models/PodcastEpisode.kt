@@ -33,7 +33,7 @@ data class PodcastEpisode(
   val podcastId: String,
   val id: String,
   val oldEpisodeId: String? = null,
-  val index: Int,
+  val index: Int? = null,
   val season: String,
   val episode: String,
   val episodeType: String,
@@ -45,9 +45,9 @@ data class PodcastEpisode(
   val pubDate: String,
   val chapters: List<String>,
   val audioFile: AudioFile,
-  val publishedAt: Int,
-  val addedAt: Int,
-  val updatedAt: Int,
+  val publishedAt: Long,
+  val addedAt: Long,
+  val updatedAt: Long,
 
   // Expanded
   val audioTrack: AudioTrack? = null,

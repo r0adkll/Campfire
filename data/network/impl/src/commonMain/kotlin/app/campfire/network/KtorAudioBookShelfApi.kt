@@ -34,7 +34,6 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -88,7 +87,7 @@ class KtorAudioBookShelfApi(
     sortDescending: Boolean,
     page: Int,
     limit: Int,
-  ): Result<PagedResponse<LibraryItemMinified<MinifiedBookMetadata>>> {
+  ): Result<PagedResponse<LibraryItemMinified>> {
     return trySendRequest<MinifiedLibraryItemsResponse> {
       hydratedClientRequest(
         {

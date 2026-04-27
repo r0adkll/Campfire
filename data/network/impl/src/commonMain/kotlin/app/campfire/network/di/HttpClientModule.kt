@@ -72,6 +72,11 @@ interface HttpClientModule {
           else -> LogLevel.NONE
         }
 
+        filter { builder ->
+          // Ignore image requests
+          builder.url.toString().endsWith("/cover")
+        }
+
         logger = object : Logger {
           override fun log(message: String) {
             val responseCode = RESPONSE_CODE_REGEX.find(message)

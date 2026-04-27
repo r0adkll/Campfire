@@ -20,12 +20,12 @@ data class SeriesPersonalized(
   val addedAt: Long,
   val updatedAt: Long,
 
-  val books: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
+  val books: List<LibraryItemMinified.Book>? = null,
   val inProgress: Boolean? = null,
   val hasActiveBook: Boolean? = null,
   val hideFromContinueListening: Boolean? = null,
   val bookInProgressLastUpdate: Long? = null,
-  val firstBookUnread: LibraryItemMinified<MinifiedBookMetadata>? = null,
+  val firstBookUnread: LibraryItemMinified.Book? = null,
 ) : Envelope() {
 
   override fun applyPostage() {

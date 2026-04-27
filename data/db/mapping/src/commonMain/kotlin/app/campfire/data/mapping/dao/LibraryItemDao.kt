@@ -114,6 +114,18 @@ class SqlDelightLibraryItemDao(
     item: LibraryItemExpanded,
     asTransaction: Boolean,
     ignoreOnInsert: Boolean,
+  ) = when (item) {
+    is LibraryItemExpanded.Book -> insertBook(item, asTransaction, ignoreOnInsert)
+    // Persistence for podcast library items is not yet wired through the data layer —
+    // network deserialization works (sealed polymorphic) but the DB write path is a follow-up.
+    is LibraryItemExpanded.Podcast ->
+      throw NotImplementedError("Podcast LibraryItem DB persistence is not yet implemented")
+  }
+
+  private suspend fun insertBook(
+    item: LibraryItemExpanded.Book,
+    asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transactionIf(asTransaction) {
       val libraryItem = item.asDbModel()

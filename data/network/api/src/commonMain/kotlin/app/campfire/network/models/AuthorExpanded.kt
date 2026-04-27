@@ -26,7 +26,7 @@ data class AuthorExpanded(
   val addedAt: Long,
   val updatedAt: Long,
 
-  val libraryItems: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
+  val libraryItems: List<LibraryItemMinified.Book>? = null,
   val series: List<AuthorSeries>? = null,
   val numBooks: Int? = null,
 )

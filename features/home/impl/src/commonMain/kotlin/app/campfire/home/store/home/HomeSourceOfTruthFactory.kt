@@ -14,7 +14,6 @@ import app.campfire.home.mapping.asDbModel
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.network.models.Author
 import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.SeriesPersonalized
 import app.campfire.network.models.Shelf as NetworkShelf
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
@@ -137,8 +136,10 @@ class HomeSourceOfTruthFactory(
     shelf: NetworkShelf,
   ): Unit = when (shelf) {
     is NetworkShelf.BookShelf -> writeLibraryItems(shelf.entities)
-    is NetworkShelf.EpisodeShelf -> writeLibraryItems(shelf.entities)
-    is NetworkShelf.PodcastShelf -> writeLibraryItems(shelf.entities)
+    // Podcast/episode shelves carry LibraryItemMinified.Podcast entities which the existing
+    // book-shaped write path can't accept. Persistence for podcast library items is a follow-up.
+    is NetworkShelf.EpisodeShelf -> Unit
+    is NetworkShelf.PodcastShelf -> Unit
     is NetworkShelf.AuthorShelf -> writeAuthors(shelf.entities)
     is NetworkShelf.SeriesShelf -> writeSeries(userId, libraryId, shelf.entities)
   }
@@ -207,7 +208,7 @@ class HomeSourceOfTruthFactory(
 
   @Suppress("UnusedReceiverParameter")
   private suspend fun SuspendingTransactionWithoutReturn.writeLibraryItems(
-    libraryItems: List<LibraryItemMinified<MinifiedBookMetadata>>,
+    libraryItems: List<LibraryItemMinified.Book>,
   ) {
     libraryItems.forEach { item ->
       val libraryItem = item.asDbModel()

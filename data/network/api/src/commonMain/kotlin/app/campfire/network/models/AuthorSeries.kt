@@ -14,7 +14,7 @@ import kotlinx.serialization.Serializable
 data class AuthorSeries(
   val id: String,
   val name: String,
-  val items: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
+  val items: List<LibraryItemMinified.Book>? = null,
 ) : Envelope() {
   override fun applyPostage() {
     items?.forEach { it.applyOrigin(origin) }

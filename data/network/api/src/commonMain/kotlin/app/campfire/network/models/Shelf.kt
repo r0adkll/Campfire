@@ -26,7 +26,7 @@ sealed class Shelf : Envelope() {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
+    val entities: List<LibraryItemMinified.Book>,
   ) : Shelf()
 
   @Serializable
@@ -36,9 +36,14 @@ sealed class Shelf : Envelope() {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
+    val entities: List<LibraryItemMinified.Podcast>,
   ) : Shelf()
 
+  /**
+   * Episode shelf items reuse the [LibraryItemMinified.Podcast] shape, with `recentEpisode`
+   * populated identifying the specific episode the shelf is highlighting (e.g. for
+   * `episodes-recently-added`).
+   */
   @Serializable
   @SerialName("episode")
   data class EpisodeShelf(
@@ -46,7 +51,7 @@ sealed class Shelf : Envelope() {
     override val label: String,
     override val labelStringKey: String,
     override val total: Int,
-    val entities: List<LibraryItemMinified<MinifiedBookMetadata>>,
+    val entities: List<LibraryItemMinified.Podcast>,
   ) : Shelf()
 
   @Serializable

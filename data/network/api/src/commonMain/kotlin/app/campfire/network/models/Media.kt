@@ -3,7 +3,10 @@ package app.campfire.network.models
 import kotlinx.serialization.Serializable
 
 /**
- * The base information for every media item from the server
+ * The base information for every book-shaped media item from the server.
+ *
+ * Podcasts use the parallel [Podcast] network type, which is NOT a subclass of this — the field
+ * sets are too different to share. The two are siblings under [LibraryItemMinified] / [LibraryItemExpanded].
  */
 @Serializable
 abstract class Media {
@@ -26,7 +29,7 @@ abstract class Media {
 }
 
 @Serializable
-data class MediaMinified<M : BookMetadata>(
+data class MediaMinified(
   override val id: String,
   override val coverPath: String?,
   override val tags: List<String>? = null,
@@ -39,7 +42,7 @@ data class MediaMinified<M : BookMetadata>(
   override val size: Long? = null,
   override val propertySize: Int? = null,
   override val ebookFormat: String? = null,
-  val metadata: M,
+  val metadata: BookMetadata,
 ) : Media()
 
 @Serializable

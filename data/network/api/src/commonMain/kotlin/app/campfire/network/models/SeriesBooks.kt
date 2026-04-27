@@ -22,6 +22,6 @@ data class SeriesBooks(
   val nameIgnorePrefix: String? = null,
   val nameIgnorePrefixSort: String? = null,
   val type: String? = null,
-  val books: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
+  val books: List<LibraryItemMinified.Book>? = null,
   val totalDuration: Double,
 )

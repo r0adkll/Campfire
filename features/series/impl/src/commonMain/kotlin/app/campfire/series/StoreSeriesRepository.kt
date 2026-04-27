@@ -28,7 +28,6 @@ import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.series.api.SeriesRepository
 import app.campfire.series.api.paging.SeriesPager
 import app.campfire.series.paging.SeriesPagerFactory
@@ -88,7 +87,7 @@ class StoreSeriesRepository(
 
   data class SeriesNetworkResult(
     val series: app.campfire.network.models.Series,
-    val books: List<LibraryItemMinified<MinifiedBookMetadata>>,
+    val books: List<LibraryItemMinified.Book>,
   )
 
   @Deprecated("This store interface needs to be extracted and updated to account for the APIs eccentricities")
@@ -111,7 +110,12 @@ class StoreSeriesRepository(
         val seriesBooksResult = books.await()
 
         seriesResult.with(seriesBooksResult) { series, books ->
-          SeriesNetworkResult(series, books.data)
+          SeriesNetworkResult(
+            series = series,
+            // Series is a book-only concept on the server, so the polymorphic response will only
+            // contain Book variants. Filter to the Book subtype to keep downstream code typed.
+            books = books.data.filterIsInstance<LibraryItemMinified.Book>(),
+          )
         }.asFetcherResult()
       }
     },

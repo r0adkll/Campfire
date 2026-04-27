@@ -26,6 +26,7 @@ import app.campfire.data.SelectForSeries
 import app.campfire.data.mapping.model.LibraryItemProgress
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.network.RequestOrigin
+import app.campfire.network.models.BookMetadata
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.LibraryItemBase
 import app.campfire.network.models.LibraryItemExpanded
@@ -104,8 +105,8 @@ fun <T : Media> T.asDbModel(
   libraryItemId: String,
   fallbackSeriesSequence: Int? = null,
 ): DatabaseMedia {
-  val metadata = when (this) {
-    is NetworkMediaMinified<*> -> metadata
+  val metadata: BookMetadata = when (this) {
+    is NetworkMediaMinified -> metadata
     is MediaExpanded -> metadata
     else -> error("Unknown media metadata")
   }
@@ -145,7 +146,7 @@ fun <T : Media> T.asDbModel(
         it.audioFiles
           .sumOf { it.duration.toDouble() }
           .seconds
-      } ?: (this as? NetworkMediaMinified<*>)?.let {
+      } ?: (this as? NetworkMediaMinified)?.let {
         it.duration?.seconds
       } ?: Duration.ZERO
       computedDuration.inWholeMilliseconds
@@ -244,6 +245,16 @@ private val String.lastFirst: String
   }
 
 fun LibraryItemExpanded.asDomainModel(
+  urlHydrator: UrlHydrator,
+): LibraryItem = when (this) {
+  is LibraryItemExpanded.Book -> asDomainModelBook(urlHydrator)
+  // Domain mapping for podcast library items is not yet wired through the data layer —
+  // the network type is polymorphic, but downstream conversion is a follow-up.
+  is LibraryItemExpanded.Podcast ->
+    throw NotImplementedError("Podcast LibraryItem domain mapping is not yet implemented")
+}
+
+private fun LibraryItemExpanded.Book.asDomainModelBook(
   urlHydrator: UrlHydrator,
 ): LibraryItem {
   return LibraryItem(

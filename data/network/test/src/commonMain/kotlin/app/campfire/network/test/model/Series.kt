@@ -1,7 +1,6 @@
 package app.campfire.network.test.model
 
 import app.campfire.network.models.LibraryItemMinified
-import app.campfire.network.models.MinifiedBookMetadata
 import app.campfire.network.models.Series
 
 fun createNetworkSeries(
@@ -10,7 +9,7 @@ fun createNetworkSeries(
   description: String? = null,
   addedAt: Long = 0L,
   updatedAt: Long = 0L,
-  books: List<LibraryItemMinified<MinifiedBookMetadata>>? = null,
+  books: List<LibraryItemMinified.Book>? = null,
 ) = Series(
   id = id,
   name = name,

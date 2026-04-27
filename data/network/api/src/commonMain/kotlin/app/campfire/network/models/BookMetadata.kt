@@ -1,9 +1,17 @@
 package app.campfire.network.models
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 
 /**
- * The minified metadata for a book in the database.
+ * The metadata for a book in the database. Sealed so the [MinifiedBookMetadata] vs
+ * [ExpandedBookMetadata] shape can be picked at deserialize time — they conflict on the
+ * `series` field's shape (Minified treats it as a single object, Expanded treats it as a list)
+ * which means kotlinx-serialization must dispatch by content rather than try one or the other.
  *
  * @param title The title of the book. Will be null if unknown.
  * @param subtitle The subtitle of the book. Will be null if there is no subtitle.
@@ -22,8 +30,8 @@ import kotlinx.serialization.Serializable
  * @param narratorName The name of the audiobook's narrator(s).
  * @param seriesName The name of the book's series.
  */
-@Serializable
-abstract class BookMetadata {
+@Serializable(with = BookMetadataSerializer::class)
+sealed class BookMetadata {
   abstract val title: String?
   abstract val subtitle: String?
   abstract val genres: List<String>?
@@ -119,3 +127,18 @@ data class SeriesSequence(
   val name: String,
   val sequence: String? = null,
 )
+
+internal object BookMetadataSerializer :
+  JsonContentPolymorphicSerializer<BookMetadata>(BookMetadata::class) {
+  override fun selectDeserializer(element: JsonElement): DeserializationStrategy<BookMetadata> {
+    val obj = element.jsonObject
+    val isExpanded = obj.containsKey("authors") ||
+      obj.containsKey("narrators") ||
+      obj["series"] is JsonArray
+    return if (isExpanded) {
+      ExpandedBookMetadata.serializer()
+    } else {
+      MinifiedBookMetadata.serializer()
+    }
+  }
+}
