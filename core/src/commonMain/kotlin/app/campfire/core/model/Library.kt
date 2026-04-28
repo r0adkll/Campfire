@@ -7,13 +7,15 @@ data class Library(
   val name: String,
   val displayOrder: Int,
   val icon: Icon,
-  val mediaType: String,
+  val mediaType: MediaType,
   val provider: String,
   val coverAspectRatio: Int,
   val audiobooksOnly: Boolean,
   val createdAt: Long,
   val lastUpdate: Long,
 ) {
+
+
   enum class Icon(val networkKey: String) {
     Database("database"),
     AudioBookShelf("audiobookshelf"),

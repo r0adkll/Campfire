@@ -1,9 +1,11 @@
 package app.campfire.data.mapping
 
 import app.campfire.core.model.Library
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.UserId
 import app.campfire.data.Library as DbLibrary
 import app.campfire.network.models.Library as NetworkLibrary
+import app.campfire.network.models.MediaType as NetworkMediaType
 
 fun NetworkLibrary.asDbModel(userId: UserId): DbLibrary {
   return DbLibrary(
@@ -12,7 +14,7 @@ fun NetworkLibrary.asDbModel(userId: UserId): DbLibrary {
     name = name,
     displayOrder = displayOrder,
     icon = icon,
-    mediaType = mediaType,
+    mediaType = mediaType.value, //
     provider = provider,
     createdAt = createdAt,
     lastUpdate = lastUpdate,
@@ -27,7 +29,13 @@ fun DbLibrary.asDomainModel(): Library {
     name = name,
     displayOrder = displayOrder,
     icon = Library.Icon.from(icon),
-    mediaType = mediaType,
+    mediaType = when (NetworkMediaType.decode(mediaType)) {
+      NetworkMediaType.Book -> MediaType.Book
+      NetworkMediaType.Podcast,
+      NetworkMediaType.Podcast2,
+        -> MediaType.Podcast
+      else -> MediaType.Book
+    },
     provider = provider,
     coverAspectRatio = coverAspectRatio,
     audiobooksOnly = audiobooksOnly,

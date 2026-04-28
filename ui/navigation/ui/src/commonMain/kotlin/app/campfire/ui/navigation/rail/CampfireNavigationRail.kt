@@ -8,13 +8,14 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.reflect.instanceOf
-import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.ui.navigation.HomeNavigationItemIcon
-import app.campfire.ui.navigation.buildNavigationItems
+import app.campfire.ui.navigation.NavigationComponent
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.settings
 import campfire.ui.navigation.ui.generated.resources.settings_content_description
@@ -29,8 +30,13 @@ fun CampfireNavigationRail(
   onNavigationSelected: (Screen) -> Unit,
   onMenuSelected: () -> Unit,
   modifier: Modifier = Modifier,
-  navigationItems: List<HomeNavigationItem> = buildNavigationItems(),
+  navigationComponent: NavigationComponent = rememberComponent(),
 ) {
+  val presenter = remember(navigationComponent) {
+    navigationComponent.navigationPresenterFactory()
+  }
+  val navigationItems = presenter.present()
+
   NavigationRail(
     modifier = modifier,
     header = {

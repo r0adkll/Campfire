@@ -67,6 +67,7 @@ class StoreLibraryRepository(
         db.librariesQueries.selectById(request.libraryId)
           .asFlow()
           .mapToOneOrNull(dispatcherProvider.databaseRead)
+          .map { it?.asDomainModel() }
       },
       writer = { request: SingleLibraryRequest, data ->
         val libraryItem = data.asDbModel(request.userId)
@@ -92,7 +93,12 @@ class StoreLibraryRepository(
         }
       },
     ),
-  ).build()
+  )
+    .cachePolicy(
+      MemoryPolicy.MemoryPolicyBuilder<SingleLibraryRequest, Library>()
+        .build()
+    )
+    .build()
 
   private val allLibrariesStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { api.getAllLibraries().asFetcherResult() },
@@ -138,7 +144,7 @@ class StoreLibraryRepository(
   ).build()
 
   override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> {
-    return userRepository.observeCurrentUser()
+    return userRepository.observeStatefulCurrentUser()
       .flatMapLatest { user ->
         // Fetch the latest library based on the value in the User has selected in the database.
         // If the user changes libraries an active subscription to this flow should update the current library
@@ -146,9 +152,7 @@ class StoreLibraryRepository(
         singleLibraryStore
           .stream(StoreReadRequest.cached(request, refresh = refresh))
           .debugLogging("SingleLibraryStore")
-          .mapNotNull {
-            it.dataOrNull()?.asDomainModel()
-          }
+          .mapNotNull { it.dataOrNull() }
       }
   }
 

@@ -23,7 +23,7 @@ data class Library(
   val folders: List<Folder>,
   val displayOrder: Int,
   val icon: String,
-  val mediaType: String,
+  val mediaType: MediaType,
   val provider: String,
   val settings: LibrarySettings,
   val createdAt: Long,
