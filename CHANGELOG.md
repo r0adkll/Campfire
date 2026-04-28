@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- New AI theme generator using local-only Gemini nano via Halogen
+- Support for Podcasts!
+- New AI theme generator using local-only Gemini Nano via Halogen
 
 ### Changed
 
