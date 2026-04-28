@@ -186,10 +186,6 @@ private fun LoadedShelfContent(
             .animateItem(),
         )
 
-        // TODO(podcasts): render episode-shelf entries with an episode-aware card that
-        // surfaces the recent episode title alongside the parent podcast cover. For now,
-        // fall back to the parent podcast's LibraryItemCard so these entries at least
-        // appear on the home feed.
         is ShelfEntity.EpisodeShelfEntry -> LibraryItemCard(
           item = entity.libraryItem,
           episode = entity.recentEpisode,
