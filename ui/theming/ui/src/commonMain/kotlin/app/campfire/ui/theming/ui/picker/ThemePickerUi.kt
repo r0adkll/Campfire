@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +29,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.FormatPaint
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -48,9 +50,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.core.coroutines.onError
@@ -165,7 +169,7 @@ fun ThemePicker(
             items(customThemes) { customTheme ->
               ThemeOption(
                 theme = customTheme,
-                selected = customTheme.id == (state.currentTheme as? AppTheme.Fixed.Custom)?.id,
+                selected = customTheme.id == (state.currentTheme as? AppTheme.Fixed)?.id,
                 onClick = {
                   state.eventSink(ThemePickerUiEvent.SelectTheme(customTheme))
                 },
@@ -199,6 +203,19 @@ fun ThemePicker(
               state.eventSink(ThemePickerUiEvent.OpenThemeBuilder())
             },
           )
+        }
+
+        if (state.aiThemeBuilderAvailable) {
+          item {
+            CreateAiThemeOption(
+              modifier = Modifier.padding(
+                horizontal = 16.dp,
+              ),
+              onClick = {
+                state.eventSink(ThemePickerUiEvent.OpenAiThemeBuilder)
+              },
+            )
+          }
         }
       }
     }
@@ -260,6 +277,7 @@ private fun ThemeOption(
         Text(
           text = when (theme) {
             is AppTheme.Fixed.Custom -> theme.name
+            is AppTheme.Fixed.Ai -> theme.name
             AppTheme.Fixed.Tent -> stringResource(Res.string.theme_name_tent)
             AppTheme.Fixed.Forest -> stringResource(Res.string.theme_name_forest)
             AppTheme.Fixed.WaterBottle -> stringResource(Res.string.theme_name_water_bottle)
@@ -274,14 +292,17 @@ private fun ThemeOption(
             MaterialTheme.typography.titleMedium
           },
           color = MaterialTheme.colorScheme.onPrimaryContainer,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          modifier = Modifier.weight(1f),
         )
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(16.dp))
 
         if (onEditClick != null) {
           IconButton(onClick = onEditClick) {
             Icon(
-              Icons.Rounded.Edit,
+              if (theme is AppTheme.Fixed.Ai) Icons.Rounded.AutoAwesome else Icons.Rounded.Edit,
               contentDescription = null,
               tint = MaterialTheme.colorScheme.onPrimaryContainer,
             )
@@ -415,6 +436,53 @@ private fun CreateCustomThemeOption(
         text = "Create a custom theme",
         style = MaterialTheme.typography.titleMediumEmphasized,
       )
+    }
+  }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterialApi::class)
+@Composable
+private fun CreateAiThemeOption(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Surface(
+    modifier = modifier
+      .fillMaxWidth(),
+    shape = MaterialTheme.shapes.medium,
+    color = MaterialTheme.colorScheme.surfaceContainerLowest,
+    contentColor = MaterialTheme.colorScheme.onSurface,
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+    onClick = onClick,
+  ) {
+    Row(
+      modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Box(
+        modifier = Modifier
+          .background(
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            shape = CircleShape,
+          )
+          .padding(6.dp),
+      ) {
+        Image(
+          CampfireIcons.Theme.Ai,
+          contentDescription = null,
+          modifier = Modifier
+            .size(32.dp),
+        )
+      }
+
+      Spacer(Modifier.size(16.dp))
+
+      Column(modifier = Modifier.weight(1f)) {
+        Text(
+          text = "Create with AI",
+          style = MaterialTheme.typography.titleMediumEmphasized,
+        )
+      }
     }
   }
 }

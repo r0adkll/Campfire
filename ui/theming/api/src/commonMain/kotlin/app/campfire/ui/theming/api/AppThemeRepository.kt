@@ -7,13 +7,13 @@ interface AppThemeRepository {
 
   fun observeCurrentAppTheme(): StateFlow<AppTheme>
 
-  fun observeCustomThemes(): Flow<List<AppTheme.Fixed.Custom>>
+  fun observeCustomThemes(): Flow<List<AppTheme.Fixed>>
 
   fun setCurrentTheme(theme: AppTheme)
 
-  suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed.Custom>
+  suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed>
 
-  suspend fun saveCustomTheme(theme: AppTheme.Fixed.Custom)
+  suspend fun saveCustomTheme(theme: AppTheme.Fixed)
 
   suspend fun deleteCustomTheme(id: String)
 }

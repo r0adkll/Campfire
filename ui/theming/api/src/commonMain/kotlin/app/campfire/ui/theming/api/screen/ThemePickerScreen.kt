@@ -7,5 +7,8 @@ import app.campfire.core.parcelize.Parcelize
 @Parcelize
 data object ThemePickerScreen : BaseScreen(name = "ThemePicker") {
   override val presentation: Presentation
-    get() = Presentation(hideBottomNav = true)
+    get() = Presentation(
+      hideBottomNav = true,
+      hidePlaybackBar = true,
+    )
 }

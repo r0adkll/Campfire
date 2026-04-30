@@ -1,5 +1,6 @@
 package app.campfire.ui.theming
 
+import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -17,6 +18,8 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
+import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import kotlin.time.measureTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +38,7 @@ class DefaultAppThemeRepository(
   private val dispatcherProvider: DispatcherProvider,
 ) : AppThemeRepository {
 
-  private val themeCache = mutableMapOf<String, AppTheme.Fixed.Custom>()
+  private val themeCache = mutableMapOf<String, AppTheme.Fixed>()
 
   private val currentAppTheme = MutableStateFlow<AppTheme>(AppTheme.Fixed.Tent)
 
@@ -67,7 +70,7 @@ class DefaultAppThemeRepository(
     return currentAppTheme
   }
 
-  override fun observeCustomThemes(): Flow<List<AppTheme.Fixed.Custom>> {
+  override fun observeCustomThemes(): Flow<List<AppTheme.Fixed>> {
     return themingDb.customAppThemeQueries
       .selectAll()
       .asFlow()
@@ -92,10 +95,11 @@ class DefaultAppThemeRepository(
       AppTheme.Fixed.Tent -> ThemeKey.Tent
       AppTheme.Fixed.WaterBottle -> ThemeKey.WaterBottle
       is AppTheme.Fixed.Custom -> ThemeKey.Custom(theme.id)
+      is AppTheme.Fixed.Ai -> ThemeKey.Custom(theme.id)
     }
   }
 
-  override suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed.Custom> {
+  override suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed> {
     val cached = themeCache[id]
     return if (cached != null) {
       Result.success(cached)
@@ -114,7 +118,67 @@ class DefaultAppThemeRepository(
     }
   }
 
-  override suspend fun saveCustomTheme(theme: AppTheme.Fixed.Custom) {
+  override suspend fun saveCustomTheme(theme: AppTheme.Fixed) {
+    when (theme) {
+      is AppTheme.Fixed.Ai -> saveAiTheme(theme)
+      is AppTheme.Fixed.Custom -> saveCustomTheme(theme)
+      else -> Unit
+    }
+  }
+
+  private suspend fun saveAiTheme(theme: AppTheme.Fixed.Ai) {
+    // Cache in memory
+    themeCache[theme.id] = theme
+
+    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    if (isCurrentTheme) {
+      setCurrentTheme(theme)
+    }
+
+    // Persist to disk
+    withContext(dispatcherProvider.databaseWrite) {
+      themingDb.customAppThemeQueries.transaction {
+        // 1) Insert custom app theme
+        themingDb.customAppThemeQueries.insert(
+          CustomAppTheme(
+            id = theme.id,
+            name = theme.name,
+            icon = theme.icon,
+            seedColor = Color.Transparent,
+            secondaryColorOverride = null,
+            tertiaryColorOverride = null,
+            errorColorOverride = null,
+            neutralColorOverride = null,
+            neutralVariantColorOverride = null,
+            colorSpec = ColorSpec.SpecVersion.SPEC_2021,
+            colorStyle = Variant.EXPRESSIVE,
+            contrastLevel = -1.0,
+            isAi = true,
+            prompt = theme.prompt,
+            style = theme.style,
+          ),
+        )
+
+        // 2) Insert theme
+        themingDb.themeQueries.insertTheme(
+          Theme(
+            cacheKey = theme.id,
+            key = "custom-${theme.id}",
+          ),
+        )
+
+        // 3) Insert color palette
+        themingDb.themeQueries.insertColorScheme(
+          theme.colorPalette.lightColorScheme.asDbModel(theme.id, isDark = false),
+        )
+        themingDb.themeQueries.insertColorScheme(
+          theme.colorPalette.darkColorScheme.asDbModel(theme.id, isDark = true),
+        )
+      }
+    }
+  }
+
+  private suspend fun saveCustomTheme(theme: AppTheme.Fixed.Custom) {
     // Cache in memory
     themeCache[theme.id] = theme
 
@@ -141,6 +205,9 @@ class DefaultAppThemeRepository(
             colorSpec = theme.colorSpec,
             colorStyle = theme.colorStyle,
             contrastLevel = theme.contrastLevel.toDouble(),
+            isAi = false,
+            prompt = null,
+            style = null,
           ),
         )
 

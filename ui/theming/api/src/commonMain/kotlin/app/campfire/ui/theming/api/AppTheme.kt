@@ -66,18 +66,19 @@ import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 sealed interface AppTheme {
 
   sealed class Fixed(
+    open val id: String,
     open val icon: Icon,
     open val colorPalette: ColorPalette,
   ) : AppTheme {
-    data object Tent : Fixed(Icon.Tent, RedColorPalette)
-    data object Rucksack : Fixed(Icon.Rucksack, AltYellowColorPalette)
-    data object WaterBottle : Fixed(Icon.WaterBottle, AltBlueColorPalette)
-    data object Forest : Fixed(Icon.Forest, AltGreenColorPalette)
-    data object Mountain : Fixed(Icon.Mountain, AltPurpleColorPalette)
-    data object LifeFloat : Fixed(Icon.LifeFloat, AltOrangeColorPalette)
+    data object Tent : Fixed("Tent", Icon.Tent, RedColorPalette)
+    data object Rucksack : Fixed("Rucksack", Icon.Rucksack, AltYellowColorPalette)
+    data object WaterBottle : Fixed("WaterBottle", Icon.WaterBottle, AltBlueColorPalette)
+    data object Forest : Fixed("Forest", Icon.Forest, AltGreenColorPalette)
+    data object Mountain : Fixed("Mountain", Icon.Mountain, AltPurpleColorPalette)
+    data object LifeFloat : Fixed("LifeFloat", Icon.LifeFloat, AltOrangeColorPalette)
 
     data class Custom(
-      val id: String,
+      override val id: String,
       val name: String,
       val seedColor: Color,
       val colorSpec: ColorSpec.SpecVersion,
@@ -90,7 +91,16 @@ sealed interface AppTheme {
       val neutralVariantColorOverride: Color?,
       override val icon: Icon,
       override val colorPalette: ColorPalette,
-    ) : Fixed(icon, colorPalette)
+    ) : Fixed(id, icon, colorPalette)
+
+    data class Ai(
+      override val id: String,
+      val name: String,
+      val prompt: String,
+      val style: HalogenStyle,
+      override val icon: Icon,
+      override val colorPalette: ColorPalette,
+    ) : Fixed(id, icon, colorPalette)
   }
 
   data object Dynamic : AppTheme

@@ -9,9 +9,11 @@ androidxtracing = "2.0.0-alpha06"
 androidxtracingperfetto = "1.0.1"
 androidx-test-ext-junit = "1.3.0"
 androidxsecuritycrypto = "1.1.0"
+androidxshapes = "1.1.0"
 appcompat = "1.7.1"
 appdistribution = "16.0.0-beta18"
 burst = "2.12.2"
+cadence = "0.2.0-SNAPSHOT"
 clikt = "5.1.0"
 colorpicker-compose = "1.1.3"
 core-ktx = "1.18.0"
@@ -22,6 +24,7 @@ connectivity = "2.4.1"
 coil = "3.5.0-SNAPSHOT"
 circuit = "0.33.1"
 glance = "1.2.0-rc01"
+halogen = "0.2.0"
 jb-compose-navigationevent = "1.1.0-beta01"
 junit = "4.13.2"
 kimchi = "0.7.0"
@@ -110,6 +113,7 @@ androidx-tracing-perfetto = { module = "androidx.tracing:tracing-perfetto", vers
 androidx-tracing-perfetto-binary = { module = "androidx.tracing:tracing-perfetto-binary", version.ref = "androidxtracingperfetto" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
 androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "androidxsecuritycrypto" }
+androidx-shapes = { module = "androidx.graphics:graphics-shapes", version.ref = "androidxshapes"}
 
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glance" }
 androidx-glance-material3 = { module = "androidx.glance:glance-material3", version.ref = "glance" }
@@ -121,6 +125,7 @@ burst-coroutines = { module = "app.cash.burst:burst-coroutines", version.ref = "
 #CLI
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 mosaic = { module = "com.jakewharton.mosaic:mosaic-runtime", version.ref = "mosaic" }
+cadence = { module = "com.r0adkll.cadence:core", version.ref="cadence" }
 
 #Circuit
 circuit-foundation = { module = "com.slack.circuit:circuit-foundation", version.ref = "circuit" }
@@ -167,6 +172,11 @@ compose-material3-expressive = { module = "org.jetbrains.compose.material3:mater
 compose-material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "compose-m3" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
 compose-navigationevent = { module = "org.jetbrains.androidx.navigationevent:navigationevent-compose", version.ref = "jb-compose-navigationevent" }
+
+halogen-core = { module = "me.mmckenna.halogen:halogen-core", version.ref = "halogen" }
+halogen-compose = { module = "me.mmckenna.halogen:halogen-compose", version.ref = "halogen" }
+halogen-engine = { module = "me.mmckenna.halogen:halogen-engine", version.ref = "halogen" }
+halogen-provider-nano = { module = "me.mmckenna.halogen:halogen-provider-nano", version.ref = "halogen" }
 
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"

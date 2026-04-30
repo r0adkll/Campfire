@@ -12,6 +12,8 @@ kotlin {
 
         implementation(libs.color.picker.compose)
         implementation(libs.circuitx.overlays)
+        implementation(libs.cadence)
+        implementation(libs.androidx.shapes)
       }
     }
   }

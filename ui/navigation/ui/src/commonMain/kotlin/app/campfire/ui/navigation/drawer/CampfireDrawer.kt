@@ -7,20 +7,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.DrawerState
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -46,6 +52,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.reflect.instanceOf
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.ui.navigation.HomeNavigationItem
+import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.updates.AppUpdateWidget
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import app.campfire.whatsnew.api.screen.ChangelogScreen
@@ -123,6 +130,25 @@ fun CampfireDrawer(
     }
 
     Spacer(Modifier.weight(1f))
+
+    FilledTonalIconButton(
+      shapes = IconButtonDefaults.shapes(),
+      colors = IconButtonDefaults.filledTonalIconButtonColors(),
+      onClick = {
+        navigator.goTo(ThemePickerScreen)
+        scope.launch {
+          drawerState.close()
+        }
+      },
+      modifier = Modifier
+        .align(Alignment.End)
+        .padding(
+          horizontal = 16.dp,
+          vertical = 8.dp
+        ),
+    ) {
+      Icon(Icons.Rounded.Palette, contentDescription = "Change theme")
+    }
 
     component.appUpdateWidget.Content(
       Modifier

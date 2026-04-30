@@ -10,6 +10,8 @@ import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
+import app.campfire.ui.theming.api.HalogenThemeManager
+import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -25,6 +27,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class ThemePickerPresenter(
   private val appThemeRepository: AppThemeRepository,
+  private val halogenThemeManager: HalogenThemeManager,
   @Assisted private val navigator: Navigator,
 ) : Presenter<ThemePickerUiState> {
 
@@ -45,24 +48,35 @@ class ThemePickerPresenter(
       }
     }
 
-    val customThemes: LoadState<out List<AppTheme.Fixed.Custom>> by remember {
+    val customThemes: LoadState<out List<AppTheme.Fixed>> by remember {
       appThemeRepository.observeCustomThemes()
         .map { LoadState.Loaded(it) }
-        .catch<LoadState<out List<AppTheme.Fixed.Custom>>> { emit(LoadState.Error) }
+        .catch<LoadState<out List<AppTheme.Fixed>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     val currentTheme: AppTheme by rememberRetained {
       appThemeRepository.observeCurrentAppTheme()
     }.collectAsState()
 
+    val aiThemeBuilderAvailable: Boolean by halogenThemeManager.observeIsAvailable()
+      .collectAsState()
+
     return ThemePickerUiState(
       currentTheme = currentTheme,
       builtInThemes = builtInThemes,
       customThemes = customThemes,
+      aiThemeBuilderAvailable = aiThemeBuilderAvailable,
     ) { event ->
       when (event) {
         ThemePickerUiEvent.Back -> navigator.pop()
-        is ThemePickerUiEvent.OpenThemeBuilder -> navigator.goTo(ThemeBuilderScreen(event.theme?.id))
+        is ThemePickerUiEvent.OpenThemeBuilder -> {
+          when (event.theme) {
+            is AppTheme.Fixed.Ai -> navigator.goTo(AiThemeBuilderScreen(event.theme))
+            is AppTheme.Fixed.Custom -> navigator.goTo(ThemeBuilderScreen(event.theme.id))
+            else -> navigator.goTo(ThemeBuilderScreen())
+          }
+        }
+        ThemePickerUiEvent.OpenAiThemeBuilder -> navigator.goTo(AiThemeBuilderScreen())
         is ThemePickerUiEvent.SelectTheme -> appThemeRepository.setCurrentTheme(event.theme)
       }
     }

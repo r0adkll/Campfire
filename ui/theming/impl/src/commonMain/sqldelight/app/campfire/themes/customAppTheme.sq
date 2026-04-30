@@ -1,7 +1,9 @@
 import androidx.compose.ui.graphics.Color;
 import app.campfire.ui.theming.api.AppTheme;
+import app.campfire.ui.theming.api.HalogenStyle;
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec;
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant;
+import kotlin.Boolean;
 
 CREATE TABLE IF NOT EXISTS customAppTheme (
   id TEXT NOT NULL PRIMARY KEY,
@@ -15,7 +17,10 @@ CREATE TABLE IF NOT EXISTS customAppTheme (
   neutralVariantColorOverride INTEGER AS Color,
   colorSpec TEXT AS ColorSpec.SpecVersion NOT NULL,
   colorStyle TEXT AS Variant NOT NULL,
-  contrastLevel REAL NOT NULL
+  contrastLevel REAL NOT NULL,
+  isAi INTEGER AS Boolean NOT NULL DEFAULT 0,
+  prompt TEXT,
+  style TEXT AS HalogenStyle
 );
 
 -- Queries

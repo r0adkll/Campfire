@@ -83,6 +83,7 @@ class ThemeBuilderPresenter(
       screen.customThemeId?.let { id ->
         themeRepository.getCustomTheme(id)
           .onSuccess { theme ->
+            require(theme is AppTheme.Fixed.Custom)
             name.edit { replace(0, length, theme.name) }
             icon = theme.icon
             seedColor = theme.seedColor

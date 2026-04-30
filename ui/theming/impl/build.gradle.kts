@@ -28,10 +28,13 @@ kotlin {
 
         implementation(projects.core)
         implementation(projects.common.compose)
-        implementation(projects.features.settings.api)
 
         implementation(libs.compose.runtime)
         implementation(libs.compose.ui)
+
+        implementation(libs.halogen.core)
+        implementation(libs.halogen.compose)
+        implementation(libs.halogen.engine)
 
         implementation(libs.stately.concurrent.collections)
         implementation(libs.sqldelight.coroutines)
@@ -43,6 +46,10 @@ kotlin {
     androidMain {
       dependencies {
         implementation(libs.sqldelight.android)
+        implementation(libs.halogen.provider.nano)
+        // Direct ML Kit GenAI dependency so DiagnosticGeminiNanoProvider can call
+        // checkStatus() and surface the raw FeatureStatus to logcat.
+        implementation("com.google.mlkit:genai-prompt:1.0.0-beta1")
       }
     }
 

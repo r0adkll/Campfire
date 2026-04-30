@@ -8,15 +8,18 @@ import com.slack.circuit.runtime.CircuitUiState
 data class ThemePickerUiState(
   val currentTheme: AppTheme,
   val builtInThemes: List<AppTheme>,
-  val customThemes: LoadState<out List<AppTheme.Fixed.Custom>>,
+  val customThemes: LoadState<out List<AppTheme.Fixed>>,
+  val aiThemeBuilderAvailable: Boolean,
   val eventSink: (ThemePickerUiEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface ThemePickerUiEvent : CircuitUiEvent {
   data object Back : ThemePickerUiEvent
   data class OpenThemeBuilder(
-    val theme: AppTheme.Fixed.Custom? = null,
+    val theme: AppTheme.Fixed? = null,
   ) : ThemePickerUiEvent
+
+  data object OpenAiThemeBuilder : ThemePickerUiEvent
 
   data class SelectTheme(val theme: AppTheme) : ThemePickerUiEvent
 }
