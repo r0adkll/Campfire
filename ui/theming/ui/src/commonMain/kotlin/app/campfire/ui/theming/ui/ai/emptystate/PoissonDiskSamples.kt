@@ -2,6 +2,7 @@ package app.campfire.ui.theming.ui.ai.emptystate
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
@@ -40,7 +41,7 @@ fun generatePoissonDiskSamples(
 
     // Generate k candidate points around the current point
     for (i in 0 until k) {
-      val angle = Random.nextFloat() * 2.0 * Math.PI
+      val angle = Random.nextFloat() * 2.0 * PI
       val radius = Random.nextDouble(minDistance, 2.0 * minDistance) // Sample between r and 2r
 
       val candidateX = currentPoint.x + radius * cos(angle)
