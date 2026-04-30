@@ -17,7 +17,7 @@ data class AiThemeBuilderScreen(
     id = theme.id,
     prompt = theme.prompt,
     themeName = theme.name,
-    style = theme.style
+    style = theme.style,
   )
 
   override val presentation: Presentation

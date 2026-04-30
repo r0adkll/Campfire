@@ -16,7 +16,6 @@ import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.DrawerState
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
@@ -144,7 +143,7 @@ fun CampfireDrawer(
         .align(Alignment.End)
         .padding(
           horizontal = 16.dp,
-          vertical = 8.dp
+          vertical = 8.dp,
         ),
     ) {
       Icon(Icons.Rounded.Palette, contentDescription = "Change theme")

@@ -18,8 +18,6 @@ import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.HalogenThemeManager
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
-import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
-import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlin.uuid.Uuid

@@ -17,7 +17,7 @@ class ParticleEmissionSystem() : System() {
   /**
    * Set the entities in this system as emitting, or not.
    */
-  fun setEmitting(enabled: Boolean) = world.tracer.trace("ParticleEmissionSystem.setEmitting($enabled)"){
+  fun setEmitting(enabled: Boolean) = world.tracer.trace("ParticleEmissionSystem.setEmitting($enabled)") {
     this.enabled = enabled
 
     // For each entity, set its velocity/acceleration to the values

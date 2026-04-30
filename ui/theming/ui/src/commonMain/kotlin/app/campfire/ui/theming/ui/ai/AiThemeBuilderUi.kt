@@ -22,8 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,14 +31,11 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -60,7 +55,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.core.di.UserScope
-import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
@@ -131,7 +125,7 @@ fun AiThemeBuilder(
         modifier = Modifier
           .padding(
             top = paddingValues.calculateTopPadding(),
-          )
+          ),
       ) { theme ->
         if (theme != null) {
           SaveSection(state)
@@ -203,7 +197,7 @@ private fun PromptSection(
           capitalization = KeyboardCapitalization.Sentences,
           imeAction = ImeAction.Done,
         ),
-        enabled = !state.isGenerating
+        enabled = !state.isGenerating,
       )
       Spacer(Modifier.height(12.dp))
       StyleDropdown(
@@ -252,7 +246,6 @@ private fun SaveSection(
     shadowElevation = 1.dp,
   ) {
     Column(modifier = Modifier.padding(16.dp)) {
-
       Text(
         text = state.prompt.text.toString(),
         style = MaterialTheme.typography.titleMedium,
@@ -293,7 +286,7 @@ private fun SaveSection(
           Icons.Rounded.Save,
           contentDescription = "Save new theme",
           modifier = Modifier
-            .size(ButtonDefaults.iconSizeFor(saveButtonSize))
+            .size(ButtonDefaults.iconSizeFor(saveButtonSize)),
         )
         Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(saveButtonSize)))
         Text(
@@ -315,7 +308,7 @@ private fun SaveSection(
           Icons.Rounded.AutoAwesome,
           contentDescription = "Generate again",
           modifier = Modifier
-            .size(ButtonDefaults.iconSizeFor(saveButtonSize))
+            .size(ButtonDefaults.iconSizeFor(saveButtonSize)),
         )
         Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(saveButtonSize)))
         Text(

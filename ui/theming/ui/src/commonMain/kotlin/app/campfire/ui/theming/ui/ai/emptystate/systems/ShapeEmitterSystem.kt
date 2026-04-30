@@ -78,7 +78,7 @@ class ShapeEmitterSystem(
   enum class State {
     Idle,
     Emitting,
-    Disabled
+    Disabled,
   }
 
   private val intervalNs = interval.inWholeNanoseconds
