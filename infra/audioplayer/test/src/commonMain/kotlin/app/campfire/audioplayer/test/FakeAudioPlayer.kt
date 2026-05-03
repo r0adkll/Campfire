@@ -15,6 +15,7 @@ class FakeAudioPlayer : AudioPlayer {
 
   override var preparedSession: Session? = null
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
+  override val error = MutableStateFlow<Throwable?>(null)
   override val overallTime = MutableStateFlow(Duration.ZERO)
   override val currentTime = MutableStateFlow(Duration.ZERO)
   override val currentDuration = MutableStateFlow(Duration.ZERO)

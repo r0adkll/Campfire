@@ -78,6 +78,7 @@ class IosAudioPlayer(
   )
 
   override val state: StateFlow<AudioPlayer.State> = player.state
+  override val error: StateFlow<Throwable?> = MutableStateFlow(null)
   override val currentTime: StateFlow<Duration> = player.currentPosition
   override val overallTime: StateFlow<Duration> = player.overallPosition
   override val currentDuration: StateFlow<Duration> = player.currentDuration

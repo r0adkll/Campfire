@@ -45,6 +45,7 @@ class VlcAudioPlayer(
   private var finishedListener: OnFinishedListener? = null
 
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
+  override val error = MutableStateFlow<Throwable?>(null)
   override val overallTime = MutableStateFlow(0.seconds)
   override val currentTime = MutableStateFlow(0.seconds)
   override val currentDuration = MutableStateFlow(0.seconds)

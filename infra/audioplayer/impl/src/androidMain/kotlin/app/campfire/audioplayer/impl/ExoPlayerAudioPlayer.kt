@@ -7,6 +7,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_DEVICE_INFO_CHANGED
 import androidx.media3.common.Player.EVENT_IS_PLAYING_CHANGED
@@ -181,6 +182,9 @@ class ExoPlayerAudioPlayer(
   private var finishedListener: OnFinishedListener? = null
 
   override val state = MutableStateFlow(AudioPlayer.State.Disabled)
+
+  private val _error = MutableStateFlow<Throwable?>(null)
+  override val error: StateFlow<Throwable?> = _error
   override val overallTime = MutableStateFlow(0.seconds)
   override val currentTime = MutableStateFlow(0.seconds)
   override val currentDuration = MutableStateFlow(0.seconds)
@@ -198,6 +202,7 @@ class ExoPlayerAudioPlayer(
   ) = withContext(Dispatchers.Main) {
     preparedSession = session
     finishedListener = onFinished
+    _error.value = null
     state.value = AudioPlayer.State.Initializing
 
     val mediaItems = MediaItemBuilder.build(session).asPlatformMediaItems(context)
@@ -453,6 +458,12 @@ class ExoPlayerAudioPlayer(
     } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
       dbark { "onDeviceInfoChanged: Remote Player" }
     }
+  }
+
+  override fun onPlayerError(error: PlaybackException) {
+    ebark { "Playback error: errorCode=${error.errorCode} message=${error.message}" }
+    CrashReporter.record(error)
+    _error.value = error
   }
 
   override fun onPlaybackStateChanged(playbackState: Int) {

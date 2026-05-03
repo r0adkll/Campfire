@@ -37,6 +37,7 @@ data class PlayerUiState(
   val state: AudioPlayer.State,
   val speed: Float,
   val timer: RunningTimer?,
+  val error: Throwable?,
   val eventSink: (PlayerUiEvent) -> Unit,
 )
 

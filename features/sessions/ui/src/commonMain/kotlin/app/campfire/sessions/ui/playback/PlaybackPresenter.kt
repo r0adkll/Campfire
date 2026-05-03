@@ -223,6 +223,14 @@ class PlaybackPresenter(
         }
     }.collectAsState(null)
 
+    val error by remember {
+      snapshotFlow { player }
+        .filterNotNull()
+        .flatMapLatest {
+          it.error
+        }
+    }.collectAsState(null)
+
     return PlayerUiState(
       time = time,
       duration = duration,
@@ -230,6 +238,7 @@ class PlaybackPresenter(
       state = state,
       speed = speed,
       timer = timer,
+      error = error,
     ) { event ->
       when (event) {
         PlayerUiEvent.PlayPauseClick -> {

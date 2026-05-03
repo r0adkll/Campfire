@@ -104,6 +104,7 @@ import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
+import campfire.features.sessions.ui.generated.resources.playback_error_message
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -420,6 +421,20 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           Spacer(Modifier.height(4.dp))
           Text(
             text = stringResource(Res.string.misaligned_chapters_error_message),
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error,
+            fontStyle = FontStyle.Italic,
+            modifier = Modifier
+              .align(Alignment.CenterHorizontally)
+              .padding(horizontal = 64.dp),
+          )
+        }
+
+        if (playerState.error != null) {
+          Spacer(Modifier.height(4.dp))
+          Text(
+            text = stringResource(Res.string.playback_error_message),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.error,

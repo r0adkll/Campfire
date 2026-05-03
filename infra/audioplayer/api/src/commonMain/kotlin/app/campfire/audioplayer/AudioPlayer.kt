@@ -28,6 +28,11 @@ interface AudioPlayer {
   val state: StateFlow<State>
 
   /**
+   * A flow of any playback error that has occurred. Cleared on the next [prepare] call.
+   */
+  val error: StateFlow<Throwable?>
+
+  /**
    * A flow of the overall playback time for the current audiobook playing
    */
   val overallTime: StateFlow<Duration>
