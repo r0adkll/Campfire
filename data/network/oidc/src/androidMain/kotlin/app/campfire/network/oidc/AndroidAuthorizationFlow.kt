@@ -28,7 +28,7 @@ class AndroidAuthorizationFlow(
     }
 
     // 2) Direct user DIRECTLY to the OpenID authorization page instead. Let them finish,
-    //    capturing the re-direct to audiobookshelf://oauth.
+    //    capturing the re-direct to campfireaudiobooks://oauth.
     // 3) Then use that to exchange for access/refresh tokens.
     val webFlow = ActivityWebAuthFlow(
       context = application,

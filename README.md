@@ -16,10 +16,10 @@ If you would like to install **Campfire** and test it out head over to the [rele
 
 OR stay up to date with the latest release using
 
-| Alpha Builds | Beta Builds | 
+| Alpha Builds | Beta Builds |
 | --- | --- |
 | Unstable builds generated on every change | Stable builds generated from release page |
-| [<img width=300 src=".github/art/FirebaseAppDistribution.svg"/>](https://appdistribution.firebase.dev/i/6021e2e24ae35f4c) | [<img width=300 src=".github/art/FirebaseAppDistribution.svg"/>](https://appdistribution.firebase.dev/i/14b078b4670cc57e) | 
+| [<img width=300 src=".github/art/FirebaseAppDistribution.svg"/>](https://appdistribution.firebase.dev/i/6021e2e24ae35f4c) | [<img width=300 src=".github/art/FirebaseAppDistribution.svg"/>](https://appdistribution.firebase.dev/i/14b078b4670cc57e) |
 
 ## Tech Stack
 
@@ -50,6 +50,10 @@ OR stay up to date with the latest release using
 
 ## Architecture
 Head over to [Architecture](docs/architecture/README.md) for more detailed information on the architecture of this project.
+
+## Setup
+
+- [OIDC Setup](docs/oidc_setup.md) — configure the `campfireaudiobooks://oauth` redirect URI in Audiobookshelf
 
 
 ## Screenshots

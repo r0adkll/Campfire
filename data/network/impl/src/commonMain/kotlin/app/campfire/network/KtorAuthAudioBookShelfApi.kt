@@ -93,7 +93,7 @@ class KtorAuthAudioBookShelfApi(
         parameter("code_challenge", codeChallenge)
         parameter("code_challenge_method", "S256")
         parameter("response_type", "code")
-        parameter("redirect_uri", "audiobookshelf://oauth")
+        parameter("redirect_uri", "campfireaudiobooks://oauth")
         parameter("client_id", "Campfire")
         parameter("state", state)
         maybeHeaders(extraHeaders)

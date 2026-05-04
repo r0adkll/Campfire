@@ -24,9 +24,9 @@
         <category android:name="android.intent.category.DEFAULT" />
         <category android:name="android.intent.category.BROWSABLE" />
 
-        <!-- audiobookshelf://oauth -->
+        <!-- campfireaudiobooks://oauth -->
         <data
-          android:scheme="audiobookshelf"
+          android:scheme="campfireaudiobooks"
           android:host="oauth"
           />
       </intent-filter>
