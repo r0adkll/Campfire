@@ -28,14 +28,13 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
-import app.campfire.libraries.ui.detail.composables.AuthorNarratorBar
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.unknown_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.compose.resources.stringResource
 
-class TitleAndAuthorSlot(
+class TitleSlot(
   private val libraryItem: LibraryItem,
   private val sharedTransitionKey: String,
 ) : ContentSlot {
@@ -106,40 +105,6 @@ class TitleAndAuthorSlot(
       }
 
       Spacer(Modifier.height(24.dp))
-
-      val authors = libraryItem.media.metadata.authors
-        .map { it.name }
-        .ifEmpty {
-          val authorName = libraryItem.media.metadata.authorName
-          if (authorName?.contains(",") == true) {
-            authorName.split(",").map { it.trim() }
-          } else {
-            authorName?.let { listOf(it) }
-              ?: emptyList()
-          }
-        }
-
-      val narrators = libraryItem.media.metadata.narrators
-        .ifEmpty {
-          val narratorName = libraryItem.media.metadata.narratorName
-          if (narratorName?.contains(",") == true) {
-            narratorName.split(",").map { it.trim() }
-          } else {
-            narratorName?.let { listOf(it) }
-              ?: emptyList()
-          }
-        }
-
-      AuthorNarratorBar(
-        authors = authors,
-        narrators = narrators,
-        onAuthorClick = { author ->
-          eventSink(LibraryItemUiEvent.AuthorClick(libraryItem, author))
-        },
-        onNarratorClick = { narrator ->
-          eventSink(LibraryItemUiEvent.NarratorClick(libraryItem, narrator))
-        },
-      )
     }
   }
 }

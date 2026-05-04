@@ -50,8 +50,10 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
     state: AudioPlayer.State,
     previousState: AudioPlayer.State,
   ) {
-    if (state == AudioPlayer.State.Paused && previousState == AudioPlayer.State.Playing) {
-      ibark { "onStateChange($state)" }
+    if (
+      state == AudioPlayer.State.Paused &&
+      previousState == AudioPlayer.State.Playing
+    ) {
       syncProgress(libraryItemId, force = true)
     }
 
@@ -59,7 +61,8 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
     // to mark the [libraryItemId] has having been played and allow it to sync media progress
     if (
       state == AudioPlayer.State.Playing &&
-      previousState == AudioPlayer.State.Paused
+      (previousState == AudioPlayer.State.Paused ||
+        previousState == AudioPlayer.State.Buffering)
     ) {
       userPlayCache[libraryItemId] = true
     }

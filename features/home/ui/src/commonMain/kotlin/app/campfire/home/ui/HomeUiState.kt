@@ -7,6 +7,7 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.home.api.FeedResponse
@@ -45,6 +46,14 @@ sealed interface HomeUiEvent : CircuitUiEvent {
     val item: LibraryItem,
     val sharedTransitionKey: String,
   ) : HomeUiEvent
+
+  data class OpenLibraryItemWithEpisode(
+    val item: LibraryItem,
+    val episodeId: PodcastEpisodeId,
+    val sharedTransitionKey: String,
+  ) : HomeUiEvent
+
+
   data class OpenSeries(val series: Series) : HomeUiEvent
   data class OpenAuthor(val author: Author) : HomeUiEvent
 }

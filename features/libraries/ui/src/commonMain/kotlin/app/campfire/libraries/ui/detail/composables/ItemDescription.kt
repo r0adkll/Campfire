@@ -122,7 +122,7 @@ internal fun ItemDescription(
 }
 
 @Composable
-private fun rememberRichTextState(
+internal fun rememberRichTextState(
   html: String,
 ): RichTextState {
   val state = rememberRichTextState()
@@ -134,4 +134,4 @@ private fun rememberRichTextState(
   return state
 }
 
-private val LineBreakStartRegex = "^(\\\\n)+".toRegex()
+internal val LineBreakStartRegex = "^(\\\\n)+".toRegex()

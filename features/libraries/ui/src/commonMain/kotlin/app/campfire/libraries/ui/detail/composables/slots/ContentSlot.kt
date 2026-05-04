@@ -22,6 +22,7 @@ interface ContentSlot {
   enum class ContentType {
     Chips,
     Chapter,
+    Episode,
     Spacer,
   }
 }

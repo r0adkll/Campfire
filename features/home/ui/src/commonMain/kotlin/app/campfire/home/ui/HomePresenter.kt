@@ -138,6 +138,10 @@ class HomePresenter(
           analytics.send(ContentSelected(ContentType.LibraryItem))
           navigator.goTo(LibraryItemScreen(event.item.id, event.sharedTransitionKey))
         }
+        is HomeUiEvent.OpenLibraryItemWithEpisode -> {
+          analytics.send(ContentSelected(ContentType.LibraryItem))
+          navigator.goTo(LibraryItemScreen(event.item.id, event.sharedTransitionKey, event.episodeId))
+        }
         is HomeUiEvent.OpenAuthor -> {
           analytics.send(ContentSelected(ContentType.Author))
           navigator.goTo(AuthorDetailScreen(event.author.id, event.author.name))

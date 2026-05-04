@@ -82,7 +82,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
-import app.campfire.libraries.ui.detail.composables.slots.TitleAndAuthorSlot
+import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
@@ -207,12 +207,12 @@ fun LibraryItemContent(
       )
 
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      is LoadState.Loaded<out List<ContentSlot>> -> {
+      is LoadState.Loaded<out ContentUiState> -> {
         CompositionLocalProvider(
           LocalSnackBarHost provides snackBarHost,
         ) {
           LoadedState(
-            slots = contentState.data,
+            slots = contentState.data.slots,
             contentPadding = paddingValues,
             modifier = modifier,
             eventSink = state.eventSink,
@@ -322,61 +322,61 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
         user = user("user_id"),
         libraryItem = libraryItem,
         contentState = LoadState.Loaded(
-          data = listOf(
-            CoverImageSlot("", "", ""),
-            TitleAndAuthorSlot(libraryItem, ""),
-            SpacerSlot.medium("progress_spacer"),
-            ProgressSlot(false, 1f, mediaProgress, libraryItem),
-            SpacerSlot.medium("control_spacer"),
-            ExpressiveControlSlot(
-              libraryItem = libraryItem,
-              offlineDownload = offlineDownload,
-              mediaProgress = mediaProgress,
-              showConfirmDownloadDialogSetting = true,
-              isCurrentSession = false,
-              hasSession = false,
-              isQueued = false,
-              addToPlaylistDialog = AddToPlaylistDialog.NoOp,
-            ),
-            SpacerSlot.medium("summary_spacer"),
-            SummarySlot(libraryItem.media.metadata.description!!),
-            SpacerSlot.medium("series_spacer"),
-            SeriesSlot(
-              libraryItem = libraryItem,
-              seriesBooks = listOf(
-                libraryItem(),
-                libraryItem(),
-                libraryItem(),
-                libraryItem(),
-              ),
-            ),
-            SpacerSlot.medium("genres_spacer"),
-            ChipsSlot(
-              title = ChipsTitle(Res.plurals.genres_title, 2),
-              chips = libraryItem.media.metadata.genres,
-            ),
-            SpacerSlot.medium("tags_spacer"),
-            ChipsSlot(
-              title = ChipsTitle(Res.plurals.tags_title, 2),
-              chips = libraryItem.media.tags,
-            ),
-            SpacerSlot.large("chapters_spacer"),
-            ChapterHeaderSlot(
-              showTimeInBook = true,
-            ),
-            *libraryItem.media.chapters.map {
-              ChapterSlot(
+          data = ContentUiState(
+            slots = listOf(
+              CoverImageSlot("", "", ""),
+              TitleSlot(libraryItem, ""),
+              SpacerSlot.medium("progress_spacer"),
+              ProgressSlot(false, 1f, mediaProgress, libraryItem),
+              SpacerSlot.medium("control_spacer"),
+              ExpressiveControlSlot(
                 libraryItem = libraryItem,
-                chapter = it,
-                showTimeInBook = true,
+                offlineDownload = offlineDownload,
                 mediaProgress = mediaProgress,
-              )
-            }.toTypedArray(),
+                showConfirmDownloadDialogSetting = true,
+                isCurrentSession = false,
+                hasSession = false,
+                isQueued = false,
+                addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+              ),
+              SpacerSlot.medium("summary_spacer"),
+              SummarySlot(libraryItem.media.metadata.description!!),
+              SpacerSlot.medium("series_spacer"),
+              SeriesSlot(
+                libraryItem = libraryItem,
+                seriesBooks = listOf(
+                  libraryItem(),
+                  libraryItem(),
+                  libraryItem(),
+                  libraryItem(),
+                ),
+              ),
+              SpacerSlot.medium("genres_spacer"),
+              ChipsSlot(
+                title = ChipsTitle(Res.plurals.genres_title, 2),
+                chips = libraryItem.media.metadata.genres,
+              ),
+              SpacerSlot.medium("tags_spacer"),
+              ChipsSlot(
+                title = ChipsTitle(Res.plurals.tags_title, 2),
+                chips = libraryItem.media.tags,
+              ),
+              SpacerSlot.large("chapters_spacer"),
+              ChapterHeaderSlot(
+                showTimeInBook = true,
+              ),
+              *libraryItem.media.chapters.map {
+                ChapterSlot(
+                  libraryItem = libraryItem,
+                  chapter = it,
+                  showTimeInBook = true,
+                  mediaProgress = mediaProgress,
+                )
+              }.toTypedArray(),
+            ),
+            eventSink = {},
           ),
         ),
-        showConfirmDownloadDialog = false,
-        isQueued = false,
-        isCurrentlyPlaying = false,
         eventSink = {},
       )
 

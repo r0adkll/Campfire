@@ -101,6 +101,14 @@ fun HomeScreen(
 
               is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
               is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+
+              is ShelfEntity.EpisodeShelfEntry -> state.eventSink(
+                HomeUiEvent.OpenLibraryItemWithEpisode(
+                  item = item.libraryItem,
+                  episodeId = item.recentEpisode.id,
+                  sharedTransitionKey = item.libraryItem.id + shelf.id,
+                ),
+              )
               else -> Unit
             }
           },

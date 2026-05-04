@@ -20,6 +20,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
@@ -42,12 +43,14 @@ val Long.timeAgo: String
         Res.string.time_ago_minutes,
         (elapsedDuration.inWholeMinutes % 60).toInt(),
       )
+
       elapsedDuration < 1.days -> stringResource(Res.string.time_ago_hours, (elapsedDuration.inWholeHours % 24).toInt())
       elapsedDuration < 30.days -> stringResource(Res.string.time_ago_days, elapsedDuration.inWholeDays.toInt())
       elapsedDuration < 365.days -> stringResource(
         Res.string.time_ago_months,
         (elapsedDuration.inWholeDays / 30).toInt(),
       )
+
       else -> stringResource(Res.string.time_ago_years, (elapsedDuration.inWholeDays / 365).toInt())
     }
   }
@@ -60,9 +63,34 @@ val LocalDate.relativeDayLabel: String
       today -> stringResource(Res.string.relative_day_today)
       yesterday -> stringResource(Res.string.relative_day_yesterday)
       else -> if (year == today.year) {
-        "${month.name.capitalized()} $dayOfMonth"
+        "${month.name.capitalized()} $day"
       } else {
-        "${month.name.capitalized()} $dayOfMonth, $year"
+        "${month.name.capitalized()} $day, $year"
       }
     }
   }
+
+@Composable
+fun LocalDate.asRelativeDayLabel(
+  monthStyle: ReadoutStyle,
+): String {
+  val today = Clock.System.now().toLocalDateTime(TimeZone.UTC).date
+  val yesterday = today.minus(1, DateTimeUnit.DAY)
+
+  val monthName = { month: Month ->
+    when (monthStyle) {
+      ReadoutStyle.Long -> month.name.capitalized()
+      ReadoutStyle.Short -> month.name.capitalized().take(3)
+    }
+  }
+
+  return when (this) {
+    today -> stringResource(Res.string.relative_day_today)
+    yesterday -> stringResource(Res.string.relative_day_yesterday)
+    else -> if (year == today.year) {
+      "${monthName(month)} $day"
+    } else {
+      "${monthName(month)} $day, $year"
+    }
+  }
+}

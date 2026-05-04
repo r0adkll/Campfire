@@ -32,21 +32,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import campfire.features.libraries.ui.generated.resources.Res
-import campfire.features.libraries.ui.generated.resources.by_author_line
-import campfire.features.libraries.ui.generated.resources.by_narrator_line
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import org.jetbrains.compose.resources.stringResource
 
 private const val PLACEHOLDER_NAME = "--"
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-internal fun AuthorNarratorBar(
-  authors: List<String>,
-  narrators: List<String>,
-  onAuthorClick: (String) -> Unit,
-  onNarratorClick: (String) -> Unit,
+internal fun SplitAttributionBar(
+  leftTitle: @Composable () -> Unit,
+  leftAttributions: List<String>,
+  onLeftAttributeClick: (String) -> Unit,
+  rightTitle: @Composable () -> Unit,
+  rightAttributions: List<String>,
+  onRightAttributeClick: (String) -> Unit,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   Row(
@@ -55,25 +53,25 @@ internal fun AuthorNarratorBar(
       .padding(horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-    val authorDisplayName = authors
+    val authorDisplayName = leftAttributions
       .ifEmpty { listOf(PLACEHOLDER_NAME) }
       .joinToString()
     PopupNameBox(
-      names = authors,
+      names = leftAttributions,
       onNameClick = {
-        onAuthorClick(it)
+        onLeftAttributeClick(it)
       },
       modifier = Modifier
         .align(Alignment.Top)
         .weight(1f),
     ) {
       ByLine(
-        title = { Text(stringResource(Res.string.by_author_line)) },
+        title = leftTitle,
         content = { Text(authorDisplayName) },
         modifier = Modifier
           .clickable {
-            if (authors.size == 1 && authors.first() != PLACEHOLDER_NAME) {
-              onAuthorClick(authors.first())
+            if (leftAttributions.size == 1 && leftAttributions.first() != PLACEHOLDER_NAME) {
+              onLeftAttributeClick(leftAttributions.first())
             } else {
               show()
             }
@@ -90,18 +88,18 @@ internal fun AuthorNarratorBar(
     var isOverflowed by remember { mutableStateOf(true) }
     var isExpanded by remember { mutableStateOf(false) }
     var maxLines by remember { mutableStateOf(DefaultMaxLines) }
-    val narratorsDisplayName = narrators
+    val narratorsDisplayName = rightAttributions
       .ifEmpty { listOf(PLACEHOLDER_NAME) }
       .joinToString()
     PopupNameBox(
-      names = narrators,
-      onNameClick = { onNarratorClick(it) },
+      names = rightAttributions,
+      onNameClick = { onRightAttributeClick(it) },
       modifier = Modifier
         .align(Alignment.Top)
         .weight(1f),
     ) {
       ByLine(
-        title = { Text(stringResource(Res.string.by_narrator_line)) },
+        title = rightTitle,
         content = {
           Text(
             text = narratorsDisplayName,
@@ -115,8 +113,8 @@ internal fun AuthorNarratorBar(
         modifier = Modifier
           .combinedClickable(
             onClick = {
-              if (narrators.size == 1 && narrators.first() != PLACEHOLDER_NAME) {
-                onNarratorClick(narrators.first())
+              if (rightAttributions.size == 1 && rightAttributions.first() != PLACEHOLDER_NAME) {
+                onRightAttributeClick(rightAttributions.first())
               } else {
                 show()
               }

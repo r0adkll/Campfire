@@ -7,6 +7,7 @@ import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PlaylistId
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
@@ -21,10 +22,13 @@ data class LibraryItemUiState(
   val libraryItem: LibraryItem?,
   val swatch: Swatch? = null,
   val theme: Theme? = null,
-  val contentState: LoadState<out List<ContentSlot>>,
-  val showConfirmDownloadDialog: Boolean,
-  val isCurrentlyPlaying: Boolean,
-  val isQueued: Boolean,
+  val contentState: LoadState<out ContentUiState>,
+  val eventSink: (LibraryItemUiEvent) -> Unit,
+) : CircuitUiState
+
+@Immutable
+data class ContentUiState(
+  val slots: List<ContentSlot>,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -57,6 +61,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object StopDownloadClick : LibraryItemUiEvent
 
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
+  data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }

@@ -49,6 +49,7 @@
     <item quantity="other">Tags</item>
   </plurals>
 
+  <string name="header_episodes">Episodes</string>
   <string name="header_chapters">Chapters</string>
   <string name="header_audio_tracks">Audio Tracks</string>
   <string name="header_chapters_invalid_message">This item has chapters that do not align with its audio tracks. Its playback and metadata may not match expectations.</string>
