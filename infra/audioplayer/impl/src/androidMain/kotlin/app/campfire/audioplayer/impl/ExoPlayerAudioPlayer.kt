@@ -98,6 +98,7 @@ class ExoPlayerAudioPlayer(
   private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
   private val exoPlayer = ExoPlayer.Builder(context)
+    .setRenderersFactory(CampfireRenderersFactory(context))
     .setSeekForwardIncrementMs(settings.forwardTimeMs)
     .setSeekBackIncrementMs(settings.backwardTimeMs)
     .setHandleAudioBecomingNoisy(true)
