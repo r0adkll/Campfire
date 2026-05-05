@@ -16,6 +16,9 @@ dependencies {
   compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.compose.gradlePlugin)
   compileOnly(libs.composeCompiler.gradlePlugin)
+  compileOnly(libs.google.services.gradlePlugin)
+  compileOnly(libs.firebase.crashlytics.gradlePlugin)
+  compileOnly(libs.firebase.appdistribution.gradlePlugin)
 }
 
 gradlePlugin {
@@ -68,6 +71,11 @@ gradlePlugin {
     register("parcelize") {
       id = "app.campfire.parcelize"
       implementationClass = "app.campfire.convention.ParcelizeConventionPlugin"
+    }
+
+    register("firebase") {
+      id = "app.campfire.firebase"
+      implementationClass = "app.campfire.convention.FirebaseConventionPlugin"
     }
   }
 }

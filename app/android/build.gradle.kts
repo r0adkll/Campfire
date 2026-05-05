@@ -1,18 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
-import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
-import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
-
 plugins {
   id("app.campfire.android.application")
   id("app.campfire.kotlin.android")
   id("app.campfire.compose")
+  id("app.campfire.firebase")
   alias(libs.plugins.ksp)
   alias(libs.plugins.about.libraries)
   alias(libs.plugins.baselineprofile)
-  alias(libs.plugins.google.services)
-  alias(libs.plugins.firebase.crashlytics)
-  alias(libs.plugins.firebase.appdistribution)
 }
 
 ksp {
@@ -51,17 +46,9 @@ android {
     create("alpha") {
       applicationIdSuffix = ".alpha"
       versionNameSuffix = "-alpha"
-      firebaseAppDistribution {
-        artifactType = "APK"
-        groups = "internal,alpha-public"
-      }
     }
 
     create("beta") {
-      firebaseAppDistribution {
-        artifactType = "APK"
-        groups = "internal,external-public"
-      }
     }
   }
 
@@ -107,10 +94,6 @@ android {
         "base-proguard-rules.pro",
         "prod-proguard-rules.pro",
       )
-
-      configure<CrashlyticsExtension> {
-        mappingFileUploadEnabled = true
-      }
     }
 
     create("benchmarkRelease") {
@@ -140,10 +123,6 @@ aboutLibraries {
 }
 
 dependencies {
-  implementation(platform(libs.google.firebase.bom))
-  implementation(libs.google.firebase.analytics)
-  implementation(libs.google.firebase.crashlytics)
-
   implementation(projects.app.common)
   implementation(projects.common.screens)
 
@@ -159,9 +138,6 @@ dependencies {
 
   baselineProfile(projects.app.baselineprofile)
   implementation(libs.androidx.compose.runtime.tracing)
-
-  "betaImplementation"(libs.google.firebase.appdistribution)
-  "alphaImplementation"(libs.google.firebase.appdistribution)
 
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto)
   "benchmarkReleaseImplementation"(libs.androidx.tracing.perfetto.binary)

@@ -12,6 +12,8 @@ on:
 jobs:
   android-release:
     name: Build Android Release
+    # Skip on fork PRs — this workflow needs first-party secrets (keystore, Firebase, Mixpanel).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
