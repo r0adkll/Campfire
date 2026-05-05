@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.readoutAtMost
-import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.MetadataHeader
@@ -57,7 +56,7 @@ suspend fun OverlayHost.showPodcastEpisodeBottomSheet(
       onDismiss = { Unit },
     ) { podcastEpisode, navigator ->
       CompositionLocalProvider(
-        LocalContentLayout provides ContentLayout.Root
+        LocalContentLayout provides ContentLayout.Root,
       ) {
         PodcastEpisodeBottomSheet(
           episode = podcastEpisode,
@@ -78,7 +77,6 @@ private fun PodcastEpisodeBottomSheet(
       .padding(16.dp)
       .verticalScroll(rememberScrollState()),
   ) {
-
     // Title
     Text(
       text = episode.title,
@@ -154,7 +152,6 @@ private fun PodcastEpisodeBottomSheet(
         state = rememberRichTextState(desc),
         style = MaterialTheme.typography.bodyLarge,
         onTokenClick = TokenClickHandler { token, offset ->
-
         },
       )
     }
@@ -162,7 +159,7 @@ private fun PodcastEpisodeBottomSheet(
     // Episode Metadata
 
     Spacer(
-      Modifier.navigationBarsPadding()
+      Modifier.navigationBarsPadding(),
     )
   }
 }

@@ -15,7 +15,6 @@ data class Library(
   val lastUpdate: Long,
 ) {
 
-
   enum class Icon(val networkKey: String) {
     Database("database"),
     AudioBookShelf("audiobookshelf"),

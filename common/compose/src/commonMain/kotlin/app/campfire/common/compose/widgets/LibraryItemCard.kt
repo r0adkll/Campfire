@@ -72,7 +72,6 @@ import campfire.common.compose.generated.resources.unknown_author_name
 import campfire.common.compose.generated.resources.unknown_library_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlin.random.Random
-import kotlinx.coroutines.joinAll
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -159,7 +158,7 @@ fun LibraryItemCard(
                 isTransitioning = isTransitioning,
               )
             }
-          }
+          },
         )
         if (showInformation) {
           if (episode != null) {
@@ -243,7 +242,7 @@ private fun LibraryItemCardImage(
     Box(
       modifier = Modifier
         .matchParentSize()
-        .zIndex(1f)
+        .zIndex(1f),
     ) {
       decorator?.invoke(this, isTransitionVisible)
     }
@@ -350,7 +349,7 @@ private fun BoxScope.PodcastEpisodeDecorator(
           vertical = 4.dp,
         ),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = Arrangement.spacedBy(4.dp)
+      horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
       if (offlineStatus != OfflineStatus.None) {
         OfflineStatusIndicator(offlineStatus)

@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ManageSearch
-import androidx.compose.material.icons.rounded.ManageSearch
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,14 +16,9 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.MetadataHeader
-import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.header_episodes
@@ -56,12 +49,11 @@ class EpisodeHeaderSlot : ContentSlot {
           trailingContent = {
             IconButton(
               onClick = {
-
-              }
+              },
             ) {
               Icon(
                 Icons.Rounded.Search,
-                contentDescription = "Find episodes"
+                contentDescription = "Find episodes",
               )
             }
           },

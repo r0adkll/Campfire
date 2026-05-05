@@ -33,7 +33,7 @@ fun DbLibrary.asDomainModel(): Library {
       NetworkMediaType.Book -> MediaType.Book
       NetworkMediaType.Podcast,
       NetworkMediaType.Podcast2,
-        -> MediaType.Podcast
+      -> MediaType.Podcast
       else -> MediaType.Book
     },
     provider = provider,

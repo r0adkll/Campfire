@@ -1,6 +1,5 @@
 package app.campfire.libraries.ui.detail.composables
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,7 +56,7 @@ internal fun EpisodeListItem(
     shape = shape,
     colors = CardDefaults.elevatedCardColors(),
     elevation = CardDefaults.elevatedCardElevation(),
-    onClick = onClick
+    onClick = onClick,
   ) {
     Column(
       modifier = Modifier
@@ -70,7 +69,7 @@ internal fun EpisodeListItem(
     ) {
       Row(
         modifier = Modifier
-          .fillMaxWidth()
+          .fillMaxWidth(),
       ) {
         Text(
           text = episode.title,
@@ -84,14 +83,14 @@ internal fun EpisodeListItem(
             shape = MaterialTheme.shapes.small,
           ) {
             Text(
-              text = "#${ep}",
+              text = "#$ep",
               style = MaterialTheme.typography.labelLarge,
               color = MaterialTheme.colorScheme.onTertiaryContainer,
               modifier = Modifier
                 .padding(
                   horizontal = 8.dp,
                   vertical = 4.dp,
-                )
+                ),
             )
           }
         }
@@ -131,7 +130,6 @@ private fun EpisodeActionBar(
       .fillMaxWidth(),
     verticalAlignment = Alignment.CenterVertically,
   ) {
-
     if (publishedAt != null) {
       MetadataChip {
         Text(publishedAt.relativeDayLabel)
@@ -146,8 +144,8 @@ private fun EpisodeActionBar(
 //        .minimumInteractiveComponentSize()
         .size(
           IconButtonDefaults.extraSmallContainerSize(
-            IconButtonDefaults.IconButtonWidthOption.Uniform
-          )
+            IconButtonDefaults.IconButtonWidthOption.Uniform,
+          ),
         ),
       shape = IconButtonDefaults.extraSmallSquareShape,
     ) {
@@ -166,8 +164,8 @@ private fun EpisodeActionBar(
 //        .minimumInteractiveComponentSize()
         .size(
           IconButtonDefaults.extraSmallContainerSize(
-            IconButtonDefaults.IconButtonWidthOption.Uniform
-          )
+            IconButtonDefaults.IconButtonWidthOption.Uniform,
+          ),
         ),
       shape = IconButtonDefaults.extraSmallSquareShape,
     ) {
@@ -189,17 +187,17 @@ private fun EpisodeActionBar(
       ),
       contentPadding = ButtonDefaults.contentPaddingFor(playButtonSize, hasStartIcon = true),
       modifier = Modifier
-        .heightIn(playButtonSize)
+        .heightIn(playButtonSize),
     ) {
       Icon(
         Icons.Rounded.PlayArrow,
         contentDescription = "Play episode",
-        modifier = Modifier.size(ButtonDefaults.iconSizeFor(playButtonSize))
+        modifier = Modifier.size(ButtonDefaults.iconSizeFor(playButtonSize)),
       )
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(playButtonSize)))
       Text(
         text = duration.thresholdReadoutFormat(),
-        style = ButtonDefaults.textStyleFor(playButtonSize)
+        style = ButtonDefaults.textStyleFor(playButtonSize),
       )
     }
   }
@@ -210,7 +208,7 @@ private fun EpisodeActionBar(
 fun EpisodeListItemPreview() {
   CampfireTheme {
     Surface(
-      color = MaterialTheme.colorScheme.surfaceContainer
+      color = MaterialTheme.colorScheme.surfaceContainer,
     ) {
       EpisodeListItem(
         onClick = {},
@@ -234,7 +232,7 @@ fun EpisodeListItemPreview() {
           updatedAtMillis = Clock.System.now().toEpochMilliseconds(),
           durationInMillis = (119.minutes).inWholeMilliseconds,
           sizeInBytes = 63_830_000,
-        )
+        ),
       )
     }
   }

@@ -46,7 +46,6 @@ class LibraryItemPresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): LibraryItemUiState {
-
     // Load the full library item and use its media type to delegate
     // presenters.
 

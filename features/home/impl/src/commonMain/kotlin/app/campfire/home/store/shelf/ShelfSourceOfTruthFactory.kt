@@ -3,7 +3,6 @@ package app.campfire.home.store.shelf
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.logging.bark
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
@@ -22,7 +21,6 @@ import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 
 @OptIn(ExperimentalCoroutinesApi::class)

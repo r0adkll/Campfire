@@ -53,7 +53,6 @@ sealed interface HomeUiEvent : CircuitUiEvent {
     val sharedTransitionKey: String,
   ) : HomeUiEvent
 
-
   data class OpenSeries(val series: Series) : HomeUiEvent
   data class OpenAuthor(val author: Author) : HomeUiEvent
 }

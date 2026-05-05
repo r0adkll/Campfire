@@ -61,8 +61,10 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
     // to mark the [libraryItemId] has having been played and allow it to sync media progress
     if (
       state == AudioPlayer.State.Playing &&
-      (previousState == AudioPlayer.State.Paused ||
-        previousState == AudioPlayer.State.Buffering)
+      (
+        previousState == AudioPlayer.State.Paused ||
+          previousState == AudioPlayer.State.Buffering
+        )
     ) {
       userPlayCache[libraryItemId] = true
     }

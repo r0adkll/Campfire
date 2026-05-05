@@ -29,9 +29,7 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
 @Inject
-class PodcastPresenter(
-
-) : AbstractLibraryItemPresenter {
+class PodcastPresenter() : AbstractLibraryItemPresenter {
 
   @Composable
   override fun present(
@@ -44,7 +42,7 @@ class PodcastPresenter(
 
     val slots = buildSlots(
       libraryItem = libraryItem,
-      sharedTransitionKey = screen.sharedTransitionKey
+      sharedTransitionKey = screen.sharedTransitionKey,
     )
 
     // If we launch the screen with a targeted episode, open the drawer details
@@ -68,7 +66,7 @@ class PodcastPresenter(
 
           else -> Unit
         }
-      }
+      },
     )
   }
 }

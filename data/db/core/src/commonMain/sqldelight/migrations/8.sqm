@@ -1,0 +1,22 @@
+import kotlin.Int;
+
+-- Migration 8: include episodeId in shelfJoin's primary key so EpisodeShelf
+-- entries that share a podcast (entityId) but feature different recent episodes
+-- are no longer collapsed by INSERT OR IGNORE. SQLite can't ALTER PRIMARY KEY
+-- in place, so rebuild via a temp table and backfill nulls to ''.
+CREATE TABLE shelfJoin_new (
+  shelfId TEXT NOT NULL,
+  entityId TEXT NOT NULL,
+  shelfOrder INTEGER AS Int NOT NULL DEFAULT 0,
+  episodeId TEXT NOT NULL DEFAULT '',
+
+  PRIMARY KEY (shelfId, entityId, episodeId),
+  FOREIGN KEY (shelfId) REFERENCES shelf(id) ON DELETE CASCADE
+);
+
+INSERT INTO shelfJoin_new
+SELECT shelfId, entityId, shelfOrder, COALESCE(episodeId, '')
+FROM shelfJoin;
+
+DROP TABLE shelfJoin;
+ALTER TABLE shelfJoin_new RENAME TO shelfJoin;

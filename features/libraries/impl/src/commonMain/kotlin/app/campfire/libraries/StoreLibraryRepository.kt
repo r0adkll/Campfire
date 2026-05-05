@@ -96,7 +96,7 @@ class StoreLibraryRepository(
   )
     .cachePolicy(
       MemoryPolicy.MemoryPolicyBuilder<SingleLibraryRequest, Library>()
-        .build()
+        .build(),
     )
     .build()
 

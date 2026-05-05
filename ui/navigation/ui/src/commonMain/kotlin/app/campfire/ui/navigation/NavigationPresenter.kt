@@ -44,7 +44,7 @@ interface NavigationComponent {
 
 @Inject
 class NavigationPresenter(
-  private val libraryRepository: LibraryRepository
+  private val libraryRepository: LibraryRepository,
 ) {
 
   @Composable
@@ -71,7 +71,7 @@ class NavigationPresenter(
         when (currentLibrary?.mediaType) {
           MediaType.Podcast -> buildPodcastLibraryNavigationItems()
           else -> buildBookLibraryNavigationItems()
-        }
+        },
       )
     }
 

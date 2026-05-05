@@ -19,10 +19,11 @@ CREATE TABLE IF NOT EXISTS shelfJoin(
   entityId TEXT NOT NULL,
   shelfOrder INTEGER AS Int NOT NULL DEFAULT 0,
   -- For EpisodeShelf entries: the specific recent episode the shelf is highlighting.
-  -- Null for Book/Podcast/Series/Author shelves.
-  episodeId TEXT,
+  -- Empty string for Book/Podcast/Series/Author shelves so the composite PK still
+  -- collapses to (shelfId, entityId) for those types.
+  episodeId TEXT NOT NULL DEFAULT '',
 
-  PRIMARY KEY (shelfId, entityId),
+  PRIMARY KEY (shelfId, entityId, episodeId),
   FOREIGN KEY (shelfId) REFERENCES shelf(id) ON DELETE CASCADE
 );
 
@@ -58,21 +59,10 @@ WHERE id = ?;
 
 -- Join Queries
 
-selectAllJoins:
-SELECT * FROM shelfJoin;
-
 insertJoins:
 INSERT OR IGNORE INTO shelfJoin
 VALUES ?;
 
-updateJoin:
-UPDATE shelfJoin
-SET shelfOrder = :shelfOrder,
-    episodeId = :episodeId
-WHERE shelfId = :shelfId
-  AND entityId = :entityId;
-
-deleteJoins:
+deleteJoinsForShelf:
 DELETE FROM shelfJoin
-WHERE shelfId = ?
-  AND entityId IN ?;
+WHERE shelfId = ?;

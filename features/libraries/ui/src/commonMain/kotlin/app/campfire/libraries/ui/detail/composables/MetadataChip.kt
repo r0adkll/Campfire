@@ -38,7 +38,7 @@ internal fun MetadataChip(
         Modifier.padding(
           horizontal = 12.dp,
           vertical = 6.dp,
-        )
+        ),
       ) {
         content()
       }
