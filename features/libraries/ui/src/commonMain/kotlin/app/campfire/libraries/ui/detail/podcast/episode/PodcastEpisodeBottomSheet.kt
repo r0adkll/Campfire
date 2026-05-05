@@ -22,18 +22,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.MetadataHeader
+import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.PodcastEpisode
@@ -43,9 +47,15 @@ import app.campfire.libraries.ui.detail.composables.rememberRichTextState
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
 import com.mohamedrejeb.richeditor.ui.material.RichText
+import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.time.DurationUnit
+
+@ContributesTo(UserScope::class)
+interface PodcastEpisodeBottomSheetComponent {
+  val podcastEpisodePresenterFactory: PodcastEpisodePresenterFactory
+}
 
 suspend fun OverlayHost.showPodcastEpisodeBottomSheet(
   episode: PodcastEpisode,
@@ -58,8 +68,15 @@ suspend fun OverlayHost.showPodcastEpisodeBottomSheet(
       CompositionLocalProvider(
         LocalContentLayout provides ContentLayout.Root,
       ) {
+        val presenter = remember {
+          ComponentHolder.component<PodcastEpisodeBottomSheetComponent>()
+            .podcastEpisodePresenterFactory(podcastEpisode, navigator)
+        }
+
+        val state = presenter.present()
+
         PodcastEpisodeBottomSheet(
-          episode = podcastEpisode,
+          state = state,
         )
       }
     },
@@ -69,7 +86,7 @@ suspend fun OverlayHost.showPodcastEpisodeBottomSheet(
 @OptIn(ExperimentalRichTextApi::class)
 @Composable
 private fun PodcastEpisodeBottomSheet(
-  episode: PodcastEpisode,
+  state: PodcastEpisodeUiState,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -79,7 +96,7 @@ private fun PodcastEpisodeBottomSheet(
   ) {
     // Title
     Text(
-      text = episode.title,
+      text = state.episode.title,
       style = MaterialTheme.typography.headlineMedium,
       fontWeight = FontWeight.Bold,
     )
@@ -91,7 +108,7 @@ private fun PodcastEpisodeBottomSheet(
         .fillMaxWidth(),
       horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-      episode.publishedAtMillis?.let { publishedAt ->
+      state.episode.publishedAtMillis?.let { publishedAt ->
         MetadataChip {
           Metadata(
             icon = Icons.Outlined.Today,
@@ -103,14 +120,14 @@ private fun PodcastEpisodeBottomSheet(
       MetadataChip {
         Metadata(
           icon = Icons.Outlined.Schedule,
-          label = episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
+          label = state.episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
         )
       }
 
       MetadataChip {
         Metadata(
           icon = Icons.Outlined.SdStorage,
-          label = episode.sizeInBytes.asReadableBytes(),
+          label = state.episode.sizeInBytes.asReadableBytes(),
         )
       }
     }
@@ -124,7 +141,7 @@ private fun PodcastEpisodeBottomSheet(
       isCurrentSession = false,
       mediaProgress = null,
       offlineDownload = null,
-      onPlayClick = {},
+      onPlayClick = { state.eventSink(PodcastEpisodeUiEvent.PlayClick) },
       onDownloadClick = {},
       onMarkFinished = {},
       onMarkNotFinished = {},
@@ -138,7 +155,7 @@ private fun PodcastEpisodeBottomSheet(
     Spacer(Modifier.height(16.dp))
 
     // Description
-    episode.description?.let { desc ->
+    state.episode.description?.let { desc ->
       MetadataHeader(
         title = "Summary",
         textStyle = MaterialTheme.typography.titleLarge,
