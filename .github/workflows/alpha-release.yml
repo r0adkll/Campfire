@@ -12,6 +12,8 @@ on:
 jobs:
   android-release:
     name: Build Android Release
+    # Skip on fork PRs — this workflow needs first-party secrets (keystore, Firebase, Mixpanel).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
 
     steps:
@@ -49,27 +51,15 @@ jobs:
         env:
           ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
         run: |
-          if [ -n "$ENCODED_KEYSTORE" ]; then
-            echo "$ENCODED_KEYSTORE" | base64 -di > app/signing/campfire.keystore
-          else
-            echo "Skipping keystore decode (no secret — APK will sign with debug key fallback)"
-          fi
+          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
 
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
         run: |
-          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            echo "$GOOGLE_SERVICES_JSON" > app/android/google-services.json
-          else
-            echo "Skipping google-services.json (no secret — Firebase plugins will be disabled)"
-          fi
-          if [ -n "$APP_DISTRIBUTION_JSON" ]; then
-            echo "$APP_DISTRIBUTION_JSON" > app/android/campfire-app-distribution-service-account.json
-          else
-            echo "Skipping app-distribution service account (no secret)"
-          fi
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
 
       - name: Assemble Alpha Release APK
         run: ./gradlew :app:android:assembleAlphaRelease
@@ -81,14 +71,12 @@ jobs:
           CI: true
 
       - name: Create Release Notes
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
         run: |
           ./campfire changelog --version Unreleased > app/android/release-notes.txt
           echo " "
           cat app/android/release-notes.txt
 
       - name: Firebase App Distribution
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'push' }}
         run: |
           ./gradlew :app:android:appDistributionUploadAlphaRelease \
             --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
