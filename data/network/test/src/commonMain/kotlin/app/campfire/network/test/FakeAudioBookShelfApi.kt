@@ -191,13 +191,17 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
-  override suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress> {
+  override suspend fun getMediaProgress(
+    libraryItemId: String,
+    episodeId: String?,
+  ): Result<MediaProgress> {
     TODO("Not yet implemented")
   }
 
   override suspend fun updateMediaProgress(
     libraryItemId: String,
     update: MediaProgressUpdatePayload,
+    episodeId: String?,
   ): Result<Unit> {
     TODO("Not yet implemented")
   }

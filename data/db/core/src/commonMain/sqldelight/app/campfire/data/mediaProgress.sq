@@ -35,6 +35,14 @@ DELETE FROM mediaProgress
 WHERE userId = ?
   AND libraryItemId = ?;
 
+-- Per-episode delete. Use this when deleting podcast episode progress so sibling episode
+-- rows on the same libraryItemId aren't clobbered. For book progress, pass episodeId = ''.
+deleteForEpisode:
+DELETE FROM mediaProgress
+WHERE userId = :userId
+  AND libraryItemId = :libraryItemId
+  AND episodeId = :episodeId;
+
 deleteForUser:
 DELETE FROM mediaProgress
 WHERE userId = ?;

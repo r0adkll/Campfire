@@ -5,6 +5,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.UserId
 import app.campfire.network.AudioBookShelfApi
 import me.tatarka.inject.annotations.Inject
@@ -45,7 +46,11 @@ object MediaProgressStore : Cork {
 
   sealed interface Operation {
     sealed interface Query : Operation {
-      data class One(val userId: UserId, val libraryItemId: LibraryItemId) : Query
+      data class One(
+        val userId: UserId,
+        val libraryItemId: LibraryItemId,
+        val episodeId: PodcastEpisodeId? = null,
+      ) : Query
       data class All(val userId: UserId) : Query
     }
   }

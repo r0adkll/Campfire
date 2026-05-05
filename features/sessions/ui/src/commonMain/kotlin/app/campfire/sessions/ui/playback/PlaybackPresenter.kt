@@ -139,7 +139,11 @@ class PlaybackPresenter(
               // Since this is a network operation we want to timebox refreshing the current progress
               // So we don't create an awkward delay when initialing the playback session for the UI
               withTimeoutOrNull(1.seconds) {
-                mediaProgressRepository.getProgress(currentSession.libraryItem.id, fresh = true)
+                mediaProgressRepository.getProgress(
+                  libraryItemId = currentSession.libraryItem.id,
+                  episodeId = currentSession.episodeId,
+                  fresh = true,
+                )
               }
             }
             dbark {
@@ -326,17 +330,20 @@ class PlaybackPresenter(
     val mediaProgress by remember(expanded) {
       snapshotFlow {
         if (syncEnabled) {
-          session.value?.libraryItem?.id
+          session.value?.let { it.libraryItem.id to it.episodeId }
         } else {
           null
         }
       }
         .filterNotNull()
-        .flatMapLatest { libraryItemId ->
-          mediaProgressRepository.observeProgress(libraryItemId, refresh = true)
-            .onEach {
-              dbark { "<-- Media Progress Updated: ${it?.lastUpdate}" }
-            }
+        .flatMapLatest { (libraryItemId, episodeId) ->
+          mediaProgressRepository.observeProgress(
+            libraryItemId = libraryItemId,
+            episodeId = episodeId,
+            refresh = true,
+          ).onEach {
+            dbark { "<-- Media Progress Updated: ${it?.lastUpdate}" }
+          }
         }
     }.collectAsState(null)
 

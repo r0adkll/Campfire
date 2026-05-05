@@ -3,6 +3,7 @@ package app.campfire.user.mediaprogress.store
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
@@ -26,7 +27,11 @@ class MediaProgressSourceOfTruthFactory(
       MediaProgressStore.ibark { "SourceOfTruth[reader]: $operation" }
       when (operation) {
         is Operation.Query.All -> observeAll(operation.userId)
-        is Operation.Query.One -> observeByLibraryItemId(operation.userId, operation.libraryItemId)
+        is Operation.Query.One -> observeByLibraryItemId(
+          userId = operation.userId,
+          libraryItemId = operation.libraryItemId,
+          episodeId = operation.episodeId,
+        )
       }
     },
     writer = { operation, output ->
@@ -49,9 +54,21 @@ class MediaProgressSourceOfTruthFactory(
       .map { Output.Collection(it) }
   }
 
-  private fun observeByLibraryItemId(userId: UserId, libraryItemId: LibraryItemId): Flow<Output.Single> {
-    return db.mediaProgressQueries
-      .selectForLibraryItem(userId, libraryItemId)
+  private fun observeByLibraryItemId(
+    userId: UserId,
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Flow<Output.Single> {
+    val query = if (episodeId != null) {
+      db.mediaProgressQueries.selectForEpisode(
+        userId = userId,
+        libraryItemId = libraryItemId,
+        episodeId = episodeId,
+      )
+    } else {
+      db.mediaProgressQueries.selectForLibraryItem(userId, libraryItemId)
+    }
+    return query
       .asFlow()
       .mapToOneOrNull(dispatcherProvider.databaseRead)
       .map { Output.Single(it?.asDomainModel()) }
@@ -67,7 +84,11 @@ class MediaProgressSourceOfTruthFactory(
   private suspend fun handleDelete(operation: Operation.Query, output: Output = Output.Collection(emptyList())) {
     when (operation) {
       is Operation.Query.All -> deleteAll(operation.userId)
-      is Operation.Query.One -> deleteSingle(operation.userId, operation.libraryItemId)
+      is Operation.Query.One -> deleteSingle(
+        userId = operation.userId,
+        libraryItemId = operation.libraryItemId,
+        episodeId = operation.episodeId,
+      )
     }
   }
 
@@ -92,9 +113,17 @@ class MediaProgressSourceOfTruthFactory(
     }
   }
 
-  private suspend fun deleteSingle(userId: UserId, libraryItemId: LibraryItemId) {
+  private suspend fun deleteSingle(
+    userId: UserId,
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
     withContext(dispatcherProvider.databaseWrite) {
-      db.mediaProgressQueries.delete(userId, libraryItemId)
+      db.mediaProgressQueries.deleteForEpisode(
+        userId = userId,
+        libraryItemId = libraryItemId,
+        episodeId = episodeId.orEmpty(),
+      )
     }
   }
 

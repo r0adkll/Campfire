@@ -6,6 +6,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
@@ -56,9 +57,13 @@ class StoreMediaProgressRepository(
 
   override fun observeProgress(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
     refresh: Boolean,
   ): Flow<MediaProgress?> {
-    val request = StoreReadRequest.cached(Operation.Query.One(userSession.requiredUserId, libraryItemId), refresh)
+    val request = StoreReadRequest.cached(
+      key = Operation.Query.One(userSession.requiredUserId, libraryItemId, episodeId),
+      refresh = refresh,
+    )
     return store.stream(request)
       .debugLogging("MediaProgressStore::observeProgress")
       .map { it.dataOrNull() }
@@ -68,10 +73,11 @@ class StoreMediaProgressRepository(
 
   override suspend fun getProgress(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
     fresh: Boolean,
   ): MediaProgress? {
     val userId = userSession.userId ?: return null
-    val operation = Operation.Query.One(userId, libraryItemId)
+    val operation = Operation.Query.One(userId, libraryItemId, episodeId)
     return try {
       if (fresh) {
         store.fresh(operation).requireSingle()
@@ -98,9 +104,11 @@ class StoreMediaProgressRepository(
 
     // Update local storage
     val progressId = db.mediaProgressQueries.transactionWithResult {
-      val existing = db.mediaProgressQueries.selectForLibraryItem(
+      val existing = db.mediaProgressQueries.selectForEpisode(
         userId = newProgress.userId,
         libraryItemId = newProgress.libraryItemId,
+        // DB stores book progress under the empty-string sentinel; episodes carry their id.
+        episodeId = newProgress.episodeId.orEmpty(),
       ).awaitAsOneOrNull()
 
       MediaProgressStore.vbark { "insertingProgress --> Existing($existing)" }
@@ -118,14 +126,17 @@ class StoreMediaProgressRepository(
     mediaProgressSynchronizer.sync(updatedProgress, force)
   }
 
-  override suspend fun deleteProgress(libraryItemId: LibraryItemId) {
+  override suspend fun deleteProgress(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
     val currentUserId = userSession.requiredUserId
-    val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
-      .requireSingle()
+    val operation = Operation.Query.One(currentUserId, libraryItemId, episodeId)
+    val existing = store.get(operation).requireSingle()
     if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
       api.deleteMediaProgress(existing.id)
         .onSuccess {
-          store.clear(Operation.Query.One(existing.userId, existing.libraryItemId))
+          store.clear(operation)
           MediaProgressStore.ibark { "MediaProgress for $libraryItemId was deleted" }
         }
         .onFailure {
@@ -136,28 +147,35 @@ class StoreMediaProgressRepository(
     }
   }
 
-  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+  override suspend fun markFinished(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
     api.updateMediaProgress(
       libraryItemId = libraryItemId,
+      episodeId = episodeId,
       update = MediaProgressUpdatePayload(
+        episodeId = episodeId,
         isFinished = true,
         finishedAt = fatherTime.nowInEpochMillis(),
       ),
     ).onSuccess {
       val currentUserId = userSession.requiredUserId
-      val existing = store.get(Operation.Query.One(currentUserId, libraryItemId))
-        .requireSingle()
+      val operation = Operation.Query.One(currentUserId, libraryItemId, episodeId)
+      val existing = store.get(operation).requireSingle()
       if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
         withContext(dispatcherProvider.databaseWrite) {
           db.mediaProgressQueries.markFinished(
             timestamp = fatherTime.nowInEpochMillis(),
             userId = currentUserId,
             libraryItemId = libraryItemId,
-            // Book-level progress lives at episodeId = "" (the DB sentinel for "no episode").
-            episodeId = "",
+            // Empty string is the DB sentinel for "no episode" (book-level progress).
+            episodeId = episodeId.orEmpty(),
           )
         }
-        MediaProgressStore.ibark { "MediaProgress[$libraryItemId] marked finished!" }
+        MediaProgressStore.ibark {
+          "MediaProgress[$libraryItemId${episodeId?.let { "/$it" }.orEmpty()}] marked finished!"
+        }
       } else if (existing == null) {
         val libraryItem = withContext(dispatcherProvider.databaseRead) {
           db.libraryItemsQueries
@@ -176,8 +194,8 @@ class StoreMediaProgressRepository(
           id = MediaProgress.UNKNOWN_ID,
           userId = userSession.requiredUserId,
           libraryItemId = libraryItemId,
-          episodeId = "",
-          mediaItemId = libraryItem.mediaId,
+          episodeId = episodeId.orEmpty(),
+          mediaItemId = episodeId ?: libraryItem.mediaId,
           mediaItemType = libraryItem.mediaType,
           duration = libraryItem.durationInMillis.milliseconds.toDouble(DurationUnit.SECONDS),
           progress = 1.0,
@@ -211,11 +229,17 @@ class StoreMediaProgressRepository(
     }
   }
 
-  override suspend fun markNotFinished(libraryItemId: LibraryItemId) {
-    // First we just fetch the existing media progressId for the given library item id
+  override suspend fun markNotFinished(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
+    // First we just fetch the existing media progressId for the given (library item, episode)
     val mediaProgressId = db.mediaProgressQueries
-      // Book progress only — episodes use a different episodeId here.
-      .getMediaProgressId(userSession.requiredUserId, libraryItemId, "")
+      .getMediaProgressId(
+        userId = userSession.requiredUserId,
+        libraryItemId = libraryItemId,
+        episodeId = episodeId.orEmpty(),
+      )
       .awaitAsOneOrNull()
 
     // If it exists and is not an un-synced Id
@@ -223,8 +247,7 @@ class StoreMediaProgressRepository(
       api.deleteMediaProgress(mediaProgressId)
         .onSuccess {
           withContext(dispatcherProvider.databaseWrite) {
-            db.mediaProgressQueries
-              .delete(userSession.requiredUserId, libraryItemId)
+            deleteLocalProgress(libraryItemId, episodeId)
           }
         }
         .onFailure {
@@ -237,7 +260,9 @@ class StoreMediaProgressRepository(
       // method and just use the update method to mark as not finished
       api.updateMediaProgress(
         libraryItemId = libraryItemId,
+        episodeId = episodeId,
         update = MediaProgressUpdatePayload(
+          episodeId = episodeId,
           isFinished = false,
           progress = 0f,
           currentTime = 0f,
@@ -247,12 +272,23 @@ class StoreMediaProgressRepository(
         // Marking as "Not Finished" is effectively deleting it, so let's just remove
         // and let a future sync handle any updated sync.
         withContext(dispatcherProvider.databaseWrite) {
-          db.mediaProgressQueries
-            .delete(userSession.requiredUserId, libraryItemId)
+          deleteLocalProgress(libraryItemId, episodeId)
         }
       }.onFailure {
         MediaProgressStore.ebark { "Error marking not finished for libraryItemId $libraryItemId" }
       }
     }
+  }
+
+  private suspend fun deleteLocalProgress(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
+    val currentUserId = userSession.requiredUserId
+    db.mediaProgressQueries.deleteForEpisode(
+      userId = currentUserId,
+      libraryItemId = libraryItemId,
+      episodeId = episodeId.orEmpty(),
+    )
   }
 }

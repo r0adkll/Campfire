@@ -45,7 +45,8 @@ class DefaultPlaybackSessionManager(
       sessionQueue.remove(session.libraryItem)
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
-        mediaProgressRepository.markFinished(libraryItemId)
+        // For podcast sessions, mark the playing episode finished — not the parent item.
+        mediaProgressRepository.markFinished(libraryItemId, session.episodeId)
         playbackHistoryRepository.clear(libraryItemId)
 
         // Check if we have an item next in the queue

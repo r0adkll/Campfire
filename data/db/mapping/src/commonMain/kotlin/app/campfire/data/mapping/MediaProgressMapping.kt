@@ -64,6 +64,7 @@ fun MediaProgress.asNetworkUpdate(
 ): MediaProgressUpdatePayload {
   return MediaProgressUpdatePayload(
     libraryItemId = libraryItemId,
+    episodeId = episodeId,
     duration = duration,
     progress = progress,
     currentTime = currentTime,

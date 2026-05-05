@@ -217,14 +217,23 @@ interface AudioBookShelfApi {
 
   /**
    * This endpoint retrieves your media progress that is associated with the given library item ID or
-   * podcast episode ID.
+   * podcast episode ID. Pass [episodeId] to read podcast episode progress, otherwise it returns
+   * book/item-level progress.
    */
-  suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress>
+  suspend fun getMediaProgress(
+    libraryItemId: String,
+    episodeId: String? = null,
+  ): Result<MediaProgress>
 
   /**
-   * Create/Update the media progress for a specific item
+   * Create/Update the media progress for a specific item or podcast episode. Pass [episodeId] to
+   * target a podcast episode's progress; otherwise the request applies to book/item-level progress.
    */
-  suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit>
+  suspend fun updateMediaProgress(
+    libraryItemId: String,
+    update: MediaProgressUpdatePayload,
+    episodeId: String? = null,
+  ): Result<Unit>
 
   /**
    * This endpoint batch creates/updates your media progress.

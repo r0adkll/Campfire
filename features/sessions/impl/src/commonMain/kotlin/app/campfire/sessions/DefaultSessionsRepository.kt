@@ -45,7 +45,8 @@ class DefaultSessionsRepository(
     episodeId: PodcastEpisodeId?,
   ): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
-    val progress = mediaProgressRepository.getProgress(libraryItemId)
+    // Podcast sessions resume against the episode's progress row; books read item-level.
+    val progress = mediaProgressRepository.getProgress(libraryItemId, episodeId)
     val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
 
     return dataSource.createOrStartSession(

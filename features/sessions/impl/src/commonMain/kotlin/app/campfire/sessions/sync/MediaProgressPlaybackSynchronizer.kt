@@ -83,7 +83,7 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
       id = MediaProgress.UNKNOWN_ID,
       userId = session.userId,
       libraryItemId = session.libraryItem.id,
-      episodeId = null,
+      episodeId = session.episodeId,
       mediaItemId = session.libraryItem.media.id,
       mediaItemType = session.libraryItem.mediaType,
       duration = session.libraryItem.media.durationInSeconds,

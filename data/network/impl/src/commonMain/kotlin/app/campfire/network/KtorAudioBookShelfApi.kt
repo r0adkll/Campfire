@@ -395,15 +395,32 @@ class KtorAudioBookShelfApi(
     }
   }
 
-  override suspend fun getMediaProgress(libraryItemId: String): Result<MediaProgress> {
+  override suspend fun getMediaProgress(
+    libraryItemId: String,
+    episodeId: String?,
+  ): Result<MediaProgress> {
+    val path = if (episodeId != null) {
+      "/api/me/progress/$libraryItemId/$episodeId"
+    } else {
+      "/api/me/progress/$libraryItemId"
+    }
     return trySendRequest {
-      hydratedClientRequest("/api/me/progress/$libraryItemId")
+      hydratedClientRequest(path)
     }
   }
 
-  override suspend fun updateMediaProgress(libraryItemId: String, update: MediaProgressUpdatePayload): Result<Unit> {
+  override suspend fun updateMediaProgress(
+    libraryItemId: String,
+    update: MediaProgressUpdatePayload,
+    episodeId: String?,
+  ): Result<Unit> {
+    val path = if (episodeId != null) {
+      "/api/me/progress/$libraryItemId/$episodeId"
+    } else {
+      "/api/me/progress/$libraryItemId"
+    }
     return trySendRequest({}) {
-      hydratedClientRequest("/api/me/progress/$libraryItemId") {
+      hydratedClientRequest(path) {
         method = HttpMethod.Patch
         setBody(update)
       }
