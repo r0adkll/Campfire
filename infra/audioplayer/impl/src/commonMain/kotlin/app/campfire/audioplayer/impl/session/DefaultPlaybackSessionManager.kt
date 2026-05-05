@@ -7,6 +7,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -31,9 +32,10 @@ class DefaultPlaybackSessionManager(
     libraryItemId: LibraryItemId,
     playImmediately: Boolean,
     chapterId: Int?,
+    episodeId: PodcastEpisodeId?,
   ) {
     withContext(dispatcherProvider.io) {
-      val session = sessionsRepository.createSession(libraryItemId)
+      val session = sessionsRepository.createSession(libraryItemId, episodeId)
       ibark { "Preparing playback session for ${libraryItemId.loggableId}: ${session.id}" }
 
       val player = audioPlayerHolder.currentPlayer.value

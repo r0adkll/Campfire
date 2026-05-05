@@ -19,6 +19,7 @@ import app.campfire.data.MediaChapters
 import app.campfire.data.MetadataAuthor
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.asEpisodeDbModel
 import app.campfire.data.mapping.model.LibraryItemWithMedia
 import app.campfire.data.mapping.model.PodcastLibraryItemWithMedia
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
@@ -130,8 +131,15 @@ class SqlDelightLibraryItemDao(
     val episodes = db.podcastEpisodeQueries
       .selectForLibraryItemId(item.id)
       .awaitAsList()
+    val audioTracksByEpisodeId = db.podcastEpisodeAudioTrackQueries
+      .selectForLibraryItemId(item.id)
+      .awaitAsList()
+      .associateBy(
+        keySelector = { it.episodeId },
+        valueTransform = { it.asDomainModel(urlHydrator) },
+      )
 
-    item.asDomainModel(urlHydrator, episodes)
+    item.asDomainModel(urlHydrator, episodes, audioTracksByEpisodeId)
   }
 
   override suspend fun hydratePagedItem(
@@ -194,7 +202,9 @@ class SqlDelightLibraryItemDao(
         db.podcastMediaQueries.insert(podcastMedia)
       }
 
-      // 3) Episode rows
+      // 3) Episode rows + the per-episode audio track that backs playback. The track is
+      // only present on the expanded JSON shape; on the basic shape we leave the track
+      // table empty for that episode and let a later expanded fetch fill it in.
       item.media.episodes?.forEach { episode ->
         val row = episode.asDbModel(
           libraryItemId = libraryItem.id,
@@ -204,6 +214,11 @@ class SqlDelightLibraryItemDao(
           db.podcastEpisodeQueries.insertOrIgnore(row)
         } else {
           db.podcastEpisodeQueries.insert(row)
+        }
+        episode.audioTrack?.let { track ->
+          db.podcastEpisodeAudioTrackQueries.insert(
+            track.asEpisodeDbModel(episodeId = episode.id),
+          )
         }
       }
 

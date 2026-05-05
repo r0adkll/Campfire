@@ -226,7 +226,7 @@ class BookPresenter(
 
         is LibraryItemUiEvent.PlayClick -> {
           analytics.send(ActionEvent("play_item", Click))
-          playbackController.startSession(event.item.id)
+          playbackController.startSession(libraryItem.id)
         }
 
         is LibraryItemUiEvent.AuthorClick -> {

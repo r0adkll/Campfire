@@ -44,6 +44,9 @@ class EpisodeSlot(
         onClick = {
           eventSink(LibraryItemUiEvent.OpenEpisode(episode))
         },
+        onPlayClick = {
+          eventSink(LibraryItemUiEvent.PlayEpisodeClick(episode))
+        },
         shape = RoundedCornerShape(
           topStart = topCornerSize,
           topEnd = topCornerSize,

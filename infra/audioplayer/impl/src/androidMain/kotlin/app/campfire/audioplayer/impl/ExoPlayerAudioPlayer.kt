@@ -216,9 +216,12 @@ class ExoPlayerAudioPlayer(
           mediaPlayer = ${session.mediaPlayer},
           currentTime = ${session.currentTime},
           chapterId = $chapterId,
+          episodeId = ${session.episodeId},
         )
       """.trimIndent()
     }
+
+    val podcastEpisode = session.episode
 
     player.run {
       // Set the media list
@@ -228,7 +231,22 @@ class ExoPlayerAudioPlayer(
       setPlaybackSpeed(playbackSpeed.value)
 
       // Seek the media player
-      if (chapterId != null) {
+      if (podcastEpisode != null) {
+        // Podcast episodes are a single MediaItem at index 0; chapter/track logic
+        // doesn't apply. Seek to the resume position within the episode if any.
+        val resumeMs = session.currentTime
+          .takeIf { it.isFinite() && it > 0.seconds }
+          ?.inWholeMilliseconds
+          ?: 0L
+        seekTo(0, resumeMs)
+        currentTime.value = resumeMs.milliseconds
+        currentDuration.value = podcastEpisode.duration
+        currentMetadata.value = Metadata(
+          title = podcastEpisode.title,
+          artworkUri = session.libraryItem.media.coverImageUrl,
+        )
+        overallTime.value = resumeMs.milliseconds
+      } else if (chapterId != null) {
         if (session.libraryItem.media.chapters.isNotEmpty()) {
           // If the Chapter Id is passed explicitly then we can take that intention as
           // starting playback directly at that chapter

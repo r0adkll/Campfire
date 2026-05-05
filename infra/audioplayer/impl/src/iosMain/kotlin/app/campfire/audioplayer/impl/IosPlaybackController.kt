@@ -13,6 +13,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -37,11 +38,16 @@ class IosPlaybackController(
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
-  override fun startSession(itemId: LibraryItemId, playImmediately: Boolean, chapterId: Int?) {
+  override fun startSession(
+    itemId: LibraryItemId,
+    playImmediately: Boolean,
+    chapterId: Int?,
+    episodeId: PodcastEpisodeId?,
+  ) {
     userScopeHolder.get().launch {
       configureAudioSession()
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId)
+      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId)
     }
   }
 

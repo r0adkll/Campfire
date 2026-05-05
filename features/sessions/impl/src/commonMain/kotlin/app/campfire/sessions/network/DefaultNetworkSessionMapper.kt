@@ -43,7 +43,7 @@ class DefaultNetworkSessionMapper(
       userId = currentUser.id,
       libraryId = session.libraryItem.libraryId,
       libraryItemId = session.libraryItem.id,
-      episodeId = null,
+      episodeId = session.episodeId,
       mediaType = session.libraryItem.mediaType.name.lowercase(),
       mediaPlayer = when (currentPlatform) {
         ANDROID -> "exo-player"

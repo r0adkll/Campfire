@@ -9,9 +9,11 @@ import app.campfire.core.extensions.epochMilliseconds
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PlaybackActionType
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
@@ -104,6 +106,7 @@ class SqlDelightSessionDataSource(
     libraryItemId: LibraryItemId,
     playMethod: PlayMethod,
     progress: MediaProgress?,
+    episodeId: PodcastEpisodeId?,
   ): Session {
     val now = fatherTime.now()
     val currentUserId = userSession.requiredUserId
@@ -207,7 +210,7 @@ class SqlDelightSessionDataSource(
         lastPlayedAt = lastPlayedAt,
         startedAt = now,
         updatedAt = now,
-        episodeId = null,
+        episodeId = episodeId,
       )
 
       // Insert, replacing any existing session and disable any other active sessions
@@ -282,9 +285,17 @@ class SqlDelightSessionDataSource(
   override suspend fun markFinished(libraryItemId: LibraryItemId) {
     val currentUserId = userSession.userId ?: return
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
+    val existingSession = read {
+      db.sessionQueries.getForId(libraryItemId, currentUserId).awaitAsOneOrNull()
+    }
+    val finishedAt = (libraryItem.media as? Media.Podcast)
+      ?.episodes
+      ?.firstOrNull { it.id == existingSession?.episodeId }
+      ?.duration
+      ?: libraryItem.media.duration
     write {
       db.sessionQueries.markFinished(
-        currentTime = libraryItem.media.duration,
+        currentTime = finishedAt,
         updatedAt = fatherTime.now(),
         libraryItemId = libraryItemId,
         userId = currentUserId,
@@ -307,6 +318,7 @@ class SqlDelightSessionDataSource(
       lastPlayedAt = session.lastPlayedAt,
       startedAt = session.startedAt,
       updatedAt = session.updatedAt,
+      episodeId = session.episodeId,
     )
   }
 

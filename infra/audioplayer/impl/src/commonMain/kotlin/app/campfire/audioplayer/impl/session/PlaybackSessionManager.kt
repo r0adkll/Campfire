@@ -1,6 +1,7 @@
 package app.campfire.audioplayer.impl.session
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 
 /**
  * This interface is for connecting a live [app.campfire.audioplayer.AudioPlayer] instance
@@ -12,6 +13,7 @@ interface PlaybackSessionManager {
     libraryItemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
+    episodeId: PodcastEpisodeId? = null
   )
 
   suspend fun stopSession(

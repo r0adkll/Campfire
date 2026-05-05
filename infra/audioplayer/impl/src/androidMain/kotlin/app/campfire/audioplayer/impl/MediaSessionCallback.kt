@@ -119,7 +119,11 @@ internal class MediaSessionCallback(
     }
 
     userComponent.sessionsRepository.getCurrentSession()?.let { session ->
-      userComponent.playbackSessionManager.startSession(session.libraryItem.id, playImmediately = isForPlayback)
+      userComponent.playbackSessionManager.startSession(
+        libraryItemId = session.libraryItem.id,
+        playImmediately = isForPlayback,
+        episodeId = session.episodeId,
+      )
     }
 
     // Return an error from this response as we've taken responsibility for starting playback and

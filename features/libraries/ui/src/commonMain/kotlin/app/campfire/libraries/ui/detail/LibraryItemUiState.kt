@@ -44,7 +44,8 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
 
-  data class PlayClick(val item: LibraryItem) : LibraryItemUiEvent
+  data object PlayClick : LibraryItemUiEvent
+  data class PlayEpisodeClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent

@@ -2,11 +2,57 @@ package app.campfire.audioplayer.impl.mediaitem
 
 import app.campfire.core.extensions.isIn
 import app.campfire.core.extensions.seconds
+import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
+import kotlin.time.Duration
 
 object IosMediaItemBuilder {
 
-  fun build(session: Session): List<IosMediaItem> = with(session.libraryItem) {
+  fun build(session: Session): List<IosMediaItem> {
+    val episode = session.episode
+    if (episode != null) {
+      return buildPodcastEpisode(session.libraryItem, episode)
+    }
+    return buildBook(session)
+  }
+
+  private fun buildPodcastEpisode(
+    item: LibraryItem,
+    episode: PodcastEpisode,
+  ): List<IosMediaItem> {
+    val track = episode.audioTrack ?: return emptyList()
+    val durationMs = episode.duration.inWholeMilliseconds
+    val metadata = MediaItem.Metadata(
+      id = 0,
+      title = episode.title,
+      artist = item.media.metadata.author ?: item.media.metadata.title,
+      description = episode.description ?: "",
+      subtitle = episode.subtitle,
+      albumTitle = item.media.metadata.title,
+      artworkUri = item.media.coverImageUrl,
+      durationMs = durationMs,
+      libraryItemId = item.id,
+    )
+    return listOf(
+      IosMediaItem(
+        id = episode.id,
+        uri = track.contentUrl,
+        startOffset = Duration.ZERO,
+        duration = episode.duration,
+        tracks = listOf(
+          IosMediaItem.Track(
+            id = 0,
+            startMs = 0L,
+            endMs = durationMs,
+            metadata = metadata,
+          ),
+        ),
+      ),
+    )
+  }
+
+  private fun buildBook(session: Session): List<IosMediaItem> = with(session.libraryItem) {
     val chapters = media.chapters
     val audioTracks = media.tracks
 

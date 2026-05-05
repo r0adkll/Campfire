@@ -1,6 +1,7 @@
 package app.campfire.audioplayer
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 
 /**
  * This interface is the means by which the app can a certain the [AudioPlayer] for any ongoing playback, or not
@@ -15,6 +16,7 @@ interface PlaybackController {
     itemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
+    episodeId: PodcastEpisodeId? = null
   )
 
   /**

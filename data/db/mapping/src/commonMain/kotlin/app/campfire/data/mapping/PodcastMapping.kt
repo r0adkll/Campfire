@@ -1,11 +1,13 @@
 package app.campfire.data.mapping
 
 import app.campfire.account.api.UrlHydrator
+import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.PodcastEpisode as DomainPodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.ShelfEntity
 import app.campfire.data.PodcastEpisode as DbPodcastEpisode
 import app.campfire.data.PodcastMedia as DbPodcastMedia
@@ -130,7 +132,8 @@ fun NetworkPodcast.asDomainModel(
 fun NetworkPodcast.asDbModel(
   libraryItemId: LibraryItemId,
   urlHydrator: UrlHydrator,
-): DbPodcastMedia = asDomainModel(libraryItemId, urlHydrator).asDbModel(libraryItemId)
+): DbPodcastMedia = asDomainModel(libraryItemId, urlHydrator)
+  .asDbModel(libraryItemId)
 
 fun NetworkPodcastEpisode.asDbModel(
   libraryItemId: LibraryItemId,
@@ -221,7 +224,9 @@ fun DomainPodcastEpisode.asDbModel(podcastMediaId: String): DbPodcastEpisode {
 // DB → Domain
 // ===================================================================================
 
-fun DbPodcastEpisode.asDomainModel(): DomainPodcastEpisode {
+fun DbPodcastEpisode.asDomainModel(
+  audioTrack: AudioTrack? = null,
+): DomainPodcastEpisode {
   return DomainPodcastEpisode(
     id = id,
     libraryItemId = libraryItemId,
@@ -239,7 +244,7 @@ fun DbPodcastEpisode.asDomainModel(): DomainPodcastEpisode {
     updatedAtMillis = updatedAtMillis,
     durationInMillis = durationInMillis,
     sizeInBytes = sizeInBytes,
-    audioTrack = null,
+    audioTrack = audioTrack,
     chapters = emptyList(),
   )
 }
@@ -251,6 +256,7 @@ fun DbPodcastEpisode.asDomainModel(): DomainPodcastEpisode {
 fun PodcastLibraryItemWithMedia.asDomainModel(
   urlHydrator: UrlHydrator,
   episodes: List<DbPodcastEpisode>,
+  audioTracksByEpisodeId: Map<PodcastEpisodeId, AudioTrack> = emptyMap(),
 ): LibraryItem {
   val metadata = Media.Metadata.Podcast(
     title = metadata_title,
@@ -276,7 +282,7 @@ fun PodcastLibraryItemWithMedia.asDomainModel(
     coverPath = coverPath,
     tags = tags ?: emptyList(),
     sizeInBytes = sizeInBytes,
-    episodes = episodes.map { it.asDomainModel() },
+    episodes = episodes.map { it.asDomainModel(audioTracksByEpisodeId[it.id]) },
     numEpisodes = numEpisodes,
     autoDownloadEpisodes = autoDownloadEpisodes,
     autoDownloadSchedule = autoDownloadSchedule,

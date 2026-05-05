@@ -8,6 +8,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.launchIn
@@ -34,6 +35,7 @@ class AndroidPlaybackController(
     itemId: LibraryItemId,
     playImmediately: Boolean,
     chapterId: Int?,
+    episodeId: PodcastEpisodeId?,
   ) {
     // Dumb hack to get around edge case where this can be called twice from [SessionLayoutHost]
     // during init/new session
@@ -49,7 +51,7 @@ class AndroidPlaybackController(
       .onEach { mediaController ->
         ibark { "$mediaController <-- starting for item, playImmediately=$playImmediately" }
         currentSessionId = itemId
-        playbackSessionManager.startSession(itemId, playImmediately, chapterId)
+        playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId)
       }
       .launchIn(scopeHolder.get())
   }

@@ -3,6 +3,10 @@ package app.campfire.libraries.ui.detail.podcast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
+import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -29,7 +33,10 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
 @Inject
-class PodcastPresenter() : AbstractLibraryItemPresenter {
+class PodcastPresenter(
+  private val analytics: Analytics,
+  private val playbackController: PlaybackController,
+) : AbstractLibraryItemPresenter {
 
   @Composable
   override fun present(
@@ -62,6 +69,14 @@ class PodcastPresenter() : AbstractLibraryItemPresenter {
             scope.launch {
               overlayHost.showPodcastEpisodeBottomSheet(event.episode)
             }
+          }
+
+          is LibraryItemUiEvent.PlayEpisodeClick -> {
+            analytics.send(ActionEvent("play_item", Click))
+            playbackController.startSession(
+              itemId = libraryItem.id,
+              episodeId = event.episode.id,
+            )
           }
 
           else -> Unit

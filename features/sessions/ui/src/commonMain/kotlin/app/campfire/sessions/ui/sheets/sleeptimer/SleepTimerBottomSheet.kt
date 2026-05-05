@@ -77,6 +77,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.sessions.api.SessionsRepository
@@ -673,7 +674,10 @@ fun TimerBottomSheetV2Preview() {
             get() = object : SessionsRepository {
               override suspend fun getSession(libraryItemId: LibraryItemId): Session? = null
               override suspend fun getCurrentSession(): Session? = null
-              override suspend fun createSession(libraryItemId: LibraryItemId): Session = error("n/a")
+              override suspend fun createSession(
+                libraryItemId: LibraryItemId,
+                episodeId: PodcastEpisodeId?,
+              ): Session = error("n/a")
               override suspend fun markDeleted(libraryItemId: LibraryItemId) = Unit
               override suspend fun deleteSession(libraryItemId: LibraryItemId) = Unit
               override suspend fun updateCurrentTime(

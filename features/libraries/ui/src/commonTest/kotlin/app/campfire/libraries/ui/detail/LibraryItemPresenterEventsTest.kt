@@ -89,7 +89,7 @@ private val OnBack = EventTest(
 )
 
 private val PlayClick = EventTest(
-  event = LibraryItemUiEvent.PlayClick(libraryItem(TestLibraryItemId)),
+  event = LibraryItemUiEvent.PlayClick,
   assert = {
     assertThat(analytics.events)
       .single()

@@ -28,9 +28,22 @@ data class Session(
   // Date / Time
   val startedAt: LocalDateTime,
   val updatedAt: LocalDateTime,
+
+  // Podcast-only: the episode currently being played. Null for book sessions.
+  val episodeId: PodcastEpisodeId? = null,
 ) {
+  /**
+   * If this is a podcast session and a matching episode is found on the library item,
+   * returns the episode being played. Null for book sessions or when the episode can't
+   * be resolved on the loaded library item.
+   */
+  val episode: PodcastEpisode?
+    get() = (libraryItem.media as? Media.Podcast)
+      ?.episodes
+      ?.firstOrNull { it.id == episodeId }
+
   val duration: Duration
-    get() = libraryItem.media.durationInMillis.milliseconds
+    get() = episode?.duration ?: libraryItem.media.durationInMillis.milliseconds
 
   val timeRemaining: Duration
     get() = duration - currentTime
@@ -42,10 +55,17 @@ data class Session(
     get() = currentTime >= duration
 
   val chapter: Chapter?
-    get() = libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
+    get() = episode?.let { ep ->
+      ep.chapters.find { c ->
+        val startMs = c.start.seconds.inWholeMilliseconds
+        val endMs = c.end.seconds.inWholeMilliseconds
+        currentTime.inWholeMilliseconds in startMs..<endMs
+      }
+    } ?: libraryItem.getChapterForDuration(currentTime.inWholeMilliseconds)
 
   val audioTrack: AudioTrack?
-    get() = libraryItem.getAudioTrackForDuration(currentTime.inWholeMilliseconds)
+    get() = episode?.audioTrack
+      ?: libraryItem.getAudioTrackForDuration(currentTime.inWholeMilliseconds)
 
   /**
    * Get the "Current" duration that should be displayed to the user. Starting
@@ -57,6 +77,7 @@ data class Session(
 
   val title: String
     get() = chapter?.title
+      ?: episode?.title
       ?: audioTrack?.taggedTitle
       ?: libraryItem.media.metadata.title
       ?: TITLE_PLACEHOLDER

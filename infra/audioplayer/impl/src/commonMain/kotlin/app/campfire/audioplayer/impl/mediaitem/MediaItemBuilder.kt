@@ -6,6 +6,7 @@ import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
 import app.campfire.crashreporting.CrashReporter
 import kotlin.math.abs
@@ -15,7 +16,38 @@ import kotlin.time.Duration.Companion.seconds
 
 object MediaItemBuilder : Corked("MediaItemBuilders") {
 
-  fun build(session: Session): List<MediaItem> = build(session.libraryItem)
+  fun build(session: Session): List<MediaItem> {
+    val episode = session.episode
+    if (episode != null) {
+      return buildPodcastEpisode(session.libraryItem, episode)
+    }
+    return build(session.libraryItem)
+  }
+
+  fun buildPodcastEpisode(item: LibraryItem, episode: PodcastEpisode): List<MediaItem> {
+    val track = episode.audioTrack ?: run {
+      ebark { "Podcast episode ${episode.id} on ${item.id} has no audio track; cannot build MediaItem" }
+      return emptyList()
+    }
+    return listOf(
+      MediaItem(
+        id = "${item.media.id}_${episode.id}",
+        uri = track.contentUrl,
+        mimeType = track.mimeType,
+        metadata = MediaItem.Metadata(
+          id = 0,
+          title = episode.title,
+          artist = item.media.metadata.author ?: item.media.metadata.title,
+          description = episode.description ?: "",
+          subtitle = episode.subtitle,
+          albumTitle = item.media.metadata.title,
+          artworkUri = item.media.coverImageUrl,
+          durationMs = episode.durationInMillis,
+          libraryItemId = item.id,
+        ),
+      ),
+    )
+  }
 
   fun build(item: LibraryItem): List<MediaItem> = with(item) {
     val chapters = media.chapters

@@ -87,7 +87,7 @@ class ExpressiveControlSlot(
       offlineDownload = offlineDownload,
       mediaProgress = mediaProgress,
       onPlayClick = {
-        eventSink(LibraryItemUiEvent.PlayClick(libraryItem))
+        eventSink(LibraryItemUiEvent.PlayClick)
       },
       onDownloadClick = {
         if (showConfirmDownloadDialogSetting) {

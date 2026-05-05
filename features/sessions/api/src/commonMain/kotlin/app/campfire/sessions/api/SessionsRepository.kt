@@ -1,6 +1,7 @@
 package app.campfire.sessions.api
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
@@ -13,10 +14,14 @@ interface SessionsRepository {
 
   /**
    * Create a new listening session to begin playback
-   * @param item The item to begin listening to
+   * @param libraryItemId The item to begin listening to
+   * @param episodeId Optional podcast episode id when [libraryItemId] points at a podcast item
    * @return The newly created session
    */
-  suspend fun createSession(libraryItemId: LibraryItemId): Session
+  suspend fun createSession(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
+  ): Session
 
   /**
    * Mark a session for deletion on next sync, deleting it instead of

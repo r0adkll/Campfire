@@ -76,7 +76,22 @@ class VlcAudioPlayer(
 
     // Seek the media player
     var startTimeInChapterMs = 0L
-    if (chapterId != null) {
+    val podcastEpisode = session.episode
+    if (podcastEpisode != null) {
+      val resumeMs = session.currentTime
+        .takeIf { it.isFinite() && it > 0.seconds }
+        ?.inWholeMilliseconds
+        ?: 0L
+      mediaPlayer.setCurrentItem(0)
+      startTimeInChapterMs = resumeMs
+      currentTime.value = resumeMs.milliseconds
+      currentDuration.value = podcastEpisode.duration
+      currentMetadata.value = Metadata(
+        title = podcastEpisode.title,
+        artworkUri = session.libraryItem.media.coverImageUrl,
+      )
+      overallTime.value = resumeMs.milliseconds
+    } else if (chapterId != null) {
       val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
         ?: error("Unable to find chapter to start")
 

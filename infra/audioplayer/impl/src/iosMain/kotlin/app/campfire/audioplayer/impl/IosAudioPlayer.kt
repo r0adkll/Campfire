@@ -129,7 +129,19 @@ class IosAudioPlayer(
 
     // Seek the media player
     var startTimeInChapterMs = 0L
-    if (chapterId != null) {
+    val podcastEpisode = session.episode
+    if (podcastEpisode != null) {
+      val resumeMs = session.currentTime
+        .takeIf { it.isFinite() && it > 0.seconds }
+        ?.inWholeMilliseconds
+        ?: 0L
+      player.currentItemIndex = 0
+      startTimeInChapterMs = resumeMs
+      currentMetadata.value = Metadata(
+        title = podcastEpisode.title,
+        artworkUri = session.libraryItem.media.coverImageUrl,
+      )
+    } else if (chapterId != null) {
       val chapter = session.libraryItem.media.chapters.find { it.id == chapterId }
         ?: error("Unable to find chapter to start")
 

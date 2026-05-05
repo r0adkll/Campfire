@@ -3,6 +3,7 @@ package app.campfire.sessions.db
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import kotlin.time.Duration
@@ -22,6 +23,7 @@ interface SessionDataSource {
     libraryItemId: LibraryItemId,
     playMethod: PlayMethod,
     progress: MediaProgress?,
+    episodeId: PodcastEpisodeId? = null,
   ): Session
 
   suspend fun updateCurrentTime(

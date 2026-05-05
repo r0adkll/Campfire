@@ -1,0 +1,54 @@
+import kotlin.Int;
+
+-- Per-episode audio track. Mirrors mediaAudioTracks for books, but each podcast episode
+-- has exactly one audio track (per ABS server: episodes always have a single track with
+-- startOffset 0), so the PK is just episodeId.
+CREATE TABLE IF NOT EXISTS podcastEpisodeAudioTrack (
+  episodeId TEXT NOT NULL PRIMARY KEY,
+  trackIndex INTEGER AS Int NOT NULL,
+
+  startOffset REAL NOT NULL,
+  duration REAL NOT NULL,
+  title TEXT NOT NULL,
+  contentUrl TEXT NOT NULL,
+  mimeType TEXT NOT NULL,
+  codec TEXT NOT NULL,
+
+  metadata_filename TEXT NOT NULL,
+  metadata_ext TEXT NOT NULL,
+  metadata_path TEXT NOT NULL,
+  metadata_relPath TEXT NOT NULL,
+  metadata_size INTEGER NOT NULL,
+  metadata_mtimeMs INTEGER NOT NULL,
+  metadata_ctimeMs INTEGER NOT NULL,
+  metadata_birthtimeMs INTEGER NOT NULL,
+
+  metaTags_tagAlbum TEXT,
+  metaTags_tagArtist TEXT,
+  metaTags_tagAlbumArtist TEXT,
+  metaTags_tagTitle TEXT,
+  metaTags_tagSubtitle TEXT,
+  metaTags_tagSeries TEXT,
+  metaTags_tagSeriesPart TEXT,
+  metaTags_tagTrack TEXT,
+
+  FOREIGN KEY (episodeId) REFERENCES podcastEpisode(id) ON DELETE CASCADE
+);
+
+insert:
+INSERT OR REPLACE INTO podcastEpisodeAudioTrack
+VALUES ?;
+
+selectForEpisodeId:
+SELECT * FROM podcastEpisodeAudioTrack
+WHERE episodeId = ?;
+
+selectForLibraryItemId:
+SELECT t.*
+FROM podcastEpisodeAudioTrack t
+INNER JOIN podcastEpisode e ON e.id = t.episodeId
+WHERE e.libraryItemId = ?;
+
+deleteForEpisodeId:
+DELETE FROM podcastEpisodeAudioTrack
+WHERE episodeId = ?;

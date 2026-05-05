@@ -9,6 +9,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
@@ -29,10 +30,11 @@ class DesktopPlaybackController(
     itemId: LibraryItemId,
     playImmediately: Boolean,
     chapterId: Int?,
+    episodeId: PodcastEpisodeId?
   ) {
     userScopeHolder.get().launch {
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId)
+      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId)
     }
   }
 

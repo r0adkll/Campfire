@@ -1,6 +1,7 @@
 package app.campfire.sessions.test
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
 import kotlin.time.Duration
@@ -24,8 +25,11 @@ class FakeSessionsRepository : SessionsRepository {
   }
 
   lateinit var createSession: Session
-  override suspend fun createSession(libraryItemId: LibraryItemId): Session {
-    invocations += Invocation.CreateSession(libraryItemId)
+  override suspend fun createSession(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Session {
+    invocations += Invocation.CreateSession(libraryItemId, episodeId)
     return createSession
   }
 
@@ -74,7 +78,10 @@ class FakeSessionsRepository : SessionsRepository {
   sealed interface Invocation {
     data class GetSession(val libraryItemId: LibraryItemId) : Invocation
     data object CurrentSession : Invocation
-    data class CreateSession(val libraryItemId: LibraryItemId) : Invocation
+    data class CreateSession(
+      val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
     data class MarkDeleted(val libraryItemId: LibraryItemId) : Invocation
     data class DeleteSession(val libraryItemId: LibraryItemId) : Invocation
     data class UpdateCurrentTime(val libraryItemId: LibraryItemId, val currentTime: Duration) : Invocation

@@ -48,6 +48,7 @@ import kotlinx.datetime.LocalDate
 internal fun EpisodeListItem(
   episode: PodcastEpisode,
   onClick: () -> Unit,
+  onPlayClick: () -> Unit,
   modifier: Modifier = Modifier,
   shape: Shape = MaterialTheme.shapes.medium,
 ) {
@@ -113,6 +114,7 @@ internal fun EpisodeListItem(
       EpisodeActionBar(
         duration = episode.duration,
         publishedAt = episode.publishedAtMillis?.asDate(),
+        onPlayClick = onPlayClick,
       )
     }
   }
@@ -123,6 +125,7 @@ internal fun EpisodeListItem(
 private fun EpisodeActionBar(
   duration: Duration,
   publishedAt: LocalDate?,
+  onPlayClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Row(
@@ -180,7 +183,7 @@ private fun EpisodeActionBar(
 
     val playButtonSize = ButtonDefaults.ExtraSmallContainerHeight
     Button(
-      onClick = {},
+      onClick = onPlayClick,
       shapes = ButtonDefaults.shapes(
         shape = ButtonDefaults.squareShape,
         pressedShape = ButtonDefaults.shape,
@@ -212,6 +215,7 @@ fun EpisodeListItemPreview() {
     ) {
       EpisodeListItem(
         onClick = {},
+        onPlayClick = {},
         modifier = Modifier.padding(8.dp),
         episode = PodcastEpisode(
           id = "someid",

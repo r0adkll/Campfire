@@ -5,6 +5,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
@@ -39,7 +40,10 @@ class DefaultSessionsRepository(
     return dataSource.getSession(libraryItemId)
   }
 
-  override suspend fun createSession(libraryItemId: LibraryItemId): Session {
+  override suspend fun createSession(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     val progress = mediaProgressRepository.getProgress(libraryItemId)
     val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
@@ -52,6 +56,7 @@ class DefaultSessionsRepository(
         PlayMethod.DirectPlay
       },
       progress = progress,
+      episodeId = episodeId,
     )
   }
 
