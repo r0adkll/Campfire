@@ -204,7 +204,7 @@ jobs:
           path: app/android/build/outputs/apk/alpha/release/android-alpha-release.apk
 
       - name: Post Artifact URL to PR
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         uses: thollander/actions-comment-pull-request@v3
         with:
           message: |
