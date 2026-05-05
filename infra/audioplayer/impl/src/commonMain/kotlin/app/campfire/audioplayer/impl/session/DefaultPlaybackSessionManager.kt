@@ -45,9 +45,10 @@ class DefaultPlaybackSessionManager(
       sessionQueue.remove(session.libraryItem)
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
-        // For podcast sessions, mark the playing episode finished — not the parent item.
+        // For podcast sessions, scope all the finishing operations to the playing episode
+        // so siblings (other episodes' progress / history / sessions) aren't clobbered.
         mediaProgressRepository.markFinished(libraryItemId, session.episodeId)
-        playbackHistoryRepository.clear(libraryItemId)
+        playbackHistoryRepository.clear(libraryItemId, session.episodeId)
 
         // Check if we have an item next in the queue
         val nextItem = sessionQueue.pop()
@@ -57,7 +58,7 @@ class DefaultPlaybackSessionManager(
         } else {
           // If we don't have a next-of-queue, Mark the session as finished which maxes out its current time
           // and marks it as inactive so it can be sync'd and then deleted
-          sessionsRepository.markFinished(session.libraryItem.id)
+          sessionsRepository.markFinished(session.libraryItem.id, session.episodeId)
         }
       }
     }
@@ -66,22 +67,25 @@ class DefaultPlaybackSessionManager(
   override suspend fun stopSession(
     libraryItemId: LibraryItemId,
     clearQueue: Boolean,
+    episodeId: PodcastEpisodeId?,
   ) {
     ibark { "Stopping playback session for ${libraryItemId.loggableId}" }
 
     if (clearQueue) {
-      sessionsRepository.stopSession(libraryItemId)
+      sessionsRepository.stopSession(libraryItemId, episodeId)
       sessionQueue.clear()
     } else {
-      // If the item is the current playing item, then pop the queue,
-      // and start playing the next item
+      // If the item is the current playing item (and the same episode for podcasts),
+      // pop the queue and start playing the next item.
       val current = sessionsRepository.getCurrentSession()
-      if (current?.libraryItem?.id == libraryItemId) {
+      val isCurrent = current?.libraryItem?.id == libraryItemId &&
+        current.episodeId == episodeId
+      if (isCurrent) {
         val nextItem = sessionQueue.pop()
         if (nextItem != null) {
           startSession(nextItem.id, playImmediately = true)
         } else {
-          sessionsRepository.stopSession(libraryItemId)
+          sessionsRepository.stopSession(libraryItemId, episodeId)
         }
       }
     }

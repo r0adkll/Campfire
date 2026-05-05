@@ -1,0 +1,45 @@
+import app.campfire.core.model.PlayMethod;
+import kotlin.Boolean;
+import kotlin.time.Duration;
+import kotlin.uuid.Uuid;
+import kotlinx.datetime.LocalDateTime;
+
+-- Migration 11: convert session.episodeId from nullable TEXT to TEXT NOT NULL DEFAULT ''.
+-- Drops the `episodeId IS :param` matching hack from query files in favour of plain `=`
+-- against the empty-string sentinel, mirroring the conventions already used by
+-- `mediaProgress` and `playbackAction`. SQLite can't change a column's nullability in
+-- place; we rebuild via a temp table and backfill NULLs to ''.
+CREATE TABLE session_new (
+  id TEXT AS Uuid NOT NULL UNIQUE,
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
+  isDeleted INTEGER AS Boolean NOT NULL DEFAULT 0,
+
+  playMethod TEXT AS PlayMethod NOT NULL,
+  mediaPlayer TEXT NOT NULL,
+
+  timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
+  startTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  lastPlayedAt TEXT AS LocalDateTime,
+
+  startedAt TEXT AS LocalDateTime NOT NULL,
+  updatedAt TEXT AS LocalDateTime NOT NULL,
+
+  -- For books: empty string. For podcast episodes: the episode id. Same convention as
+  -- mediaProgress/playbackAction so query filters don't need null-safe `IS` comparisons.
+  episodeId TEXT NOT NULL DEFAULT '',
+
+  PRIMARY KEY(userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO session_new
+SELECT id, userId, libraryItemId, isActive, isDeleted, playMethod, mediaPlayer,
+       timeListening, startTime, currentTime, lastPlayedAt, startedAt, updatedAt,
+       COALESCE(episodeId, '')
+FROM session;
+
+DROP TABLE session;
+ALTER TABLE session_new RENAME TO session;

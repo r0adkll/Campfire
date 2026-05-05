@@ -59,6 +59,7 @@ class AndroidPlaybackController(
   override fun stopSession(
     itemId: LibraryItemId,
     clearQueue: Boolean,
+    episodeId: PodcastEpisodeId?,
   ) {
     mediaSessionConnector.mediaControllerFlow
       .filterNotNull()
@@ -66,7 +67,7 @@ class AndroidPlaybackController(
       .onEach { mediaController ->
         ibark { "$this <!-- stopSession($mediaController)" }
         mediaController.stop()
-        playbackSessionManager.stopSession(itemId, clearQueue)
+        playbackSessionManager.stopSession(itemId, clearQueue, episodeId)
       }
       .launchIn(scopeHolder.get())
   }

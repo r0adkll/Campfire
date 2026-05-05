@@ -47,7 +47,7 @@ class StoreHomeRepository(
         val key = HomeStore.Key(user.id, user.selectedLibraryId)
         val request = StoreReadRequest.cached(key, refresh = true)
         homeStore.stream(request)
-          .debugLogging(HomeStore.tag)
+          .debugLogging(HomeStore.tag, enabled = HomeStore.enabled)
           .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
           .mapNotNull { response ->
             when (response) {
@@ -82,7 +82,7 @@ class StoreHomeRepository(
   override fun observeShelf(shelfId: ShelfId, shelfType: ShelfType): Flow<List<ShelfEntity>> {
     val request = StoreReadRequest.cached(ShelfStore.Key(shelfId, shelfType), refresh = false)
     return shelfStore.stream(request)
-      .debugLogging(ShelfStore.tag)
+      .debugLogging(ShelfStore.tag, enabled = ShelfStore.enabled)
       .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
       .mapNotNull { response ->
         val output = response.dataOrNull() ?: emptyList()

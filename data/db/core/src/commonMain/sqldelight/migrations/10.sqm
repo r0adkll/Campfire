@@ -1,0 +1,8 @@
+-- Migration 10: Make playbackAction per-episode aware. Add an episodeId column so podcast
+-- episodes can carry independent playback histories. Existing rows are book history (or
+-- legacy podcast-item history) and back-fill to the empty-string sentinel that means
+-- "no episode" — matching the convention used by the mediaProgress table.
+ALTER TABLE playbackAction ADD COLUMN episodeId TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS idx_playbackAction_episode
+  ON playbackAction(userId, libraryItemId, episodeId);

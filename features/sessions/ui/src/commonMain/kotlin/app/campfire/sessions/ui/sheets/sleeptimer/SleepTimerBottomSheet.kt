@@ -678,8 +678,14 @@ fun TimerBottomSheetV2Preview() {
                 libraryItemId: LibraryItemId,
                 episodeId: PodcastEpisodeId?,
               ): Session = error("n/a")
-              override suspend fun markDeleted(libraryItemId: LibraryItemId) = Unit
-              override suspend fun deleteSession(libraryItemId: LibraryItemId) = Unit
+              override suspend fun markDeleted(
+                libraryItemId: LibraryItemId,
+                episodeId: PodcastEpisodeId?,
+              ) = Unit
+              override suspend fun deleteSession(
+                libraryItemId: LibraryItemId,
+                episodeId: PodcastEpisodeId?,
+              ) = Unit
               override suspend fun updateCurrentTime(
                 libraryItemId: LibraryItemId,
                 currentTime: Duration,
@@ -689,8 +695,14 @@ fun TimerBottomSheetV2Preview() {
                 libraryItemId: LibraryItemId,
                 amount: Duration,
               ) = Unit
-              override suspend fun stopSession(libraryItemId: LibraryItemId) = Unit
-              override suspend fun markFinished(libraryItemId: LibraryItemId) = Unit
+              override suspend fun stopSession(
+                libraryItemId: LibraryItemId,
+                episodeId: PodcastEpisodeId?,
+              ) = Unit
+              override suspend fun markFinished(
+                libraryItemId: LibraryItemId,
+                episodeId: PodcastEpisodeId?,
+              ) = Unit
               override fun observeCurrentSession(): Flow<Session?> {
                 return flowOf(
                   Session(

@@ -84,9 +84,13 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
       userId = session.userId,
       libraryItemId = session.libraryItem.id,
       episodeId = session.episodeId,
-      mediaItemId = session.libraryItem.media.id,
+      // For podcast episodes the server keys progress by episodeId; mirror that locally
+      // so round-tripped rows align. Books continue to use the media id.
+      mediaItemId = session.episodeId ?: session.libraryItem.media.id,
       mediaItemType = session.libraryItem.mediaType,
-      duration = session.libraryItem.media.durationInSeconds,
+      // session.duration is episode-aware (falls back to the parent item's duration only
+      // when episodeId is null), so podcast episodes report the correct per-episode total.
+      duration = session.duration.asSeconds(),
       progress = session.progress,
       currentTime = session.currentTime.asSeconds(),
       isFinished = session.isFinished,

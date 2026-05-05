@@ -6,6 +6,9 @@ CREATE TABLE IF NOT EXISTS playbackAction (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   libraryItemId TEXT NOT NULL,
   userId TEXT NOT NULL,
+  -- For books: empty string. For podcast episodes: the episode id. Lets us keep an
+  -- independent playback timeline per episode while still scoping by libraryItemId.
+  episodeId TEXT NOT NULL DEFAULT '',
   type TEXT AS PlaybackActionType NOT NULL,
   timestamp TEXT AS LocalDateTime NOT NULL,
   fromPosition INTEGER AS Duration NOT NULL DEFAULT 0,
@@ -17,20 +20,40 @@ CREATE TABLE IF NOT EXISTS playbackAction (
 CREATE INDEX IF NOT EXISTS idx_playbackAction_libraryItem
 ON playbackAction(userId, libraryItemId);
 
+CREATE INDEX IF NOT EXISTS idx_playbackAction_episode
+ON playbackAction(userId, libraryItemId, episodeId);
+
+-- Item-level history: returns rows for the libraryItem regardless of episode (used by
+-- the book detail screen). For podcasts the per-episode variant should be preferred.
 getForLibraryItem:
 SELECT * FROM playbackAction
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId
 ORDER BY timestamp DESC;
 
+-- Per-episode history. For book progress callers should pass episodeId = ''.
+getForEpisode:
+SELECT * FROM playbackAction
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+  AND episodeId = :episodeId
+ORDER BY timestamp DESC;
+
 insert:
-INSERT INTO playbackAction(libraryItemId, userId, type, timestamp, fromPosition, toPosition)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT INTO playbackAction(libraryItemId, userId, episodeId, type, timestamp, fromPosition, toPosition)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 deleteForLibraryItem:
 DELETE FROM playbackAction
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId;
+
+-- Per-episode delete so clearing one episode's history doesn't wipe siblings.
+deleteForEpisode:
+DELETE FROM playbackAction
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+  AND episodeId = :episodeId;
 
 deleteAll:
 DELETE FROM playbackAction

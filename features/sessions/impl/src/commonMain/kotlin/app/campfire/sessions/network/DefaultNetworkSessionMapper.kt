@@ -20,7 +20,6 @@ import app.campfire.network.models.SeriesSequence
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.format
@@ -93,7 +92,9 @@ class DefaultNetworkSessionMapper(
       displayTitle = session.libraryItem.media.metadata.title!!,
       displayAuthor = session.libraryItem.media.metadata.authorName!!,
       coverPath = session.libraryItem.media.coverPath,
-      duration = session.libraryItem.media.durationInMillis.milliseconds.toDouble(DurationUnit.SECONDS),
+      // session.duration is episode-aware for podcasts (falls back to the parent item's
+      // total only when episodeId is null), so the synced duration matches the episode.
+      duration = session.duration.toDouble(DurationUnit.SECONDS),
       playMethod = session.playMethod.serverValue,
       deviceInfo = DeviceInfo(
         id = campfireSettings.deviceId,

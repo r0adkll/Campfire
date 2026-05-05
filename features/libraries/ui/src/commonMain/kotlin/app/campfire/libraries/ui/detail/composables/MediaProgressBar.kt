@@ -34,13 +34,13 @@ import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.readableFormat
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.remaining_duration_finished
 import campfire.features.libraries.ui.generated.resources.remaining_duration_format
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import org.jetbrains.compose.resources.stringResource
 
@@ -49,7 +49,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun MediaProgressBar(
   isPlaying: Boolean,
   playbackSpeed: Float,
-  libraryItem: LibraryItem,
+  totalDuration: Duration,
   progress: MediaProgress,
   modifier: Modifier = Modifier,
 ) {
@@ -106,7 +106,7 @@ internal fun MediaProgressBar(
           progress.finishedAt!!.asDate().readableFormat,
         )
         else -> {
-          val duration = progress.duration ?: libraryItem.media.durationInMillis.milliseconds.asSeconds()
+          val duration = progress.duration ?: totalDuration.asSeconds()
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
           val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
           stringResource(Res.string.remaining_duration_format, remainingDuration)

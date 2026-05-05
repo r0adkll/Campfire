@@ -43,7 +43,7 @@ data class Session(
       ?.firstOrNull { it.id == episodeId }
 
   val duration: Duration
-    get() = episode?.duration ?: libraryItem.media.durationInMillis.milliseconds
+    get() = episode?.duration ?: libraryItem.media.duration
 
   val timeRemaining: Duration
     get() = duration - currentTime

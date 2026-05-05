@@ -19,6 +19,7 @@ import org.mobilenativefoundation.store.store5.StoreBuilder
 object ShelfStore : Cork {
 
   override val tag = "ShelfStore"
+  override val enabled: Boolean = false
 
   @Inject
   class Factory(

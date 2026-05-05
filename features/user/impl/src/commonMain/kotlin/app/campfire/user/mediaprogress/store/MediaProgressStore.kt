@@ -17,7 +17,7 @@ object MediaProgressStore : Cork {
 
   //region Cork Properties
   override val tag: String = "MediaProgressStore"
-  override val enabled: Boolean = false
+  override val enabled: Boolean = true
   //endregion
 
   @Inject

@@ -41,7 +41,9 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.PodcastEpisode
+import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
+import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.MetadataChip
 import app.campfire.libraries.ui.detail.composables.rememberRichTextState
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
@@ -132,20 +134,31 @@ private fun PodcastEpisodeBottomSheet(
       }
     }
 
+    // Progress bar
+    state.progress?.let { progress ->
+      Spacer(Modifier.height(24.dp))
+      MediaProgressBar(
+        isPlaying = state.isPlaying,
+        playbackSpeed = state.playbackSpeed,
+        totalDuration = state.episode.duration,
+        progress = progress,
+      )
+    }
+
     Spacer(Modifier.height(24.dp))
 
     // Controls
     ExpressiveControlBar(
-      isQueued = false,
-      hasSession = false,
-      isCurrentSession = false,
-      mediaProgress = null,
+      isQueued = state.isQueued,
+      hasSession = state.hasSession,
+      isCurrentSession = state.sessionState is SessionUiState.Current,
+      mediaProgress = state.progress,
       offlineDownload = null,
       onPlayClick = { state.eventSink(PodcastEpisodeUiEvent.PlayClick) },
-      onDownloadClick = {},
-      onMarkFinished = {},
-      onMarkNotFinished = {},
-      onDiscardProgress = {},
+      onDownloadClick = {  },
+      onMarkFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkFinished) },
+      onMarkNotFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkNotFinished) },
+      onDiscardProgress = { state.eventSink(PodcastEpisodeUiEvent.DiscardProgress) },
       onStopDownloadClick = {},
       onDeleteDownloadClick = {},
       onAddToPlaylistClick = {},

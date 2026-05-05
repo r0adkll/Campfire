@@ -111,8 +111,17 @@ class SqlDelightSessionDataSource(
     val now = fatherTime.now()
     val currentUserId = userSession.requiredUserId
 
+    // The session table holds at most one row per (user, libraryItem). For podcasts the
+    // row's episodeId pins the session to a single episode — `getForEpisode` returns it
+    // only when the caller's episodeId matches, so a different-episode start naturally
+    // falls through to the create path (which replaces the existing row via the
+    // deactivateAll + INSERT-OR-REPLACE transaction below).
     val existingSession = read {
-      db.sessionQueries.getForId(libraryItemId, currentUserId)
+      db.sessionQueries.getForEpisode(
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+        episodeId = episodeId.orEmpty(),
+      )
         .awaitAsOneOrNull()
         ?.takeIf { !it.isDeleted }
     }
@@ -134,7 +143,11 @@ class SqlDelightSessionDataSource(
         write {
           db.sessionQueries.transaction {
             db.sessionQueries.deactivateAll(currentUserId)
-            db.sessionQueries.activateOnly(libraryItemId, currentUserId)
+            db.sessionQueries.activateOnly(
+              libraryItemId = libraryItemId,
+              userId = currentUserId,
+              episodeId = episodeId.orEmpty(),
+            )
           }
         }
         return hydrateSession(existingSession)
@@ -158,12 +171,14 @@ class SqlDelightSessionDataSource(
     // If we DID have an old session, we'll want to re-use its time stamps instead of the passed, media progress,
     // timestamps.
     val newTime = if (autoSync) {
-      // Record the sync action in the history
+      // Record the sync action in the history; route to the right episode timeline for
+      // podcast sessions. The DB stores '' for "no episode"; the recorder takes nullable.
       playbackHistoryRecorder.record(
         libraryItemId = libraryItemId,
         type = PlaybackActionType.Sync,
         fromPosition = existingSession.currentTime,
         toPosition = progress.actualTime,
+        episodeId = existingSession.episodeId.takeIf { it.isNotEmpty() },
       )
 
       progress.actualTime
@@ -210,7 +225,7 @@ class SqlDelightSessionDataSource(
         lastPlayedAt = lastPlayedAt,
         startedAt = now,
         updatedAt = now,
-        episodeId = episodeId,
+        episodeId = episodeId.orEmpty(),
       )
 
       // Insert, replacing any existing session and disable any other active sessions
@@ -261,44 +276,47 @@ class SqlDelightSessionDataSource(
     }
   }
 
-  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
+  override suspend fun markDeleted(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.markDeleted(libraryItemId, currentUserId)
+      db.sessionQueries.markDeleted(libraryItemId, currentUserId, episodeId.orEmpty())
     }
   }
 
-  override suspend fun deleteSession(libraryItemId: LibraryItemId) {
+  override suspend fun deleteSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.delete(libraryItemId, currentUserId)
+      db.sessionQueries.delete(libraryItemId, currentUserId, episodeId.orEmpty())
     }
   }
 
-  override suspend fun stopSession(libraryItemId: LibraryItemId) {
+  override suspend fun stopSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val currentUserId = userSession.userId ?: return
     write {
-      db.sessionQueries.disable(libraryItemId, currentUserId)
+      db.sessionQueries.disable(libraryItemId, currentUserId, episodeId.orEmpty())
     }
   }
 
-  override suspend fun markFinished(libraryItemId: LibraryItemId) {
+  override suspend fun markFinished(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     val currentUserId = userSession.userId ?: return
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
-    val existingSession = read {
-      db.sessionQueries.getForId(libraryItemId, currentUserId).awaitAsOneOrNull()
+    // For podcast episodes use the episode's duration, otherwise the book/item duration.
+    val finishedAt = if (episodeId != null) {
+      (libraryItem.media as? Media.Podcast)
+        ?.episodes
+        ?.firstOrNull { it.id == episodeId }
+        ?.duration
+        ?: libraryItem.media.duration
+    } else {
+      libraryItem.media.duration
     }
-    val finishedAt = (libraryItem.media as? Media.Podcast)
-      ?.episodes
-      ?.firstOrNull { it.id == existingSession?.episodeId }
-      ?.duration
-      ?: libraryItem.media.duration
     write {
       db.sessionQueries.markFinished(
         currentTime = finishedAt,
         updatedAt = fatherTime.now(),
         libraryItemId = libraryItemId,
         userId = currentUserId,
+        episodeId = episodeId.orEmpty(),
       )
     }
   }
@@ -318,7 +336,8 @@ class SqlDelightSessionDataSource(
       lastPlayedAt = session.lastPlayedAt,
       startedAt = session.startedAt,
       updatedAt = session.updatedAt,
-      episodeId = session.episodeId,
+      // '' is the DB sentinel for "no episode" (book progress) — surface as null.
+      episodeId = session.episodeId.takeIf { it.isNotEmpty() },
     )
   }
 

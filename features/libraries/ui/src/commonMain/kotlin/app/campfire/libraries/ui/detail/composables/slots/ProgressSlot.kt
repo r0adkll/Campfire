@@ -25,7 +25,7 @@ class ProgressSlot(
       isPlaying = isPlaying,
       playbackSpeed = playbackSpeed,
       progress = mediaProgress,
-      libraryItem = libraryItem,
+      totalDuration = libraryItem.media.duration,
       modifier = modifier
         .padding(
           horizontal = 20.dp,

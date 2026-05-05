@@ -84,6 +84,7 @@ fun SessionHostLayout(
       comp.playbackController.startSession(
         itemId = currentSession!!.libraryItem.id,
         playImmediately = false,
+        episodeId = currentSession!!.episodeId,
       )
     }
   }
@@ -92,7 +93,11 @@ fun SessionHostLayout(
     {
       currentSession?.let { s ->
         scope.launch {
-          comp.playbackController.stopSession(s.libraryItem.id, clearQueue = true)
+          comp.playbackController.stopSession(
+            itemId = s.libraryItem.id,
+            clearQueue = true,
+            episodeId = s.episodeId,
+          )
         }
       }
     }
@@ -102,7 +107,10 @@ fun SessionHostLayout(
     {
       currentSession?.let { s ->
         scope.launch {
-          comp.playbackController.startSession(s.libraryItem.id)
+          comp.playbackController.startSession(
+            itemId = s.libraryItem.id,
+            episodeId = s.episodeId,
+          )
         }
       }
     }

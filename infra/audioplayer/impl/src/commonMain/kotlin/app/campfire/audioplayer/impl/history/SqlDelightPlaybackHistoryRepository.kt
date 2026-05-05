@@ -6,6 +6,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.data.PlaybackAction as DbPlaybackAction
@@ -28,33 +29,57 @@ class SqlDelightPlaybackHistoryRepository(
   private val dispatcherProvider: DispatcherProvider,
 ) : PlaybackHistoryRepository {
 
-  override fun observe(libraryItemId: LibraryItemId): Flow<List<PlaybackAction>> {
+  override fun observe(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): Flow<List<PlaybackAction>> {
     val userId = userSession.userId ?: return emptyFlow()
-    return database.playbackActionQueries
-      .getForLibraryItem(libraryItemId, userId)
+    val query = if (episodeId != null) {
+      database.playbackActionQueries.getForEpisode(libraryItemId, userId, episodeId)
+    } else {
+      database.playbackActionQueries.getForLibraryItem(libraryItemId, userId)
+    }
+    return query
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .map { list -> list.map { it.toDomain() } }
   }
 
-  override suspend fun get(libraryItemId: LibraryItemId): List<PlaybackAction> {
+  override suspend fun get(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): List<PlaybackAction> {
     val userId = userSession.userId ?: return emptyList()
     return read {
-      database.playbackActionQueries
-        .getForLibraryItem(libraryItemId, userId)
+      val query = if (episodeId != null) {
+        database.playbackActionQueries.getForEpisode(libraryItemId, userId, episodeId)
+      } else {
+        database.playbackActionQueries.getForLibraryItem(libraryItemId, userId)
+      }
+      query
         .awaitAsList()
         .map { it.toDomain() }
     }
   }
 
-  override suspend fun clear(libraryItemId: LibraryItemId) {
+  override suspend fun clear(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ) {
     val userId = userSession.userId ?: return
     write {
-      database.playbackActionQueries
-        .deleteForLibraryItem(
+      if (episodeId != null) {
+        database.playbackActionQueries.deleteForEpisode(
+          libraryItemId = libraryItemId,
+          userId = userId,
+          episodeId = episodeId,
+        )
+      } else {
+        database.playbackActionQueries.deleteForLibraryItem(
           libraryItemId = libraryItemId,
           userId = userId,
         )
+      }
     }
   }
 
@@ -69,6 +94,8 @@ class SqlDelightPlaybackHistoryRepository(
     id = id,
     libraryItemId = libraryItemId,
     userId = userId,
+    // '' is the DB sentinel for "no episode" (book progress) — surface null in the domain.
+    episodeId = episodeId.takeIf { it.isNotEmpty() },
     type = type,
     timestamp = timestamp,
     fromPosition = fromPosition,

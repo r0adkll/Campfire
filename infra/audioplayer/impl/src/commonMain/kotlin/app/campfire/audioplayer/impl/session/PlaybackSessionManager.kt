@@ -19,5 +19,6 @@ interface PlaybackSessionManager {
   suspend fun stopSession(
     libraryItemId: LibraryItemId,
     clearQueue: Boolean,
+    episodeId: PodcastEpisodeId? = null,
   )
 }

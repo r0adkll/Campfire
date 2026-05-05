@@ -42,17 +42,21 @@ interface SessionDataSource {
 
   suspend fun markDeleted(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
   )
 
   suspend fun deleteSession(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
   )
 
   suspend fun stopSession(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
   )
 
   suspend fun markFinished(
     libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId? = null,
   )
 }

@@ -2,6 +2,7 @@ package app.campfire.audioplayer.history
 
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
+import app.campfire.core.model.PodcastEpisodeId
 import kotlin.time.Duration
 
 interface PlaybackHistoryRecorder {
@@ -11,5 +12,6 @@ interface PlaybackHistoryRecorder {
     type: PlaybackActionType,
     fromPosition: Duration,
     toPosition: Duration? = null,
+    episodeId: PodcastEpisodeId? = null,
   )
 }

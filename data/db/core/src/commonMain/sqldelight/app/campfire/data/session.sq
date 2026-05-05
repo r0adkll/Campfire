@@ -22,9 +22,10 @@ CREATE TABLE IF NOT EXISTS session (
   startedAt TEXT AS LocalDateTime NOT NULL,
   updatedAt TEXT AS LocalDateTime NOT NULL,
 
-  -- For podcast sessions: the episode currently being played. Null for books and for
-  -- podcast sessions that haven't picked an episode yet.
-  episodeId TEXT,
+  -- For books: empty string. For podcast episodes: the episode id. Mirrors the convention
+  -- used by mediaProgress/playbackAction so callers can filter with plain `=` rather than
+  -- null-safe `IS` comparisons.
+  episodeId TEXT NOT NULL DEFAULT '',
 
   PRIMARY KEY(userId, libraryItemId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
@@ -39,10 +40,19 @@ getAll:
 SELECT * FROM session
 WHERE userId = ?;
 
+-- Returns the (at most one) session row for a given libraryItem regardless of episode.
 getForId:
 SELECT * FROM session
 WHERE libraryItemId = ?
   AND userId = ?;
+
+-- Returns the session row for a specific (libraryItem, episode) pair. For book sessions
+-- callers should pass episodeId = ''.
+getForEpisode:
+SELECT * FROM session
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+  AND episodeId = :episodeId;
 
 insert:
 INSERT OR REPLACE INTO session
@@ -57,50 +67,64 @@ activateOnly:
 UPDATE session
 SET isActive = 1
 WHERE libraryItemId = :libraryItemId
-  AND userId = :userId;
+  AND userId = :userId
+  AND episodeId = :episodeId;
 
+-- Mutates only when the session row's stored episodeId matches the supplied one. For
+-- book sessions both are ''. For podcasts, sibling episodes (if a future schema lets
+-- multiple coexist) aren't clobbered.
 markDeleted:
 UPDATE session
 SET isDeleted = 1
 WHERE libraryItemId = ?
-  AND userId = ?;
+  AND userId = ?
+  AND episodeId = :episodeId;
 
 delete:
 DELETE FROM session
 WHERE libraryItemId = ?
-  AND userId = ?;
+  AND userId = ?
+  AND episodeId = :episodeId;
 
+-- Playback time updates target the active session for the user. Scoping by isActive = 1
+-- (rather than (libraryItemId, episodeId)) keeps these queries unchanged from a caller
+-- perspective: there's only ever one active session per user.
 updatePlayback:
 UPDATE session
 SET currentTime = :currentTime,
     updatedAt = :updatedAt
 WHERE libraryItemId = :libraryItemId
-  AND userId = :userId;
+  AND userId = :userId
+  AND isActive = 1;
 
 updateLastPlayed:
 UPDATE session
 SET lastPlayedAt = :lastPlayedAt
 WHERE libraryItemId = :libraryItemId
-  AND userId = :userId;
+  AND userId = :userId
+  AND isActive = 1;
 
 addTimeListening:
 UPDATE session
 SET timeListening = timeListening + :additionalTime,
     updatedAt = :updatedAt
 WHERE libraryItemId = :libraryItemId
-  AND userId = :userId;
+  AND userId = :userId
+  AND isActive = 1;
 
 disable:
 UPDATE session
 SET isActive = 0,
     isDeleted = 1
 WHERE libraryItemId = ?
-  AND userId = ?;
+  AND userId = ?
+  AND episodeId = :episodeId;
 
 markFinished:
 UPDATE session
-SET currentTime = ?,
+SET currentTime = :currentTime,
     isActive = 0,
-    updatedAt = ?
-WHERE libraryItemId = ?
-  AND userId = ?;
+    updatedAt = :updatedAt
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+  AND episodeId = :episodeId;

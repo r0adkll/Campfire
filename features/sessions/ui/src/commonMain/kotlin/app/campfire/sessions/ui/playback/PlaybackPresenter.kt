@@ -94,7 +94,11 @@ class PlaybackPresenter(
         PlaybackUiEvent.ClearSession -> {
           currentSession.value?.let { s ->
             scope.launch {
-              playbackController.stopSession(s.libraryItem.id, clearQueue = true)
+              playbackController.stopSession(
+                itemId = s.libraryItem.id,
+                clearQueue = true,
+                episodeId = s.episodeId,
+              )
             }
           }
         }
@@ -102,7 +106,10 @@ class PlaybackPresenter(
         PlaybackUiEvent.StartSession -> {
           currentSession.value?.let { s ->
             scope.launch {
-              playbackController.startSession(s.libraryItem.id)
+              playbackController.startSession(
+                itemId = s.libraryItem.id,
+                episodeId = s.episodeId,
+              )
             }
           }
         }
@@ -158,6 +165,7 @@ class PlaybackPresenter(
           playbackController.startSession(
             itemId = currentSession.libraryItem.id,
             playImmediately = false,
+            episodeId = currentSession.episodeId,
           )
         } else {
           dbark { "<!-- Player already initialized [$playerSessionId, $playerState]" }
@@ -249,7 +257,10 @@ class PlaybackPresenter(
           val sessionValue = session.value
           if (state == AudioPlayer.State.Disabled && sessionValue != null) {
             scope.launch {
-              playbackController.startSession(sessionValue.libraryItem.id)
+              playbackController.startSession(
+                itemId = sessionValue.libraryItem.id,
+                episodeId = sessionValue.episodeId,
+              )
             }
           } else {
             player?.playPause()

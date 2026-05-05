@@ -20,10 +20,12 @@ interface PlaybackController {
   )
 
   /**
-   * Stop a current session
+   * Stop a current session. Pass [episodeId] to scope the stop to a podcast episode session
+   * — books and other episodes are unaffected.
    */
   fun stopSession(
     itemId: LibraryItemId,
     clearQueue: Boolean = false,
+    episodeId: PodcastEpisodeId? = null,
   )
 }

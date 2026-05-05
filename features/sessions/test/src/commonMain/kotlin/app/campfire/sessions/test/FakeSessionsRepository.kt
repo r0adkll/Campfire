@@ -33,12 +33,12 @@ class FakeSessionsRepository : SessionsRepository {
     return createSession
   }
 
-  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
-    invocations += Invocation.MarkDeleted(libraryItemId)
+  override suspend fun markDeleted(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    invocations += Invocation.MarkDeleted(libraryItemId, episodeId)
   }
 
-  override suspend fun deleteSession(libraryItemId: LibraryItemId) {
-    invocations += Invocation.DeleteSession(libraryItemId)
+  override suspend fun deleteSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    invocations += Invocation.DeleteSession(libraryItemId, episodeId)
   }
 
   override suspend fun updateCurrentTime(
@@ -61,12 +61,12 @@ class FakeSessionsRepository : SessionsRepository {
     invocations += Invocation.AddTimeListening(libraryItemId, amount)
   }
 
-  override suspend fun stopSession(libraryItemId: LibraryItemId) {
-    invocations += Invocation.StopSession(libraryItemId)
+  override suspend fun stopSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    invocations += Invocation.StopSession(libraryItemId, episodeId)
   }
 
-  override suspend fun markFinished(libraryItemId: LibraryItemId) {
-    invocations += Invocation.MarkFinished(libraryItemId)
+  override suspend fun markFinished(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    invocations += Invocation.MarkFinished(libraryItemId, episodeId)
   }
 
   val currentSessionFlow = MutableStateFlow<Session?>(null)
@@ -82,13 +82,25 @@ class FakeSessionsRepository : SessionsRepository {
       val libraryItemId: LibraryItemId,
       val episodeId: PodcastEpisodeId? = null,
     ) : Invocation
-    data class MarkDeleted(val libraryItemId: LibraryItemId) : Invocation
-    data class DeleteSession(val libraryItemId: LibraryItemId) : Invocation
+    data class MarkDeleted(
+      val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
+    data class DeleteSession(
+      val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
     data class UpdateCurrentTime(val libraryItemId: LibraryItemId, val currentTime: Duration) : Invocation
     data class UpdateLastPlayed(val libraryItemId: LibraryItemId) : Invocation
     data class AddTimeListening(val libraryItemId: LibraryItemId, val amount: Duration) : Invocation
-    data class StopSession(val libraryItemId: LibraryItemId) : Invocation
-    data class MarkFinished(val libraryItemId: LibraryItemId) : Invocation
+    data class StopSession(
+      val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
+    data class MarkFinished(
+      val libraryItemId: LibraryItemId,
+      val episodeId: PodcastEpisodeId? = null,
+    ) : Invocation
     data object ObserveCurrentSession : Invocation
   }
 }

@@ -8,6 +8,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
@@ -34,6 +35,7 @@ class PlaybackHistoryRecorderImpl(
     type: PlaybackActionType,
     fromPosition: Duration,
     toPosition: Duration?,
+    episodeId: PodcastEpisodeId?,
   ) {
     coroutineScope.launch {
       if (!playbackSettings.playbackHistoryEnabled) return@launch
@@ -42,6 +44,8 @@ class PlaybackHistoryRecorderImpl(
         database.playbackActionQueries.insert(
           libraryItemId = libraryItemId,
           userId = userId,
+          // Empty string is the DB sentinel for "no episode" (book progress).
+          episodeId = episodeId.orEmpty(),
           type = type,
           timestamp = fatherTime.now(),
           fromPosition = fromPosition,

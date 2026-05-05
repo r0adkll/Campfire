@@ -41,9 +41,10 @@ class DesktopPlaybackController(
   override fun stopSession(
     itemId: LibraryItemId,
     clearQueue: Boolean,
+    episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
-      playbackSessionManager.stopSession(itemId, clearQueue)
+      playbackSessionManager.stopSession(itemId, clearQueue, episodeId)
       audioPlayerHolder.release()
     }
   }

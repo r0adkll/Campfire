@@ -61,12 +61,12 @@ class DefaultSessionsRepository(
     )
   }
 
-  override suspend fun markDeleted(libraryItemId: LibraryItemId) {
-    dataSource.markDeleted(libraryItemId)
+  override suspend fun markDeleted(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    dataSource.markDeleted(libraryItemId, episodeId)
   }
 
-  override suspend fun deleteSession(libraryItemId: LibraryItemId) {
-    dataSource.deleteSession(libraryItemId)
+  override suspend fun deleteSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    dataSource.deleteSession(libraryItemId, episodeId)
   }
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
@@ -89,11 +89,11 @@ class DefaultSessionsRepository(
     )
   }
 
-  override suspend fun stopSession(libraryItemId: LibraryItemId) {
-    dataSource.stopSession(libraryItemId)
+  override suspend fun stopSession(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    dataSource.stopSession(libraryItemId, episodeId)
   }
 
-  override suspend fun markFinished(libraryItemId: LibraryItemId) {
-    dataSource.markFinished(libraryItemId)
+  override suspend fun markFinished(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    dataSource.markFinished(libraryItemId, episodeId)
   }
 }

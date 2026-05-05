@@ -15,7 +15,7 @@ interface Cork {
   /**
    * Flag to enable or disable all logging calls sent from this instance
    */
-  val enabled: Boolean get() = true
+  val enabled: Boolean get() = false
 
   fun bark(
     priority: LogPriority,

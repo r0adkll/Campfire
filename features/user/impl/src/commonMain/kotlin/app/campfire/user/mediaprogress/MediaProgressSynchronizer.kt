@@ -35,10 +35,13 @@ class DefaultMediaProgressSynchronizer(
 
   private val dispatcher = dispatcherProvider.io.limitedParallelism(1, "MediaProgressSync")
 
-  private var lastSyncTimes = mutableMapOf<String, Long>()
+  // Keyed per (libraryItemId, episodeId?) so per-episode syncs don't share a throttle
+  // timestamp with sibling episodes or with the parent book row.
+  private var lastSyncTimes = mutableMapOf<SyncKey, Long>()
 
   override suspend fun sync(mediaProgress: MediaProgress, force: Boolean) = withContext(dispatcher) {
-    val lastSync = lastSyncTimes[mediaProgress.libraryItemId] ?: 0
+    val key = SyncKey(mediaProgress.libraryItemId, mediaProgress.episodeId)
+    val lastSync = lastSyncTimes[key] ?: 0
     val elapsed = fatherTime.nowInEpochMillis() - lastSync
 
     if (force || mediaProgress.id == MediaProgress.UNKNOWN_ID || elapsed > MIN_SYNC_TIME) {
@@ -51,15 +54,20 @@ class DefaultMediaProgressSynchronizer(
 
   private suspend fun syncInternal(mediaProgress: MediaProgress) = measureTime {
     dbark { "--> Updating MediaProgress(${mediaProgress.libraryItemId.loggableId})" }
+    val key = SyncKey(mediaProgress.libraryItemId, mediaProgress.episodeId)
     val result = api.updateMediaProgress(
       libraryItemId = mediaProgress.libraryItemId,
+      episodeId = mediaProgress.episodeId,
       update = mediaProgress.asNetworkUpdate(),
     )
 
     if (result.isSuccess) {
       if (mediaProgress.id == MediaProgress.UNKNOWN_ID) {
         // If we just synced a new media progress item to the server we need to re-pull it so that we have an updated id
-        val updatedMediaProgress = api.getMediaProgress(mediaProgress.libraryItemId).getOrNull()
+        val updatedMediaProgress = api.getMediaProgress(
+          libraryItemId = mediaProgress.libraryItemId,
+          episodeId = mediaProgress.episodeId,
+        ).getOrNull()
         if (updatedMediaProgress != null) {
           // Now persist this to the database
           withContext(dispatcherProvider.databaseWrite) {
@@ -72,15 +80,20 @@ class DefaultMediaProgressSynchronizer(
             "New MediaProgress Id ${updatedMediaProgress.libraryItemId.loggableId} " +
               "--> ${updatedMediaProgress.id}"
           }
-          lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()
+          lastSyncTimes[key] = fatherTime.nowInEpochMillis()
         } else {
-          lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()
+          lastSyncTimes[key] = fatherTime.nowInEpochMillis()
         }
       } else {
-        lastSyncTimes[mediaProgress.libraryItemId] = fatherTime.nowInEpochMillis()
+        lastSyncTimes[key] = fatherTime.nowInEpochMillis()
       }
     }
   }
+
+  private data class SyncKey(
+    val libraryItemId: String,
+    val episodeId: String? = null,
+  )
 
   companion object : Corked("MediaProgressSynchronizer")
 }

@@ -7,6 +7,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.overallPosition
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
@@ -23,12 +24,16 @@ class PlaybackHistoryForwardingPlayer(
   private val libraryItemId: LibraryItemId?
     get() = session()?.libraryItem?.id
 
+  private val episodeId: PodcastEpisodeId?
+    get() = session()?.episodeId
+
   override fun play() {
     super.play()
     libraryItemId?.let {
       val fromPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.Play,
         fromPosition = fromPosition,
       )
@@ -41,6 +46,7 @@ class PlaybackHistoryForwardingPlayer(
       val fromPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.Pause,
         fromPosition = fromPosition,
       )
@@ -54,6 +60,7 @@ class PlaybackHistoryForwardingPlayer(
       val seekForwardAmount = playbackSettings.forwardTimeMs.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SeekForward,
         fromPosition = fromPosition,
         toPosition = fromPosition + seekForwardAmount,
@@ -68,6 +75,7 @@ class PlaybackHistoryForwardingPlayer(
       val seekForwardAmount = playbackSettings.forwardTimeMs.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SeekBackward,
         fromPosition = fromPosition,
         toPosition = fromPosition - seekForwardAmount,
@@ -82,6 +90,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SkipNext,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -96,6 +105,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SkipPrevious,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -110,6 +120,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SkipNext,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -124,6 +135,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.SkipPrevious,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -138,6 +150,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.Seek,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -156,6 +169,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.Seek,
         fromPosition = fromPosition,
         toPosition = toPosition,
@@ -170,6 +184,7 @@ class PlaybackHistoryForwardingPlayer(
       val toPosition = overallPosition.milliseconds
       recorder.record(
         libraryItemId = it,
+        episodeId = episodeId,
         type = PlaybackActionType.Seek,
         fromPosition = fromPosition,
         toPosition = toPosition,

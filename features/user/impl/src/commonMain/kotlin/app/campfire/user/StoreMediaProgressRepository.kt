@@ -186,6 +186,18 @@ class StoreMediaProgressRepository(
           return@onSuccess
         }
 
+        // For podcast episodes the per-episode duration lives on the podcastEpisode row
+        // (not on libraryItem.durationInMillis, which the book path returns as a sum or
+        // 0 for podcasts). Look it up so the new progress row records the right total.
+        val durationMillis = if (episodeId != null) {
+          val episodeRow = withContext(dispatcherProvider.databaseRead) {
+            db.podcastEpisodeQueries.selectForId(episodeId).awaitAsOneOrNull()
+          }
+          episodeRow?.durationInMillis ?: libraryItem.durationInMillis
+        } else {
+          libraryItem.durationInMillis
+        }
+
         // If we don't have an existing media progress id, lets create one
         val newMediaProgress = app.campfire.data.MediaProgress(
           // This ID is server driven and there is no way to determine it without
@@ -197,7 +209,7 @@ class StoreMediaProgressRepository(
           episodeId = episodeId.orEmpty(),
           mediaItemId = episodeId ?: libraryItem.mediaId,
           mediaItemType = libraryItem.mediaType,
-          duration = libraryItem.durationInMillis.milliseconds.toDouble(DurationUnit.SECONDS),
+          duration = durationMillis.milliseconds.toDouble(DurationUnit.SECONDS),
           progress = 1.0,
           currentTime = 0.0,
           isFinished = true,
