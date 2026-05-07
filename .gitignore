@@ -38,6 +38,7 @@ danger_out.json
 # General
 .DS_Store
 .externalNativeBuild
+*.log
 
 # Do not commit plain-text release keys
 app-release.jks
