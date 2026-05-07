@@ -111,10 +111,10 @@ class ExoPlayerAudioPlayer(
     .setLoadControl(
       DefaultLoadControl.Builder()
         .setBufferDurationsMs(
-          20 * 1000,
-          45 * 1000,
-          5 * 1000,
-          20 * 1000,
+          15 * 1000, // minBuffer
+          30 * 1000, // maxBuffer (was 45s)
+          2 * 1000, // playbackBuffer
+          10 * 1000, // backBuffer (was 20s)
         )
         .build(),
     )

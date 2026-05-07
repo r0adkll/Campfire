@@ -5,6 +5,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.network.di.UserClient
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
+import coil3.memory.MemoryCache
 import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.crossfade
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
@@ -23,6 +24,11 @@ class CoilAppInitializer(
     SingletonImageLoader.setSafe { context ->
       ImageLoader.Builder(context)
         .crossfade(true)
+        .memoryCache {
+          MemoryCache.Builder()
+            .maxSizePercent(context, 0.08)
+            .build()
+        }
         .components {
           add(
             KtorNetworkFetcherFactory(

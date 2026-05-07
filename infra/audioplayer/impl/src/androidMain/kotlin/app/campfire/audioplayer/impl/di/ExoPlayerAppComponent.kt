@@ -9,7 +9,7 @@ import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
-import androidx.media3.datasource.cache.NoOpCacheEvictor
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -55,7 +55,7 @@ interface ExoPlayerAppComponent {
     val downloadDirectory = File(application.filesDir, "exoPlayerDownloads")
     return SimpleCache(
       downloadDirectory,
-      NoOpCacheEvictor(),
+      LeastRecentlyUsedCacheEvictor(512 * 1024 * 1024L), // 512 MB disk cap
       databaseProvider,
     )
   }
