@@ -3,12 +3,14 @@ package app.campfire.user.mediaprogress.store
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Operation
 import app.campfire.user.mediaprogress.store.MediaProgressStore.Output
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -102,13 +104,42 @@ class MediaProgressSourceOfTruthFactory(
   private suspend fun writeAll(output: Output.Collection) = withContext(dispatcherProvider.databaseWrite) {
     db.mediaProgressQueries.transaction {
       output.items.forEach { item ->
-        db.mediaProgressQueries.insert(item.asDbModel())
+        insertIfFresher(item)
       }
     }
   }
 
   private suspend fun writeSingle(output: Output.Single) = withContext(dispatcherProvider.databaseWrite) {
     output.item?.let { item ->
+      // Atomic select+insert: prevents a stale fetch from clobbering a fresher local row
+      // that a concurrent playback tick wrote between the select and the insert.
+      db.mediaProgressQueries.transaction {
+        insertIfFresher(item)
+      }
+    }
+  }
+
+  /**
+   * Insert [item] only when the existing DB row is missing or has an equal-or-older
+   * `lastUpdate`. The Store5 fetcher fires on every `StoreReadRequest.cached(refresh = true)`
+   * — including the one the playback presenter triggers on every player-bar
+   * expand/collapse to refresh the sync banner. During continuous playback the local row
+   * is updated every player tick but the local→server PATCH is throttled, so a refetch
+   * during that window returns a stale-but-`Source.Remote` row. Without this guard the
+   * stale row would clobber the fresher local one and oscillate the displayed progress
+   * back to 0 (or whatever the server last saw).
+   *
+   * Mirrors the conflict-resolution shape used by [app.campfire.data.mapping.dao.LibraryItemDao.insertPodcast]
+   * for its user progress sub-row write.
+   */
+  private suspend fun insertIfFresher(item: MediaProgress) {
+    val existing = db.mediaProgressQueries.selectForEpisode(
+      userId = item.userId,
+      libraryItemId = item.libraryItemId,
+      // DB sentinel for "no episode" (book progress) is ''; episodes carry their id.
+      episodeId = item.episodeId.orEmpty(),
+    ).awaitAsOneOrNull()
+    if (existing == null || existing.lastUpdate <= item.lastUpdate) {
       db.mediaProgressQueries.insert(item.asDbModel())
     }
   }
