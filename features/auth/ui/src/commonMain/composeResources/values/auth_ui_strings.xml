@@ -17,6 +17,7 @@
   <string name="label_login_error_network">A network error has occurred. Please try again.</string>
   <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
   <string name="label_login_error_oauth">Something went wrong with the OpenID provider.</string>
+  <string name="label_login_error_oauth_invalid_redirect_uri">The server rejected the mobile redirect URI. Please configure "campfireaudiobooks://oauth" as an allowed Mobile Redirect URI in your Audiobookshelf OpenID settings.</string>
 
   <string name="login_add_account_title">Add campsite</string>
   <string name="login_reauth_account_title">Reauthenticate</string>

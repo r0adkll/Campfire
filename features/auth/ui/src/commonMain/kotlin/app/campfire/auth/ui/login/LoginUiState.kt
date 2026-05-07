@@ -50,6 +50,7 @@ sealed interface AuthError {
   data object InvalidCredentials : AuthError
   data object NetworkError : AuthError
   data object OAuthError : AuthError
+  data object OAuthInvalidRedirectUri : AuthError
 }
 
 sealed interface ConnectionState {

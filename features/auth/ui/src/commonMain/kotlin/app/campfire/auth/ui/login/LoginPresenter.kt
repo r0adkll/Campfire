@@ -195,7 +195,7 @@ class LoginPresenter(
               }
               .onFailure {
                 isAuthenticating = false
-                authError = AuthError.OAuthError
+                authError = it.toOAuthAuthError()
               }
           }
         }
@@ -249,6 +249,14 @@ class LoginPresenter(
     }
 
     return connectionState
+  }
+}
+
+private fun Throwable.toOAuthAuthError(): AuthError {
+  val msg = message.orEmpty()
+  return when {
+    msg.contains("invalid redirect_uri", ignoreCase = true) -> AuthError.OAuthInvalidRedirectUri
+    else -> AuthError.OAuthError
   }
 }
 

@@ -3,6 +3,8 @@ package app.campfire.network
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.network.di.BaseClient
 import app.campfire.network.di.ReturnTokens
 import app.campfire.network.envelopes.AuthorizationResponse
@@ -21,6 +23,7 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
@@ -113,7 +116,11 @@ class KtorAuthAudioBookShelfApi(
           Result.failure(ApiException(response.status.value, "No 'Location' header found!"))
         }
       } else {
-        Result.failure(ApiException(response.status.value, "/auth/openid failed!"))
+        val errorBody = runCatching { response.bodyAsText() }.getOrNull()?.takeIf { it.isNotBlank() }
+        bark(priority = LogPriority.ERROR) {
+          "/auth/openid failed (${response.status.value}): ${errorBody ?: "no body"}"
+        }
+        Result.failure(ApiException(response.status.value, errorBody ?: "/auth/openid failed!"))
       }
     } catch (e: IOException) {
       e.printStackTrace()

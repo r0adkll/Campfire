@@ -1,6 +1,7 @@
 package app.campfire.network.oidc
 
 import android.app.Application
+import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.oidc.crypto.Pkce
 import io.ktor.http.Url
@@ -24,7 +25,11 @@ class AndroidAuthorizationFlow(
     //    authorization URL. Additionally capturing any session cookies in the process.
     val authorizationResult = authApi.authorization(serverUrl, pkce.codeChallenge, pkce.codeVerifier, state)
     if (authorizationResult.isFailure) {
-      return Result.failure(OpenIdException.AuthFailure("Unable to fetch authorization URL"))
+      val cause = authorizationResult.exceptionOrNull()
+      val message = (cause as? ApiException)?.apiMessage?.takeIf { it.isNotBlank() }
+        ?: cause?.message
+        ?: "Unable to fetch authorization URL"
+      return Result.failure(OpenIdException.AuthFailure(message))
     }
 
     // 2) Direct user DIRECTLY to the OpenID authorization page instead. Let them finish,
