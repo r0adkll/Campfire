@@ -30,7 +30,7 @@ class DesktopPlaybackController(
     itemId: LibraryItemId,
     playImmediately: Boolean,
     chapterId: Int?,
-    episodeId: PodcastEpisodeId?
+    episodeId: PodcastEpisodeId?,
   ) {
     userScopeHolder.get().launch {
       initializeAudioPlayerIfNeeded()

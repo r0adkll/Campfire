@@ -100,8 +100,6 @@ class StoreMediaProgressRepository(
   }
 
   override suspend fun updateProgress(newProgress: MediaProgress, force: Boolean) {
-    MediaProgressStore.ibark { "updateProgress <-- $newProgress" }
-
     // Update local storage
     val progressId = db.mediaProgressQueries.transactionWithResult {
       val existing = db.mediaProgressQueries.selectForEpisode(
@@ -110,8 +108,6 @@ class StoreMediaProgressRepository(
         // DB stores book progress under the empty-string sentinel; episodes carry their id.
         episodeId = newProgress.episodeId.orEmpty(),
       ).awaitAsOneOrNull()
-
-      MediaProgressStore.vbark { "insertingProgress --> Existing($existing)" }
 
       db.mediaProgressQueries.insert(
         newProgress.asDbModel(existing?.id),
@@ -137,13 +133,10 @@ class StoreMediaProgressRepository(
       api.deleteMediaProgress(existing.id)
         .onSuccess {
           store.clear(operation)
-          MediaProgressStore.ibark { "MediaProgress for $libraryItemId was deleted" }
         }
         .onFailure {
-          MediaProgressStore.ebark { "MediaProgress for $libraryItemId failed to delete" }
+          MediaProgressStore.ebark(throwable = it) { "Failed to delete MediaProgress for $libraryItemId" }
         }
-    } else {
-      MediaProgressStore.ebark { "Error deleting progress for libraryItemId $libraryItemId" }
     }
   }
 
@@ -172,9 +165,6 @@ class StoreMediaProgressRepository(
             // Empty string is the DB sentinel for "no episode" (book-level progress).
             episodeId = episodeId.orEmpty(),
           )
-        }
-        MediaProgressStore.ibark {
-          "MediaProgress[$libraryItemId${episodeId?.let { "/$it" }.orEmpty()}] marked finished!"
         }
       } else if (existing == null) {
         val libraryItem = withContext(dispatcherProvider.databaseRead) {
@@ -231,13 +221,9 @@ class StoreMediaProgressRepository(
         // This is heavy handed and duplicative as it will force another update request
         // followed by a fetch to hydrate its ACTUAL id.
         mediaProgressSynchronizer.sync(newMediaProgress.asDomainModel(), force = true)
-
-        MediaProgressStore.ibark { "Created new finished progress for $libraryItemId" }
-      } else {
-        MediaProgressStore.ebark { "Error marking local finished for libraryItemId $libraryItemId" }
       }
     }.onFailure {
-      MediaProgressStore.ebark { "Error marking finished for libraryItemId $libraryItemId" }
+      MediaProgressStore.ebark(throwable = it) { "Error marking finished for libraryItemId $libraryItemId" }
     }
   }
 
@@ -287,7 +273,9 @@ class StoreMediaProgressRepository(
           deleteLocalProgress(libraryItemId, episodeId)
         }
       }.onFailure {
-        MediaProgressStore.ebark { "Error marking not finished for libraryItemId $libraryItemId" }
+        MediaProgressStore.ebark(throwable = it) {
+          "Error marking not finished for libraryItemId $libraryItemId"
+        }
       }
     }
   }

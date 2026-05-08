@@ -60,7 +60,7 @@ class PodcastEpisodePresenter(
         currentSession
           ?.takeIf {
             it.libraryItem.id == episode.libraryItemId &&
-            it.episodeId == episode.id
+              it.episodeId == episode.id
           }
           ?.let { SessionUiState.Current(it) }
           ?: SessionUiState.None
@@ -73,7 +73,6 @@ class PodcastEpisodePresenter(
         episodeId = episode.id,
       )
     }.collectAsState(null)
-
 
     val isPlaying by remember {
       audioPlayerHolder.currentPlayer

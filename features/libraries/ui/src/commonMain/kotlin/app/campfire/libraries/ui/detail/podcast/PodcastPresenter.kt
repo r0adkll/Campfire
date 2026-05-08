@@ -2,7 +2,10 @@ package app.campfire.libraries.ui.detail.podcast
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
@@ -28,6 +31,7 @@ import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
@@ -53,10 +57,12 @@ class PodcastPresenter(
     )
 
     // If we launch the screen with a targeted episode, open the drawer details
+    var hasShownEpisode by rememberRetained { mutableStateOf(false) }
     LaunchedEffect(libraryItem) {
       val podcastMedia = libraryItem.media as Media.Podcast
       val podcastEpisode = podcastMedia.episodes.find { it.id == screen.episodeId }
-      if (podcastEpisode != null) {
+      if (podcastEpisode != null && !hasShownEpisode) {
+        hasShownEpisode = true
         overlayHost.showPodcastEpisodeBottomSheet(podcastEpisode)
       }
     }

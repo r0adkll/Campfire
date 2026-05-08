@@ -7,7 +7,6 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asSeconds
 import app.campfire.core.extensions.epochMilliseconds
-import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.sessions.api.SessionsRepository
@@ -27,7 +26,6 @@ interface MediaProgressSynchronizerUserComponent {
 @ContributesMultibinding(AppScope::class)
 @Inject
 class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
-  companion object : Corked("MediaProgressSynchronizer")
 
   private val component: MediaProgressSynchronizerUserComponent
     get() = ComponentHolder.component()
@@ -107,7 +105,6 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
       source = MediaProgress.Source.Local,
     )
 
-    ibark { "PLAYBACK::updateMediaProgress(${session.currentTime})" }
     component.mediaProgressRepository.updateProgress(updatedProgress, force)
   }
 }

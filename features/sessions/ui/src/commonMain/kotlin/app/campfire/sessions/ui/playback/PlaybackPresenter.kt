@@ -39,7 +39,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
@@ -352,9 +351,7 @@ class PlaybackPresenter(
             libraryItemId = libraryItemId,
             episodeId = episodeId,
             refresh = true,
-          ).onEach {
-            dbark { "<-- Media Progress Updated: ${it?.lastUpdate}" }
-          }
+          )
         }
     }.collectAsState(null)
 

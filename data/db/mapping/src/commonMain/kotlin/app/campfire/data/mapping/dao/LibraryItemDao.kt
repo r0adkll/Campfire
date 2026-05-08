@@ -222,11 +222,16 @@ class SqlDelightLibraryItemDao(
         }
       }
 
-      // 4) Item-level user progress (rare for podcasts but the server can report it)
+      // 4) Per-episode (or item-level) user progress. The server returns a single
+      // MediaProgress here keyed by `episodeId` for podcasts — usually the most recently
+      // played episode — so the freshness check must compare against the row at the
+      // *same* (libraryItemId, episodeId) key the insert is about to replace, not the
+      // book/item-level row at episodeId = ''.
       item.userMediaProgress?.let { progress ->
-        val existing = db.mediaProgressQueries.selectForLibraryItem(
+        val existing = db.mediaProgressQueries.selectForEpisode(
           userId = progress.userId,
           libraryItemId = libraryItem.id,
+          episodeId = progress.episodeId.orEmpty(),
         ).executeAsOneOrNull()
         if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
           db.mediaProgressQueries.insert(progress.asDbModel())
@@ -273,10 +278,12 @@ class SqlDelightLibraryItemDao(
       // 3) Insert relations
 
       item.userMediaProgress?.let { progress ->
-        // Only insert the media progress if the one we have locally isn't newer
-        val existing = db.mediaProgressQueries.selectForLibraryItem(
+        // Match the insert's PK so the freshness check compares against the row that's
+        // about to be replaced, not the empty-episodeId book row.
+        val existing = db.mediaProgressQueries.selectForEpisode(
           userId = progress.userId,
           libraryItemId = libraryItem.id,
+          episodeId = progress.episodeId.orEmpty(),
         ).executeAsOneOrNull()
         if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
           db.mediaProgressQueries.insert(progress.asDbModel())
@@ -340,10 +347,12 @@ class SqlDelightLibraryItemDao(
 
       // 3) Insert relations
       item.userMediaProgress?.let { progress ->
-        // Only insert the media progress if the one we have locally isn't newer
-        val existing = db.mediaProgressQueries.selectForLibraryItem(
+        // Match the insert's PK so the freshness check compares against the row that's
+        // about to be replaced (per-episode for podcasts, item-level for books).
+        val existing = db.mediaProgressQueries.selectForEpisode(
           userId = progress.userId,
           libraryItemId = libraryItem.id,
+          episodeId = progress.episodeId.orEmpty(),
         ).executeAsOneOrNull()
         if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
           db.mediaProgressQueries.insert(progress.asDbModel())

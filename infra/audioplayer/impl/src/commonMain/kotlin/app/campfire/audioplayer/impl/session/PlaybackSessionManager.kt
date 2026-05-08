@@ -13,7 +13,7 @@ interface PlaybackSessionManager {
     libraryItemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
-    episodeId: PodcastEpisodeId? = null
+    episodeId: PodcastEpisodeId? = null,
   )
 
   suspend fun stopSession(

@@ -3,7 +3,6 @@ package app.campfire.core.model
 import app.campfire.core.extensions.progressOver
 import app.campfire.core.extensions.seconds
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDateTime

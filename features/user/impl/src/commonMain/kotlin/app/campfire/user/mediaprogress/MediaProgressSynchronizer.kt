@@ -4,11 +4,7 @@ import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import app.campfire.core.logging.Corked
-import app.campfire.core.logging.LogPriority
-import app.campfire.core.logging.bark
 import app.campfire.core.model.MediaProgress
-import app.campfire.core.model.loggableId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asNetworkUpdate
@@ -45,15 +41,11 @@ class DefaultMediaProgressSynchronizer(
     val elapsed = fatherTime.nowInEpochMillis() - lastSync
 
     if (force || mediaProgress.id == MediaProgress.UNKNOWN_ID || elapsed > MIN_SYNC_TIME) {
-      val duration = syncInternal(mediaProgress)
-      bark(LogPriority.INFO) {
-        "Syncing MediaProgress(${mediaProgress.libraryItemId.loggableId}) took $duration"
-      }
+      syncInternal(mediaProgress)
     }
   }
 
   private suspend fun syncInternal(mediaProgress: MediaProgress) = measureTime {
-    dbark { "--> Updating MediaProgress(${mediaProgress.libraryItemId.loggableId})" }
     val key = SyncKey(mediaProgress.libraryItemId, mediaProgress.episodeId)
     val result = api.updateMediaProgress(
       libraryItemId = mediaProgress.libraryItemId,
@@ -69,21 +61,17 @@ class DefaultMediaProgressSynchronizer(
           episodeId = mediaProgress.episodeId,
         ).getOrNull()
         if (updatedMediaProgress != null) {
-          // Now persist this to the database
+          // NOTE: this insert bypasses MediaProgressSourceOfTruthFactory.insertIfFresher
+          // because we need the just-issued server id. If the server's lastUpdate here
+          // is older than the local row a concurrent tick already wrote, this path can
+          // clobber the fresher local row.
           withContext(dispatcherProvider.databaseWrite) {
             db.mediaProgressQueries.insert(
               updatedMediaProgress.asDbModel(),
             )
           }
-
-          dbark {
-            "New MediaProgress Id ${updatedMediaProgress.libraryItemId.loggableId} " +
-              "--> ${updatedMediaProgress.id}"
-          }
-          lastSyncTimes[key] = fatherTime.nowInEpochMillis()
-        } else {
-          lastSyncTimes[key] = fatherTime.nowInEpochMillis()
         }
+        lastSyncTimes[key] = fatherTime.nowInEpochMillis()
       } else {
         lastSyncTimes[key] = fatherTime.nowInEpochMillis()
       }
@@ -94,8 +82,6 @@ class DefaultMediaProgressSynchronizer(
     val libraryItemId: String,
     val episodeId: String? = null,
   )
-
-  companion object : Corked("MediaProgressSynchronizer")
 }
 
 private const val MIN_SYNC_TIME = 15_000L // 15 seconds

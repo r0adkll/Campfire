@@ -29,7 +29,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.readoutAtMost
@@ -155,7 +154,7 @@ private fun PodcastEpisodeBottomSheet(
       mediaProgress = state.progress,
       offlineDownload = null,
       onPlayClick = { state.eventSink(PodcastEpisodeUiEvent.PlayClick) },
-      onDownloadClick = {  },
+      onDownloadClick = { },
       onMarkFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkFinished) },
       onMarkNotFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkNotFinished) },
       onDiscardProgress = { state.eventSink(PodcastEpisodeUiEvent.DiscardProgress) },

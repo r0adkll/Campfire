@@ -26,7 +26,6 @@ class MediaProgressSourceOfTruthFactory(
 
   fun create(): SourceOfTruth<Operation, Output, Output> = SourceOfTruth.of(
     reader = { operation ->
-      MediaProgressStore.ibark { "SourceOfTruth[reader]: $operation" }
       when (operation) {
         is Operation.Query.All -> observeAll(operation.userId)
         is Operation.Query.One -> observeByLibraryItemId(
@@ -37,12 +36,10 @@ class MediaProgressSourceOfTruthFactory(
       }
     },
     writer = { operation, output ->
-      MediaProgressStore.ibark { "SourceOfTruth[writer]: $operation, output: $output" }
       handleWrite(operation, output)
     },
     delete = { operation ->
       require(operation is Operation.Query.One)
-      MediaProgressStore.ibark { "SourceOfTruth[delete]: $operation" }
       handleDelete(operation)
     },
   )

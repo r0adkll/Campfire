@@ -16,7 +16,7 @@ interface PlaybackController {
     itemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
-    episodeId: PodcastEpisodeId? = null
+    episodeId: PodcastEpisodeId? = null,
   )
 
   /**

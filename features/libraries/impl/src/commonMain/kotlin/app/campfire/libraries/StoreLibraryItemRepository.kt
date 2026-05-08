@@ -5,10 +5,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
-import app.campfire.data.MediaAudioFiles
-import app.campfire.data.MediaAudioTracks
-import app.campfire.data.MediaChapters
-import app.campfire.data.MetadataAuthor
+import app.campfire.core.model.Media
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.item.LibraryItemStore
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -34,9 +31,8 @@ class StoreLibraryItemRepository(
     return itemStore.stream(StoreReadRequest.cached(itemId, true))
       .mapNotNull { resp ->
         if (resp is StoreReadResponse.Error.Exception) {
-          bark(throwable = resp.error) { " Library Item Store Response Error " }
+          bark(throwable = resp.error) { "Library Item Store Response Error" }
         }
-
         resp.dataOrNull()
       }
   }
@@ -47,17 +43,23 @@ class StoreLibraryItemRepository(
       .firstOrNull()
       ?.dataOrNull()
 
-    return if (cached != null && cached.media.tracks.isNotEmpty()) {
+    return if (cached != null && cached.isHydratedForPlayback) {
       cached
     } else {
       itemStore.fresh(itemId)
     }
   }
-}
 
-data class LibraryItemDbData(
-  val audioFiles: List<MediaAudioFiles>,
-  val audioTracks: List<MediaAudioTracks>,
-  val chapters: List<MediaChapters>,
-  val metadataAuthors: List<MetadataAuthor>,
-)
+  /**
+   * Whether the cached item carries enough relational data to be played without a refetch.
+   * For books that means item-level audio tracks are present. Podcasts attach tracks per
+   * episode (the item's `media.tracks` is always empty), so we instead check that every
+   * episode has its `audioTrack` hydrated — that's the signal we got the expanded shape
+   * back from the server rather than a basic-shape stub.
+   */
+  private val LibraryItem.isHydratedForPlayback: Boolean
+    get() = when (val media = media) {
+      is Media.Book -> media.tracks.isNotEmpty()
+      is Media.Podcast -> media.episodes.isNotEmpty() && media.episodes.all { it.audioTrack != null }
+    }
+}
