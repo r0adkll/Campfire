@@ -95,6 +95,7 @@ import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
+import app.campfire.sessions.ui.sheets.description.showEpisodeDescriptionBottomSheet
 import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
 import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
@@ -385,7 +386,12 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             scope.launch {
               onClose()
               delay(350L)
-              navigator.goTo(LibraryItemScreen(session.libraryItem.id))
+              navigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = session.libraryItem.id,
+                  episodeId = session.episodeId,
+                ),
+              )
             }
           },
         )
@@ -579,6 +585,19 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           }
         }
       },
+      showChapters = session?.episodeId == null,
+      onDescriptionClick = {
+        val episode = session?.episode ?: return@ActionRow
+        scope.launch {
+          overlayHost.showEpisodeDescriptionBottomSheet(
+            episode = episode,
+            onSeek = { duration ->
+              playerState.eventSink(PlayerUiEvent.Seek.Position(duration))
+            },
+          )
+        }
+      },
+      showDescription = session?.episodeId != null,
       onHistoryClick = {
         scope.launch {
           val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)

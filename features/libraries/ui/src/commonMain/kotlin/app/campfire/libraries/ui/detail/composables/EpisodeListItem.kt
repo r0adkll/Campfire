@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
+import app.campfire.common.compose.extensions.toRichTextHtml
 import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.extensions.asDate
@@ -79,6 +80,7 @@ internal fun EpisodeListItem(
         )
 
         episode.episode?.let { ep ->
+          Spacer(Modifier.width(8.dp))
           Surface(
             color = MaterialTheme.colorScheme.tertiaryContainer,
             shape = MaterialTheme.shapes.small,
@@ -99,10 +101,7 @@ internal fun EpisodeListItem(
 
       RichText(
         state = rememberRichTextState(
-          episode.description?.trim()
-            ?.replace(LineBreakStartRegex, "")
-            ?.replace("\n", "<br>")
-            ?: "--",
+          episode.description?.toRichTextHtml() ?: "--",
         ),
         style = MaterialTheme.typography.bodySmall,
         maxLines = 2,

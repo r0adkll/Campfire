@@ -4,6 +4,7 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
 import com.slack.circuit.runtime.CircuitUiState
+import kotlin.time.Duration
 
 data class PodcastEpisodeUiState(
   val episode: PodcastEpisode,
@@ -21,4 +22,5 @@ sealed interface PodcastEpisodeUiEvent {
   data object MarkFinished : PodcastEpisodeUiEvent
   data object MarkNotFinished : PodcastEpisodeUiEvent
   data object DiscardProgress : PodcastEpisodeUiEvent
+  data class Seek(val position: Duration) : PodcastEpisodeUiEvent
 }

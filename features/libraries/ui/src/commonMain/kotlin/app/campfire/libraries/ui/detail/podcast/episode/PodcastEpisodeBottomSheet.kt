@@ -31,10 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
+import app.campfire.common.compose.extensions.linkifyTimestamps
 import app.campfire.common.compose.extensions.readoutAtMost
+import app.campfire.common.compose.extensions.toRichTextHtml
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.widgets.MetadataHeader
+import app.campfire.common.compose.widgets.WithTimestampUriHandler
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
@@ -177,12 +180,16 @@ private fun PodcastEpisodeBottomSheet(
       )
       Spacer(Modifier.height(8.dp))
 
-      RichText(
-        state = rememberRichTextState(desc),
-        style = MaterialTheme.typography.bodyLarge,
-        onTokenClick = TokenClickHandler { token, offset ->
-        },
-      )
+      WithTimestampUriHandler(
+        onSeek = { position -> state.eventSink(PodcastEpisodeUiEvent.Seek(position)) },
+      ) {
+        RichText(
+          state = rememberRichTextState(desc.toRichTextHtml().linkifyTimestamps()),
+          style = MaterialTheme.typography.bodyLarge,
+          onTokenClick = TokenClickHandler { token, offset ->
+          },
+        )
+      }
     }
 
     // Episode Metadata

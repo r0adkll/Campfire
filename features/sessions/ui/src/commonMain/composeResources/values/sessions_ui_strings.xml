@@ -43,6 +43,9 @@
   <string name="queue_header_up_next">Up next</string>
   <string name="queue_header_queue">Queue</string>
 
+  <string name="description_bottomsheet_title">Episode Description</string>
+  <string name="description_bottomsheet_empty_message">No description available for this episode</string>
+
   <string name="history_bottomsheet_title">Playback History</string>
   <string name="history_empty_message">No playback history yet</string>
   <string name="history_context_play">Played</string>

@@ -24,6 +24,8 @@ import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
@@ -153,6 +155,34 @@ class PodcastEpisodePresenter(
           analytics.send(ActionEvent("mark_not_finished", Click))
           scope.launch {
             mediaProgressRepository.markNotFinished(episode.libraryItemId, episode.id)
+          }
+        }
+
+        is PodcastEpisodeUiEvent.Seek -> {
+          analytics.send(ActionEvent("seek_timestamp", Click))
+          val player = audioPlayerHolder.currentPlayer.value
+          if (
+            player != null &&
+            player.preparedSession?.libraryItem?.id == episode.libraryItemId &&
+            player.preparedSession?.episodeId == episode.id
+          ) {
+            player.seekTo(event.position)
+          } else {
+            scope.launch {
+              playbackController.startSession(
+                itemId = episode.libraryItemId,
+                episodeId = episode.id,
+                playImmediately = true,
+              )
+              audioPlayerHolder.currentPlayer
+                .filterNotNull()
+                .first {
+                  it.preparedSession?.libraryItem?.id == episode.libraryItemId &&
+                    it.preparedSession?.episodeId == episode.id
+                }
+                .seekTo(event.position)
+              navigator.finish(Unit)
+            }
           }
         }
 

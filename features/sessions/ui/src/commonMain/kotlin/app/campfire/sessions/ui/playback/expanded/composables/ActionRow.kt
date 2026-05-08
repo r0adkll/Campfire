@@ -15,7 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
+import app.campfire.common.compose.icons.rounded.Description
 
 @Composable
 internal fun ActionRow(
@@ -23,6 +25,9 @@ internal fun ActionRow(
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
   onChapterListClick: () -> Unit,
+  showChapters: Boolean,
+  onDescriptionClick: () -> Unit,
+  showDescription: Boolean,
   onHistoryClick: () -> Unit,
   showHistory: Boolean,
   modifier: Modifier = Modifier,
@@ -60,14 +65,29 @@ internal fun ActionRow(
       timerContent()
     }
 
-    Box(
-      modifier = Modifier.weight(1f),
-      contentAlignment = Alignment.Center,
-    ) {
-      IconButton(
-        onClick = onChapterListClick,
+    if (showChapters) {
+      Box(
+        modifier = Modifier.weight(1f),
+        contentAlignment = Alignment.Center,
       ) {
-        Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+        IconButton(
+          onClick = onChapterListClick,
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+        }
+      }
+    }
+
+    if (showDescription) {
+      Box(
+        modifier = Modifier.weight(1f),
+        contentAlignment = Alignment.Center,
+      ) {
+        IconButton(
+          onClick = onDescriptionClick,
+        ) {
+          Icon(CampfireIcons.Rounded.Description, contentDescription = null)
+        }
       }
     }
 

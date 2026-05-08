@@ -16,6 +16,7 @@ kotlin {
         implementation(libs.compose.components.resources)
 
         implementation(libs.circuitx.overlays)
+        implementation(libs.compose.rich.text)
         implementation(libs.wavy.slider)
         implementation(libs.reorderable)
       }
