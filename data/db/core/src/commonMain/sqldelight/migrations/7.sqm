@@ -1,7 +1,0 @@
--- Migration 7: track which podcast episode is highlighted for each shelfJoin entry.
---
--- For BookShelf and PodcastShelf entries this stays null. For EpisodeShelf entries
--- (e.g. the `episodes-recently-added` personalized shelf) it points at the specific
--- recent episode the shelf is featuring, so reads can join podcastEpisode and surface
--- the episode the user actually saw on the home screen.
-ALTER TABLE shelfJoin ADD COLUMN episodeId TEXT;

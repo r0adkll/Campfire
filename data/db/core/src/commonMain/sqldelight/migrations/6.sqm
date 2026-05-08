@@ -1,14 +1,19 @@
 import app.campfire.core.model.MediaProgress.Source;
 import app.campfire.core.model.MediaType;
+import app.campfire.core.model.PlayMethod;
 import kotlin.Boolean;
 import kotlin.Int;
+import kotlin.time.Duration;
+import kotlin.uuid.Uuid;
+import kotlinx.datetime.LocalDateTime;
 
--- Migration 6: extend mediaProgress to support per-episode rows; add session.episodeId;
--- introduce podcastMedia + podcastEpisode tables for podcast persistence.
+-- Migration 6: podcast support.
+-- Extends mediaProgress, session, shelfJoin, and playbackAction with a per-episode
+-- `episodeId` column (empty-string sentinel for books so plain `=` works in queries),
+-- and introduces podcastMedia / podcastEpisode / podcastEpisodeAudioTrack tables.
 
 -- 1) Rebuild mediaProgress with the new composite PK (libraryItemId, userId, episodeId).
--- SQLite can't ALTER PRIMARY KEY in place; we copy through a temp table. Existing rows
--- (which had nullable episodeId) backfill with '' so books continue to satisfy the PK.
+-- SQLite can't ALTER PRIMARY KEY in place; copy through a temp table.
 CREATE TABLE mediaProgress_new (
   id TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
@@ -31,7 +36,7 @@ CREATE TABLE mediaProgress_new (
 );
 
 INSERT INTO mediaProgress_new
-SELECT id, libraryItemId, userId, COALESCE(episodeId, ''), mediaItemId,
+SELECT id, libraryItemId, userId, '', mediaItemId,
        mediaItemType, duration, progress, currentTime, isFinished,
        hideFromContinueListening, ebookLocation, ebookProgress, lastUpdate,
        startedAt, finishedAt, source
@@ -40,8 +45,41 @@ FROM mediaProgress;
 DROP TABLE mediaProgress;
 ALTER TABLE mediaProgress_new RENAME TO mediaProgress;
 
--- 2) Track which episode a podcast session is playing. Books leave it null.
-ALTER TABLE session ADD COLUMN episodeId TEXT;
+-- 2) Rebuild session to add the per-episode `episodeId` column. Books leave it as the
+-- empty sentinel so query filters can use plain `=` rather than null-safe `IS`. The
+-- rebuild is required (rather than ADD COLUMN) so the new column lands in the same
+-- ordinal position as the .sq schema declares.
+CREATE TABLE session_new (
+  id TEXT AS Uuid NOT NULL UNIQUE,
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  isActive INTEGER AS Boolean NOT NULL DEFAULT 0,
+  isDeleted INTEGER AS Boolean NOT NULL DEFAULT 0,
+
+  playMethod TEXT AS PlayMethod NOT NULL,
+  mediaPlayer TEXT NOT NULL,
+
+  timeListening INTEGER AS Duration NOT NULL DEFAULT 0,
+  startTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  currentTime INTEGER AS Duration NOT NULL DEFAULT 0,
+  lastPlayedAt TEXT AS LocalDateTime,
+
+  startedAt TEXT AS LocalDateTime NOT NULL,
+  updatedAt TEXT AS LocalDateTime NOT NULL,
+
+  episodeId TEXT NOT NULL DEFAULT '',
+
+  PRIMARY KEY(userId, libraryItemId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO session_new
+SELECT id, userId, libraryItemId, isActive, isDeleted, playMethod, mediaPlayer,
+       timeListening, startTime, currentTime, lastPlayedAt, startedAt, updatedAt, ''
+FROM session;
+
+DROP TABLE session;
+ALTER TABLE session_new RENAME TO session;
 
 -- 3) Podcast-shaped media table, parallel to `media`. Podcast library items live here
 -- so existing book queries that JOIN `media` stay book-only by construction.
@@ -104,3 +142,66 @@ CREATE TABLE podcastEpisode (
 
 CREATE INDEX index_podcastEpisode_libraryItemId ON podcastEpisode(libraryItemId);
 CREATE INDEX index_podcastEpisode_podcastMediaId ON podcastEpisode(podcastMediaId);
+
+-- 5) Persist the per-episode audio track so podcast playback can resolve the playable
+-- URL after a cache round-trip. Mirrors `mediaAudioTracks` for books; PK is just
+-- episodeId because each episode carries exactly one track on the server.
+CREATE TABLE podcastEpisodeAudioTrack (
+  episodeId TEXT NOT NULL PRIMARY KEY,
+  trackIndex INTEGER AS Int NOT NULL,
+
+  startOffset REAL NOT NULL,
+  duration REAL NOT NULL,
+  title TEXT NOT NULL,
+  contentUrl TEXT NOT NULL,
+  mimeType TEXT NOT NULL,
+  codec TEXT NOT NULL,
+
+  metadata_filename TEXT NOT NULL,
+  metadata_ext TEXT NOT NULL,
+  metadata_path TEXT NOT NULL,
+  metadata_relPath TEXT NOT NULL,
+  metadata_size INTEGER NOT NULL,
+  metadata_mtimeMs INTEGER NOT NULL,
+  metadata_ctimeMs INTEGER NOT NULL,
+  metadata_birthtimeMs INTEGER NOT NULL,
+
+  metaTags_tagAlbum TEXT,
+  metaTags_tagArtist TEXT,
+  metaTags_tagAlbumArtist TEXT,
+  metaTags_tagTitle TEXT,
+  metaTags_tagSubtitle TEXT,
+  metaTags_tagSeries TEXT,
+  metaTags_tagSeriesPart TEXT,
+  metaTags_tagTrack TEXT,
+
+  FOREIGN KEY (episodeId) REFERENCES podcastEpisode(id) ON DELETE CASCADE
+);
+
+-- 6) Rebuild shelfJoin so EpisodeShelf entries that share a podcast (entityId) but
+-- feature different recent episodes are no longer collapsed by INSERT OR IGNORE.
+-- BookShelf / PodcastShelf entries use the empty-string sentinel.
+CREATE TABLE shelfJoin_new (
+  shelfId TEXT NOT NULL,
+  entityId TEXT NOT NULL,
+  shelfOrder INTEGER AS Int NOT NULL DEFAULT 0,
+  episodeId TEXT NOT NULL DEFAULT '',
+
+  PRIMARY KEY (shelfId, entityId, episodeId),
+  FOREIGN KEY (shelfId) REFERENCES shelf(id) ON DELETE CASCADE
+);
+
+INSERT INTO shelfJoin_new
+SELECT shelfId, entityId, shelfOrder, ''
+FROM shelfJoin;
+
+DROP TABLE shelfJoin;
+ALTER TABLE shelfJoin_new RENAME TO shelfJoin;
+
+-- 7) Make playbackAction per-episode aware. Existing rows are book history (or legacy
+-- podcast-item history) and back-fill to the empty-string sentinel that means
+-- "no episode" — matching the convention used by mediaProgress and session.
+ALTER TABLE playbackAction ADD COLUMN episodeId TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS idx_playbackAction_episode
+  ON playbackAction(userId, libraryItemId, episodeId);
