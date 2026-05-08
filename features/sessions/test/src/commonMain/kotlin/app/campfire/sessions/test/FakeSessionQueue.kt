@@ -2,49 +2,42 @@ package app.campfire.sessions.test
 
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.sessions.api.QueuedEntry
 import app.campfire.sessions.api.SessionQueue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.onSubscription
 
 class FakeSessionQueue : SessionQueue {
-  val queue = ArrayDeque<LibraryItem>()
-  private val queueFlow = MutableSharedFlow<List<LibraryItem>>()
+  val queue = ArrayDeque<QueuedEntry>()
+  private val queueFlow = MutableSharedFlow<List<QueuedEntry>>()
 
-  override suspend fun add(libraryItem: LibraryItem) {
-    queue.addLast(libraryItem)
+  override suspend fun add(libraryItem: LibraryItem, episode: PodcastEpisode?) {
+    queue.addLast(QueuedEntry(libraryItem, episode))
     emit()
   }
 
   override suspend fun addAll(libraryItems: List<LibraryItem>) {
-    queue.addAll(libraryItems)
+    queue.addAll(libraryItems.map { QueuedEntry(it) })
     emit()
   }
 
-  override suspend fun remove(libraryItem: LibraryItem) {
-    queue.remove(libraryItem)
+  override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    queue.removeAll { it.libraryItemId == libraryItemId && it.episodeId == episodeId }
     emit()
   }
 
-  override suspend fun pop(): LibraryItem? {
+  override suspend fun pop(): QueuedEntry? {
     return queue.removeFirstOrNull().also {
       emit()
     }
   }
 
-  override suspend fun reorder(
-    fromItemId: LibraryItemId,
-    toItemId: LibraryItemId,
-  ) {
-    val fromIndex = queue.indexOfFirst { it.id == fromItemId }
-    val toIndex = queue.indexOfFirst { it.id == toItemId }
-    queue.add(toIndex, queue.removeAt(fromIndex))
-    emit()
-  }
-
-  override suspend fun reorder(libraryItems: List<LibraryItem>) {
+  override suspend fun reorder(entries: List<QueuedEntry>) {
     queue.clear()
-    queue.addAll(libraryItems)
+    queue.addAll(entries)
     emit()
   }
 
@@ -53,7 +46,7 @@ class FakeSessionQueue : SessionQueue {
     emit()
   }
 
-  override fun observeAll(): Flow<List<LibraryItem>> {
+  override fun observeAll(): Flow<List<QueuedEntry>> {
     return queueFlow
       .onSubscription {
         emit(queue)

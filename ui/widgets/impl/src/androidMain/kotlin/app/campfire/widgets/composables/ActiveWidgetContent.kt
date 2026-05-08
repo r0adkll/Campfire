@@ -6,7 +6,7 @@ import androidx.glance.action.Action
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.model.Chapter
-import app.campfire.core.model.LibraryItem
+import app.campfire.sessions.api.QueuedEntry
 import kotlin.time.Duration
 
 @Composable
@@ -22,7 +22,7 @@ internal fun ActiveWidgetContent(
   runningTimer: RunningTimer?,
   prevChapter: Chapter?,
   nextChapter: Chapter?,
-  queue: List<LibraryItem>?,
+  queue: List<QueuedEntry>?,
   onClick: Action,
   widgetSizeClass: WidgetSizeClass,
   modifier: GlanceModifier = GlanceModifier,

@@ -13,8 +13,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.MetadataHeader
-import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
+import app.campfire.sessions.api.QueuedEntry
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.queue_header_queue
 import campfire.features.sessions.ui.generated.resources.queue_header_up_next
@@ -26,17 +25,17 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @Composable
 internal fun QueueContent(
-  queue: List<LibraryItem>,
-  onItemClick: (LibraryItem) -> Unit,
-  onRemoveItem: (LibraryItem) -> Unit,
-  onReorderItem: suspend (from: LibraryItemId, to: LibraryItemId) -> Unit,
+  queue: List<QueuedEntry>,
+  onItemClick: (QueuedEntry) -> Unit,
+  onRemoveItem: (QueuedEntry) -> Unit,
+  onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val haptics = LocalHapticFeedback.current
   val lazyListState = rememberLazyListState()
   val reorderableLazyListState = rememberReorderableLazyListState(lazyListState) { from, to ->
-    onReorderItem(from.key as LibraryItemId, to.key as LibraryItemId)
+    onReorderItem(from.key as String, to.key as String)
     haptics.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
   }
   LazyColumn(
@@ -47,7 +46,7 @@ internal fun QueueContent(
       horizontal = 16.dp,
     ),
   ) {
-    queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, items) ->
+    queue.groupBy { queue.indexOf(it) == 0 }.forEach { (isFirst, entries) ->
       if (isFirst) {
         item {
           MetadataHeader(
@@ -63,15 +62,15 @@ internal fun QueueContent(
       }
 
       items(
-        items = items,
-        key = { it.id },
-      ) { item ->
-        ReorderableItem(reorderableLazyListState, key = item.id) {
+        items = entries,
+        key = { it.key },
+      ) { entry ->
+        ReorderableItem(reorderableLazyListState, key = entry.key) {
           val interactionSource = remember { MutableInteractionSource() }
           QueueItem(
-            item = item,
-            onClick = { onItemClick(item) },
-            onRemove = { onRemoveItem(item) },
+            entry = entry,
+            onClick = { onItemClick(entry) },
+            onRemove = { onRemoveItem(entry) },
             interactionSource = interactionSource,
             modifier = Modifier
               .animateItem()

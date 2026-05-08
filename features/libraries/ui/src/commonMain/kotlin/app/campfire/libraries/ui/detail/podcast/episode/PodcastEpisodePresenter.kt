@@ -15,6 +15,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.preview.libraryItem
+import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -47,6 +48,7 @@ class PodcastEpisodePresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val libraryItemRepository: LibraryItemRepository,
 ) : Presenter<PodcastEpisodeUiState> {
 
   @Composable
@@ -204,6 +206,21 @@ class PodcastEpisodePresenter(
             sessionsRepository.markDeleted(episode.libraryItemId, episode.id)
             mediaProgressRepository.deleteProgress(episode.libraryItemId, episode.id)
             playbackHistoryRepository.clear(episode.libraryItemId, episode.id)
+          }
+        }
+
+        PodcastEpisodeUiEvent.AddToQueue -> {
+          analytics.send(ActionEvent("add_to_queue", Click))
+          scope.launch {
+            val parent = libraryItemRepository.getLibraryItem(episode.libraryItemId)
+            sessionQueue.add(parent, episode)
+          }
+        }
+
+        PodcastEpisodeUiEvent.RemoveFromQueue -> {
+          analytics.send(ActionEvent("remove_from_queue", Click))
+          scope.launch {
+            sessionQueue.remove(episode.libraryItemId, episode.id)
           }
         }
       }

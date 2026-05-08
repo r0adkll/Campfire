@@ -211,7 +211,7 @@ class BookPresenter(
 
         LibraryItemUiEvent.RemoveFromQueue -> {
           scope.launch {
-            sessionQueue.remove(libraryItem)
+            sessionQueue.remove(libraryItem.id)
           }
         }
 

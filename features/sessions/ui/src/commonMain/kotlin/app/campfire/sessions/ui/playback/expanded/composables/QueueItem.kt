@@ -16,9 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,14 +29,14 @@ import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgrou
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
 import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
-import app.campfire.core.model.LibraryItem
+import app.campfire.sessions.api.QueuedEntry
 
 private val ThumbnailSize = 88.dp
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun QueueItem(
-  item: LibraryItem,
+  entry: QueuedEntry,
   onClick: () -> Unit,
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
@@ -60,7 +58,7 @@ internal fun QueueItem(
     modifier = modifier,
   ) {
     QueueItemContent(
-      item = item,
+      entry = entry,
       onClick = onClick,
       interactionSource = interactionSource,
     )
@@ -70,11 +68,18 @@ internal fun QueueItem(
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun QueueItemContent(
-  item: LibraryItem,
+  entry: QueuedEntry,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
+  // For podcast entries the playable unit is the episode — surface its title and duration
+  // while the cover/author still come from the parent podcast.
+  val title = entry.episode?.title ?: entry.libraryItem.media.metadata.title ?: "Unknown"
+  val subtitle = entry.libraryItem.media.metadata.title?.takeIf { entry.episode != null }
+    ?: entry.libraryItem.media.metadata.authorName ?: "--"
+  val duration = entry.episode?.duration ?: entry.libraryItem.media.duration
+
   val shape = MaterialTheme.shapes.large
   ElevatedCard(
     onClick = onClick,
@@ -92,7 +97,7 @@ private fun QueueItemContent(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       ItemImage(
-        imageUrl = item.media.coverImageUrl,
+        imageUrl = entry.libraryItem.media.coverImageUrl,
         contentDescription = null,
         contentScale = ContentScale.Crop,
         modifier = Modifier
@@ -107,14 +112,14 @@ private fun QueueItemContent(
           .weight(1f),
       ) {
         Text(
-          text = item.media.metadata.title ?: "Unknown",
+          text = title,
           style = MaterialTheme.typography.titleMediumEmphasized,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )
 
         Text(
-          text = item.media.metadata.authorName ?: "--",
+          text = subtitle,
           style = MaterialTheme.typography.bodyMedium,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
@@ -132,7 +137,7 @@ private fun QueueItemContent(
             modifier = Modifier.size(16.dp),
           )
           Text(
-            text = item.media.duration.thresholdReadoutFormat(),
+            text = duration.thresholdReadoutFormat(),
             style = MaterialTheme.typography.labelSmallEmphasized,
           )
         }

@@ -9,11 +9,11 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
+import app.campfire.sessions.api.QueuedEntry
 import com.r0adkll.swatchbuckler.compose.Theme
 import kotlin.time.Duration
 
@@ -43,7 +43,7 @@ data class PlayerUiState(
 
 @Immutable
 data class QueueUiState(
-  val queue: List<LibraryItem>,
+  val queue: List<QueuedEntry>,
   val eventSink: (QueueUiEvent) -> Unit,
 )
 
@@ -98,13 +98,13 @@ sealed interface PlayerUiEvent {
 @Stable
 sealed interface QueueUiEvent {
   data class ReorderItem(
-    val fromItemId: LibraryItemId,
-    val toItemId: LibraryItemId,
+    val fromKey: String,
+    val toKey: String,
   ) : QueueUiEvent
   data object ReorderStopped : QueueUiEvent
 
-  data class QueueItemClick(val item: LibraryItem) : QueueUiEvent
-  data class RemoveQueueItem(val item: LibraryItem) : QueueUiEvent
+  data class QueueItemClick(val entry: QueuedEntry) : QueueUiEvent
+  data class RemoveQueueItem(val entry: QueuedEntry) : QueueUiEvent
   data object ClearQueue : QueueUiEvent
 }
 

@@ -5,12 +5,15 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
 import app.campfire.data.SessionQueue as DbSessionQueue
+import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
-import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
+import app.campfire.sessions.api.QueuedEntry
 import app.campfire.sessions.api.SessionQueue
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
@@ -34,7 +37,7 @@ class DiskSessionQueue(
   private val dispatcherProvider: DispatcherProvider,
 ) : SessionQueue {
 
-  override suspend fun add(libraryItem: LibraryItem) {
+  override suspend fun add(libraryItem: LibraryItem, episode: PodcastEpisode?) {
     val newIndex = read {
       db.sessionQueueQueries
         .getHighestIndex()
@@ -48,6 +51,7 @@ class DiskSessionQueue(
         DbSessionQueue(
           userId = userSession.requiredUserId,
           libraryItemId = libraryItem.id,
+          episodeId = episode?.id.orEmpty(),
           queueIndex = newIndex,
         ),
       )
@@ -70,6 +74,7 @@ class DiskSessionQueue(
             DbSessionQueue(
               userId = userSession.requiredUserId,
               libraryItemId = item.id,
+              episodeId = "",
               queueIndex = newIndex + index,
             ),
           )
@@ -78,99 +83,67 @@ class DiskSessionQueue(
     }
   }
 
-  override suspend fun remove(libraryItem: LibraryItem) {
-    val queue = read {
+  override suspend fun remove(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
+    val targetEpisodeId = episodeId.orEmpty()
+    val remaining = read {
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
         .sortedBy { it.queueIndex }
-        .map { it.libraryItemId }
-        .filter { it != libraryItem.id }
+        .filterNot { it.libraryItemId == libraryItemId && it.episodeId == targetEpisodeId }
+        .map { QueueKey(it.libraryItemId, it.episodeId) }
     }
 
     db.sessionQueueQueries.transaction {
       val success = db.sessionQueueQueries.delete(
         userId = userSession.requiredUserId,
-        libraryItemId = libraryItem.id,
+        libraryItemId = libraryItemId,
+        episodeId = targetEpisodeId,
       ) > 0
 
-      // Now re-index queue, if successful
-      if (success) reindexQueue(queue)
+      if (success) reindexQueue(remaining)
     }
   }
 
-  override suspend fun pop(): LibraryItem? {
+  override suspend fun pop(): QueuedEntry? {
+    val queue = read {
+      db.sessionQueueQueries
+        .selectAll(userSession.requiredUserId)
+        .awaitAsList()
+        .sortedBy { it.queueIndex }
+    }
+
+    val first = queue.firstOrNull() ?: return null
+
+    write {
+      db.sessionQueueQueries.delete(
+        userId = userSession.requiredUserId,
+        libraryItemId = first.libraryItemId,
+        episodeId = first.episodeId,
+      )
+
+      val remaining = queue.drop(1)
+      if (remaining.isNotEmpty()) {
+        reindexQueue(remaining.map { QueueKey(it.libraryItemId, it.episodeId) })
+      }
+    }
+
+    return hydrate(first.libraryItemId, first.episodeId.takeIf { it.isNotEmpty() })
+  }
+
+  override suspend fun reorder(entries: List<QueuedEntry>) {
     val queue = read {
       db.sessionQueueQueries
         .selectAll(userSession.requiredUserId)
         .awaitAsList()
     }
 
-    val first = queue.firstOrNull()
-
-    if (first != null) {
-      write {
-        db.sessionQueueQueries.delete(
-          userId = userSession.requiredUserId,
-          libraryItemId = first.libraryItemId,
-        )
-
-        val remaining = queue.drop(1)
-        if (remaining.isNotEmpty()) {
-          reindexQueue(remaining.map { it.libraryItemId })
-        }
-      }
-
-      val libraryItem = read {
-        db.libraryItemsQueries
-          .selectForIdFull(
-            first.libraryItemId,
-            ::mapToLibraryItemWithProgress,
-          )
-          .awaitAsOneOrNull()
-      }
-
-      return libraryItem?.let {
-        libraryItemDao.hydrateItem(it)
-      }
-    }
-
-    return null
-  }
-
-  override suspend fun reorder(fromItemId: LibraryItemId, toItemId: LibraryItemId) {
-    val queue = read {
-      db.sessionQueueQueries
-        .selectAll(userSession.requiredUserId)
-        .awaitAsList()
-    }
-
-    val fromIndex = queue.indexOfFirst { it.libraryItemId == fromItemId }
-    val toIndex = queue.indexOfFirst { it.libraryItemId == toItemId }
-
-    val mutableQueue = queue.toMutableList()
-    mutableQueue.add(toIndex, mutableQueue.removeAt(fromIndex))
+    if (queue.size != entries.size) return
 
     write {
       db.sessionQueueQueries.transaction {
-        reindexQueue(mutableQueue.map { it.libraryItemId })
+        reindexQueue(entries.map { QueueKey(it.libraryItemId, it.episodeId.orEmpty()) })
       }
-    }
-  }
-
-  override suspend fun reorder(libraryItems: List<LibraryItem>) {
-    val queue = read {
-      db.sessionQueueQueries
-        .selectAll(userSession.requiredUserId)
-        .awaitAsList()
-    }
-
-    // No-op if we have a difference
-    if (queue.size != libraryItems.size) return
-
-    // Re-index the current queue
-    write {
-      reindexQueue(libraryItems.map { it.id })
     }
   }
 
@@ -181,27 +154,41 @@ class DiskSessionQueue(
   }
 
   @OptIn(ExperimentalCoroutinesApi::class)
-  override fun observeAll(): Flow<List<LibraryItem>> {
+  override fun observeAll(): Flow<List<QueuedEntry>> {
     if (userSession.userId == null) return emptyFlow()
     return db.sessionQueueQueries
-      .selectForUser(userSession.requiredUserId, ::mapToLibraryItemWithProgress)
+      .selectAll(userSession.requiredUserId)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
-      .mapLatest { entities ->
-        entities.map {
-          libraryItemDao.hydrateItem(it)
-        }
+      .mapLatest { rows ->
+        rows
+          .sortedBy { it.queueIndex }
+          .mapNotNull { row ->
+            hydrate(row.libraryItemId, row.episodeId.takeIf { it.isNotEmpty() })
+          }
       }
   }
 
-  private suspend fun reindexQueue(
-    queue: List<LibraryItemId>,
-  ) {
-    queue.forEachIndexed { index, item ->
+  private suspend fun hydrate(
+    libraryItemId: LibraryItemId,
+    episodeId: PodcastEpisodeId?,
+  ): QueuedEntry? {
+    val libraryItem = libraryItemDao.hydrateById(libraryItemId) ?: return null
+    val episode = episodeId?.let {
+      read {
+        db.podcastEpisodeQueries.selectForId(it).awaitAsOneOrNull()
+      }?.asDomainModel()
+    }
+    return QueuedEntry(libraryItem = libraryItem, episode = episode)
+  }
+
+  private suspend fun reindexQueue(queue: List<QueueKey>) {
+    queue.forEachIndexed { index, key ->
       db.sessionQueueQueries.updateIndex(
         queueIndex = index,
         userId = userSession.requiredUserId,
-        libraryItemId = item,
+        libraryItemId = key.libraryItemId,
+        episodeId = key.episodeId,
       )
     }
   }
@@ -218,5 +205,10 @@ class DiskSessionQueue(
   ): T = withContext(
     dispatcherProvider.databaseWrite,
     block = block,
+  )
+
+  private data class QueueKey(
+    val libraryItemId: String,
+    val episodeId: String,
   )
 }

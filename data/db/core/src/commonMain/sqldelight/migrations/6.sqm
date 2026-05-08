@@ -3,6 +3,8 @@ import app.campfire.core.model.MediaType;
 import app.campfire.core.model.PlayMethod;
 import kotlin.Boolean;
 import kotlin.Int;
+import kotlin.String;
+import kotlin.collections.List;
 import kotlin.time.Duration;
 import kotlin.uuid.Uuid;
 import kotlinx.datetime.LocalDateTime;
@@ -205,3 +207,23 @@ ALTER TABLE playbackAction ADD COLUMN episodeId TEXT NOT NULL DEFAULT '';
 
 CREATE INDEX IF NOT EXISTS idx_playbackAction_episode
   ON playbackAction(userId, libraryItemId, episodeId);
+
+-- 8) Make sessionQueue per-episode aware. SQLite can't ALTER PRIMARY KEY in place,
+-- so rebuild the table; existing rows are book queue entries and back-fill to the
+-- empty-string sentinel that matches mediaProgress / session / shelfJoin.
+CREATE TABLE sessionQueue_new (
+  userId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  episodeId TEXT NOT NULL DEFAULT '',
+  queueIndex INTEGER NOT NULL,
+
+  PRIMARY KEY (userId, libraryItemId, episodeId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO sessionQueue_new
+SELECT userId, libraryItemId, '', queueIndex
+FROM sessionQueue;
+
+DROP TABLE sessionQueue;
+ALTER TABLE sessionQueue_new RENAME TO sessionQueue;

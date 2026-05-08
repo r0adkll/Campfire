@@ -41,8 +41,9 @@ class DefaultPlaybackSessionManager(
       val player = audioPlayerHolder.currentPlayer.value
         ?: throw IllegalStateException("There isn't a media player available, unable to prepare session")
 
-      // Remove this item from the queue, if exists.
-      sessionQueue.remove(session.libraryItem)
+      // Remove this item from the queue, if exists. Scope to the same episode for podcasts
+      // so other queued episodes of the same podcast aren't clobbered.
+      sessionQueue.remove(session.libraryItem.id, session.episodeId)
 
       player.prepare(session, playImmediately, chapterId) { libraryItemId ->
         // For podcast sessions, scope all the finishing operations to the playing episode
@@ -54,7 +55,11 @@ class DefaultPlaybackSessionManager(
         val nextItem = sessionQueue.pop()
         if (nextItem != null) {
           // Kick off the next item by calling this very function.
-          startSession(nextItem.id, playImmediately = true)
+          startSession(
+            libraryItemId = nextItem.libraryItemId,
+            playImmediately = true,
+            episodeId = nextItem.episodeId,
+          )
         } else {
           // If we don't have a next-of-queue, Mark the session as finished which maxes out its current time
           // and marks it as inactive so it can be sync'd and then deleted
@@ -83,7 +88,11 @@ class DefaultPlaybackSessionManager(
       if (isCurrent) {
         val nextItem = sessionQueue.pop()
         if (nextItem != null) {
-          startSession(nextItem.id, playImmediately = true)
+          startSession(
+            libraryItemId = nextItem.libraryItemId,
+            playImmediately = true,
+            episodeId = nextItem.episodeId,
+          )
         } else {
           sessionsRepository.stopSession(libraryItemId, episodeId)
         }

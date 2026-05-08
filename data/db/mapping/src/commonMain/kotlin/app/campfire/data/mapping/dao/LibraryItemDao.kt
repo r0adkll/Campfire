@@ -29,6 +29,7 @@ import app.cash.sqldelight.SuspendingTransacter
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
@@ -60,6 +61,13 @@ interface LibraryItemDao {
    * source so a single page query can mix book and podcast items.
    */
   suspend fun hydratePagedItem(item: DbLibraryItem): LibraryItem
+
+  /**
+   * Hydrate by library item id alone — looks up the media type and dispatches to the
+   * matching hydrate path. Returns null if no item exists for the id. Used where we
+   * carry only an id (e.g. queue rows, server-resolved sessions).
+   */
+  suspend fun hydrateById(id: app.campfire.core.model.LibraryItemId): LibraryItem?
 
   /**
    * Insert an expanded library item and all of its relations in a transaction
@@ -160,6 +168,32 @@ class SqlDelightLibraryItemDao(
           .awaitAsOne()
       }
       hydratePodcastItem(full)
+    }
+  }
+
+  override suspend fun hydrateById(
+    id: app.campfire.core.model.LibraryItemId,
+  ): LibraryItem? {
+    val mediaType = withContext(dispatcherProvider.databaseRead) {
+      db.libraryItemsQueries.selectMediaTypeForId(id).awaitAsOneOrNull()
+    } ?: return null
+    return when (mediaType) {
+      MediaType.Book -> {
+        val full = withContext(dispatcherProvider.databaseRead) {
+          db.libraryItemsQueries
+            .selectForIdFull(id, ::mapToLibraryItemWithProgress)
+            .awaitAsOneOrNull()
+        } ?: return null
+        hydrateItem(full)
+      }
+      MediaType.Podcast -> {
+        val full = withContext(dispatcherProvider.databaseRead) {
+          db.libraryItemsQueries
+            .selectForPodcastIdFull(id, ::mapToPodcastLibraryItemWithProgress)
+            .awaitAsOneOrNull()
+        } ?: return null
+        hydratePodcastItem(full)
+      }
     }
   }
 

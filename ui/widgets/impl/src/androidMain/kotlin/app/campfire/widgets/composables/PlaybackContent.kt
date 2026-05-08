@@ -39,7 +39,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.model.Chapter
-import app.campfire.core.model.LibraryItem
+import app.campfire.sessions.api.QueuedEntry
 import app.campfire.widgets.R
 import app.campfire.widgets.callbacks.CycleSpeedActionCallback
 import app.campfire.widgets.callbacks.SkipNextActionCallback
@@ -312,7 +312,7 @@ internal fun ExpandedPlaybackContent(
   playbackSpeed: Float,
   sleepTimerDuration: Duration,
   runningTimer: RunningTimer?,
-  queue: List<LibraryItem>?,
+  queue: List<QueuedEntry>?,
   sizeClass: WidgetSizeClass,
   modifier: GlanceModifier = GlanceModifier,
   defaultBackground: ImageProvider = ImageProvider(R.drawable.default_background),
@@ -452,7 +452,7 @@ internal fun ExpandedPlaybackContent(
 
 @Composable
 private fun QueueItem(
-  queue: List<LibraryItem>,
+  queue: List<QueuedEntry>,
   modifier: GlanceModifier = GlanceModifier,
 ) {
   Column(
@@ -470,7 +470,10 @@ private fun QueueItem(
         ),
     )
 
-    val nextItem = queue.first()
+    val nextEntry = queue.first()
+    val title = nextEntry.episode?.title ?: nextEntry.libraryItem.media.metadata.title ?: "--"
+    val duration = nextEntry.episode?.duration ?: nextEntry.libraryItem.media.duration
+
     Row(
       modifier = GlanceModifier.fillMaxWidth(),
       verticalAlignment = Alignment.CenterVertically,
@@ -478,7 +481,7 @@ private fun QueueItem(
       // Thumbnail
       val thumbSize = 64.dp
       GlanceImage(
-        url = nextItem.media.coverImageUrl,
+        url = nextEntry.libraryItem.media.coverImageUrl,
         modifier = GlanceModifier
           .size(thumbSize)
           .cornerRadius(16.dp),
@@ -492,7 +495,7 @@ private fun QueueItem(
           .defaultWeight(),
       ) {
         Text(
-          text = nextItem.media.metadata.title ?: "--",
+          text = title,
           style = TextStyle(
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
@@ -501,7 +504,7 @@ private fun QueueItem(
         )
 
         Text(
-          text = nextItem.media.metadata.authorName ?: "--",
+          text = nextEntry.libraryItem.media.metadata.authorName ?: "--",
           style = TextStyle(
             fontSize = 14.sp,
             fontWeight = FontWeight.Normal,
@@ -510,7 +513,7 @@ private fun QueueItem(
         )
 
         Text(
-          text = nextItem.media.duration.readoutFormat(),
+          text = duration.readoutFormat(),
           style = TextStyle(
             fontSize = 12.sp,
             fontWeight = FontWeight.Normal,

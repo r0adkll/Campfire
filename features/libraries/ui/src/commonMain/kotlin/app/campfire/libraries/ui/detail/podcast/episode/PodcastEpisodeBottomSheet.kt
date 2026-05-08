@@ -164,7 +164,13 @@ private fun PodcastEpisodeBottomSheet(
       onStopDownloadClick = {},
       onDeleteDownloadClick = {},
       onAddToPlaylistClick = {},
-      onAddToQueueClick = {},
+      onAddToQueueClick = {
+        if (state.isQueued) {
+          state.eventSink(PodcastEpisodeUiEvent.RemoveFromQueue)
+        } else {
+          state.eventSink(PodcastEpisodeUiEvent.AddToQueue)
+        }
+      },
     )
 
     Spacer(Modifier.height(16.dp))

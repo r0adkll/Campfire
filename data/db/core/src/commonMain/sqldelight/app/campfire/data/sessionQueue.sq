@@ -3,9 +3,10 @@ import kotlin.Int;
 CREATE TABLE sessionQueue (
   userId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
+  episodeId TEXT NOT NULL DEFAULT '',
   queueIndex INTEGER AS Int NOT NULL,
 
-  PRIMARY KEY (userId, libraryItemId),
+  PRIMARY KEY (userId, libraryItemId, episodeId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
@@ -19,12 +20,14 @@ updateIndex:
 UPDATE sessionQueue
 SET queueIndex = ?
 WHERE userId = ?
-  AND libraryItemId = ?;
+  AND libraryItemId = ?
+  AND episodeId = ?;
 
 delete:
 DELETE FROM sessionQueue
 WHERE userId = ?
-  AND libraryItemId = ?;
+  AND libraryItemId = ?
+  AND episodeId = ?;
 
 deleteAll:
 DELETE FROM sessionQueue
@@ -38,11 +41,3 @@ selectAll:
 SELECT * FROM sessionQueue
 WHERE userId = ?
 ORDER BY queueIndex ASC;
-
-selectForUser:
-SELECT libraryItem.*, media.*, mediaProgress.* FROM libraryItem
-INNER JOIN sessionQueue ON sessionQueue.libraryItemId = libraryItem.id
-INNER JOIN media ON media.libraryItemId = libraryItem.id
-LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
-WHERE sessionQueue.userId = ?
-ORDER BY sessionQueue.queueIndex ASC;

@@ -132,9 +132,7 @@ sealed interface Media {
       override val publishedDate: String?,
       override val publisher: String?,
       override val description: String?,
-      @Suppress("PropertyName")
       override val ISBN: String?,
-      @Suppress("PropertyName")
       override val ASIN: String?,
       override val language: String?,
       override val isExplicit: Boolean,

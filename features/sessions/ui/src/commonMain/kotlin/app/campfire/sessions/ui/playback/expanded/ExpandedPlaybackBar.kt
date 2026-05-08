@@ -302,15 +302,15 @@ internal fun ExpandedPlaybackBar(
         if (queue) {
           QueueContent(
             queue = queueState.queue,
-            onItemClick = { item ->
-              queueState.eventSink(QueueUiEvent.QueueItemClick(item))
+            onItemClick = { entry ->
+              queueState.eventSink(QueueUiEvent.QueueItemClick(entry))
               showQueue = false
             },
-            onRemoveItem = { item ->
-              queueState.eventSink(QueueUiEvent.RemoveQueueItem(item))
+            onRemoveItem = { entry ->
+              queueState.eventSink(QueueUiEvent.RemoveQueueItem(entry))
             },
-            onReorderItem = { from, to ->
-              queueState.eventSink(QueueUiEvent.ReorderItem(from, to))
+            onReorderItem = { fromKey, toKey ->
+              queueState.eventSink(QueueUiEvent.ReorderItem(fromKey, toKey))
             },
             onReorderStopped = {
               queueState.eventSink(QueueUiEvent.ReorderStopped)

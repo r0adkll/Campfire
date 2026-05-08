@@ -23,4 +23,6 @@ sealed interface PodcastEpisodeUiEvent {
   data object MarkNotFinished : PodcastEpisodeUiEvent
   data object DiscardProgress : PodcastEpisodeUiEvent
   data class Seek(val position: Duration) : PodcastEpisodeUiEvent
+  data object AddToQueue : PodcastEpisodeUiEvent
+  data object RemoveFromQueue : PodcastEpisodeUiEvent
 }

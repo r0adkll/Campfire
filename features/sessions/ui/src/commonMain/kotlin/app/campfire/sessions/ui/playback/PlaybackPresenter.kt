@@ -298,8 +298,8 @@ class PlaybackPresenter(
     ) { event ->
       when (event) {
         is QueueUiEvent.ReorderItem -> {
-          val fromIndex = localQueue.indexOfFirst { it.id == event.fromItemId }
-          val toIndex = localQueue.indexOfFirst { it.id == event.toItemId }
+          val fromIndex = localQueue.indexOfFirst { it.key == event.fromKey }
+          val toIndex = localQueue.indexOfFirst { it.key == event.toKey }
           localQueue.add(toIndex, localQueue.removeAt(fromIndex))
         }
 
@@ -312,14 +312,17 @@ class PlaybackPresenter(
         }
 
         is QueueUiEvent.QueueItemClick -> {
-          playbackController.startSession(event.item.id)
+          playbackController.startSession(
+            itemId = event.entry.libraryItemId,
+            episodeId = event.entry.episodeId,
+          )
           scope.launch {
-            sessionQueue.remove(event.item)
+            sessionQueue.remove(event.entry.libraryItemId, event.entry.episodeId)
           }
         }
 
         is QueueUiEvent.RemoveQueueItem -> scope.launch {
-          sessionQueue.remove(event.item)
+          sessionQueue.remove(event.entry.libraryItemId, event.entry.episodeId)
         }
       }
     }
