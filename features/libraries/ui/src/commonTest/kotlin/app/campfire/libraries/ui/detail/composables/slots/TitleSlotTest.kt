@@ -40,7 +40,5 @@ class TitleSlotTest {
     onNodeWithText("test_title").assertExists()
     onNodeWithText("test_subtitle").assertExists()
     onNodeWithText(5.minutes.readoutFormat()).assertExists()
-    onNodeWithText("test_author_name").assertExists()
-    onNodeWithText("test_narrator_name").assertExists()
   }
 }

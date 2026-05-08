@@ -14,6 +14,8 @@ import app.campfire.core.session.UserSession
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.test.FakeLibraryItemRepository
 import app.campfire.libraries.test.FakeLibraryItemValidator
+import app.campfire.libraries.ui.detail.book.BookPresenter
+import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
@@ -47,11 +49,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
 
-  protected val presenter = LibraryItemPresenter(
-    userSession = UserSession.LoggedIn(user("user_id")),
-    screen = screen,
-    navigator = navigator,
-    repository = libraryItemRepository,
+  internal val bookPresenter = BookPresenter(
     validator = libraryItemValidator,
     seriesRepository = seriesRepository,
     sessionsRepository = sessionsRepository,
@@ -64,9 +62,24 @@ abstract class BaseLibraryItemPresenterTest {
     settings = settings,
     analytics = analytics,
     themeManager = themeManager,
-    themeSettings = themeSettings,
-    dispatcherProvider = dispatcherProvider,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    dispatcherProvider = dispatcherProvider,
+  )
+
+  internal val podcastPresenter = PodcastPresenter(
+    analytics = analytics,
+    playbackController = playbackController,
+  )
+
+  protected val presenter = LibraryItemPresenter(
+    userSession = UserSession.LoggedIn(user("user_id")),
+    screen = screen,
+    navigator = navigator,
+    repository = libraryItemRepository,
+    bookPresenter = bookPresenter,
+    podcastPresenter = podcastPresenter,
+    themeManager = themeManager,
+    themeSettings = themeSettings,
   )
 }
 

@@ -15,12 +15,12 @@ import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
+import app.cash.turbine.ReceiveTurbine
 import assertk.Assert
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.hasSize
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
 import assertk.assertions.prop
@@ -36,7 +36,6 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
       assertThat(awaitItem()).all {
         prop(LibraryItemUiState::libraryItem).isNull()
         prop(LibraryItemUiState::contentState).isInstanceOf<LoadState.Loading>()
-        prop(LibraryItemUiState::showConfirmDownloadDialog).isFalse()
       }
       cancelAndIgnoreRemainingEvents()
     }
@@ -48,8 +47,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitLoadedItem())
         .loadedSlots
         .all {
           doesNotContainInstance<ProgressSlot>()
@@ -59,6 +57,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
           doesNotContainInstance<ChapterHeaderSlot>()
           doesNotContainInstance<ChapterSlot>()
         }
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -70,10 +69,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     mediaProgressRepository.progressFlow.value = mediaProgress
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<ProgressSlot>())
         .loadedSlots
         .containsInstance<ProgressSlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -83,10 +82,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<SummarySlot>())
         .loadedSlots
         .containsInstance<SummarySlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -100,10 +99,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     seriesRepository.seriesLibraryItemsFlow.emit(seriesBooks)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<SeriesSlot>())
         .loadedSlots
         .containsInstance<SeriesSlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -116,10 +115,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     seriesRepository.seriesLibraryItemsFlow.emit(emptyList())
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitLoadedItem())
         .loadedSlots
         .doesNotContainInstance<SeriesSlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -131,10 +130,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<ChipsSlot>())
         .loadedSlots
         .containsInstance<ChipsSlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -146,10 +145,10 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<ChipsSlot>())
         .loadedSlots
         .containsInstance<ChipsSlot>()
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -161,14 +160,14 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-      assertThat(awaitItem())
+      assertThat(awaitItemWithSlot<ChapterSlot>())
         .loadedSlots
         .all {
           containsInstance<ChapterHeaderSlot>()
           transform { it.filterIsInstance<ChapterSlot>() }
             .hasSize(20)
         }
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -179,9 +178,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-
-      assertThat(awaitItem())
+      assertThat(awaitItemMatching { it.firstChapterHeader()?.showTimeInBook == false })
         .loadedSlots
         .firstInstanceOf<ChapterHeaderSlot>()
         .prop(ChapterHeaderSlot::showTimeInBook)
@@ -189,31 +186,12 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
 
       settings.showTimeInBook = true
 
-      assertThat(awaitItem())
+      assertThat(awaitItemMatching { it.firstChapterHeader()?.showTimeInBook == true })
         .loadedSlots
         .firstInstanceOf<ChapterHeaderSlot>()
         .prop(ChapterHeaderSlot::showTimeInBook)
         .isEqualTo(true)
-    }
-  }
-
-  @Test
-  fun present_showConfirmDownloadDialog_UpdatesState() = runTest {
-    val libraryItem = emptyLibraryItem()
-    libraryItemRepository.libraryItemFlow.emit(libraryItem)
-
-    presenter.test {
-      skipItems(1)
-
-      assertThat(awaitItem())
-        .prop(LibraryItemUiState::showConfirmDownloadDialog)
-        .isEqualTo(false)
-
-      settings.showConfirmDownload = true
-
-      assertThat(awaitItem())
-        .prop(LibraryItemUiState::showConfirmDownloadDialog)
-        .isEqualTo(true)
+      cancelAndIgnoreRemainingEvents()
     }
   }
 
@@ -223,9 +201,11 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
-      skipItems(1)
-
-      assertThat(awaitItem())
+      assertThat(
+        awaitItemMatching {
+          it.firstExpressiveControl()?.showConfirmDownloadDialogSetting == false
+        },
+      )
         .loadedSlots
         .firstInstanceOf<ExpressiveControlSlot>()
         .prop(ExpressiveControlSlot::showConfirmDownloadDialogSetting)
@@ -233,16 +213,56 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
 
       settings.showConfirmDownload = true
 
-      assertThat(awaitItem())
+      assertThat(
+        awaitItemMatching {
+          it.firstExpressiveControl()?.showConfirmDownloadDialogSetting == true
+        },
+      )
         .loadedSlots
         .firstInstanceOf<ExpressiveControlSlot>()
         .prop(ExpressiveControlSlot::showConfirmDownloadDialogSetting)
         .isEqualTo(true)
+      cancelAndIgnoreRemainingEvents()
     }
   }
 }
 
+private suspend fun ReceiveTurbine<LibraryItemUiState>.awaitLoadedItem(): LibraryItemUiState {
+  return awaitItemMatching { it.contentState is LoadState.Loaded<*> }
+}
+
+private suspend inline fun <reified S : ContentSlot>
+  ReceiveTurbine<LibraryItemUiState>.awaitItemWithSlot(): LibraryItemUiState {
+  return awaitItemMatching { state ->
+    val loaded = state.contentState as? LoadState.Loaded<*> ?: return@awaitItemMatching false
+    val content = loaded.data as? ContentUiState ?: return@awaitItemMatching false
+    content.slots.any { it is S }
+  }
+}
+
+private suspend inline fun ReceiveTurbine<LibraryItemUiState>.awaitItemMatching(
+  predicate: (LibraryItemUiState) -> Boolean,
+): LibraryItemUiState {
+  while (true) {
+    val item = awaitItem()
+    if (predicate(item)) return item
+  }
+}
+
+private fun LibraryItemUiState.firstChapterHeader(): ChapterHeaderSlot? {
+  val loaded = contentState as? LoadState.Loaded<*> ?: return null
+  val content = loaded.data as? ContentUiState ?: return null
+  return content.slots.filterIsInstance<ChapterHeaderSlot>().firstOrNull()
+}
+
+private fun LibraryItemUiState.firstExpressiveControl(): ExpressiveControlSlot? {
+  val loaded = contentState as? LoadState.Loaded<*> ?: return null
+  val content = loaded.data as? ContentUiState ?: return null
+  return content.slots.filterIsInstance<ExpressiveControlSlot>().firstOrNull()
+}
+
 private val Assert<LibraryItemUiState>.loadedSlots: Assert<List<ContentSlot>>
   get() = prop(LibraryItemUiState::contentState)
-    .isInstanceOf<LoadState.Loaded<List<ContentSlot>>>()
-    .prop(LoadState.Loaded<List<ContentSlot>>::data)
+    .isInstanceOf<LoadState.Loaded<ContentUiState>>()
+    .prop(LoadState.Loaded<ContentUiState>::data)
+    .prop(ContentUiState::slots)

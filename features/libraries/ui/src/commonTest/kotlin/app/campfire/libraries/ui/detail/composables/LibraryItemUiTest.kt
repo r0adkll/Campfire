@@ -28,6 +28,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.home.ui.libraryItem
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.libraries.ui.detail.ContentUiState
 import app.campfire.libraries.ui.detail.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.LibraryItemUiState
@@ -67,9 +68,6 @@ class LibraryItemUiTest {
       theme = null,
       swatch = null,
       contentState = LoadState.Error,
-      showConfirmDownloadDialog = false,
-      isQueued = false,
-      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -88,9 +86,6 @@ class LibraryItemUiTest {
       theme = null,
       swatch = null,
       contentState = LoadState.Loading,
-      showConfirmDownloadDialog = false,
-      isQueued = false,
-      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -109,11 +104,11 @@ class LibraryItemUiTest {
       theme = null,
       swatch = null,
       contentState = LoadState.Loaded(
-        data = List(20) { TestContentSlot("slot_$it") },
+        data = ContentUiState(
+          slots = List(20) { TestContentSlot("slot_$it") },
+          eventSink = events::invoke,
+        ),
       ),
-      showConfirmDownloadDialog = false,
-      isQueued = false,
-      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -135,11 +130,11 @@ class LibraryItemUiTest {
       theme = null,
       swatch = null,
       contentState = LoadState.Loaded(
-        data = List(20) { TestContentSlot("slot_$it") },
+        data = ContentUiState(
+          slots = List(20) { TestContentSlot("slot_$it") },
+          eventSink = events::invoke,
+        ),
       ),
-      showConfirmDownloadDialog = false,
-      isQueued = false,
-      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
@@ -159,11 +154,11 @@ class LibraryItemUiTest {
       theme = null,
       swatch = null,
       contentState = LoadState.Loaded(
-        data = List(20) { TestContentSlot("slot_$it") },
+        data = ContentUiState(
+          slots = List(20) { TestContentSlot("slot_$it") },
+          eventSink = events::invoke,
+        ),
       ),
-      showConfirmDownloadDialog = false,
-      isQueued = false,
-      isCurrentlyPlaying = false,
       eventSink = events::invoke,
     )
 
