@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PlaylistId
+import app.campfire.core.model.PodcastEpisode
 
 sealed interface PlaylistDialogResult {
   data object None : PlaylistDialogResult
@@ -18,6 +19,7 @@ interface AddToPlaylistDialog {
     libraryItem: LibraryItem,
     onDismiss: (PlaylistDialogResult) -> Unit,
     modifier: Modifier,
+    episode: PodcastEpisode? = null,
   )
 
   companion object NoOp : AddToPlaylistDialog {
@@ -26,6 +28,7 @@ interface AddToPlaylistDialog {
       libraryItem: LibraryItem,
       onDismiss: (PlaylistDialogResult) -> Unit,
       modifier: Modifier,
+      episode: PodcastEpisode?,
     ) {
     }
   }

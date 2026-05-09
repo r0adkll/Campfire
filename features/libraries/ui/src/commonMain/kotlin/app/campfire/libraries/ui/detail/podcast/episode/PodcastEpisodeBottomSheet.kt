@@ -22,7 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -49,6 +52,7 @@ import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
 import app.campfire.libraries.ui.detail.composables.MetadataChip
 import app.campfire.libraries.ui.detail.composables.rememberRichTextState
+import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
 import com.mohamedrejeb.richeditor.ui.material.RichText
@@ -100,6 +104,18 @@ private fun PodcastEpisodeBottomSheet(
   state: PodcastEpisodeUiState,
   modifier: Modifier = Modifier,
 ) {
+  var showAddToPlaylistDialog by remember { mutableStateOf(false) }
+  if (showAddToPlaylistDialog) {
+    state.addToPlaylistDialog.Content(
+      libraryItem = state.libraryItem,
+      episode = state.episode,
+      onDismiss = { _: PlaylistDialogResult ->
+        showAddToPlaylistDialog = false
+      },
+      modifier = Modifier,
+    )
+  }
+
   Column(
     modifier = modifier
       .padding(16.dp)
@@ -170,7 +186,9 @@ private fun PodcastEpisodeBottomSheet(
       onDiscardProgress = { state.eventSink(PodcastEpisodeUiEvent.DiscardProgress) },
       onStopDownloadClick = {},
       onDeleteDownloadClick = {},
-      onAddToPlaylistClick = {},
+      onAddToPlaylistClick = {
+        showAddToPlaylistDialog = true
+      },
       onAddToQueueClick = {
         if (state.isQueued) {
           state.eventSink(PodcastEpisodeUiEvent.RemoveFromQueue)

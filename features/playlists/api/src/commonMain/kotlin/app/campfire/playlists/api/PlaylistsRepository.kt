@@ -1,7 +1,6 @@
 package app.campfire.playlists.api
 
 import app.campfire.core.model.CollectionId
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import kotlinx.coroutines.flow.Flow
@@ -26,9 +25,11 @@ interface PlaylistsRepository {
   ): Flow<Playlist>
 
   /**
-   * Observe the list of [LibraryItem] for a given [Playlist]
+   * Observe the items of a playlist as [Playlist.Item.Expanded]. Each entry carries the
+   * resolved [app.campfire.core.model.LibraryItem] and, for podcast entries, the specific
+   * [app.campfire.core.model.PodcastEpisode] referenced by the playlist.
    */
-  fun observePlaylistItems(playlistId: PlaylistId): Flow<List<LibraryItem>>
+  fun observePlaylistItems(playlistId: PlaylistId): Flow<List<Playlist.Item.Expanded>>
 
   /**
    * Create a new playlist

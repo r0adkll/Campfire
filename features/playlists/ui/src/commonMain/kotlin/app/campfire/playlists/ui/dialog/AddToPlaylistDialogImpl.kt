@@ -65,6 +65,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import campfire.features.playlists.ui.generated.resources.Res
@@ -82,7 +83,7 @@ import org.jetbrains.compose.resources.stringResource
 @ContributesBinding(UserScope::class)
 @Inject
 class AddToPlaylistDialogImpl(
-  private val presenterFactory: (LibraryItem, OnDismissListener) -> AddToPlaylistDialogPresenter,
+  private val presenterFactory: (LibraryItem, PodcastEpisode?, OnDismissListener) -> AddToPlaylistDialogPresenter,
 ) : AddToPlaylistDialog {
 
   @Composable
@@ -90,19 +91,22 @@ class AddToPlaylistDialogImpl(
     libraryItem: LibraryItem,
     onDismiss: (PlaylistDialogResult) -> Unit,
     modifier: Modifier,
+    episode: PodcastEpisode?,
   ) {
     Impression {
       ScreenViewEvent("AddToPlaylist", ScreenType.Dialog)
     }
 
-    val presenter = remember(libraryItem, onDismiss) {
-      presenterFactory(libraryItem, onDismiss)
+    val presenter = remember(libraryItem, episode, onDismiss) {
+      presenterFactory(libraryItem, episode, onDismiss)
     }
 
     val viewState = presenter.present()
     Content(
       viewState = viewState,
-      item = libraryItem,
+      // Surface the episode title for podcast entries so the user understands which unit
+      // they're adding; falls back to the library item title for books.
+      itemTitle = episode?.title ?: libraryItem.media.metadata.title.orEmpty(),
       onDismiss = { onDismiss(PlaylistDialogResult.None) },
       modifier = modifier,
     )
@@ -111,7 +115,7 @@ class AddToPlaylistDialogImpl(
   @Composable
   private fun Content(
     viewState: AddToPlaylistViewState,
-    item: LibraryItem,
+    itemTitle: String,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
     properties: DialogProperties = DialogProperties(
@@ -144,7 +148,7 @@ class AddToPlaylistDialogImpl(
             buildAnnotatedString {
               append(stringResource(Res.string.dialog_add_playlist_text))
               withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                append("\"${item.media.metadata.title}\"")
+                append("\"$itemTitle\"")
               }
             },
           )

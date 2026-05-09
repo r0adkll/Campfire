@@ -37,7 +37,7 @@ import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgrou
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
 import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Playlist
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
@@ -45,13 +45,13 @@ import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PlaylistListItem(
-  item: LibraryItem,
+  item: Playlist.Item.Expanded,
   onClick: () -> Unit,
   onPlayClick: () -> Unit,
   onRemove: () -> Unit,
   modifier: Modifier = Modifier,
   handleModifier: Modifier = Modifier,
-  sharedTransitionKey: String = item.id,
+  sharedTransitionKey: String = item.key,
   sharedTransitionZIndex: Float = 0f,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   isPlaying: Boolean = false,
@@ -96,13 +96,19 @@ internal fun PlaylistListItem(
       }
     }
 
+    val episode = item.episode
     LibraryItemListItem(
-      libraryItem = item,
+      libraryItem = item.libraryItem,
       onClick = onClick,
       offlineStatus = offlineStatus,
       interactionSource = interactionSource,
       sharedTransitionKey = sharedTransitionKey,
       sharedTransitionZIndex = sharedTransitionZIndex,
+      // For podcast episodes, surface the episode in place of the parent podcast so the
+      // playlist row identifies the actual playable unit.
+      titleOverride = episode?.title,
+      subtitleOverride = episode?.let { item.libraryItem.media.metadata.title },
+      durationOverride = episode?.duration,
       modifier = Modifier.weight(1f),
       trailingContent = {
         FilledTonalIconButton(
@@ -145,13 +151,13 @@ fun PlaylistItemPreview() {
         Surface(Modifier.fillMaxSize()) {
           Column {
             PlaylistListItem(
-              item = libraryItem("item_1"),
+              item = previewExpandedItem("item_1", index = 0),
               onClick = {},
               onRemove = {},
               onPlayClick = {},
             )
             PlaylistListItem(
-              item = libraryItem("item_2"),
+              item = previewExpandedItem("item_2", index = 1),
               onClick = {},
               onRemove = {},
               onPlayClick = {},
@@ -160,7 +166,7 @@ fun PlaylistItemPreview() {
               offlineStatus = OfflineStatus.Downloading(0.4f),
             )
             PlaylistListItem(
-              item = libraryItem("item_3"),
+              item = previewExpandedItem("item_3", index = 2),
               onClick = {},
               onRemove = {},
               onPlayClick = {},
@@ -173,4 +179,14 @@ fun PlaylistItemPreview() {
       }
     }
   }
+}
+
+private fun previewExpandedItem(id: String, index: Int): Playlist.Item.Expanded {
+  val item = libraryItem(id)
+  return Playlist.Item.Expanded(
+    index = index,
+    libraryItemId = item.id,
+    episodeId = null,
+    libraryItem = item,
+  )
 }

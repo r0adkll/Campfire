@@ -84,7 +84,7 @@ class PlaylistsUpdaterFactory(
         // Copy over the junction entries
         playlist.items.forEachIndexed { index, item ->
           db.playlistItemJoinQueries.insert(
-            PlaylistItemJoin(playlist.id, item.libraryItemId, item.episodeId, index),
+            PlaylistItemJoin(playlist.id, item.libraryItemId, item.episodeId.orEmpty(), index),
           )
         }
 

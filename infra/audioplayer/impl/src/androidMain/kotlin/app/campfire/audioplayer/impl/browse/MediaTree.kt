@@ -206,8 +206,10 @@ class MediaTree(
       .firstOrNull()
       ?: return emptyList()
 
+    // Browse currently surfaces the parent library item; podcast episodes within a
+    // playlist still resolve to the parent podcast for Android Auto navigation.
     return items.map { item ->
-      item.asBrowsableMediaItem()
+      item.libraryItem.asBrowsableMediaItem()
     }
   }
 

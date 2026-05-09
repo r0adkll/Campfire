@@ -53,8 +53,8 @@ import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.Playlist
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.ui.detail.composables.PlaylistFloatingToolbar
@@ -110,8 +110,11 @@ fun PlaylistDetail(
   }
 
   if (showConfirmDownloadDialog) {
+    val downloadConfirmItems = remember(state.playlistItems) {
+      state.playlistItems.map { it.libraryItem }.distinctBy { it.id }
+    }
     ConfirmDownloadDialog(
-      state.playlistItems,
+      downloadConfirmItems,
       onConfirm = { doNotShowAgain ->
         if (postNotificationPermissionState is PermissionState.Granted) {
           state.eventSink(PlaylistDetailUiEvent.DownloadAll(doNotShowAgain))
@@ -205,7 +208,12 @@ fun PlaylistDetail(
           state.eventSink(PlaylistDetailUiEvent.ReorderStopped)
         },
         offlineStateSelector = { itemId -> state.offlineStates[itemId].asWidgetStatus() },
-        isPlayingSelector = { itemId -> state.currentSession?.libraryItem?.id == itemId },
+        isPlayingSelector = { item ->
+          val session = state.currentSession
+          session != null &&
+            session.libraryItem.id == item.libraryItemId &&
+            session.episodeId == item.episodeId
+        },
         contentPadding = paddingValues + PaddingValues(
           // 2 x 16dp (padding) + 56dp (toolbar)
           bottom = 104.dp,
@@ -246,15 +254,15 @@ private fun PlaylistTopBar(
 private fun LoadedContent(
   name: String,
   description: String?,
-  items: List<LibraryItem>,
+  items: List<Playlist.Item.Expanded>,
   isReordering: Boolean,
-  onItemClick: (LibraryItem) -> Unit,
-  onPlayClick: (LibraryItem) -> Unit,
-  onRemove: (LibraryItem) -> Unit,
-  onReorderItem: suspend (from: LibraryItemId, to: LibraryItemId) -> Unit,
+  onItemClick: (Playlist.Item.Expanded) -> Unit,
+  onPlayClick: (Playlist.Item.Expanded) -> Unit,
+  onRemove: (Playlist.Item.Expanded) -> Unit,
+  onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
   offlineStateSelector: (LibraryItemId) -> OfflineStatus,
-  isPlayingSelector: (LibraryItemId) -> Boolean,
+  isPlayingSelector: (Playlist.Item.Expanded) -> Boolean,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -262,7 +270,7 @@ private fun LoadedContent(
   val haptics = LocalHapticFeedback.current
   val reorderableLazyListState = rememberReorderableLazyListState(state) { from, to ->
     haptics.performHapticFeedback(HapticFeedbackType.SegmentFrequentTick)
-    onReorderItem(from.key as LibraryItemId, to.key as LibraryItemId)
+    onReorderItem(from.key as String, to.key as String)
   }
   LazyColumn(
     state = state,
@@ -279,16 +287,16 @@ private fun LoadedContent(
 
     itemsIndexed(
       items = items,
-      key = { _, item -> item.id },
+      key = { _, item -> item.key },
     ) { index, item ->
-      ReorderableItem(reorderableLazyListState, key = item.id) { isDragging ->
+      ReorderableItem(reorderableLazyListState, key = item.key) { isDragging ->
         val interactionSource = remember { MutableInteractionSource() }
         PlaylistListItem(
           item = item,
-          sharedTransitionKey = item.id + name,
+          sharedTransitionKey = item.key + name,
           sharedTransitionZIndex = (items.size - index) + 1f,
-          offlineStatus = offlineStateSelector(item.id),
-          isPlaying = isPlayingSelector(item.id),
+          offlineStatus = offlineStateSelector(item.libraryItem.id),
+          isPlaying = isPlayingSelector(item),
           onClick = {
             onItemClick(item)
           },

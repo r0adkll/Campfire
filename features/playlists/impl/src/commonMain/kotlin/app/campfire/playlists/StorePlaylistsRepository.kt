@@ -6,17 +6,17 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.CollectionId
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Media
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
-import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.store.PlaylistsStore
 import app.campfire.user.api.UserRepository
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -98,14 +98,41 @@ class StorePlaylistsRepository(
       }
   }
 
-  override fun observePlaylistItems(playlistId: PlaylistId): Flow<List<LibraryItem>> {
-    return db.libraryItemsQueries
-      .selectForPlaylist(playlistId, ::mapToLibraryItemWithProgress)
+  override fun observePlaylistItems(playlistId: PlaylistId): Flow<List<Playlist.Item.Expanded>> {
+    return db.playlistItemJoinQueries
+      .selectForPlaylist(playlistId)
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
-      .mapLatest { itemWithProgress ->
-        itemWithProgress.map {
-          libraryItemDao.hydrateItem(it)
+      .mapLatest { junctionEntries ->
+        junctionEntries.mapIndexedNotNull { index, junction ->
+          val libraryItem = libraryItemDao.hydrateById(junction.libraryItemId)
+            ?: return@mapIndexedNotNull null
+          val episodeId = junction.episodeId.takeIf { it.isNotEmpty() }
+          val episode = episodeId?.let { id ->
+            // Prefer the in-memory podcast cache; fall back to a direct DB lookup so we
+            // resolve the episode even when the parent podcast hasn't been fully fetched
+            // (the playlist endpoint returns a *minified* podcast with no episodes array).
+            (libraryItem.media as? Media.Podcast)
+              ?.episodes
+              ?.firstOrNull { it.id == id }
+              ?: db.podcastEpisodeQueries
+                .selectForId(id)
+                .awaitAsOneOrNull()
+                ?.let { row ->
+                  val track = db.podcastEpisodeAudioTrackQueries
+                    .selectForEpisodeId(id)
+                    .awaitAsOneOrNull()
+                    ?.asDomainModel(urlHydrator)
+                  row.asDomainModel(audioTrack = track)
+                }
+          }
+          Playlist.Item.Expanded(
+            index = index,
+            libraryItemId = junction.libraryItemId,
+            episodeId = episodeId,
+            libraryItem = libraryItem,
+            episode = episode,
+          )
         }
       }
   }

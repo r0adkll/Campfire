@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import com.slack.circuit.runtime.presenter.Presenter
@@ -24,6 +25,7 @@ typealias OnDismissListener = (PlaylistDialogResult) -> Unit
 @Inject
 class AddToPlaylistDialogPresenter(
   @Assisted private val libraryItem: LibraryItem,
+  @Assisted private val episode: PodcastEpisode?,
   @Assisted private val onDismiss: OnDismissListener,
   private val playlistsRepository: PlaylistsRepository,
 ) : Presenter<AddToPlaylistViewState> {
@@ -52,7 +54,7 @@ class AddToPlaylistDialogPresenter(
             scope.launch {
               playlistsRepository.addToPlaylist(
                 playlistId = event.playlist.id,
-                item = Playlist.Item.Minified(libraryItem),
+                item = Playlist.Item.Minified(libraryItem, episode),
               ).onSuccess {
                 onDismiss(
                   PlaylistDialogResult.Existing(
@@ -70,7 +72,7 @@ class AddToPlaylistDialogPresenter(
             scope.launch {
               val newPlaylistId = playlistsRepository.createPlaylist(
                 name = event.playlistName,
-                items = listOf(Playlist.Item.Minified(libraryItem)),
+                items = listOf(Playlist.Item.Minified(libraryItem, episode)),
               ).onSuccess { newPlaylistId ->
                 onDismiss(PlaylistDialogResult.New(newPlaylistId))
               }.onFailure {

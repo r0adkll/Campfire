@@ -38,6 +38,7 @@ import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
+import kotlin.time.Duration
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -50,6 +51,11 @@ fun LibraryItemListItem(
   offlineStatus: OfflineStatus = OfflineStatus.None,
   sharedTransitionKey: String = libraryItem.id,
   sharedTransitionZIndex: Float = 0f,
+  // Optional overrides used when the row should display something other than the parent
+  // library item (e.g. a podcast episode within a playlist row).
+  titleOverride: String? = null,
+  subtitleOverride: String? = null,
+  durationOverride: Duration? = null,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
@@ -145,14 +151,19 @@ fun LibraryItemListItem(
           .weight(1f),
       ) {
         Text(
-          text = libraryItem.media.metadata.title ?: "Unknown",
+          text = titleOverride ?: libraryItem.media.metadata.title ?: "Unknown",
           style = MaterialTheme.typography.titleMediumEmphasized,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )
 
+        // For podcast metadata `authorName` is null (the field is `author`); fall back so
+        // both books and podcasts render a sensible attribution line.
+        val defaultSubtitle = libraryItem.media.metadata.authorName
+          ?: libraryItem.media.metadata.author
+          ?: "--"
         Text(
-          text = libraryItem.media.metadata.authorName ?: "--",
+          text = subtitleOverride ?: defaultSubtitle,
           style = MaterialTheme.typography.bodyMedium,
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
@@ -170,7 +181,7 @@ fun LibraryItemListItem(
             modifier = Modifier.size(16.dp),
           )
           Text(
-            text = libraryItem.media.duration.thresholdReadoutFormat(),
+            text = (durationOverride ?: libraryItem.media.duration).thresholdReadoutFormat(),
             style = MaterialTheme.typography.labelSmallEmphasized,
           )
         }

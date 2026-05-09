@@ -4,6 +4,7 @@ import app.campfire.CampfireDatabase
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.Media
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.UserId
@@ -12,7 +13,9 @@ import app.campfire.data.PlaylistItemJoin
 import app.campfire.data.Playlists
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.asEpisodeDbModel
 import app.campfire.data.mapping.dao.LibraryItemDao
+import app.cash.sqldelight.SuspendingTransactionWithoutReturn
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.coroutines.asFlow
@@ -85,28 +88,29 @@ class PlaylistsSourceOfTruthFactory(
   }
 
   private suspend fun hydratePlaylistItems(playlistId: PlaylistId): List<Playlist.Item.Expanded> {
-    // Get junction entries to access episodeId and ordering
+    // Get junction entries (carries episodeId and ordering). For podcasts the same
+    // libraryItemId can appear multiple times under different episodeIds, so we hydrate
+    // by id directly rather than via a libraryItem-side join (which can only see one
+    // media variant at a time).
     val junctionEntries = db.playlistItemJoinQueries
       .selectForPlaylist(playlistId)
       .awaitAsList()
 
-    // Get the hydrated library items
-    val libraryItems = db.libraryItemsQueries
-      .selectForPlaylist(playlistId)
-      .awaitAsList()
-      .map { it.asDomainModel(urlHydrator) }
-
-    // Map library items by id for efficient lookup
-    val itemsById = libraryItems.associateBy { it.id }
-
-    // Combine junction data with library items
     return junctionEntries.mapIndexedNotNull { index, junction ->
-      val libraryItem = itemsById[junction.libraryItemId] ?: return@mapIndexedNotNull null
+      val libraryItem = libraryItemDao.hydrateById(junction.libraryItemId)
+        ?: return@mapIndexedNotNull null
+      val resolvedEpisodeId = junction.episodeId.takeIf { it.isNotEmpty() }
+      val episode = resolvedEpisodeId?.let { episodeId ->
+        (libraryItem.media as? Media.Podcast)
+          ?.episodes
+          ?.firstOrNull { it.id == episodeId }
+      }
       Playlist.Item.Expanded(
         index = index,
         libraryItemId = junction.libraryItemId,
-        episodeId = junction.episodeId,
+        episodeId = resolvedEpisodeId,
         libraryItem = libraryItem,
+        episode = episode,
       )
     }
   }
@@ -144,22 +148,7 @@ class PlaylistsSourceOfTruthFactory(
 
         // Insert the playlist items
         playlist.items.forEachIndexed { index, item ->
-
-          // These items contain expanded library items, so they should be safe to insert/replace
-          libraryItemDao.insert(
-            item = item.libraryItem,
-            asTransaction = false,
-          )
-
-          // Insert junction entry
-          db.playlistItemJoinQueries.insert(
-            PlaylistItemJoin(
-              playlistId = playlist.id,
-              libraryItemId = item.libraryItemId,
-              episodeId = item.episodeId,
-              itemOrder = index,
-            ),
-          )
+          writePlaylistItem(playlist.id, item, index)
         }
       }
     }
@@ -176,24 +165,54 @@ class PlaylistsSourceOfTruthFactory(
 
       // Insert the playlist items
       playlist.items.forEachIndexed { index, item ->
+        writePlaylistItem(playlist.id, item, index)
+      }
+    }
+  }
 
-        // These items contain expanded library items, so they should be safe to insert/replace
-        libraryItemDao.insert(
-          item = item.libraryItem,
-          asTransaction = false,
-        )
+  /**
+   * Write a single playlist item: the library item row, the junction row, and (for
+   * podcast episode entries) the episode row.
+   *
+   * For podcasts the server returns a *minified* libraryItem (no episodes array) inside
+   * the playlist payload — using INSERT OR REPLACE on the libraryItem would cascade-delete
+   * any episodes previously cached from a podcast detail fetch. We use ignoreOnInsert so
+   * the existing podcast cache is preserved, then write the playlist's specific episode
+   * row separately so it's available even when no full podcast fetch has happened.
+   */
+  private suspend fun SuspendingTransactionWithoutReturn.writePlaylistItem(
+    playlistId: PlaylistId,
+    item: Playlist.Item.Expanded,
+    order: Int,
+  ) {
+    libraryItemDao.insert(
+      item = item.libraryItem,
+      asTransaction = false,
+      ignoreOnInsert = true,
+    )
 
-        // Insert junction entry
-        db.playlistItemJoinQueries.insert(
-          PlaylistItemJoin(
-            playlistId = playlist.id,
-            libraryItemId = item.libraryItemId,
-            episodeId = item.episodeId,
-            itemOrder = index,
-          ),
+    // Persist the resolved episode (if any) so the hydration path can find it.
+    val podcast = item.libraryItem.media as? Media.Podcast
+    val episode = item.episode
+    if (podcast != null && episode != null) {
+      db.podcastEpisodeQueries.insert(
+        episode.asDbModel(podcastMediaId = podcast.id),
+      )
+      episode.audioTrack?.let { track ->
+        db.podcastEpisodeAudioTrackQueries.insert(
+          track.asEpisodeDbModel(episodeId = episode.id),
         )
       }
     }
+
+    db.playlistItemJoinQueries.insert(
+      PlaylistItemJoin(
+        playlistId = playlistId,
+        libraryItemId = item.libraryItemId,
+        episodeId = item.episodeId.orEmpty(),
+        itemOrder = order,
+      ),
+    )
   }
 
   private suspend fun writeCreate(
@@ -219,7 +238,7 @@ class PlaylistsSourceOfTruthFactory(
           PlaylistItemJoin(
             playlistId = mutation.creationId,
             libraryItemId = item.libraryItemId,
-            episodeId = item.episodeId,
+            episodeId = item.episodeId.orEmpty(),
             itemOrder = index,
           ),
         )
@@ -251,7 +270,7 @@ class PlaylistsSourceOfTruthFactory(
           PlaylistItemJoin(
             playlistId = mutation.id,
             libraryItemId = item.libraryItemId,
-            episodeId = item.episodeId,
+            episodeId = item.episodeId.orEmpty(),
             itemOrder = index,
           ),
         )
@@ -271,7 +290,7 @@ class PlaylistsSourceOfTruthFactory(
         PlaylistItemJoin(
           playlistId = mutation.playlistId,
           libraryItemId = mutation.item.libraryItemId,
-          episodeId = mutation.item.episodeId,
+          episodeId = mutation.item.episodeId.orEmpty(),
           itemOrder = playlistCount.toInt(),
         ),
       )
@@ -284,6 +303,7 @@ class PlaylistsSourceOfTruthFactory(
     db.playlistItemJoinQueries.deleteForItem(
       playlistId = mutation.playlistId,
       libraryItemId = mutation.item.libraryItemId,
+      episodeId = mutation.item.episodeId.orEmpty(),
     )
   }
 

@@ -358,20 +358,26 @@ class SqlDelightLibraryItemDao(
     item: LibraryItem,
     asTransaction: Boolean,
     ignoreOnInsert: Boolean,
+  ) = when (item.media) {
+    is Media.Book -> insertBookDomain(item, asTransaction, ignoreOnInsert)
+    is Media.Podcast -> insertPodcastDomain(item, asTransaction, ignoreOnInsert)
+  }
+
+  private suspend fun insertBookDomain(
+    item: LibraryItem,
+    asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
   ) = withContext(dispatcherProvider.databaseWrite) {
+    val book = item.media as Media.Book
     db.transactionIf(asTransaction) {
-      // Should we attach the serverUrl information to the domain model here? This way we don't have
-      // to pipe it around like this?
       val libraryItem = item.asDbModel(userSession.serverUrl!!)
 
-      // 1) Insert the root library item
       if (ignoreOnInsert) {
         db.libraryItemsQueries.insertOrIgnore(libraryItem)
       } else {
         db.libraryItemsQueries.insert(libraryItem)
       }
 
-      // 2) Insert the media meta
       val media = item.media.asDbModel(libraryItem.id)
       if (ignoreOnInsert) {
         db.mediaQueries.insertOrIgnore(media)
@@ -379,10 +385,7 @@ class SqlDelightLibraryItemDao(
         db.mediaQueries.insert(media)
       }
 
-      // 3) Insert relations
       item.userMediaProgress?.let { progress ->
-        // Match the insert's PK so the freshness check compares against the row that's
-        // about to be replaced (per-episode for podcasts, item-level for books).
         val existing = db.mediaProgressQueries.selectForEpisode(
           userId = progress.userId,
           libraryItemId = libraryItem.id,
@@ -393,31 +396,90 @@ class SqlDelightLibraryItemDao(
         }
       }
 
-      item.media.audioFiles.forEach { audioFile ->
+      book.audioFiles.forEach { audioFile ->
         db.mediaAudioFilesQueries.insert(audioFile.asDbModel(media.mediaId))
       }
 
-      item.media.chapters.forEach { chapter ->
+      book.chapters.forEach { chapter ->
         db.mediaChaptersQueries.insert(chapter.asDbModel(media.mediaId))
       }
 
-      item.media.tracks.forEach { track ->
+      book.tracks.forEach { track ->
         db.mediaAudioTracksQueries.insert(track.asDbModel(media.mediaId))
       }
 
-      item.media.metadata.authors.forEach { authorMeta ->
+      book.metadata.authors.forEach { authorMeta ->
         db.metadataAuthorQueries.insert(authorMeta.asDbModel(media.mediaId))
       }
 
       afterCommit {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id.loggableId}] inserted"
+          "LibraryItem[${item.id.loggableId}] (book) inserted"
+        }
+      }
+      afterRollback {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItem[${item.id.loggableId}] (book) insert failed, rolling back"
+        }
+      }
+    }
+  }
+
+  private suspend fun insertPodcastDomain(
+    item: LibraryItem,
+    asTransaction: Boolean,
+    ignoreOnInsert: Boolean,
+  ) = withContext(dispatcherProvider.databaseWrite) {
+    val podcast = item.media as Media.Podcast
+    db.transactionIf(asTransaction) {
+      val libraryItem = item.asDbModel(userSession.serverUrl!!)
+
+      if (ignoreOnInsert) {
+        db.libraryItemsQueries.insertOrIgnore(libraryItem)
+      } else {
+        db.libraryItemsQueries.insert(libraryItem)
+      }
+
+      val podcastMedia = podcast.asDbModel(libraryItem.id)
+      if (ignoreOnInsert) {
+        db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+      } else {
+        db.podcastMediaQueries.insert(podcastMedia)
+      }
+
+      podcast.episodes.forEach { episode ->
+        val row = episode.asDbModel(podcastMediaId = podcastMedia.mediaId)
+        if (ignoreOnInsert) {
+          db.podcastEpisodeQueries.insertOrIgnore(row)
+        } else {
+          db.podcastEpisodeQueries.insert(row)
+        }
+        episode.audioTrack?.let { track ->
+          db.podcastEpisodeAudioTrackQueries.insert(
+            track.asEpisodeDbModel(episodeId = episode.id),
+          )
         }
       }
 
+      item.userMediaProgress?.let { progress ->
+        val existing = db.mediaProgressQueries.selectForEpisode(
+          userId = progress.userId,
+          libraryItemId = libraryItem.id,
+          episodeId = progress.episodeId.orEmpty(),
+        ).executeAsOneOrNull()
+        if (existing == null || existing.lastUpdate <= progress.lastUpdate) {
+          db.mediaProgressQueries.insert(progress.asDbModel())
+        }
+      }
+
+      afterCommit {
+        bark("LibraryItemDao", LogPriority.VERBOSE) {
+          "LibraryItem[${item.id.loggableId}] (podcast) inserted"
+        }
+      }
       afterRollback {
         bark("LibraryItemDao", LogPriority.VERBOSE) {
-          "LibraryItemExpanded[${item.id.loggableId}] insert failed, rolling back"
+          "LibraryItem[${item.id.loggableId}] (podcast) insert failed, rolling back"
         }
       }
     }

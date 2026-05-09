@@ -19,11 +19,16 @@ fun NetworkPlaylist.asDomainModel(urlHydrator: UrlHydrator): Playlist {
     lastUpdatedAt = Instant.fromEpochMilliseconds(lastUpdate).toLocalDateTime(TimeZone.currentSystemDefault()),
     createdAt = Instant.fromEpochMilliseconds(createdAt).toLocalDateTime(TimeZone.currentSystemDefault()),
     items = items.mapIndexed { index, item ->
+      val libraryItem = item.libraryItem.asDomainModel(urlHydrator)
+      // The server places the resolved episode at the playlist-item level — the nested
+      // libraryItem.media is the *minified* podcast and never carries episodes here.
+      val episode = item.episode?.asDomainModel(urlHydrator)
       Playlist.Item.Expanded(
         index = index,
         libraryItemId = item.libraryItemId,
         episodeId = item.episodeId,
-        libraryItem = item.libraryItem.asDomainModel(urlHydrator),
+        libraryItem = libraryItem,
+        episode = episode,
       )
     },
   )

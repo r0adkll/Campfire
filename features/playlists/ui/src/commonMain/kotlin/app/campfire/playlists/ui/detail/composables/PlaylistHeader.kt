@@ -19,14 +19,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Playlist
 import kotlin.time.Duration
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun PlaylistHeader(
   description: String?,
-  items: List<LibraryItem>,
+  items: List<Playlist.Item.Expanded>,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -51,8 +51,9 @@ internal fun PlaylistHeader(
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
+      val itemLabel = if (items.size == 1) "Item" else "Items"
       Text(
-        text = "${items.size} Books",
+        text = "${items.size} $itemLabel",
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
       )
@@ -66,7 +67,12 @@ internal fun PlaylistHeader(
       )
       Spacer(Modifier.width(4.dp))
       Text(
-        text = items.fold(Duration.ZERO) { acc, item -> item.media.duration + acc }.thresholdReadoutFormat(),
+        text = items.fold(Duration.ZERO) { acc, item ->
+          // Podcast entries reflect the chosen episode's duration; book entries reflect
+          // the whole library item.
+          val itemDuration = item.episode?.duration ?: item.libraryItem.media.duration
+          acc + itemDuration
+        }.thresholdReadoutFormat(),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.SemiBold,
       )

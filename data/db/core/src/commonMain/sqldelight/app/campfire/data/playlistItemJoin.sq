@@ -3,10 +3,10 @@ import kotlin.Int;
 CREATE TABLE IF NOT EXISTS playlistItemJoin (
   playlistId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
-  episodeId TEXT,
+  episodeId TEXT NOT NULL DEFAULT '',
   itemOrder INTEGER AS Int NOT NULL,
 
-  PRIMARY KEY (playlistId, libraryItemId),
+  PRIMARY KEY (playlistId, libraryItemId, episodeId),
   FOREIGN KEY (playlistId) REFERENCES playlists(id) ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
@@ -33,4 +33,5 @@ WHERE playlistId = :playlistId;
 deleteForItem:
 DELETE FROM playlistItemJoin
 WHERE playlistId = :playlistId
-AND libraryItemId = :libraryItemId;
+AND libraryItemId = :libraryItemId
+AND episodeId = :episodeId;

@@ -35,5 +35,10 @@ abstract class PlaylistItem : NetworkModel() {
     override val libraryItemId: String,
     override val episodeId: String? = null,
     val libraryItem: LibraryItemExpanded,
+    // The server returns the resolved podcast episode at the playlist-item level (not
+    // nested inside libraryItem.media). For book entries this is null; for podcast
+    // entries the libraryItem.media is the *minified* podcast (no episodes array) and
+    // the playable unit lives here.
+    val episode: PodcastEpisode? = null,
   ) : PlaylistItem()
 }

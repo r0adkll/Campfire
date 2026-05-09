@@ -16,6 +16,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.observeContains
@@ -49,6 +50,7 @@ class PodcastEpisodePresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : Presenter<PodcastEpisodeUiState> {
 
   @Composable
@@ -114,6 +116,7 @@ class PodcastEpisodePresenter(
     }.collectAsState(false)
 
     return PodcastEpisodeUiState(
+      libraryItem = libraryItem,
       episode = episode,
       progress = progress,
       playbackSpeed = playbackSpeed,
@@ -121,6 +124,7 @@ class PodcastEpisodePresenter(
       isQueued = isQueued,
       hasSession = currentSession != null,
       sessionState = episodeSession,
+      addToPlaylistDialog = addToPlaylistDialog,
     ) { event ->
       when (event) {
         PodcastEpisodeUiEvent.PlayClick -> {

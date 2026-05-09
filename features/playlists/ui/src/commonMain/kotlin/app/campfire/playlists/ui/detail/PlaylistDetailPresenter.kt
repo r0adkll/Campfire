@@ -16,7 +16,6 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Playlist
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.PlaylistsRepository
@@ -93,7 +92,7 @@ class PlaylistDetailPresenter(
     val playlistItemsState by remember(playlistId) {
       playlistsRepository.observePlaylistItems(playlistId)
         .map { LoadState.Loaded(it) }
-        .catch<LoadState<out List<LibraryItem>>> { emit(LoadState.Error) }
+        .catch<LoadState<out List<Playlist.Item.Expanded>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
     // A local cache of playlist items that we can re-order and then dispatch when finished
@@ -116,10 +115,12 @@ class PlaylistDetailPresenter(
       playlistContentState = playlistItemsState,
       playlistItems = playlistItems,
       offlineStates = offlineStates,
-      reorderSink = { from, to ->
-        val fromIndex = playlistItems.indexOfFirst { it.id == from }
-        val toIndex = playlistItems.indexOfFirst { it.id == to }
-        playlistItems.add(toIndex, playlistItems.removeAt(fromIndex))
+      reorderSink = { fromKey, toKey ->
+        val fromIndex = playlistItems.indexOfFirst { it.key == fromKey }
+        val toIndex = playlistItems.indexOfFirst { it.key == toKey }
+        if (fromIndex >= 0 && toIndex >= 0) {
+          playlistItems.add(toIndex, playlistItems.removeAt(fromIndex))
+        }
       },
     ) { event ->
       when (event) {
@@ -136,21 +137,28 @@ class PlaylistDetailPresenter(
           analytics.send(ContentSelected(ContentType.LibraryItem))
           navigator.goTo(
             LibraryItemScreen(
-              libraryItemId = event.libraryItem.id,
-              sharedTransitionKey = event.libraryItem.id + screen.playlistName,
+              libraryItemId = event.item.libraryItem.id,
+              episodeId = event.item.episodeId,
+              sharedTransitionKey = event.item.key + screen.playlistName,
             ),
           )
         }
 
         is PlaylistDetailUiEvent.PlayClick -> {
           analytics.send(ActionEvent("playlist_item", "play"))
-          playbackController.startSession(event.libraryItem.id)
+          playbackController.startSession(
+            itemId = event.item.libraryItem.id,
+            episodeId = event.item.episodeId,
+          )
         }
 
         is PlaylistDetailUiEvent.RemoveItem -> {
           analytics.send(ActionEvent("playlist_item", "deleted"))
           scope.launch {
-            playlistsRepository.removeFromPlaylist(screen.playlistId, Playlist.Item.Minified(event.libraryItem))
+            playlistsRepository.removeFromPlaylist(
+              playlistId = screen.playlistId,
+              item = event.item.asMinified(),
+            )
           }
         }
 
@@ -160,7 +168,7 @@ class PlaylistDetailPresenter(
               playlistId = screen.playlistId,
               name = playlistName,
               description = playlistDescription,
-              items = playlistItems.map { Playlist.Item.Minified(it) },
+              items = playlistItems.map { it.asMinified() },
             )
           }
         }
@@ -171,10 +179,16 @@ class PlaylistDetailPresenter(
             val firstItem = playlistItems.firstOrNull() ?: return@launch
             val queueItems = playlistItems.drop(1)
 
-            playbackController.startSession(firstItem.id)
+            playbackController.startSession(
+              itemId = firstItem.libraryItem.id,
+              episodeId = firstItem.episodeId,
+            )
             if (queueItems.isNotEmpty()) {
               sessionQueue.clear()
-              sessionQueue.addAll(queueItems)
+              // Per-item add — addAll() is book-only and would drop episodeIds.
+              queueItems.forEach { item ->
+                sessionQueue.add(item.libraryItem, item.episode)
+              }
             }
           }
         }
@@ -182,7 +196,12 @@ class PlaylistDetailPresenter(
         is PlaylistDetailUiEvent.DownloadAll -> {
           analytics.send(ActionEvent("playlist", "download"))
           settings.showConfirmDownload = !event.doNotShowAgain
-          downloadManager.downloadAll(playlistItems)
+          // Offline downloads are item-scoped, not episode-scoped; de-dupe podcast
+          // entries that share a library item.
+          val uniqueLibraryItems = playlistItems
+            .map { it.libraryItem }
+            .distinctBy { it.id }
+          downloadManager.downloadAll(uniqueLibraryItems)
         }
       }
     }

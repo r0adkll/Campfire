@@ -227,3 +227,26 @@ FROM sessionQueue;
 
 DROP TABLE sessionQueue;
 ALTER TABLE sessionQueue_new RENAME TO sessionQueue;
+
+-- 9) Make playlistItemJoin per-episode aware so the same podcast can appear multiple
+-- times in a playlist via distinct episodeIds. Same empty-string sentinel convention as
+-- the other tables above; existing book-only rows back-fill to ''.
+CREATE TABLE playlistItemJoin_new (
+  playlistId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  episodeId TEXT NOT NULL DEFAULT '',
+  itemOrder INTEGER NOT NULL,
+
+  PRIMARY KEY (playlistId, libraryItemId, episodeId),
+  FOREIGN KEY (playlistId) REFERENCES playlists(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+INSERT INTO playlistItemJoin_new
+SELECT playlistId, libraryItemId, COALESCE(episodeId, ''), itemOrder
+FROM playlistItemJoin;
+
+DROP TABLE playlistItemJoin;
+ALTER TABLE playlistItemJoin_new RENAME TO playlistItemJoin;
+
+CREATE INDEX IF NOT EXISTS index_playlist_item_join_libraryItemId ON playlistItemJoin(libraryItemId);
