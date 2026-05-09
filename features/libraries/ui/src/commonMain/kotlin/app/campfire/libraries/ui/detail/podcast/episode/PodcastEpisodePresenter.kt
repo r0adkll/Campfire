@@ -13,9 +13,8 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
-import app.campfire.core.model.preview.libraryItem
-import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
@@ -34,11 +33,13 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
-typealias PodcastEpisodePresenterFactory = (PodcastEpisode, OverlayNavigator<Unit>) -> PodcastEpisodePresenter
+typealias PodcastEpisodePresenterFactory =
+    (LibraryItem, PodcastEpisode, OverlayNavigator<Unit>) -> PodcastEpisodePresenter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Inject
 class PodcastEpisodePresenter(
+  @Assisted private val libraryItem: LibraryItem,
   @Assisted private val episode: PodcastEpisode,
   @Assisted private val navigator: OverlayNavigator<Unit>,
   private val analytics: Analytics,
@@ -48,7 +49,6 @@ class PodcastEpisodePresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
-  private val libraryItemRepository: LibraryItemRepository,
 ) : Presenter<PodcastEpisodeUiState> {
 
   @Composable
@@ -212,8 +212,7 @@ class PodcastEpisodePresenter(
         PodcastEpisodeUiEvent.AddToQueue -> {
           analytics.send(ActionEvent("add_to_queue", Click))
           scope.launch {
-            val parent = libraryItemRepository.getLibraryItem(episode.libraryItemId)
-            sessionQueue.add(parent, episode)
+            sessionQueue.add(libraryItem, episode)
           }
         }
 

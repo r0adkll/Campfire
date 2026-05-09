@@ -63,7 +63,7 @@ class PodcastPresenter(
       val podcastEpisode = podcastMedia.episodes.find { it.id == screen.episodeId }
       if (podcastEpisode != null && !hasShownEpisode) {
         hasShownEpisode = true
-        overlayHost.showPodcastEpisodeBottomSheet(podcastEpisode)
+        overlayHost.showPodcastEpisodeBottomSheet(libraryItem, podcastEpisode)
       }
     }
 
@@ -73,7 +73,7 @@ class PodcastPresenter(
         when (event) {
           is LibraryItemUiEvent.OpenEpisode -> {
             scope.launch {
-              overlayHost.showPodcastEpisodeBottomSheet(event.episode)
+              overlayHost.showPodcastEpisodeBottomSheet(libraryItem, event.episode)
             }
           }
 

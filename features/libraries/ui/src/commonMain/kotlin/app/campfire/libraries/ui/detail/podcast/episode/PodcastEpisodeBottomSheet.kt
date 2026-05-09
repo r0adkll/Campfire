@@ -42,6 +42,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asReadableBytes
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
@@ -61,20 +62,26 @@ interface PodcastEpisodeBottomSheetComponent {
   val podcastEpisodePresenterFactory: PodcastEpisodePresenterFactory
 }
 
+private data class PodcastEpisodeSheetModel(
+  val libraryItem: LibraryItem,
+  val episode: PodcastEpisode,
+)
+
 suspend fun OverlayHost.showPodcastEpisodeBottomSheet(
+  item: LibraryItem,
   episode: PodcastEpisode,
 ) {
   show(
     BottomSheetOverlay(
-      model = episode,
+      model = PodcastEpisodeSheetModel(item, episode),
       onDismiss = { Unit },
-    ) { podcastEpisode, navigator ->
+    ) { (libraryItem, podcastEpisode), navigator ->
       CompositionLocalProvider(
         LocalContentLayout provides ContentLayout.Root,
       ) {
         val presenter = remember {
           ComponentHolder.component<PodcastEpisodeBottomSheetComponent>()
-            .podcastEpisodePresenterFactory(podcastEpisode, navigator)
+            .podcastEpisodePresenterFactory(libraryItem, podcastEpisode, navigator)
         }
 
         val state = presenter.present()
