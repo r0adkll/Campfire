@@ -34,7 +34,7 @@ import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
 typealias PodcastEpisodePresenterFactory =
-    (LibraryItem, PodcastEpisode, OverlayNavigator<Unit>) -> PodcastEpisodePresenter
+  (LibraryItem, PodcastEpisode, OverlayNavigator<Unit>) -> PodcastEpisodePresenter
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Inject
