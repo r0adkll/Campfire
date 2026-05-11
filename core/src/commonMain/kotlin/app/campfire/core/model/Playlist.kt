@@ -26,13 +26,7 @@ data class Playlist(
       override val index: Int,
       override val libraryItemId: String,
       override val episodeId: String?,
-    ) : Item {
-      constructor(libraryItem: LibraryItem, episode: PodcastEpisode? = null) : this(
-        index = -1,
-        libraryItemId = libraryItem.id,
-        episodeId = episode?.id,
-      )
-    }
+    ) : Item
 
     data class Expanded(
       override val index: Int,

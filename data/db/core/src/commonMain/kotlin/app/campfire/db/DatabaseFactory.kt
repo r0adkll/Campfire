@@ -23,6 +23,8 @@ import app.campfire.data.PlaybackAction
 import app.campfire.data.PlaylistItemJoin
 import app.campfire.data.PodcastEpisode
 import app.campfire.data.PodcastEpisodeAudioTrack
+import app.campfire.data.PodcastEpisodePage
+import app.campfire.data.PodcastEpisodePageJoin
 import app.campfire.data.PodcastMedia
 import app.campfire.data.Search_genres
 import app.campfire.data.Search_narrators
@@ -207,6 +209,13 @@ class DatabaseFactory(
     ),
     podcastEpisodeAudioTrackAdapter = PodcastEpisodeAudioTrack.Adapter(
       trackIndexAdapter = IntColumnAdapter,
+    ),
+    podcastEpisodePageAdapter = PodcastEpisodePage.Adapter(
+      pageAdapter = IntColumnAdapter,
+      nextPageAdapter = IntColumnAdapter,
+    ),
+    podcastEpisodePageJoinAdapter = PodcastEpisodePageJoin.Adapter(
+      pageIndexAdapter = IntColumnAdapter,
     ),
   )
 }

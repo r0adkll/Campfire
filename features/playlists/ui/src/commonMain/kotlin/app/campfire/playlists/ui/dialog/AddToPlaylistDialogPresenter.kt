@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.playlists.api.PlaylistsRepository
@@ -24,7 +24,7 @@ typealias OnDismissListener = (PlaylistDialogResult) -> Unit
 
 @Inject
 class AddToPlaylistDialogPresenter(
-  @Assisted private val libraryItem: LibraryItem,
+  @Assisted private val libraryItemId: LibraryItemId,
   @Assisted private val episode: PodcastEpisode?,
   @Assisted private val onDismiss: OnDismissListener,
   private val playlistsRepository: PlaylistsRepository,
@@ -54,7 +54,11 @@ class AddToPlaylistDialogPresenter(
             scope.launch {
               playlistsRepository.addToPlaylist(
                 playlistId = event.playlist.id,
-                item = Playlist.Item.Minified(libraryItem, episode),
+                item = Playlist.Item.Minified(
+                  index = -1,
+                  libraryItemId = libraryItemId,
+                  episodeId = episode?.id,
+                ),
               ).onSuccess {
                 onDismiss(
                   PlaylistDialogResult.Existing(
@@ -72,7 +76,13 @@ class AddToPlaylistDialogPresenter(
             scope.launch {
               val newPlaylistId = playlistsRepository.createPlaylist(
                 name = event.playlistName,
-                items = listOf(Playlist.Item.Minified(libraryItem, episode)),
+                items = listOf(
+                  Playlist.Item.Minified(
+                    index = -1,
+                    libraryItemId = libraryItemId,
+                    episodeId = episode?.id,
+                  ),
+                ),
               ).onSuccess { newPlaylistId ->
                 onDismiss(PlaylistDialogResult.New(newPlaylistId))
               }.onFailure {

@@ -27,6 +27,7 @@ kotlin {
         api(libs.materialcolorsutilities)
         api(libs.swatchbuckler.compose)
         api(libs.swatchbuckler.coil)
+        api(libs.compose.rich.text)
 
         api(libs.compose.foundation)
         api(libs.compose.material)

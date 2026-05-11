@@ -56,3 +56,35 @@ addedAt, size, birthtimeMs, mtimeMs, media.metadata.author, media.metadata.title
 
 ## Podcast-specific filter groups (?filter=)
 genres, explicit, recent, feed-open, issues
+
+## Latest Episodes Endpoints (for "Latest Episodes" screen)
+
+### Primary: GET /api/libraries/:id/recent-episodes
+- **Source**: `LibraryController.getRecentEpisodes` → `libraryItemsPodcastFilters.getRecentEpisodes`
+- **Source file**: `/workspaces/audiobookshelf/server/utils/queries/libraryItemsPodcastFilters.js` line 506
+- **Requires**: podcast library only (returns 404 for book libraries), Bearer token auth
+- **Sort**: `publishedAt DESC` (publish date, not addedAt)
+- **Filter**: Hides episodes where `isFinished=true` for the requesting user. Does NOT have the 60-day window.
+- **Pagination**: `?limit=N&page=P` (page is 0-indexed, offset = page*limit). limit=0 means 0 results from Sequelize.
+- **No total count in response** — envelope: `{ episodes: [...], limit: N, page: P }`
+- **Episode shape**: `toOldJSONExpanded` + `podcast` object + `libraryId`
+  - Top-level: libraryItemId, podcastId, id, oldEpisodeId, index, season, episode, episodeType, title, subtitle, description, enclosure{url,type,length}, guid, pubDate, chapters, audioFile, publishedAt, addedAt, updatedAt, audioTrack, size, duration, podcast{...}, libraryId
+  - `podcast` is a full `toOldJSON()` of the Podcast (has metadata.title, metadata.author, metadata.imageUrl, libraryItemId, coverPath, etc.) with `episodes:[]` (emptied)
+  - No MediaProgress inline — must fetch separately via `/api/me/progress/:libraryItemId/:episodeId`
+
+### Secondary: GET /api/libraries/:id/personalized (newest-episodes shelf)
+- **Source**: `LibraryController.getUserPersonalizedShelves` → `LibraryItem.getPersonalizedShelves` → `libraryFilters.getNewestPodcastEpisodes`
+- Uses `getFilteredPodcastEpisodes(libraryId, user, 'recent', null, 'createdAt', true, limit, 0)` — `filterGroup='recent'` means ONLY episodes added in last 60 days, sorted by `createdAt DESC` (not publishedAt)
+- **Entity shape in shelf**: LibraryItem minified (`toOldJSONMinified`) + `recentEpisode` property (episode as `toOldJSON` — not expanded, no audioTrack/size/duration)
+- `?limit=N` controls items per shelf (default 10)
+- Returns all podcast shelves at once: continue-listening, newest-episodes, recently-added — not just episodes
+- Shelf `type: "episode"`, `total: N` gives total count
+
+### Recommendation
+Use `/api/libraries/:id/recent-episodes` for the dedicated Latest Episodes screen:
+- Returns full expanded episode objects with podcast context in one call
+- True pagination support (limit + page)
+- Sorted by publishedAt (publish date) across all podcasts in library
+- Automatically hides finished episodes (good default for "what's new to listen to")
+- Caveat: limit=0 returns 0 results; always pass limit>0. No total count in response.
+- No cross-library endpoint exists; must call once per podcast library.

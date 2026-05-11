@@ -63,7 +63,7 @@ import app.campfire.common.compose.widgets.ButtonsCrossAxisSpacing
 import app.campfire.common.compose.widgets.ButtonsMainAxisSpacing
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -83,12 +83,13 @@ import org.jetbrains.compose.resources.stringResource
 @ContributesBinding(UserScope::class)
 @Inject
 class AddToPlaylistDialogImpl(
-  private val presenterFactory: (LibraryItem, PodcastEpisode?, OnDismissListener) -> AddToPlaylistDialogPresenter,
+  private val presenterFactory: (LibraryItemId, PodcastEpisode?, OnDismissListener) -> AddToPlaylistDialogPresenter,
 ) : AddToPlaylistDialog {
 
   @Composable
   override fun Content(
-    libraryItem: LibraryItem,
+    libraryItemId: LibraryItemId,
+    itemTitle: String,
     onDismiss: (PlaylistDialogResult) -> Unit,
     modifier: Modifier,
     episode: PodcastEpisode?,
@@ -97,16 +98,15 @@ class AddToPlaylistDialogImpl(
       ScreenViewEvent("AddToPlaylist", ScreenType.Dialog)
     }
 
-    val presenter = remember(libraryItem, episode, onDismiss) {
-      presenterFactory(libraryItem, episode, onDismiss)
+    val presenter = remember(libraryItemId, episode, onDismiss) {
+      presenterFactory(libraryItemId, episode, onDismiss)
     }
 
     val viewState = presenter.present()
     Content(
       viewState = viewState,
-      // Surface the episode title for podcast entries so the user understands which unit
-      // they're adding; falls back to the library item title for books.
-      itemTitle = episode?.title ?: libraryItem.media.metadata.title.orEmpty(),
+      // Episode title takes priority for podcast entries; books supply the libraryItem title.
+      itemTitle = episode?.title ?: itemTitle,
       onDismiss = { onDismiss(PlaylistDialogResult.None) },
       modifier = modifier,
     )

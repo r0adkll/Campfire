@@ -2,7 +2,7 @@ package app.campfire.playlists.api.dialog
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.PodcastEpisode
 
@@ -16,7 +16,8 @@ interface AddToPlaylistDialog {
 
   @Composable
   fun Content(
-    libraryItem: LibraryItem,
+    libraryItemId: LibraryItemId,
+    itemTitle: String,
     onDismiss: (PlaylistDialogResult) -> Unit,
     modifier: Modifier,
     episode: PodcastEpisode? = null,
@@ -25,7 +26,8 @@ interface AddToPlaylistDialog {
   companion object NoOp : AddToPlaylistDialog {
     @Composable
     override fun Content(
-      libraryItem: LibraryItem,
+      libraryItemId: LibraryItemId,
+      itemTitle: String,
       onDismiss: (PlaylistDialogResult) -> Unit,
       modifier: Modifier,
       episode: PodcastEpisode?,

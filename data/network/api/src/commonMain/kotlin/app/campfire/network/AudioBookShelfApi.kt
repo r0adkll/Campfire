@@ -13,6 +13,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -73,6 +74,17 @@ interface AudioBookShelfApi {
    * This endpoint returns a library's personalized view for home page display.
    */
   suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>>
+
+  /**
+   * Get a podcast library's most recently published episodes, sorted publishedAt DESC. The server
+   * applies a hardcoded unplayed filter (finished episodes are excluded) and does not return a
+   * total count. Returns 404 for non-podcast libraries.
+   */
+  suspend fun getRecentEpisodes(
+    libraryId: String,
+    page: Int = 0,
+    limit: Int = 50,
+  ): Result<PagedRecentEpisodesResponse>
 
   //region Series
 

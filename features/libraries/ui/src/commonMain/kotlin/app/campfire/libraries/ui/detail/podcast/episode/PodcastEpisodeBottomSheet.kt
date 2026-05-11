@@ -39,6 +39,7 @@ import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.extensions.toRichTextHtml
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.widgets.MetadataChip
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.common.compose.widgets.WithTimestampUriHandler
 import app.campfire.core.di.ComponentHolder
@@ -50,7 +51,6 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
 import app.campfire.libraries.ui.detail.composables.ExpressiveControlBar
 import app.campfire.libraries.ui.detail.composables.MediaProgressBar
-import app.campfire.libraries.ui.detail.composables.MetadataChip
 import app.campfire.libraries.ui.detail.composables.rememberRichTextState
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
@@ -107,7 +107,8 @@ private fun PodcastEpisodeBottomSheet(
   var showAddToPlaylistDialog by remember { mutableStateOf(false) }
   if (showAddToPlaylistDialog) {
     state.addToPlaylistDialog.Content(
-      libraryItem = state.libraryItem,
+      libraryItemId = state.libraryItem.id,
+      itemTitle = state.libraryItem.media.metadata.title.orEmpty(),
       episode = state.episode,
       onDismiss = { _: PlaylistDialogResult ->
         showAddToPlaylistDialog = false

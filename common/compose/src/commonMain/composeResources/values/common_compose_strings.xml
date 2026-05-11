@@ -10,6 +10,8 @@
   <string name="relative_day_yesterday">Yesterday</string>
 
   <string name="added_time_ago">Added %1$s</string>
+  <string name="duration_remaining">%1$s left</string>
+  <string name="duration_finished">Finished</string>
 
   <string name="unknown_library_title">Unknown</string>
   <string name="unknown_author_name">Unknown author</string>

@@ -13,6 +13,7 @@ kotlin {
         implementation(projects.infra.whatsNew.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.playlists.api)
+        implementation(projects.features.podcasts.api)
         implementation(projects.ui.theming.api)
 
         implementation(libs.compose.components.resources)

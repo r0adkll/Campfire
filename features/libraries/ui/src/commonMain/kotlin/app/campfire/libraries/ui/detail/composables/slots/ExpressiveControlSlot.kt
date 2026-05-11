@@ -56,7 +56,8 @@ class ExpressiveControlSlot(
     var showAddToPlaylistDialog by remember { mutableStateOf(false) }
     if (showAddToPlaylistDialog) {
       addToPlaylistDialog.Content(
-        libraryItem = libraryItem,
+        libraryItemId = libraryItem.id,
+        itemTitle = libraryItem.media.metadata.title.orEmpty(),
         onDismiss = { dialogResult ->
           if (dialogResult !is PlaylistDialogResult.None) {
             scope.launch {

@@ -1,0 +1,6 @@
+<resources>
+  <string name="latest_episodes_title">Latest</string>
+  <string name="latest_episodes_empty">All caught up! No new episodes to play.</string>
+  <string name="latest_episodes_play_episode">Play episode</string>
+  <string name="latest_episodes_image_content_description">%1$s cover</string>
+</resources>

@@ -1,0 +1,110 @@
+import kotlin.Int;
+
+CREATE TABLE podcastEpisodePage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE podcastEpisodePageJoin (
+  pageId INTEGER NOT NULL,
+  pageIndex INTEGER AS Int NOT NULL,
+  episodeId TEXT NOT NULL,
+
+  PRIMARY KEY (pageId, episodeId),
+  FOREIGN KEY (pageId) REFERENCES podcastEpisodePage(id) ON DELETE CASCADE
+);
+
+-- Inserts
+
+insertPage:
+INSERT OR REPLACE INTO podcastEpisodePage
+VALUES (:id, :page, :nextPage, :libraryId, :userId, :updatedAt);
+
+selectLastPageId:
+SELECT last_insert_rowid();
+
+insertPageJoin:
+INSERT OR REPLACE INTO podcastEpisodePageJoin
+VALUES ?;
+
+-- Count of currently paged episodes for a given user/library.
+count:
+SELECT count(*) FROM podcastEpisodePageJoin
+INNER JOIN podcastEpisodePage ON podcastEpisodePageJoin.pageId = podcastEpisodePage.id
+WHERE podcastEpisodePage.userId = ?
+  AND podcastEpisodePage.libraryId = ?;
+
+-- Delete
+
+deleteByLibrary:
+DELETE FROM podcastEpisodePage
+WHERE userId = ?
+  AND libraryId = ?;
+
+-- Queries
+
+selectOldestPage:
+SELECT * FROM podcastEpisodePage
+WHERE userId = ?
+  AND libraryId = ?
+ORDER BY updatedAt DESC LIMIT 1;
+
+selectNextPage:
+SELECT nextPage FROM podcastEpisodePage
+WHERE userId = ?
+  AND libraryId = ?
+ORDER BY page DESC LIMIT 1;
+
+-- Joined episode rows in page/index order, with parent podcastMedia for cover/title and the
+-- per-episode audio track for playback. Pulls progress for the current user/episode (LEFT JOIN
+-- since unplayed episodes have no row). Library context comes from the page row itself, so
+-- there's no JOIN to libraryItem — the recent-episodes endpoint doesn't return enough data to
+-- materialize a libraryItem row, and the detail screen fetches it on demand.
+selectEpisodesWithLimitOffset:
+SELECT
+  podcastEpisode.*,
+  podcastEpisodeAudioTrack.contentUrl AS audio_contentUrl,
+  podcastEpisodeAudioTrack.mimeType AS audio_mimeType,
+  podcastEpisodeAudioTrack.duration AS audio_duration,
+  podcastEpisodeAudioTrack.startOffset AS audio_startOffset,
+  podcastEpisodeAudioTrack.codec AS audio_codec,
+  podcastEpisodeAudioTrack.title AS audio_title,
+  podcastEpisodeAudioTrack.trackIndex AS audio_trackIndex,
+  podcastMedia.coverPath AS podcast_coverPath,
+  podcastMedia.metadata_title AS podcast_title,
+  podcastMedia.metadata_author AS podcast_author,
+  podcastEpisodePage.libraryId AS libraryId,
+  mediaProgress.currentTime AS progress_currentTime,
+  mediaProgress.duration AS progress_duration,
+  mediaProgress.progress AS progress_progress,
+  mediaProgress.isFinished AS progress_isFinished,
+  mediaProgress.lastUpdate AS progress_lastUpdate
+FROM podcastEpisode
+INNER JOIN podcastEpisodePageJoin ON podcastEpisodePageJoin.episodeId = podcastEpisode.id
+INNER JOIN podcastEpisodePage ON podcastEpisodePage.id = podcastEpisodePageJoin.pageId
+INNER JOIN podcastMedia ON podcastMedia.mediaId = podcastEpisode.podcastMediaId
+LEFT JOIN podcastEpisodeAudioTrack ON podcastEpisodeAudioTrack.episodeId = podcastEpisode.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = podcastEpisode.libraryItemId
+  AND mediaProgress.episodeId = podcastEpisode.id
+  AND mediaProgress.userId = :userId
+WHERE podcastEpisodePage.userId = :userId
+  AND podcastEpisodePage.libraryId = :libraryId
+ORDER BY podcastEpisodePage.page ASC, podcastEpisodePageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;
+
+-- Observer-only query for QueryPagingSource. Touches only the page/join tables so unrelated
+-- writes (e.g. detail screen updating a podcast row) don't churn the paging source.
+selectEpisodesPagesWithLimitOffset:
+SELECT * FROM podcastEpisodePageJoin
+INNER JOIN podcastEpisodePage ON podcastEpisodePage.id = podcastEpisodePageJoin.pageId
+WHERE podcastEpisodePage.userId = :userId
+  AND podcastEpisodePage.libraryId = :libraryId
+ORDER BY podcastEpisodePage.page ASC, podcastEpisodePageJoin.pageIndex ASC
+LIMIT :limit OFFSET :offset;

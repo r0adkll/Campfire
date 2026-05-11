@@ -34,6 +34,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -129,6 +130,22 @@ class KtorAudioBookShelfApi(
   override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {
     return trySendRequest<List<Shelf>> {
       hydratedClientRequest("/api/libraries/$libraryId/personalized")
+    }
+  }
+
+  override suspend fun getRecentEpisodes(
+    libraryId: String,
+    page: Int,
+    limit: Int,
+  ): Result<PagedRecentEpisodesResponse> {
+    return trySendRequest {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "libraries", libraryId, "recent-episodes")
+          parameters.append("page", page.toString())
+          parameters.append("limit", limit.toString())
+        },
+      )
     }
   }
 

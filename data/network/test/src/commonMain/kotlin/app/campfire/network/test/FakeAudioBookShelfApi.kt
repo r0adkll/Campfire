@@ -15,6 +15,7 @@ import app.campfire.network.models.LibraryItemMinified
 import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
+import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -57,6 +58,14 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getRecentEpisodes(
+    libraryId: String,
+    page: Int,
+    limit: Int,
+  ): Result<PagedRecentEpisodesResponse> {
     TODO("Not yet implemented")
   }
 

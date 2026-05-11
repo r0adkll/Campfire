@@ -220,6 +220,11 @@ include(
   ":features:playlists:ui",
 )
 include(
+  ":features:podcasts:api",
+  ":features:podcasts:impl",
+  ":features:podcasts:ui",
+)
+include(
   ":ui:appbar",
   ":ui:navigation:api",
   ":ui:navigation:impl",

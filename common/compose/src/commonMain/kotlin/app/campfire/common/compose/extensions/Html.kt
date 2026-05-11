@@ -1,5 +1,7 @@
 package app.campfire.common.compose.extensions
 
+import app.campfire.core.extensions.fluentIf
+
 const val CampfireTimestampScheme = "campfire-timestamp:"
 
 private val LeadingLiteralNewlineRegex = "^(\\\\n)+".toRegex()
@@ -27,10 +29,10 @@ fun String.linkifyTimestamps(): String = replaceOutsideAnchors { it.wrapTimestam
  * strips leading literal "\n" artifacts (escaped newlines that survived JSON decoding),
  * linkifies bare URLs, and converts remaining newlines to `<br>` tags.
  */
-fun String.toRichTextHtml(): String =
+fun String.toRichTextHtml(linkify: Boolean = true): String =
   trim()
     .replace(LeadingLiteralNewlineRegex, "")
-    .linkify()
+    .fluentIf(linkify) { linkify() }
     .replace("\n", "<br>")
 
 private fun String.wrapUrls(): String =
