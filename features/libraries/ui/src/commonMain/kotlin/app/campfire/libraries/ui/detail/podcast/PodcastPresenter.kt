@@ -12,6 +12,7 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
@@ -31,6 +32,7 @@ import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.podcast.episode.showPodcastEpisodeBottomSheet
+import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
@@ -49,7 +51,9 @@ class PodcastPresenter(
   private val analytics: Analytics,
   private val sessionsRepository: SessionsRepository,
   private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
+  private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -76,6 +80,7 @@ class PodcastPresenter(
       libraryItem = libraryItem,
       currentSession = currentSession,
       mediaProgress = mediaProgress,
+      addToPlaylistDialog = addToPlaylistDialog,
       sharedTransitionKey = screen.sharedTransitionKey,
     )
 
@@ -108,6 +113,36 @@ class PodcastPresenter(
             )
           }
 
+          is LibraryItemUiEvent.MarkEpisodeFinished -> {
+            analytics.send(ActionEvent("mark_episode_finished", Click))
+            val episode = event.episode
+
+            // Only stop playback if this episode is the one currently playing.
+            if (
+              currentSession?.libraryItem?.id == episode.libraryItemId &&
+              currentSession?.episodeId == episode.id
+            ) {
+              playbackController.stopSession(
+                itemId = episode.libraryItemId,
+                episodeId = episode.id,
+              )
+            }
+
+            scope.launch {
+              sessionsRepository.markDeleted(episode.libraryItemId, episode.id)
+              mediaProgressRepository.markFinished(episode.libraryItemId, episode.id)
+              playbackHistoryRepository.clear(episode.libraryItemId, episode.id)
+            }
+          }
+
+          is LibraryItemUiEvent.MarkEpisodeNotFinished -> {
+            analytics.send(ActionEvent("mark_episode_not_finished", Click))
+            val episode = event.episode
+            scope.launch {
+              mediaProgressRepository.markNotFinished(episode.libraryItemId, episode.id)
+            }
+          }
+
           else -> Unit
         }
       },
@@ -120,6 +155,7 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   currentSession: Session?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
+  addToPlaylistDialog: AddToPlaylistDialog,
   sharedTransitionKey: String,
 ): List<ContentSlot> = buildList {
   this += CoverImageSlot(
@@ -173,11 +209,13 @@ private fun buildSlots(
     this += podcastMedia.episodes.map { episode ->
       val progress = mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]
       EpisodeSlot(
+        libraryItem = libraryItem,
         media = podcastMedia,
         episode = episode,
         progress = progress,
         isCurrentSession = currentSession?.libraryItem?.id == episode.libraryItemId &&
           currentSession.episodeId == episode.id,
+        addToPlaylistDialog = addToPlaylistDialog,
       )
     }
   }

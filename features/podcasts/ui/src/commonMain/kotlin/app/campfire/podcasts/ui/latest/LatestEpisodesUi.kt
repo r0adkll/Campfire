@@ -234,8 +234,11 @@ private fun LatestEpisodesList(
 
               IconButton(
                 onClick = {
-                  if (isFinished) onMarkNotFinishedClick(item)
-                  else onMarkFinishedClick(item)
+                  if (isFinished) {
+                    onMarkNotFinishedClick(item)
+                  } else {
+                    onMarkFinishedClick(item)
+                  }
                 },
                 modifier = Modifier
                   .size(

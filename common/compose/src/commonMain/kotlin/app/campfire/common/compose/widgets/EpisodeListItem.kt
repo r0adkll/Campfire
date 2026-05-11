@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -91,7 +90,7 @@ fun EpisodeListItem(
       },
     ),
     elevation = CardDefaults.elevatedCardElevation(
-      defaultElevation = if (isCurrentSession) 3.dp else 1.dp
+      defaultElevation = if (isCurrentSession) 3.dp else 1.dp,
     ),
     onClick = onClick,
   ) {
@@ -146,7 +145,7 @@ fun EpisodeListItem(
                 style = MaterialTheme.typography.labelLarge,
                 color = if (isFinished) {
                   MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                    alpha = DisabledAlpha
+                    alpha = DisabledAlpha,
                   )
                 } else {
                   MaterialTheme.colorScheme.onTertiaryContainer
