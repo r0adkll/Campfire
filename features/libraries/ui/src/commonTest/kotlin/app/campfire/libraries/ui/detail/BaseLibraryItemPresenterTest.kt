@@ -68,7 +68,11 @@ abstract class BaseLibraryItemPresenterTest {
 
   internal val podcastPresenter = PodcastPresenter(
     analytics = analytics,
+    sessionsRepository = sessionsRepository,
+    mediaProgressRepository = mediaProgressRepository,
+    playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
+    addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
 
   protected val presenter = LibraryItemPresenter(
