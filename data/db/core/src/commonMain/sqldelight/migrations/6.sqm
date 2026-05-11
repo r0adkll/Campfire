@@ -1,5 +1,6 @@
 import app.campfire.core.model.MediaProgress.Source;
 import app.campfire.core.model.MediaType;
+import app.campfire.core.model.PlaybackActionType;
 import app.campfire.core.model.PlayMethod;
 import kotlin.Boolean;
 import kotlin.Int;
@@ -203,7 +204,31 @@ ALTER TABLE shelfJoin_new RENAME TO shelfJoin;
 -- 7) Make playbackAction per-episode aware. Existing rows are book history (or legacy
 -- podcast-item history) and back-fill to the empty-string sentinel that means
 -- "no episode" — matching the convention used by mediaProgress and session.
-ALTER TABLE playbackAction ADD COLUMN episodeId TEXT NOT NULL DEFAULT '';
+-- Rebuilt rather than ALTER TABLE ADD COLUMN so episodeId lands at position 4 (the
+-- ordinal the .sq declaration uses) and so we can backfill the libraryItem index
+-- that has lived on .sq but was never migrated.
+CREATE TABLE playbackAction_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  episodeId TEXT NOT NULL DEFAULT '',
+  type TEXT AS PlaybackActionType NOT NULL,
+  timestamp TEXT AS LocalDateTime NOT NULL,
+  fromPosition INTEGER AS Duration NOT NULL DEFAULT 0,
+  toPosition INTEGER AS Duration,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO playbackAction_new (id, libraryItemId, userId, episodeId, type, timestamp, fromPosition, toPosition)
+SELECT id, libraryItemId, userId, '', type, timestamp, fromPosition, toPosition
+FROM playbackAction;
+
+DROP TABLE playbackAction;
+ALTER TABLE playbackAction_new RENAME TO playbackAction;
+
+CREATE INDEX IF NOT EXISTS idx_playbackAction_libraryItem
+  ON playbackAction(userId, libraryItemId);
 
 CREATE INDEX IF NOT EXISTS idx_playbackAction_episode
   ON playbackAction(userId, libraryItemId, episodeId);
@@ -250,3 +275,79 @@ DROP TABLE playlistItemJoin;
 ALTER TABLE playlistItemJoin_new RENAME TO playlistItemJoin;
 
 CREATE INDEX IF NOT EXISTS index_playlist_item_join_libraryItemId ON playlistItemJoin(libraryItemId);
+
+-- 10) Backfill drift that predates the podcast work: schema bits authored on .sq files
+-- but never migrated. Folding them into this same migration keeps users on a single
+-- v6 → v7 hop instead of two sequential migrations across releases.
+
+-- 10a) Relax seriesBookJoin.libraryItemId from CASCADE to NO ACTION. 1.db's baseline
+-- declared CASCADE but the .sq schema has long since dropped it.
+CREATE TABLE seriesBookJoin_new (
+  seriesId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+
+  PRIMARY KEY (seriesId, libraryItemId),
+  FOREIGN KEY (seriesId) REFERENCES series(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+INSERT INTO seriesBookJoin_new SELECT seriesId, libraryItemId FROM seriesBookJoin;
+
+DROP TABLE seriesBookJoin;
+ALTER TABLE seriesBookJoin_new RENAME TO seriesBookJoin;
+
+CREATE INDEX IF NOT EXISTS index_series_book_join_libraryItemId
+  ON seriesBookJoin(libraryItemId);
+
+-- 10b) Insert playlists.creationId at position 2. The column has been on .sq since
+-- #624 but never landed in 4.sqm; it carries the client-generated id used to
+-- reconcile a freshly created playlist with the persistent server id on the next
+-- sync. Existing rows back-fill to NULL.
+CREATE TABLE playlists_new (
+  id TEXT NOT NULL PRIMARY KEY,
+  creationId TEXT,
+  name TEXT NOT NULL,
+  description TEXT,
+  lastUpdated INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO playlists_new (id, creationId, name, description, lastUpdated, createdAt, libraryId, userId)
+SELECT id, NULL, name, description, lastUpdated, createdAt, libraryId, userId
+FROM playlists;
+
+DROP TABLE playlists;
+ALTER TABLE playlists_new RENAME TO playlists;
+
+-- 10c) Backfill the collectionsBookJoin reverse-lookup index used by the detail screen.
+CREATE INDEX IF NOT EXISTS index_collections_book_join_libraryItemId
+  ON collectionsBookJoin(libraryItemId);
+
+-- 11) podcastEpisodePage backs the recent-episodes paging source. The join is keyed
+-- by (pageId, episodeId) so reordering within a page is reflected by pageIndex
+-- without needing a unique compound key on it.
+CREATE TABLE podcastEpisodePage (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  page INTEGER AS Int NOT NULL,
+  nextPage INTEGER AS Int,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+CREATE TABLE podcastEpisodePageJoin (
+  pageId INTEGER NOT NULL,
+  pageIndex INTEGER AS Int NOT NULL,
+  episodeId TEXT NOT NULL,
+
+  PRIMARY KEY (pageId, episodeId),
+  FOREIGN KEY (pageId) REFERENCES podcastEpisodePage(id) ON DELETE CASCADE
+);
