@@ -117,6 +117,17 @@ fun MyUi(state: MyUiState, modifier: Modifier = Modifier) { /* ... */ }
 - `@Parcelize` is multiplatform via expect/actual (see `ParcelizeConventionPlugin`)
 - Package structure: `app.campfire.[module].[submodule]`
 
+## Database Migrations
+
+Schema lives in `data/db/core/src/commonMain/sqldelight/app/campfire/data/*.sq`; migrations live alongside in `migrations/{N}.sqm` and the baseline schema dump is `app/campfire/databases/1.db`. SQLDelight's `verifyCommonMainCampfireDatabaseMigration` task compares the migrated database against the fresh `.sq` schema — any drift fails the build.
+
+Whenever you change a `.sq` file, reflect the change in a `.sqm`:
+
+- **If the latest `.sqm` is newer than the most recent GitHub release/tag (i.e. not yet shipped)**: fold the change into that file. Users mid-upgrade only run unshipped migrations once. Check with `git log <latest-tag>..HEAD -- data/db/core/.../migrations/`.
+- **Otherwise**: create a new `{N+1}.sqm` with the additive change.
+
+Run `./gradlew :data:db:core:verifyCommonMainCampfireDatabaseMigration` after any schema or migration edit to confirm parity. SQLDelight is strict about column ordinal positions — adding a column mid-table requires a full `CREATE TABLE ... _new` + copy + `DROP` + `RENAME`, not `ALTER TABLE ADD COLUMN`.
+
 ## Pre-commit Hook
 
 Run `./gradlew bootstrap` to install the pre-push hook from `scripts/pre-push`.
