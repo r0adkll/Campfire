@@ -13,7 +13,7 @@ import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
-import app.campfire.data.mapping.model.mapToLibraryItem
+import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
@@ -48,6 +48,7 @@ class StoreMediaProgressRepository(
   private val storeFactory: MediaProgressStore.Factory,
   private val db: CampfireDatabase,
   private val api: AudioBookShelfApi,
+  private val libraryItemDao: LibraryItemDao,
   private val mediaProgressSynchronizer: MediaProgressSynchronizer,
   private val fatherTime: FatherTime,
   private val dispatcherProvider: DispatcherProvider,
@@ -167,25 +168,24 @@ class StoreMediaProgressRepository(
           )
         }
       } else if (existing == null) {
-        val libraryItem = withContext(dispatcherProvider.databaseRead) {
-          db.libraryItemsQueries
-            .selectForId(libraryItemId, ::mapToLibraryItem)
-            .awaitAsOneOrNull()
-        } ?: run {
+        // Use the dao so the lookup dispatches on mediaType — the book-only
+        // selectForId joins `media`, which returns nothing for podcast items
+        // (their row lives in `podcastMedia`).
+        val libraryItem = libraryItemDao.hydrateById(libraryItemId) ?: run {
           MediaProgressStore.ebark { "Unable to find library item for $libraryItemId" }
           return@onSuccess
         }
 
-        // For podcast episodes the per-episode duration lives on the podcastEpisode row
-        // (not on libraryItem.durationInMillis, which the book path returns as a sum or
-        // 0 for podcasts). Look it up so the new progress row records the right total.
+        // For podcast episodes the per-episode duration lives on the podcastEpisode row;
+        // Media.Podcast.durationInMillis is the sum across all episodes, which isn't what
+        // we want to record on a single episode's progress row.
         val durationMillis = if (episodeId != null) {
           val episodeRow = withContext(dispatcherProvider.databaseRead) {
             db.podcastEpisodeQueries.selectForId(episodeId).awaitAsOneOrNull()
           }
-          episodeRow?.durationInMillis ?: libraryItem.durationInMillis
+          episodeRow?.durationInMillis ?: libraryItem.media.durationInMillis
         } else {
-          libraryItem.durationInMillis
+          libraryItem.media.durationInMillis
         }
 
         // If we don't have an existing media progress id, lets create one
@@ -197,7 +197,7 @@ class StoreMediaProgressRepository(
           userId = userSession.requiredUserId,
           libraryItemId = libraryItemId,
           episodeId = episodeId.orEmpty(),
-          mediaItemId = episodeId ?: libraryItem.mediaId,
+          mediaItemId = episodeId ?: libraryItem.media.id,
           mediaItemType = libraryItem.mediaType,
           duration = durationMillis.milliseconds.toDouble(DurationUnit.SECONDS),
           progress = 1.0,
