@@ -60,6 +60,7 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.theme.alt.AltRedColorPalette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.colorScheme
@@ -70,9 +71,13 @@ import app.campfire.ui.theming.ui.builder.composables.ColorStylePicker
 import app.campfire.ui.theming.ui.builder.composables.ContrastPicker
 import app.campfire.ui.theming.ui.builder.composables.Header
 import app.campfire.ui.theming.ui.builder.composables.IconPicker
+import campfire.ui.theming.ui.generated.resources.Res
+import campfire.ui.theming.ui.generated.resources.action_back
+import campfire.ui.theming.ui.generated.resources.action_delete_theme
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(ThemeBuilderScreen::class, UserScope::class)
@@ -94,25 +99,31 @@ fun ThemeBuilder(
             Text("Theme Builder")
           },
           navigationIcon = {
-            IconButton(
-              onClick = { state.eventSink(ThemeBuilderUiEvent.Back) },
-            ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+            val backLabel = stringResource(Res.string.action_back)
+            IconButtonTooltip(text = backLabel) {
+              IconButton(
+                onClick = { state.eventSink(ThemeBuilderUiEvent.Back) },
+              ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              }
             }
           },
           actions = {
             var showDeleteConfirmation by remember { mutableStateOf(false) }
             if (!state.theme.isNew) {
-              IconButton(
-                onClick = {
-                  showDeleteConfirmation = true
-                },
-              ) {
-                Icon(
-                  Icons.Rounded.Delete,
-                  contentDescription = "Delete",
-                  tint = MaterialTheme.colorScheme.error,
-                )
+              val deleteLabel = stringResource(Res.string.action_delete_theme)
+              IconButtonTooltip(text = deleteLabel) {
+                IconButton(
+                  onClick = {
+                    showDeleteConfirmation = true
+                  },
+                ) {
+                  Icon(
+                    Icons.Rounded.Delete,
+                    contentDescription = deleteLabel,
+                    tint = MaterialTheme.colorScheme.error,
+                  )
+                }
               }
 
               if (showDeleteConfirmation) {

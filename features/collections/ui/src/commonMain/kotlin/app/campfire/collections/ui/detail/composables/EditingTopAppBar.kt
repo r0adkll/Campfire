@@ -13,6 +13,10 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.collections.ui.generated.resources.Res
+import campfire.features.collections.ui.generated.resources.action_close
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EditingTopAppBar(
@@ -42,10 +46,13 @@ fun EditingTopAppBar(
       navigationIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
     ),
     navigationIcon = {
-      IconButton(
-        onClick = onDismiss,
-      ) {
-        Icon(Icons.Rounded.Close, contentDescription = null)
+      val closeLabel = stringResource(Res.string.action_close)
+      IconButtonTooltip(text = closeLabel) {
+        IconButton(
+          onClick = onDismiss,
+        ) {
+          Icon(Icons.Rounded.Close, contentDescription = closeLabel)
+        }
       }
     },
     actions = actions,

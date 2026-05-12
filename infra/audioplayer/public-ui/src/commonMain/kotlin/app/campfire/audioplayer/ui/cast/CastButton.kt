@@ -71,9 +71,11 @@ import app.campfire.common.compose.icons.rounded.CastConnected
 import app.campfire.common.compose.icons.rounded.CastConnecting
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.util.withDensity
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.AppScope
 import app.campfire.core.extensions.fluentIf
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
+import campfire.infra.audioplayer.public_ui.generated.resources.action_cast
 import campfire.infra.audioplayer.public_ui.generated.resources.label_connecting
 import campfire.infra.audioplayer.public_ui.generated.resources.media_route_dialog_title
 import coil3.compose.AsyncImage
@@ -139,22 +141,27 @@ private fun CastButton(
 ) {
   if (state == CastState.Unavailable) return
 
-  IconButton(
-    onClick = onClick,
+  val castLabel = stringResource(Res.string.action_cast)
+  IconButtonTooltip(
+    text = castLabel,
     modifier = modifier,
   ) {
-    val iconPainter = when (state) {
-      CastState.Unavailable -> error("Invalid state for cast button")
+    IconButton(
+      onClick = onClick,
+    ) {
+      val iconPainter = when (state) {
+        CastState.Unavailable -> error("Invalid state for cast button")
 
-      CastState.NoDevicesAvailable,
-      CastState.NotConnected,
-      -> rememberVectorPainter(CampfireIcons.Rounded.Cast)
+        CastState.NoDevicesAvailable,
+        CastState.NotConnected,
+        -> rememberVectorPainter(CampfireIcons.Rounded.Cast)
 
-      CastState.Connecting -> CampfireIcons.Rounded.CastConnecting
-      CastState.Connected -> rememberVectorPainter(CampfireIcons.Rounded.CastConnected)
+        CastState.Connecting -> CampfireIcons.Rounded.CastConnecting
+        CastState.Connected -> rememberVectorPainter(CampfireIcons.Rounded.CastConnected)
+      }
+
+      Icon(iconPainter, contentDescription = castLabel)
     }
-
-    Icon(iconPainter, contentDescription = null)
   }
 }
 

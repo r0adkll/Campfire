@@ -7,6 +7,10 @@
 
   <string name="action_add_new_collection">Create new</string>
   <string name="action_edit_collection">Edit</string>
+  <string name="action_back">Back</string>
+  <string name="action_close">Close</string>
+  <string name="action_delete_collection">Delete collection</string>
+  <string name="action_delete_selected_items">Delete selected items</string>
 
   <string name="dialog_confirm_delete_title">Delete collection</string>
   <string name="dialog_confirm_delete_message">Are you sure you want to delete</string>

@@ -13,4 +13,7 @@
   <string name="library_totals_summary_format">There are {{items}} from {{authors}} spanning {{time}} over {{tracks}} taking up {{size}} of storage.</string>
   <string name="stats_user">User</string>
   <string name="stats_library">Library</string>
+
+  <string name="action_back">Back</string>
+  <string name="action_toggle_dark_mode">Toggle dark mode</string>
 </resources>

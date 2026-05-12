@@ -27,6 +27,7 @@ import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.CollectionsScreen
@@ -34,6 +35,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
 import campfire.features.collections.ui.generated.resources.Res
+import campfire.features.collections.ui.generated.resources.action_back
 import campfire.features.collections.ui.generated.resources.collections_title
 import campfire.features.collections.ui.generated.resources.empty_collection_items_message
 import campfire.features.collections.ui.generated.resources.error_collection_items_message
@@ -55,10 +57,13 @@ fun Collections(
         title = { Text(stringResource(Res.string.collections_title)) },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(CollectionsUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = { state.eventSink(CollectionsUiEvent.Back) },
+            ) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
       )

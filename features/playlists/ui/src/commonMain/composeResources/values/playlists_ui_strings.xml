@@ -25,4 +25,13 @@
   <string name="dialog_add_playlist_title">Add to a playlist</string>
   <string name="dialog_add_playlist_text">Choose an existing playlist or create a new one to add </string>
   <string name="dialog_add_playlist_error_message">Something went wrong when trying to load your playlists</string>
+
+  <string name="action_back">Back</string>
+  <string name="action_play_item">Play item</string>
+  <string name="action_currently_playing">Currently playing</string>
+  <string name="action_edit_playlist">Edit playlist</string>
+  <string name="action_delete_playlist">Delete playlist</string>
+  <string name="action_download_playlist">Download playlist</string>
+  <string name="action_reorder_playlist">Toggle reorder</string>
+  <string name="action_play_all">Play all</string>
 </resources>

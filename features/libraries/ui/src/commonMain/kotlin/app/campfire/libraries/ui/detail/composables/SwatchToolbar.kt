@@ -41,7 +41,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.action_close_swatch
+import campfire.features.libraries.ui.generated.resources.action_theme_swatch
 import com.r0adkll.swatchbuckler.compose.Swatch
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -110,22 +115,27 @@ internal fun SwatchToolbar(
       }
     }
 
-    IconToggleButton(
-      checked = expanded,
-      onCheckedChange = { expanded = it },
-      shapes = IconToggleButtonShapes(
-        shape = CircleShape,
-        pressedShape = MaterialTheme.shapes.medium,
-      ),
-      colors = IconButtonDefaults.iconToggleButtonColors(
-        checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-        checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-      ),
-    ) {
-      Icon(
-        if (expanded) Icons.Rounded.Close else Icons.Rounded.Palette,
-        contentDescription = null,
-      )
+    val toggleLabel = stringResource(
+      if (expanded) Res.string.action_close_swatch else Res.string.action_theme_swatch,
+    )
+    IconButtonTooltip(text = toggleLabel) {
+      IconToggleButton(
+        checked = expanded,
+        onCheckedChange = { expanded = it },
+        shapes = IconToggleButtonShapes(
+          shape = CircleShape,
+          pressedShape = MaterialTheme.shapes.medium,
+        ),
+        colors = IconButtonDefaults.iconToggleButtonColors(
+          checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+          checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+      ) {
+        Icon(
+          if (expanded) Icons.Rounded.Close else Icons.Rounded.Palette,
+          contentDescription = toggleLabel,
+        )
+      }
     }
   }
 }

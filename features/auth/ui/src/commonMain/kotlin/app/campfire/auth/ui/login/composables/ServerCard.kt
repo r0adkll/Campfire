@@ -81,9 +81,13 @@ import app.campfire.common.compose.icons.rounded.Connected
 import app.campfire.common.compose.icons.rounded.Disconnected
 import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import campfire.features.auth.ui.generated.resources.Res
+import campfire.features.auth.ui.generated.resources.action_clear_server_url
+import campfire.features.auth.ui.generated.resources.action_hide_password
+import campfire.features.auth.ui.generated.resources.action_show_password
 import campfire.features.auth.ui.generated.resources.invalid_server_url
 import campfire.features.auth.ui.generated.resources.label_login_error_auth
 import campfire.features.auth.ui.generated.resources.label_login_error_network
@@ -207,13 +211,16 @@ internal fun ServerCard(
       },
       trailingIcon = if (serverUrl.isNotBlank()) {
         {
-          IconButton(
-            onClick = {
-              onServerUrlChange("")
-              serverUrlFocus.requestFocus()
-            },
-          ) {
-            Icon(Icons.Rounded.Cancel, contentDescription = null)
+          val clearLabel = stringResource(Res.string.action_clear_server_url)
+          IconButtonTooltip(text = clearLabel) {
+            IconButton(
+              onClick = {
+                onServerUrlChange("")
+                serverUrlFocus.requestFocus()
+              },
+            ) {
+              Icon(Icons.Rounded.Cancel, contentDescription = clearLabel)
+            }
           }
         }
       } else {
@@ -324,13 +331,18 @@ internal fun ServerCard(
             label = { Text(stringResource(Res.string.label_password)) },
             leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
             trailingIcon = {
-              IconButton(
-                onClick = { showPassword = !showPassword },
-              ) {
-                Icon(
-                  if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
-                  contentDescription = null,
-                )
+              val showPasswordLabel = stringResource(
+                if (showPassword) Res.string.action_hide_password else Res.string.action_show_password,
+              )
+              IconButtonTooltip(text = showPasswordLabel) {
+                IconButton(
+                  onClick = { showPassword = !showPassword },
+                ) {
+                  Icon(
+                    if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                    contentDescription = showPasswordLabel,
+                  )
+                }
               }
             },
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),

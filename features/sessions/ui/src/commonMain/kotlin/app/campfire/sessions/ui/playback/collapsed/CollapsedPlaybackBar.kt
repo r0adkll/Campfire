@@ -74,6 +74,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
@@ -91,6 +92,10 @@ import app.campfire.sessions.ui.playback.collapsed.ActionState.None
 import app.campfire.sessions.ui.playback.collapsed.ActionState.Open
 import app.campfire.sessions.ui.playback.collapsed.composables.PlaybackThumbnail
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_pause
+import campfire.features.sessions.ui.generated.resources.action_play
+import campfire.features.sessions.ui.generated.resources.action_rewind
+import campfire.features.sessions.ui.generated.resources.action_sync_progress
 import campfire.features.sessions.ui.generated.resources.clear_session_subtitle
 import campfire.features.sessions.ui.generated.resources.clear_session_title
 import campfire.features.sessions.ui.generated.resources.sync_available
@@ -294,23 +299,29 @@ private fun CollapsedPlaybackBarContent(
       AnimatedVisibility(
         visible = dragState.actionState != Dispose && availableSync == null,
       ) {
-        IconButton(
-          onClick = onRewindClick,
-        ) {
-          RewindIcon()
+        val rewindLabel = stringResource(Res.string.action_rewind)
+        IconButtonTooltip(text = rewindLabel) {
+          IconButton(
+            onClick = onRewindClick,
+          ) {
+            RewindIcon()
+          }
         }
       }
 
       AnimatedVisibility(
         visible = dragState.actionState != Dispose && availableSync != null,
       ) {
-        IconButton(
-          onClick = onSync,
-        ) {
-          Icon(
-            CampfireIcons.Rounded.Sync,
-            contentDescription = "Sync progress",
-          )
+        val syncLabel = stringResource(Res.string.action_sync_progress)
+        IconButtonTooltip(text = syncLabel) {
+          IconButton(
+            onClick = onSync,
+          ) {
+            Icon(
+              CampfireIcons.Rounded.Sync,
+              contentDescription = syncLabel,
+            )
+          }
         }
       }
 
@@ -318,17 +329,23 @@ private fun CollapsedPlaybackBarContent(
         visible = dragState.actionState != Dispose,
       ) {
         Box {
-          IconButton(
-            onClick = onPlayPauseClick,
-          ) {
-            Icon(
-              if (state == AudioPlayer.State.Playing) {
-                Icons.Rounded.Pause
-              } else {
-                Icons.Rounded.PlayArrow
-              },
-              contentDescription = null,
-            )
+          val isPlaying = state == AudioPlayer.State.Playing
+          val playPauseLabel = stringResource(
+            if (isPlaying) Res.string.action_pause else Res.string.action_play,
+          )
+          IconButtonTooltip(text = playPauseLabel) {
+            IconButton(
+              onClick = onPlayPauseClick,
+            ) {
+              Icon(
+                if (isPlaying) {
+                  Icons.Rounded.Pause
+                } else {
+                  Icons.Rounded.PlayArrow
+                },
+                contentDescription = playPauseLabel,
+              )
+            }
           }
 
           if (state == AudioPlayer.State.Buffering) {

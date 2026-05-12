@@ -33,8 +33,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.common.compose.icons.rounded.EditAudio
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.sessions.ui.composables.ForwardIcon
 import app.campfire.sessions.ui.composables.RewindIcon
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_forward
+import campfire.features.sessions.ui.generated.resources.action_play_pause
+import campfire.features.sessions.ui.generated.resources.action_rewind
+import campfire.features.sessions.ui.generated.resources.action_skip_next
+import campfire.features.sessions.ui.generated.resources.action_skip_previous
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -68,34 +76,38 @@ internal fun PlaybackActions(
       @Composable
       fun AccessoryButton(
         onClick: () -> Unit,
+        label: String,
         modifier: Modifier = Modifier,
         content: @Composable (iconSize: Dp) -> Unit,
       ) {
         val accessoryButtonSize = ButtonDefaults.LargeContainerHeight
         val accessoryButtonIconSize = ButtonDefaults.LargeIconSize
-        FilledIconButton(
-          onClick = onClick,
-          shapes = IconButtonDefaults.shapes(
-            shape = buttonShape,
-            pressedShape = ButtonDefaults.shape,
-          ),
-          colors = IconButtonDefaults.filledIconButtonColors(
-            containerColor = accessoryButtonContainerColor,
-            contentColor = accessoryButtonContentColor,
-          ),
-          modifier = modifier
-            .sizeIn(
-              minWidth = accessoryButtonSize,
-              minHeight = accessoryButtonSize,
+        IconButtonTooltip(text = label, modifier = modifier) {
+          FilledIconButton(
+            onClick = onClick,
+            shapes = IconButtonDefaults.shapes(
+              shape = buttonShape,
+              pressedShape = ButtonDefaults.shape,
             ),
-          content = {
-            content(accessoryButtonIconSize)
-          },
-        )
+            colors = IconButtonDefaults.filledIconButtonColors(
+              containerColor = accessoryButtonContainerColor,
+              contentColor = accessoryButtonContentColor,
+            ),
+            modifier = Modifier
+              .sizeIn(
+                minWidth = accessoryButtonSize,
+                minHeight = accessoryButtonSize,
+              ),
+            content = {
+              content(accessoryButtonIconSize)
+            },
+          )
+        }
       }
 
       AccessoryButton(
         onClick = onRewindClick,
+        label = stringResource(Res.string.action_rewind),
       ) { iconSize ->
         RewindIcon(
           modifier = Modifier.size(iconSize),
@@ -107,53 +119,57 @@ internal fun PlaybackActions(
         !isInteracting
 
       val playButtonIconSize = ButtonDefaults.ExtraLargeIconSize
-      FilledIconButton(
-        onClick = onPlayPauseClick,
-        enabled = isPlayPauseEnabled,
-        shapes = IconButtonDefaults.shapes(
-          shape = buttonShape,
-          pressedShape = ButtonDefaults.shape,
-        ),
-        modifier = Modifier
-          .sizeIn(
-            minWidth = playButtonSize + playButtonExtraWidth,
-            minHeight = playButtonSize,
+      val playPauseLabel = stringResource(Res.string.action_play_pause)
+      IconButtonTooltip(text = playPauseLabel) {
+        FilledIconButton(
+          onClick = onPlayPauseClick,
+          enabled = isPlayPauseEnabled,
+          shapes = IconButtonDefaults.shapes(
+            shape = buttonShape,
+            pressedShape = ButtonDefaults.shape,
           ),
-      ) {
-        AnimatedContent(
-          targetState = when {
-            state == AudioPlayer.State.Buffering -> PlayButtonState.Buffering
-            isInteracting -> PlayButtonState.Interacting
-            state == AudioPlayer.State.Playing -> PlayButtonState.Playing
-            else -> PlayButtonState.Paused
-          },
-          transitionSpec = {
-            (fadeIn(initialAlpha = 0.4f) + expandIn(expandFrom = Alignment.Center)) togetherWith
-              (fadeOut(targetAlpha = 0.4f) + shrinkOut(shrinkTowards = Alignment.Center))
-          },
-          contentAlignment = Alignment.Center,
-        ) { state ->
-          if (state == PlayButtonState.Buffering) {
-            CircularProgressIndicator(
-              modifier = Modifier.size(playButtonIconSize),
-              strokeWidth = 4.dp,
-            )
-          } else {
-            Icon(
-              when (state) {
-                PlayButtonState.Interacting -> Icons.Rounded.EditAudio
-                PlayButtonState.Playing -> Icons.Rounded.Pause
-                else -> Icons.Rounded.PlayArrow
-              },
-              modifier = Modifier.size(playButtonIconSize),
-              contentDescription = null,
-            )
+          modifier = Modifier
+            .sizeIn(
+              minWidth = playButtonSize + playButtonExtraWidth,
+              minHeight = playButtonSize,
+            ),
+        ) {
+          AnimatedContent(
+            targetState = when {
+              state == AudioPlayer.State.Buffering -> PlayButtonState.Buffering
+              isInteracting -> PlayButtonState.Interacting
+              state == AudioPlayer.State.Playing -> PlayButtonState.Playing
+              else -> PlayButtonState.Paused
+            },
+            transitionSpec = {
+              (fadeIn(initialAlpha = 0.4f) + expandIn(expandFrom = Alignment.Center)) togetherWith
+                (fadeOut(targetAlpha = 0.4f) + shrinkOut(shrinkTowards = Alignment.Center))
+            },
+            contentAlignment = Alignment.Center,
+          ) { state ->
+            if (state == PlayButtonState.Buffering) {
+              CircularProgressIndicator(
+                modifier = Modifier.size(playButtonIconSize),
+                strokeWidth = 4.dp,
+              )
+            } else {
+              Icon(
+                when (state) {
+                  PlayButtonState.Interacting -> Icons.Rounded.EditAudio
+                  PlayButtonState.Playing -> Icons.Rounded.Pause
+                  else -> Icons.Rounded.PlayArrow
+                },
+                modifier = Modifier.size(playButtonIconSize),
+                contentDescription = playPauseLabel,
+              )
+            }
           }
         }
       }
 
       AccessoryButton(
         onClick = onForwardClick,
+        label = stringResource(Res.string.action_forward),
       ) { iconSize ->
         ForwardIcon(
           modifier = Modifier.size(iconSize),
@@ -175,33 +191,45 @@ internal fun PlaybackActions(
       )
       val shapes = IconButtonDefaults.shapes()
 
-      FilledIconButton(
-        onClick = onSkipPreviousClick,
-        shapes = shapes,
-        colors = colors,
-        modifier = Modifier
-          .weight(1f)
-          .heightIn(buttonSize),
+      val skipPreviousLabel = stringResource(Res.string.action_skip_previous)
+      IconButtonTooltip(
+        text = skipPreviousLabel,
+        modifier = Modifier.weight(1f),
       ) {
-        Icon(
-          Icons.Rounded.SkipPrevious,
-          modifier = Modifier.size(ButtonDefaults.LargeIconSize),
-          contentDescription = null,
-        )
+        FilledIconButton(
+          onClick = onSkipPreviousClick,
+          shapes = shapes,
+          colors = colors,
+          modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(buttonSize),
+        ) {
+          Icon(
+            Icons.Rounded.SkipPrevious,
+            modifier = Modifier.size(ButtonDefaults.LargeIconSize),
+            contentDescription = skipPreviousLabel,
+          )
+        }
       }
-      FilledIconButton(
-        onClick = onSkipNextClick,
-        shapes = shapes,
-        colors = colors,
-        modifier = Modifier
-          .weight(1f)
-          .heightIn(buttonSize),
+      val skipNextLabel = stringResource(Res.string.action_skip_next)
+      IconButtonTooltip(
+        text = skipNextLabel,
+        modifier = Modifier.weight(1f),
       ) {
-        Icon(
-          Icons.Rounded.SkipNext,
-          modifier = Modifier.size(ButtonDefaults.LargeIconSize),
-          contentDescription = null,
-        )
+        FilledIconButton(
+          onClick = onSkipNextClick,
+          shapes = shapes,
+          colors = colors,
+          modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(buttonSize),
+        ) {
+          Icon(
+            Icons.Rounded.SkipNext,
+            modifier = Modifier.size(ButtonDefaults.LargeIconSize),
+            contentDescription = skipNextLabel,
+          )
+        }
       }
     }
   }

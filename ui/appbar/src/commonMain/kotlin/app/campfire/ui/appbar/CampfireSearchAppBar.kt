@@ -43,9 +43,12 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import campfire.ui.appbar.generated.resources.Res
+import campfire.ui.appbar.generated.resources.action_back
+import campfire.ui.appbar.generated.resources.action_clear_search
 import campfire.ui.appbar.generated.resources.search_placeholder_text
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -114,13 +117,16 @@ private fun CampfireSearchAppBar(
           ) { state ->
             when (state) {
               SearchBarValue.Expanded -> {
-                IconButton(
-                  onClick = { scope.launch { searchBarState.animateToCollapsed() } },
-                ) {
-                  Icon(
-                    Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Back",
-                  )
+                val backLabel = stringResource(Res.string.action_back)
+                IconButtonTooltip(text = backLabel) {
+                  IconButton(
+                    onClick = { scope.launch { searchBarState.animateToCollapsed() } },
+                  ) {
+                    Icon(
+                      Icons.AutoMirrored.Default.ArrowBack,
+                      contentDescription = backLabel,
+                    )
+                  }
                 }
               }
               SearchBarValue.Collapsed -> {
@@ -133,13 +139,16 @@ private fun CampfireSearchAppBar(
           AnimatedVisibility(
             visible = searchBarState.currentValue == SearchBarValue.Expanded,
           ) {
-            IconButton(
-              onClick = {
-                textFieldState.clearText()
-                scope.launch { searchBarState.animateToCollapsed() }
-              },
-            ) {
-              Icon(Icons.Rounded.Clear, contentDescription = null)
+            val clearLabel = stringResource(Res.string.action_clear_search)
+            IconButtonTooltip(text = clearLabel) {
+              IconButton(
+                onClick = {
+                  textFieldState.clearText()
+                  scope.launch { searchBarState.animateToCollapsed() }
+                },
+              ) {
+                Icon(Icons.Rounded.Clear, contentDescription = clearLabel)
+              }
             }
           }
         },

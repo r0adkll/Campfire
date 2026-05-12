@@ -12,4 +12,6 @@
   <string name="account_picker_logout_action_dismiss">Cancel</string>
 
   <string name="libraries_error_message">Uh-oh! Something went wrong trying to load your libraries.</string>
+
+  <string name="action_switch_account">Switch account</string>
 </resources>

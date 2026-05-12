@@ -59,4 +59,6 @@
 
   <string name="filter_value_tracks_single">Single-track</string>
   <string name="filter_value_tracks_multi">Multi-track</string>
+
+  <string name="action_back">Back</string>
 </resources>

@@ -30,8 +30,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.search.api.ui.SearchComponent
 import campfire.ui.appbar.generated.resources.Res
+import campfire.ui.appbar.generated.resources.action_clear_search
 import campfire.ui.appbar.generated.resources.search_placeholder_text
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -82,13 +84,16 @@ private fun CampfireDockedSearchBar(
           enter = fadeIn(),
           exit = fadeOut(),
         ) {
-          IconButton(
-            onClick = {
-              textFieldState.clearText()
-              scope.launch { searchBarState.animateToCollapsed() }
-            },
-          ) {
-            Icon(Icons.Rounded.Clear, contentDescription = null)
+          val clearLabel = stringResource(Res.string.action_clear_search)
+          IconButtonTooltip(text = clearLabel) {
+            IconButton(
+              onClick = {
+                textFieldState.clearText()
+                scope.launch { searchBarState.animateToCollapsed() }
+              },
+            ) {
+              Icon(Icons.Rounded.Clear, contentDescription = clearLabel)
+            }
           }
         }
       },

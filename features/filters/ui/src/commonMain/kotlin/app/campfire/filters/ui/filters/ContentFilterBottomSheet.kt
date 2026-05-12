@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
@@ -54,6 +55,7 @@ import app.campfire.filters.AllowedFilterCategories
 import app.campfire.filters.ContentFilterResult
 import app.campfire.filters.ContentFilterUi
 import campfire.features.filters.ui.generated.resources.Res
+import campfire.features.filters.ui.generated.resources.action_back
 import campfire.features.filters.ui.generated.resources.filter_category_author
 import campfire.features.filters.ui.generated.resources.filter_category_genre
 import campfire.features.filters.ui.generated.resources.filter_category_language
@@ -329,10 +331,13 @@ private fun <T : Any> FilterGroupOptionList(
   ) {
     TopAppBar(
       navigationIcon = {
-        IconButton(
-          onClick = onBackClick,
-        ) {
-          Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+        val backLabel = stringResource(Res.string.action_back)
+        IconButtonTooltip(text = backLabel) {
+          IconButton(
+            onClick = onBackClick,
+          ) {
+            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+          }
         }
       },
       title = {

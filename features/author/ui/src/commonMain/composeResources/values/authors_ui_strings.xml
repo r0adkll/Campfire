@@ -24,4 +24,6 @@
   <string name="sort_mode_num_books">Number of Books</string>
   <string name="sort_mode_added_at">Added at</string>
   <string name="sort_mode_updated_at">Updated at</string>
+
+  <string name="action_back">Back</string>
 </resources>

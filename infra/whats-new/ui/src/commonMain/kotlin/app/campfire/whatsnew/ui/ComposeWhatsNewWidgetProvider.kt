@@ -42,11 +42,13 @@ import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.whatsnew.api.WhatsNewRepository
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import campfire.infra.whats_new.ui.generated.resources.Res
+import campfire.infra.whats_new.ui.generated.resources.action_dismiss_whats_new
 import campfire.infra.whats_new.ui.generated.resources.whatsnew_widget_title
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
@@ -151,13 +153,16 @@ private fun WhatsNewWidget(
         )
       }
 
-      IconButton(
-        onClick = onDismiss,
-      ) {
-        Icon(
-          Icons.Rounded.Close,
-          contentDescription = null,
-        )
+      val dismissLabel = stringResource(Res.string.action_dismiss_whats_new)
+      IconButtonTooltip(text = dismissLabel) {
+        IconButton(
+          onClick = onDismiss,
+        ) {
+          Icon(
+            Icons.Rounded.Close,
+            contentDescription = dismissLabel,
+          )
+        }
       }
 
       Spacer(Modifier.size(8.dp))

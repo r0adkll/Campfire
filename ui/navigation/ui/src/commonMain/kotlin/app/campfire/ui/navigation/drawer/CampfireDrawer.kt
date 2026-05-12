@@ -26,6 +26,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
 import app.campfire.core.reflect.instanceOf
 import app.campfire.ui.navigation.HomeNavigationItem
@@ -34,10 +35,13 @@ import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.updates.AppUpdateWidget
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import app.campfire.whatsnew.api.screen.ChangelogScreen
+import campfire.ui.navigation.ui.generated.resources.Res
+import campfire.ui.navigation.ui.generated.resources.action_change_theme
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface CampfireDrawerComponent {
@@ -95,15 +99,9 @@ fun CampfireDrawer(
 
     Spacer(Modifier.weight(1f))
 
-    FilledTonalIconButton(
-      shapes = IconButtonDefaults.shapes(),
-      colors = IconButtonDefaults.filledTonalIconButtonColors(),
-      onClick = {
-        navigator.goTo(ThemePickerScreen)
-        scope.launch {
-          drawerState.close()
-        }
-      },
+    val changeThemeLabel = stringResource(Res.string.action_change_theme)
+    IconButtonTooltip(
+      text = changeThemeLabel,
       modifier = Modifier
         .align(Alignment.End)
         .padding(
@@ -111,7 +109,18 @@ fun CampfireDrawer(
           vertical = 8.dp,
         ),
     ) {
-      Icon(Icons.Rounded.Palette, contentDescription = "Change theme")
+      FilledTonalIconButton(
+        shapes = IconButtonDefaults.shapes(),
+        colors = IconButtonDefaults.filledTonalIconButtonColors(),
+        onClick = {
+          navigator.goTo(ThemePickerScreen)
+          scope.launch {
+            drawerState.close()
+          }
+        },
+      ) {
+        Icon(Icons.Rounded.Palette, contentDescription = changeThemeLabel)
+      }
     }
 
     component.appUpdateWidget.Content(

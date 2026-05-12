@@ -148,4 +148,6 @@
   <!-- Misc actions-->
   <string name="dialog_confirm_action">Apply</string>
   <string name="dialog_dismiss_action">Cancel</string>
+  <string name="action_back">Back</string>
+  <string name="action_dismiss">Dismiss</string>
 </resources>

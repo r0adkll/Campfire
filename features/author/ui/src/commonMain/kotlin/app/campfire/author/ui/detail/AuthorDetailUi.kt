@@ -33,6 +33,7 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.AuthorSharedTransitionKey
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorDetailScreen
@@ -43,6 +44,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 import campfire.features.author.ui.generated.resources.Res
+import campfire.features.author.ui.generated.resources.action_back
 import campfire.features.author.ui.generated.resources.author_books_empty_message
 import campfire.features.author.ui.generated.resources.author_books_header
 import campfire.features.author.ui.generated.resources.error_author_message
@@ -65,10 +67,13 @@ fun AuthorDetail(
         title = { Text(screen.authorName) },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(AuthorDetailUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = { state.eventSink(AuthorDetailUiEvent.Back) },
+            ) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
       )

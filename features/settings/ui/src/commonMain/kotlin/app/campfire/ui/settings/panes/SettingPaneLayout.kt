@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.action_back
+import org.jetbrains.compose.resources.stringResource
 
 enum class PaneState {
   Single, Double,
@@ -55,13 +59,16 @@ internal fun SettingPaneLayout(
         ?: WindowInsets(0.dp),
       navigationIcon = {
         if (paneState == PaneState.Single) {
-          IconButton(
-            onClick = onBackClick,
-          ) {
-            Icon(
-              Icons.AutoMirrored.Rounded.ArrowBack,
-              contentDescription = null,
-            )
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = onBackClick,
+            ) {
+              Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = backLabel,
+              )
+            }
           }
         }
       },

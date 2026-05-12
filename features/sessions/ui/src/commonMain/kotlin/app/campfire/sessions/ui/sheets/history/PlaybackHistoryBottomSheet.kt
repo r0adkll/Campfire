@@ -53,6 +53,7 @@ import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.icons.rounded.Sync
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableFormat
 import app.campfire.core.model.LibraryItemId
@@ -60,6 +61,7 @@ import app.campfire.core.model.PlaybackActionType
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_clear_history
 import campfire.features.sessions.ui.generated.resources.history_bottomsheet_title
 import campfire.features.sessions.ui.generated.resources.history_context_pause
 import campfire.features.sessions.ui.generated.resources.history_context_play
@@ -144,18 +146,21 @@ private fun PlaybackHistoryBottomSheet(
         visible = actions.isNotEmpty(),
         modifier = Modifier.align(Alignment.CenterEnd),
       ) {
-        IconButton(
-          onClick = {
-            scope.launch {
-              component.playbackHistoryRepository.clear(libraryItemId)
-            }
-          },
-        ) {
-          Icon(
-            CampfireIcons.Rounded.DeleteSweep,
-            contentDescription = "Clear history",
-            tint = MaterialTheme.colorScheme.error,
-          )
+        val clearHistoryLabel = stringResource(Res.string.action_clear_history)
+        IconButtonTooltip(text = clearHistoryLabel) {
+          IconButton(
+            onClick = {
+              scope.launch {
+                component.playbackHistoryRepository.clear(libraryItemId)
+              }
+            },
+          ) {
+            Icon(
+              CampfireIcons.Rounded.DeleteSweep,
+              contentDescription = clearHistoryLabel,
+              tint = MaterialTheme.colorScheme.error,
+            )
+          }
         }
       }
     },

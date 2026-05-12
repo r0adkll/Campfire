@@ -38,8 +38,12 @@ import app.campfire.common.compose.icons.rounded.Check
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_cancel_clear_queue
 import campfire.features.sessions.ui.generated.resources.action_clear_queue
+import campfire.features.sessions.ui.generated.resources.action_clear_queue_short
+import campfire.features.sessions.ui.generated.resources.action_confirm_clear_queue
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -81,13 +85,16 @@ fun ClearQueueButton(
           onCancelClick = { showConfirmation = false },
         )
       } else {
-        IconButton(
-          onClick = { showConfirmation = true },
-        ) {
-          Icon(
-            CampfireIcons.Rounded.DeleteSweep,
-            contentDescription = "Clear queue",
-          )
+        val clearQueueLabel = stringResource(Res.string.action_clear_queue_short)
+        IconButtonTooltip(text = clearQueueLabel) {
+          IconButton(
+            onClick = { showConfirmation = true },
+          ) {
+            Icon(
+              CampfireIcons.Rounded.DeleteSweep,
+              contentDescription = clearQueueLabel,
+            )
+          }
         }
       }
     }
@@ -107,14 +114,17 @@ private fun AnimatedContentScope.ConfirmClearQueueContent(
     verticalAlignment = Alignment.CenterVertically,
   ) {
     // Cancel Button
-    IconButton(
-      onClick = onCancelClick,
-    ) {
-      Icon(
-        CampfireIcons.Rounded.Close,
-        contentDescription = "Cancel queue clear",
-        tint = MaterialTheme.colorScheme.onErrorContainer,
-      )
+    val cancelLabel = stringResource(Res.string.action_cancel_clear_queue)
+    IconButtonTooltip(text = cancelLabel) {
+      IconButton(
+        onClick = onCancelClick,
+      ) {
+        Icon(
+          CampfireIcons.Rounded.Close,
+          contentDescription = cancelLabel,
+          tint = MaterialTheme.colorScheme.onErrorContainer,
+        )
+      }
     }
 
     // Text
@@ -126,12 +136,9 @@ private fun AnimatedContentScope.ConfirmClearQueueContent(
     )
 
     // Confirm Button
-    FilledIconButton(
-      onClick = onConfirmClick,
-      colors = IconButtonDefaults.filledIconButtonColors(
-        containerColor = CampfireTheme.colorScheme.success,
-        contentColor = CampfireTheme.colorScheme.onSuccess,
-      ),
+    val confirmLabel = stringResource(Res.string.action_confirm_clear_queue)
+    IconButtonTooltip(
+      text = confirmLabel,
       modifier = Modifier
         .animateEnterExit(
           enter = expandIn(
@@ -141,10 +148,18 @@ private fun AnimatedContentScope.ConfirmClearQueueContent(
           exit = shrinkOut() + fadeOut(),
         ),
     ) {
-      Icon(
-        CampfireIcons.Rounded.Check,
-        contentDescription = "Clear queue",
-      )
+      FilledIconButton(
+        onClick = onConfirmClick,
+        colors = IconButtonDefaults.filledIconButtonColors(
+          containerColor = CampfireTheme.colorScheme.success,
+          contentColor = CampfireTheme.colorScheme.onSuccess,
+        ),
+      ) {
+        Icon(
+          CampfireIcons.Rounded.Check,
+          contentDescription = confirmLabel,
+        )
+      }
     }
   }
 }

@@ -48,6 +48,7 @@ import app.campfire.common.compose.permission.rememberPostNotificationPermission
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
@@ -63,6 +64,7 @@ import app.campfire.playlists.ui.detail.composables.PlaylistListItem
 import app.campfire.playlists.ui.sheets.EditPlaylistModel
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
 import campfire.features.playlists.ui.generated.resources.Res
+import campfire.features.playlists.ui.generated.resources.action_back
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_action_cancel
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_action_delete
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_message
@@ -238,13 +240,16 @@ private fun PlaylistTopBar(
     title = { Text(name) },
     scrollBehavior = scrollBehavior,
     navigationIcon = {
-      IconButton(
-        onClick = onBack,
-      ) {
-        Icon(
-          Icons.AutoMirrored.Rounded.ArrowBack,
-          contentDescription = null,
-        )
+      val backLabel = stringResource(Res.string.action_back)
+      IconButtonTooltip(text = backLabel) {
+        IconButton(
+          onClick = onBack,
+        ) {
+          Icon(
+            Icons.AutoMirrored.Rounded.ArrowBack,
+            contentDescription = backLabel,
+          )
+        }
       }
     },
   )

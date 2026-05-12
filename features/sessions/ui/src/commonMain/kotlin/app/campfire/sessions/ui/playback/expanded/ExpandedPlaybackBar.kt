@@ -64,6 +64,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImageSize
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -104,6 +105,7 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_close
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.playback_error_message
 import com.slack.circuit.overlay.ContentWithOverlays
@@ -256,10 +258,13 @@ internal fun ExpandedPlaybackBar(
           }
         },
         navigationIcon = {
-          IconButton(
-            onClick = onClose,
-          ) {
-            Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = null)
+          val closeLabel = stringResource(Res.string.action_close)
+          IconButtonTooltip(text = closeLabel) {
+            IconButton(
+              onClick = onClose,
+            ) {
+              Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
+            }
           }
         },
         actions = {

@@ -40,9 +40,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.model.NetworkSettings
+import campfire.features.auth.ui.generated.resources.Res
+import campfire.features.auth.ui.generated.resources.action_add_header
+import campfire.features.auth.ui.generated.resources.action_delete_header
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import org.jetbrains.compose.resources.stringResource
 
 data class NetworkSettingsModel(val settings: NetworkSettings?)
 
@@ -170,21 +175,26 @@ private fun NetworkSettingsBottomSheet(
 
       Spacer(Modifier.size(8.dp))
 
-      FilledIconButton(
-        shapes = IconButtonDefaults.shapes(),
-        enabled = newHeaderName.text.isNotBlank() &&
-          newHeaderValue.text.isNotBlank(),
-        onClick = {
-          headers[newHeaderName.text.toString()] = newHeaderValue.text.toString()
-          newHeaderName.clearText()
-          newHeaderValue.clearText()
-        },
+      val addHeaderLabel = stringResource(Res.string.action_add_header)
+      IconButtonTooltip(
+        text = addHeaderLabel,
         modifier = Modifier.padding(top = 8.dp),
       ) {
-        Icon(
-          Icons.Rounded.Add,
-          contentDescription = "Add Extra Header",
-        )
+        FilledIconButton(
+          shapes = IconButtonDefaults.shapes(),
+          enabled = newHeaderName.text.isNotBlank() &&
+            newHeaderValue.text.isNotBlank(),
+          onClick = {
+            headers[newHeaderName.text.toString()] = newHeaderValue.text.toString()
+            newHeaderName.clearText()
+            newHeaderValue.clearText()
+          },
+        ) {
+          Icon(
+            Icons.Rounded.Add,
+            contentDescription = addHeaderLabel,
+          )
+        }
       }
 
       Spacer(Modifier.size(8.dp))
@@ -263,14 +273,17 @@ private fun HeaderValue(
       overflow = TextOverflow.MiddleEllipsis,
     )
 
-    IconButton(
-      onClick = onDeleteClick,
-    ) {
-      Icon(
-        Icons.Rounded.Delete,
-        contentDescription = "Delete Extra Header",
-        tint = MaterialTheme.colorScheme.error,
-      )
+    val deleteHeaderLabel = stringResource(Res.string.action_delete_header)
+    IconButtonTooltip(text = deleteHeaderLabel) {
+      IconButton(
+        onClick = onDeleteClick,
+      ) {
+        Icon(
+          Icons.Rounded.Delete,
+          contentDescription = deleteHeaderLabel,
+          tint = MaterialTheme.colorScheme.error,
+        )
+      }
     }
   }
 }

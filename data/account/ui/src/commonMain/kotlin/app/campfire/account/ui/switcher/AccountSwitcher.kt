@@ -50,11 +50,13 @@ import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
 import app.campfire.ui.theming.api.AppTheme
 import campfire.data.account.ui.generated.resources.Res
+import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.libraries_error_message
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
@@ -202,13 +204,16 @@ private fun AccountSwitcher(
 
       Spacer(Modifier.width(16.dp))
 
-      IconButton(
-        onClick = onClick,
-      ) {
-        Icon(
-          CampfireIcons.Rounded.AccountSwitch,
-          contentDescription = null,
-        )
+      val switchAccountLabel = stringResource(Res.string.action_switch_account)
+      IconButtonTooltip(text = switchAccountLabel) {
+        IconButton(
+          onClick = onClick,
+        ) {
+          Icon(
+            CampfireIcons.Rounded.AccountSwitch,
+            contentDescription = switchAccountLabel,
+          )
+        }
       }
     }
 

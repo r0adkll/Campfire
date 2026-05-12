@@ -17,7 +17,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.sessions.ui.sheets.speed.readableHundredths
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_playback_speed
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun PlaybackSpeedAction(
@@ -26,11 +30,16 @@ fun PlaybackSpeedAction(
   modifier: Modifier = Modifier,
 ) {
   if (playbackSpeed == 1f) {
-    IconButton(
-      onClick = onClick,
+    val label = stringResource(Res.string.action_playback_speed)
+    IconButtonTooltip(
+      text = label,
       modifier = modifier,
     ) {
-      Icon(Icons.Rounded.Speed, contentDescription = null)
+      IconButton(
+        onClick = onClick,
+      ) {
+        Icon(Icons.Rounded.Speed, contentDescription = label)
+      }
     }
   } else {
     Box(

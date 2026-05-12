@@ -1,6 +1,5 @@
 package app.campfire.playlists.ui.detail.composables
 
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
 import androidx.compose.material.icons.rounded.Delete
@@ -15,21 +14,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipAnchorPosition
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TooltipScope
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.SwapCalls
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.playlists.ui.generated.resources.Res
+import campfire.features.playlists.ui.generated.resources.action_delete_playlist
+import campfire.features.playlists.ui.generated.resources.action_download_playlist
+import campfire.features.playlists.ui.generated.resources.action_edit_playlist
+import campfire.features.playlists.ui.generated.resources.action_play_all
+import campfire.features.playlists.ui.generated.resources.action_reorder_playlist
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -46,51 +45,44 @@ internal fun PlaylistFloatingToolbar(
   HorizontalFloatingToolbar(
     expanded = true,
     floatingActionButton = {
-      TooltipBox(
-        positionProvider =
-        TooltipDefaults.rememberTooltipPositionProvider(
-          TooltipAnchorPosition.Above,
-        ),
-        tooltip = { CampfireTooltip("Play all items in the playlist") },
-        state = rememberTooltipState(),
-      ) {
+      val playAllLabel = stringResource(Res.string.action_play_all)
+      IconButtonTooltip(text = playAllLabel) {
         FloatingToolbarDefaults.StandardFloatingActionButton(
           onClick = onPlayAllClick,
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ) {
-          Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, contentDescription = null)
+          Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, contentDescription = playAllLabel)
         }
       }
     },
     floatingActionButtonPosition = FloatingToolbarHorizontalFabPosition.Start,
-//        colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(),
     modifier = modifier,
   ) {
     ToolbarButton(
       Icons.Rounded.Download,
       onClick = onDownloadClick,
       expanded = expanded,
-      contentDescription = "Download playlist",
+      contentDescription = stringResource(Res.string.action_download_playlist),
     )
     ToolbarButton(
       Icons.Rounded.Edit,
       onClick = onEditClick,
       expanded = expanded,
-      contentDescription = "Edit playlist name and description",
+      contentDescription = stringResource(Res.string.action_edit_playlist),
     )
     ToggleToolbarButton(
       checked = isReordering,
       onCheckedChange = onReorderChange,
       icon = CampfireIcons.Rounded.SwapCalls,
       expanded = expanded,
-      contentDescription = "Re-order playlist items",
+      contentDescription = stringResource(Res.string.action_reorder_playlist),
     )
     ToolbarButton(
       Icons.Rounded.Delete,
       onClick = onDeleteClick,
       expanded = expanded,
-      contentDescription = "Delete playlist",
+      contentDescription = stringResource(Res.string.action_delete_playlist),
       tint = MaterialTheme.colorScheme.error,
     )
   }
@@ -105,13 +97,8 @@ internal fun ToolbarButton(
   expanded: Boolean = false,
   tint: Color = LocalContentColor.current,
 ) {
-  TooltipBox(
-    positionProvider =
-    TooltipDefaults.rememberTooltipPositionProvider(
-      TooltipAnchorPosition.Above,
-    ),
-    tooltip = { CampfireTooltip(contentDescription) },
-    state = rememberTooltipState(),
+  IconButtonTooltip(
+    text = contentDescription,
     modifier = modifier,
   ) {
     IconButton(
@@ -136,13 +123,8 @@ internal fun ToggleToolbarButton(
   modifier: Modifier = Modifier,
   expanded: Boolean = false,
 ) {
-  TooltipBox(
-    positionProvider =
-    TooltipDefaults.rememberTooltipPositionProvider(
-      TooltipAnchorPosition.Above,
-    ),
-    tooltip = { CampfireTooltip(contentDescription) },
-    state = rememberTooltipState(),
+  IconButtonTooltip(
+    text = contentDescription,
     modifier = modifier,
   ) {
     IconToggleButton(
@@ -152,25 +134,5 @@ internal fun ToggleToolbarButton(
     ) {
       Icon(icon, contentDescription = contentDescription)
     }
-  }
-}
-
-@Composable
-private fun TooltipScope.CampfireTooltip(
-  text: String,
-  modifier: Modifier = Modifier,
-) {
-  PlainTooltip(
-    caretShape = TooltipDefaults.caretShape(),
-    shape = MaterialTheme.shapes.small,
-    modifier = modifier,
-  ) {
-    Text(
-      text = text,
-      modifier = Modifier.padding(
-        horizontal = 4.dp,
-        vertical = 2.dp,
-      ),
-    )
   }
 }

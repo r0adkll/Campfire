@@ -26,6 +26,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.action_clear_search
+import org.jetbrains.compose.resources.stringResource
 
 val SearchBarHeight = 56.dp
 val SearchBarElevation = 6.dp
@@ -88,13 +91,16 @@ fun SearchBar(
         )
 
         if (!query.isNullOrEmpty()) {
-          IconButton(
-            onClick = {
-              query = null
-              onQueryCleared()
-            },
-          ) {
-            Icon(Icons.Rounded.Close, contentDescription = null)
+          val clearSearchLabel = stringResource(Res.string.action_clear_search)
+          IconButtonTooltip(text = clearSearchLabel) {
+            IconButton(
+              onClick = {
+                query = null
+                onQueryCleared()
+              },
+            ) {
+              Icon(Icons.Rounded.Close, contentDescription = clearSearchLabel)
+            }
           }
         }
       }

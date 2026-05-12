@@ -8,6 +8,7 @@
   <string name="label_this_phone">This phone</string>
   <string name="label_connecting">Connecting…</string>
   <string name="media_route_dialog_title">Devices</string>
+  <string name="action_cast">Cast</string>
 
   <string name="option_shake_to_reset_title">Shake-to-reset</string>
   <string name="option_shake_to_reset_subtitle">Enable shaking to reset the current or previous timer</string>

@@ -73,6 +73,7 @@ import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
@@ -92,6 +93,13 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_add_bookmark
+import campfire.features.sessions.ui.generated.resources.action_chapters
+import campfire.features.sessions.ui.generated.resources.action_forward
+import campfire.features.sessions.ui.generated.resources.action_rewind
+import campfire.features.sessions.ui.generated.resources.action_skip_next
+import campfire.features.sessions.ui.generated.resources.action_skip_previous
+import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
 import com.slack.circuit.overlay.LocalOverlayHost
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
@@ -372,22 +380,28 @@ private fun PlaybackActions(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
   ) {
-    IconButton(
-      onClick = onSkipPreviousClick,
-    ) {
-      Icon(
-        Icons.Rounded.SkipPrevious,
-        modifier = Modifier.size(actionSize),
-        contentDescription = null,
-      )
+    val skipPreviousLabel = stringResource(Res.string.action_skip_previous)
+    IconButtonTooltip(text = skipPreviousLabel) {
+      IconButton(
+        onClick = onSkipPreviousClick,
+      ) {
+        Icon(
+          Icons.Rounded.SkipPrevious,
+          modifier = Modifier.size(actionSize),
+          contentDescription = skipPreviousLabel,
+        )
+      }
     }
 
-    IconButton(
-      onClick = onRewindClick,
-    ) {
-      RewindIcon(
-        modifier = Modifier.size(actionSize),
-      )
+    val rewindLabel = stringResource(Res.string.action_rewind)
+    IconButtonTooltip(text = rewindLabel) {
+      IconButton(
+        onClick = onRewindClick,
+      ) {
+        RewindIcon(
+          modifier = Modifier.size(actionSize),
+        )
+      }
     }
 
     val isPlayPauseEnabled = state != AudioPlayer.State.Finished &&
@@ -436,22 +450,28 @@ private fun PlaybackActions(
       }
     }
 
-    IconButton(
-      onClick = onForwardClick,
-    ) {
-      ForwardIcon(
-        modifier = Modifier.size(actionSize),
-      )
+    val forwardLabel = stringResource(Res.string.action_forward)
+    IconButtonTooltip(text = forwardLabel) {
+      IconButton(
+        onClick = onForwardClick,
+      ) {
+        ForwardIcon(
+          modifier = Modifier.size(actionSize),
+        )
+      }
     }
 
-    IconButton(
-      onClick = onSkipNextClick,
-    ) {
-      Icon(
-        Icons.Rounded.SkipNext,
-        modifier = Modifier.size(actionSize),
-        contentDescription = null,
-      )
+    val skipNextLabel = stringResource(Res.string.action_skip_next)
+    IconButtonTooltip(text = skipNextLabel) {
+      IconButton(
+        onClick = onSkipNextClick,
+      ) {
+        Icon(
+          Icons.Rounded.SkipNext,
+          modifier = Modifier.size(actionSize),
+          contentDescription = skipNextLabel,
+        )
+      }
     }
   }
 }
@@ -583,10 +603,13 @@ private fun ActionRow(
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
   ) {
-    IconButton(
-      onClick = onBookmarkAddClick,
-    ) {
-      Icon(Icons.Rounded.Bookmarks, contentDescription = null)
+    val bookmarkLabel = stringResource(Res.string.action_add_bookmark)
+    IconButtonTooltip(text = bookmarkLabel) {
+      IconButton(
+        onClick = onBookmarkAddClick,
+      ) {
+        Icon(Icons.Rounded.Bookmarks, contentDescription = bookmarkLabel)
+      }
     }
 
     speedContent()
@@ -607,10 +630,13 @@ private fun ActionRow(
       contentAlignment = Alignment.CenterStart,
     ) { timer ->
       if (timer == null) {
-        IconButton(
-          onClick = onTimerClick,
-        ) {
-          Icon(Icons.Outlined.Timer, contentDescription = null)
+        val timerLabel = stringResource(Res.string.action_sleep_timer)
+        IconButtonTooltip(text = timerLabel) {
+          IconButton(
+            onClick = onTimerClick,
+          ) {
+            Icon(Icons.Outlined.Timer, contentDescription = timerLabel)
+          }
         }
       } else {
         Row(
@@ -650,10 +676,13 @@ private fun ActionRow(
       }
     }
 
-    IconButton(
-      onClick = onChapterListClick,
-    ) {
-      Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+    val chaptersLabel = stringResource(Res.string.action_chapters)
+    IconButtonTooltip(text = chaptersLabel) {
+      IconButton(
+        onClick = onChapterListClick,
+      ) {
+        Icon(Icons.AutoMirrored.Rounded.List, contentDescription = chaptersLabel)
+      }
     }
   }
 }

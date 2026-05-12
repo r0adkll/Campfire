@@ -6,4 +6,7 @@
   <string name="theme_name_life_float">Life Float Orange</string>
   <string name="theme_name_mountain">Mountain Range Purple</string>
   <string name="theme_name_dynamic">System Wallpaper Dynamic</string>
+  <string name="action_back">Back</string>
+  <string name="action_edit_theme">Edit theme</string>
+  <string name="action_delete_theme">Delete theme</string>
 </resources>

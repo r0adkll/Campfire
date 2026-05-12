@@ -2,4 +2,6 @@
   <string name="changelog_title">Changelog</string>
   <string name="error_changelog_message">Uh-oh! Something went wrong trying to load the changelog.</string>
   <string name="whatsnew_widget_title">See what's new!</string>
+  <string name="action_back">Back</string>
+  <string name="action_dismiss_whats_new">Dismiss what's new</string>
 </resources>

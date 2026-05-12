@@ -75,6 +75,7 @@ import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Tent
@@ -88,9 +89,11 @@ import campfire.features.libraries.ui.generated.resources.action_add_to_enqueue
 import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_long
 import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_short
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
+import campfire.features.libraries.ui.generated.resources.action_delete_download
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
 import campfire.features.libraries.ui.generated.resources.action_play
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
+import campfire.features.libraries.ui.generated.resources.action_retry_download
 import campfire.features.libraries.ui.generated.resources.action_stop_downloading
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress_short
@@ -217,20 +220,23 @@ private fun OfflineStatus(
           targetState = offlineDownload.isActive,
         ) { isActive ->
           if (isActive) {
-            FilledIconButton(
-              onClick = onStopClick,
-              shapes = IconButtonDefaults.shapes(),
-              modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-              colors = IconButtonDefaults.filledIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-              ),
-            ) {
-              Icon(
-                Icons.Rounded.Stop,
-                contentDescription = stringResource(Res.string.action_stop_downloading),
-                modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-              )
+            val stopLabel = stringResource(Res.string.action_stop_downloading)
+            IconButtonTooltip(text = stopLabel) {
+              FilledIconButton(
+                onClick = onStopClick,
+                shapes = IconButtonDefaults.shapes(),
+                modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                  containerColor = MaterialTheme.colorScheme.errorContainer,
+                  contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                ),
+              ) {
+                Icon(
+                  Icons.Rounded.Stop,
+                  contentDescription = stopLabel,
+                  modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                )
+              }
             }
           } else {
             Row(
@@ -240,34 +246,40 @@ private fun OfflineStatus(
                 offlineDownload.state == OfflineDownload.State.Failed ||
                 offlineDownload.state == OfflineDownload.State.Stopped
               ) {
-                IconButton(
-                  onClick = onRetryClick,
-                  shapes = IconButtonDefaults.shapes(),
-                  modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-                ) {
-                  Icon(
-                    Icons.Rounded.Replay,
-                    contentDescription = "Retry download",
-                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                  )
+                val retryLabel = stringResource(Res.string.action_retry_download)
+                IconButtonTooltip(text = retryLabel) {
+                  IconButton(
+                    onClick = onRetryClick,
+                    shapes = IconButtonDefaults.shapes(),
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                  ) {
+                    Icon(
+                      Icons.Rounded.Replay,
+                      contentDescription = retryLabel,
+                      modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                    )
+                  }
                 }
 
                 Spacer(Modifier.size(8.dp))
 
-                FilledIconButton(
-                  onClick = onDeleteClick,
-                  shapes = IconButtonDefaults.shapes(),
-                  colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
-                  ),
-                  modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-                ) {
-                  Icon(
-                    Icons.Rounded.Delete,
-                    contentDescription = "Delete download",
-                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                  )
+                val deleteDownloadLabel = stringResource(Res.string.action_delete_download)
+                IconButtonTooltip(text = deleteDownloadLabel) {
+                  FilledIconButton(
+                    onClick = onDeleteClick,
+                    shapes = IconButtonDefaults.shapes(),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                      containerColor = MaterialTheme.colorScheme.error,
+                      contentColor = MaterialTheme.colorScheme.onError,
+                    ),
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                  ) {
+                    Icon(
+                      Icons.Rounded.Delete,
+                      contentDescription = deleteDownloadLabel,
+                      modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                    )
+                  }
                 }
               } else {
                 val size = ButtonDefaults.ExtraSmallContainerHeight

@@ -37,6 +37,10 @@ import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.core.settings.SortDisplayMode
+import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.action_filter
+import campfire.common.compose.generated.resources.action_sort
+import org.jetbrains.compose.resources.stringResource
 
 private val FilterBarHeight = 56.dp
 
@@ -100,15 +104,20 @@ fun FilterBar(
       )
 
       if (onFilterClick != null) {
-        IconButton(
-          onClick = onFilterClick,
+        val filterLabel = stringResource(Res.string.action_filter)
+        IconButtonTooltip(
+          text = filterLabel,
           modifier = Modifier.offset(x = 12.dp),
         ) {
-          Icon(
-            if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
-            contentDescription = null,
-            tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
-          )
+          IconButton(
+            onClick = onFilterClick,
+          ) {
+            Icon(
+              if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
+              contentDescription = filterLabel,
+              tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+            )
+          }
         }
       }
     }
@@ -125,14 +134,19 @@ private fun SortIconButton(
   val sortIcon = SortIcon.forMode(sortMode)
   val icon = sortIcon.forDirection(sortDirection)
 
-  IconButton(
-    onClick = onClick,
+  val sortLabel = stringResource(Res.string.action_sort)
+  IconButtonTooltip(
+    text = sortLabel,
     modifier = modifier,
   ) {
-    Icon(
-      icon,
-      contentDescription = null,
-    )
+    IconButton(
+      onClick = onClick,
+    ) {
+      Icon(
+        icon,
+        contentDescription = sortLabel,
+      )
+    }
   }
 }
 

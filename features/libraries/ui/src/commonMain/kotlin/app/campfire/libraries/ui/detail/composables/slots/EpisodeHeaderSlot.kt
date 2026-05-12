@@ -18,9 +18,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.action_find_episodes
 import campfire.features.libraries.ui.generated.resources.header_episodes
 import org.jetbrains.compose.resources.stringResource
 
@@ -47,14 +49,17 @@ class EpisodeHeaderSlot : ContentSlot {
           textStyle = MaterialTheme.typography.titleLarge,
           textColor = MaterialTheme.colorScheme.contentColorFor(ChapterContainerColor),
           trailingContent = {
-            IconButton(
-              onClick = {
-              },
-            ) {
-              Icon(
-                Icons.Rounded.Search,
-                contentDescription = "Find episodes",
-              )
+            val findEpisodesLabel = stringResource(Res.string.action_find_episodes)
+            IconButtonTooltip(text = findEpisodesLabel) {
+              IconButton(
+                onClick = {
+                },
+              ) {
+                Icon(
+                  Icons.Rounded.Search,
+                  contentDescription = findEpisodesLabel,
+                )
+              }
             }
           },
           modifier = Modifier

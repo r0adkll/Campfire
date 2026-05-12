@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemListItem
 import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgroundContent
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
@@ -40,7 +41,11 @@ import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismiss
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
+import campfire.features.playlists.ui.generated.resources.Res
+import campfire.features.playlists.ui.generated.resources.action_currently_playing
+import campfire.features.playlists.ui.generated.resources.action_play_item
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -111,25 +116,30 @@ internal fun PlaylistListItem(
       durationOverride = episode?.duration,
       modifier = Modifier.weight(1f),
       trailingContent = {
-        FilledTonalIconButton(
-          enabled = !isPlaying,
-          onClick = onPlayClick,
-          shapes = IconButtonDefaults.shapes(
-            shape = MaterialTheme.shapes.small,
-            pressedShape = CircleShape,
-          ),
-        ) {
-          AnimatedContent(
-            isPlaying,
-          ) { playing ->
-            Icon(
-              if (!playing) {
-                Icons.Rounded.PlayArrow
-              } else {
-                CampfireIcons.Rounded.MotionPlay
-              },
-              contentDescription = null,
-            )
+        val playLabel = stringResource(
+          if (isPlaying) Res.string.action_currently_playing else Res.string.action_play_item,
+        )
+        IconButtonTooltip(text = playLabel) {
+          FilledTonalIconButton(
+            enabled = !isPlaying,
+            onClick = onPlayClick,
+            shapes = IconButtonDefaults.shapes(
+              shape = MaterialTheme.shapes.small,
+              pressedShape = CircleShape,
+            ),
+          ) {
+            AnimatedContent(
+              isPlaying,
+            ) { playing ->
+              Icon(
+                if (!playing) {
+                  Icons.Rounded.PlayArrow
+                } else {
+                  CampfireIcons.Rounded.MotionPlay
+                },
+                contentDescription = playLabel,
+              )
+            }
           }
         }
       },

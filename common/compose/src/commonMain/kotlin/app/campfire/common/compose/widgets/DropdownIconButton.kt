@@ -21,6 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.alpha
+import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.action_open_menu
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun <T> DropdownIconButton(
@@ -35,11 +38,14 @@ fun <T> DropdownIconButton(
   optionIcon: (@Composable (T) -> Unit)? = null,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
+  val menuLabel = stringResource(Res.string.action_open_menu)
   Box(modifier) {
-    IconButton(
-      onClick = { isExpanded = true },
-      content = icon,
-    )
+    IconButtonTooltip(text = menuLabel) {
+      IconButton(
+        onClick = { isExpanded = true },
+        content = icon,
+      )
+    }
 
     DropdownMenu(
       expanded = isExpanded,
@@ -92,11 +98,14 @@ fun <T> DropdownIconButton(
   optionIcon: (@Composable (T) -> Unit)? = null,
 ) {
   var isExpanded by remember { mutableStateOf(false) }
+  val menuLabel = stringResource(Res.string.action_open_menu)
   Box(modifier) {
-    IconButton(
-      onClick = { isExpanded = true },
-      content = icon,
-    )
+    IconButtonTooltip(text = menuLabel) {
+      IconButton(
+        onClick = { isExpanded = true },
+        content = icon,
+      )
+    }
 
     DropdownMenu(
       expanded = isExpanded,

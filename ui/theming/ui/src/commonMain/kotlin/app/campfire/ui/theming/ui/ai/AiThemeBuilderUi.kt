@@ -54,6 +54,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.colorScheme
@@ -62,8 +63,11 @@ import app.campfire.ui.theming.ui.ai.composables.AppPreview
 import app.campfire.ui.theming.ui.ai.emptystate.ShapeParticleEmptyState
 import app.campfire.ui.theming.ui.ai.emptystate.ShapeParticleGameState
 import app.campfire.ui.theming.ui.builder.composables.IconPicker
+import campfire.ui.theming.ui.generated.resources.Res
+import campfire.ui.theming.ui.generated.resources.action_back
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Duration.Companion.nanoseconds
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(AiThemeBuilderScreen::class, UserScope::class)
@@ -85,8 +89,11 @@ fun AiThemeBuilder(
       CampfireTopAppBar(
         title = { Text("AI Theme Builder") },
         navigationIcon = {
-          IconButton(onClick = { state.eventSink(AiThemeBuilderUiEvent.Back) }) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(onClick = { state.eventSink(AiThemeBuilderUiEvent.Back) }) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
         scrollBehavior = scrollBehavior,

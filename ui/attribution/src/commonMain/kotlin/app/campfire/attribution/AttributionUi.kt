@@ -15,11 +15,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import campfire.ui.attribution.generated.resources.Res
+import campfire.ui.attribution.generated.resources.action_back
 import campfire.ui.attribution.generated.resources.attributions_error_message
 import campfire.ui.attribution.generated.resources.attributions_title
 import com.mikepenz.aboutlibraries.Libs
@@ -40,10 +42,13 @@ fun Attribution(
         scrollBehavior = scrollBehavior,
         title = { Text(stringResource(Res.string.attributions_title)) },
         navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(AttributionUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = { state.eventSink(AttributionUiEvent.Back) },
+            ) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
       )

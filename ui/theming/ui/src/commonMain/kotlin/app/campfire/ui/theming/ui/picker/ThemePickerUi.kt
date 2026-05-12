@@ -57,6 +57,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
@@ -66,6 +67,8 @@ import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import campfire.ui.theming.ui.generated.resources.Res
+import campfire.ui.theming.ui.generated.resources.action_back
+import campfire.ui.theming.ui.generated.resources.action_edit_theme
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
 import campfire.ui.theming.ui.generated.resources.theme_name_forest
 import campfire.ui.theming.ui.generated.resources.theme_name_life_float
@@ -94,10 +97,13 @@ fun ThemePicker(
             Text("Theme")
           },
           navigationIcon = {
-            IconButton(
-              onClick = { state.eventSink(ThemePickerUiEvent.Back) },
-            ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+            val backLabel = stringResource(Res.string.action_back)
+            IconButtonTooltip(text = backLabel) {
+              IconButton(
+                onClick = { state.eventSink(ThemePickerUiEvent.Back) },
+              ) {
+                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              }
             }
           },
           scrollBehavior = scrollBehavior,
@@ -300,12 +306,15 @@ private fun ThemeOption(
         Spacer(Modifier.width(16.dp))
 
         if (onEditClick != null) {
-          IconButton(onClick = onEditClick) {
-            Icon(
-              if (theme is AppTheme.Fixed.Ai) Icons.Rounded.AutoAwesome else Icons.Rounded.Edit,
-              contentDescription = null,
-              tint = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
+          val editLabel = stringResource(Res.string.action_edit_theme)
+          IconButtonTooltip(text = editLabel) {
+            IconButton(onClick = onEditClick) {
+              Icon(
+                if (theme is AppTheme.Fixed.Ai) Icons.Rounded.AutoAwesome else Icons.Rounded.Edit,
+                contentDescription = editLabel,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+              )
+            }
           }
           Spacer(Modifier.size(8.dp))
         }

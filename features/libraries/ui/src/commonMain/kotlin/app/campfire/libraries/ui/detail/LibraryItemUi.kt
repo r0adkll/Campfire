@@ -56,6 +56,7 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.core.coroutines.LoadState
@@ -145,15 +146,18 @@ fun LibraryItemContent(
         title = {},
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          IconButton(
-            onClick = {
-              state.eventSink(LibraryItemUiEvent.OnBack)
-            },
-          ) {
-            Icon(
-              Icons.AutoMirrored.Rounded.ArrowBack,
-              contentDescription = stringResource(Res.string.cd_back_arrow),
-            )
+          val backLabel = stringResource(Res.string.cd_back_arrow)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = {
+                state.eventSink(LibraryItemUiEvent.OnBack)
+              },
+            ) {
+              Icon(
+                Icons.AutoMirrored.Rounded.ArrowBack,
+                contentDescription = backLabel,
+              )
+            }
           }
         },
         actions = {
@@ -172,16 +176,19 @@ fun LibraryItemContent(
           }
 
           if (state.user.canEditCollections) {
-            IconButton(
-              onClick = {
-                Analytics.send(ActionEvent("add_to_collection", Click))
-                showAddToCollectionDialog = true
-              },
-            ) {
-              Icon(
-                Icons.Rounded.LibraryAdd,
-                contentDescription = stringResource(Res.string.cd_add_to_collection),
-              )
+            val addToCollectionLabel = stringResource(Res.string.cd_add_to_collection)
+            IconButtonTooltip(text = addToCollectionLabel) {
+              IconButton(
+                onClick = {
+                  Analytics.send(ActionEvent("add_to_collection", Click))
+                  showAddToCollectionDialog = true
+                },
+              ) {
+                Icon(
+                  Icons.Rounded.LibraryAdd,
+                  contentDescription = addToCollectionLabel,
+                )
+              }
             }
           }
         },

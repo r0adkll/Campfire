@@ -50,6 +50,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.extensions.ifNotEmpty
 import app.campfire.core.model.LibraryItem
@@ -62,6 +63,7 @@ import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.action_delete_download
+import campfire.features.settings.ui.generated.resources.action_dismiss
 import campfire.features.settings.ui.generated.resources.action_stop_download
 import campfire.features.settings.ui.generated.resources.download_header_downloads
 import campfire.features.settings.ui.generated.resources.label_confirm_download_delete
@@ -170,14 +172,17 @@ private fun ConfirmDeleteListItem(
 
     Spacer(Modifier.width(16.dp))
 
-    OutlinedIconButton(
-      onClick = onDismissRequest,
-    ) {
-      Icon(
-        Icons.Rounded.Clear,
-        contentDescription = null,
-        modifier = Modifier.size(ButtonDefaults.IconSize),
-      )
+    val dismissLabel = stringResource(Res.string.action_dismiss)
+    IconButtonTooltip(text = dismissLabel) {
+      OutlinedIconButton(
+        onClick = onDismissRequest,
+      ) {
+        Icon(
+          Icons.Rounded.Clear,
+          contentDescription = dismissLabel,
+          modifier = Modifier.size(ButtonDefaults.IconSize),
+        )
+      }
     }
 
     Spacer(Modifier.width(4.dp))
@@ -237,27 +242,42 @@ private fun ItemDownloadListItem(
       )
     },
     trailingContent = {
-      FilledTonalIconButton(
-        onClick = onDeleteClick,
-        colors = IconButtonDefaults.filledTonalIconButtonColors(
-          containerColor = MaterialTheme.colorScheme.errorContainer,
-          contentColor = MaterialTheme.colorScheme.error,
-        ),
-      ) {
-        Icon(
-          when (download.state) {
-            Queued,
-            Downloading,
-            -> Icons.Rounded.Dangerous
+      val deleteOrStopLabel = stringResource(
+        when (download.state) {
+          Queued,
+          Stopped,
+          Downloading,
+          -> Res.string.action_stop_download
 
-            Stopped,
-            Completed,
-            Failed,
-            None,
-            -> Icons.Rounded.Delete
-          },
-          contentDescription = null,
-        )
+          Completed,
+          Failed,
+          None,
+          -> Res.string.action_delete_download
+        },
+      )
+      IconButtonTooltip(text = deleteOrStopLabel) {
+        FilledTonalIconButton(
+          onClick = onDeleteClick,
+          colors = IconButtonDefaults.filledTonalIconButtonColors(
+            containerColor = MaterialTheme.colorScheme.errorContainer,
+            contentColor = MaterialTheme.colorScheme.error,
+          ),
+        ) {
+          Icon(
+            when (download.state) {
+              Queued,
+              Downloading,
+              -> Icons.Rounded.Dangerous
+
+              Stopped,
+              Completed,
+              Failed,
+              None,
+              -> Icons.Rounded.Delete
+            },
+            contentDescription = deleteOrStopLabel,
+          )
+        }
       }
     },
     onClick = onClick,

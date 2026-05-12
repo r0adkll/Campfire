@@ -21,7 +21,11 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.animated.AnimatedTimerPainter
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import kotlin.time.Duration
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun RunningTimerAction(
@@ -33,20 +37,25 @@ fun RunningTimerAction(
   modifier: Modifier = Modifier,
 ) {
   if (runningTimer?.timer !is PlaybackTimer.EndOfChapter) {
-    IconButton(
-      onClick = onClick,
+    val label = stringResource(Res.string.action_sleep_timer)
+    IconButtonTooltip(
+      text = label,
       modifier = modifier,
     ) {
-      if (runningTimer != null) {
-        Icon(
-          AnimatedTimerPainter,
-          contentDescription = null,
-        )
-      } else {
-        Icon(
-          Icons.Outlined.Timer,
-          contentDescription = null,
-        )
+      IconButton(
+        onClick = onClick,
+      ) {
+        if (runningTimer != null) {
+          Icon(
+            AnimatedTimerPainter,
+            contentDescription = label,
+          )
+        } else {
+          Icon(
+            Icons.Outlined.Timer,
+            contentDescription = label,
+          )
+        }
       }
     }
   } else {

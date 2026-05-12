@@ -33,4 +33,6 @@
 
   <string name="nav_downloads_label">Downloads</string>
   <string name="nav_downloads_content_description">The offline downloaded content for the current user</string>
+
+  <string name="action_change_theme">Change theme</string>
 </resources>

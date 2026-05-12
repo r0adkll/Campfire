@@ -18,6 +18,13 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.Description
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_bookmarks
+import campfire.features.sessions.ui.generated.resources.action_chapters
+import campfire.features.sessions.ui.generated.resources.action_description
+import campfire.features.sessions.ui.generated.resources.action_history
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun ActionRow(
@@ -44,10 +51,13 @@ internal fun ActionRow(
       modifier = Modifier.weight(1f),
       contentAlignment = Alignment.Center,
     ) {
-      IconButton(
-        onClick = onBookmarksClick,
-      ) {
-        Icon(Icons.Rounded.Bookmarks, contentDescription = null)
+      val bookmarksLabel = stringResource(Res.string.action_bookmarks)
+      IconButtonTooltip(text = bookmarksLabel) {
+        IconButton(
+          onClick = onBookmarksClick,
+        ) {
+          Icon(Icons.Rounded.Bookmarks, contentDescription = bookmarksLabel)
+        }
       }
     }
 
@@ -70,10 +80,13 @@ internal fun ActionRow(
         modifier = Modifier.weight(1f),
         contentAlignment = Alignment.Center,
       ) {
-        IconButton(
-          onClick = onChapterListClick,
-        ) {
-          Icon(Icons.AutoMirrored.Rounded.List, contentDescription = null)
+        val chaptersLabel = stringResource(Res.string.action_chapters)
+        IconButtonTooltip(text = chaptersLabel) {
+          IconButton(
+            onClick = onChapterListClick,
+          ) {
+            Icon(Icons.AutoMirrored.Rounded.List, contentDescription = chaptersLabel)
+          }
         }
       }
     }
@@ -83,10 +96,13 @@ internal fun ActionRow(
         modifier = Modifier.weight(1f),
         contentAlignment = Alignment.Center,
       ) {
-        IconButton(
-          onClick = onDescriptionClick,
-        ) {
-          Icon(CampfireIcons.Rounded.Description, contentDescription = null)
+        val descriptionLabel = stringResource(Res.string.action_description)
+        IconButtonTooltip(text = descriptionLabel) {
+          IconButton(
+            onClick = onDescriptionClick,
+          ) {
+            Icon(CampfireIcons.Rounded.Description, contentDescription = descriptionLabel)
+          }
         }
       }
     }
@@ -96,10 +112,13 @@ internal fun ActionRow(
         modifier = Modifier.weight(1f),
         contentAlignment = Alignment.Center,
       ) {
-        IconButton(
-          onClick = onHistoryClick,
-        ) {
-          Icon(Icons.Rounded.History, contentDescription = null)
+        val historyLabel = stringResource(Res.string.action_history)
+        IconButtonTooltip(text = historyLabel) {
+          IconButton(
+            onClick = onHistoryClick,
+          ) {
+            Icon(Icons.Rounded.History, contentDescription = historyLabel)
+          }
         }
       }
     }

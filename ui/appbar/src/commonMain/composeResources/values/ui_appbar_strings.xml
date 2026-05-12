@@ -8,4 +8,6 @@
     <item>romance</item>
     <item>mystery</item>
   </string-array>
+  <string name="action_clear_search">Clear search</string>
+  <string name="action_back">Back</string>
 </resources>

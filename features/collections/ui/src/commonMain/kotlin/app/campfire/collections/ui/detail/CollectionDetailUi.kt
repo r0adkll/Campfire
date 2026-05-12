@@ -57,6 +57,7 @@ import app.campfire.collections.ui.detail.composables.EditingTopAppBar
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
@@ -67,6 +68,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 import campfire.features.collections.ui.generated.resources.Res
+import campfire.features.collections.ui.generated.resources.action_delete_selected_items
 import campfire.features.collections.ui.generated.resources.action_edit_collection
 import campfire.features.collections.ui.generated.resources.dialog_confirm_delete_action_cancel
 import campfire.features.collections.ui.generated.resources.dialog_confirm_delete_action_delete
@@ -127,18 +129,21 @@ fun CollectionDetail(
               )
             },
             actions = {
-              IconButton(
-                onClick = {
-                  state.eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
-                  isItemEditing = false
-                  selectedItems.clear()
-                },
-              ) {
-                Icon(
-                  Icons.Rounded.Delete,
-                  contentDescription = null,
-                  tint = MaterialTheme.colorScheme.error,
-                )
+              val deleteSelectedLabel = stringResource(Res.string.action_delete_selected_items)
+              IconButtonTooltip(text = deleteSelectedLabel) {
+                IconButton(
+                  onClick = {
+                    state.eventSink(CollectionDetailUiEvent.DeleteItems(selectedItems.toList()))
+                    isItemEditing = false
+                    selectedItems.clear()
+                  },
+                ) {
+                  Icon(
+                    Icons.Rounded.Delete,
+                    contentDescription = deleteSelectedLabel,
+                    tint = MaterialTheme.colorScheme.error,
+                  )
+                }
               }
             },
             onDismiss = {

@@ -71,6 +71,7 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.rounded.Bookmark
 import app.campfire.common.compose.icons.rounded.BookmarkStar
 import app.campfire.common.compose.widgets.FilledTonalIconButton
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.SizedIcon
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.common.compose.widgets.circularReveal
@@ -84,6 +85,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.user.api.BookmarkRepository
 import campfire.features.sessions.ui.generated.resources.Res
+import campfire.features.sessions.ui.generated.resources.action_delete_bookmark
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_action_create
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_empty_message
 import campfire.features.sessions.ui.generated.resources.bookmark_bottomsheet_error_message
@@ -95,6 +97,8 @@ import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_act
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_action_create
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_label_title
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_title
+import campfire.features.sessions.ui.generated.resources.cd_forward_time
+import campfire.features.sessions.ui.generated.resources.cd_rewind_time
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
@@ -362,14 +366,17 @@ private fun BookmarkListItemContent(
       }
     },
     trailingContent = {
-      IconButton(
-        onClick = onDeleteClick,
-      ) {
-        Icon(
-          Icons.Rounded.DeleteOutline,
-          contentDescription = null,
-          tint = MaterialTheme.colorScheme.error,
-        )
+      val deleteLabel = stringResource(Res.string.action_delete_bookmark)
+      IconButtonTooltip(text = deleteLabel) {
+        IconButton(
+          onClick = onDeleteClick,
+        ) {
+          Icon(
+            Icons.Rounded.DeleteOutline,
+            contentDescription = deleteLabel,
+            tint = MaterialTheme.colorScheme.error,
+          )
+        }
       }
     },
   )
@@ -445,18 +452,21 @@ private fun CreateNewDialog(
               ),
             verticalAlignment = Alignment.CenterVertically,
           ) {
-            IconButton(
-              onClick = {
-                bookmarkTime -= 1.seconds
-              },
-              colors = IconButtonDefaults.iconButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary,
-              ),
-            ) {
-              Icon(
-                Icons.Rounded.Replay,
-                contentDescription = null,
-              )
+            val rewindLabel = stringResource(Res.string.cd_rewind_time, "1")
+            IconButtonTooltip(text = rewindLabel) {
+              IconButton(
+                onClick = {
+                  bookmarkTime -= 1.seconds
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                  contentColor = MaterialTheme.colorScheme.primary,
+                ),
+              ) {
+                Icon(
+                  Icons.Rounded.Replay,
+                  contentDescription = rewindLabel,
+                )
+              }
             }
 
             Text(
@@ -466,18 +476,21 @@ private fun CreateNewDialog(
               modifier = Modifier.padding(horizontal = 8.dp),
             )
 
-            IconButton(
-              onClick = {
-                bookmarkTime += 5.seconds
-              },
-              colors = IconButtonDefaults.iconButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary,
-              ),
-            ) {
-              Icon(
-                Icons.Rounded.Forward5,
-                contentDescription = null,
-              )
+            val forwardLabel = stringResource(Res.string.cd_forward_time, "5")
+            IconButtonTooltip(text = forwardLabel) {
+              IconButton(
+                onClick = {
+                  bookmarkTime += 5.seconds
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                  contentColor = MaterialTheme.colorScheme.primary,
+                ),
+              ) {
+                Icon(
+                  Icons.Rounded.Forward5,
+                  contentDescription = forwardLabel,
+                )
+              }
             }
           }
 

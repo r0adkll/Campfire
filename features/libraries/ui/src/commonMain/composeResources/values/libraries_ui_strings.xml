@@ -95,4 +95,18 @@
 
   <string name="cd_back_arrow">Back</string>
   <string name="cd_add_to_collection">Add to collection</string>
+  <string name="action_theme_swatch">Pick theme color</string>
+  <string name="action_close_swatch">Close color picker</string>
+  <string name="action_play_episode">Play episode</string>
+  <string name="action_episode_options">Episode options</string>
+  <string name="action_open_episode_filter">Filter episodes</string>
+  <string name="action_search_button">Search</string>
+  <string name="action_play_book">Play book</string>
+  <string name="action_pause_playback">Pause</string>
+  <string name="action_add_episode_to_playlist">Add episode to playlist</string>
+  <string name="action_mark_episode_finished">Mark episode finished</string>
+  <string name="action_mark_episode_not_finished">Mark episode as not finished</string>
+  <string name="action_find_episodes">Find episodes</string>
+  <string name="action_retry_download">Retry download</string>
+  <string name="action_delete_download">Delete download</string>
 </resources>

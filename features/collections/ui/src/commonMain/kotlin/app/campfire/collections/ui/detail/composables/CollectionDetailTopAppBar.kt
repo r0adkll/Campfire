@@ -11,6 +11,11 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
+import campfire.features.collections.ui.generated.resources.Res
+import campfire.features.collections.ui.generated.resources.action_back
+import campfire.features.collections.ui.generated.resources.action_delete_collection
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun CollectionDetailTopAppBar(
@@ -26,22 +31,28 @@ fun CollectionDetailTopAppBar(
     title = { Text(name) },
     scrollBehavior = scrollBehavior,
     navigationIcon = {
-      IconButton(
-        onClick = onBack,
-      ) {
-        Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+      val backLabel = stringResource(Res.string.action_back)
+      IconButtonTooltip(text = backLabel) {
+        IconButton(
+          onClick = onBack,
+        ) {
+          Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+        }
       }
     },
     actions = {
       if (canEdit) {
-        IconButton(
-          onClick = onDelete,
-        ) {
-          Icon(
-            Icons.Rounded.Delete,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error,
-          )
+        val deleteLabel = stringResource(Res.string.action_delete_collection)
+        IconButtonTooltip(text = deleteLabel) {
+          IconButton(
+            onClick = onDelete,
+          ) {
+            Icon(
+              Icons.Rounded.Delete,
+              contentDescription = deleteLabel,
+              tint = MaterialTheme.colorScheme.error,
+            )
+          }
         }
       }
     },

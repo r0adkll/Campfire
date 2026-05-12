@@ -24,6 +24,10 @@
   <string name="action_show_less">Show less</string>
   <string name="action_show_more">Show more</string>
   <string name="action_remove">REMOVE</string>
+  <string name="action_clear_search">Clear search</string>
+  <string name="action_filter">Filter</string>
+  <string name="action_sort">Sort</string>
+  <string name="action_open_menu">Open menu</string>
 
   <string name="dialog_download_message_prefix">This will download</string>
   <string name="dialog_download_message_suffix">onto your devices internal storage.</string>

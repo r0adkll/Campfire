@@ -25,6 +25,7 @@ import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
@@ -36,6 +37,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 import campfire.features.series.ui.generated.resources.Res
+import campfire.features.series.ui.generated.resources.action_back
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
@@ -56,10 +58,13 @@ fun SeriesDetail(
         title = { Text(screen.seriesName) },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(SeriesDetailUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = { state.eventSink(SeriesDetailUiEvent.Back) },
+            ) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
       )

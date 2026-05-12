@@ -7,4 +7,6 @@
     <item quantity="one">%1$d Series</item>
     <item quantity="other">%1$d Series</item>
   </plurals>
+
+  <string name="action_back">Back</string>
 </resources>

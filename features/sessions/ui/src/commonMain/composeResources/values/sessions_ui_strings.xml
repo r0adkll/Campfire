@@ -36,10 +36,26 @@
 
   <string name="action_set_timer">Set timer</string>
   <string name="action_clear_timer">Clear timer</string>
+  <string name="action_playback_speed">Playback speed</string>
+  <string name="action_sleep_timer">Sleep timer</string>
+  <string name="action_skip_previous">Skip previous</string>
+  <string name="action_skip_next">Skip next</string>
+  <string name="action_rewind">Rewind</string>
+  <string name="action_forward">Forward</string>
+  <string name="action_add_bookmark">Add bookmark</string>
+  <string name="action_chapters">Chapters</string>
+  <string name="action_audio_tracks">Audio tracks</string>
+  <string name="action_more_options">More options</string>
+  <string name="action_delete_bookmark">Delete bookmark</string>
+  <string name="action_play_from_bookmark">Play from bookmark</string>
+  <string name="action_create_bookmark">Create bookmark</string>
 
   <string name="action_queue">Queue</string>
   <string name="action_remove">REMOVE</string>
   <string name="action_clear_queue">Clear queue?</string>
+  <string name="action_clear_queue_short">Clear queue</string>
+  <string name="action_cancel_clear_queue">Cancel queue clear</string>
+  <string name="action_confirm_clear_queue">Confirm clear queue</string>
   <string name="queue_header_up_next">Up next</string>
   <string name="queue_header_queue">Queue</string>
 
@@ -48,6 +64,15 @@
 
   <string name="history_bottomsheet_title">Playback History</string>
   <string name="history_empty_message">No playback history yet</string>
+  <string name="action_clear_history">Clear history</string>
+  <string name="action_sync_progress">Sync progress</string>
+  <string name="action_play">Play</string>
+  <string name="action_pause">Pause</string>
+  <string name="action_close">Close</string>
+  <string name="action_play_pause">Play or pause</string>
+  <string name="action_bookmarks">Bookmarks</string>
+  <string name="action_description">Description</string>
+  <string name="action_history">Playback history</string>
   <string name="history_context_play">Played</string>
   <string name="history_context_pause">Paused</string>
   <string name="history_context_seek">Seeked</string>

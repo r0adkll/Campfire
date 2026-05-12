@@ -49,6 +49,7 @@ import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.settings.composables.SettingPaneListItem
@@ -64,6 +65,7 @@ import app.campfire.ui.settings.panes.PaneState
 import app.campfire.ui.settings.panes.PlaybackPane
 import app.campfire.ui.settings.panes.SleepPane
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.action_back
 import campfire.features.settings.ui.generated.resources.setting_about_subtitle
 import campfire.features.settings.ui.generated.resources.setting_about_title
 import campfire.features.settings.ui.generated.resources.setting_account_subtitle
@@ -257,13 +259,16 @@ private fun SettingsRootPane(
           navigationIcon = {
             val windowSizeClass = LocalWindowSizeClass.current
             if (!windowSizeClass.isSupportingPaneEnabled) {
-              IconButton(
-                onClick = onBackClick,
-              ) {
-                Icon(
-                  Icons.AutoMirrored.Rounded.ArrowBack,
-                  contentDescription = null,
-                )
+              val backLabel = stringResource(Res.string.action_back)
+              IconButtonTooltip(text = backLabel) {
+                IconButton(
+                  onClick = onBackClick,
+                ) {
+                  Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = backLabel,
+                  )
+                }
               }
             }
           },

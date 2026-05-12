@@ -22,4 +22,11 @@
   <string name="login_add_account_title">Add campsite</string>
   <string name="login_reauth_account_title">Reauthenticate</string>
   <string name="action_finish_analytics_consent">Finish</string>
+
+  <string name="action_back">Back</string>
+  <string name="action_clear_server_url">Clear server address</string>
+  <string name="action_show_password">Show password</string>
+  <string name="action_hide_password">Hide password</string>
+  <string name="action_add_header">Add extra header</string>
+  <string name="action_delete_header">Delete extra header</string>
 </resources>

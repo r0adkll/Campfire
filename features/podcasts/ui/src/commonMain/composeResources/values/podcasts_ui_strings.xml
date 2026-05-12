@@ -3,4 +3,8 @@
   <string name="latest_episodes_empty">All caught up! No new episodes to play.</string>
   <string name="latest_episodes_play_episode">Play episode</string>
   <string name="latest_episodes_image_content_description">%1$s cover</string>
+
+  <string name="action_add_episode_to_playlist">Add episode to playlist</string>
+  <string name="action_mark_episode_finished">Mark episode finished</string>
+  <string name="action_mark_episode_not_finished">Mark episode as not finished</string>
 </resources>

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.CampfireLargeTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -44,6 +45,7 @@ import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Middle
 import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Only
 import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Top
 import campfire.infra.whats_new.ui.generated.resources.Res
+import campfire.infra.whats_new.ui.generated.resources.action_back
 import campfire.infra.whats_new.ui.generated.resources.changelog_title
 import campfire.infra.whats_new.ui.generated.resources.error_changelog_message
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -67,10 +69,13 @@ fun Changelog(
         },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          IconButton(
-            onClick = { state.eventSink(ChangelogUiEvent.Back) },
-          ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+          val backLabel = stringResource(Res.string.action_back)
+          IconButtonTooltip(text = backLabel) {
+            IconButton(
+              onClick = { state.eventSink(ChangelogUiEvent.Back) },
+            ) {
+              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            }
           }
         },
       )

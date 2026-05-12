@@ -57,11 +57,13 @@ import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Tent
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
+import campfire.features.auth.ui.generated.resources.action_back
 import campfire.features.auth.ui.generated.resources.action_login_openid
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
@@ -111,10 +113,13 @@ private fun LoginContent(
           },
           navigationIcon = {
             if (screen is LoginScreen.Additional) {
-              IconButton(
-                onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
-              ) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null)
+              val backLabel = stringResource(Res.string.action_back)
+              IconButtonTooltip(text = backLabel) {
+                IconButton(
+                  onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
+                ) {
+                  Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                }
               }
             }
           },

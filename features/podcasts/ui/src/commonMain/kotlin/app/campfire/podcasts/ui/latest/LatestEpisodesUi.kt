@@ -40,6 +40,7 @@ import app.campfire.common.compose.icons.rounded.MarkFinished
 import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
+import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemImage
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
@@ -54,6 +55,9 @@ import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.user.api.MediaProgressKey
 import campfire.features.podcasts.ui.generated.resources.Res
+import campfire.features.podcasts.ui.generated.resources.action_add_episode_to_playlist
+import campfire.features.podcasts.ui.generated.resources.action_mark_episode_finished
+import campfire.features.podcasts.ui.generated.resources.action_mark_episode_not_finished
 import campfire.features.podcasts.ui.generated.resources.latest_episodes_empty
 import campfire.features.podcasts.ui.generated.resources.latest_episodes_image_content_description
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -213,50 +217,62 @@ private fun LatestEpisodesList(
               }
             },
             actions = {
-              IconButton(
-                onClick = {
-                  onAddToPlaylistClick(item)
-                },
-                modifier = Modifier
-                  .size(
-                    IconButtonDefaults.extraSmallContainerSize(
-                      IconButtonDefaults.IconButtonWidthOption.Uniform,
+              val addToPlaylistLabel = stringResource(Res.string.action_add_episode_to_playlist)
+              IconButtonTooltip(text = addToPlaylistLabel) {
+                IconButton(
+                  onClick = {
+                    onAddToPlaylistClick(item)
+                  },
+                  modifier = Modifier
+                    .size(
+                      IconButtonDefaults.extraSmallContainerSize(
+                        IconButtonDefaults.IconButtonWidthOption.Uniform,
+                      ),
                     ),
-                  ),
-                shape = IconButtonDefaults.extraSmallSquareShape,
-              ) {
-                Icon(
-                  Icons.AutoMirrored.Rounded.PlaylistAdd,
-                  contentDescription = null,
-                  modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                )
+                  shape = IconButtonDefaults.extraSmallSquareShape,
+                ) {
+                  Icon(
+                    Icons.AutoMirrored.Rounded.PlaylistAdd,
+                    contentDescription = addToPlaylistLabel,
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                  )
+                }
               }
 
-              IconButton(
-                onClick = {
-                  if (isFinished) {
-                    onMarkNotFinishedClick(item)
-                  } else {
-                    onMarkFinishedClick(item)
-                  }
+              val finishedLabel = stringResource(
+                if (isFinished) {
+                  Res.string.action_mark_episode_not_finished
+                } else {
+                  Res.string.action_mark_episode_finished
                 },
-                modifier = Modifier
-                  .size(
-                    IconButtonDefaults.extraSmallContainerSize(
-                      IconButtonDefaults.IconButtonWidthOption.Uniform,
-                    ),
-                  ),
-                shape = IconButtonDefaults.extraSmallSquareShape,
-              ) {
-                Icon(
-                  if (isFinished) {
-                    Icons.Filled.MarkFinished
-                  } else {
-                    Icons.Rounded.MarkFinished
+              )
+              IconButtonTooltip(text = finishedLabel) {
+                IconButton(
+                  onClick = {
+                    if (isFinished) {
+                      onMarkNotFinishedClick(item)
+                    } else {
+                      onMarkFinishedClick(item)
+                    }
                   },
-                  contentDescription = null,
-                  modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                )
+                  modifier = Modifier
+                    .size(
+                      IconButtonDefaults.extraSmallContainerSize(
+                        IconButtonDefaults.IconButtonWidthOption.Uniform,
+                      ),
+                    ),
+                  shape = IconButtonDefaults.extraSmallSquareShape,
+                ) {
+                  Icon(
+                    if (isFinished) {
+                      Icons.Filled.MarkFinished
+                    } else {
+                      Icons.Rounded.MarkFinished
+                    },
+                    contentDescription = finishedLabel,
+                    modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                  )
+                }
               }
             },
             shape = if (isFirst && !isLast) {
