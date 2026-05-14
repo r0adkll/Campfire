@@ -133,7 +133,7 @@ jobs:
 #          fi
 
   android:
-    name: Android — compile validation
+    name: Android / Compilation
     needs: [code-style]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -173,7 +173,7 @@ jobs:
             **/build/reports/*
 
   android-apk:
-    name: Android — alpha APK
+    name: Android / APK
     # Async w.r.t. `android` validation — runs in parallel, only on first-party PRs so we
     # have somewhere to post the comment (and access to first-party secrets if needed).
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
