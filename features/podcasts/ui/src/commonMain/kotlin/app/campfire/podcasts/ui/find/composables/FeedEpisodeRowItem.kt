@@ -52,10 +52,10 @@ internal fun FeedEpisodeRowItem(
   }
   val contentColor = when {
     row.isAlreadyDownloaded -> CampfireTheme.colorScheme.onSuccessContainer.copy(
-      alpha = DisabledAlpha
+      alpha = DisabledAlpha,
     )
     row.isQueued -> MaterialTheme.colorScheme.onSurfaceVariant.copy(
-      alpha = DisabledAlpha
+      alpha = DisabledAlpha,
     )
     isSelected -> MaterialTheme.colorScheme.onSecondaryContainer
     else -> MaterialTheme.colorScheme.onSurface
@@ -68,7 +68,7 @@ internal fun FeedEpisodeRowItem(
     enabled = isInteractive,
   ) {
     CompositionLocalProvider(
-      LocalContentColor provides contentColor
+      LocalContentColor provides contentColor,
     ) {
       Row(
         verticalAlignment = Alignment.Top,
