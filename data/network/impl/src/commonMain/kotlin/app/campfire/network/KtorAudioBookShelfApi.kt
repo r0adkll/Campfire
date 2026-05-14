@@ -18,6 +18,8 @@ import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
 import app.campfire.network.envelopes.NewPlaylistRequest
 import app.campfire.network.envelopes.PlaylistsResponse
+import app.campfire.network.envelopes.PodcastFeedRequest
+import app.campfire.network.envelopes.PodcastFeedResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.envelopes.SyncSessionRequest
@@ -38,6 +40,7 @@ import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
+import app.campfire.network.models.RssPodcastEpisode
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -146,6 +149,33 @@ class KtorAudioBookShelfApi(
           parameters.append("limit", limit.toString())
         },
       )
+    }
+  }
+
+  override suspend fun getPodcastFeed(
+    rssFeedUrl: String,
+  ): Result<List<RssPodcastEpisode>> {
+    return trySendRequest<PodcastFeedResponse> {
+      hydratedClientRequest("/api/podcasts/feed") {
+        method = HttpMethod.Post
+        setBody(PodcastFeedRequest(rssFeed = rssFeedUrl))
+      }
+    }.map { response -> response.podcast.episodes }
+  }
+
+  override suspend fun downloadPodcastEpisodes(
+    libraryItemId: String,
+    episodes: List<RssPodcastEpisode>,
+  ): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "podcasts", libraryItemId, "download-episodes")
+        },
+      ) {
+        method = HttpMethod.Post
+        setBody(episodes)
+      }
     }
   }
 

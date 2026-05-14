@@ -3,6 +3,7 @@ package app.campfire.libraries.ui.detail.podcast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,6 +18,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Session
+import app.campfire.core.model.User
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.ui.detail.AbstractLibraryItemPresenter
 import app.campfire.libraries.ui.detail.ContentUiState
@@ -33,9 +35,11 @@ import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.podcast.episode.showPodcastEpisodeBottomSheet
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
@@ -49,6 +53,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class PodcastPresenter(
   private val analytics: Analytics,
+  private val userRepository: UserRepository,
   private val sessionsRepository: SessionsRepository,
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
@@ -65,6 +70,9 @@ class PodcastPresenter(
     val scope = rememberCoroutineScope()
     val overlayHost = LocalOverlayHost.current
 
+    val currentUser by remember { userRepository.observeStatefulCurrentUser() }
+      .collectAsState()
+
     val currentSession by remember {
       sessionsRepository.observeCurrentSession()
     }.collectAsState(null)
@@ -77,6 +85,7 @@ class PodcastPresenter(
     }.collectAsState(emptyMap())
 
     val slots = buildSlots(
+      user = currentUser,
       libraryItem = libraryItem,
       currentSession = currentSession,
       mediaProgress = mediaProgress,
@@ -86,12 +95,18 @@ class PodcastPresenter(
 
     // If we launch the screen with a targeted episode, open the drawer details
     var hasShownEpisode by rememberRetained { mutableStateOf(false) }
-    LaunchedEffect(libraryItem) {
-      val podcastMedia = libraryItem.media as Media.Podcast
-      val podcastEpisode = podcastMedia.episodes.find { it.id == screen.episodeId }
+    val podcastEpisode by remember {
+      derivedStateOf {
+        val podcastMedia = libraryItem.media as Media.Podcast
+        podcastMedia.episodes
+          .find { it.id == screen.episodeId }
+      }
+    }
+
+    LaunchedEffect(podcastEpisode) {
       if (podcastEpisode != null && !hasShownEpisode) {
         hasShownEpisode = true
-        overlayHost.showPodcastEpisodeBottomSheet(libraryItem, podcastEpisode)
+        overlayHost.showPodcastEpisodeBottomSheet(libraryItem, podcastEpisode!!)
       }
     }
 
@@ -143,6 +158,11 @@ class PodcastPresenter(
             }
           }
 
+          LibraryItemUiEvent.FindEpisodes -> {
+            analytics.send(ActionEvent("find_episodes", Click))
+            navigator.goTo(FindEpisodesScreen(libraryItem.id))
+          }
+
           else -> Unit
         }
       },
@@ -152,6 +172,7 @@ class PodcastPresenter(
 
 @Composable
 private fun buildSlots(
+  user: User,
   libraryItem: LibraryItem,
   currentSession: Session?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
@@ -204,7 +225,11 @@ private fun buildSlots(
 
   if (podcastMedia.episodes.isNotEmpty()) {
     this += SpacerSlot.large("chapters_spacer")
-    this += EpisodeHeaderSlot()
+    this += EpisodeHeaderSlot(
+      episodeCount = podcastMedia.episodes.count(),
+      showFindEpisodes = user.type == User.Type.Admin ||
+        user.type == User.Type.Root,
+    )
 
     this += podcastMedia.episodes.map { episode ->
       val progress = mediaProgress[MediaProgressKey(episode.libraryItemId, episode.id)]

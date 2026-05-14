@@ -7,4 +7,16 @@
   <string name="action_add_episode_to_playlist">Add episode to playlist</string>
   <string name="action_mark_episode_finished">Mark episode finished</string>
   <string name="action_mark_episode_not_finished">Mark episode as not finished</string>
+
+  <string name="find_episodes_placeholder">Find episodes</string>
+  <string name="find_episodes_empty">No episodes match \"%1$s\"</string>
+  <string name="find_episodes_error">Could not load the podcast feed</string>
+  <string name="find_episodes_retry">Retry</string>
+  <string name="find_episodes_clear">Clear search</string>
+  <string name="find_episodes_back">Back</string>
+  <string name="find_episodes_forbidden">Browsing the podcast feed is only available to admin users.</string>
+  <string name="find_episodes_no_feed_url">This podcast has no RSS feed configured on the server.</string>
+  <string name="find_episodes_clear_selection">Clear</string>
+  <string name="find_episodes_add_to_server">Add to server</string>
+  <string name="find_episodes_selected_episodes">%1$d Selected</string>
 </resources>

@@ -215,15 +215,6 @@ class BookPresenter(
           }
         }
 
-        is LibraryItemUiEvent.SeedColorChange -> {
-          scope.launch(dispatcherProvider.computation) {
-            themeManager.enqueue(
-              key = screen.libraryItemId,
-              seedColor = event.seedColor,
-            )
-          }
-        }
-
         is LibraryItemUiEvent.PlayClick -> {
           analytics.send(ActionEvent("play_item", Click))
           playbackController.startSession(libraryItem.id)

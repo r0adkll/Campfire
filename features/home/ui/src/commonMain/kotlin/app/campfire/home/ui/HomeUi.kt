@@ -106,7 +106,7 @@ fun HomeScreen(
                 HomeUiEvent.OpenLibraryItemWithEpisode(
                   item = item.libraryItem,
                   episodeId = item.recentEpisode.id,
-                  sharedTransitionKey = item.libraryItem.id + shelf.id,
+                  sharedTransitionKey = item.transitionKey + shelf.id,
                 ),
               )
               else -> Unit

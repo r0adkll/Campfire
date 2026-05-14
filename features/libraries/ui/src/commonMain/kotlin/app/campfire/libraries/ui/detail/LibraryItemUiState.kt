@@ -65,6 +65,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
+  data object FindEpisodes : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }

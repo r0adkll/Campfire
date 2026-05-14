@@ -85,8 +85,8 @@ fun EpisodeListItem(
     colors = CardDefaults.elevatedCardColors(
       containerColor = when {
         isCurrentSession -> MaterialTheme.colorScheme.secondaryContainer
-        isFinished -> MaterialTheme.colorScheme.surfaceContainerLowest
-        else -> Color.Unspecified
+        isFinished -> MaterialTheme.colorScheme.surfaceContainerHighest
+        else -> MaterialTheme.colorScheme.surface
       },
     ),
     elevation = CardDefaults.elevatedCardElevation(
@@ -235,8 +235,8 @@ private fun EpisodeActionBar(
       ),
       colors = if (isFinished) {
         ButtonDefaults.buttonColors(
-          containerColor = CampfireTheme.colorScheme.successContainer,
-          contentColor = CampfireTheme.colorScheme.onSuccessContainer,
+          containerColor = CampfireTheme.colorScheme.success,
+          contentColor = CampfireTheme.colorScheme.onSuccess,
         )
       } else {
         ButtonDefaults.buttonColors()

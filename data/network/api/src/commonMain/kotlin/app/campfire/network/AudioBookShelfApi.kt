@@ -17,6 +17,7 @@ import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
+import app.campfire.network.models.RssPodcastEpisode
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -85,6 +86,27 @@ interface AudioBookShelfApi {
     page: Int = 0,
     limit: Int = 50,
   ): Result<PagedRecentEpisodesResponse>
+
+  /**
+   * Fetch the parsed live RSS feed for an arbitrary [rssFeedUrl]. Used by the "Find episodes"
+   * flow to list every episode the feed advertises (not just what's already downloaded). Requires
+   * Admin or Root user; non-admin callers receive HTTP 403. No pagination — the server returns the
+   * full feed in a single response.
+   */
+  suspend fun getPodcastFeed(
+    rssFeedUrl: String,
+  ): Result<List<RssPodcastEpisode>>
+
+  /**
+   * Queue one or more RSS-derived episodes for download into the podcast identified by
+   * [libraryItemId]. Requires Admin or Root user; regular users receive HTTP 403. The server
+   * responds immediately and downloads asynchronously; subsequent duplicates by enclosure URL are
+   * silently ignored.
+   */
+  suspend fun downloadPodcastEpisodes(
+    libraryItemId: String,
+    episodes: List<RssPodcastEpisode>,
+  ): Result<Unit>
 
   //region Series
 

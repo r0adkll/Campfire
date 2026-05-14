@@ -59,14 +59,14 @@ data class Podcast(
   val maxNewEpisodesToDownload: Int? = null,
 
   /* The timestamp of the last cover search. */
-  val lastCoverSearch: Int? = null,
+  val lastCoverSearch: Long? = null,
 
   /* The query used for the last cover search. */
   val lastCoverSearchQuery: String? = null,
 
   /* The total size of all episodes in bytes. */
   @SerialName(value = "size")
-  val propertySize: Int? = null,
+  val propertySize: Long? = null,
 
   /* The total duration of all episodes in seconds. */
   val duration: Int? = null,
@@ -75,5 +75,5 @@ data class Podcast(
   val numTracks: Int? = null,
 
   /* The timestamp of the most recently published episode. */
-  val latestEpisodePublished: Int? = null,
+  val latestEpisodePublished: Long? = null,
 )

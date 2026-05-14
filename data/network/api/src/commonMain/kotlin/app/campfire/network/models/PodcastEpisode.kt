@@ -34,18 +34,18 @@ data class PodcastEpisode(
   val id: String,
   val oldEpisodeId: String? = null,
   val index: Int? = null,
-  val season: String,
-  val episode: String,
-  val episodeType: String,
+  val season: String? = null,
+  val episode: String? = null,
+  val episodeType: String? = null,
   val title: String,
-  val subtitle: String,
-  val description: String,
-  val enclosure: Enclosure,
-  val guid: String,
-  val pubDate: String,
-  val chapters: List<String>,
+  val subtitle: String? = null,
+  val description: String? = null,
+  val enclosure: Enclosure? = null,
+  val guid: String? = null,
+  val pubDate: String? = null,
+  val chapters: List<String> = emptyList(),
   val audioFile: AudioFile,
-  val publishedAt: Long,
+  val publishedAt: Long? = null,
   val addedAt: Long,
   val updatedAt: Long,
 
@@ -58,7 +58,7 @@ data class PodcastEpisode(
   @Serializable
   data class Enclosure(
     val url: String,
-    val type: String,
-    val length: Long,
+    val type: String? = null,
+    val length: Long? = null,
   )
 }

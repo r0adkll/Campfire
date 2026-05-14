@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
@@ -26,6 +28,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -40,14 +43,14 @@ class LibraryItemPresenter(
   private val podcastPresenter: PodcastPresenter,
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
+  private val dispatcherProvider: DispatcherProvider,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): LibraryItemUiState {
-    // Load the full library item and use its media type to delegate
-    // presenters.
+    val scope = rememberCoroutineScope()
 
     val libraryItemContentState by remember {
       repository.observeLibraryItem(screen.libraryItemId)
@@ -93,6 +96,15 @@ class LibraryItemPresenter(
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
+
+        is LibraryItemUiEvent.SeedColorChange -> {
+          scope.launch(dispatcherProvider.computation) {
+            themeManager.enqueue(
+              key = screen.libraryItemId,
+              seedColor = event.seedColor,
+            )
+          }
+        }
 
         // If we don't handle the event then pass it through the content state
         // created by one of the delegating presenters

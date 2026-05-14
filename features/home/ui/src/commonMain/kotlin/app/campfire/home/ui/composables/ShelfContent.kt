@@ -189,7 +189,7 @@ private fun LoadedShelfContent(
         is ShelfEntity.EpisodeShelfEntry -> LibraryItemCard(
           item = entity.libraryItem,
           episode = entity.recentEpisode,
-          sharedTransitionKey = entity.libraryItem.id + shelf.id,
+          sharedTransitionKey = entity.transitionKey + shelf.id,
           offlineStatus = offlineStatus(entity.libraryItem.id),
           progress = progressStatus(entity.libraryItem.id)
             ?: entity.libraryItem.userMediaProgress,

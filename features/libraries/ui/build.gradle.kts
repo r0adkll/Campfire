@@ -11,6 +11,7 @@ kotlin {
         implementation(projects.features.author.api)
         implementation(projects.features.collections.api)
         implementation(projects.features.libraries.api)
+        implementation(projects.features.podcasts.api)
         implementation(projects.features.series.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)

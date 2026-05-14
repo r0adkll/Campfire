@@ -15,5 +15,8 @@ sealed interface ShelfEntity {
   data class EpisodeShelfEntry(
     val libraryItem: LibraryItem,
     val recentEpisode: PodcastEpisode,
-  ) : ShelfEntity
+  ) : ShelfEntity {
+
+    val transitionKey: String get() = libraryItem.id + recentEpisode.id
+  }
 }
