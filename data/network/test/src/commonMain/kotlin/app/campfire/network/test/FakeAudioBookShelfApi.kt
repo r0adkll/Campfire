@@ -19,6 +19,7 @@ import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
+import app.campfire.network.models.RssPodcastEpisode
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
@@ -66,6 +67,19 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     page: Int,
     limit: Int,
   ): Result<PagedRecentEpisodesResponse> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getPodcastFeed(
+    rssFeedUrl: String,
+  ): Result<List<RssPodcastEpisode>> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun downloadPodcastEpisodes(
+    libraryItemId: String,
+    episodes: List<RssPodcastEpisode>,
+  ): Result<Unit> {
     TODO("Not yet implemented")
   }
 

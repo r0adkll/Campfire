@@ -24,6 +24,7 @@ import app.campfire.settings.test.TestCampfireSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
+import app.campfire.user.test.FakeUserRepository
 import com.slack.circuit.test.FakeNavigator
 
 internal const val TestLibraryItemId = "item_id"
@@ -38,6 +39,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val sessionsRepository = FakeSessionsRepository()
   internal val sessionQueue = FakeSessionQueue()
   internal val mediaProgressRepository = FakeMediaProgressRepository()
+  internal val userRepository = FakeUserRepository()
   internal val playbackHistoryRepository = FakePlaybackHistoryRepository()
   internal val playbackController = FakePlaybackController()
   internal val audioPlayerHolder = FakeAudioPlayerHolder()
@@ -68,6 +70,7 @@ abstract class BaseLibraryItemPresenterTest {
 
   internal val podcastPresenter = PodcastPresenter(
     analytics = analytics,
+    userRepository = userRepository,
     sessionsRepository = sessionsRepository,
     mediaProgressRepository = mediaProgressRepository,
     playbackHistoryRepository = playbackHistoryRepository,
@@ -84,6 +87,7 @@ abstract class BaseLibraryItemPresenterTest {
     podcastPresenter = podcastPresenter,
     themeManager = themeManager,
     themeSettings = themeSettings,
+    dispatcherProvider = dispatcherProvider,
   )
 }
 
