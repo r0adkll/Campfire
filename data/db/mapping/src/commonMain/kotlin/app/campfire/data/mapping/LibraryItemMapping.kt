@@ -154,7 +154,6 @@ fun <T : Media> T.asDbModel(
       (this as? MediaExpanded)?.let {
         it.audioFiles
           .sumOf { it.metadata.size }
-          .toLong()
       } ?: 0L
     },
     propertySize = propertySize,

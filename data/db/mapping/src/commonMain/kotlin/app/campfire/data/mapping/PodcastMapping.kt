@@ -108,7 +108,7 @@ fun NetworkPodcast.asDomainModel(
     coverImageUrl = urlHydrator.hydrateLibraryItem(libraryItemId),
     coverPath = coverPath,
     tags = tags ?: emptyList(),
-    sizeInBytes = propertySize?.toLong() ?: episodeList.sumOf { it.sizeInBytes },
+    sizeInBytes = propertySize ?: episodeList.sumOf { it.sizeInBytes },
     episodes = episodeList,
     numEpisodes = numTracks ?: episodeList.size,
     autoDownloadEpisodes = autoDownloadEpisodes ?: false,
@@ -116,7 +116,7 @@ fun NetworkPodcast.asDomainModel(
     lastEpisodeCheckMillis = lastEpisodeCheck,
     maxEpisodesToKeep = maxEpisodesToKeep ?: 0,
     maxNewEpisodesToDownload = maxNewEpisodesToDownload ?: 3,
-    latestEpisodePublishedAtMillis = latestEpisodePublished?.toLong(),
+    latestEpisodePublishedAtMillis = latestEpisodePublished,
   )
 }
 
