@@ -2,6 +2,7 @@ package app.campfire.libraries.ui.paged
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,6 +16,8 @@ import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.MediaType
+import app.campfire.core.model.User
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -52,6 +55,11 @@ class LibraryPresenter(
     // composition of this pager / ui. We should remember it until this screen
     // leaves the back stack
     val scope = rememberRetainedCoroutineScope()
+
+    val libraryMediaType by remember {
+      repository.observeCurrentLibrary()
+        .map { it.mediaType }
+    }.collectAsState(null)
 
     var itemFilter by rememberRetainedSaveable {
       mutableStateOf(screen.filter)
@@ -96,7 +104,16 @@ class LibraryPresenter(
         }
     }.collectAsState(emptyMap())
 
+    val canAddPodcasts by remember {
+      derivedStateOf {
+        libraryMediaType == MediaType.Podcast &&
+          (currentUser.type == User.Type.Admin ||
+            currentUser.type == User.Type.Root)
+      }
+    }
+
     return LibraryUiState(
+      canAddPodcasts = canAddPodcasts,
       lazyPagingItems = lazyPagingItems,
       totalItemCount = totalItemCount,
       sort = LibrarySort(sortMode, sortDirection),

@@ -6,6 +6,7 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaType
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
@@ -13,6 +14,7 @@ import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 data class LibraryUiState(
+  val canAddPodcasts: Boolean,
   val lazyPagingItems: LazyPagingItems<LibraryItem>,
   val itemDisplayState: ItemDisplayState,
   val totalItemCount: Int,

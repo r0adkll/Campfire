@@ -109,4 +109,5 @@
   <string name="action_find_episodes">Find episodes</string>
   <string name="action_retry_download">Retry download</string>
   <string name="action_delete_download">Delete download</string>
+  <string name="action_add_podcast">Add a podcast</string>
 </resources>

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.CardDefaults
@@ -42,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
@@ -72,12 +72,14 @@ interface AccountSwitcherComponent {
 fun AccountSwitcher(
   onClick: (eventSink: (AccountSwitcherUiEvent) -> Unit) -> Unit,
   modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.large,
   component: AccountSwitcherComponent = rememberComponent(),
 ) {
   val presenter = remember(component) { component.accountSwitcherPresenterFactory() }
   val state = presenter.present()
   AccountSwitcher(
     state = state,
+    shape = shape,
     onClick = {
       onClick(state.eventSink)
     },
@@ -90,6 +92,7 @@ private fun AccountSwitcher(
   state: AccountSwitcherUiState,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.large,
 ) {
   val serverName = when (val currentAccount = state.currentAccount) {
     is LoadState.Loaded -> currentAccount.data.name
@@ -105,6 +108,7 @@ private fun AccountSwitcher(
   AccountCard(
     modifier = modifier
       .padding(16.dp),
+    shape = shape,
   ) {
     AccountSwitcher(
       appTheme = state.theme,
@@ -118,6 +122,7 @@ private fun AccountSwitcher(
           onLibraryClick = { library ->
             state.eventSink(AccountSwitcherUiEvent.SelectLibrary(library))
           },
+          shape = shape,
         )
       }
     }
@@ -127,10 +132,12 @@ private fun AccountSwitcher(
 @Composable
 private fun AccountCard(
   modifier: Modifier = Modifier,
+  shape: Shape = MaterialTheme.shapes.large,
   content: @Composable ColumnScope.() -> Unit,
 ) {
   ElevatedCard(
     modifier = modifier,
+    shape = shape,
     colors = CardDefaults.elevatedCardColors(
       containerColor = MaterialTheme.colorScheme.primaryContainer,
     ),
@@ -228,9 +235,9 @@ private fun LibraryPicker(
   modifier: Modifier = Modifier,
   containerColor: Color = MaterialTheme.colorScheme.primary,
   contentColor: Color = MaterialTheme.colorScheme.contentColorFor(containerColor),
+  shape: Shape = MaterialTheme.shapes.large,
 ) {
   var expanded by remember { mutableStateOf(false) }
-  val shape = RoundedCornerShape(16.dp)
   Column(
     modifier = modifier
       .clip(shape)

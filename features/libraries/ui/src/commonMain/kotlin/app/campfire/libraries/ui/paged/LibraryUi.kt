@@ -1,8 +1,15 @@
 package app.campfire.libraries.ui.paged
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -12,12 +19,16 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -30,9 +41,12 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Podcasts
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.DenseAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
@@ -42,6 +56,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
@@ -53,7 +68,9 @@ import app.campfire.filters.SortModeUi
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
+import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.action_add_podcast
 import campfire.features.libraries.ui.generated.resources.empty_library_items_message
 import campfire.features.libraries.ui.generated.resources.filter_bar_book_count
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -62,6 +79,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(LibraryScreen::class, UserScope::class)
 @Composable
 fun LibraryUi(
@@ -77,6 +95,9 @@ fun LibraryUi(
   val appBarBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
   AttachScrollBehaviorToLocalNavigationBar(appBarBehavior)
 
+  val listState = rememberLazyListState()
+  val gridState = rememberLazyGridState()
+
   Scaffold(
     topBar = {
       // Injected appbar that injects its own presenter to consistently load its state
@@ -86,8 +107,40 @@ fun LibraryUi(
         appBarBehavior,
       )
     },
+    floatingActionButton = {
+      val bottomMargin = withDensity { 16.dp.roundToPx() }
+      AnimatedVisibility(
+        visible = state.canAddPodcasts,
+        enter = slideInVertically { it + bottomMargin },
+        exit = slideOutVertically { it + bottomMargin },
+      ) {
+        val gridExpanded by remember {
+          derivedStateOf {
+            gridState.firstVisibleItemIndex == 0 &&
+              gridState.firstVisibleItemScrollOffset < 50
+          }
+        }
+        val listExpanded by remember {
+          derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+              listState.firstVisibleItemScrollOffset < 50
+          }
+        }
+        SmallExtendedFloatingActionButton(
+          expanded = gridExpanded || listExpanded,
+          text = { Text(stringResource(Res.string.action_add_podcast)) },
+          icon = { Icon(CampfireIcons.Rounded.Podcasts, null) },
+          containerColor = MaterialTheme.colorScheme.secondaryContainer,
+          onClick = {
+            // TODO: Navigate to the Add Podcast screen
+          },
+        )
+      }
+    },
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets
+      .exclude(WindowInsets.navigationBars)
+      .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
     LoadedContent(
       totalCount = state.totalItemCount,
@@ -125,6 +178,8 @@ fun LibraryUi(
         }
       },
       contentPadding = paddingValues,
+      listState = listState,
+      gridState = gridState,
     )
   }
 }
@@ -145,6 +200,8 @@ private fun LoadedContent(
   onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
+  listState: LazyListState = rememberLazyListState(),
+  gridState: LazyGridState = rememberLazyGridState(),
 ) {
   ContentPagingScaffold(
     modifier = modifier,
@@ -166,6 +223,7 @@ private fun LoadedContent(
         sortDirection = sortDirection,
         onSortClick = onSortClick,
         contentPadding = contentPadding,
+        state = listState,
       )
 
       ItemDisplayState.GridDense,
@@ -185,6 +243,7 @@ private fun LoadedContent(
         contentPadding = contentPadding + PaddingValues(
           horizontal = 16.dp,
         ),
+        state = gridState,
       )
     }
   }
