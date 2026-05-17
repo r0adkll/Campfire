@@ -341,7 +341,7 @@ object EpisodeListItemDefaults {
     finishedContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
     finishedContentColor: Color = contentColorFor(finishedContainerColor),
     containerColor: Color = MaterialTheme.colorScheme.surface,
-    contentColor: Color= contentColorFor(containerColor),
+    contentColor: Color = contentColorFor(containerColor),
   ): EpisodeListItemColors = EpisodeListItemColors(
     currentSessionContainerColor = currentSessionContainerColor,
     currentSessionContentColor = currentSessionContentColor,

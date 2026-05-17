@@ -1,57 +1,41 @@
 package app.campfire.podcasts.ui.builder.composables
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroup
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -62,20 +46,15 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.DeleteSweep
 import app.campfire.common.compose.icons.rounded.SelectAll
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.podcasts.ui.builder.FeedState
 import campfire.features.podcasts.ui.generated.resources.Res
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_clear
-import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_count
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_empty
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_error
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_hint
-import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_loading
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_section_title
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_episodes_select_all
-import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_folder_load_error
-import campfire.features.podcasts.ui.generated.resources.add_podcast_retry
 import org.jetbrains.compose.resources.stringResource
 
 internal fun LazyListScope.episodesSection(
@@ -218,7 +197,9 @@ private fun EpisodesSectionHeader(
               onSelectAll = onSelectAll,
             )
           }
-        } else null,
+        } else {
+          null
+        },
         modifier = Modifier
           .heightIn(min = 48.dp)
           .padding(
@@ -230,10 +211,9 @@ private fun EpisodesSectionHeader(
 
       // Loaded content state
       if (feedState is FeedState.Loaded) {
-
         // TODO: Extract this
         Column(
-          Modifier.padding(horizontal = 24.dp)
+          Modifier.padding(horizontal = 24.dp),
         ) {
           Text(
             text = stringResource(Res.string.add_podcast_builder_episodes_hint),
@@ -259,7 +239,6 @@ private fun EpisodesActionGroup(
   val clearLabel = stringResource(Res.string.add_podcast_builder_episodes_clear)
   ButtonGroup(
     overflowIndicator = {
-
     },
     modifier = modifier,
   ) {
@@ -269,7 +248,7 @@ private fun EpisodesActionGroup(
         AnimatedVisibility(
           visible = selectedCount > 0,
           enter = fadeIn(),
-          exit = fadeOut()
+          exit = fadeOut(),
         ) {
           FilledTonalIconButton(
             onClick = onClear,
@@ -287,15 +266,14 @@ private fun EpisodesActionGroup(
               CampfireIcons.Rounded.DeleteSweep,
               contentDescription = clearLabel,
               modifier = Modifier.size(
-                IconButtonDefaults.extraSmallIconSize
-              )
+                IconButtonDefaults.extraSmallIconSize,
+              ),
             )
           }
         }
       },
       menuContent = {
-
-      }
+      },
     )
 
     customItem(
@@ -377,7 +355,7 @@ private fun EpisodesLoadingState(
         contentAlignment = Alignment.Center,
       ) {
         CircularWavyProgressIndicator(
-          modifier = Modifier.size(56.dp)
+          modifier = Modifier.size(56.dp),
         )
       }
     }

@@ -1,8 +1,6 @@
 package app.campfire.podcasts.ui.builder
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,7 +18,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -41,7 +38,6 @@ import app.campfire.podcasts.ui.builder.composables.FolderSection
 import app.campfire.podcasts.ui.builder.composables.SubmitBar
 import app.campfire.podcasts.ui.builder.composables.episodesSection
 import app.campfire.ui.navigation.bar.CampfireNavigationBarWindowInsets
-import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import campfire.features.podcasts.ui.generated.resources.Res
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_back
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_field_author
@@ -49,6 +45,7 @@ import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_fie
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_field_title
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -170,8 +167,10 @@ fun AddPodcastBuilderUi(
           enabled = state.explicitEnabled,
           onToggle = { state.eventSink(AddPodcastBuilderUiEvent.ExplicitToggled(it)) },
           shape = RoundedCornerShape(
-            topStart = 20.dp, topEnd = 20.dp,
-            bottomStart = 4.dp, bottomEnd = 4.dp,
+            topStart = 20.dp,
+            topEnd = 20.dp,
+            bottomStart = 4.dp,
+            bottomEnd = 4.dp,
           ),
           modifier = Modifier.padding(horizontal = 16.dp),
         )
@@ -180,8 +179,10 @@ fun AddPodcastBuilderUi(
           enabled = state.autoDownloadEnabled,
           onToggle = { state.eventSink(AddPodcastBuilderUiEvent.AutoDownloadToggled(it)) },
           shape = RoundedCornerShape(
-            topStart = 4.dp, topEnd = 4.dp,
-            bottomStart = 20.dp, bottomEnd = 20.dp,
+            topStart = 4.dp,
+            topEnd = 4.dp,
+            bottomStart = 20.dp,
+            bottomEnd = 20.dp,
           ),
           modifier = Modifier.padding(horizontal = 16.dp),
         )

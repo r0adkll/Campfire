@@ -65,10 +65,9 @@ internal fun PodcastFeedPreviewCard(
     shape = MaterialTheme.shapes.large,
     colors = CardDefaults.elevatedCardColors(
       containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-    )
+    ),
   ) {
     Column {
-
       Row(verticalAlignment = Alignment.Top) {
         val cover = draft.coverUrl
         if (!cover.isNullOrBlank()) {
@@ -99,7 +98,7 @@ internal fun PodcastFeedPreviewCard(
         Column(
           modifier = Modifier
             .weight(1f)
-            .padding(16.dp)
+            .padding(16.dp),
         ) {
           Text(
             text = draft.title,
@@ -148,12 +147,12 @@ internal fun PodcastFeedPreviewCard(
         Icon(
           CampfireIcons.Rounded.Podcasts,
           contentDescription = null,
-          modifier = Modifier.size(ButtonDefaults.iconSizeFor(continueButtonSize))
+          modifier = Modifier.size(ButtonDefaults.iconSizeFor(continueButtonSize)),
         )
         Spacer(Modifier.width(ButtonDefaults.iconSpacingFor(continueButtonSize)))
         Text(
           text = stringResource(Res.string.add_podcast_feed_continue),
-          style = ButtonDefaults.textStyleFor(continueButtonSize)
+          style = ButtonDefaults.textStyleFor(continueButtonSize),
         )
       }
     }
@@ -165,7 +164,6 @@ internal fun PodcastFeedPreviewCard(
 fun PodcastFeedPreviewCardPreview() {
   CampfireTheme {
     Scaffold {
-
       PodcastFeedPreviewCard(
         draft = PodcastDraft(
           title = "The Ezra Klein Show",
@@ -189,7 +187,6 @@ fun PodcastFeedPreviewCardPreview() {
         onContinue = {},
         modifier = Modifier.padding(16.dp),
       )
-
     }
   }
 }

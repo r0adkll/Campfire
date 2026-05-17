@@ -109,8 +109,10 @@ class LibraryPresenter(
       derivedStateOf {
         val libraryMediaType = currentLibrary?.mediaType
         libraryMediaType == MediaType.Podcast &&
-          (currentUser.type == User.Type.Admin ||
-            currentUser.type == User.Type.Root)
+          (
+            currentUser.type == User.Type.Admin ||
+              currentUser.type == User.Type.Root
+            )
       }
     }
 

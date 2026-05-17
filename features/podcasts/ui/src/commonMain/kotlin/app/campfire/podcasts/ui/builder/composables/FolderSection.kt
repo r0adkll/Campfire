@@ -35,7 +35,6 @@ import app.campfire.podcasts.ui.builder.FoldersState
 import campfire.features.podcasts.ui.generated.resources.Res
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_folder_label
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_folder_load_error
-import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_path_preview
 import campfire.features.podcasts.ui.generated.resources.add_podcast_retry
 import org.jetbrains.compose.resources.stringResource
 
@@ -103,7 +102,7 @@ private fun FolderPickerRow(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
           ),
         ) {
-          append("/${title}")
+          append("/$title")
         }
       },
     )

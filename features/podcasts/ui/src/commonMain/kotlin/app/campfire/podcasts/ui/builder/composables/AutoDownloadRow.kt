@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,7 +27,7 @@ internal fun AutoDownloadRow(
   enabled: Boolean,
   onToggle: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
-  shape: Shape = MaterialTheme.shapes.medium
+  shape: Shape = MaterialTheme.shapes.medium,
 ) {
   Card(
     shape = shape,

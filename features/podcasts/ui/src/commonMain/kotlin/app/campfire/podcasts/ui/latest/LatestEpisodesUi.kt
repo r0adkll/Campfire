@@ -286,7 +286,7 @@ private fun LatestEpisodesList(
             },
             colors = EpisodeListItemDefaults.colors(
               containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            )
+            ),
           )
         }
       }

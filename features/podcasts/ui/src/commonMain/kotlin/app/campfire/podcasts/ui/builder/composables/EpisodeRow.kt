@@ -1,6 +1,5 @@
 package app.campfire.podcasts.ui.builder.composables
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -10,21 +9,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.DisabledAlpha
 import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
@@ -61,7 +56,7 @@ internal fun EpisodeRow(
           MaterialTheme.colorScheme.secondaryContainer
         } else {
           Color.Unspecified
-        }
+        },
       ),
       elevation = CardDefaults.elevatedCardElevation(
         defaultElevation = if (isSelected) {
@@ -97,7 +92,6 @@ internal fun EpisodeRow(
               overflow = TextOverflow.Ellipsis,
             )
           }
-
 
           val parts = buildList {
             episode.publishedAtMillis?.asDate()?.relativeDayLabel?.let { add(it) }

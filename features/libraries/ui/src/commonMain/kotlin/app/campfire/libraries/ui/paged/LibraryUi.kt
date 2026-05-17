@@ -56,7 +56,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.MediaType
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState

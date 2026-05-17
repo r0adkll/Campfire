@@ -88,7 +88,7 @@ internal fun PodcastSearchResultRow(
 
       Column(
         modifier = Modifier
-          .weight(1f)
+          .weight(1f),
       ) {
         Text(
           text = result.title,

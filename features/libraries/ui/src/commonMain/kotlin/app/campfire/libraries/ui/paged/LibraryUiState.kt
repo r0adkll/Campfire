@@ -4,10 +4,8 @@ import androidx.compose.runtime.Immutable
 import androidx.paging.compose.LazyPagingItems
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.filter.ContentFilter
-import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
-import app.campfire.core.model.MediaType
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
