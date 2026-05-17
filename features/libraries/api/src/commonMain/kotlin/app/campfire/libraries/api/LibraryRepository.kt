@@ -2,6 +2,7 @@ package app.campfire.libraries.api
 
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
+import app.campfire.core.model.LibraryId
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -37,4 +38,11 @@ interface LibraryRepository {
    * Set a library as the currently selected one
    */
   suspend fun setCurrentLibrary(library: Library)
+
+  /**
+   * One-shot fetch of the library state required by the "Add podcast" flow: the list of folders
+   * configured on the library and its iTunes search region setting. Pulls from the server (does
+   * not consult cache) so freshly-edited library settings are reflected immediately.
+   */
+  suspend fun getAddPodcastContext(libraryId: LibraryId): Result<AddPodcastContext>
 }

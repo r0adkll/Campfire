@@ -69,9 +69,9 @@ class FindEpisodesPresenter(
           val feedUrl = podcastMedia.metadata.feedUrl
             ?: return@mapLatest FeedLoadResult.NoFeedUrl
 
-          val result = podcastsRepository.fetchPodcastFeed(feedUrl)
+          val result = podcastsRepository.fetchPodcastFeedDetails(feedUrl)
           result.fold(
-            onSuccess = { FeedLoadResult.Success(it) },
+            onSuccess = { FeedLoadResult.Success(it.episodes) },
             onFailure = { FeedLoadResult.Error },
           )
         }

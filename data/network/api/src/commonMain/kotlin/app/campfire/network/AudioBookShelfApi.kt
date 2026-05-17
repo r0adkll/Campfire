@@ -17,6 +17,9 @@ import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
+import app.campfire.network.models.PodcastFeed
+import app.campfire.network.models.PodcastMetadata
+import app.campfire.network.models.PodcastSearchResultDto
 import app.campfire.network.models.RssPodcastEpisode
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
@@ -88,14 +91,40 @@ interface AudioBookShelfApi {
   ): Result<PagedRecentEpisodesResponse>
 
   /**
-   * Fetch the parsed live RSS feed for an arbitrary [rssFeedUrl]. Used by the "Find episodes"
-   * flow to list every episode the feed advertises (not just what's already downloaded). Requires
-   * Admin or Root user; non-admin callers receive HTTP 403. No pagination — the server returns the
-   * full feed in a single response.
+   * Fetch the parsed live RSS feed for an arbitrary [rssFeedUrl]. Returns both podcast-level
+   * metadata and the full episode list. Used by the "Find episodes" flow (consumes only episodes)
+   * and the "Add podcast" flow (consumes metadata for the preview). Requires Admin or Root user;
+   * non-admin callers receive HTTP 403. No pagination — the server returns the full feed in a
+   * single response.
    */
   suspend fun getPodcastFeed(
     rssFeedUrl: String,
-  ): Result<List<RssPodcastEpisode>>
+  ): Result<PodcastFeed>
+
+  /**
+   * Search for podcasts via the server's iTunes proxy. Available to any authenticated user. The
+   * server returns a bare JSON array; callers receive an empty list (not a failure) when there
+   * are no matches. [country] defaults to `"us"` on the server when null.
+   */
+  suspend fun searchPodcasts(
+    term: String,
+    country: String? = null,
+  ): Result<List<PodcastSearchResultDto>>
+
+  /**
+   * Create a new podcast library item from a feed. Requires Admin or Root user; regular users
+   * receive HTTP 403. The server validates [path] is a sub-path of the selected folder and
+   * rejects duplicates with HTTP 400. Response is the newly-created library item (expanded).
+   */
+  suspend fun createPodcast(
+    libraryId: String,
+    folderId: String,
+    path: String,
+    metadata: PodcastMetadata,
+    tags: List<String> = emptyList(),
+    autoDownloadEpisodes: Boolean = false,
+    autoDownloadSchedule: String? = null,
+  ): Result<LibraryItemExpanded>
 
   /**
    * Queue one or more RSS-derived episodes for download into the podcast identified by

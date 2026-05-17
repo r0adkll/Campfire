@@ -25,12 +25,16 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -76,6 +80,7 @@ fun EpisodeListItem(
   actions: @Composable RowScope.() -> Unit = {},
   shape: Shape = MaterialTheme.shapes.medium,
   sessionShape: Shape = MaterialTheme.shapes.largeIncreased,
+  colors: EpisodeListItemColors = EpisodeListItemDefaults.colors(),
 ) {
   val isFinished = mediaProgress?.isFinished == true
   Card(
@@ -83,9 +88,14 @@ fun EpisodeListItem(
     shape = if (isCurrentSession) sessionShape else shape,
     colors = CardDefaults.elevatedCardColors(
       containerColor = when {
-        isCurrentSession -> MaterialTheme.colorScheme.secondaryContainer
-        isFinished -> MaterialTheme.colorScheme.surfaceContainerHighest
-        else -> MaterialTheme.colorScheme.surface
+        isCurrentSession -> colors.currentSessionContainerColor
+        isFinished -> colors.finishedContainerColor
+        else -> colors.containerColor
+      },
+      contentColor = when {
+        isCurrentSession -> colors.currentSessionContentColor
+        isFinished -> colors.finishedContentColor
+        else -> colors.contentColor
       },
     ),
     elevation = CardDefaults.elevatedCardElevation(
@@ -273,6 +283,33 @@ private fun EpisodeActionBar(
   }
 }
 
+@Immutable
+class EpisodeListItemColors internal constructor(
+  val currentSessionContainerColor: Color,
+  val currentSessionContentColor: Color,
+  val finishedContainerColor: Color,
+  val finishedContentColor: Color,
+  val containerColor: Color,
+  val contentColor: Color,
+) {
+
+  fun copy(
+    currentSessionContainerColor: Color = this.currentSessionContainerColor,
+    currentSessionContentColor: Color = this.currentSessionContentColor,
+    finishedContainerColor: Color = this.finishedContainerColor,
+    finishedContentColor: Color = this.finishedContentColor,
+    containerColor: Color = this.containerColor,
+    contentColor: Color = this.contentColor,
+  ) = EpisodeListItemColors(
+    currentSessionContainerColor.takeOrElse { this.currentSessionContainerColor },
+    currentSessionContentColor.takeOrElse { this.currentSessionContentColor },
+    finishedContainerColor.takeOrElse { this.finishedContainerColor },
+    finishedContentColor.takeOrElse { this.finishedContentColor },
+    containerColor.takeOrElse { this.containerColor },
+    contentColor.takeOrElse { this.contentColor },
+  )
+}
+
 object EpisodeListItemDefaults {
 
   val largeCornerSize: Dp = 20.dp
@@ -296,6 +333,23 @@ object EpisodeListItemDefaults {
   )
 
   fun singleItemShape(): Shape = RoundedCornerShape(singleCornerSize)
+
+  @Composable
+  fun colors(
+    currentSessionContainerColor: Color = MaterialTheme.colorScheme.secondaryContainer,
+    currentSessionContentColor: Color = contentColorFor(currentSessionContainerColor),
+    finishedContainerColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    finishedContentColor: Color = contentColorFor(finishedContainerColor),
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentColor: Color= contentColorFor(containerColor),
+  ): EpisodeListItemColors = EpisodeListItemColors(
+    currentSessionContainerColor = currentSessionContainerColor,
+    currentSessionContentColor = currentSessionContentColor,
+    finishedContainerColor = finishedContainerColor,
+    finishedContentColor = finishedContentColor,
+    containerColor = containerColor,
+    contentColor = contentColor,
+  )
 }
 
 @Composable

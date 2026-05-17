@@ -10,6 +10,7 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.androidx.paging.common)
+        api(projects.features.libraries.api)
 
         implementation(projects.core)
         implementation(projects.common.screens)

@@ -13,6 +13,8 @@ import app.campfire.network.envelopes.AuthorResponse
 import app.campfire.network.envelopes.BatchBooksRequest
 import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
+import app.campfire.network.envelopes.CreatePodcastMedia
+import app.campfire.network.envelopes.CreatePodcastRequest
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
@@ -40,6 +42,9 @@ import app.campfire.network.models.PagedRecentEpisodesResponse
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
+import app.campfire.network.models.PodcastFeed
+import app.campfire.network.models.PodcastMetadata
+import app.campfire.network.models.PodcastSearchResultDto
 import app.campfire.network.models.RssPodcastEpisode
 import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
@@ -154,13 +159,57 @@ class KtorAudioBookShelfApi(
 
   override suspend fun getPodcastFeed(
     rssFeedUrl: String,
-  ): Result<List<RssPodcastEpisode>> {
+  ): Result<PodcastFeed> {
     return trySendRequest<PodcastFeedResponse> {
       hydratedClientRequest("/api/podcasts/feed") {
         method = HttpMethod.Post
         setBody(PodcastFeedRequest(rssFeed = rssFeedUrl))
       }
-    }.map { response -> response.podcast.episodes }
+    }.map { response -> response.podcast }
+  }
+
+  override suspend fun searchPodcasts(
+    term: String,
+    country: String?,
+  ): Result<List<PodcastSearchResultDto>> {
+    return trySendRequest {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "search", "podcast")
+          parameters.append("term", term)
+          country?.let { parameters.append("country", it) }
+        },
+      )
+    }
+  }
+
+  override suspend fun createPodcast(
+    libraryId: String,
+    folderId: String,
+    path: String,
+    metadata: PodcastMetadata,
+    tags: List<String>,
+    autoDownloadEpisodes: Boolean,
+    autoDownloadSchedule: String?,
+  ): Result<LibraryItemExpanded> {
+    return trySendRequest {
+      hydratedClientRequest("/api/podcasts") {
+        method = HttpMethod.Post
+        setBody(
+          CreatePodcastRequest(
+            libraryId = libraryId,
+            folderId = folderId,
+            path = path,
+            media = CreatePodcastMedia(
+              metadata = metadata,
+              tags = tags,
+              autoDownloadEpisodes = autoDownloadEpisodes,
+              autoDownloadSchedule = autoDownloadSchedule,
+            ),
+          ),
+        )
+      }
+    }
   }
 
   override suspend fun downloadPodcastEpisodes(

@@ -43,7 +43,7 @@ data class PodcastEpisode(
   val enclosure: Enclosure? = null,
   val guid: String? = null,
   val pubDate: String? = null,
-  val chapters: List<String> = emptyList(),
+  val chapters: List<Chapter> = emptyList(),
   val audioFile: AudioFile,
   val publishedAt: Long? = null,
   val addedAt: Long,
@@ -54,6 +54,14 @@ data class PodcastEpisode(
   val duration: Double? = null,
   val propertySize: Int? = null,
 ) {
+
+  @Serializable
+  data class Chapter(
+    val start: Double,
+    val end: Double,
+    val title: String,
+    val id: Int,
+  )
 
   @Serializable
   data class Enclosure(

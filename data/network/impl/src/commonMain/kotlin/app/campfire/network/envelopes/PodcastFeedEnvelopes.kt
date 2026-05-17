@@ -1,11 +1,11 @@
 package app.campfire.network.envelopes
 
-import app.campfire.network.models.RssPodcastEpisode
+import app.campfire.network.models.PodcastFeed
 import kotlinx.serialization.Serializable
 
 /**
  * Request body for `POST /api/podcasts/feed`. The server uses [rssFeed] to fetch and parse the
- * remote RSS document and returns the resulting episode list in [PodcastFeedResponse].
+ * remote RSS document and returns the parsed feed in [PodcastFeedResponse].
  */
 @Serializable
 data class PodcastFeedRequest(
@@ -14,17 +14,10 @@ data class PodcastFeedRequest(
 
 /**
  * Response envelope for `POST /api/podcasts/feed`. The server wraps the parsed feed in a
- * `podcast` object containing the [episodes] list. The peer `metadata` field is intentionally
- * omitted: the feed-response metadata uses RSS-native shapes (e.g. `explicit` as `"yes"`/`"no"`)
- * that conflict with the strictly-typed [app.campfire.network.models.PodcastMetadata], and we
- * don't consume podcast-level metadata here.
+ * `podcast` object that carries both podcast-level metadata and the episode list — see
+ * [PodcastFeed].
  */
 @Serializable
 data class PodcastFeedResponse(
-  val podcast: Podcast,
-) {
-  @Serializable
-  data class Podcast(
-    val episodes: List<RssPodcastEpisode> = emptyList(),
-  )
-}
+  val podcast: PodcastFeed,
+)

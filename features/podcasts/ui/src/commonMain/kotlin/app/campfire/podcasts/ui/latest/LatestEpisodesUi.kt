@@ -284,6 +284,9 @@ private fun LatestEpisodesList(
             } else {
               EpisodeListItemDefaults.singleItemShape()
             },
+            colors = EpisodeListItemDefaults.colors(
+              containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            )
           )
         }
       }

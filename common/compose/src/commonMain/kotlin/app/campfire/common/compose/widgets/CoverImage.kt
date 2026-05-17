@@ -50,6 +50,7 @@ fun CoverImage(
   size: Dp = CoverImageSize,
   shape: Shape = CoverImageShape,
   impressionThreshold: Duration = 500.milliseconds,
+  contentScale: ContentScale = ContentScale.Crop,
   imageBitmapListener: ((ImageBitmap) -> Unit)? = null,
 ) {
   Box(
@@ -77,7 +78,7 @@ fun CoverImage(
     Image(
       painter = painter,
       contentDescription = contentDescription,
-      contentScale = ContentScale.Crop,
+      contentScale = contentScale,
       modifier = sharedElementModifier
         .size(size)
         .clip(shape),

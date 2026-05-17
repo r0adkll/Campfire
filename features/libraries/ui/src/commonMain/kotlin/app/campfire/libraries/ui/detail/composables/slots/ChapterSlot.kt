@@ -86,6 +86,8 @@ class ChapterSlot(
 
       if (!isLast) {
         Spacer(Modifier.height(2.dp))
+      } else {
+        Spacer(Modifier.height(32.dp))
       }
     }
   }

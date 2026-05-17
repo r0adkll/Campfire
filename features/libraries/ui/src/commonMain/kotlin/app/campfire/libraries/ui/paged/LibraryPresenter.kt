@@ -11,6 +11,7 @@ import androidx.paging.cachedIn
 import androidx.paging.compose.collectAsLazyPagingItems
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
@@ -22,6 +23,7 @@ import app.campfire.core.settings.ItemDisplayState
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.podcasts.api.screen.AddPodcastScreen
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -56,9 +58,8 @@ class LibraryPresenter(
     // leaves the back stack
     val scope = rememberRetainedCoroutineScope()
 
-    val libraryMediaType by remember {
+    val currentLibrary by remember {
       repository.observeCurrentLibrary()
-        .map { it.mediaType }
     }.collectAsState(null)
 
     var itemFilter by rememberRetainedSaveable {
@@ -106,6 +107,7 @@ class LibraryPresenter(
 
     val canAddPodcasts by remember {
       derivedStateOf {
+        val libraryMediaType = currentLibrary?.mediaType
         libraryMediaType == MediaType.Podcast &&
           (currentUser.type == User.Type.Admin ||
             currentUser.type == User.Type.Root)
@@ -148,6 +150,12 @@ class LibraryPresenter(
         is LibraryUiEvent.ItemClick -> {
           analytics.send(ContentSelected(ContentType.LibraryItem))
           navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+        }
+
+        LibraryUiEvent.AddPodcastClick -> {
+          val libraryId = currentLibrary?.id ?: return@LibraryUiState
+          analytics.send(ActionEvent("add_podcast", Click))
+          navigator.goTo(AddPodcastScreen(libraryId))
         }
       }
     }

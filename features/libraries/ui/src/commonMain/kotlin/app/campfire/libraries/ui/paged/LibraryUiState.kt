@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import androidx.paging.compose.LazyPagingItems
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.filter.ContentFilter
+import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaType
@@ -35,4 +36,5 @@ sealed interface LibraryUiEvent : CircuitUiEvent {
   data class SortModeSelected(val mode: ContentSortMode) : LibraryUiEvent
   data class ItemFilterSelected(val filter: ContentFilter?) : LibraryUiEvent
   data class ItemClick(val libraryItem: LibraryItem) : LibraryUiEvent
+  data object AddPodcastClick : LibraryUiEvent
 }

@@ -18,6 +18,8 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.store.debugLogging
+import app.campfire.libraries.api.AddPodcastContext
+import app.campfire.libraries.api.LibraryFolder
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.paging.LibraryItemPagerFactory
@@ -200,6 +202,15 @@ class StoreLibraryRepository(
     val userId = userSession.userId ?: return
     withContext(dispatcherProvider.databaseWrite) {
       db.usersQueries.updateSelectedLibrary(library.id, userId)
+    }
+  }
+
+  override suspend fun getAddPodcastContext(libraryId: LibraryId): Result<AddPodcastContext> {
+    return api.getLibrary(libraryId).map { netLibrary ->
+      AddPodcastContext(
+        folders = netLibrary.folders.map { LibraryFolder(it.id, it.fullPath) },
+        searchRegion = netLibrary.settings.podcastSearchRegion,
+      )
     }
   }
 }

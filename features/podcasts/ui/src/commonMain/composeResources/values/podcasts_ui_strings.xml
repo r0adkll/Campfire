@@ -19,4 +19,52 @@
   <string name="find_episodes_clear_selection">Clear</string>
   <string name="find_episodes_add_to_server">Add to server</string>
   <string name="find_episodes_selected_episodes">%1$d Selected</string>
+
+  <string name="add_podcast_title">Add podcast</string>
+  <string name="add_podcast_search_placeholder">Search or paste an RSS URL</string>
+  <string name="add_podcast_back">Back</string>
+  <string name="add_podcast_clear">Clear search</string>
+  <string name="add_podcast_idle">Search by name or paste an RSS feed URL to add a podcast to your library.</string>
+  <string name="add_podcast_empty">No podcasts match "%1$s"</string>
+  <string name="add_podcast_search_error">Could not search for podcasts</string>
+  <string name="add_podcast_feed_error">Could not load the RSS feed</string>
+  <string name="add_podcast_forbidden">Adding podcasts is only available to admin users.</string>
+  <string name="add_podcast_retry">Retry</string>
+  <string name="add_podcast_feed_preview_label">From RSS feed</string>
+  <string name="add_podcast_feed_continue">Add to server</string>
+  <string name="add_podcast_result_cover">%1$s cover</string>
+  <string name="add_podcast_episode_count">%1$d episodes</string>
+
+  <string name="add_podcast_builder_title">Add to library</string>
+  <string name="add_podcast_builder_back">Back</string>
+  <string name="add_podcast_builder_field_title">Title</string>
+  <string name="add_podcast_builder_field_author">Author</string>
+  <string name="add_podcast_builder_field_description">Description</string>
+  <string name="add_podcast_builder_folder_label">Folder</string>
+  <string name="add_podcast_builder_folder_pick_title">Choose a folder</string>
+  <string name="add_podcast_builder_folder_load_error">Could not load folders</string>
+  <string name="add_podcast_builder_field_episode_type">Podcast type</string>
+  <string name="add_podcast_builder_episode_type_default">Use server default</string>
+  <string name="add_podcast_builder_episode_type_episodic">Episodic — newest first</string>
+  <string name="add_podcast_builder_episode_type_serial">Serial — oldest first</string>
+  <string name="add_podcast_builder_explicit_label">Explicit content</string>
+  <string name="add_podcast_builder_explicit_description">Marks this podcast as containing explicit content.</string>
+  <string name="add_podcast_builder_path_preview">Will be saved as %1$s</string>
+  <string name="add_podcast_builder_auto_download_label">Auto-download new episodes</string>
+  <string name="add_podcast_builder_auto_download_description">New episodes will download automatically as the server detects them.</string>
+  <string name="add_podcast_builder_submit">Add to server</string>
+  <string name="add_podcast_builder_submitting">Adding…</string>
+  <string name="add_podcast_builder_error_forbidden">Adding podcasts is only available to admin users.</string>
+  <string name="add_podcast_builder_error_conflict">A podcast with this title already exists in the selected folder. Try a different title.</string>
+  <string name="add_podcast_builder_error_generic">Could not add the podcast. Try again in a moment.</string>
+  <string name="add_podcast_builder_error_dismiss">Dismiss</string>
+
+  <string name="add_podcast_builder_episodes_section_title">Episodes</string>
+  <string name="add_podcast_builder_episodes_loading">Loading episodes…</string>
+  <string name="add_podcast_builder_episodes_error">Could not load episodes</string>
+  <string name="add_podcast_builder_episodes_empty">This feed has no episodes</string>
+  <string name="add_podcast_builder_episodes_count">%1$d available · %2$d selected</string>
+  <string name="add_podcast_builder_episodes_select_all">Select all</string>
+  <string name="add_podcast_builder_episodes_clear">Clear</string>
+  <string name="add_podcast_builder_episodes_hint">Selected episodes will be queued for download after the podcast is added.</string>
 </resources>

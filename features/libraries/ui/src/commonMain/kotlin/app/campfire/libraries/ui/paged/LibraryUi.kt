@@ -131,9 +131,7 @@ fun LibraryUi(
           text = { Text(stringResource(Res.string.action_add_podcast)) },
           icon = { Icon(CampfireIcons.Rounded.Podcasts, null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
-          onClick = {
-            // TODO: Navigate to the Add Podcast screen
-          },
+          onClick = { state.eventSink(LibraryUiEvent.AddPodcastClick) },
         )
       }
     },

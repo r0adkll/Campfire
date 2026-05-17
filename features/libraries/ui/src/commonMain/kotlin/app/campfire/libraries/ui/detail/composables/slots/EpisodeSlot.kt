@@ -161,6 +161,8 @@ class EpisodeSlot(
 
       if (!isLast) {
         Spacer(Modifier.height(2.dp))
+      } else {
+        Spacer(Modifier.height(48.dp))
       }
     }
   }
