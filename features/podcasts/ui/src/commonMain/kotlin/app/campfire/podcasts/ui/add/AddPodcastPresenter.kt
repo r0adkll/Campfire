@@ -66,7 +66,13 @@ class AddPodcastPresenter(
         .onSuccess { searchRegion = it.searchRegion?.takeIf { region -> region.isNotBlank() } }
     }
 
-    val searchState: SearchState by rememberRetained(searchRegion, retryToken) {
+    // [searchRegion] is intentionally NOT a key here: the LaunchedEffect above resolves it
+    // asynchronously from null to its real value, and re-keying on it would replace the shared
+    // flow without cancelling the old shareIn launch (it lives in the retained scope), leaking a
+    // second collector that also fires the search on the next keystroke. Instead the closure
+    // reads [searchRegion] via its Compose-state delegate, which always returns the latest value
+    // when [resolveSearch] runs.
+    val searchState: SearchState by rememberRetained(retryToken) {
       snapshotFlow {
         textFieldState.text.toString().trim()
       }.flatMapLatest<String, SearchState> { query ->
