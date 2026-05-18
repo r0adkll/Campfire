@@ -325,6 +325,10 @@ jobs:
       # xcodebuild triggers ./gradlew :app:ios:embedAndSignAppleFrameworkForXcode
       # via the project's Run Script build phase, producing the shared K/N framework
       # before linking the simulator .app.
+      # `-arch arm64` is required: without it xcodebuild builds for both arm64
+      # and x86_64 simulator slices, and Compose's syncComposeResourcesForIos
+      # fails with "Unknown iOS simulator arch: 'x86_64'". macos-latest runners
+      # are Apple Silicon, so arm64 is the only slice we need.
       - name: Build iOS simulator app
         run: |
           xcodebuild build \
@@ -332,6 +336,7 @@ jobs:
             -scheme iosApp \
             -configuration Debug \
             -sdk iphonesimulator \
+            -arch arm64 \
             -derivedDataPath build
 
       - name: Upload iOS simulator app
