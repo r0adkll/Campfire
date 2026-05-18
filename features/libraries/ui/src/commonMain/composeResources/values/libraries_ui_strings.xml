@@ -110,4 +110,15 @@
   <string name="action_retry_download">Retry download</string>
   <string name="action_delete_download">Delete download</string>
   <string name="action_add_podcast">Add a podcast</string>
+
+  <string name="cd_more_actions">More actions</string>
+  <string name="menu_item_delete_podcast">Delete podcast</string>
+  <string name="dialog_delete_podcast_title">Delete this podcast?</string>
+  <string name="dialog_delete_podcast_message">This will permanently remove the podcast and all listening progress from your server. This cannot be undone.</string>
+  <string name="dialog_delete_podcast_hard_label">Also delete files from server</string>
+  <string name="dialog_delete_podcast_hard_description">Permanently removes the podcast folder and all audio files from disk. The library item is removed either way.</string>
+  <string name="dialog_delete_podcast_action_confirm">Delete</string>
+  <string name="dialog_delete_podcast_action_confirm_hard">Delete &amp; remove files</string>
+  <string name="dialog_delete_podcast_action_cancel">Cancel</string>
+  <string name="error_delete_podcast">Couldn\'t delete podcast. Try again.</string>
 </resources>

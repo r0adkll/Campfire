@@ -17,4 +17,11 @@ class FakeLibraryItemRepository : LibraryItemRepository {
   override suspend fun getLibraryItem(itemId: LibraryItemId): LibraryItem {
     return libraryItem
   }
+
+  val deleteInvocations = mutableListOf<Pair<LibraryItemId, Boolean>>()
+  var deleteResult: Result<Unit> = Result.success(Unit)
+  override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
+    deleteInvocations += itemId to hardDelete
+    return deleteResult
+  }
 }

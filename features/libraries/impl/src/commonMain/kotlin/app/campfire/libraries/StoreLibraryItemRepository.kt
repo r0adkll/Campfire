@@ -8,6 +8,7 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.item.LibraryItemStore
+import app.campfire.network.AudioBookShelfApi
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
@@ -23,6 +24,7 @@ import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 @Inject
 class StoreLibraryItemRepository(
   libraryItemStoreFactory: LibraryItemStore.Factory,
+  private val api: AudioBookShelfApi,
 ) : LibraryItemRepository {
 
   private val itemStore = libraryItemStoreFactory.create()
@@ -48,6 +50,11 @@ class StoreLibraryItemRepository(
     } else {
       itemStore.fresh(itemId)
     }
+  }
+
+  override suspend fun deleteLibraryItem(itemId: LibraryItemId, hardDelete: Boolean): Result<Unit> {
+    return api.deleteLibraryItem(itemId, hardDelete)
+      .onSuccess { itemStore.clear(itemId) }
   }
 
   /**

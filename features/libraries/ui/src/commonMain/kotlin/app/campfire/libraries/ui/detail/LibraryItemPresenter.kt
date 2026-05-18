@@ -3,13 +3,16 @@ package app.campfire.libraries.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
 import app.campfire.core.session.UserSession
@@ -24,6 +27,7 @@ import app.campfire.ui.theming.api.ThemeManager
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.slack.circuit.foundation.NonPausablePresenter
+import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
@@ -45,6 +49,7 @@ class LibraryItemPresenter(
   private val themeManager: ThemeManager,
   private val themeSettings: ThemeSettings,
   private val dispatcherProvider: DispatcherProvider,
+  private val offlineDownloadManager: OfflineDownloadManager,
 ) : NonPausablePresenter<LibraryItemUiState> {
 
   @Suppress("UNCHECKED_CAST")
@@ -88,12 +93,15 @@ class LibraryItemPresenter(
       } else themeManager.observeSwatchFor(screen.libraryItemId)
     }.collectAsState(null)
 
+    var errorMessage by rememberRetained { mutableStateOf<String?>(null) }
+
     return LibraryItemUiState(
       user = userSession.requiredUser,
       libraryItem = libraryItemContentState.dataOrNull,
       theme = theme,
       swatch = swatch,
       contentState = contentState,
+      errorMessage = errorMessage,
     ) { event ->
       when (event) {
         LibraryItemUiEvent.OnBack -> navigator.pop()
@@ -105,6 +113,26 @@ class LibraryItemPresenter(
               seedColor = event.seedColor,
             )
           }
+        }
+
+        is LibraryItemUiEvent.DeleteItemClick -> {
+          val item = libraryItemContentState.dataOrNull ?: return@LibraryItemUiState
+          scope.launch {
+            repository.deleteLibraryItem(screen.libraryItemId, event.hardDelete)
+              .onSuccess {
+                runCatching { offlineDownloadManager.delete(item) }
+                  .onFailure { bark(throwable = it) { "Failed to clean up offline downloads after delete" } }
+                navigator.pop()
+              }
+              .onFailure { error ->
+                bark(throwable = error) { "Failed to delete library item ${screen.libraryItemId}" }
+                errorMessage = error.message ?: "Couldn't delete podcast"
+              }
+          }
+        }
+
+        LibraryItemUiEvent.ClearError -> {
+          errorMessage = null
         }
 
         // If we don't handle the event then pass it through the content state

@@ -238,6 +238,13 @@ interface AudioBookShelfApi {
    */
   suspend fun deleteCollection(collectionId: String): Result<Unit>
 
+  /**
+   * Delete a library item. Pass `hard = true` to also remove the item's files
+   * from the server's filesystem; otherwise only the DB row + cascading data
+   * (progress, playlist membership, RSS feed, metadata cache) are removed.
+   */
+  suspend fun deleteLibraryItem(itemId: String, hard: Boolean = false): Result<Unit>
+
   //endregion
 
   //region Playlists

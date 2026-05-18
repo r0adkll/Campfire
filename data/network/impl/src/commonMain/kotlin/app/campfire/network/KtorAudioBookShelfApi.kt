@@ -54,6 +54,7 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.request.url
@@ -389,6 +390,15 @@ class KtorAudioBookShelfApi(
     return trySendRequest({}) {
       hydratedClientRequest("/api/collections/$collectionId") {
         method = HttpMethod.Delete
+      }
+    }
+  }
+
+  override suspend fun deleteLibraryItem(itemId: String, hard: Boolean): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest("/api/items/$itemId") {
+        method = HttpMethod.Delete
+        if (hard) parameter("hard", "1")
       }
     }
   }

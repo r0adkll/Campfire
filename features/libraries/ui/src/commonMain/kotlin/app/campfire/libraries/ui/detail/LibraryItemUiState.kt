@@ -23,6 +23,7 @@ data class LibraryItemUiState(
   val swatch: Swatch? = null,
   val theme: Theme? = null,
   val contentState: LoadState<out ContentUiState>,
+  val errorMessage: String? = null,
   val eventSink: (LibraryItemUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -66,6 +67,9 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
   data object FindEpisodes : LibraryItemUiEvent
+
+  data class DeleteItemClick(val hardDelete: Boolean) : LibraryItemUiEvent
+  data object ClearError : LibraryItemUiEvent
 
   data object OnBack : LibraryItemUiEvent
 }

@@ -18,6 +18,9 @@ data class User(
   val canEditCollections: Boolean
     get() = type == Type.Admin || type == Type.Root
 
+  val canDeleteItems: Boolean
+    get() = permissions.delete && (type == Type.Admin || type == Type.Root)
+
   enum class Type {
     Root,
     Guest,
