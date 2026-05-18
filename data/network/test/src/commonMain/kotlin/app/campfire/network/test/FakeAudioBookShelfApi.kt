@@ -188,6 +188,10 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
+  override suspend fun deleteLibraryItem(itemId: String, hard: Boolean): Result<Unit> {
+    TODO("Not yet implemented")
+  }
+
   override suspend fun createPlaylist(
     libraryId: String,
     name: String,

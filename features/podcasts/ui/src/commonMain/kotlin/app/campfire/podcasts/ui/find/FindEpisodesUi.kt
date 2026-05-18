@@ -21,6 +21,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -68,7 +69,7 @@ fun FindEpisodesUi(
 
   Scaffold(
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets
+    contentWindowInsets = ScaffoldDefaults.contentWindowInsets
       .exclude(WindowInsets.systemBars)
       .exclude(WindowInsets.navigationBars),
     topBar = {
