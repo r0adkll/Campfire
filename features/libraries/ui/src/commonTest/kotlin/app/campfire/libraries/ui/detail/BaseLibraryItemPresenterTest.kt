@@ -78,7 +78,7 @@ abstract class BaseLibraryItemPresenterTest {
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
 
-  protected val presenter = LibraryItemPresenter(
+  internal val presenter = LibraryItemPresenter(
     userSession = UserSession.LoggedIn(user("user_id")),
     screen = screen,
     navigator = navigator,
