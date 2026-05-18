@@ -2,14 +2,46 @@
 
 echo "**** Running Pre-Push Check ****"
 
-git stash -q --keep-index
-
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-"$REPO_ROOT/scripts/ktlint" --check
-status=$?
 
-git stash pop -q
+# Stash unstaged work so format only operates on what's about to be pushed.
+# Track whether we created a stash so we don't pop an unrelated one.
+stashed=false
+if ! git diff --quiet; then
+  if git stash push -q --keep-index; then
+    stashed=true
+  fi
+fi
+
+"$REPO_ROOT/scripts/ktlint" --format
+ktlint_status=$?
+
+format_diff=$(git diff --name-only)
+
+# Restore stashed work. Pop may fail if format touched the same files; in
+# that case git keeps the stash so the user can recover manually.
+stash_kept=false
+if [ "$stashed" = "true" ]; then
+  if ! git stash pop -q 2>/dev/null; then
+    stash_kept=true
+  fi
+fi
+
+if [ $ktlint_status -ne 0 ]; then
+  echo "**** Pre-Push Check Failed (ktlint errors) ****"
+  exit $ktlint_status
+fi
+
+if [ -n "$format_diff" ]; then
+  printf '\nktlint reformatted the following files:\n'
+  printf '%s\n' "$format_diff" | sed 's/^/  /'
+  printf '\nReview and commit these changes before pushing.\n'
+  if [ "$stash_kept" = "true" ]; then
+    printf "Your unstaged work is kept in 'git stash' — recover with 'git stash pop' after resolving.\n"
+  fi
+  echo "**** Pre-Push Check Failed ****"
+  exit 1
+fi
 
 echo "**** Pre-Push Check Finished ****"
-
-exit $status
+exit 0
