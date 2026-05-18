@@ -288,7 +288,8 @@ jobs:
           path: |
             **/build/reports/*
 
-  ios-test:
+  ios:
+    name: iOS / Simulator App
     needs: [code-style]
     runs-on: macos-latest
     timeout-minutes: 60
@@ -321,8 +322,24 @@ jobs:
           restore-keys: |
             konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
 
-      - name: iosSimulatorArm64Test
-        run: ./gradlew iosSimulatorArm64Test
+      # xcodebuild triggers ./gradlew :app:ios:embedAndSignAppleFrameworkForXcode
+      # via the project's Run Script build phase, producing the shared K/N framework
+      # before linking the simulator .app.
+      - name: Build iOS simulator app
+        run: |
+          xcodebuild build \
+            -project app/ios/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build
+
+      - name: Upload iOS simulator app
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-simulator-app
+          path: build/Build/Products/Debug-iphonesimulator/*
 
       - name: Upload reports
         if: failure()
@@ -331,11 +348,3 @@ jobs:
           name: ios-reports
           path: |
             **/build/reports/*
-
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v7
-        with:
-          name: ios-test-results
-          path: |
-            **/build/test-results/*
