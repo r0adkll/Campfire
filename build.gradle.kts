@@ -24,9 +24,6 @@ plugins {
 }
 
 tasks.register<Copy>("bootstrap") {
-  from(file("scripts/ktlint"))
-  into(file(".git/hooks"))
-
   from(file("scripts/pre-push"))
   into(file(".git/hooks"))
 }

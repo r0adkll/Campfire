@@ -4,8 +4,8 @@ echo "**** Running Pre-Push Check ****"
 
 git stash -q --keep-index
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-"$SCRIPT_DIR/ktlint" --check
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+"$REPO_ROOT/scripts/ktlint" --check
 status=$?
 
 git stash pop -q
