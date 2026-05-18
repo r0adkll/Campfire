@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.core.di.UserScope
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.ui.find.composables.CenteredMessage
