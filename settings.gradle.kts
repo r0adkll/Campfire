@@ -87,13 +87,6 @@ extensions.configure<KoverSettingsExtension> {
   }
 }
 
-val isCi = providers.environmentVariable("CI").isPresent
-buildCache {
-  local {
-    isEnabled = !isCi
-  }
-}
-
 rootProject.name = "Campfire"
 include(
   ":app:android",

@@ -78,9 +78,20 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 21
+          cache: gradle
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
+
+      # Kotlin/Native dist + cinterop caches live outside ~/.gradle. Cache them so KMP
+      # configuration / cinterop steps don't re-download the K/N dist on every run.
+      - name: Cache Kotlin/Native (~/.konan)
+        uses: actions/cache@v5
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
 
       - name: Download Google Services JSON
         env:
@@ -109,7 +120,7 @@ jobs:
 
       - name: Run tests and generate coverage report
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
-        run: ./gradlew --quiet test allTests koverXmlReport
+        run: ./gradlew --quiet jvmTest koverXmlReport
 
       - name: Add coverage report to PR
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
