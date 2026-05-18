@@ -56,7 +56,6 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       PlayClick,
       DeleteItemClickSoft,
       DeleteItemClickHard,
-      DeleteItemClickFailure,
       OnBack,
     ),
   ) = runTest {
@@ -76,6 +75,35 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       item.eventSink(eventTest.event)
 
       eventTest.assert(this@LibraryItemPresenterEventsTest)
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun deleteItemClick_onFailure_setsErrorMessage_andClearErrorResetsIt() = runTest {
+    val libraryItem = emptyLibraryItem()
+    libraryItemRepository.libraryItemFlow.emit(libraryItem)
+    libraryItemRepository.deleteResult = Result.failure(IllegalStateException("boom"))
+
+    presenter.test {
+      skipItems(1)
+      val item = awaitItem()
+
+      item.eventSink(LibraryItemUiEvent.DeleteItemClick(hardDelete = false))
+
+      // Drain until the launched coroutine completes and writes errorMessage
+      var withError = awaitItem()
+      while (withError.errorMessage == null) {
+        withError = awaitItem()
+      }
+      assertThat(withError.errorMessage).isEqualTo("boom")
+
+      withError.eventSink(LibraryItemUiEvent.ClearError)
+      val cleared = awaitItem()
+      assertThat(cleared.errorMessage).isNull()
+
+      assertThat(libraryItemRepository.deleteInvocations).hasSize(1)
 
       cancelAndIgnoreRemainingEvents()
     }
@@ -434,27 +462,5 @@ private val DeleteItemClickHard = EventTest(
       .isEqualTo(TestLibraryItemId to true)
 
     navigator.awaitPop()
-  },
-)
-
-private val DeleteItemClickFailure = EventTest(
-  event = LibraryItemUiEvent.DeleteItemClick(hardDelete = false),
-  setup = {
-    libraryItemRepository.deleteResult = Result.failure(IllegalStateException("boom"))
-  },
-  assert = {
-    assertThat(libraryItemRepository.deleteInvocations).hasSize(1)
-
-    presenter.test {
-      skipItems(1)
-      val withError = awaitItem()
-      assertThat(withError.errorMessage).isEqualTo("boom")
-
-      withError.eventSink(LibraryItemUiEvent.ClearError)
-      val cleared = awaitItem()
-      assertThat(cleared.errorMessage).isNull()
-
-      cancelAndIgnoreRemainingEvents()
-    }
   },
 )
