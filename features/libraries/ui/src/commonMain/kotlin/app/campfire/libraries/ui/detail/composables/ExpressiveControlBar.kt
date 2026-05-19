@@ -119,6 +119,7 @@ internal fun ExpressiveControlBar(
   onAddToPlaylistClick: () -> Unit,
   onAddToQueueClick: () -> Unit,
   modifier: Modifier = Modifier,
+  totalSizeInBytes: Long = -1L,
 ) {
   Surface(
     modifier = modifier
@@ -148,6 +149,7 @@ internal fun ExpressiveControlBar(
 
         OfflineStatus(
           offlineDownload = offlineDownload,
+          totalSizeInBytes = totalSizeInBytes,
           onDeleteClick = onDeleteDownloadClick,
           onStopClick = onStopDownloadClick,
           onRetryClick = onDownloadClick,
@@ -179,6 +181,7 @@ internal fun ExpressiveControlBar(
 @Composable
 private fun OfflineStatus(
   offlineDownload: OfflineDownload,
+  totalSizeInBytes: Long,
   onDeleteClick: () -> Unit,
   onStopClick: () -> Unit,
   onRetryClick: () -> Unit,
@@ -317,10 +320,18 @@ private fun OfflineStatus(
     )
 
     if (!offlineDownload.isCompleted) {
+      val actualProgress = if (totalSizeInBytes > 0L) {
+        (offlineDownload.progress.bytes.toFloat() / totalSizeInBytes.toFloat())
+          .coerceIn(0f, 1f)
+      } else {
+        offlineDownload.progress.percent
+      }
+
       OfflineProgressBar(
-        progress = offlineDownload.progress.percent,
+        progress = actualProgress,
         bytesDownloaded = offlineDownload.progress.bytes,
-        contentLength = offlineDownload.contentLength,
+        contentLength = totalSizeInBytes.takeIf { it > 0L }
+          ?: offlineDownload.contentLength,
         isIndeterminate = offlineDownload.progress.indeterminate,
       )
     }

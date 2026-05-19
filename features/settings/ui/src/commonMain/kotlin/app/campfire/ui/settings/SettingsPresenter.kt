@@ -21,6 +21,7 @@ import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
+import app.campfire.core.model.Media
 import app.campfire.core.model.Server
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
@@ -148,14 +149,25 @@ class SettingsPresenter(
       offlineDownloadManager.observeAll()
     }.collectAsState(emptyList())
 
-    val downloadedLibraryItems by remember {
+    val downloadEntries by remember {
       snapshotFlow { downloads }
-        .mapLatest {
-          it.associateWith { item ->
-            libraryItemRepository.getLibraryItem(item.libraryItemId)
-          }
+        .mapLatest { items ->
+          items
+            .mapNotNull { download ->
+              val libraryItem = libraryItemRepository.getLibraryItem(download.libraryItemId)
+              val episodeId = download.episodeId
+              if (episodeId == null) {
+                DownloadEntry.Book(libraryItem, download)
+              } else {
+                val media = libraryItem.media as? Media.Podcast ?: return@mapNotNull null
+                val episode = media.episodes.find { it.id == episodeId }
+                  ?: return@mapNotNull null
+                DownloadEntry.Episode(libraryItem, episode, download)
+              }
+            }
+            .sortedByDescending { it.download.updateTimeMs }
         }
-    }.collectAsState(emptyMap())
+    }.collectAsState(emptyList())
 
     // Sleep Settings
     val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
@@ -199,7 +211,7 @@ class SettingsPresenter(
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
-        downloads = downloadedLibraryItems,
+        downloads = downloadEntries,
       ),
       playbackSettings = PlaybackSettingsInfo(
         forwardTime = forwardTime.milliseconds,
@@ -272,7 +284,13 @@ class SettingsPresenter(
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
           is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
           is DownloadClicked -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
-          is DeleteDownload -> offlineDownloadManager.delete(event.libraryItem)
+          is DeleteDownload -> when (val entry = event.entry) {
+            is DownloadEntry.Book -> offlineDownloadManager.delete(entry.libraryItem)
+            is DownloadEntry.Episode -> offlineDownloadManager.deleteEpisode(
+              entry.libraryItem,
+              entry.episode,
+            )
+          }
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {

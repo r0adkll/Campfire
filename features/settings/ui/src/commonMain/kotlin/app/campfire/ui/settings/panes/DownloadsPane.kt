@@ -52,9 +52,8 @@ import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.asReadableBytes
-import app.campfire.core.extensions.ifNotEmpty
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
+import app.campfire.ui.settings.DownloadEntry
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
@@ -93,35 +92,35 @@ internal fun DownloadsPane(
 
     Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
 
-    state.downloadsSettings.downloads.ifNotEmpty {
-      var showConfirmation by remember { mutableStateOf<LibraryItemId?>(null) }
-      forEach { (download, item) ->
+    if (state.downloadsSettings.downloads.isNotEmpty()) {
+      var confirmingKey by remember { mutableStateOf<String?>(null) }
+      state.downloadsSettings.downloads.forEach { entry ->
+        val key = entry.confirmKey
         ConfirmationLayout(
-          showConfirmation = showConfirmation == item.id,
+          showConfirmation = confirmingKey == key,
           confirm = {
             ConfirmDeleteListItem(
-              download = download,
+              download = entry.download,
               onDeleteClick = {
                 state.eventSink(
-                  SettingsUiEvent.DownloadsSettingEvent.DeleteDownload(item),
+                  SettingsUiEvent.DownloadsSettingEvent.DeleteDownload(entry),
                 )
               },
               onDismissRequest = {
-                showConfirmation = null
+                confirmingKey = null
               },
             )
           },
         ) {
           ItemDownloadListItem(
-            item = item,
-            download = download,
+            entry = entry,
             onClick = {
               state.eventSink(
-                SettingsUiEvent.DownloadsSettingEvent.DownloadClicked(item),
+                SettingsUiEvent.DownloadsSettingEvent.DownloadClicked(entry.libraryItem),
               )
             },
             onDeleteClick = {
-              showConfirmation = item.id
+              confirmingKey = key
             },
           )
         }
@@ -224,17 +223,37 @@ private fun ConfirmDeleteListItem(
   }
 }
 
+private val DownloadEntry.confirmKey: String
+  get() = when (this) {
+    is DownloadEntry.Book -> libraryItem.id
+    is DownloadEntry.Episode -> "${libraryItem.id}:${episode.id}"
+  }
+
 @Composable
 private fun ItemDownloadListItem(
-  item: LibraryItem,
-  download: OfflineDownload,
+  entry: DownloadEntry,
   onClick: () -> Unit,
   onDeleteClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val item = entry.libraryItem
+  val download = entry.download
+  val titleText = when (entry) {
+    is DownloadEntry.Book -> item.media.metadata.title ?: "<unknown item>"
+    is DownloadEntry.Episode -> entry.episode.title
+  }
+  val supportingText = when (entry) {
+    is DownloadEntry.Book -> item.media.sizeInBytes.asReadableBytes()
+    is DownloadEntry.Episode -> buildString {
+      append(item.media.metadata.title ?: "<unknown podcast>")
+      append(" · ")
+      append(entry.episode.sizeInBytes.asReadableBytes())
+    }
+  }
+
   ActionSetting(
-    headlineContent = { Text(item.media.metadata.title ?: "<unknown item>") },
-    supportingContent = { Text(item.media.sizeInBytes.asReadableBytes()) },
+    headlineContent = { Text(titleText) },
+    supportingContent = { Text(supportingText) },
     leadingContent = {
       ItemDownloadImage(
         item = item,

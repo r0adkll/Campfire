@@ -7,6 +7,8 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -32,6 +34,17 @@ class DesktopOfflineDownloadManager : OfflineDownloadManager {
     return emptyFlow()
   }
 
+  override fun observeForEpisode(item: LibraryItem, episode: PodcastEpisode): Flow<OfflineDownload> {
+    return emptyFlow()
+  }
+
+  override fun observeForEpisodes(
+    item: LibraryItem,
+    episodes: List<PodcastEpisode>,
+  ): Flow<Map<PodcastEpisodeId, OfflineDownload>> {
+    return emptyFlow()
+  }
+
   override fun download(item: LibraryItem) {
     bark { "Not implemented yet!" }
   }
@@ -40,11 +53,23 @@ class DesktopOfflineDownloadManager : OfflineDownloadManager {
     bark { "Not implemented yet!" }
   }
 
+  override fun downloadEpisode(item: LibraryItem, episode: PodcastEpisode) {
+    bark { "Not implemented yet!" }
+  }
+
   override fun delete(item: LibraryItem) {
     bark { "Not implemented yet!" }
   }
 
+  override fun deleteEpisode(item: LibraryItem, episode: PodcastEpisode) {
+    bark { "Not implemented yet!" }
+  }
+
   override fun stop(item: LibraryItem) {
+    bark { "Not implemented yet!" }
+  }
+
+  override fun stopEpisode(item: LibraryItem, episode: PodcastEpisode) {
     bark { "Not implemented yet!" }
   }
 

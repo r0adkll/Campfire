@@ -8,6 +8,7 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
 import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.offline.OfflineStatus
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -21,7 +22,8 @@ fun OfflineDownload?.isNullOrNone(): Boolean {
 }
 
 /**
- * Represents the download state of a [LibraryItem].
+ * Represents the download state of a [LibraryItem] or a single podcast episode within it.
+ * [episodeId] is null for book-level downloads, populated for per-episode downloads.
  */
 data class OfflineDownload(
   val libraryItemId: LibraryItemId,
@@ -30,6 +32,7 @@ data class OfflineDownload(
   val updateTimeMs: Long = -1L,
   val contentLength: Long = -1L,
   val progress: Progress = Progress(0L, 0f),
+  val episodeId: PodcastEpisodeId? = null,
 ) {
 
   val isCompleted: Boolean

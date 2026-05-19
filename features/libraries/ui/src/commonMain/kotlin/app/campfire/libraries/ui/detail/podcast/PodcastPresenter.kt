@@ -14,9 +14,12 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -37,6 +40,7 @@ import app.campfire.libraries.ui.detail.podcast.episode.showPodcastEpisodeBottom
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
@@ -58,6 +62,8 @@ class PodcastPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
+  private val offlineDownloadManager: OfflineDownloadManager,
+  private val settings: CampfireSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : AbstractLibraryItemPresenter {
 
@@ -84,11 +90,25 @@ class PodcastPresenter(
         }
     }.collectAsState(emptyMap())
 
+    val podcastEpisodes = remember(libraryItem) {
+      (libraryItem.media as? Media.Podcast)?.episodes.orEmpty()
+    }
+
+    val episodeDownloads by remember(libraryItem, podcastEpisodes) {
+      offlineDownloadManager.observeForEpisodes(libraryItem, podcastEpisodes)
+    }.collectAsState(emptyMap())
+
+    val showConfirmDownloadDialog by remember {
+      settings.observeShowConfirmDownload()
+    }.collectAsState()
+
     val slots = buildSlots(
       user = currentUser,
       libraryItem = libraryItem,
       currentSession = currentSession,
       mediaProgress = mediaProgress,
+      episodeDownloads = episodeDownloads,
+      showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
       sharedTransitionKey = screen.sharedTransitionKey,
     )
@@ -163,6 +183,22 @@ class PodcastPresenter(
             navigator.goTo(FindEpisodesScreen(libraryItem.id))
           }
 
+          is LibraryItemUiEvent.DownloadEpisodeClick -> {
+            analytics.send(ActionEvent("download_episode", Click))
+            settings.showConfirmDownload = !event.doNotShowAgain
+            offlineDownloadManager.downloadEpisode(libraryItem, event.episode)
+          }
+
+          is LibraryItemUiEvent.RemoveEpisodeDownloadClick -> {
+            analytics.send(ActionEvent("delete_episode_download", Click))
+            offlineDownloadManager.deleteEpisode(libraryItem, event.episode)
+          }
+
+          is LibraryItemUiEvent.StopEpisodeDownloadClick -> {
+            analytics.send(ActionEvent("stop_episode_download", Click))
+            offlineDownloadManager.stopEpisode(libraryItem, event.episode)
+          }
+
           else -> Unit
         }
       },
@@ -176,6 +212,8 @@ private fun buildSlots(
   libraryItem: LibraryItem,
   currentSession: Session?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
+  episodeDownloads: Map<PodcastEpisodeId, OfflineDownload>,
+  showConfirmDownloadDialog: Boolean,
   addToPlaylistDialog: AddToPlaylistDialog,
   sharedTransitionKey: String,
 ): List<ContentSlot> = buildList {
@@ -240,6 +278,8 @@ private fun buildSlots(
         progress = progress,
         isCurrentSession = currentSession?.libraryItem?.id == episode.libraryItemId &&
           currentSession.episodeId == episode.id,
+        offlineDownload = episodeDownloads[episode.id],
+        showConfirmDownloadDialog = showConfirmDownloadDialog,
         addToPlaylistDialog = addToPlaylistDialog,
       )
     }

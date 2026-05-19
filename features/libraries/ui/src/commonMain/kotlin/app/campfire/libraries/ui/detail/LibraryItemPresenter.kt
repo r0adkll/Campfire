@@ -14,6 +14,7 @@ import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
@@ -120,7 +121,12 @@ class LibraryItemPresenter(
           scope.launch {
             repository.deleteLibraryItem(screen.libraryItemId, event.hardDelete)
               .onSuccess {
-                runCatching { offlineDownloadManager.delete(item) }
+                runCatching {
+                  offlineDownloadManager.delete(item)
+                  (item.media as? Media.Podcast)?.episodes?.forEach { episode ->
+                    offlineDownloadManager.deleteEpisode(item, episode)
+                  }
+                }
                   .onFailure { bark(throwable = it) { "Failed to clean up offline downloads after delete" } }
                 navigator.pop()
               }

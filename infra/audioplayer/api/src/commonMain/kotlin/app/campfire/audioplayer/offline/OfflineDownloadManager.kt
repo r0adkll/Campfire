@@ -2,6 +2,8 @@ package app.campfire.audioplayer.offline
 
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
 import kotlinx.coroutines.flow.Flow
 
 interface OfflineDownloadManager {
@@ -34,6 +36,20 @@ interface OfflineDownloadManager {
   fun observeForItems(items: List<LibraryItem>): Flow<Map<LibraryItemId, OfflineDownload>>
 
   /**
+   * Observe the current download status for a single podcast episode.
+   */
+  fun observeForEpisode(item: LibraryItem, episode: PodcastEpisode): Flow<OfflineDownload>
+
+  /**
+   * Observe the current download status for a list of podcast episodes within the
+   * same parent [item].
+   */
+  fun observeForEpisodes(
+    item: LibraryItem,
+    episodes: List<PodcastEpisode>,
+  ): Flow<Map<PodcastEpisodeId, OfflineDownload>>
+
+  /**
    * Download a [LibraryItem] for offline playback.
    * @param item The [LibraryItem] to download.
    */
@@ -46,16 +62,31 @@ interface OfflineDownloadManager {
   fun downloadAll(items: List<LibraryItem>)
 
   /**
+   * Download a single podcast [episode] for offline playback.
+   */
+  fun downloadEpisode(item: LibraryItem, episode: PodcastEpisode)
+
+  /**
    * Delete the offline download of a [LibraryItem].
    * @param item The [LibraryItem] to delete the download for.
    */
   fun delete(item: LibraryItem)
 
   /**
+   * Delete the offline download of a single podcast [episode].
+   */
+  fun deleteEpisode(item: LibraryItem, episode: PodcastEpisode)
+
+  /**
    * Stop any current download of a [LibraryItem].
    * @param item The [LibraryItem] to stop the download for.
    */
   fun stop(item: LibraryItem)
+
+  /**
+   * Stop any current download of a single podcast [episode].
+   */
+  fun stopEpisode(item: LibraryItem, episode: PodcastEpisode)
 
   /**
    * Resume any paused downloads due to process death or other events

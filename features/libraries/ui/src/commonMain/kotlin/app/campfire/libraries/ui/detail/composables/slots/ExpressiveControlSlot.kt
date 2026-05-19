@@ -86,6 +86,7 @@ class ExpressiveControlSlot(
       hasSession = hasSession,
       isCurrentSession = isCurrentSession,
       offlineDownload = offlineDownload,
+      totalSizeInBytes = libraryItem.media.sizeInBytes,
       mediaProgress = mediaProgress,
       onPlayClick = {
         eventSink(LibraryItemUiEvent.PlayClick)

@@ -30,6 +30,7 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.PodcastEpisode
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.dialog_download_action_confirm
 import campfire.common.compose.generated.resources.dialog_download_action_dismiss
@@ -46,7 +47,25 @@ fun ConfirmDownloadDialog(
   modifier: Modifier = Modifier,
 ) {
   ConfirmDownloadDialog(
-    items = listOf(item),
+    title = item.media.metadata.title.orEmpty(),
+    sizeInBytes = item.media.sizeInBytes,
+    onConfirm = onConfirm,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier,
+  )
+}
+
+@Composable
+fun ConfirmDownloadDialog(
+  item: LibraryItem,
+  episode: PodcastEpisode,
+  onConfirm: (doNotShowAgain: Boolean) -> Unit,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  ConfirmDownloadDialog(
+    title = episode.title,
+    sizeInBytes = episode.sizeInBytes.takeIf { it > 0L } ?: item.media.sizeInBytes,
     onConfirm = onConfirm,
     onDismissRequest = onDismissRequest,
     modifier = modifier,
@@ -60,15 +79,8 @@ fun ConfirmDownloadDialog(
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  Impression {
-    ScreenViewEvent("ConfirmDownload", ScreenType.Dialog)
-  }
-
-  var doNotShowAgain by remember { mutableStateOf(false) }
-  AlertDialog(
-    modifier = modifier,
-    onDismissRequest = onDismissRequest,
-    title = {
+  ConfirmDownloadDialog(
+    titleContent = {
       Text(
         buildAnnotatedString {
           append("Download ")
@@ -82,15 +94,64 @@ fun ConfirmDownloadDialog(
         },
       )
     },
+    sizeInBytes = items.sumOf { it.media.sizeInBytes },
+    onConfirm = onConfirm,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier,
+  )
+}
+
+@Composable
+fun ConfirmDownloadDialog(
+  title: String,
+  sizeInBytes: Long,
+  onConfirm: (doNotShowAgain: Boolean) -> Unit,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  ConfirmDownloadDialog(
+    titleContent = {
+      Text(
+        buildAnnotatedString {
+          append("Download ")
+          withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+            append("\"$title\"")
+          }
+        },
+      )
+    },
+    sizeInBytes = sizeInBytes,
+    onConfirm = onConfirm,
+    onDismissRequest = onDismissRequest,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun ConfirmDownloadDialog(
+  titleContent: @Composable () -> Unit,
+  sizeInBytes: Long,
+  onConfirm: (doNotShowAgain: Boolean) -> Unit,
+  onDismissRequest: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Impression {
+    ScreenViewEvent("ConfirmDownload", ScreenType.Dialog)
+  }
+
+  var doNotShowAgain by remember { mutableStateOf(false) }
+  AlertDialog(
+    modifier = modifier,
+    onDismissRequest = onDismissRequest,
+    title = titleContent,
     text = {
-      val totalSize = items.sumOf { it.media.sizeInBytes }
       Column {
         Text(
           buildAnnotatedString {
             append(stringResource(Res.string.dialog_download_message_prefix))
             append(" ")
             withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-              append(totalSize.asReadableBytes())
+              append(sizeInBytes.asReadableBytes())
             }
             append(" ")
             append(stringResource(Res.string.dialog_download_message_suffix))

@@ -39,9 +39,12 @@ import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.extensions.toRichTextHtml
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.permission.PermissionState
+import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.widgets.MetadataChip
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.common.compose.widgets.WithTimestampUriHandler
+import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.asDate
@@ -117,6 +120,31 @@ private fun PodcastEpisodeBottomSheet(
     )
   }
 
+  var showDownloadConfirmation by remember { mutableStateOf(false) }
+  var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
+  val postNotificationPermissionState = rememberPostNotificationPermissionState { granted ->
+    if (granted) {
+      state.eventSink(PodcastEpisodeUiEvent.DownloadClick(doNotShowDownloadConfirmationAgain))
+      showDownloadConfirmation = false
+    }
+  }
+  if (showDownloadConfirmation) {
+    ConfirmDownloadDialog(
+      item = state.libraryItem,
+      episode = state.episode,
+      onConfirm = { doNotShowAgain ->
+        if (postNotificationPermissionState is PermissionState.Granted) {
+          state.eventSink(PodcastEpisodeUiEvent.DownloadClick(doNotShowAgain))
+          showDownloadConfirmation = false
+        } else {
+          doNotShowDownloadConfirmationAgain = doNotShowAgain
+          postNotificationPermissionState.launchPermissionRequest()
+        }
+      },
+      onDismissRequest = { showDownloadConfirmation = false },
+    )
+  }
+
   Column(
     modifier = modifier
       .padding(16.dp)
@@ -179,14 +207,24 @@ private fun PodcastEpisodeBottomSheet(
       hasSession = state.hasSession,
       isCurrentSession = state.sessionState is SessionUiState.Current,
       mediaProgress = state.progress,
-      offlineDownload = null,
+      offlineDownload = state.offlineDownload,
       onPlayClick = { state.eventSink(PodcastEpisodeUiEvent.PlayClick) },
-      onDownloadClick = { },
+      onDownloadClick = {
+        if (state.showConfirmDownloadDialog) {
+          showDownloadConfirmation = true
+        } else {
+          state.eventSink(PodcastEpisodeUiEvent.DownloadClick())
+        }
+      },
       onMarkFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkFinished) },
       onMarkNotFinished = { state.eventSink(PodcastEpisodeUiEvent.MarkNotFinished) },
       onDiscardProgress = { state.eventSink(PodcastEpisodeUiEvent.DiscardProgress) },
-      onStopDownloadClick = {},
-      onDeleteDownloadClick = {},
+      onStopDownloadClick = {
+        state.eventSink(PodcastEpisodeUiEvent.StopDownloadClick)
+      },
+      onDeleteDownloadClick = {
+        state.eventSink(PodcastEpisodeUiEvent.RemoveDownloadClick)
+      },
       onAddToPlaylistClick = {
         showAddToPlaylistDialog = true
       },

@@ -8,6 +8,7 @@ import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 import app.campfire.settings.api.AndroidAutoCategory
@@ -50,8 +51,25 @@ data class AppearanceSettingsInfo(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
-  val downloads: Map<OfflineDownload, LibraryItem>,
+  val downloads: List<DownloadEntry>,
 )
+
+@Immutable
+sealed interface DownloadEntry {
+  val libraryItem: LibraryItem
+  val download: OfflineDownload
+
+  data class Book(
+    override val libraryItem: LibraryItem,
+    override val download: OfflineDownload,
+  ) : DownloadEntry
+
+  data class Episode(
+    override val libraryItem: LibraryItem,
+    val episode: PodcastEpisode,
+    override val download: OfflineDownload,
+  ) : DownloadEntry
+}
 
 @Immutable
 data class PlaybackSettingsInfo(
@@ -150,7 +168,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadClicked(val libraryItem: LibraryItem) : DownloadsSettingEvent
-    data class DeleteDownload(val libraryItem: LibraryItem) : DownloadsSettingEvent
+    data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
   }
 
   // Playback Setting Events

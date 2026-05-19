@@ -110,6 +110,11 @@
   <string name="action_retry_download">Retry download</string>
   <string name="action_delete_download">Delete download</string>
   <string name="action_add_podcast">Add a podcast</string>
+  <string name="action_download_episode">Download episode for offline</string>
+  <string name="action_stop_episode_download">Stop episode download</string>
+  <string name="action_remove_episode_download">Remove offline episode</string>
+  <string name="action_episode_download_queued">Episode download queued</string>
+  <string name="action_episode_download_in_progress">Episode downloading</string>
 
   <string name="cd_more_actions">More actions</string>
   <string name="menu_item_delete_podcast">Delete podcast</string>

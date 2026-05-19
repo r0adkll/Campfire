@@ -13,6 +13,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
+import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.libraries.ui.detail.SessionUiState
@@ -20,6 +21,7 @@ import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.observeContains
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.MediaProgressRepository
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -50,6 +52,8 @@ class PodcastEpisodePresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val offlineDownloadManager: OfflineDownloadManager,
+  private val settings: CampfireSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : Presenter<PodcastEpisodeUiState> {
 
@@ -115,6 +119,14 @@ class PodcastEpisodePresenter(
       sessionQueue.observeContains(episode.libraryItemId, episode.id)
     }.collectAsState(false)
 
+    val offlineDownload by remember(libraryItem, episode) {
+      offlineDownloadManager.observeForEpisode(libraryItem, episode)
+    }.collectAsState(null)
+
+    val showConfirmDownloadDialog by remember {
+      settings.observeShowConfirmDownload()
+    }.collectAsState()
+
     return PodcastEpisodeUiState(
       libraryItem = libraryItem,
       episode = episode,
@@ -124,6 +136,8 @@ class PodcastEpisodePresenter(
       isQueued = isQueued,
       hasSession = currentSession != null,
       sessionState = episodeSession,
+      offlineDownload = offlineDownload,
+      showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
     ) { event ->
       when (event) {
@@ -225,6 +239,22 @@ class PodcastEpisodePresenter(
           scope.launch {
             sessionQueue.remove(episode.libraryItemId, episode.id)
           }
+        }
+
+        is PodcastEpisodeUiEvent.DownloadClick -> {
+          analytics.send(ActionEvent("download_episode", Click))
+          settings.showConfirmDownload = !event.doNotShowAgain
+          offlineDownloadManager.downloadEpisode(libraryItem, episode)
+        }
+
+        PodcastEpisodeUiEvent.RemoveDownloadClick -> {
+          analytics.send(ActionEvent("delete_episode_download", Click))
+          offlineDownloadManager.deleteEpisode(libraryItem, episode)
+        }
+
+        PodcastEpisodeUiEvent.StopDownloadClick -> {
+          analytics.send(ActionEvent("stop_episode_download", Click))
+          offlineDownloadManager.stopEpisode(libraryItem, episode)
         }
       }
     }

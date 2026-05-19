@@ -75,6 +75,8 @@ abstract class BaseLibraryItemPresenterTest {
     mediaProgressRepository = mediaProgressRepository,
     playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
+    offlineDownloadManager = offlineDownloadManager,
+    settings = settings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
   )
 

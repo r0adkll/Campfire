@@ -108,8 +108,12 @@ internal fun MediaProgressBar(
         else -> {
           val duration = progress.duration ?: totalDuration.asSeconds()
           val remainingDurationMillis = (duration - (duration * progress.actualProgress)).div(playbackSpeed) * 1000f
-          val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
-          stringResource(Res.string.remaining_duration_format, remainingDuration)
+          if (!remainingDurationMillis.isNaN()) {
+            val remainingDuration = remainingDurationMillis.roundToLong().milliseconds.readoutFormat()
+            stringResource(Res.string.remaining_duration_format, remainingDuration)
+          } else {
+            "--"
+          }
         }
       }
       Row(

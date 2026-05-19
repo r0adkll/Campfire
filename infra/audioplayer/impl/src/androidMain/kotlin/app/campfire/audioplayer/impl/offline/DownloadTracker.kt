@@ -8,13 +8,14 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.audioplayer.offline.OfflineDownloadKey
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
-import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -61,12 +62,12 @@ class DownloadTracker(
   @kotlin.OptIn(ExperimentalCoroutinesApi::class)
   fun observeDownloads(): Flow<List<OfflineDownload>> = events
     .mapLatest {
-      val itemIds = downloads.values
-        .map { it.request.data.decodeToString() }
+      val keys = downloads.values
+        .map { OfflineDownloadKey.decode(it.request.data) }
         .toSet()
 
-      itemIds.map { itemId ->
-        getOfflineDownload(itemId)
+      keys.map { key ->
+        getOfflineDownload(key)
       }
     }
 
@@ -76,38 +77,45 @@ class DownloadTracker(
         downloads[it.contentUrl.toUri()]
       }
     } else {
-      // Find all the downloads by the items associated metadata id. Due to API design restraints, the
-      // tracks meta is not always guaranteed on the LibraryItems
+      // Find all the downloads by the items associated metadata id. Restrict to
+      // book-level entries (episodeId == null) so a podcast's item-level state isn't
+      // polluted by its per-episode downloads.
       downloads.values
-        .filter { it.request.data.decodeToString() == item.id }
+        .filter {
+          val decoded = OfflineDownloadKey.decode(it.request.data)
+          decoded.libraryItemId == item.id && decoded.episodeId == null
+        }
     }
 
     // If we don't have any active downloads for an item, just return the default
     if (itemDownloads.isEmpty()) return OfflineDownload(item.id)
 
     return computeOfflineDownload(
-      itemId = item.id,
+      key = OfflineDownloadKey(item.id),
       itemDownloads = itemDownloads,
     )
   }
 
-  fun getOfflineDownload(itemId: LibraryItemId): OfflineDownload {
-    // Find all the downloads by the items associated metadata id. Due to API design restraints, the
-    // tracks meta is not always guaranteed on the LibraryItems
-    val itemDownloads = downloads.values
-      .filter { it.request.data.decodeToString() == itemId }
+  fun getOfflineDownload(item: LibraryItem, episode: PodcastEpisode): OfflineDownload {
+    return getOfflineDownload(OfflineDownloadKey(item.id, episode.id))
+  }
 
-    // If we don't have any active downloads for an item, just return the default
-    if (itemDownloads.isEmpty()) return OfflineDownload(itemId)
+  fun getOfflineDownload(key: OfflineDownloadKey): OfflineDownload {
+    val itemDownloads = downloads.values
+      .filter { OfflineDownloadKey.decode(it.request.data) == key }
+
+    if (itemDownloads.isEmpty()) {
+      return OfflineDownload(libraryItemId = key.libraryItemId, episodeId = key.episodeId)
+    }
 
     return computeOfflineDownload(
-      itemId = itemId,
+      key = key,
       itemDownloads = itemDownloads,
     )
   }
 
   private fun computeOfflineDownload(
-    itemId: LibraryItemId,
+    key: OfflineDownloadKey,
     itemDownloads: List<Download>,
   ): OfflineDownload {
     // Condense the collective set of states
@@ -124,6 +132,7 @@ class DownloadTracker(
     var downloadTaskCount = 0
     var totalPercentage = 0f
     var downloadedBytes = 0L
+    var totalContentLength = 0L
     itemDownloads.forEach { download ->
       when (download.state) {
         Download.STATE_DOWNLOADING -> {
@@ -138,13 +147,18 @@ class DownloadTracker(
       }
 
       downloadedBytes += download.bytesDownloaded
+      totalContentLength += download.contentLength
     }
 
     val currentProgress = (totalPercentage / downloadTaskCount)
+    val currentProgressV2 = if (totalContentLength > 0L) {
+      downloadedBytes.toFloat() / totalContentLength.toFloat()
+    } else 0f
     val isIndeterminate = !haveDownloadingTasks || (allDownloadPercentagesUnknown && downloadedBytes > 0L)
 
     return OfflineDownload(
-      libraryItemId = itemId,
+      libraryItemId = key.libraryItemId,
+      episodeId = key.episodeId,
       state = when {
         states.contains(Download.STATE_FAILED) -> OfflineDownload.State.Failed
         states.contains(Download.STATE_STOPPED) -> OfflineDownload.State.Stopped
@@ -158,7 +172,8 @@ class DownloadTracker(
       contentLength = contentLength,
       progress = OfflineDownload.Progress(
         bytes = downloadedBytes,
-        percent = (currentProgress / 100f).coerceIn(0f, 1f),
+        percent = currentProgressV2.coerceIn(0f, 1f),
+//          (currentProgress / 100f).coerceIn(0f, 1f),
         indeterminate = isIndeterminate,
       ),
     )

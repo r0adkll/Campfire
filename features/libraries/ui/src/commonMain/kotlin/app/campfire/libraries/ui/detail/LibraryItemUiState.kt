@@ -64,6 +64,13 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object RemoveDownloadClick : LibraryItemUiEvent
   data object StopDownloadClick : LibraryItemUiEvent
 
+  data class DownloadEpisodeClick(
+    val episode: PodcastEpisode,
+    val doNotShowAgain: Boolean = true,
+  ) : LibraryItemUiEvent
+  data class RemoveEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
+  data class StopEpisodeDownloadClick(val episode: PodcastEpisode) : LibraryItemUiEvent
+
   data class OpenPlaylist(val playlistId: PlaylistId, val isCreated: Boolean) : LibraryItemUiEvent
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
   data object FindEpisodes : LibraryItemUiEvent
