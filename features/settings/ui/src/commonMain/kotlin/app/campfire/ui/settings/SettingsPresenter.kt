@@ -283,7 +283,12 @@ class SettingsPresenter(
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
           is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
-          is DownloadClicked -> navigator.goTo(LibraryItemScreen(event.libraryItem.id))
+          is DownloadClicked -> navigator.goTo(
+            LibraryItemScreen(
+              libraryItemId = event.entry.libraryItem.id,
+              episodeId = (event.entry as? DownloadEntry.Episode)?.episode?.id,
+            )
+          )
           is DeleteDownload -> when (val entry = event.entry) {
             is DownloadEntry.Book -> offlineDownloadManager.delete(entry.libraryItem)
             is DownloadEntry.Episode -> offlineDownloadManager.deleteEpisode(

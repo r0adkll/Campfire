@@ -116,7 +116,7 @@ internal fun DownloadsPane(
             entry = entry,
             onClick = {
               state.eventSink(
-                SettingsUiEvent.DownloadsSettingEvent.DownloadClicked(entry.libraryItem),
+                SettingsUiEvent.DownloadsSettingEvent.DownloadClicked(entry),
               )
             },
             onDeleteClick = {

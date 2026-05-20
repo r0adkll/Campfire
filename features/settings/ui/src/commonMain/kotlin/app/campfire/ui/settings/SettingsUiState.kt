@@ -167,7 +167,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Downloads Pane Events
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
-    data class DownloadClicked(val libraryItem: LibraryItem) : DownloadsSettingEvent
+    data class DownloadClicked(val entry: DownloadEntry) : DownloadsSettingEvent
     data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
   }
 
