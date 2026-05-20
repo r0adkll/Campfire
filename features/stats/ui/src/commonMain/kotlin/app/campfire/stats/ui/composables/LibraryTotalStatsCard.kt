@@ -84,7 +84,7 @@ private fun createOverviewText(
       Res.string.podcast_library_totals_summary_format
     } else {
       Res.string.library_totals_summary_format
-    }
+    },
   ).tokenize()
   return buildAnnotatedString {
     tokens.forEach { token ->
