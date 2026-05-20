@@ -1,0 +1,20 @@
+package app.campfire.socket.events
+
+import app.campfire.network.models.Collection
+import app.campfire.socket.handlers.SocketEventHandler
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+
+data class CollectionAdded(
+  val collection: Collection,
+) : SocketEvent {
+  override fun toString(): String =
+    "CollectionAdded(id=${collection.id}, name=${collection.name}, books=${collection.books.size})"
+
+  companion object : SocketEventHandler<CollectionAdded> {
+    override val name: String = "collection_added"
+    override fun Json.decode(element: JsonElement): CollectionAdded {
+      return CollectionAdded(decodeFromJsonElement(Collection.serializer(), element))
+    }
+  }
+}

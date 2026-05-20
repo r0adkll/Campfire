@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
@@ -32,6 +33,13 @@ class UserComponentManager(
   override fun create(userSession: UserSession) {
     val newUserComponent = userComponentFactory.create(userSession)
     ComponentHolder.updateComponent(applicationScope, newUserComponent)
+
+    newUserComponent.scopedDependencies.value.forEach { scoped ->
+      applicationScope.launch(coroutineExceptionHandler) {
+        bark { "Initializing: $scoped" }
+        scoped.onCreate()
+      }
+    }
   }
 
   override suspend fun destroy() {

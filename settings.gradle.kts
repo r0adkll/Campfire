@@ -109,6 +109,9 @@ include(
   ":infra:whats-new:test",
   ":infra:whats-new:ui",
   ":infra:tracing",
+  ":infra:socket:api",
+  ":infra:socket:impl",
+  ":infra:socket:test",
 )
 include(
   ":common:screens",

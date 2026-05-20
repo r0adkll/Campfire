@@ -33,6 +33,7 @@ kotlin {
         api(projects.infra.whatsNew.impl)
         api(projects.infra.whatsNew.ui)
         api(projects.infra.tracing)
+        api(projects.infra.socket.impl)
 
         // Feature Modules
         api(projects.features.home.impl)
