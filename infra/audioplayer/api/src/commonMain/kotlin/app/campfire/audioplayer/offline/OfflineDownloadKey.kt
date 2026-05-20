@@ -24,18 +24,6 @@ data class OfflineDownloadKey(
   companion object {
     private const val SEPARATOR = '|'
 
-    fun decode(bytes: ByteArray): OfflineDownloadKey {
-      val decoded = bytes.decodeToString()
-      val separatorIndex = decoded.indexOf(SEPARATOR)
-      if (separatorIndex < 0) {
-        return OfflineDownloadKey(libraryItemId = decoded, episodeId = null)
-      }
-      val libraryItemId = decoded.substring(0, separatorIndex)
-      val episode = decoded.substring(separatorIndex + 1)
-      return OfflineDownloadKey(
-        libraryItemId = libraryItemId,
-        episodeId = episode.ifEmpty { null },
-      )
-    }
+    fun decode(bytes: ByteArray): OfflineDownloadKey = OfflineDownloadPayload.decode(bytes).key
   }
 }

@@ -9,7 +9,16 @@
   <string name="download_notification_channel_name">Offline Download Notifications</string>
   <string name="download_notification_channel_description">Notifications about downloading media for
     offline playback will appear in this channel</string>
-  <string name="download_notification_message">Downloading %1$d items</string>
+  <!-- Appended to the Media3-provided status label when more than one library item is in flight.
+       Example: "Downloading · 3 items". -->
+  <string name="download_notification_title_with_count">%1$s · %2$d items</string>
+  <!-- Notification expanded summary line. Example: "42% · 1 of 3 done". -->
+  <string name="download_notification_summary">%1$d%% · %2$d of %3$d done</string>
+  <!-- Notification header sub-text. Rendered next to the app name as "Campfire · 3 items". -->
+  <plurals name="download_notification_items">
+    <item quantity="one">%d item</item>
+    <item quantity="other">%d items</item>
+  </plurals>
 
   <string name="exo_controls_skip_backward">Skip backward</string>
   <string name="exo_controls_skip_forward">Skip forward</string>

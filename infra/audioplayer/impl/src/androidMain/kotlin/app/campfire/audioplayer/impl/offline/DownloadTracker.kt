@@ -151,10 +151,9 @@ class DownloadTracker(
     }
 
     val currentProgress = (totalPercentage / downloadTaskCount)
-    val currentProgressV2 = if (totalContentLength > 0L) {
-      downloadedBytes.toFloat() / totalContentLength.toFloat()
-    } else 0f
-    val isIndeterminate = !haveDownloadingTasks || (allDownloadPercentagesUnknown && downloadedBytes > 0L)
+    val isIndeterminate = !haveDownloadingTasks ||
+      contentLength <= 0L ||
+      (allDownloadPercentagesUnknown && downloadedBytes > 0L)
 
     return OfflineDownload(
       libraryItemId = key.libraryItemId,
@@ -172,8 +171,7 @@ class DownloadTracker(
       contentLength = contentLength,
       progress = OfflineDownload.Progress(
         bytes = downloadedBytes,
-        percent = currentProgressV2.coerceIn(0f, 1f),
-//          (currentProgress / 100f).coerceIn(0f, 1f),
+        percent = (currentProgress / 100f).coerceIn(0f, 1f),
         indeterminate = isIndeterminate,
       ),
     )

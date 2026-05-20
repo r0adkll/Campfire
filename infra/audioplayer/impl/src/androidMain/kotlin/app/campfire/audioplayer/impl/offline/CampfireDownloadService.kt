@@ -6,7 +6,6 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
-import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
@@ -37,10 +36,10 @@ class CampfireDownloadService : DownloadService(
     ComponentHolder.component<CampfireDownloadServiceComponent>()
   }
 
-  private val downloadNotificationHelper by lazy {
-    DownloadNotificationHelper(
-      this,
-      CHANNEL_ID,
+  private val downloadNotifications by lazy {
+    CampfireDownloadNotifications(
+      context = this,
+      channelId = CHANNEL_ID,
     )
   }
 
@@ -53,26 +52,16 @@ class CampfireDownloadService : DownloadService(
   }
 
   override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification {
-    val message = if (downloads.size > 1) {
-      getString(R.string.download_notification_message, downloads.size)
-    } else if (downloads.size == 1) {
-      downloads.first().request.toMediaItem().mediaMetadata.title?.toString()
-    } else {
-      null
-    }
-
-    return downloadNotificationHelper.buildProgressNotification(
-      this,
-      R.drawable.ic_notification,
-      PendingIntent.getActivity(
+    return downloadNotifications.buildProgressNotification(
+      smallIcon = R.drawable.ic_notification,
+      contentIntent = PendingIntent.getActivity(
         this,
         0,
         component.activityIntentProvider.provide(),
         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
       ),
-      message,
-      downloads,
-      notMetRequirements,
+      downloads = downloads,
+      notMetRequirements = notMetRequirements,
     )
   }
 

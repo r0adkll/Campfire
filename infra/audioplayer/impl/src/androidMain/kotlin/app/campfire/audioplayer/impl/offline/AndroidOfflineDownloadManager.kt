@@ -6,8 +6,8 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import app.campfire.audioplayer.offline.OfflineDownload
-import app.campfire.audioplayer.offline.OfflineDownloadKey
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.audioplayer.offline.OfflineDownloadPayload
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
@@ -119,9 +119,16 @@ class AndroidOfflineDownloadManager(
   }
 
   override fun download(item: LibraryItem) {
+    val payload = OfflineDownloadPayload(
+      libraryItemId = item.id,
+      episodeId = null,
+      title = item.media.metadata.title.orEmpty(),
+      subtitle = item.media.metadata.authorName.orEmpty(),
+    ).encode()
+
     item.media.tracks.forEach { track ->
       val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrl.toUri())
-        .setData(item.id.encodeToByteArray())
+        .setData(payload)
         .build()
 
       DownloadService.sendAddDownload(
@@ -143,8 +150,14 @@ class AndroidOfflineDownloadManager(
       bark { "Cannot download episode ${episode.id}: missing audioTrack" }
       return
     }
+    val payload = OfflineDownloadPayload(
+      libraryItemId = item.id,
+      episodeId = episode.id,
+      title = episode.title,
+      subtitle = item.media.metadata.title.orEmpty(),
+    ).encode()
     val request = DownloadRequest.Builder(episodeDownloadId(item.id, episode.id), track.contentUrl.toUri())
-      .setData(OfflineDownloadKey(item.id, episode.id).encode())
+      .setData(payload)
       .build()
 
     DownloadService.sendAddDownload(
