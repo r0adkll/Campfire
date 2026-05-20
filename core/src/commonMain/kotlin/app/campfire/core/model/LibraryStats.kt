@@ -30,13 +30,13 @@ data class LongestItem(
 
 data class LibraryStats(
   val totalItems: Int,
-  val totalAuthors: Int,
+  val totalAuthors: Int?,
   val totalGenres: Int,
   val totalSizeInBytes: Long,
   val totalDuration: Duration,
   val numAudioTracks: Int,
   val largestItems: List<LargestItem>,
-  val authorsWithCount: List<AuthorWithCount>,
+  val authorsWithCount: List<AuthorWithCount>?,
   val genresWithCount: List<GenreWithCount>,
   val longestItems: List<LongestItem>,
 )

@@ -164,13 +164,15 @@ class StatsPresenter(
         ),
       )
 
-      add(
-        StatsUiModel.TopAuthors(
-          largestCount = libraryStats.authorsWithCount.maxOf { it.count },
-          totalCount = libraryStats.totalAuthors,
-          authors = libraryStats.authorsWithCount.toImmutableList(),
-        ),
-      )
+      if (libraryStats.authorsWithCount != null && libraryStats.totalAuthors != null) {
+        add(
+          StatsUiModel.TopAuthors(
+            largestCount = libraryStats.authorsWithCount!!.maxOf { it.count },
+            totalCount = libraryStats.totalAuthors!!,
+            authors = libraryStats.authorsWithCount!!.toImmutableList(),
+          ),
+        )
+      }
     }
   }
 }

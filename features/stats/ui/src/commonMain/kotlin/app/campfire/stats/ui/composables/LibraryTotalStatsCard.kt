@@ -23,6 +23,7 @@ import app.campfire.stats.ui.StatsUiModel
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.card_library_totals_title
 import campfire.features.stats.ui.generated.resources.library_totals_summary_format
+import campfire.features.stats.ui.generated.resources.podcast_library_totals_summary_format
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
@@ -73,12 +74,18 @@ internal fun LibraryTotalStatsCard(
 @Composable
 private fun createOverviewText(
   totalItem: Int,
-  totalAuthors: Int,
+  totalAuthors: Int?,
   totalTime: Duration,
   totalTracks: Int,
   totalSizeInBytes: Long,
 ): AnnotatedString {
-  val tokens = stringResource(Res.string.library_totals_summary_format).tokenize()
+  val tokens = stringResource(
+    if (totalAuthors == null) {
+      Res.string.podcast_library_totals_summary_format
+    } else {
+      Res.string.library_totals_summary_format
+    }
+  ).tokenize()
   return buildAnnotatedString {
     tokens.forEach { token ->
       when (token) {
@@ -87,7 +94,7 @@ private fun createOverviewText(
           when (token.key) {
             "items" -> append("$totalItem items")
             "authors" -> append("$totalAuthors authors")
-            "time" -> append(totalTime.readoutAtMost(DurationUnit.HOURS, ReadoutStyle.Long))
+            "time" -> append(totalTime.readoutAtMost(DurationUnit.DAYS, ReadoutStyle.Long))
             "tracks" -> append("$totalTracks tracks")
             "size" -> append(totalSizeInBytes.asReadableBytes())
             else -> Unit

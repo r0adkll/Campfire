@@ -16,7 +16,9 @@ fun Duration.readoutAtMost(
   atMost: DurationUnit,
   style: ReadoutStyle = ReadoutStyle.Short,
 ): String {
-  return if (inWholeHours > 0 && atMost >= DurationUnit.HOURS) {
+  return if (inWholeDays > 0 && atMost >= DurationUnit.DAYS) {
+    "$inWholeDays ${style.formatForStyle("d", "days")}"
+  } else if (inWholeHours > 0 && atMost >= DurationUnit.HOURS) {
     "$inWholeHours ${style.formatForStyle("hrs", "hours")}"
   } else if (inWholeMinutes > 0 && atMost >= DurationUnit.MINUTES) {
     "$inWholeMinutes ${style.formatForStyle("min", "minutes")}"

@@ -32,8 +32,8 @@ data class LongestItem(
 @Serializable
 data class LibraryStats(
   val largestItems: List<LargestItem>,
-  val totalAuthors: Int,
-  val authorsWithCount: List<AuthorWithCount>,
+  val totalAuthors: Int? = null,
+  val authorsWithCount: List<AuthorWithCount>? = null,
   val totalGenres: Int,
   val genresWithCount: List<GenreWithCount>,
   val totalItems: Int,

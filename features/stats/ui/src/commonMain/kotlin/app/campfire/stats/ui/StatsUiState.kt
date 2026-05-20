@@ -48,7 +48,7 @@ sealed class StatsUiModel(val id: Any) {
    */
   data class LibraryTotals(
     val totalItems: Int,
-    val totalAuthors: Int,
+    val totalAuthors: Int?,
     val totalSizeInBytes: Long,
     val totalDuration: Duration,
     val numAudioTracks: Int,

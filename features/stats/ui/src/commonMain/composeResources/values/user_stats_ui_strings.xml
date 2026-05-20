@@ -11,6 +11,7 @@
   <string name="card_top_authors_title">Top authors</string>
   <string name="totals_format">%1$s Total</string>
   <string name="library_totals_summary_format">There are {{items}} from {{authors}} spanning {{time}} over {{tracks}} taking up {{size}} of storage.</string>
+  <string name="podcast_library_totals_summary_format">There are {{items}} spanning {{time}} over {{tracks}} taking up {{size}} of storage.</string>
   <string name="stats_user">User</string>
   <string name="stats_library">Library</string>
 

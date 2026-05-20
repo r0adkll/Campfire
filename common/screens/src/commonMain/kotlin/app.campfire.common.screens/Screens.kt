@@ -107,7 +107,10 @@ data class AuthorDetailScreen(
 ) : DetailScreen(name = "AuthorDetailScreen")
 
 @Parcelize
-data object StatisticsScreen : BaseScreen(name = "Statistics")
+data object StatisticsScreen : BaseScreen(name = "Statistics") {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true)
+}
 
 @Parcelize
 data object StorageScreen : BaseScreen(name = "Storage")

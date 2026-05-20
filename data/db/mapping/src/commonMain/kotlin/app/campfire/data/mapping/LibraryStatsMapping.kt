@@ -22,7 +22,7 @@ suspend fun NetworkLibraryStats.asDomainModel(
       )
     },
     totalAuthors = totalAuthors,
-    authorsWithCount = authorsWithCount.map { author ->
+    authorsWithCount = authorsWithCount?.map { author ->
       AuthorWithCount(
         id = author.id,
         name = author.name,
