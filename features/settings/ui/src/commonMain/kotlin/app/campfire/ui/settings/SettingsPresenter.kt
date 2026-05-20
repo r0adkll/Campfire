@@ -287,7 +287,7 @@ class SettingsPresenter(
             LibraryItemScreen(
               libraryItemId = event.entry.libraryItem.id,
               episodeId = (event.entry as? DownloadEntry.Episode)?.episode?.id,
-            )
+            ),
           )
           is DeleteDownload -> when (val entry = event.entry) {
             is DownloadEntry.Book -> offlineDownloadManager.delete(entry.libraryItem)
