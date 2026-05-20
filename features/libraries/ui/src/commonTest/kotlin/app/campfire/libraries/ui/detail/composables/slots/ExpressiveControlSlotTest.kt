@@ -12,6 +12,7 @@ import androidx.compose.ui.test.runComposeUiTest
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.home.ui.libraryItem
+import app.campfire.home.ui.media
 import app.campfire.libraries.ui.detail.TestLibraryItemId
 import app.campfire.libraries.ui.detail.composables.setCampfireContent
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
@@ -137,9 +138,11 @@ class ExpressiveControlSlotTest {
 
   @Test
   fun determinateTest() = runComposeUiTest {
-    val libraryItem = libraryItem()
     val progressBytes = 1L * 1024L * 1024L // 1Mb
     val contentLength = 10L * 1024L * 1024L // 10Mb
+    // ExpressiveControlSlot prefers libraryItem.media.sizeInBytes over the offline
+    // download's contentLength when present, so align the two for this test.
+    val libraryItem = libraryItem(media = media(sizeInBytes = contentLength))
     val offlineDownload = OfflineDownload(
       libraryItemId = TestLibraryItemId,
       state = OfflineDownload.State.Downloading,
