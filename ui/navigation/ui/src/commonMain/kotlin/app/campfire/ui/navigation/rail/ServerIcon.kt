@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
-import app.campfire.common.compose.widgets.DefaultServerIconSize
 import app.campfire.core.di.AppScope
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -15,6 +15,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 interface ServerIconComponent {
   val themeIconContent: ThemeIconContent
 }
+
+val DefaultServerIconSize = 40.dp
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable

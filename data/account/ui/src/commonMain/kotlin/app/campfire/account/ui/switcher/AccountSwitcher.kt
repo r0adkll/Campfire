@@ -50,10 +50,13 @@ import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.ConnectionIndicator
+import app.campfire.common.compose.widgets.ConnectionState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
+import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
 import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.action_switch_account
@@ -112,6 +115,7 @@ private fun AccountSwitcher(
   ) {
     AccountSwitcher(
       appTheme = state.theme,
+      socketState = state.socketState,
       serverName = { Text(serverName) },
       userName = { userName?.let { Text(it) } },
       onClick = onClick,
@@ -148,6 +152,7 @@ private fun AccountCard(
 @Composable
 private fun AccountSwitcher(
   appTheme: AppTheme,
+  socketState: SocketState,
   serverName: @Composable () -> Unit,
   userName: @Composable () -> Unit,
   onClick: () -> Unit,
@@ -171,24 +176,44 @@ private fun AccountSwitcher(
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      when (appTheme) {
-        AppTheme.Dynamic -> {
-          Image(
-            rememberWallVectorPainter(),
-            contentDescription = null,
-            modifier = Modifier
-              .size(TentIconSize),
-          )
+      Box(
+        modifier = Modifier.size(TentIconSize),
+      ) {
+        when (appTheme) {
+          AppTheme.Dynamic -> {
+            Image(
+              rememberWallVectorPainter(),
+              contentDescription = null,
+              modifier = Modifier
+                .size(TentIconSize),
+            )
+          }
+
+          is AppTheme.Fixed -> {
+            Image(
+              appTheme.icon.icon(),
+              contentDescription = null,
+              modifier = Modifier
+                .size(TentIconSize),
+            )
+          }
         }
 
-        is AppTheme.Fixed -> {
-          Image(
-            appTheme.icon.icon(),
-            contentDescription = null,
-            modifier = Modifier
-              .size(TentIconSize),
-          )
-        }
+        ConnectionIndicator(
+          state = when (socketState) {
+            is SocketState.Authenticated -> ConnectionState.Connected
+            SocketState.Authenticating -> ConnectionState.Connecting
+            SocketState.Connecting -> ConnectionState.Connecting
+            SocketState.Disconnected -> ConnectionState.Disconnected
+            is SocketState.Failed -> ConnectionState.Disconnected
+          },
+          size = 12.dp,
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(
+              top = 6.dp, end = 6.dp,
+            )
+        )
       }
 
       Spacer(Modifier.width(16.dp))

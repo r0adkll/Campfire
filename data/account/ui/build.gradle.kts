@@ -10,6 +10,7 @@ kotlin {
         implementation(projects.features.user.api)
         implementation(projects.features.libraries.api)
         implementation(projects.ui.theming.api)
+        implementation(projects.infra.socket.api)
 
         implementation(libs.compose.components.resources)
 

@@ -11,6 +11,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Library
 import app.campfire.core.model.Server
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.socket.SocketManager
 import app.campfire.ui.theming.api.AppThemeRepository
 import com.slack.circuit.runtime.presenter.Presenter
 import kotlinx.coroutines.flow.catch
@@ -26,6 +27,7 @@ class AccountSwitcherPresenter(
   private val serverRepository: ServerRepository,
   private val libraryRepository: LibraryRepository,
   private val themeRepository: AppThemeRepository,
+  private val socketManager: SocketManager,
 ) : Presenter<AccountSwitcherUiState> {
 
   @Composable
@@ -35,6 +37,8 @@ class AccountSwitcherPresenter(
     val currentAppTheme by remember {
       themeRepository.observeCurrentAppTheme()
     }.collectAsState()
+
+    val socketState by socketManager.state.collectAsState()
 
     val accountState by remember {
       serverRepository.observeCurrentServer()
@@ -69,6 +73,7 @@ class AccountSwitcherPresenter(
           allLibraries = allLibraries,
         )
       },
+      socketState = socketState,
       allAccounts = allAccounts,
     ) { event ->
       when (event) {

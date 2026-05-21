@@ -25,6 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.ConnectionIndicator
+import app.campfire.common.compose.widgets.ConnectionState
 import app.campfire.core.di.AppScope
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
@@ -60,56 +62,17 @@ class DefaultThemeIconContent(
           .fillMaxSize(),
       )
 
-      SocketIndicator(
-        state = socketState,
+      ConnectionIndicator(
+        state = when (socketState) {
+          is SocketState.Authenticated -> ConnectionState.Connected
+          SocketState.Authenticating -> ConnectionState.Connecting
+          SocketState.Connecting -> ConnectionState.Connecting
+          SocketState.Disconnected -> ConnectionState.Disconnected
+          is SocketState.Failed -> ConnectionState.Disconnected
+        },
         modifier = Modifier
           .align(Alignment.TopEnd)
       )
     }
-  }
-}
-
-@Composable
-private fun SocketIndicator(
-  state: SocketState,
-  modifier: Modifier = Modifier,
-) {
-  val indicatorColor by animateColorAsState(
-    when (state) {
-      is SocketState.Authenticated -> CampfireTheme.colorScheme.success
-      SocketState.Authenticating -> CampfireTheme.colorScheme.loading
-      SocketState.Connecting -> CampfireTheme.colorScheme.loading
-      SocketState.Disconnected -> MaterialTheme.colorScheme.error
-      is SocketState.Failed -> MaterialTheme.colorScheme.error
-    },
-  )
-
-  val infiniteTransition = rememberInfiniteTransition("socket_indicator_alpha")
-
-  val indicatorAlpha = when (state) {
-    is SocketState.Authenticated,
-    is SocketState.Failed,
-    SocketState.Disconnected,
-      -> 1f
-
-    SocketState.Authenticating,
-    SocketState.Connecting,
-      -> infiniteTransition.animateFloat(
-      0.3f, 0.8f,
-      animationSpec = infiniteRepeatable(
-        tween(500, easing = EaseInOutCubic),
-        RepeatMode.Reverse,
-      ),
-    ).value
-  }
-
-  Canvas(
-    modifier = modifier
-      .size(8.dp),
-  ) {
-    drawCircle(
-      color = indicatorColor,
-      alpha = indicatorAlpha,
-    )
   }
 }
