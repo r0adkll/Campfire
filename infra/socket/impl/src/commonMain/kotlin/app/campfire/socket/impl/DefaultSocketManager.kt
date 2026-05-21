@@ -2,7 +2,6 @@ package app.campfire.socket.impl
 
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
-import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.SingleIn
@@ -12,7 +11,6 @@ import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
-import app.campfire.network.di.UserClient
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -45,13 +43,14 @@ import app.campfire.socket.events.SocketEvent
 import app.campfire.socket.events.UserItemProgressUpdated
 import app.campfire.socket.events.UserSessionClosed
 import app.campfire.socket.events.UserUpdated
+import app.campfire.socket.impl.logging.NoOpLogging
+import com.piasy.kmp.socketio.engineio.transports.WebSocket
 import com.piasy.kmp.socketio.socketio.IO
 import com.piasy.kmp.socketio.socketio.Socket
 import com.piasy.kmp.xlog.Logging
 import com.piasy.kmp.xlog.LoggingImpl
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import io.ktor.client.HttpClient
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -139,23 +138,7 @@ class DefaultSocketManager(
   private var socket: Socket? = null
 
   init {
-    Logging.init(object : LoggingImpl {
-      override fun debug(): Boolean {
-        return false
-      }
-
-      override fun debug(tag: String, content: String) {
-        vbark { content }
-      }
-
-      override fun info(tag: String, content: String) {
-        dbark { content }
-      }
-
-      override fun error(tag: String, content: String) {
-        ebark { content }
-      }
-    })
+    Logging.init(NoOpLogging())
   }
 
   internal suspend fun start() {
@@ -169,7 +152,9 @@ class DefaultSocketManager(
     val url = session.user.serverUrl
     _state.value = SocketState.Connecting
 
-    val opts = IO.Options()
+    val opts = IO.Options().apply {
+      this.transports = listOf(WebSocket.NAME)
+    }
     IO.socket(url, opts) { newSocket ->
       socket = newSocket
 
@@ -246,9 +231,7 @@ class DefaultSocketManager(
         appLifecycleObserver.state.collectLatest { lifecycleState ->
           when (lifecycleState) {
             AppLifecycleState.Background -> {
-              ibark { "App backgrounded; closing socket in $BACKGROUND_DISCONNECT_DELAY" }
-              delay(BACKGROUND_DISCONNECT_DELAY)
-              ibark { "Background timer elapsed; closing socket" }
+              ibark { "App backgrounded; closing socket" }
               newSocket.close()
               _state.value = SocketState.Disconnected
             }

@@ -3,8 +3,10 @@ package app.campfire.common.compose.theme.color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +31,9 @@ class CampfireColorScheme(
   val onSuccess: Color,
   val successContainer: Color,
   val onSuccessContainer: Color,
+
+  val loading: Color,
+  val onLoading: Color,
 )
 
 fun lightCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
@@ -36,6 +41,9 @@ fun lightCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
   onSuccess = Color(0xFFD3FFC2),
   successContainer = Color(0xFFC1EFAF),
   onSuccessContainer = Color(0xFF012200),
+
+  loading = Color(0xffFEE650),
+  onLoading = Color(0xff4A4100),
 )
 
 fun darkCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
@@ -43,6 +51,9 @@ fun darkCampfireColorScheme(): CampfireColorScheme = CampfireColorScheme(
   onSuccess = Color(0xFFC5F0C8),
   successContainer = Color(0xFF719C63),
   onSuccessContainer = Color(0xFF000000),
+
+  loading = Color(0xffFEE650),
+  onLoading = Color(0xff4A4100),
 )
 
 val LocalCampfireColorScheme = staticCompositionLocalOf {
@@ -62,41 +73,69 @@ fun CampfireColorSchemePreview(
       modifier = Modifier
         .size(300.dp, 200.dp),
     ) {
-      Row(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+      Column(
+        modifier = Modifier.padding(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
       ) {
-        Box(
-          modifier = Modifier
-            .size(40.dp)
-            .background(
-              color = scheme.success,
-              shape = CircleShape,
-            ),
-          contentAlignment = Alignment.Center,
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Icon(
-            CampfireIcons.Rounded.FatCheck,
-            contentDescription = null,
-            tint = scheme.onSuccess,
-          )
+          Box(
+            modifier = Modifier
+              .size(40.dp)
+              .background(
+                color = scheme.success,
+                shape = CircleShape,
+              ),
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              CampfireIcons.Rounded.FatCheck,
+              contentDescription = null,
+              tint = scheme.onSuccess,
+            )
+          }
+
+          Box(
+            modifier = Modifier
+              .size(40.dp)
+              .background(
+                color = scheme.successContainer,
+                shape = CircleShape,
+              ),
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              CampfireIcons.Rounded.FatCheck,
+              contentDescription = null,
+              tint = scheme.onSuccessContainer,
+            )
+          }
         }
 
-        Box(
-          modifier = Modifier
-            .size(40.dp)
-            .background(
-              color = scheme.successContainer,
-              shape = CircleShape,
-            ),
-          contentAlignment = Alignment.Center,
+        Row(
+          modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-          Icon(
-            CampfireIcons.Rounded.FatCheck,
-            contentDescription = null,
-            tint = scheme.onSuccessContainer,
-          )
+          Box(
+            modifier = Modifier
+              .size(40.dp)
+              .background(
+                color = scheme.loading,
+                shape = CircleShape,
+              ),
+            contentAlignment = Alignment.Center,
+          ) {
+            Icon(
+              CampfireIcons.Rounded.FatCheck,
+              contentDescription = null,
+              tint = scheme.onLoading,
+            )
+          }
+
         }
       }
     }
