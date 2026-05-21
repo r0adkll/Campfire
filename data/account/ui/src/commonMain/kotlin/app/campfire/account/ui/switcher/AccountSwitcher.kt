@@ -211,8 +211,9 @@ private fun AccountSwitcher(
           modifier = Modifier
             .align(Alignment.TopEnd)
             .padding(
-              top = 6.dp, end = 6.dp,
-            )
+              top = 6.dp,
+              end = 6.dp,
+            ),
         )
       }
 

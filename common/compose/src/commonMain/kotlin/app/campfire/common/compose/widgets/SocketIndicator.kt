@@ -1,6 +1,5 @@
 package app.campfire.common.compose.widgets
 
-
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.EaseInOutCubic
 import androidx.compose.animation.core.RepeatMode
@@ -30,7 +29,7 @@ val DefaultConnectionIndicatorSize = 8.dp
 fun ConnectionIndicator(
   state: ConnectionState,
   modifier: Modifier = Modifier,
-  size: Dp = DefaultConnectionIndicatorSize
+  size: Dp = DefaultConnectionIndicatorSize,
 ) {
   val indicatorColor by animateColorAsState(
     when (state) {
@@ -45,10 +44,11 @@ fun ConnectionIndicator(
   val indicatorAlpha = when (state) {
     ConnectionState.Connected,
     ConnectionState.Disconnected,
-      -> 1f
+    -> 1f
 
     ConnectionState.Connecting -> infiniteTransition.animateFloat(
-      0.3f, 0.8f,
+      0.3f,
+      0.8f,
       animationSpec = infiniteRepeatable(
         tween(500, easing = EaseInOutCubic),
         RepeatMode.Reverse,

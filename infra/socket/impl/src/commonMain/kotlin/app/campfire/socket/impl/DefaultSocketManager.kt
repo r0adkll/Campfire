@@ -48,7 +48,6 @@ import com.piasy.kmp.socketio.engineio.transports.WebSocket
 import com.piasy.kmp.socketio.socketio.IO
 import com.piasy.kmp.socketio.socketio.Socket
 import com.piasy.kmp.xlog.Logging
-import com.piasy.kmp.xlog.LoggingImpl
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import kotlin.concurrent.Volatile
