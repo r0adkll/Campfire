@@ -18,10 +18,19 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
+        implementation(projects.infra.socket.api)
 
         implementation(libs.store)
 
         api(projects.features.user.api)
+      }
+    }
+
+    commonTest {
+      dependencies {
+        implementation(projects.features.user.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
       }
     }
   }

@@ -27,9 +27,18 @@ interface MediaProgressRepository {
 
   fun observeAllProgress(): Flow<List<MediaProgress>>
 
+  /**
+   * Persist [newProgress] to local storage.
+   *
+   * @param force Bypasses the synchronizer's stale-write throttle.
+   * @param skipUpload When `true`, the local write happens but the synchronizer's upload back
+   *   to the server is suppressed. Use this when the progress originated remotely (e.g. came
+   *   in over the socket from another client) so we don't echo it back to the server.
+   */
   suspend fun updateProgress(
     newProgress: MediaProgress,
     force: Boolean = false,
+    skipUpload: Boolean = false,
   )
 
   suspend fun deleteProgress(

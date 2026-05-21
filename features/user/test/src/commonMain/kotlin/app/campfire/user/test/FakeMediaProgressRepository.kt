@@ -37,8 +37,12 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     return allProgressFlow
   }
 
-  override suspend fun updateProgress(newProgress: MediaProgress, force: Boolean) {
-    invocations += Invocation.UpdateProgress(newProgress, force)
+  override suspend fun updateProgress(
+    newProgress: MediaProgress,
+    force: Boolean,
+    skipUpload: Boolean,
+  ) {
+    invocations += Invocation.UpdateProgress(newProgress, force, skipUpload)
   }
 
   override suspend fun deleteProgress(
@@ -72,7 +76,11 @@ class FakeMediaProgressRepository : MediaProgressRepository {
       val episodeId: PodcastEpisodeId? = null,
     ) : Invocation
     data object ObserveAllProgress : Invocation
-    data class UpdateProgress(val newProgress: MediaProgress, val force: Boolean) : Invocation
+    data class UpdateProgress(
+      val newProgress: MediaProgress,
+      val force: Boolean,
+      val skipUpload: Boolean,
+    ) : Invocation
     data class DeleteProgress(
       val libraryItemId: LibraryItemId,
       val episodeId: PodcastEpisodeId? = null,

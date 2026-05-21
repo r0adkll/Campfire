@@ -33,6 +33,7 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
@@ -48,7 +49,7 @@ private val SeriesCardWidth = 300.dp
 fun ShelfContent(
   shelf: UiShelf<ShelfEntity>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
-  progressStatus: (LibraryItemId) -> MediaProgress?,
+  progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   state: LazyListState = rememberLazyListState(),
@@ -121,7 +122,7 @@ private fun LoadedShelfContent(
   shelf: UiShelf<*>,
   entities: List<ShelfEntity>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
-  progressStatus: (LibraryItemId) -> MediaProgress?,
+  progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
   state: LazyListState = rememberLazyListState(),
@@ -154,7 +155,7 @@ private fun LoadedShelfContent(
           // to the specific shelf
           sharedTransitionKey = entity.id + shelf.id,
           offlineStatus = offlineStatus(entity.id),
-          progress = progressStatus(entity.id)
+          progress = progressStatus(entity.id, null)
             ?: entity.userMediaProgress,
           onClick = { onItemClick(entity) },
           modifier = Modifier
@@ -191,7 +192,7 @@ private fun LoadedShelfContent(
           episode = entity.recentEpisode,
           sharedTransitionKey = entity.transitionKey + shelf.id,
           offlineStatus = offlineStatus(entity.libraryItem.id),
-          progress = progressStatus(entity.libraryItem.id)
+          progress = progressStatus(entity.libraryItem.id, entity.recentEpisode.id)
             ?: entity.libraryItem.userMediaProgress,
           onClick = { onItemClick(entity) },
           modifier = Modifier

@@ -12,6 +12,7 @@ import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.model.Shelf
+import app.campfire.user.api.MediaProgressKey
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 import kotlinx.collections.immutable.ImmutableMap
@@ -21,7 +22,7 @@ import kotlinx.collections.immutable.PersistentList
 data class HomeUiState(
   val homeFeed: FeedResponse<out PersistentList<UiShelf<ShelfEntity>>>,
   val offlineStates: ImmutableMap<LibraryItemId, OfflineDownload>,
-  val progressStates: ImmutableMap<LibraryItemId, MediaProgress>,
+  val progressStates: ImmutableMap<MediaProgressKey, MediaProgress>,
   val eventSink: (HomeUiEvent) -> Unit,
 ) : CircuitUiState
 

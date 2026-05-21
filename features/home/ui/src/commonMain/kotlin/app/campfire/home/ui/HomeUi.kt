@@ -27,6 +27,7 @@ import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
@@ -34,6 +35,7 @@ import app.campfire.home.api.FeedResponse
 import app.campfire.home.ui.composables.ShelfListItem
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
+import app.campfire.user.api.MediaProgressKey
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.home_feed_load_error
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -89,8 +91,8 @@ fun HomeScreen(
           offlineStatus = { libraryItemId ->
             state.offlineStates[libraryItemId].asWidgetStatus()
           },
-          progressStatus = { libraryItemId ->
-            state.progressStates[libraryItemId]
+          progressStatus = { libraryItemId, podcastEpisodeId ->
+            state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
           },
           contentPadding = paddingValues,
           onItemClick = { shelf, item ->
@@ -122,7 +124,7 @@ fun HomeScreen(
 private fun LoadedState(
   shelves: List<UiShelf<ShelfEntity>>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
-  progressStatus: (LibraryItemId) -> MediaProgress?,
+  progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (UiShelf<*>, Any) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),

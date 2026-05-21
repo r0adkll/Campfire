@@ -21,6 +21,8 @@ import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
@@ -43,6 +45,7 @@ import me.tatarka.inject.annotations.Inject
 class HomePresenter(
   @Assisted private val navigator: Navigator,
   private val homeRepository: HomeRepository,
+  private val mediaProgressRepository: MediaProgressRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
 ) : NonPausablePresenter<HomeUiState> {
@@ -99,18 +102,11 @@ class HomePresenter(
     }
 
     val userMediaProgress by remember {
-      snapshotFlow { shelfEntities.values }
-        .map { responses ->
-          responses
-            .mapNotNull { it.dataOrNull }
-            .flatten()
-            .filterIsInstance<LibraryItem>()
-            .map { it.id }
-            .toSet()
-        }
-        .flatMapLatest { itemIds ->
-          homeRepository.observeMediaProgress(itemIds)
-            .map { it.toPersistentMap() }
+      mediaProgressRepository.observeAllProgress()
+        .map { allProgress ->
+          allProgress
+            .associateBy { MediaProgressKey(it) }
+            .toPersistentMap()
         }
     }.collectAsState(persistentMapOf())
 

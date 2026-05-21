@@ -66,7 +66,7 @@ class StoreMediaProgressRepository(
       refresh = refresh,
     )
     return store.stream(request)
-      .debugLogging("MediaProgressStore::observeProgress")
+      .debugLogging("MediaProgressStore::observeProgress($libraryItemId, $episodeId)")
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireSingle() }
@@ -100,7 +100,11 @@ class StoreMediaProgressRepository(
       .map { it.requireCollection() }
   }
 
-  override suspend fun updateProgress(newProgress: MediaProgress, force: Boolean) {
+  override suspend fun updateProgress(
+    newProgress: MediaProgress,
+    force: Boolean,
+    skipUpload: Boolean,
+  ) {
     // Update local storage
     val progressId = db.mediaProgressQueries.transactionWithResult {
       val existing = db.mediaProgressQueries.selectForEpisode(
@@ -119,8 +123,10 @@ class StoreMediaProgressRepository(
 
     val updatedProgress = newProgress.copy(id = progressId)
 
-    // Kick off potential synchronizer
-    mediaProgressSynchronizer.sync(updatedProgress, force)
+    // Kick off potential synchronizer (suppressed when the write originated remotely).
+    if (!skipUpload) {
+      mediaProgressSynchronizer.sync(updatedProgress, force)
+    }
   }
 
   override suspend fun deleteProgress(
