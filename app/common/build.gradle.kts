@@ -109,6 +109,12 @@ kotlin {
         implementation(libs.compose.navigationevent)
       }
     }
+
+    androidMain {
+      dependencies {
+        implementation(libs.androidx.lifecycle.process)
+      }
+    }
   }
 }
 

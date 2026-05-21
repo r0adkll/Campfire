@@ -3,14 +3,16 @@ package app.campfire.socket.impl
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.lifecycle.AppLifecycleObserver
+import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.UserClient
-import app.campfire.socket.RawSocketEvent
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -52,6 +54,7 @@ import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import io.ktor.client.HttpClient
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +62,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -68,18 +72,19 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import me.tatarka.inject.annotations.Inject
 
-@SingleIn(UserScope::class)
-@ContributesBinding(UserScope::class)
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 @Inject
 class DefaultSocketManager(
   private val userSessionManager: UserSessionManager,
   private val accountManager: AccountManager,
-  @UserClient private val httpClient: HttpClient,
-  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
+  private val appLifecycleObserver: AppLifecycleObserver,
+  @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
   companion object : Corked("DefaultSocketManager") {
     private const val MAX_AUTH_RETRIES = 3
+    private val BACKGROUND_DISCONNECT_DELAY = 30.seconds
   }
 
   @Volatile
@@ -87,9 +92,6 @@ class DefaultSocketManager(
 
   private val _state = MutableStateFlow<SocketState>(SocketState.Disconnected)
   override val state: StateFlow<SocketState> = _state.asStateFlow()
-
-  private val _rawEvents = MutableSharedFlow<RawSocketEvent>(extraBufferCapacity = 64)
-  override val rawEvents: SharedFlow<RawSocketEvent> = _rawEvents.asSharedFlow()
 
   private val _events = MutableSharedFlow<SocketEvent>(extraBufferCapacity = 64)
   override val events: SharedFlow<SocketEvent> = _events.asSharedFlow()
@@ -101,7 +103,7 @@ class DefaultSocketManager(
   /**
    * A managed list of events we can handle and parse from socket.io
    */
-  private val handlers = listOf(
+  private val eventConfigs = listOf(
     UserItemProgressUpdated,
     UserSessionClosed,
     UserUpdated,
@@ -136,17 +138,7 @@ class DefaultSocketManager(
   @Volatile
   private var socket: Socket? = null
 
-  internal suspend fun start() {
-    val session = userSessionManager.current as? UserSession.LoggedIn ?: return
-    if (accountManager.getToken(session.user.id)?.accessToken == null) {
-      wbark { "No access token for user ${session.user.id}; skipping socket connect" }
-      return
-    }
-
-    val userId = session.user.id
-    val url = session.user.serverUrl
-    _state.value = SocketState.Connecting
-
+  init {
     Logging.init(object : LoggingImpl {
       override fun debug(): Boolean {
         return false
@@ -164,17 +156,27 @@ class DefaultSocketManager(
         ebark { content }
       }
     })
+  }
 
-    val opts = IO.Options().apply {
-      httpClient = this@DefaultSocketManager.httpClient
+  internal suspend fun start() {
+    val session = userSessionManager.current as? UserSession.LoggedIn ?: return
+    if (accountManager.getToken(session.user.id)?.accessToken == null) {
+      wbark { "No access token for user ${session.user.id}; skipping socket connect" }
+      return
     }
+
+    val userId = session.user.id
+    val url = session.user.serverUrl
+    _state.value = SocketState.Connecting
+
+    val opts = IO.Options()
     IO.socket(url, opts) { newSocket ->
       socket = newSocket
 
       newSocket.on(Socket.EVENT_CONNECT) {
         ibark { "Socket connected to $url; reading token and sending auth" }
         _state.value = SocketState.Authenticating
-        coroutineScopeHolder.get().launch {
+        coroutineScope.launch {
           val freshToken = accountManager.getToken(userId)?.accessToken
           if (freshToken != null) {
             newSocket.emit("auth", freshToken)
@@ -194,10 +196,9 @@ class DefaultSocketManager(
           ibark { "Socket authenticated as $username ($authedUserId)" }
           _state.value = SocketState.Authenticated(authedUserId, username)
         }
-        _rawEvents.tryEmit(RawSocketEvent("init", args.toList()))
       }
 
-      handlers.forEach { handler ->
+      eventConfigs.forEach { handler ->
         newSocket.on(handler.name) { args ->
           val element = args.firstJsonElement()
           if (element != null) {
@@ -205,7 +206,6 @@ class DefaultSocketManager(
               .onSuccess { _events.tryEmit(it) }
               .onFailure { wbark { "Failed to parse ${handler.name}: ${it.message}" } }
           }
-          _rawEvents.tryEmit(RawSocketEvent(handler.name, args.toList()))
         }
       }
 
@@ -214,11 +214,10 @@ class DefaultSocketManager(
         val attempt = authFailureCount + 1
         wbark { "Socket auth failed: $message (attempt $attempt/$MAX_AUTH_RETRIES)" }
         _state.value = SocketState.Failed(message)
-        _rawEvents.tryEmit(RawSocketEvent("auth_failed", args.toList()))
 
         if (authFailureCount < MAX_AUTH_RETRIES) {
           authFailureCount = attempt
-          coroutineScopeHolder.get().launch {
+          coroutineScope.launch {
             val backoff = (2 * attempt).seconds
             ibark { "Retrying socket auth in $backoff" }
             delay(backoff)
@@ -242,6 +241,27 @@ class DefaultSocketManager(
       }
 
       newSocket.open()
+
+      coroutineScope.launch {
+        appLifecycleObserver.state.collectLatest { lifecycleState ->
+          when (lifecycleState) {
+            AppLifecycleState.Background -> {
+              ibark { "App backgrounded; closing socket in $BACKGROUND_DISCONNECT_DELAY" }
+              delay(BACKGROUND_DISCONNECT_DELAY)
+              ibark { "Background timer elapsed; closing socket" }
+              newSocket.close()
+              _state.value = SocketState.Disconnected
+            }
+            AppLifecycleState.Foreground -> {
+              if (!newSocket.connected) {
+                ibark { "App foregrounded; reopening socket" }
+                _state.value = SocketState.Connecting
+                newSocket.open()
+              }
+            }
+          }
+        }
+      }
     }
   }
 

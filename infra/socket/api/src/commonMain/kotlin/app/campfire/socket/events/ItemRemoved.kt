@@ -1,6 +1,5 @@
 package app.campfire.socket.events
 
-import app.campfire.socket.handlers.SocketEventHandler
 import app.campfire.socket.payloads.ItemRemovedPayload
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -10,7 +9,7 @@ data class ItemRemoved(
 ) : SocketEvent {
   override fun toString(): String = "ItemRemoved(id=${payload.id}, libraryId=${payload.libraryId})"
 
-  companion object : SocketEventHandler<ItemRemoved> {
+  companion object : SocketEventConfig<ItemRemoved> {
     override val name: String = "item_removed"
     override fun Json.decode(element: JsonElement): ItemRemoved {
       return ItemRemoved(decodeFromJsonElement(ItemRemovedPayload.serializer(), element))

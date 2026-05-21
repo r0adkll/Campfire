@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import app.campfire.core.di.AppScope
+import app.campfire.socket.SocketManager
 import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.widgets.ThemeIconContent

@@ -6,6 +6,5 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface SocketManager {
   val state: StateFlow<SocketState>
-  val rawEvents: SharedFlow<RawSocketEvent>
   val events: SharedFlow<SocketEvent>
 }

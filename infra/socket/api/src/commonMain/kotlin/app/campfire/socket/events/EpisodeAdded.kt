@@ -2,7 +2,6 @@ package app.campfire.socket.events
 
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.PodcastEpisode
-import app.campfire.socket.handlers.SocketEventHandler
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonObject
@@ -14,7 +13,7 @@ data class EpisodeAdded(
   override fun toString(): String =
     "EpisodeAdded(episodeId=${episode.id}, title=${episode.title}, libraryItemId=${episode.libraryItemId})"
 
-  companion object : SocketEventHandler<EpisodeAdded> {
+  companion object : SocketEventConfig<EpisodeAdded> {
     override val name: String = "episode_added"
     override fun Json.decode(element: JsonElement): EpisodeAdded {
       val obj = element.jsonObject

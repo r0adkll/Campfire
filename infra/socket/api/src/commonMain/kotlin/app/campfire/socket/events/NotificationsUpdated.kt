@@ -1,7 +1,6 @@
 package app.campfire.socket.events
 
 import app.campfire.network.models.NotificationSettings
-import app.campfire.socket.handlers.SocketEventHandler
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -11,7 +10,7 @@ data class NotificationsUpdated(
   override fun toString(): String =
     "NotificationsUpdated(id=${settings.id}, count=${settings.notifications?.size ?: 0})"
 
-  companion object : SocketEventHandler<NotificationsUpdated> {
+  companion object : SocketEventConfig<NotificationsUpdated> {
     override val name: String = "notifications_updated"
     override fun Json.decode(element: JsonElement): NotificationsUpdated {
       return NotificationsUpdated(decodeFromJsonElement(NotificationSettings.serializer(), element))

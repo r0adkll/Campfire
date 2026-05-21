@@ -1,6 +1,5 @@
 package app.campfire.socket.test
 
-import app.campfire.socket.RawSocketEvent
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.SocketEvent
@@ -10,9 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class FakeSocketManager : SocketManager {
   override val state: MutableStateFlow<SocketState> =
     MutableStateFlow(SocketState.Disconnected)
-
-  override val rawEvents: MutableSharedFlow<RawSocketEvent> =
-    MutableSharedFlow(extraBufferCapacity = 64)
 
   override val events: MutableSharedFlow<SocketEvent> =
     MutableSharedFlow(extraBufferCapacity = 64)

@@ -1,7 +1,6 @@
 package app.campfire.socket.events
 
 import app.campfire.network.models.Series
-import app.campfire.socket.handlers.SocketEventHandler
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 
@@ -10,7 +9,7 @@ data class SeriesAdded(
 ) : SocketEvent {
   override fun toString(): String = "SeriesAdded(id=${series.id}, name=${series.name})"
 
-  companion object : SocketEventHandler<SeriesAdded> {
+  companion object : SocketEventConfig<SeriesAdded> {
     override val name: String = "series_added"
     override fun Json.decode(element: JsonElement): SeriesAdded {
       return SeriesAdded(decodeFromJsonElement(Series.serializer(), element))

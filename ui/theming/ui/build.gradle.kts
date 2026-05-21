@@ -7,6 +7,7 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.ui.theming.api)
+        implementation(projects.infra.socket.api)
 
         implementation(libs.compose.components.resources)
 
