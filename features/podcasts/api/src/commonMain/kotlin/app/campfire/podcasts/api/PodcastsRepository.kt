@@ -35,6 +35,21 @@ interface PodcastsRepository {
   ): Result<Unit>
 
   /**
+   * Fetch the current server-side podcast download queue for [libraryId] — the actively
+   * downloading episode (if any) and the queued items. Used to hydrate
+   * [RemoteEpisodeDownloadTracker] at startup and on pull-to-refresh.
+   */
+  suspend fun fetchEpisodeDownloads(libraryId: LibraryId): Result<EpisodeDownloadsSnapshot>
+
+  /**
+   * Clear all queued downloads for the podcast identified by [libraryItemId]. Does NOT
+   * interrupt the actively-downloading item — the server has no API for that. Requires an
+   * Admin or Root account; non-admin callers receive a failure wrapping the server's 403.
+   * The server emits `episode_download_queue_cleared` on success.
+   */
+  suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit>
+
+  /**
    * Search the server's podcast directory (iTunes proxy) for podcasts matching [query]. Pass
    * [country] to override the server's default region. Results without a feed URL are filtered
    * out — only candidates that can be added as podcast items survive. Available to any

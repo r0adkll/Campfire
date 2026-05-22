@@ -1,5 +1,6 @@
 package app.campfire.network
 
+import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
@@ -136,6 +137,21 @@ interface AudioBookShelfApi {
     libraryItemId: String,
     episodes: List<RssPodcastEpisode>,
   ): Result<Unit>
+
+  /**
+   * Fetch the current server-side podcast download state for [libraryId] — both the actively
+   * downloading item and the queued items.
+   * Endpoint: `GET /api/libraries/{libraryId}/episode-downloads`. Available to any authenticated user.
+   */
+  suspend fun getEpisodeDownloads(libraryId: String): Result<EpisodeDownloadsResponse>
+
+  /**
+   * Clear all queued downloads for the podcast identified by [libraryItemId]. Does NOT interrupt
+   * the actively-downloading item.
+   * Endpoint: `GET /api/podcasts/{libraryItemId}/clear-queue` (yes, GET — server defines it that way).
+   * Requires Admin or Root user; regular users receive HTTP 403.
+   */
+  suspend fun clearPodcastDownloadQueue(libraryItemId: String): Result<Unit>
 
   //region Series
 

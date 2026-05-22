@@ -67,4 +67,16 @@
   <string name="add_podcast_builder_episodes_select_all">Select all</string>
   <string name="add_podcast_builder_episodes_clear">Clear</string>
   <string name="add_podcast_builder_episodes_hint">Selected episodes will be queued for download after the podcast is added.</string>
+
+  <string name="download_queue_title">Downloads</string>
+  <string name="download_queue_refresh">Refresh</string>
+  <string name="download_queue_empty">Nothing is downloading right now.</string>
+  <string name="download_queue_state_downloading">Downloading</string>
+  <string name="download_queue_state_queued">Queued</string>
+  <string name="download_queue_clear_action">Clear queue</string>
+  <string name="download_queue_clear_dialog_title">Clear queue?</string>
+  <string name="download_queue_clear_dialog_body">Queued episodes will be removed. The currently-downloading episode keeps going.</string>
+  <string name="download_queue_clear_dialog_confirm">Clear queue</string>
+  <string name="download_queue_clear_dialog_cancel">Cancel</string>
+  <string name="download_queue_untitled_episode">Untitled episode</string>
 </resources>

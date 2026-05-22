@@ -15,6 +15,7 @@ import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.CreatePodcastMedia
 import app.campfire.network.envelopes.CreatePodcastRequest
+import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
@@ -226,6 +227,26 @@ class KtorAudioBookShelfApi(
         method = HttpMethod.Post
         setBody(episodes)
       }
+    }
+  }
+
+  override suspend fun getEpisodeDownloads(libraryId: String): Result<EpisodeDownloadsResponse> {
+    return trySendRequest {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "libraries", libraryId, "episode-downloads")
+        },
+      )
+    }
+  }
+
+  override suspend fun clearPodcastDownloadQueue(libraryItemId: String): Result<Unit> {
+    return trySendRequest({}) {
+      hydratedClientRequest(
+        {
+          appendPathSegments("api", "podcasts", libraryItemId, "clear-queue")
+        },
+      )
     }
   }
 

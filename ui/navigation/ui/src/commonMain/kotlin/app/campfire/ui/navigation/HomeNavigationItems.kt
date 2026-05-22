@@ -21,6 +21,7 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import app.campfire.podcasts.api.screen.LatestEpisodesScreen
+import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_authors_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_authors_label
@@ -106,7 +107,7 @@ internal fun buildPodcastLibraryNavigationItems(): List<HomeNavigationItem> {
       selectedImageVector = Icons.Outlined.Podcasts,
     ),
     HomeNavigationItem(
-      screen = AuthorsScreen, // TODO: PodcastDownload Screen
+      screen = PodcastDownloadQueueScreen,
       label = stringResource(Res.string.nav_queue_label),
       contentDescription = stringResource(Res.string.nav_queue_content_description),
       iconImageVector = Icons.Outlined.Download,

@@ -20,6 +20,7 @@ kotlin {
         implementation(projects.data.network.api)
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
+        implementation(projects.infra.socket.api)
 
         implementation(libs.androidx.paging.common)
       }

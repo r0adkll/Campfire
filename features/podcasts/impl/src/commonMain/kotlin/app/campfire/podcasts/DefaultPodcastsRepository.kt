@@ -10,13 +10,17 @@ import app.campfire.libraries.api.LibraryFolder
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.podcasts.api.AddPodcastException
+import app.campfire.podcasts.api.EpisodeDownloadsSnapshot
 import app.campfire.podcasts.api.LatestEpisode
 import app.campfire.podcasts.api.PodcastDraft
 import app.campfire.podcasts.api.PodcastFeedDetails
 import app.campfire.podcasts.api.PodcastSearchResult
 import app.campfire.podcasts.api.PodcastsRepository
+import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.RemotePodcastEpisode
 import app.campfire.podcasts.api.sanitizePodcastPathSegment
+import app.campfire.podcasts.downloads.RemoteEpisodeDownloadSink
+import app.campfire.podcasts.downloads.toDomain
 import app.campfire.podcasts.mapping.asCreateMetadata
 import app.campfire.podcasts.mapping.asDomainModel
 import app.campfire.podcasts.mapping.asDomainModelOrNull
@@ -32,6 +36,7 @@ import me.tatarka.inject.annotations.Inject
 class DefaultPodcastsRepository(
   private val pagerFactory: RecentEpisodesPagerFactory,
   private val api: AudioBookShelfApi,
+  private val downloadSink: RemoteEpisodeDownloadSink,
 ) : PodcastsRepository {
 
   override fun createLatestEpisodesPager(user: User): Pager<Int, LatestEpisode> {
@@ -60,6 +65,21 @@ class DefaultPodcastsRepository(
       libraryItemId = libraryItemId,
       episodes = episodes.map { it.asNetworkModel() },
     )
+  }
+
+  override suspend fun fetchEpisodeDownloads(libraryId: LibraryId): Result<EpisodeDownloadsSnapshot> {
+    return api.getEpisodeDownloads(libraryId).map { response ->
+      val snapshot = EpisodeDownloadsSnapshot(
+        currentDownload = response.currentDownload?.toDomain(RemoteEpisodeDownload.State.Downloading),
+        queue = response.queue.map { it.toDomain(RemoteEpisodeDownload.State.Queued) },
+      )
+      downloadSink.applySnapshot(libraryId, snapshot)
+      snapshot
+    }
+  }
+
+  override suspend fun clearEpisodeDownloadQueue(libraryItemId: LibraryItemId): Result<Unit> {
+    return api.clearPodcastDownloadQueue(libraryItemId)
   }
 
   override suspend fun searchPodcasts(
