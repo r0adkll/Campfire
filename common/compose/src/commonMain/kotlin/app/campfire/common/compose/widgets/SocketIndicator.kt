@@ -13,6 +13,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
@@ -30,6 +31,8 @@ fun ConnectionIndicator(
   state: ConnectionState,
   modifier: Modifier = Modifier,
   size: Dp = DefaultConnectionIndicatorSize,
+  borderWidth: Dp = 2.dp,
+  borderColor: Color = MaterialTheme.colorScheme.surface,
 ) {
   val indicatorColor by animateColorAsState(
     when (state) {
@@ -44,7 +47,7 @@ fun ConnectionIndicator(
   val indicatorAlpha = when (state) {
     ConnectionState.Connected,
     ConnectionState.Disconnected,
-    -> 1f
+      -> 1f
 
     ConnectionState.Connecting -> infiniteTransition.animateFloat(
       0.3f,
@@ -58,11 +61,15 @@ fun ConnectionIndicator(
 
   Canvas(
     modifier = modifier
-      .size(size),
+      .size(size + (borderWidth * 2)),
   ) {
+    drawCircle(
+      color = borderColor,
+    )
     drawCircle(
       color = indicatorColor,
       alpha = indicatorAlpha,
+      radius = size.toPx() / 2.0f
     )
   }
 }

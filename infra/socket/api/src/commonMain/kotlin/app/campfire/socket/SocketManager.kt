@@ -7,4 +7,6 @@ import kotlinx.coroutines.flow.StateFlow
 interface SocketManager {
   val state: StateFlow<SocketState>
   val events: SharedFlow<SocketEvent>
+
+  fun retryConnection()
 }

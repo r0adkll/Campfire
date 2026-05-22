@@ -77,6 +77,10 @@ class AccountSwitcherPresenter(
       allAccounts = allAccounts,
     ) { event ->
       when (event) {
+        AccountSwitcherUiEvent.RetryConnection -> {
+          socketManager.retryConnection()
+        }
+
         is AccountSwitcherUiEvent.SelectLibrary -> {
           scope.launch {
             libraryRepository.setCurrentLibrary(event.library)

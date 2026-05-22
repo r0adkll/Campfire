@@ -275,6 +275,13 @@ class DefaultSocketManager(
     _state.value = SocketState.Disconnected
   }
 
+  override fun retryConnection() {
+    coroutineScope.launch {
+      stop()
+      start()
+    }
+  }
+
   private fun Array<out Any?>.firstJsonElement(): JsonElement? {
     return firstOrNull() as? JsonElement
   }

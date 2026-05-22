@@ -12,4 +12,8 @@ class FakeSocketManager : SocketManager {
 
   override val events: MutableSharedFlow<SocketEvent> =
     MutableSharedFlow(extraBufferCapacity = 64)
+
+  override fun retryConnection() {
+    // Do nothing
+  }
 }
