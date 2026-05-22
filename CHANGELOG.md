@@ -9,7 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for Podcasts!
+- Podcasts
+  - Add new podcasts
+  - Find and add new episodes
+  - Server download queue
+  - Latest episodes screen
+- Socket Connection
+  - Now supports the socket.io connection to the server
+  - Near-immediate syncing of item, series, playlists, collection, author changes from the server or other devices
+  - Improved progress syncing
+  - Live podcast episode download queue / notifications
 - New AI theme generator using local-only Gemini Nano via Halogen
 
 ### Changed
