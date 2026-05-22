@@ -64,3 +64,8 @@ ORDER BY shelfJoin.shelfOrder ASC;
 deleteForLibraryId:
 DELETE FROM series
 WHERE libraryId = ?;
+
+deleteById:
+DELETE FROM series
+WHERE id = ?
+  AND libraryId = ?;

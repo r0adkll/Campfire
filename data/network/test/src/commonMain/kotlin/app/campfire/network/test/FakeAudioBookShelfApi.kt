@@ -2,6 +2,7 @@ package app.campfire.network.test
 
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.PagedResponse
+import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
@@ -298,6 +299,14 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun getFilterData(libraryId: String): Result<FilterData> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun getEpisodeDownloads(libraryId: String): Result<EpisodeDownloadsResponse> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun clearPodcastDownloadQueue(libraryItemId: String): Result<Unit> {
     TODO("Not yet implemented")
   }
 }

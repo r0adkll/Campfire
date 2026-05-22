@@ -22,6 +22,7 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
         implementation(projects.features.user.api)
+        implementation(projects.infra.socket.api)
         implementation(libs.store)
         implementation(libs.store.cache)
         implementation(libs.androidx.paging.common)
