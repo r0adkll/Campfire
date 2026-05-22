@@ -22,6 +22,7 @@ import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.MediaType
 import app.campfire.libraries.api.LibraryRepository
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_collections_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_collections_label
@@ -45,6 +46,7 @@ interface NavigationComponent {
 @Inject
 class NavigationPresenter(
   private val libraryRepository: LibraryRepository,
+  private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
 ) {
 
   @Composable
@@ -52,9 +54,14 @@ class NavigationPresenter(
     val currentLibrary by remember {
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
+    val downloadQueueCount by remember {
+      remoteEpisodeDownloadTracker.state
+    }.collectAsState()
 
     return when (currentLibrary?.mediaType) {
-      MediaType.Podcast -> buildPodcastLibraryNavigationItems()
+      MediaType.Podcast -> buildPodcastLibraryNavigationItems(
+        downloadQueueCount = downloadQueueCount.values.sumOf { it.size },
+      )
       else -> buildBookLibraryNavigationItems()
     }
   }
@@ -64,12 +71,17 @@ class NavigationPresenter(
     val currentLibrary by remember {
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
+    val downloadQueueCount by remember {
+      remoteEpisodeDownloadTracker.state
+    }.collectAsState()
 
     val navigationType = LocalWindowSizeClass.current.navigationType
     if (navigationType == NavigationType.Drawer) {
       addAll(
         when (currentLibrary?.mediaType) {
-          MediaType.Podcast -> buildPodcastLibraryNavigationItems()
+          MediaType.Podcast -> buildPodcastLibraryNavigationItems(
+            downloadQueueCount = downloadQueueCount.values.sumOf { it.size },
+          )
           else -> buildBookLibraryNavigationItems()
         },
       )

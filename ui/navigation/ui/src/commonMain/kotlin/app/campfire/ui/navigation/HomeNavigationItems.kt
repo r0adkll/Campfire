@@ -83,7 +83,9 @@ internal fun buildBookLibraryNavigationItems(): List<HomeNavigationItem> {
 }
 
 @Composable
-internal fun buildPodcastLibraryNavigationItems(): List<HomeNavigationItem> {
+internal fun buildPodcastLibraryNavigationItems(
+  downloadQueueCount: Int = 0,
+): List<HomeNavigationItem> {
   return listOf(
     HomeNavigationItem(
       screen = HomeScreen,
@@ -112,6 +114,7 @@ internal fun buildPodcastLibraryNavigationItems(): List<HomeNavigationItem> {
       contentDescription = stringResource(Res.string.nav_queue_content_description),
       iconImageVector = Icons.Outlined.Download,
       selectedImageVector = Icons.Outlined.Download,
+      badgeCount = downloadQueueCount,
     ),
     HomeNavigationItem(
       screen = PlaylistsScreen,

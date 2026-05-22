@@ -17,6 +17,8 @@ import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.libraries.ui.detail.book.BookPresenter
 import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.RemoteEpisodeDownload
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
@@ -26,6 +28,10 @@ import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.campfire.user.test.FakeUserRepository
 import com.slack.circuit.test.FakeNavigator
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
 internal const val TestLibraryItemId = "item_id"
 
@@ -68,6 +74,9 @@ abstract class BaseLibraryItemPresenterTest {
     dispatcherProvider = dispatcherProvider,
   )
 
+  internal val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker =
+    EmptyRemoteEpisodeDownloadTracker
+
   internal val podcastPresenter = PodcastPresenter(
     analytics = analytics,
     userRepository = userRepository,
@@ -78,6 +87,7 @@ abstract class BaseLibraryItemPresenterTest {
     offlineDownloadManager = offlineDownloadManager,
     settings = settings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
   )
 
   internal val presenter = LibraryItemPresenter(
@@ -111,3 +121,15 @@ internal fun emptyLibraryItem(
   tags = tags,
   numOfChapters = numOfChapters,
 )
+
+/**
+ * A no-op tracker used by tests that don't care about the remote download queue. Always reports
+ * an empty state. Tests that need to assert against the queue can replace this with a real fake.
+ */
+private object EmptyRemoteEpisodeDownloadTracker : RemoteEpisodeDownloadTracker {
+  override val state: StateFlow<Map<LibraryItemId, List<RemoteEpisodeDownload>>> =
+    MutableStateFlow(emptyMap())
+  override val recentlyFinishedUrls: StateFlow<Set<String>> = MutableStateFlow(emptySet())
+  override fun observe(libraryItemId: LibraryItemId): Flow<List<RemoteEpisodeDownload>> =
+    flowOf(emptyList())
+}

@@ -11,4 +11,10 @@ data class HomeNavigationItem(
   val contentDescription: String,
   val iconImageVector: ImageVector,
   val selectedImageVector: ImageVector? = null,
+  /**
+   * Optional count rendered as a badge on the icon. Zero (the default) hides the badge.
+   * Currently used by the podcast Downloads queue nav item to surface the active server
+   * download count.
+   */
+  val badgeCount: Int = 0,
 )

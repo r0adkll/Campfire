@@ -58,6 +58,43 @@ A feature that touches multiple event families is fine — one listener class ca
 4. **Keep `handle()` fast.** It runs sequentially per listener — a 500ms `handle` delays the next event for that listener. For genuinely slow work, dispatch to a separate component or coroutine (rare in practice; repo upserts are sub-millisecond).
 5. **Don't catch exceptions just to swallow them.** The dispatcher already wraps `handle()` in `runCatching` and logs failures with the listener class name and event. If you have invariants that must hold, throw — you'll see it in logs.
 
+## When authoring a *new event type* (not a listener)
+
+If you're adding a new `SocketEvent` (not consuming one), one rule travels with it:
+
+**If the payload extends `app.campfire.network.models.NetworkModel` or `app.campfire.network.envelopes.Envelope`, override `applyOrigin(origin: RequestOrigin)` and propagate to the payload.** The dispatcher calls `event.applyOrigin(RequestOrigin.Url(serverUrl))` immediately after decoding so downstream DB inserts (which inspect `NetworkModel.origin` for cover URLs, signed-stream headers, etc.) see the right server. The default on `SocketEvent` is a no-op, so forgetting silently loses metadata — DB rows end up with `RequestOrigin.None` and any code that builds absolute URLs from `origin` breaks.
+
+```kotlin
+// ✅ Single object payload
+data class LibraryUpdated(val library: Library) : SocketEvent {
+  override fun applyOrigin(origin: RequestOrigin) = library.applyOrigin(origin)
+  /* ... */
+}
+
+// ✅ List payload — fan out
+data class ItemsUpdated(val items: List<LibraryItemExpanded>) : SocketEvent {
+  override fun applyOrigin(origin: RequestOrigin) = items.forEach { it.applyOrigin(origin) }
+  /* ... */
+}
+
+// ✅ Envelope wrapping a NetworkModel — reach through
+data class UserItemProgressUpdated(val payload: UserItemProgressUpdatedPayload) : SocketEvent {
+  override fun applyOrigin(origin: RequestOrigin) = payload.data.applyOrigin(origin)
+  /* ... */
+}
+
+// ✅ Plain payloads (Series, User, PodcastEpisode, your own *Payload types) — no override needed.
+data class SeriesAdded(val series: Series) : SocketEvent { /* ... */ }
+```
+
+**Audit rule of thumb**: if the payload field's type extends `NetworkModel` (directly or via `Envelope`), the event needs an `applyOrigin` override. Grep:
+
+```bash
+rg -l ': NetworkModel\(\)|: Envelope\(\)' data/network/api --type kt
+```
+
+…and check that every event whose payload type appears in that list has the override.
+
 ## Anti-patterns
 
 - **Adding the listener in `:infra:socket:impl`.** Don't. Socket impl is generic plumbing only; the only listener that lives there is the universal `SocketEventLogger`.

@@ -30,6 +30,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
+import app.campfire.libraries.ui.detail.composables.slots.DownloadingEpisodesSlot
 import app.campfire.libraries.ui.detail.composables.slots.EpisodeHeaderSlot
 import app.campfire.libraries.ui.detail.composables.slots.EpisodeSlot
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
@@ -38,7 +39,9 @@ import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.libraries.ui.detail.podcast.episode.showPodcastEpisodeBottomSheet
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
+import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.MediaProgressKey
@@ -65,6 +68,7 @@ class PodcastPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val settings: CampfireSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
+  private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
 ) : AbstractLibraryItemPresenter {
 
   @Composable
@@ -98,6 +102,10 @@ class PodcastPresenter(
       offlineDownloadManager.observeForEpisodes(libraryItem, podcastEpisodes)
     }.collectAsState(emptyMap())
 
+    val remoteDownloadCount by remember(libraryItem.id) {
+      remoteEpisodeDownloadTracker.observe(libraryItem.id).map { it.size }
+    }.collectAsState(0)
+
     val showConfirmDownloadDialog by remember {
       settings.observeShowConfirmDownload()
     }.collectAsState()
@@ -108,6 +116,7 @@ class PodcastPresenter(
       currentSession = currentSession,
       mediaProgress = mediaProgress,
       episodeDownloads = episodeDownloads,
+      remoteDownloadCount = remoteDownloadCount,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
       sharedTransitionKey = screen.sharedTransitionKey,
@@ -183,6 +192,11 @@ class PodcastPresenter(
             navigator.goTo(FindEpisodesScreen(libraryItem.id))
           }
 
+          LibraryItemUiEvent.OpenDownloads -> {
+            analytics.send(ActionEvent("podcast_open_downloads", Click))
+            navigator.goTo(PodcastDownloadQueueScreen)
+          }
+
           is LibraryItemUiEvent.DownloadEpisodeClick -> {
             analytics.send(ActionEvent("download_episode", Click))
             settings.showConfirmDownload = !event.doNotShowAgain
@@ -213,6 +227,7 @@ private fun buildSlots(
   currentSession: Session?,
   mediaProgress: Map<MediaProgressKey, MediaProgress>,
   episodeDownloads: Map<PodcastEpisodeId, OfflineDownload>,
+  remoteDownloadCount: Int,
   showConfirmDownloadDialog: Boolean,
   addToPlaylistDialog: AddToPlaylistDialog,
   sharedTransitionKey: String,
@@ -234,6 +249,11 @@ private fun buildSlots(
     rightLabel = { "Type" },
     rightAttributions = libraryItem.media.metadata.podcastType?.let { listOf(it) } ?: emptyList(),
   )
+
+  if (remoteDownloadCount > 0) {
+    this += SpacerSlot.medium("remote_downloads_spacer")
+    this += DownloadingEpisodesSlot(count = remoteDownloadCount)
+  }
 
   val podcastMedia = libraryItem.media as Media.Podcast
   podcastMedia.metadata.description?.let { desc ->
