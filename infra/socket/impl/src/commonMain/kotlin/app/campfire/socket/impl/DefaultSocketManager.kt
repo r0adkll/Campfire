@@ -84,6 +84,14 @@ class DefaultSocketManager(
   companion object : Corked("DefaultSocketManager") {
     private const val MAX_AUTH_RETRIES = 3
     private val BACKGROUND_DISCONNECT_DELAY = 30.seconds
+
+    init {
+      // Configure kmp-socketio's xlog backend exactly once per process. The default backend
+      // routes through platform-native loggers we don't want — `NoOpLogging` silences it and
+      // lets our own bark logs carry the load. Runs at class-load time so it's idempotent
+      // across recreations of the (App-scoped) singleton.
+      Logging.init(NoOpLogging())
+    }
   }
 
   @Volatile
@@ -136,10 +144,6 @@ class DefaultSocketManager(
 
   @Volatile
   private var socket: Socket? = null
-
-  init {
-    Logging.init(NoOpLogging())
-  }
 
   internal suspend fun start() {
     val session = userSessionManager.current as? UserSession.LoggedIn ?: return
@@ -209,6 +213,16 @@ class DefaultSocketManager(
             val backoff = (2 * attempt).seconds
             ibark { "Retrying socket auth in $backoff" }
             delay(backoff)
+            // Identity-change guard: if the logged-in user has changed during the backoff
+            // window (logout, switch account, etc.) the captured `newSocket` and `userId` no
+            // longer represent the current session. Reopening would re-auth a stale identity
+            // — bail and let the new session's start() spin up a fresh socket instead.
+            val currentUserId = (userSessionManager.current as? UserSession.LoggedIn)?.user?.id
+            if (currentUserId != userId) {
+              ibark { "User identity changed during retry backoff; aborting reconnect" }
+              newSocket.close()
+              return@launch
+            }
             newSocket.close()
             newSocket.open()
           }
