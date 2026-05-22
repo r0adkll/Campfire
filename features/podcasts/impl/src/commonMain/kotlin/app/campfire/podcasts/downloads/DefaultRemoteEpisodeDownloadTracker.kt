@@ -1,7 +1,9 @@
 package app.campfire.podcasts.downloads
 
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItemId
 import app.campfire.network.models.PodcastEpisodeDownload
@@ -9,6 +11,8 @@ import app.campfire.podcasts.api.EpisodeDownloadsSnapshot
 import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,26 +20,25 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
-/**
- * In-memory tracker for the server's active podcast download queue.
- *
- * State is rebuilt at user-scope start via [applySnapshot] (called by
- * `DefaultPodcastsRepository.fetchEpisodeDownloads`) and kept in sync by [PodcastEpisodeSocketListener]
- * pushing the per-event mutators. Finished downloads — success or failure — drop out of state
- * entirely; we don't keep a session-level history (per the plan).
- */
+private val FINISHED_TTL = 60.seconds
+
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class, boundType = RemoteEpisodeDownloadTracker::class)
 @ContributesBinding(UserScope::class, boundType = RemoteEpisodeDownloadSink::class)
 @Inject
-class DefaultRemoteEpisodeDownloadTracker :
-  RemoteEpisodeDownloadTracker,
+class DefaultRemoteEpisodeDownloadTracker(
+  @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
+) : RemoteEpisodeDownloadTracker,
   RemoteEpisodeDownloadSink {
 
   private val _state = MutableStateFlow<Map<LibraryItemId, List<RemoteEpisodeDownload>>>(emptyMap())
   override val state: StateFlow<Map<LibraryItemId, List<RemoteEpisodeDownload>>> = _state.asStateFlow()
+
+  private val _recentlyFinishedUrls = MutableStateFlow<Set<String>>(emptySet())
+  override val recentlyFinishedUrls: StateFlow<Set<String>> = _recentlyFinishedUrls.asStateFlow()
 
   override fun observe(libraryItemId: LibraryItemId): Flow<List<RemoteEpisodeDownload>> {
     return state
@@ -57,7 +60,19 @@ class DefaultRemoteEpisodeDownloadTracker :
       val updated = list.filter { it.id != download.id }
       if (updated.isEmpty()) {
         current - download.libraryItemId
-      } else current + (download.libraryItemId to updated)
+      } else {
+        current + (download.libraryItemId to updated)
+      }
+    }
+    // Only successful finishes get a transient "just finished" entry — failures fall straight
+    // back to Available so the row doesn't misleadingly show as downloaded.
+    if (!download.failed) {
+      val url = download.url
+      _recentlyFinishedUrls.update { it + url }
+      coroutineScopeHolder.get().launch {
+        delay(FINISHED_TTL)
+        _recentlyFinishedUrls.update { it - url }
+      }
     }
   }
 
@@ -68,7 +83,9 @@ class DefaultRemoteEpisodeDownloadTracker :
       val kept = list.filter { it.state != RemoteEpisodeDownload.State.Queued }
       if (kept.isEmpty()) {
         current - libraryItemId
-      } else current + (libraryItemId to kept)
+      } else {
+        current + (libraryItemId to kept)
+      }
     }
   }
 

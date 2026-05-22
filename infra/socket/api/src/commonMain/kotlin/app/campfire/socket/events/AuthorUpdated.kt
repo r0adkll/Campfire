@@ -1,5 +1,6 @@
 package app.campfire.socket.events
 
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.Author
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -8,6 +9,10 @@ data class AuthorUpdated(
   val author: Author,
 ) : SocketEvent {
   override fun toString(): String = "AuthorUpdated(id=${author.id}, name=${author.name})"
+
+  override fun applyOrigin(origin: RequestOrigin) {
+    author.applyOrigin(origin)
+  }
 
   companion object : SocketEventConfig<AuthorUpdated> {
     override val name: String = "author_updated"

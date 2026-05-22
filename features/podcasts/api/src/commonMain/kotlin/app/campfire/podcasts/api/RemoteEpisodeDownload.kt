@@ -23,6 +23,14 @@ data class RemoteEpisodeDownload(
   /** The library the parent podcast lives in. */
   val libraryId: LibraryId?,
 
+  /**
+   * The RSS enclosure URL the server is downloading from. The server uses this as the dedupe
+   * key — duplicate downloads for the same URL are silently ignored — so this is also the key
+   * we match against `RemotePodcastEpisode.enclosureUrl` when correlating feed rows to live
+   * download state.
+   */
+  val url: String,
+
   /** Human-readable episode title for display; may be null if RSS metadata is sparse. */
   val episodeDisplayTitle: String?,
 

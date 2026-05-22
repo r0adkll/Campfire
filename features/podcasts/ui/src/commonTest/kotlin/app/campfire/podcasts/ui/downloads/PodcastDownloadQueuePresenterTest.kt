@@ -163,6 +163,7 @@ class PodcastDownloadQueuePresenterTest {
     id = id,
     libraryItemId = libraryItemId,
     libraryId = "lib_1",
+    url = "https://feed.example.com/$id.mp3",
     episodeDisplayTitle = "Ep $id",
     podcastTitle = podcastTitle,
     state = state,

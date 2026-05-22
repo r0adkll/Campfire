@@ -27,7 +27,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewWrapper
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -293,6 +292,7 @@ private fun previewDownload(
   id = id,
   libraryItemId = libraryItemId,
   libraryId = "lib_podcasts",
+  url = "https://feed.example.com/$id.mp3",
   episodeDisplayTitle = episodeDisplayTitle,
   podcastTitle = null,
   state = state,

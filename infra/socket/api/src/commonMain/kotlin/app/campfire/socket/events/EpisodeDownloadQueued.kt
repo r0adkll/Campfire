@@ -1,5 +1,6 @@
 package app.campfire.socket.events
 
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.PodcastEpisodeDownload
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -9,6 +10,10 @@ data class EpisodeDownloadQueued(
 ) : SocketEvent {
   override fun toString(): String = "EpisodeDownloadQueued(id=${download.id}, " +
     "title=${download.episodeDisplayTitle}, libraryItemId=${download.libraryItemId})"
+
+  override fun applyOrigin(origin: RequestOrigin) {
+    download.applyOrigin(origin)
+  }
 
   companion object : SocketEventConfig<EpisodeDownloadQueued> {
     override val name: String = "episode_download_queued"

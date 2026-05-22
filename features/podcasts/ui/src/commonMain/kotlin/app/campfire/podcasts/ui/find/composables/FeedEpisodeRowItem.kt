@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +33,7 @@ import app.campfire.common.compose.icons.rounded.Downloading
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.extensions.asDate
 import app.campfire.podcasts.api.RemotePodcastEpisode
+import app.campfire.podcasts.ui.find.DownloadState
 import app.campfire.podcasts.ui.find.FeedEpisodeRow
 
 @Composable
@@ -42,23 +44,33 @@ internal fun FeedEpisodeRowItem(
   modifier: Modifier = Modifier,
   shape: Shape = MaterialTheme.shapes.medium,
 ) {
-  val isInteractive = !row.isAlreadyDownloaded && !row.isQueued
-  val effectiveChecked = isSelected || row.isAlreadyDownloaded || row.isQueued
-  val containerColor = when {
-    row.isAlreadyDownloaded -> CampfireTheme.colorScheme.successContainer
-    row.isQueued -> MaterialTheme.colorScheme.surfaceContainerLowest
-    isSelected -> MaterialTheme.colorScheme.secondaryContainer
-    else -> MaterialTheme.colorScheme.surfaceContainer
+  val isInteractive = row.downloadState is DownloadState.Available
+  val effectiveChecked = isSelected || !isInteractive
+  val containerColor = when (row.downloadState) {
+    DownloadState.InLibrary,
+    DownloadState.Finished,
+    -> CampfireTheme.colorScheme.successContainer
+    DownloadState.Downloading,
+    DownloadState.Queued,
+    -> MaterialTheme.colorScheme.surfaceContainerLowest
+    DownloadState.Available -> if (isSelected) {
+      MaterialTheme.colorScheme.secondaryContainer
+    } else {
+      MaterialTheme.colorScheme.surfaceContainer
+    }
   }
-  val contentColor = when {
-    row.isAlreadyDownloaded -> CampfireTheme.colorScheme.onSuccessContainer.copy(
-      alpha = DisabledAlpha,
-    )
-    row.isQueued -> MaterialTheme.colorScheme.onSurfaceVariant.copy(
-      alpha = DisabledAlpha,
-    )
-    isSelected -> MaterialTheme.colorScheme.onSecondaryContainer
-    else -> MaterialTheme.colorScheme.onSurface
+  val contentColor = when (row.downloadState) {
+    DownloadState.InLibrary,
+    DownloadState.Finished,
+    -> CampfireTheme.colorScheme.onSuccessContainer.copy(alpha = DisabledAlpha)
+    DownloadState.Downloading,
+    DownloadState.Queued,
+    -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = DisabledAlpha)
+    DownloadState.Available -> if (isSelected) {
+      MaterialTheme.colorScheme.onSecondaryContainer
+    } else {
+      MaterialTheme.colorScheme.onSurface
+    }
   }
   Surface(
     modifier = modifier.fillMaxWidth(),
@@ -101,53 +113,59 @@ internal fun FeedEpisodeRowItem(
 
         Spacer(Modifier.width(16.dp))
 
-        when {
-          row.isAlreadyDownloaded -> {
-            Box(
-              modifier = modifier
-                .align(Alignment.CenterVertically)
-                .size(40.dp),
-              contentAlignment = Alignment.Center,
-            ) {
-              Icon(
-                CampfireIcons.Rounded.Download,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = CampfireTheme.colorScheme.onSuccessContainer,
-              )
-            }
-          }
-          row.isQueued -> {
-            Box(
-              modifier = modifier
-                .align(Alignment.CenterVertically)
-                .size(40.dp),
-              contentAlignment = Alignment.Center,
-            ) {
-              Icon(
-                CampfireIcons.Rounded.Downloading,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = MaterialTheme.colorScheme.onSurface,
-              )
-            }
-          }
-          else -> {
-            Checkbox(
-              checked = effectiveChecked,
-              onCheckedChange = null,
-              enabled = isInteractive,
-              colors = CheckboxDefaults.colors(
-                disabledCheckedColor = MaterialTheme.colorScheme.primary,
-              ),
-              modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .align(Alignment.CenterVertically),
+        when (row.downloadState) {
+          DownloadState.InLibrary,
+          DownloadState.Finished,
+          -> TrailingIconSlot {
+            Icon(
+              CampfireIcons.Rounded.Download,
+              contentDescription = null,
+              modifier = Modifier.size(24.dp),
+              tint = CampfireTheme.colorScheme.onSuccessContainer,
             )
           }
+          DownloadState.Downloading -> TrailingIconSlot {
+            CircularProgressIndicator(
+              modifier = Modifier.size(20.dp),
+              strokeWidth = 3.dp,
+              color = MaterialTheme.colorScheme.onSurface,
+            )
+          }
+          DownloadState.Queued -> TrailingIconSlot {
+            Icon(
+              CampfireIcons.Rounded.Downloading,
+              contentDescription = null,
+              modifier = Modifier.size(24.dp),
+              tint = MaterialTheme.colorScheme.onSurface,
+            )
+          }
+          DownloadState.Available -> Checkbox(
+            checked = effectiveChecked,
+            onCheckedChange = null,
+            enabled = isInteractive,
+            colors = CheckboxDefaults.colors(
+              disabledCheckedColor = MaterialTheme.colorScheme.primary,
+            ),
+            modifier = Modifier
+              .padding(horizontal = 8.dp)
+              .align(Alignment.CenterVertically),
+          )
         }
       }
     }
+  }
+}
+
+@Composable
+private fun TrailingIconSlot(
+  modifier: Modifier = Modifier,
+  content: @Composable () -> Unit,
+) {
+  Box(
+    modifier = modifier.size(40.dp),
+    contentAlignment = Alignment.Center,
+  ) {
+    content()
   }
 }
 

@@ -11,6 +11,7 @@ import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
+import app.campfire.network.RequestOrigin
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -187,7 +188,10 @@ class DefaultSocketManager(
           val element = args.firstJsonElement()
           if (element != null) {
             runCatching { with(handler) { json.decode(element) } }
-              .onSuccess { _events.tryEmit(it) }
+              .onSuccess {
+                it.applyOrigin(RequestOrigin.Url(url))
+                _events.tryEmit(it)
+              }
               .onFailure { wbark { "Failed to parse ${handler.name}: ${it.message}" } }
           }
         }

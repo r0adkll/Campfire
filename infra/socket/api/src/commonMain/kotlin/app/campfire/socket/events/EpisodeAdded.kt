@@ -1,5 +1,6 @@
 package app.campfire.socket.events
 
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.LibraryItemExpanded
 import app.campfire.network.models.PodcastEpisode
 import kotlinx.serialization.json.Json
@@ -12,6 +13,10 @@ data class EpisodeAdded(
 ) : SocketEvent {
   override fun toString(): String =
     "EpisodeAdded(episodeId=${episode.id}, title=${episode.title}, libraryItemId=${episode.libraryItemId})"
+
+  override fun applyOrigin(origin: RequestOrigin) {
+    libraryItem.applyOrigin(origin)
+  }
 
   companion object : SocketEventConfig<EpisodeAdded> {
     override val name: String = "episode_added"

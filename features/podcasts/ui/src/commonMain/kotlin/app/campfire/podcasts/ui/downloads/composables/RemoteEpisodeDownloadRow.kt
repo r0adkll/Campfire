@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -15,8 +14,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,7 +76,7 @@ private fun StateIndicator(
 
     RemoteEpisodeDownload.State.Queued -> Icon(
       CampfireIcons.Rounded.Downloading,
-      contentDescription = stringResource(Res.string.download_queue_state_queued)
+      contentDescription = stringResource(Res.string.download_queue_state_queued),
     )
   }
 }
@@ -153,6 +150,7 @@ private fun sampleRowDownload(
   id = "d_preview",
   libraryItemId = "li_preview",
   libraryId = "lib_podcasts",
+  url = "https://feed.example.com/d_preview.mp3",
   episodeDisplayTitle = title,
   podcastTitle = "Test Podcast",
   state = state,

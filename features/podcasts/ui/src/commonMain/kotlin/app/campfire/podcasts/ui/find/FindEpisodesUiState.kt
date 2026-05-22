@@ -27,9 +27,38 @@ sealed interface FeedState {
 @Immutable
 data class FeedEpisodeRow(
   val episode: RemotePodcastEpisode,
-  val isAlreadyDownloaded: Boolean,
-  val isQueued: Boolean = false,
+  val downloadState: DownloadState,
 )
+
+/**
+ * Composite state for a single feed row, derived in [FindEpisodesPresenter] by merging:
+ * - the local library's episode set ([InLibrary])
+ * - the server's live download queue ([Queued], [Downloading])
+ * - the tracker's recently-finished URL set ([Finished])
+ * - the local "user-just-queued" session set ([Queued] also)
+ *
+ * Precedence: an URL in the library always wins. After that, [Downloading] > [Queued] >
+ * [Finished] > [Available].
+ */
+sealed interface DownloadState {
+  /** Available to queue — not in local library and not in flight. */
+  data object Available : DownloadState
+
+  /** Sitting in the server's download queue. */
+  data object Queued : DownloadState
+
+  /** Server is actively pulling the file. */
+  data object Downloading : DownloadState
+
+  /**
+   * Transient — server just told us the download finished successfully. Fades to [InLibrary]
+   * once the new episode lands in the local DB (or expires after the tracker's TTL).
+   */
+  data object Finished : DownloadState
+
+  /** Already in the local library (was there when the screen opened, or has since arrived). */
+  data object InLibrary : DownloadState
+}
 
 sealed interface FindEpisodesUiEvent : CircuitUiEvent {
   data object Back : FindEpisodesUiEvent

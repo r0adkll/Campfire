@@ -23,6 +23,15 @@ interface RemoteEpisodeDownloadTracker {
   val state: StateFlow<Map<LibraryItemId, List<RemoteEpisodeDownload>>>
 
   /**
+   * Enclosure URLs the server has just *successfully* finished downloading. Entries self-prune
+   * after a short TTL — used by the Find Episodes row to keep showing a "downloaded" indicator
+   * for the brief window between the server's `episode_download_finished` event and the local
+   * library catching up (the next `episode_added` / `item_updated`). Failed downloads do NOT
+   * land here.
+   */
+  val recentlyFinishedUrls: StateFlow<Set<String>>
+
+  /**
    * Downloads scoped to a single podcast — convenience for detail / find-episodes screens.
    * Emits an empty list when nothing is queued or downloading for [libraryItemId].
    */

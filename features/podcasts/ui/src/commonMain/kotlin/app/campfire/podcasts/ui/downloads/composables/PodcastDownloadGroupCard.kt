@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Cancel
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -206,6 +204,7 @@ private fun sampleDownload(
   id = id,
   libraryItemId = "li_sample",
   libraryId = "lib_podcasts",
+  url = "https://feed.example.com/$id.mp3",
   episodeDisplayTitle = title,
   podcastTitle = null,
   state = state,

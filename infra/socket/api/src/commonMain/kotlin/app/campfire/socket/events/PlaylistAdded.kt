@@ -1,5 +1,6 @@
 package app.campfire.socket.events
 
+import app.campfire.network.RequestOrigin
 import app.campfire.network.models.Playlist
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -11,6 +12,10 @@ data class PlaylistAdded(
 ) : SocketEvent {
   override fun toString(): String =
     "PlaylistAdded(id=${playlist.id}, name=${playlist.name}, items=${playlist.items.size})"
+
+  override fun applyOrigin(origin: RequestOrigin) {
+    playlist.applyOrigin(origin)
+  }
 
   companion object : SocketEventConfig<PlaylistAdded> {
     override val name: String = "playlist_added"

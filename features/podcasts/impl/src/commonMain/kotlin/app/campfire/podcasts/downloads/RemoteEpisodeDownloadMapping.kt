@@ -14,6 +14,7 @@ fun PodcastEpisodeDownload.toDomain(state: RemoteEpisodeDownload.State): RemoteE
     id = id,
     libraryItemId = libraryItemId,
     libraryId = libraryId,
+    url = url,
     episodeDisplayTitle = episodeDisplayTitle,
     podcastTitle = podcastTitle,
     state = state,

@@ -17,6 +17,8 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.User
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.podcasts.api.PodcastsRepository
+import app.campfire.podcasts.api.RemoteEpisodeDownload
+import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.RemotePodcastEpisode
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.user.api.UserRepository
@@ -40,6 +42,7 @@ class FindEpisodesPresenter(
   private val libraryItemRepository: LibraryItemRepository,
   private val podcastsRepository: PodcastsRepository,
   private val userRepository: UserRepository,
+  private val downloadTracker: RemoteEpisodeDownloadTracker,
 ) : NonPausablePresenter<FindEpisodesUiState> {
 
   @OptIn(ExperimentalCoroutinesApi::class)
@@ -77,6 +80,11 @@ class FindEpisodesPresenter(
         }
     }.collectAsState(FeedLoadResult.Loading)
 
+    val serverDownloads by remember(screen.libraryItemId) {
+      downloadTracker.observe(screen.libraryItemId)
+    }.collectAsState(emptyList())
+    val recentlyFinishedUrls by downloadTracker.recentlyFinishedUrls.collectAsState()
+
     val feedState: FeedState by remember {
       snapshotFlow {
         val query = textFieldState.text.toString()
@@ -85,6 +93,8 @@ class FindEpisodesPresenter(
         val downloadedKeys = podcastMedia?.episodes?.mapTo(mutableSetOf()) {
           DownloadedKey(it.title, it.publishedAtMillis)
         }.orEmpty()
+
+        val serverDownloadByUrl = serverDownloads.associateBy { it.url }
 
         when (val load = feedLoadResult) {
           FeedLoadResult.Loading -> FeedState.Loading
@@ -98,9 +108,13 @@ class FindEpisodesPresenter(
               episodes = sorted.map { episode ->
                 FeedEpisodeRow(
                   episode = episode,
-                  isAlreadyDownloaded = DownloadedKey(episode.title, episode.publishedAtMillis)
-                    in downloadedKeys,
-                  isQueued = episode.enclosureUrl in queuedEnclosureUrls,
+                  downloadState = deriveDownloadState(
+                    episode = episode,
+                    inLibrary = DownloadedKey(episode.title, episode.publishedAtMillis) in downloadedKeys,
+                    serverDownload = serverDownloadByUrl[episode.enclosureUrl],
+                    recentlyFinished = episode.enclosureUrl in recentlyFinishedUrls,
+                    localQueued = episode.enclosureUrl in queuedEnclosureUrls,
+                  ),
                 )
               },
             )
@@ -141,8 +155,7 @@ class FindEpisodesPresenter(
             val toDownload = loaded.episodes
               .filter {
                 it.episode.enclosureUrl in selectedEnclosureUrls &&
-                  !it.isAlreadyDownloaded &&
-                  !it.isQueued
+                  it.downloadState is DownloadState.Available
               }
               .map { it.episode }
             if (toDownload.isEmpty()) return@FindEpisodesUiState
@@ -171,6 +184,32 @@ private data class DownloadedKey(
   val title: String,
   val publishedAtMillis: Long?,
 )
+
+/**
+ * Merge precedence:
+ *   InLibrary > Downloading > Queued > Finished > Available
+ *
+ * `InLibrary` wins regardless of tracker state — if the file is on disk, the row should reflect
+ * that, even if a stale tracker entry hasn't been pruned yet.
+ */
+private fun deriveDownloadState(
+  episode: RemotePodcastEpisode,
+  inLibrary: Boolean,
+  serverDownload: RemoteEpisodeDownload?,
+  recentlyFinished: Boolean,
+  localQueued: Boolean,
+): DownloadState {
+  if (inLibrary) return DownloadState.InLibrary
+  return when (serverDownload?.state) {
+    RemoteEpisodeDownload.State.Downloading -> DownloadState.Downloading
+    RemoteEpisodeDownload.State.Queued -> DownloadState.Queued
+    null -> when {
+      localQueued -> DownloadState.Queued
+      recentlyFinished -> DownloadState.Finished
+      else -> DownloadState.Available
+    }
+  }
+}
 
 private sealed interface FeedLoadResult {
   data object Loading : FeedLoadResult
