@@ -20,6 +20,7 @@ kotlin {
         implementation(projects.data.db.mapping)
         implementation(projects.data.crashreporting.api)
         implementation(projects.features.user.api)
+        implementation(projects.infra.socket.api)
         implementation(libs.store)
       }
     }
