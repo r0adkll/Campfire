@@ -12,6 +12,7 @@ import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -78,12 +79,12 @@ class DefaultSocketManager(
   private val userSessionManager: UserSessionManager,
   private val accountManager: AccountManager,
   private val appLifecycleObserver: AppLifecycleObserver,
+  private val settings: CampfireSettings,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
   companion object : Corked("DefaultSocketManager") {
     private const val MAX_AUTH_RETRIES = 3
-    private val BACKGROUND_DISCONNECT_DELAY = 30.seconds
 
     init {
       // Configure kmp-socketio's xlog backend exactly once per process. The default backend
@@ -233,13 +234,20 @@ class DefaultSocketManager(
 
       newSocket.on(Socket.EVENT_DISCONNECT) { args ->
         ibark { "Socket disconnected: ${args.joinToString()}" }
-        _state.value = SocketState.Disconnected
+        // When the disconnect was triggered by the user disabling realtime sync, the
+        // setting-observer has already parked state at Disabled. The socket's own disconnect
+        // event fires async after close() — don't let it clobber the intentional Disabled state.
+        if (_state.value !is SocketState.Disabled) {
+          _state.value = SocketState.Disconnected
+        }
       }
 
       newSocket.on(Socket.EVENT_CONNECT_ERROR) { args ->
         val reason = args.joinToString()
         ibark { "Socket connect error: $reason" }
-        _state.value = SocketState.Failed(reason)
+        if (_state.value !is SocketState.Disabled) {
+          _state.value = SocketState.Failed(reason)
+        }
       }
 
       newSocket.open()
@@ -250,9 +258,12 @@ class DefaultSocketManager(
             AppLifecycleState.Background -> {
               ibark { "App backgrounded; closing socket" }
               newSocket.close()
-              _state.value = SocketState.Disconnected
+              if (_state.value !is SocketState.Disabled) {
+                _state.value = SocketState.Disconnected
+              }
             }
             AppLifecycleState.Foreground -> {
+              if (!settings.socketEnabled) return@collectLatest
               if (!newSocket.connected) {
                 ibark { "App foregrounded; reopening socket" }
                 _state.value = SocketState.Connecting
@@ -275,7 +286,17 @@ class DefaultSocketManager(
     _state.value = SocketState.Disconnected
   }
 
+  /** Same as [stop] but parks state at [SocketState.Disabled] for the indicator-hide path. */
+  internal suspend fun stopForDisable() {
+    stop()
+    _state.value = SocketState.Disabled
+  }
+
   override fun retryConnection() {
+    if (!settings.socketEnabled) {
+      ibark { "retryConnection called while socket is disabled; ignoring" }
+      return
+    }
     coroutineScope.launch {
       stop()
       start()
@@ -302,7 +323,17 @@ class DefaultSocketManager(
     private val socketManager: DefaultSocketManager,
   ) : Scoped {
     override suspend fun onCreate() {
-      socketManager.start()
+      // collectLatest cancels the previous start when the setting flips, so toggling off
+      // mid-connection cleanly disconnects and toggling back on spins up a fresh socket.
+      socketManager.coroutineScope.launch {
+        socketManager.settings.observeSocketEnabled().collectLatest { enabled ->
+          if (enabled) {
+            socketManager.start()
+          } else {
+            socketManager.stopForDisable()
+          }
+        }
+      }
     }
 
     override suspend fun onDestroy() {

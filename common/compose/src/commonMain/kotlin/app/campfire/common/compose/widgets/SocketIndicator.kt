@@ -47,7 +47,7 @@ fun ConnectionIndicator(
   val indicatorAlpha = when (state) {
     ConnectionState.Connected,
     ConnectionState.Disconnected,
-      -> 1f
+    -> 1f
 
     ConnectionState.Connecting -> infiniteTransition.animateFloat(
       0.3f,
@@ -69,7 +69,7 @@ fun ConnectionIndicator(
     drawCircle(
       color = indicatorColor,
       alpha = indicatorAlpha,
-      radius = size.toPx() / 2.0f
+      radius = size.toPx() / 2.0f,
     )
   }
 }

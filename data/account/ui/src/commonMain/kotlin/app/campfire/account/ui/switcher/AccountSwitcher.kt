@@ -124,7 +124,7 @@ private fun AccountSwitcher(
       onClick = onClick,
       onRetryConnection = {
         state.eventSink(AccountSwitcherUiEvent.RetryConnection)
-      }
+      },
     ) {
       if (state.libraryState != null) {
         LibraryPicker(
@@ -172,7 +172,7 @@ private fun AccountSwitcher(
       .clickable(onClick = onClick),
   ) {
     val bottomPadding by animateDpAsState(
-      targetValue = if (socketState is SocketState.Failed) 8.dp else 24.dp
+      targetValue = if (socketState is SocketState.Failed) 8.dp else 24.dp,
     )
     Row(
       modifier = Modifier
@@ -209,24 +209,27 @@ private fun AccountSwitcher(
           }
         }
 
-        ConnectionIndicator(
-          state = when (socketState) {
-            is SocketState.Authenticated -> ConnectionState.Connected
-            SocketState.Authenticating -> ConnectionState.Connecting
-            SocketState.Connecting -> ConnectionState.Connecting
-            SocketState.Disconnected -> ConnectionState.Disconnected
-            is SocketState.Failed -> ConnectionState.Disconnected
-          },
-          size = 12.dp,
-          borderWidth = 3.dp,
-          borderColor = MaterialTheme.colorScheme.primaryContainer,
-          modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(
-              top = 6.dp,
-              end = 6.dp,
-            ),
-        )
+        if (socketState !is SocketState.Disabled) {
+          ConnectionIndicator(
+            state = when (socketState) {
+              is SocketState.Authenticated -> ConnectionState.Connected
+              SocketState.Authenticating -> ConnectionState.Connecting
+              SocketState.Connecting -> ConnectionState.Connecting
+              SocketState.Disconnected -> ConnectionState.Disconnected
+              is SocketState.Failed -> ConnectionState.Disconnected
+              SocketState.Disabled -> error("guarded above")
+            },
+            size = 12.dp,
+            borderWidth = 3.dp,
+            borderColor = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(
+                top = 6.dp,
+                end = 6.dp,
+              ),
+          )
+        }
       }
 
       Spacer(Modifier.width(16.dp))
@@ -262,7 +265,6 @@ private fun AccountSwitcher(
       }
     }
 
-
     AnimatedVisibility(
       visible = socketState is SocketState.Failed,
     ) {
@@ -287,7 +289,7 @@ private fun AccountSwitcher(
         Spacer(Modifier.width(8.dp))
 
         IconButton(
-          onClick = onRetryConnection
+          onClick = onRetryConnection,
         ) {
           Icon(Icons.Rounded.Refresh, contentDescription = null)
         }

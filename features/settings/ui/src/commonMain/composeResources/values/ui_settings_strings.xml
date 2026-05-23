@@ -28,6 +28,9 @@
   <string name="setting_account_name_subtitle">Update the name of this server in the app</string>
   <string name="setting_account_dialog_title">Change server name</string>
   <string name="setting_account_dialog_label">Server name</string>
+  <string name="setting_account_realtime_sync_header">Realtime sync</string>
+  <string name="setting_account_socket_sync_title">Live updates</string>
+  <string name="setting_account_socket_sync_subtitle">Stay connected to the server so library, podcast, and playback changes from other devices appear instantly. Turn off to disable the persistent socket.</string>
 
   <!-- Appearance setting strings -->
   <string name="header_appearance_overall">Application</string>

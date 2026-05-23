@@ -29,6 +29,7 @@ data class SettingsUiState(
   val isShakingAvailable: Boolean,
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
+  val socketSyncEnabled: Boolean,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
@@ -152,6 +153,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface AccountSettingEvent : SettingsUiEvent {
     data class ChangeTent(val tent: Tent) : AccountSettingEvent
     data class ChangeName(val name: String) : AccountSettingEvent
+    data class SocketSyncEnabled(val enabled: Boolean) : AccountSettingEvent
     data object Logout : AccountSettingEvent
   }
 

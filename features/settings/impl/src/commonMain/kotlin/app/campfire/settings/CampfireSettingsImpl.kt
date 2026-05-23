@@ -105,6 +105,10 @@ class CampfireSettingsImpl(
   private val lastSeenVersionProperty = stringOrNullSetting(KEY_LAST_SEEN_WHATS_NEW)
   override var lastSeenVersion: String? by lastSeenVersionProperty
   override fun observeLastSeenVersion(): StateFlow<String?> = lastSeenVersionProperty.observe()
+
+  private val socketEnabledProperty = booleanSetting(KEY_SOCKET_ENABLED, true)
+  override var socketEnabled: Boolean by socketEnabledProperty
+  override fun observeSocketEnabled(): StateFlow<Boolean> = socketEnabledProperty.observe()
 }
 
 internal const val KEY_DEVICE_ID = "pref_device_id"
@@ -127,6 +131,7 @@ internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"
 internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
 internal const val KEY_LAST_SEEN_WHATS_NEW = "pref_last_seen_whats_new"
+internal const val KEY_SOCKET_ENABLED = "pref_socket_enabled"
 
 // Dead keys
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"

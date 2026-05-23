@@ -15,6 +15,7 @@ kotlin {
 
         implementation(projects.core)
         implementation(projects.data.account.api)
+        implementation(projects.features.settings.api)
         implementation(libs.kmp.socketio)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.serialization.json)

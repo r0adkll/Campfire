@@ -57,6 +57,9 @@ class SettingsAnalyticUiEventHandler(
     is SettingsUiEvent.AccountSettingEvent -> when (event) {
       is ChangeName -> send("account_name", Updated)
       is ChangeTent -> send("account_tent", Updated)
+      is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
+        send("socket_sync", Updated, event.enabled)
+      }
       Logout -> send("logout", Click)
     }
 

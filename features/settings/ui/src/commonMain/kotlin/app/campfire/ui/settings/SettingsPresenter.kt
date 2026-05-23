@@ -184,6 +184,8 @@ class SettingsPresenter(
       .collectAsState()
     val analyticReportingEnabled by remember { settings.observeAnalyticReportingEnabled() }
       .collectAsState()
+    val socketSyncEnabled by remember { settings.observeSocketEnabled() }
+      .collectAsState()
 
     // Android Auto Settings
     val androidAutoCategories by remember {
@@ -238,6 +240,7 @@ class SettingsPresenter(
           null
         },
       ),
+      socketSyncEnabled = socketSyncEnabled,
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
@@ -266,6 +269,10 @@ class SettingsPresenter(
 
           is ChangeTent -> {
             scope.launch { serverRepository.changeTent(event.tent) }
+          }
+
+          is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
+            settings.socketEnabled = event.enabled
           }
 
           Logout -> {

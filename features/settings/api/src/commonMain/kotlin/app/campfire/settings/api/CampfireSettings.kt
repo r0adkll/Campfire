@@ -63,4 +63,15 @@ interface CampfireSettings {
 
   var lastSeenVersion: String?
   fun observeLastSeenVersion(): StateFlow<String?>
+
+  /**
+   * When `true`, the realtime Socket.IO connection to the ABS server is enabled and the client
+   * receives live updates (library/series/collection/podcast changes, media progress, etc.).
+   * When `false`, the socket stays disconnected and [app.campfire.socket.SocketState.Disabled]
+   * is exposed so UI indicators can hide.
+   *
+   * Defaults to `true`.
+   */
+  var socketEnabled: Boolean
+  fun observeSocketEnabled(): StateFlow<Boolean>
 }

@@ -50,21 +50,24 @@ class DefaultThemeIconContent(
           .fillMaxSize(),
       )
 
-      ConnectionIndicator(
-        state = when (socketState) {
-          is SocketState.Authenticated -> ConnectionState.Connected
-          SocketState.Authenticating -> ConnectionState.Connecting
-          SocketState.Connecting -> ConnectionState.Connecting
-          SocketState.Disconnected -> ConnectionState.Disconnected
-          is SocketState.Failed -> ConnectionState.Disconnected
-        },
-        modifier = Modifier
-          .align(Alignment.TopEnd)
-          .padding(
-            top = 2.dp,
-            end = 2.dp,
-          ),
-      )
+      if (socketState !is SocketState.Disabled) {
+        ConnectionIndicator(
+          state = when (socketState) {
+            is SocketState.Authenticated -> ConnectionState.Connected
+            SocketState.Authenticating -> ConnectionState.Connecting
+            SocketState.Connecting -> ConnectionState.Connecting
+            SocketState.Disconnected -> ConnectionState.Disconnected
+            is SocketState.Failed -> ConnectionState.Disconnected
+            SocketState.Disabled -> error("guarded above")
+          },
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(
+              top = 2.dp,
+              end = 2.dp,
+            ),
+        )
+      }
     }
   }
 }
