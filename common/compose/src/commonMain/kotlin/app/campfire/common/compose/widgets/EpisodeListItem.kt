@@ -139,7 +139,7 @@ fun EpisodeListItem(
             ),
           )
 
-          episode.episode?.let { ep ->
+          episode.episode?.takeIf { it.isNotBlank() }?.let { ep ->
             Spacer(Modifier.width(8.dp))
             Surface(
               color = if (isFinished) {

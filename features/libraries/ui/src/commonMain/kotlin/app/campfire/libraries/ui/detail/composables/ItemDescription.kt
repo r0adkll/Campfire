@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -121,11 +122,15 @@ internal fun ItemDescription(
 @Composable
 internal fun rememberRichTextState(
   html: String,
+  linkColor: Color = MaterialTheme.colorScheme.tertiary,
 ): RichTextState {
   val state = rememberRichTextState()
 
   LaunchedEffect(html) {
     state.setHtml(html)
+    state.config.apply {
+      this.linkColor = linkColor
+    }
   }
 
   return state
