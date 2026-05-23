@@ -146,8 +146,11 @@ internal fun MediaProgressBar(
 
       Spacer(Modifier.weight(1f))
 
+      val wholeProgress = progress.actualProgress.times(100f)
+        .takeIf { !it.isNaN() }
+        ?.roundToInt()
       Text(
-        text = "${progress.actualProgress.times(100f).roundToInt()}%",
+        text = "${wholeProgress ?: "--"}%",
         style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.SemiBold,
       )

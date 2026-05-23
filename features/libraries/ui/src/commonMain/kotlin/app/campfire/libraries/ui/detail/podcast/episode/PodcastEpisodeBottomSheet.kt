@@ -189,7 +189,7 @@ private fun PodcastEpisodeBottomSheet(
     }
 
     // Progress bar
-    state.progress?.let { progress ->
+    state.progress?.takeIf { it.isValid }?.let { progress ->
       Spacer(Modifier.height(24.dp))
       MediaProgressBar(
         isPlaying = state.isPlaying,

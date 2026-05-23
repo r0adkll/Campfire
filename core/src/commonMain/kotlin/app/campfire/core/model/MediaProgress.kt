@@ -40,6 +40,9 @@ data class MediaProgress(
     Remote,
   }
 
+  val isValid: Boolean
+    get() = progress > 0f || (duration ?: 0f) > 0f
+
   /**
    * Get the [currentTime] in [Duration] units, accounting for [isFinished],
    * where if true, it returns 0 duration.
