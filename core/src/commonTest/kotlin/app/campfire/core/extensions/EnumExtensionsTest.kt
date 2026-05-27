@@ -33,7 +33,6 @@ class EnumExtensionsTest {
     val next = initial.previous()
     assertThat(next).isEqualTo(TestEnum.Value3)
   }
-
 }
 
 enum class TestEnum {

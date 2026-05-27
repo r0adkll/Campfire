@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -62,7 +61,6 @@ import campfire.ui.navigation.ui.generated.resources.action_change_theme_mode
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -159,12 +157,16 @@ fun CampfireDrawer(
             targetState = state.themeMode,
             transitionSpec = {
               val inSpec: FiniteAnimationSpec<Float> = tween(220, delayMillis = 90)
-              (fadeIn(animationSpec = inSpec) + scaleIn(
-                initialScale = 0f,
-                animationSpec = inSpec,
-              )) togetherWith (scaleOut(
-                animationSpec = tween(90),
-              ) + fadeOut(tween(90)))
+              (
+                fadeIn(animationSpec = inSpec) + scaleIn(
+                  initialScale = 0f,
+                  animationSpec = inSpec,
+                )
+                ) togetherWith (
+                scaleOut(
+                  animationSpec = tween(90),
+                ) + fadeOut(tween(90))
+                )
             },
           ) { mode ->
             Icon(
