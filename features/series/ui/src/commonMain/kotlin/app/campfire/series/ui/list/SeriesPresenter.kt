@@ -63,11 +63,15 @@ class SeriesPresenter(
       settings.observeSeriesSortDirection()
     }.collectAsState()
 
-    val currentUser by remember {
-      userRepository.observeStatefulCurrentUser()
-    }.collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
 
-    val lazyPagingItems = rememberRetained(currentUser, filter, sortMode, sortDirection) {
+    val lazyPagingItems = rememberRetained(
+      currentUser.id,
+      currentUser.selectedLibraryId,
+      filter,
+      sortMode,
+      sortDirection,
+    ) {
       seriesRepository.createSeriesPager(
         user = currentUser,
         filter = filter,

@@ -17,6 +17,7 @@ import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.User
 import app.campfire.core.settings.ItemDisplayState
@@ -31,6 +32,7 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
@@ -56,7 +58,7 @@ class LibraryPresenter(
     // Using a pager requires us to remember the coroutine scope passed the
     // composition of this pager / ui. We should remember it until this screen
     // leaves the back stack
-    val scope = rememberRetainedCoroutineScope()
+    val scope = rememberRetainedCoroutineScope("library_presenter_scope")
 
     val currentLibrary by remember {
       repository.observeCurrentLibrary()
@@ -74,11 +76,15 @@ class LibraryPresenter(
       settings.observeLibrarySortDirection()
     }.collectAsState()
 
-    val currentUser by remember {
-      userRepository.observeStatefulCurrentUser()
-    }.collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
 
-    val lazyPagingItems = rememberRetained(currentUser, sortMode, sortDirection, itemFilter) {
+    val lazyPagingItems = rememberRetained(
+      currentUser.id,
+      currentUser.selectedLibraryId,
+      sortMode,
+      sortDirection,
+      itemFilter,
+    ) {
       repository.createLibraryItemPager(
         user = currentUser,
         filter = itemFilter,

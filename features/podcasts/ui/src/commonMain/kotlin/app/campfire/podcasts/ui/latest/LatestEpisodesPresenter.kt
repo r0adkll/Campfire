@@ -10,6 +10,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.podcasts.api.PodcastsRepository
@@ -22,6 +23,7 @@ import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -44,16 +46,20 @@ class LatestEpisodesPresenter(
 
   @Composable
   override fun present(): LatestEpisodesUiState {
-    val scope = rememberRetainedCoroutineScope()
+    val scope = rememberRetainedCoroutineScope("last_episodes_presenter")
 
     val currentSession by remember {
       sessionsRepository.observeCurrentSession()
     }.collectAsState(null)
 
-    val currentUser by userRepository.observeStatefulCurrentUser().collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
 
-    val pagingItems = rememberRetained(currentUser.id, currentUser.selectedLibraryId) {
-      podcastsRepository.createLatestEpisodesPager(currentUser).flow.cachedIn(scope)
+    val pagingItems = rememberRetained(
+      currentUser.id,
+      currentUser.selectedLibraryId,
+    ) {
+      podcastsRepository.createLatestEpisodesPager(currentUser)
+        .flow.cachedIn(scope)
     }.collectAsLazyPagingItems()
 
     val mediaProgress by remember {
@@ -76,6 +82,7 @@ class LatestEpisodesPresenter(
               episodeId = event.episodeId,
             )
           }
+
           is LatestEpisodesUiEvent.OpenPodcast -> {
             navigator.goTo(
               LibraryItemScreen(
@@ -84,6 +91,7 @@ class LatestEpisodesPresenter(
               ),
             )
           }
+
           is LatestEpisodesUiEvent.MarkFinished -> {
             val episode = event.episode.episode
 
@@ -104,6 +112,7 @@ class LatestEpisodesPresenter(
               playbackHistoryRepository.clear(episode.libraryItemId, episode.id)
             }
           }
+
           is LatestEpisodesUiEvent.MarkNotFinished -> {
             val episode = event.episode.episode
             scope.launch {

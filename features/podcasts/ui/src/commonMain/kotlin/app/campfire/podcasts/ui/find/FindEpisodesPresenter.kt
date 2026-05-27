@@ -56,7 +56,7 @@ class FindEpisodesPresenter(
     var queuedEnclosureUrls by remember { mutableStateOf(emptySet<String>()) }
     var isQueuingDownload by remember { mutableStateOf(false) }
 
-    val currentUser by remember { userRepository.observeStatefulCurrentUser() }.collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
     val canBrowseFeed = currentUser.type.canBrowseFeed
 
     val libraryItem by remember {

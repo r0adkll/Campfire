@@ -36,7 +36,7 @@ class PodcastDownloadQueuePresenter(
   @Composable
   override fun present(): PodcastDownloadQueueUiState {
     val scope = rememberCoroutineScope()
-    val currentUser by userRepository.observeStatefulCurrentUser().collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
     val downloads by tracker.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 

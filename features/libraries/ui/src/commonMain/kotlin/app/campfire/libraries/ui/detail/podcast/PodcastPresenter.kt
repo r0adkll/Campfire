@@ -80,8 +80,7 @@ class PodcastPresenter(
     val scope = rememberCoroutineScope()
     val overlayHost = LocalOverlayHost.current
 
-    val currentUser by remember { userRepository.observeStatefulCurrentUser() }
-      .collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
 
     val currentSession by remember {
       sessionsRepository.observeCurrentSession()

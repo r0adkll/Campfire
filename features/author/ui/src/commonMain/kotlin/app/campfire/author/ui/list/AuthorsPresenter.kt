@@ -54,11 +54,14 @@ class AuthorsPresenter(
       settings.observeAuthorsSortDirection()
     }.collectAsState()
 
-    val currentUser by remember {
-      userRepository.observeStatefulCurrentUser()
-    }.collectAsState()
+    val currentUser by userRepository.userFlow.collectAsState()
 
-    val lazyPagingItems = rememberRetained(currentUser, sortMode, sortDirection) {
+    val lazyPagingItems = rememberRetained(
+      currentUser.id,
+      currentUser.selectedLibraryId,
+      sortMode,
+      sortDirection,
+    ) {
       authorRepository.createAuthorsPager(
         user = currentUser,
         sortMode = sortMode,

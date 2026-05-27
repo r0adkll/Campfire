@@ -146,7 +146,7 @@ class StoreLibraryRepository(
   ).build()
 
   override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> {
-    return userRepository.observeStatefulCurrentUser()
+    return userRepository.userFlow
       .flatMapLatest { user ->
         // Fetch the latest library based on the value in the User has selected in the database.
         // If the user changes libraries an active subscription to this flow should update the current library

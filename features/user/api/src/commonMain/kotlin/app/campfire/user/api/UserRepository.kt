@@ -7,16 +7,16 @@ import kotlinx.coroutines.flow.StateFlow
 interface UserRepository {
 
   /**
-   * Observe the user for the current logged in server
-   */
-  fun observeCurrentUser(): Flow<User>
-
-  /**
    * Observe the current user as a [StateFlow].
    * Warning! If you observe this in a non-logged in composable
    * it will crash.
    */
-  fun observeStatefulCurrentUser(): StateFlow<User>
+  val userFlow: StateFlow<User>
+
+  /**
+   * Observe the user for the current logged in server
+   */
+  fun observeCurrentUser(): Flow<User>
 
   suspend fun getCurrentUser(): User
 }
