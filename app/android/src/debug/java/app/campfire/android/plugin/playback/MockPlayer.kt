@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
+import app.campfire.android.plugin.common.SectionButton
 import com.livewire.ui.graphics.CircleShape
 import com.livewire.ui.graphics.CornerSize
 import com.livewire.ui.graphics.RoundedCornerShape
@@ -202,13 +203,16 @@ internal fun MockPlayer(
     // The session's advertised custom commands, discovered from the connection —
     // sent with empty args, the same path external controllers use
     if (snapshot.customCommands.isNotEmpty()) {
-      Row(verticalAlignment = Alignment.CenterVertically) {
+      Column(
+        modifier = LivewireModifier
+          .padding(horizontal = 32.dp),
+      ) {
         snapshot.customCommands.forEach { customAction ->
           SectionButton(
             action = mainAction(key = "custom_$customAction") {
               controller.sendCustomCommand(SessionCommand(customAction, Bundle.EMPTY), Bundle.EMPTY)
             },
-            modifier = LivewireModifier.padding(2.dp),
+            modifier = LivewireModifier.fillMaxWidth(),
           ) { Text(customAction.substringAfterLast('.')) }
         }
       }

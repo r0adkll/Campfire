@@ -9,6 +9,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import app.campfire.android.plugin.common.LoadingIndicator
+import app.campfire.android.plugin.common.LogRow
+import app.campfire.android.plugin.common.SectionButton
+import app.campfire.android.plugin.common.SectionHeader
 import com.livewire.ui.actions.clickAction
 import com.livewire.ui.graphics.RoundedCornerShape
 import com.livewire.ui.layout.Alignment
@@ -210,49 +214,6 @@ private fun AnalyticsLogPanel() {
         }
       }
     }
-  }
-}
-
-@Composable
-internal fun LogRow(
-  time: String,
-  type: String,
-  typeColor: Color,
-  source: String?,
-  details: String,
-) {
-  Column(
-    LivewireModifier
-      .fillMaxWidth()
-      .padding(
-        vertical = 4.dp,
-      ),
-  ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Text(
-        text = time,
-        style = TextStyle.LabelMedium,
-        color = Color.Gray,
-      )
-      Spacer(LivewireModifier.padding(4.dp))
-      Text(
-        text = type,
-        style = TextStyle.LabelMedium,
-        color = typeColor,
-      )
-      if (source != null) {
-        Spacer(LivewireModifier.padding(4.dp))
-        Text(
-          text = source,
-          style = TextStyle.LabelMedium,
-          color = Color.LightGray,
-        )
-      }
-    }
-    Text(
-      text = details,
-      style = TextStyle.BodySmall,
-    )
   }
 }
 

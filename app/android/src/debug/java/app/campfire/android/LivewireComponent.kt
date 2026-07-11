@@ -2,9 +2,9 @@ package app.campfire.android
 
 import android.app.Application
 import androidx.media3.exoplayer.offline.DownloadManager
-import app.campfire.android.plugin.CampfireLivewirePlugin
 import app.campfire.android.plugin.CoilDebugArtworkLoader
 import app.campfire.android.plugin.analytics.AnalyticsLivewirePlugin
+import app.campfire.android.plugin.campfire.CampfireLivewirePlugin
 import app.campfire.android.plugin.playback.PlaybackLivewirePlugin
 import app.campfire.audioplayer.impl.AudioPlayerService
 import app.campfire.audioplayer.impl.offline.CampfireDownloadService

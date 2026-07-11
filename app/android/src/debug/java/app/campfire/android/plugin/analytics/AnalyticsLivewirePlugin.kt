@@ -8,13 +8,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import app.campfire.android.plugin.analytics.LivewireAnalytics.RecordedEvent
-import app.campfire.android.plugin.playback.SectionButton
-import app.campfire.android.plugin.playback.SectionHeader
-import app.campfire.android.plugin.playback.SegmentedSection
+import app.campfire.android.plugin.common.SectionButton
+import app.campfire.android.plugin.common.SectionHeader
+import app.campfire.android.plugin.common.SegmentedSection
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Analytics
 import com.livewire.ui.Plugin
@@ -205,7 +204,9 @@ private fun RecordedEvent.matches(filter: String): Boolean {
 @Composable
 private fun EmptyState(
   modifier: LivewireModifier = LivewireModifier,
-  content: @Composable @LivewireComposable ColumnScope.() -> Unit,
+  content:
+  @Composable @LivewireComposable
+  ColumnScope.() -> Unit,
 ) {
   Column(
     modifier = modifier
@@ -239,7 +240,7 @@ private fun EventRow(
         .fillMaxWidth()
         .padding(
           horizontal = 12.dp,
-          vertical = 8.dp
+          vertical = 8.dp,
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
