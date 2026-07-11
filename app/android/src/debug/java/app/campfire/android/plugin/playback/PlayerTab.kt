@@ -108,11 +108,11 @@ internal fun SegmentedSection(
   title: String,
   rows: List<Pair<String, String>>,
 ) {
-  SectionHeader(title)
+  if (title.isNotEmpty()) SectionHeader(title)
   Surface(
     modifier = LivewireModifier.fillMaxWidth(),
     shape = RoundedCornerShape(12.dp),
-    tonalElevation = 1.dp,
+    tonalElevation = 3.dp,
   ) {
     Column(LivewireModifier.fillMaxWidth()) {
       rows.forEachIndexed { index, (label, value) ->

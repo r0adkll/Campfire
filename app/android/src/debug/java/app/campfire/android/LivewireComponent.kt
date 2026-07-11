@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.media3.exoplayer.offline.DownloadManager
 import app.campfire.android.plugin.CampfireLivewirePlugin
 import app.campfire.android.plugin.CoilDebugArtworkLoader
+import app.campfire.android.plugin.analytics.AnalyticsLivewirePlugin
 import app.campfire.android.plugin.playback.PlaybackLivewirePlugin
 import app.campfire.audioplayer.impl.AudioPlayerService
 import app.campfire.audioplayer.impl.offline.CampfireDownloadService
@@ -38,6 +39,7 @@ interface LivewireComponent {
       install(NetworkPlugin())
       install(RecompositionPlugin())
       install(campfirePlugin)
+      install(AnalyticsLivewirePlugin())
 
       // The playback plugin is app-agnostic and destined for the Livewire library —
       // it takes its minimum needs explicitly rather than participating in our DI.

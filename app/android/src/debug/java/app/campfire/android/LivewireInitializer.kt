@@ -1,7 +1,9 @@
 package app.campfire.android
 
 import androidx.media3.exoplayer.offline.DownloadManager
+import app.campfire.analytics.Analytics
 import app.campfire.android.plugin.CampfireAudioPlayerDebugHooks
+import app.campfire.android.plugin.analytics.LivewireAnalytics
 import app.campfire.android.plugin.playback.DownloadDebugCollector
 import app.campfire.audioplayer.impl.AudioPlayerDebugHooks
 import app.campfire.core.app.AppInitializer
@@ -20,6 +22,7 @@ class LivewireInitializer(
   override suspend fun onInitialize() {
     AudioPlayerDebugHooks.Holder.hooks = CampfireAudioPlayerDebugHooks
     DownloadDebugCollector.attach(downloadManager)
+    Analytics.Delegator += LivewireAnalytics
     livewireClient.start()
   }
 }
