@@ -37,6 +37,7 @@ ksp = "2.3.10"
 ktlint = "0.49.1"
 ktor = "3.5.1"
 leakcanary = "3.0-alpha-9"
+livewire = "0.1.0-SNAPSHOT"
 media3 = "1.10.1"
 mixpanel = "8.9.0"
 mosaic = "0.18.0"
@@ -138,6 +139,13 @@ circuit-test = { module = "com.slack.circuit:circuit-test", version.ref = "circu
 circuitx-gesturenav = { module = "com.slack.circuit:circuitx-gesture-navigation", version.ref = "circuit" }
 circuitx-overlays = { module = "com.slack.circuit:circuitx-overlays", version.ref = "circuit" }
 circuitx-navigation = { module = "com.slack.circuit:circuitx-navigation", version.ref = "circuit" }
+
+#Livewire
+livewire-client = { module = "com.livewire-kt.livewire:client", version.ref = "livewire" }
+livewire-plugin-database = { module = "com.livewire-kt.livewire:plugin-database", version.ref = "livewire" }
+livewire-plugin-network-core = { module = "com.livewire-kt.livewire:plugin-network-core", version.ref = "livewire" }
+livewire-plugin-network-ktor = { module = "com.livewire-kt.livewire:plugin-network-ktor", version.ref = "livewire" }
+livewire-plugin-recomposition = { module = "com.livewire-kt.livewire:plugin-recomposition", version.ref = "livewire" }
 
 #Coil - Image Loading
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }

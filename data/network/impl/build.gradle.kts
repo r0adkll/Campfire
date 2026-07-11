@@ -27,6 +27,8 @@ kotlin {
         implementation(libs.ktor.client.logging)
         implementation(libs.ktor.client.serialization.json)
 
+        implementation(libs.livewire.plugin.network.ktor)
+
         api(libs.connectivity.core)
       }
     }

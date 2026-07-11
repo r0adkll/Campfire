@@ -98,6 +98,8 @@ class AudioPlayerService : MediaLibraryService() {
     // and apply user settings only for external controllers (Bluetooth, car stereo, etc.)
     player.bindSession(session!!)
 
+    AudioPlayerDebugHooks.Holder.hooks.onSessionCreated(session!!)
+
     // Attach the Android playback implementation to the controller used by other parts of the
     // to access and control playback / session.
     component.audioPlayerHolder.setCurrentPlayer(player)
@@ -143,6 +145,7 @@ class AudioPlayerService : MediaLibraryService() {
       release()
       session = null
     }
+    AudioPlayerDebugHooks.Holder.hooks.onSessionReleased()
     clearListener()
     component.audioPlayerHolder.release()
     super.onDestroy()

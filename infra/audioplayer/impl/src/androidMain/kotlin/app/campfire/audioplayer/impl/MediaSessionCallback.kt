@@ -46,6 +46,8 @@ internal class MediaSessionCallback(
     session: MediaSession,
     controller: MediaSession.ControllerInfo,
   ): ConnectionResult {
+    AudioPlayerDebugHooks.Holder.hooks.onControllerConnected(session, controller)
+
     val availableCommands = ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS.buildUpon()
       .add(cycleSpeedCommand)
       .add(sleepTimerCommand)
@@ -87,6 +89,8 @@ internal class MediaSessionCallback(
     customCommand: SessionCommand,
     args: Bundle,
   ): ListenableFuture<SessionResult> {
+    AudioPlayerDebugHooks.Holder.hooks.onCustomCommand(controller, customCommand.customAction, args)
+
     when (customCommand.customAction) {
       WidgetSessionCommand.CYCLE_SPEED -> {
         val rates = component.playbackSettings.playbackRates
@@ -137,6 +141,10 @@ internal class MediaSessionCallback(
     intent: Intent,
   ): Boolean {
     val keyEvent = intent.getParcelableExtra<KeyEvent>(Intent.EXTRA_KEY_EVENT)
+
+    if (keyEvent?.action == KeyEvent.ACTION_DOWN) {
+      AudioPlayerDebugHooks.Holder.hooks.onMediaButtonEvent(controllerInfo.packageName, keyEvent.keyCode)
+    }
 
     // Record any skip-next / skip-previous package so unknown Bluetooth / remote control
     // senders can be surfaced in developer settings and added to the intercept list.

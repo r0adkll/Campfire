@@ -125,6 +125,7 @@ class ExoPlayerAudioPlayer(
     )
     .setMediaSourceFactory(mediaSourceFactory)
     .build()
+    .also { AudioPlayerDebugHooks.Holder.hooks.onExoPlayerCreated(it) }
 
   private val castPlayer: CastPlayer? = SafeCastContext.getContext(context)?.let {
     CastPlayer.Builder(context)

@@ -22,6 +22,7 @@ pluginManagement {
           includeGroup("app.cash.sqldelight")
           includeGroup("io.coil-kt.coil3")
           includeGroup("com.r0adkll.cadence")
+          includeGroup("com.livewire-kt")
         }
       }
     }
@@ -52,6 +53,7 @@ dependencyResolutionManagement {
           includeGroup("app.cash.sqldelight")
           includeGroup("io.coil-kt.coil3")
           includeGroup("com.r0adkll.cadence")
+          includeGroup("com.livewire-kt")
         }
       }
     }

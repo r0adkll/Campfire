@@ -147,6 +147,14 @@ dependencies {
 
   debugImplementation(libs.leakCanary)
 
+  debugImplementation(libs.livewire.client)
+  debugImplementation(libs.livewire.plugin.database)
+  debugImplementation(libs.livewire.plugin.network.core)
+  debugImplementation(libs.livewire.plugin.recomposition)
+
+  debugImplementation(libs.androidx.lifecycle.process)
+  debugImplementation(libs.media3.session)
+
   ksp(libs.kimchi.compiler)
   ksp(libs.kotlininject.ksp)
 }

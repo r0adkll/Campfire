@@ -16,6 +16,7 @@ import app.campfire.network.RefreshResponse
 import app.campfire.network.asBearerTokens
 import app.campfire.network.cleanServerUrl
 import app.campfire.network.plugins.suspendingDefaultHeaders
+import com.livewire.plugin.network.ktor.LivewireNetworkPlugin
 import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
@@ -55,6 +56,8 @@ interface HttpClientModule {
     applicationInfo: ApplicationInfo,
   ): HttpClient {
     return HttpClient {
+      install(LivewireNetworkPlugin)
+
       install(ContentNegotiation) {
         json(
           Json {
