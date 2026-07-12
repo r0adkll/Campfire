@@ -1,6 +1,7 @@
 package app.campfire.socket.impl
 
 import app.campfire.account.api.AccountManager
+import app.campfire.account.api.TokenRefresher
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
@@ -78,6 +79,7 @@ import me.tatarka.inject.annotations.Inject
 class DefaultSocketManager(
   private val userSessionManager: UserSessionManager,
   private val accountManager: AccountManager,
+  private val tokenRefresher: TokenRefresher,
   private val appLifecycleObserver: AppLifecycleObserver,
   private val settings: CampfireSettings,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
@@ -97,6 +99,11 @@ class DefaultSocketManager(
 
   @Volatile
   private var authFailureCount: Int = 0
+
+  /** The access token most recently sent in an `auth` emit, so retries can tell the
+   * refresher exactly which token the server rejected. */
+  @Volatile
+  private var lastAuthToken: String? = null
 
   private val _state = MutableStateFlow<SocketState>(SocketState.Disconnected)
   override val state: StateFlow<SocketState> = _state.asStateFlow()
@@ -155,6 +162,9 @@ class DefaultSocketManager(
 
     val userId = session.user.id
     val url = session.user.serverUrl
+    // A fresh start deserves a fresh retry budget — without this, a manual retryConnection()
+    // after the retry loop gave up would hit auth_failed with zero attempts remaining.
+    authFailureCount = 0
     _state.value = SocketState.Connecting
 
     val opts = IO.Options().apply {
@@ -169,6 +179,7 @@ class DefaultSocketManager(
         coroutineScope.launch {
           val freshToken = accountManager.getToken(userId)?.accessToken
           if (freshToken != null) {
+            lastAuthToken = freshToken
             newSocket.emit("auth", freshToken)
           } else {
             wbark { "No token available for socket auth" }
@@ -221,6 +232,23 @@ class DefaultSocketManager(
             val currentUserId = (userSessionManager.current as? UserSession.LoggedIn)?.user?.id
             if (currentUserId != userId) {
               ibark { "User identity changed during retry backoff; aborting reconnect" }
+              newSocket.close()
+              return@launch
+            }
+            // The server just rejected the stored token — most likely it expired while the app
+            // was backgrounded. Refresh it before reopening so the reconnect authenticates with
+            // a live token instead of replaying the rejected one.
+            val refreshed = tokenRefresher.refresh(userId, url, lastAuthToken)
+            if (refreshed == null) {
+              wbark { "Token refresh failed ahead of socket auth retry; retrying with stored token" }
+            } else {
+              ibark { "Token refreshed ahead of socket auth retry" }
+            }
+            // The refresh itself can invalidate the account (dead refresh token) and switch
+            // sessions out from under us — re-check identity before reopening.
+            val userIdAfterRefresh = (userSessionManager.current as? UserSession.LoggedIn)?.user?.id
+            if (userIdAfterRefresh != userId) {
+              ibark { "User identity changed during token refresh; aborting reconnect" }
               newSocket.close()
               return@launch
             }

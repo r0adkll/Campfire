@@ -20,6 +20,7 @@ metadata:
    - On success: `init` — `{userId, username, usersOnline?}` (usersOnline only for admins)
    - On failure: `auth_failed` — `{message: "Invalid token" | "Invalid user"}`
 4. API keys are NOT yet supported for socket auth (TODO comment in source).
+5. **`auth_failed` never disconnects the socket**, and a failed re-auth attempt does NOT clear a pre-existing `client.user` if the socket was already authenticated. There is also **no periodic/interval re-validation** of the JWT for an already-authenticated socket — once authenticated, a socket keeps receiving broadcasts indefinitely even past its access token's expiry, until the transport itself disconnects. Full detail in [[auth-token-lifecycle]].
 
 ## Client → Server Events
 

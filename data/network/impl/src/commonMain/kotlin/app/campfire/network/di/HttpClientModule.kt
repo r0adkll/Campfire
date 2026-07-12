@@ -12,13 +12,13 @@ import app.campfire.core.session.requireServerUrl
 import app.campfire.core.session.requiredUser
 import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.userId
-import app.campfire.network.asAbsToken
+import app.campfire.network.RefreshResponse
 import app.campfire.network.asBearerTokens
 import app.campfire.network.cleanServerUrl
-import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.plugins.suspendingDefaultHeaders
 import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
@@ -130,58 +130,74 @@ interface HttpClientModule {
       install(WebSockets) {
         pingIntervalMillis = 20_000
       }
-      install(Auth) {
-        bearer {
-          loadTokens {
-            userSessionManager.current.userId?.let { userId ->
-              accountManager.getToken(userId)?.asBearerTokens()
-            }
-          }
 
-          refreshTokens {
-            val tokens = accountManager.getToken(userSessionManager.current.requiredUserId)
-            val newTokenResponse = client.post {
-              val currentServerUrl = userSessionManager.current.requireServerUrl
-              url("${cleanServerUrl(currentServerUrl)}/auth/refresh")
-              tokens?.refreshToken?.let {
-                header(HttpHeaders.RefreshToken, it)
-              }
-              markAsRefreshTokenRequest()
-            }
-
-            return@refreshTokens if (newTokenResponse.status.isSuccess()) {
-              try {
-                val newToken = newTokenResponse.body<LoginResponse>().asAbsToken()
-                if (newToken != null) {
-                  accountManager.updateToken(userSessionManager.current.requiredUserId, newToken)
-                  newToken.asBearerTokens()
-                } else {
-                  bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
-                  accountManager.invalidateAccount(userSessionManager.current.requiredUser)
-                  null
-                }
-              } catch (e: Exception) {
-                bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
-                null
-              }
-            } else {
-              bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
-              if (
-                newTokenResponse.status == HttpStatusCode.Unauthorized ||
-                newTokenResponse.status == HttpStatusCode.Forbidden
-              ) {
-                accountManager.invalidateAccount(userSessionManager.current.requiredUser)
-              }
-              null
-            }
-          }
-        }
-      }
+      installUserAuth(userSessionManager, accountManager)
 
       suspendingDefaultHeaders {
         val extraHeaders = accountManager.getExtraHeaders(userSessionManager.current.requiredUserId)
         extraHeaders?.forEach { (name, value) ->
           header(name, value)
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Installs bearer auth for the current session's user. This is the ONLY place tokens are
+ * refreshed — Ktor's Auth plugin caches the bearer pair internally and single-flights its own
+ * refresh, so refreshing anywhere else would rotate the single-use refresh token underneath
+ * the plugin's cached copy and orphan it. Anything outside the HTTP client that needs a fresh
+ * token (e.g. the socket) must trigger this plugin via an authenticated request instead — see
+ * `UserClientTokenRefresher`.
+ */
+internal fun HttpClientConfig<*>.installUserAuth(
+  userSessionManager: UserSessionManager,
+  accountManager: AccountManager,
+) {
+  install(Auth) {
+    bearer {
+      loadTokens {
+        userSessionManager.current.userId?.let { userId ->
+          accountManager.getToken(userId)?.asBearerTokens()
+        }
+      }
+
+      refreshTokens {
+        val tokens = accountManager.getToken(userSessionManager.current.requiredUserId)
+        val newTokenResponse = client.post {
+          val currentServerUrl = userSessionManager.current.requireServerUrl
+          url("${cleanServerUrl(currentServerUrl)}/auth/refresh")
+          tokens?.refreshToken?.let {
+            header(HttpHeaders.RefreshToken, it)
+          }
+          markAsRefreshTokenRequest()
+        }
+
+        return@refreshTokens if (newTokenResponse.status.isSuccess()) {
+          try {
+            val newToken = newTokenResponse.body<RefreshResponse>().asAbsToken()
+            if (newToken != null) {
+              accountManager.updateToken(userSessionManager.current.requiredUserId, newToken)
+              newToken.asBearerTokens()
+            } else {
+              bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
+              accountManager.invalidateAccount(userSessionManager.current.requiredUser)
+              null
+            }
+          } catch (e: Exception) {
+            bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
+            null
+          }
+        } else {
+          bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
+          if (
+            newTokenResponse.status == HttpStatusCode.Unauthorized ||
+            newTokenResponse.status == HttpStatusCode.Forbidden
+          ) {
+            accountManager.invalidateAccount(userSessionManager.current.requiredUser)
+          }
+          null
         }
       }
     }
