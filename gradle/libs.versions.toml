@@ -2,7 +2,7 @@
 agp = "9.2.1"
 about-libraries = "14.2.1"
 accompanist = "0.37.3"
-androidxlifecycle = "2.10.0"
+androidxlifecycle = "2.11.0"
 androidxactivity = "1.13.0"
 androidxcomposeui = "1.11.4"
 androidxtracing = "2.0.0-alpha09"
