@@ -20,10 +20,6 @@ class FakeUserRepository : UserRepository {
     return currentUserFlow
   }
 
-  override fun observeStatefulCurrentUser(): StateFlow<User> {
-    return currentStatefulUserFlow
-  }
-
   var currentUser: User? = null
   override suspend fun getCurrentUser(): User {
     return currentUser!!

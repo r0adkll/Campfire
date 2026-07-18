@@ -27,7 +27,7 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 
 ## Technology Stack
 
-- **Language**: Kotlin 2.3.0, Compose Multiplatform 1.10.0
+- **Language**: Kotlin 2.4.10, Compose Multiplatform 1.11.1
 - **Presentation**: Slack's Circuit (state machine-driven UI)
 - **Networking**: Ktor Client with OIDC auth
 - **Database**: SQLDelight (multiplatform SQLite) + Store5 (cache layer)

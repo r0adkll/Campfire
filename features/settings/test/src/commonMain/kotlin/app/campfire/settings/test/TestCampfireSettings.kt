@@ -36,6 +36,11 @@ class TestCampfireSettings(
     observeBoolean(::analyticReportingEnabled)
       .stateIn(testScope, SharingStarted.Lazily, analyticReportingEnabled)
 
+  override var socketEnabled: Boolean by boolean()
+  override fun observeSocketEnabled(): StateFlow<Boolean> =
+    observeBoolean(::socketEnabled)
+      .stateIn(testScope, SharingStarted.Lazily, socketEnabled)
+
   override var themeMode: ThemeMode by enum()
   override fun observeTheme(): StateFlow<ThemeMode> =
     observeEnum<ThemeMode>(::themeMode)
