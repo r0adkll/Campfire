@@ -40,7 +40,7 @@ OR stay up to date with the latest release using
 [kotlin-multiplatform]: https://kotlinlang.org/docs/multiplatform.html
 [compose-multiplatform]: https://www.jetbrains.com/lp/compose-multiplatform/
 [slack-circuit]: https://slackhq.github.io/circuit/
-[ktor]: https://ktor.io/docs/welcome.html
+[ktor]: https://ktor.io/docs/welcome/
 [sql-delight]: https://cashapp.github.io/sqldelight/2.0.0/multiplatform_sqlite/
 [store]: https://github.com/MobileNativeFoundation/Store
 [kinject]: https://github.com/evant/kotlin-inject
