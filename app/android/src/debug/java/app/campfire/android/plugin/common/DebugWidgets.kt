@@ -15,6 +15,7 @@ import com.livewire.ui.modifier.LivewireModifier
 import com.livewire.ui.modifier.fillMaxWidth
 import com.livewire.ui.modifier.height
 import com.livewire.ui.modifier.padding
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Button
 import com.livewire.ui.widget.ButtonShapes
 import com.livewire.ui.widget.ButtonSize
@@ -25,7 +26,6 @@ import com.livewire.ui.widget.ProgressIndicatorStyle
 import com.livewire.ui.widget.Spacer
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 
 /**
  * Shared building blocks for Campfire's Livewire debug plugins.
@@ -44,7 +44,7 @@ internal fun SectionHeader(
   ) {
     Text(
       text = title,
-      style = TextStyle.TitleMedium,
+      style = LivewireTheme.typography.titleMedium,
       modifier = LivewireModifier.weight(1f),
     )
     trailingAction()
@@ -78,11 +78,11 @@ internal fun SegmentedSection(
             text = label,
             modifier = LivewireModifier.weight(1f),
             color = Color.Gray,
-            style = TextStyle.BodyMedium,
+            style = LivewireTheme.typography.bodyMedium,
           )
           Text(
             text = value,
-            style = TextStyle.BodyMedium,
+            style = LivewireTheme.typography.bodyMedium,
           )
         }
       }
@@ -108,7 +108,7 @@ internal fun LoadingIndicator(
     Spacer(LivewireModifier.height(8.dp))
     Text(
       text = message,
-      style = TextStyle.BodySmall,
+      style = LivewireTheme.typography.bodySmall,
       color = Color.Gray,
     )
   }
@@ -159,27 +159,27 @@ internal fun LogRow(
     Row(verticalAlignment = Alignment.CenterVertically) {
       Text(
         text = time,
-        style = TextStyle.LabelMedium,
+        style = LivewireTheme.typography.labelMedium,
         color = Color.Gray,
       )
       Spacer(LivewireModifier.padding(4.dp))
       Text(
         text = type,
-        style = TextStyle.LabelMedium,
+        style = LivewireTheme.typography.labelMedium,
         color = typeColor,
       )
       if (source != null) {
         Spacer(LivewireModifier.padding(4.dp))
         Text(
           text = source,
-          style = TextStyle.LabelMedium,
+          style = LivewireTheme.typography.labelMedium,
           color = Color.LightGray,
         )
       }
     }
     Text(
       text = details,
-      style = TextStyle.BodySmall,
+      style = LivewireTheme.typography.bodySmall,
     )
   }
 }

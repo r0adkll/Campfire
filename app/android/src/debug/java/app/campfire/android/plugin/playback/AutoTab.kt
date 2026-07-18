@@ -30,6 +30,7 @@ import com.livewire.ui.modifier.fillMaxWidth
 import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.size
 import com.livewire.ui.modifier.verticalScroll
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Button
 import com.livewire.ui.widget.ButtonShapes
 import com.livewire.ui.widget.ButtonSize
@@ -39,7 +40,6 @@ import com.livewire.ui.widget.Icon
 import com.livewire.ui.widget.Image
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -104,7 +104,7 @@ internal fun AutoTab(browser: MediaBrowser?) {
       Text(
         text = "/" + path.joinToString("/") { it.second },
         modifier = LivewireModifier.padding(8.dp),
-        style = TextStyle.TitleSmall,
+        style = LivewireTheme.typography.titleSmall,
       )
     }
 
@@ -211,11 +211,11 @@ private fun BrowseItemRow(
       ) {
         Text(
           text = item.mediaMetadata.title?.toString() ?: "—",
-          style = TextStyle.TitleSmall,
+          style = LivewireTheme.typography.titleSmall,
         )
         Text(
           text = item.mediaId,
-          style = TextStyle.BodySmall,
+          style = LivewireTheme.typography.bodySmall,
           color = Color.Gray,
         )
       }

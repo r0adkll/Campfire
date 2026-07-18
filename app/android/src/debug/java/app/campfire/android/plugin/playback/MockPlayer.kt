@@ -35,6 +35,7 @@ import com.livewire.ui.modifier.height
 import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.size
 import com.livewire.ui.modifier.verticalScroll
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.ButtonSize
 import com.livewire.ui.widget.Icon
 import com.livewire.ui.widget.IconButton
@@ -46,7 +47,6 @@ import com.livewire.ui.widget.ProgressIndicatorStyle
 import com.livewire.ui.widget.Slider
 import com.livewire.ui.widget.Spacer
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 
 /**
  * A mock of the app's player view driven entirely by the plugin's debug
@@ -92,11 +92,11 @@ internal fun MockPlayer(
     Spacer(LivewireModifier.padding(8.dp))
     Text(
       text = snapshot.title ?: "Nothing playing",
-      style = TextStyle.TitleMedium,
+      style = LivewireTheme.typography.titleMedium,
     )
     Text(
       text = snapshot.artist ?: "—",
-      style = TextStyle.BodyMedium,
+      style = LivewireTheme.typography.bodyMedium,
       color = Color.Gray,
     )
     Spacer(LivewireModifier.height(16.dp))
@@ -117,9 +117,9 @@ internal fun MockPlayer(
       enabled = durationMs != null,
     )
     Row(LivewireModifier.fillMaxWidth()) {
-      Text(snapshot.positionMs.asClockTime(), style = TextStyle.LabelSmall, color = Color.Gray)
+      Text(snapshot.positionMs.asClockTime(), style = LivewireTheme.typography.labelSmall, color = Color.Gray)
       Spacer(LivewireModifier.weight(1f))
-      Text(snapshot.durationMs.asClockTime(), style = TextStyle.LabelSmall, color = Color.Gray)
+      Text(snapshot.durationMs.asClockTime(), style = LivewireTheme.typography.labelSmall, color = Color.Gray)
     }
 
     Spacer(LivewireModifier.height(16.dp))

@@ -50,7 +50,6 @@ import com.livewire.ui.widget.ResizeAnchor
 import com.livewire.ui.widget.Spacer
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -109,7 +108,7 @@ class AnalyticsLivewirePlugin : Plugin {
               onValueChange = valueChangeAction { filter = it },
               placeholder = "Filter by event name or parameter…",
               singleLine = true,
-              textStyle = TextStyle.BodyMedium,
+              textStyle = LivewireTheme.typography.bodyMedium,
               modifier = LivewireModifier
                 .fillMaxWidth()
                 .padding(12.dp),
@@ -234,6 +233,7 @@ private fun EventRow(
     color = if (selected) LivewireTheme.colorScheme.secondaryContainer else null,
     tonalElevation = 1.dp,
     onClick = onClick,
+
   ) {
     Row(
       LivewireModifier
@@ -247,17 +247,17 @@ private fun EventRow(
       Column(LivewireModifier.weight(1f)) {
         Text(
           text = event.name,
-          style = TextStyle.TitleSmall,
+          style = LivewireTheme.typography.titleSmall,
         )
         Text(
           text = "${event.params.size} parameter${if (event.params.size > 1) "s" else ""}",
-          style = TextStyle.LabelSmall,
+          style = LivewireTheme.typography.labelSmall,
           color = LivewireTheme.colorScheme.onSurfaceVariant,
         )
       }
       Text(
         text = eventTimeFormat.format(Date(event.timeMs)),
-        style = TextStyle.LabelSmall,
+        style = LivewireTheme.typography.labelSmall,
         color = LivewireTheme.colorScheme.onSurfaceVariant,
       )
     }
@@ -283,7 +283,7 @@ private fun EventDetailPanel(
         Text(
           text = event.name,
           modifier = LivewireModifier.weight(1f),
-          style = TextStyle.TitleMedium,
+          style = LivewireTheme.typography.titleMedium,
         )
         SectionButton(action = onClose) { Text("Close") }
       }

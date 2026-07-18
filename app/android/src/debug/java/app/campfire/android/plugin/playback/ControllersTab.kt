@@ -31,7 +31,6 @@ import com.livewire.ui.widget.ResizeAnchor
 import com.livewire.ui.widget.Spacer
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -148,11 +147,11 @@ private fun ControllerCard(packageName: String, info: String) {
     ) {
       Text(
         text = packageName,
-        style = TextStyle.TitleSmall,
+        style = LivewireTheme.typography.titleSmall,
       )
       Text(
         text = info,
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
         color = Color.Gray,
       )
     }
@@ -181,7 +180,7 @@ private fun AnalyticsLogPanel() {
         Text(
           text = "ExoPlayer analytics",
           modifier = LivewireModifier.weight(1f),
-          style = TextStyle.TitleMedium,
+          style = LivewireTheme.typography.titleMedium,
         )
         SectionButton(
           action = clickAction { SessionDebugCollector.clearAnalytics() },
@@ -193,7 +192,7 @@ private fun AnalyticsLogPanel() {
       Text(
         text = "No analytics events yet — start playback to see decoder, format, and state events.",
         color = Color.Gray,
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
       )
     } else {
       val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)

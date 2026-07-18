@@ -29,9 +29,9 @@ import com.livewire.ui.modifier.fillMaxSize
 import com.livewire.ui.modifier.fillMaxWidth
 import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.verticalScroll
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import kotlinx.coroutines.launch
 
 /**
@@ -123,12 +123,12 @@ internal fun AccountTab(
             Column(LivewireModifier.weight(1f)) {
               Text(
                 text = server.name + if (isCurrent) "  (current)" else "",
-                style = TextStyle.TitleSmall,
+                style = LivewireTheme.typography.titleSmall,
                 color = if (isCurrent) Color.Green else Color.Unspecified,
               )
               Text(
                 text = "${server.user.name} @ ${server.url}",
-                style = TextStyle.BodySmall,
+                style = LivewireTheme.typography.bodySmall,
                 color = Color.Gray,
               )
             }
@@ -155,7 +155,7 @@ internal fun AccountTab(
       SectionHeader("Danger zone")
       Text(
         text = "Actions that deliberately break the current session to exercise failure paths.",
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
         color = Color.Gray,
       )
       Row(LivewireModifier.padding(vertical = 8.dp)) {

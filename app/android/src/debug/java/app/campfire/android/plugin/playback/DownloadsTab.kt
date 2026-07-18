@@ -38,6 +38,7 @@ import com.livewire.ui.modifier.fillMaxSize
 import com.livewire.ui.modifier.fillMaxWidth
 import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.verticalScroll
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Icon
 import com.livewire.ui.widget.IconButton
 import com.livewire.ui.widget.ProgressIndicator
@@ -45,7 +46,6 @@ import com.livewire.ui.widget.ResizableSurface
 import com.livewire.ui.widget.ResizeAnchor
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -187,11 +187,11 @@ private fun DownloadCard(
         Column(LivewireModifier.weight(1f)) {
           Text(
             text = download.id,
-            style = TextStyle.TitleSmall,
+            style = LivewireTheme.typography.titleSmall,
           )
           Text(
             text = download.uri,
-            style = TextStyle.BodySmall,
+            style = LivewireTheme.typography.bodySmall,
             color = Color.Gray,
           )
         }
@@ -208,12 +208,12 @@ private fun DownloadCard(
       Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
           text = download.state.asDownloadStateName(),
-          style = TextStyle.LabelMedium,
+          style = LivewireTheme.typography.labelMedium,
           color = download.state.asDownloadStateColor(),
         )
         Text(
           text = "  ${download.progressText}",
-          style = TextStyle.LabelMedium,
+          style = LivewireTheme.typography.labelMedium,
           color = Color.Gray,
         )
       }
@@ -226,7 +226,7 @@ private fun DownloadCard(
       if (download.failure != null) {
         Text(
           text = download.failure,
-          style = TextStyle.BodySmall,
+          style = LivewireTheme.typography.bodySmall,
           color = Color.Red,
         )
       }
@@ -250,7 +250,7 @@ private fun DownloadLogPanel() {
       Text(
         text = "DownloadManager events",
         modifier = LivewireModifier.weight(1f),
-        style = TextStyle.TitleMedium,
+        style = LivewireTheme.typography.titleMedium,
       )
       SectionButton(
         action = clickAction { DownloadDebugCollector.clear() },
@@ -261,7 +261,7 @@ private fun DownloadLogPanel() {
       Text(
         text = "No events yet — queue, pause, or remove a download.",
         color = Color.Gray,
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
       )
     } else {
       val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.US)

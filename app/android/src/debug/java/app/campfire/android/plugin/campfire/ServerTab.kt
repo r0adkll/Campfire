@@ -25,8 +25,8 @@ import com.livewire.ui.modifier.fillMaxSize
 import com.livewire.ui.modifier.fillMaxWidth
 import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.verticalScroll
+import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.launch
 
@@ -102,7 +102,7 @@ internal fun ServerTab(
     if (ping != null) {
       Text(
         text = ping,
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
         color = if (ping.startsWith("OK")) Color.Green else Color.Red,
         modifier = LivewireModifier.padding(vertical = 8.dp),
       )

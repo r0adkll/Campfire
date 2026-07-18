@@ -31,7 +31,6 @@ import com.livewire.ui.widget.ResizeAnchor
 import com.livewire.ui.widget.Spacer
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Text
-import com.livewire.ui.widget.TextStyle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -70,12 +69,12 @@ internal fun SocketTab(socketManager: SocketManager) {
         ) {
           Text(
             text = state.displayName(),
-            style = TextStyle.TitleMedium,
+            style = LivewireTheme.typography.titleMedium,
             color = state.displayColor(),
           )
           Text(
             text = state.displayDetails(),
-            style = TextStyle.BodySmall,
+            style = LivewireTheme.typography.bodySmall,
             color = Color.Gray,
           )
         }
@@ -130,7 +129,7 @@ private fun SocketEventPanel() {
         Text(
           text = if (selected != null) selected.name else "Socket events",
           modifier = LivewireModifier.weight(1f),
-          style = TextStyle.TitleMedium,
+          style = LivewireTheme.typography.titleMedium,
         )
         if (selected != null) {
           SectionButton(action = clickAction { selectedId = null }) { Text("Back") }
@@ -153,7 +152,7 @@ private fun SocketEventPanel() {
       Text(
         text = "No socket events yet — they appear as the server pushes updates.",
         color = Color.Gray,
-        style = TextStyle.BodySmall,
+        style = LivewireTheme.typography.bodySmall,
         modifier = LivewireModifier.padding(16.dp),
       )
     } else {
@@ -182,11 +181,11 @@ private fun SocketEventPanel() {
               Text(
                 text = event.name,
                 modifier = LivewireModifier.weight(1f),
-                style = TextStyle.TitleSmall,
+                style = LivewireTheme.typography.titleSmall,
               )
               Text(
                 text = timeFormat.format(Date(event.timeMs)),
-                style = TextStyle.LabelSmall,
+                style = LivewireTheme.typography.labelSmall,
                 color = Color.Gray,
               )
             }
