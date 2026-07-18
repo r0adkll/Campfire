@@ -69,7 +69,7 @@ dependencyResolutionManagement {
 }
 
 plugins {
-  id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.8"
+  id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.9"
 }
 
 extensions.configure<KoverSettingsExtension> {
