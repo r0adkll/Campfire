@@ -8,8 +8,7 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
  * Return if the supporting pane layout is enabled for this size class
  */
 val WindowSizeClass.isSupportingPaneEnabled: Boolean
-  get() = widthSizeClass >= WindowWidthSizeClass.Medium /*&&
-    heightSizeClass >= WindowHeightSizeClass.Medium*/
+  get() = widthSizeClass >= WindowWidthSizeClass.Medium
 
 /**
  * Return if the device is in landscape/phone mode
