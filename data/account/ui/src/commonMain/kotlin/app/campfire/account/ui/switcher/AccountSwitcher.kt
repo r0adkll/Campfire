@@ -44,14 +44,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.ConnectionIndicator
 import app.campfire.common.compose.widgets.ConnectionState
@@ -100,6 +104,8 @@ private fun AccountSwitcher(
   modifier: Modifier = Modifier,
   shape: Shape = MaterialTheme.shapes.large,
 ) {
+  val windowSizeClass = LocalWindowSizeClass.current
+
   val serverName = when (val currentAccount = state.currentAccount) {
     is LoadState.Loaded -> currentAccount.data.name
     LoadState.Loading -> stringResource(Res.string.server_name_loading)
@@ -111,6 +117,8 @@ private fun AccountSwitcher(
     else -> null
   }
 
+  val switcherConfig = if (windowSizeClass.isLandscapePhone) LandscapeSwitcherConfig else DefaultSwitcherConfig
+
   AccountCard(
     modifier = modifier
       .padding(16.dp),
@@ -118,6 +126,7 @@ private fun AccountSwitcher(
   ) {
     AccountSwitcher(
       appTheme = state.theme,
+      switcherConfig = switcherConfig,
       socketState = state.socketState,
       serverName = { Text(serverName) },
       userName = { userName?.let { Text(it) } },
@@ -163,6 +172,7 @@ private fun AccountSwitcher(
   userName: @Composable () -> Unit,
   onClick: () -> Unit,
   onRetryConnection: () -> Unit,
+  switcherConfig: SwitcherConfig,
   modifier: Modifier = Modifier,
   content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -172,22 +182,22 @@ private fun AccountSwitcher(
       .clickable(onClick = onClick),
   ) {
     val bottomPadding by animateDpAsState(
-      targetValue = if (socketState is SocketState.Failed) 8.dp else 24.dp,
+      targetValue = if (socketState is SocketState.Failed) 8.dp else switcherConfig.padding,
     )
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .padding(
-          start = 24.dp,
-          top = 24.dp,
+          start = switcherConfig.padding,
+          top = switcherConfig.padding,
           bottom = bottomPadding,
           // This accounts for the built-in IconButton padding
-          end = 16.dp,
+          end = switcherConfig.paddingEnd,
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Box(
-        modifier = Modifier.size(TentIconSize),
+        modifier = Modifier.size(switcherConfig.iconSize),
       ) {
         when (appTheme) {
           AppTheme.Dynamic -> {
@@ -195,7 +205,7 @@ private fun AccountSwitcher(
               rememberWallVectorPainter(),
               contentDescription = null,
               modifier = Modifier
-                .size(TentIconSize),
+                .size(switcherConfig.iconSize),
             )
           }
 
@@ -204,7 +214,7 @@ private fun AccountSwitcher(
               appTheme.icon.icon(),
               contentDescription = null,
               modifier = Modifier
-                .size(TentIconSize),
+                .size(switcherConfig.iconSize),
             )
           }
         }
@@ -219,14 +229,14 @@ private fun AccountSwitcher(
               is SocketState.Failed -> ConnectionState.Disconnected
               SocketState.Disabled -> error("guarded above")
             },
-            size = 12.dp,
+            size = switcherConfig.indicatorSize,
             borderWidth = 3.dp,
             borderColor = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier
               .align(Alignment.TopEnd)
               .padding(
-                top = 6.dp,
-                end = 6.dp,
+                top = switcherConfig.indicatorOffset,
+                end = switcherConfig.indicatorOffset,
               ),
           )
         }
@@ -239,13 +249,13 @@ private fun AccountSwitcher(
           .weight(1f),
       ) {
         ProvideTextStyle(
-          MaterialTheme.typography.headlineSmall.copy(
+          switcherConfig.serverNameTextStyle.copy(
             fontFamily = PaytoneOneFontFamily,
           ),
         ) {
           serverName()
         }
-        ProvideTextStyle(MaterialTheme.typography.titleMedium) {
+        ProvideTextStyle(switcherConfig.userNameTextStyle) {
           userName()
         }
       }
@@ -402,7 +412,7 @@ private fun LibrariesLoaded(
         LocalContentColor provides if (selected) {
           LocalContentColor.current
         } else {
-          MaterialTheme.colorScheme.inversePrimary
+          LocalContentColor.current.copy(alpha = 0.68f)
         },
       ) {
         LibraryRow(
@@ -459,4 +469,34 @@ private fun LibraryRow(
   }
 }
 
-private val TentIconSize = 64.dp
+data class SwitcherConfig(
+  val iconSize: Dp,
+  val padding: Dp,
+  val paddingEnd: Dp,
+  val indicatorSize: Dp,
+  val indicatorOffset: Dp,
+  val serverNameTextStyle: TextStyle,
+  val userNameTextStyle: TextStyle,
+)
+
+val DefaultSwitcherConfig: SwitcherConfig
+  @Composable get() = SwitcherConfig(
+    iconSize = 64.dp,
+    padding = 24.dp,
+    paddingEnd = 16.dp,
+    indicatorSize = 12.dp,
+    indicatorOffset = 6.dp,
+    serverNameTextStyle = MaterialTheme.typography.headlineSmall,
+    userNameTextStyle = MaterialTheme.typography.titleMedium,
+  )
+
+val LandscapeSwitcherConfig: SwitcherConfig
+  @Composable get() = SwitcherConfig(
+    iconSize = 40.dp,
+    padding = 16.dp,
+    paddingEnd = 8.dp,
+    indicatorSize = 8.dp,
+    indicatorOffset = 3.dp,
+    serverNameTextStyle = MaterialTheme.typography.titleLarge,
+    userNameTextStyle = MaterialTheme.typography.titleSmall,
+  )

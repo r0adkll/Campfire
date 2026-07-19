@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
@@ -52,14 +53,16 @@ internal fun PlaybackActions(
   onForwardClick: () -> Unit,
   onSkipNextClick: () -> Unit,
   modifier: Modifier = Modifier,
+  buttonSize: Dp = ButtonDefaults.LargeContainerHeight,
+  buttonShape: Shape = MaterialTheme.shapes.extraLarge,
+  playButtonExtraWidth: Dp = 32.dp,
+  playButtonIconSize: Dp = ButtonDefaults.ExtraLargeIconSize,
 ) {
   Column(
     modifier = modifier.fillMaxWidth(),
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    val playButtonExtraWidth = 32.dp
-    val playButtonSize = ButtonDefaults.LargeContainerHeight
     val accessoryButtonContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)
     val accessoryButtonContentColor = MaterialTheme.colorScheme.onSurface
 
@@ -68,15 +71,13 @@ internal fun PlaybackActions(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
     ) {
-      val buttonShape = MaterialTheme.shapes.extraLarge
 
       @Composable
       fun AccessoryButton(
         onClick: () -> Unit,
         content: @Composable (iconSize: Dp) -> Unit,
       ) {
-        val accessoryButtonSize = ButtonDefaults.LargeContainerHeight
-        val accessoryButtonIconSize = ButtonDefaults.LargeIconSize
+        val accessoryButtonIconSize = ButtonDefaults.iconSizeFor(buttonSize)
         FilledIconButton(
           onClick = onClick,
           shapes = IconButtonDefaults.shapes(
@@ -89,8 +90,8 @@ internal fun PlaybackActions(
           ),
           modifier = Modifier
             .sizeIn(
-              minWidth = accessoryButtonSize,
-              minHeight = accessoryButtonSize,
+              minWidth = buttonSize,
+              minHeight = buttonSize,
             ),
           content = {
             content(accessoryButtonIconSize)
@@ -110,7 +111,6 @@ internal fun PlaybackActions(
         state != AudioPlayer.State.Buffering &&
         !isInteracting
 
-      val playButtonIconSize = ButtonDefaults.ExtraLargeIconSize
       FilledIconButton(
         onClick = onPlayPauseClick,
         enabled = isPlayPauseEnabled,
@@ -120,8 +120,8 @@ internal fun PlaybackActions(
         ),
         modifier = Modifier
           .sizeIn(
-            minWidth = playButtonSize + playButtonExtraWidth,
-            minHeight = playButtonSize,
+            minWidth = buttonSize + playButtonExtraWidth,
+            minHeight = buttonSize,
           ),
       ) {
         AnimatedContent(
@@ -169,7 +169,7 @@ internal fun PlaybackActions(
       horizontalArrangement = Arrangement.spacedBy(4.dp),
       modifier = Modifier
         .widthIn(
-          max = (ButtonDefaults.LargeContainerHeight * 3) + playButtonExtraWidth + 8.dp,
+          max = (buttonSize * 3) + playButtonExtraWidth + 8.dp,
         ),
     ) {
       val buttonSize = ButtonDefaults.MinHeight

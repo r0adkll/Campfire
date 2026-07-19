@@ -1,5 +1,6 @@
 package app.campfire.common.compose.widgets
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +40,7 @@ fun CampfireTopAppBar(
   actions: @Composable RowScope.() -> Unit = {},
   expandedHeight: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
   windowInsets: WindowInsets = CampfireTopAppBarInsets,
+  contentPadding: PaddingValues = TopAppBarDefaults.ContentPadding,
   scrollBehavior: TopAppBarScrollBehavior? = null,
   containerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(LocalAbsoluteTonalElevation.current),
   scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceColorAtElevation(
@@ -48,7 +50,6 @@ fun CampfireTopAppBar(
   val colors = TopAppBarDefaults.topAppBarColors(
     scrolledContainerColor = scrolledContainerColor,
     containerColor = containerColor,
-
   )
 
   TopAppBar(
@@ -67,6 +68,7 @@ fun CampfireTopAppBar(
     scrollBehavior = scrollBehavior,
     expandedHeight = expandedHeight,
     windowInsets = windowInsets,
+    contentPadding = contentPadding,
     modifier = modifier,
   )
 }

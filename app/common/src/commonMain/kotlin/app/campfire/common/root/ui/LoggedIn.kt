@@ -43,6 +43,7 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
@@ -57,6 +58,7 @@ import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
 import app.campfire.common.screens.LoginScreen
+import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.requiredUserId
 import app.campfire.libraries.api.screen.LibraryItemScreen
@@ -183,6 +185,12 @@ private fun LoggedInUi(
 ) {
   val coroutineScope = rememberCoroutineScope()
   val windowSizeClass = LocalWindowSizeClass.current
+
+  LaunchedEffect(windowSizeClass) {
+    bark {
+      "WindowSizeClass[${windowSizeClass.widthSizeClass}, ${windowSizeClass.heightSizeClass}]"
+    }
+  }
 
   val rootScreen by remember(backstack) {
     derivedStateOf { backstack.last().screen }
@@ -393,7 +401,13 @@ private fun LoggedInUi(
           },
           modifier = Modifier
             .align(Alignment.BottomStart)
-            .widthIn(max = 500.dp)
+            .widthIn(
+              max = if (windowSizeClass.isLandscapePhone) {
+                700.dp
+              } else {
+                500.dp
+              }
+            )
             .fillMaxWidth(),
         )
       } else {

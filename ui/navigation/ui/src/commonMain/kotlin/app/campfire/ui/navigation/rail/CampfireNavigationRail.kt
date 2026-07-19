@@ -1,6 +1,7 @@
 package app.campfire.ui.navigation.rail
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
@@ -11,7 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.reflect.instanceOf
 import app.campfire.ui.navigation.HomeNavigationItemIcon
@@ -22,7 +25,8 @@ import campfire.ui.navigation.ui.generated.resources.settings_content_descriptio
 import com.slack.circuit.runtime.screen.Screen
 import org.jetbrains.compose.resources.stringResource
 
-private val ServerIconSize = 56.dp
+private val ServerIconSizeSmall = 40.dp
+private val ServerIconSizeLarge = 56.dp
 
 @Composable
 fun CampfireNavigationRail(
@@ -32,6 +36,7 @@ fun CampfireNavigationRail(
   modifier: Modifier = Modifier,
   navigationComponent: NavigationComponent = rememberComponent(),
 ) {
+  val windowSizeClass = LocalWindowSizeClass.current
   val presenter = remember(navigationComponent) {
     navigationComponent.navigationPresenterFactory()
   }
@@ -42,7 +47,7 @@ fun CampfireNavigationRail(
     header = {
       ServerIcon(
         onClick = onMenuSelected,
-        size = ServerIconSize,
+        size = if (windowSizeClass.isLandscapePhone) ServerIconSizeSmall else ServerIconSizeLarge,
       )
     },
   ) {

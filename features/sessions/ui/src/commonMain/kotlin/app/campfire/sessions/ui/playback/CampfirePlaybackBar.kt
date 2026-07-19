@@ -13,6 +13,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
@@ -27,14 +28,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
+import app.campfire.core.extensions.fluentIf
 import app.campfire.sessions.ui.playback.PlaybackBarState.Collapsed
 import app.campfire.sessions.ui.playback.PlaybackBarState.Expanded
 import app.campfire.sessions.ui.playback.PlaybackBarState.Hidden
 import app.campfire.sessions.ui.playback.collapsed.CollapsedPlaybackBar
 import app.campfire.sessions.ui.playback.expanded.ExpandedPlaybackBar
+import app.campfire.sessions.ui.playback.expanded.SmallExpandedPlaybackBar
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
@@ -92,6 +97,8 @@ private fun CampfirePlaybackBar(
   navigator: Navigator,
   modifier: Modifier = Modifier,
 ) = SharedTransitionLayout(modifier) {
+  val windowSizeClass = LocalWindowSizeClass.current
+
   MaterialExpressiveTheme(
     colorScheme = uiState.themeState.theme?.colorScheme,
   ) {
@@ -141,17 +148,32 @@ private fun CampfirePlaybackBar(
           onDispose = { uiState.eventSink(PlaybackUiEvent.ClearSession) },
           modifier = Modifier
             .padding(8.dp)
-            .offset(offset),
+            .offset(offset)
+            .fluentIf(windowSizeClass.isLandscapePhone) {
+              widthIn(max = 500.dp)
+            },
         )
-        Expanded -> scope.ExpandedPlaybackBar(
-          navigator = navigator,
-          session = uiState.session,
-          playbackState = uiState,
-          containerColor = sheetContainerColor,
-          contentColor = sheetContentColor,
-          onClose = { onExpansionChange(false) },
-          modifier = Modifier.fillMaxSize(),
-        )
+        Expanded -> if (windowSizeClass.isLandscapePhone) {
+          scope.SmallExpandedPlaybackBar(
+            navigator = navigator,
+            session = uiState.session,
+            playbackState = uiState,
+            containerColor = sheetContainerColor,
+            contentColor = sheetContentColor,
+            onClose = { onExpansionChange(false) },
+            modifier = Modifier.fillMaxSize(),
+          )
+        } else {
+          scope.ExpandedPlaybackBar(
+            navigator = navigator,
+            session = uiState.session,
+            playbackState = uiState,
+            containerColor = sheetContainerColor,
+            contentColor = sheetContentColor,
+            onClose = { onExpansionChange(false) },
+            modifier = Modifier.fillMaxSize(),
+          )
+        }
       }
     }
   }

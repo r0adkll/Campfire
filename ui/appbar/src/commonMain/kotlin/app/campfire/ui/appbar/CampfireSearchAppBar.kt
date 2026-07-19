@@ -58,6 +58,7 @@ import org.jetbrains.compose.resources.stringResource
 internal fun CampfireSearchAppBar(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
+  themeIconEnabled: Boolean,
   onNavigationClick: () -> Unit,
   modifier: Modifier = Modifier,
   actions: @Composable (RowScope.() -> Unit)? = null,
@@ -65,14 +66,16 @@ internal fun CampfireSearchAppBar(
 ) {
   CampfireSearchAppBar(
     searchComponent = searchComponent,
-    navigationIcon = {
-      themeIconContent.Content(
-        onClick = onNavigationClick,
-        modifier = Modifier
-          .size(40.dp)
-          .padding(4.dp),
-      )
-    },
+    navigationIcon = if (themeIconEnabled) {
+      {
+        themeIconContent.Content(
+          onClick = onNavigationClick,
+          modifier = Modifier
+            .size(40.dp)
+            .padding(4.dp),
+        )
+      }
+    } else null,
     actions = actions,
     modifier = modifier,
     scrollBehavior = scrollBehavior,
@@ -87,8 +90,8 @@ internal fun CampfireSearchAppBar(
 @Composable
 private fun CampfireSearchAppBar(
   searchComponent: SearchComponent,
-  navigationIcon: @Composable () -> Unit,
   modifier: Modifier = Modifier,
+  navigationIcon: (@Composable () -> Unit)? = null,
   actions: @Composable (RowScope.() -> Unit)? = null,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
@@ -162,8 +165,7 @@ private fun CampfireSearchAppBar(
     navigationIcon = navigationIcon,
     actions = actions,
     scrollBehavior = scrollBehavior,
-    windowInsets = SearchBarDefaults.windowInsets
-      .only(WindowInsetsSides.Horizontal),
+    windowInsets = WindowInsets(),
     contentPadding = SearchBarDefaults.windowInsets
       .only(WindowInsetsSides.Top)
       .asPaddingValues() + PaddingValues(horizontal = 8.dp),

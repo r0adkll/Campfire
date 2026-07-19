@@ -3,7 +3,10 @@ package app.campfire.series.ui.detail
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
+import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
@@ -57,6 +61,9 @@ fun SeriesDetail(
       CampfireTopAppBar(
         title = { Text(screen.seriesName) },
         scrollBehavior = scrollBehavior,
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars
+          .asPaddingValues(),
         navigationIcon = {
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {
@@ -81,6 +88,7 @@ fun SeriesDetail(
         zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
       )
       .nestedScroll(scrollBehavior.nestedScrollConnection),
+    contentWindowInsets = CampfireWindowInsets
   ) { paddingValues ->
     when (state.seriesContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

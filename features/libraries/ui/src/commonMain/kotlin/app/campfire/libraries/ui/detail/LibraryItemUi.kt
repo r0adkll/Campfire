@@ -7,11 +7,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -135,7 +139,7 @@ fun LibraryItemContent(
   addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier,
 ) = SharedElementTransitionScope {
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   var showAddToCollectionDialog by remember { mutableStateOf(false) }
   var showOverflowMenu by remember { mutableStateOf(false) }
@@ -167,6 +171,9 @@ fun LibraryItemContent(
       CampfireTopAppBar(
         title = {},
         scrollBehavior = scrollBehavior,
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars
+          .asPaddingValues(),
         navigationIcon = {
           val backLabel = stringResource(Res.string.cd_back_arrow)
           IconButtonTooltip(text = backLabel) {
@@ -264,7 +271,8 @@ fun LibraryItemContent(
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
       )
       .nestedScroll(scrollBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets
+      .exclude(WindowInsets.statusBars),
   ) { paddingValues ->
     when (val contentState = state.contentState) {
       LoadState.Error -> ErrorListState(

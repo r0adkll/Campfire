@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.navigation.localDrawerOpener
 import app.campfire.search.api.ui.SearchComponent
@@ -35,7 +36,7 @@ fun CampfireAppBar(
   @Assisted scrollBehavior: SearchBarScrollBehavior?,
 ) = SharedElementTransitionScope {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
-  if (windowSizeClass.isSupportingPaneEnabled) {
+  if (windowSizeClass.isSupportingPaneEnabled && !windowSizeClass.isLandscapePhone) {
     ExpandedCampfireAppBar(
       searchComponent = searchComponent,
       scrollBehavior = scrollBehavior,
@@ -49,6 +50,7 @@ fun CampfireAppBar(
     CompactCampfireAppBar(
       searchComponent = searchComponent,
       themeIconContent = themeIconContent,
+      themeIconEnabled = !windowSizeClass.isLandscapePhone,
       scrollBehavior = scrollBehavior,
       modifier = modifier
         .sharedElement(
@@ -63,6 +65,7 @@ fun CampfireAppBar(
 private fun CompactCampfireAppBar(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
+  themeIconEnabled: Boolean,
   modifier: Modifier = Modifier,
   scrollBehavior: SearchBarScrollBehavior? = null,
 ) {
@@ -70,6 +73,7 @@ private fun CompactCampfireAppBar(
   CampfireSearchAppBar(
     searchComponent = searchComponent,
     themeIconContent = themeIconContent,
+    themeIconEnabled = themeIconEnabled,
     onNavigationClick = drawerOpener,
     modifier = modifier,
     scrollBehavior = scrollBehavior,

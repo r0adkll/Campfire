@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.Metadata
@@ -24,6 +25,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ShakeVeryHigh
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.CoverImageShape
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.SharedImage
 import app.campfire.sessions.ui.composables.RunningTimerText
@@ -37,6 +39,7 @@ internal fun SharedTransitionScope.ExpandedItemImage(
   animatedVisibilityScope: AnimatedVisibilityScope,
   size: Dp,
   modifier: Modifier = Modifier,
+  shape: Shape = CoverImageShape,
 ) {
   Box(
     contentAlignment = Alignment.Center,
@@ -48,6 +51,7 @@ internal fun SharedTransitionScope.ExpandedItemImage(
       imageUrl = mediaUrl,
       contentDescription = session?.libraryItem?.media?.metadata?.title,
       size = size,
+      shape = shape,
       modifier = Modifier.sharedElement(
         rememberSharedContentState(SharedImage),
         animatedVisibilityScope = animatedVisibilityScope,

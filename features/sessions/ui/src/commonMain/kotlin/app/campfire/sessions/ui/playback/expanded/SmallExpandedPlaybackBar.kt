@@ -20,10 +20,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -84,6 +84,7 @@ import app.campfire.sessions.ui.playback.SyncUiEvent
 import app.campfire.sessions.ui.playback.SyncUiState
 import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
+import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
 import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
 import app.campfire.sessions.ui.playback.expanded.composables.ClearQueueButton
@@ -113,21 +114,15 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
-internal val ExpandedVerticalOffsetFactor = 56.dp
-internal val ExpandedHorizontalOffsetFactor = 4.dp
-internal val ExpandedCornerRadiusFactor = 24.dp
-internal val LargeCoverImageSize = 188.dp
-
-internal const val FlingThreshold = 4000f
-internal const val TranslationThreshold = 0.75f
-
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-internal fun <T> T.ExpandedPlaybackBar(
+internal fun <T> T.SmallExpandedPlaybackBar(
   navigator: Navigator,
   session: Session?,
   playbackState: PlaybackUiState,
@@ -141,7 +136,7 @@ internal fun <T> T.ExpandedPlaybackBar(
     overlayHost = overlayHost,
     modifier = modifier,
   ) {
-    ExpandedPlaybackBar(
+    SmallExpandedPlaybackBar(
       containerColor = containerColor,
       contentColor = contentColor,
       navigator = navigator,
@@ -161,7 +156,7 @@ internal fun <T> T.ExpandedPlaybackBar(
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun ExpandedPlaybackBar(
+internal fun SmallExpandedPlaybackBar(
   navigator: Navigator,
   overlayHost: OverlayHost,
 
@@ -257,7 +252,7 @@ internal fun ExpandedPlaybackBar(
             QueueButton(
               checked = showQueue,
               onCheckedChange = { showQueue = it },
-              buttonSize = ButtonDefaults.MinHeight,
+              buttonSize = ButtonDefaults.ExtraSmallContainerHeight,
             )
           }
         },
@@ -327,7 +322,7 @@ internal fun ExpandedPlaybackBar(
             modifier = Modifier.fillMaxSize(),
           )
         } else {
-          ExpandedPlaybackContent(
+          SmallExpandedPlaybackContent(
             navigator = navigator,
             overlayHost = overlayHost,
             session = session,
@@ -342,14 +337,12 @@ internal fun ExpandedPlaybackBar(
           )
         }
       }
-
-      Spacer(Modifier.navigationBarsPadding())
     }
   }
 }
 
 @Composable
-private fun SharedTransitionScope.ExpandedPlaybackContent(
+private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   navigator: Navigator,
   overlayHost: OverlayHost,
 
@@ -367,256 +360,328 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
 ) {
   val scope = rememberCoroutineScope()
 
+  val interactionSource = remember { MutableInteractionSource() }
+  val isPressed by interactionSource.collectIsPressedAsState()
+  val isDragged by interactionSource.collectIsDraggedAsState()
+  val isInteracting = isPressed || isDragged
+
   Column(
     modifier = modifier,
   ) {
-    Column(
-      Modifier.weight(1f),
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .weight(1f),
     ) {
-      Column(
+
+      this@SmallExpandedPlaybackContent.ItemMetadata(
+        navigator = navigator,
+        playerState = playerState,
+        session = session,
+        itemValidation = itemValidation,
+        animatedVisibilityScope = animatedVisibilityScope,
+        onClose = onClose,
         modifier = Modifier
-          .fillMaxWidth()
-          .weight(1f),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-      ) {
-        ExpandedItemImage(
-          currentMetadata = playerState.metadata,
-          runningTimer = playerState.timer,
-          session = session,
-          animatedVisibilityScope = animatedVisibilityScope,
-          size = if (windowSizeClass.isSupportingPaneEnabled) {
-            LargeCoverImageSize
-          } else {
-            CoverImageSize
-          },
-          modifier = Modifier.clickable {
-            if (session == null) return@clickable
-            scope.launch {
-              onClose()
-              delay(350L)
-              navigator.goTo(
-                LibraryItemScreen(
-                  libraryItemId = session.libraryItem.id,
-                  episodeId = session.episodeId,
-                ),
-              )
-            }
-          },
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-          text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.headlineMedium,
-          fontWeight = FontWeight.SemiBold,
-          fontFamily = PaytoneOneFontFamily,
-          maxLines = 3,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(horizontal = 24.dp),
-        )
-
-        Text(
-          text = session?.libraryItem?.media?.metadata?.title ?: "",
-          textAlign = TextAlign.Center,
-          style = MaterialTheme.typography.titleMedium,
-          maxLines = 2,
-          overflow = TextOverflow.Ellipsis,
-          modifier = Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(horizontal = 24.dp)
-            .alpha(50f),
-        )
-
-        if (itemValidation is LibraryItemValidation.Error.InvalidChapters) {
-          Spacer(Modifier.height(4.dp))
-          Text(
-            text = stringResource(Res.string.misaligned_chapters_error_message),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.error,
-            fontStyle = FontStyle.Italic,
-            modifier = Modifier
-              .align(Alignment.CenterHorizontally)
-              .padding(horizontal = 64.dp),
-          )
-        }
-
-        if (playerState.error != null) {
-          Spacer(Modifier.height(4.dp))
-          Text(
-            text = stringResource(Res.string.playback_error_message),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.error,
-            fontStyle = FontStyle.Italic,
-            modifier = Modifier
-              .align(Alignment.CenterHorizontally)
-              .padding(horizontal = 64.dp),
-          )
-        }
-      }
-
-      syncState.availableSync?.let { sync ->
-        AvailableSyncButton(
-          currentTime = sync.currentTime,
-          targetTime = sync.targetTime,
-          syncTimeInMillis = sync.syncTimeInMillis,
-          targetContent = {
-            sync.targetChapterTitle?.let { title ->
-              TargetSyncContent(title)
-            }
-          },
-          onClick = {
-            syncState.eventSink(SyncUiEvent.Sync)
-          },
-          modifier = Modifier
-            .align(Alignment.CenterHorizontally)
-            .padding(
-              horizontal = 16.dp,
-              vertical = 8.dp,
-            ),
-        )
-      }
-
-      val interactionSource = remember { MutableInteractionSource() }
-      val isPressed by interactionSource.collectIsPressedAsState()
-      val isDragged by interactionSource.collectIsDraggedAsState()
-      val isInteracting = isPressed || isDragged
-
-      PlaybackSeekBar(
-        state = playerState.state,
-        currentTime = playerState.time,
-        currentDuration = playerState.duration,
-        playbackSpeed = playerState.speed,
-        onSeek = { percent ->
-          playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
-        },
-        interactionSource = interactionSource,
+          .fillMaxHeight()
+          .weight(0.8f),
       )
 
-      Spacer(Modifier.height(24.dp))
-
-      PlaybackActions(
-        state = playerState.state,
+      ItemActions(
+        playerState = playerState,
+        syncState = syncState,
         isInteracting = isInteracting,
-        onSkipPreviousClick = {
-          playerState.eventSink(PlayerUiEvent.PreviousClick)
-        },
-        onRewindClick = {
-          playerState.eventSink(PlayerUiEvent.RewindClick)
-        },
-        onPlayPauseClick = {
-          playerState.eventSink(PlayerUiEvent.PlayPauseClick)
-        },
-        onForwardClick = {
-          playerState.eventSink(PlayerUiEvent.FastForwardClick)
-        },
-        onSkipNextClick = {
-          playerState.eventSink(PlayerUiEvent.NextClick)
-        },
+        interactionSource = interactionSource,
+        modifier = Modifier
+          .fillMaxHeight()
+          .weight(1.2f)
+      )
+
+      PlaybackOptionsColumn(
+        scope = scope,
+        overlayHost = overlayHost,
+        session = session,
+        playerState = playerState,
+        playbackHistoryEnabled = playbackHistoryEnabled,
+        modifier = Modifier.padding(bottom = 16.dp)
       )
     }
+  }
+}
+
+@Composable
+private fun SharedTransitionScope.ItemMetadata(
+  navigator: Navigator,
+  playerState: PlayerUiState,
+  session: Session?,
+  itemValidation: LibraryItemValidation,
+  animatedVisibilityScope: AnimatedVisibilityScope,
+  onClose: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val scope = rememberCoroutineScope()
+
+  Column(
+    modifier = modifier,
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.Center,
+  ) {
+
+    ExpandedItemImage(
+      currentMetadata = playerState.metadata,
+      runningTimer = playerState.timer,
+      session = session,
+      animatedVisibilityScope = animatedVisibilityScope,
+      size = 180.dp,
+      shape = RoundedCornerShape(16.dp),
+      modifier = Modifier.clickable {
+        if (session == null) return@clickable
+        scope.launch {
+          onClose()
+          delay(350.milliseconds)
+          navigator.goTo(
+            LibraryItemScreen(
+              libraryItemId = session.libraryItem.id,
+              episodeId = session.episodeId,
+            ),
+          )
+        }
+      },
+    )
 
     Spacer(Modifier.height(16.dp))
 
-    ActionRow(
-      onBookmarksClick = {
-        scope.launch {
-          when (val result = overlayHost.showBookmarksBottomSheet(session!!.libraryItem.id)) {
-            is BookmarkResult.Selected -> {
-              playerState.eventSink(PlayerUiEvent.BookmarkSelected(result.bookmark))
-            }
+    Text(
+      text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
+      textAlign = TextAlign.Center,
+      style = MaterialTheme.typography.headlineSmall,
+      fontWeight = FontWeight.SemiBold,
+      fontFamily = PaytoneOneFontFamily,
+      maxLines = 3,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier
+        .align(Alignment.CenterHorizontally)
+        .padding(horizontal = 24.dp),
+    )
 
-            BookmarkResult.None -> Unit
-          }
-        }
-      },
-      speedContent = {
-        PlaybackSpeedAction(
-          playbackSpeed = playerState.speed,
-          onClick = {
-            scope.launch {
-              overlayHost.showPlaybackSpeedBottomSheet(playerState.speed)
-            }
-          },
-        )
-      },
-      timerContent = {
-        RunningTimerAction(
-          runningTimer = playerState.timer,
-          currentTime = playerState.time,
-          currentDuration = playerState.duration,
-          playbackSpeed = playerState.speed,
-          onClick = {
-            scope.launch {
-              when (val result = overlayHost.showSleepTimerBottomSheet(playerState.timer)) {
-                is TimerResult.Selected -> {
-                  playerState.eventSink(PlayerUiEvent.TimerSelected(result.timer))
-                }
+    Text(
+      text = session?.libraryItem?.media?.metadata?.title ?: "",
+      textAlign = TextAlign.Center,
+      style = MaterialTheme.typography.titleSmall,
+      maxLines = 2,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier
+        .align(Alignment.CenterHorizontally)
+        .padding(horizontal = 24.dp)
+        .alpha(50f),
+    )
 
-                TimerResult.Cleared -> {
-                  playerState.eventSink(PlayerUiEvent.ClearTimer)
-                }
+    if (itemValidation is LibraryItemValidation.Error.InvalidChapters) {
+      Spacer(Modifier.height(4.dp))
+      Text(
+        text = stringResource(Res.string.misaligned_chapters_error_message),
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.error,
+        fontStyle = FontStyle.Italic,
+        modifier = Modifier
+          .align(Alignment.CenterHorizontally)
+          .padding(horizontal = 64.dp),
+      )
+    }
+  }
+}
 
-                else -> Unit
-              }
-            }
-          },
-        )
-      },
-      onChapterListClick = {
-        if (session!!.libraryItem.media.chapters.isNotEmpty()) {
-          scope.launch {
-            val result = overlayHost.showChapterBottomSheet(
-              chapters = session.libraryItem.media.chapters,
-              currentChapter = session.chapter,
-              playbackSpeed = playerState.speed,
-            )
-            if (result is ChapterResult.Selected) {
-              playerState.eventSink(PlayerUiEvent.ChapterSelected(result.chapter))
-            }
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ItemActions(
+  playerState: PlayerUiState,
+  syncState: SyncUiState,
+  isInteracting: Boolean,
+  interactionSource: MutableInteractionSource,
+  modifier: Modifier = Modifier,
+) {
+  Column(
+    modifier = modifier,
+    verticalArrangement = Arrangement.Center,
+  ) {
+
+    if (playerState.error != null) {
+      Text(
+        text = stringResource(Res.string.playback_error_message),
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.error,
+        fontStyle = FontStyle.Italic,
+        modifier = Modifier
+          .align(Alignment.CenterHorizontally)
+          .padding(horizontal = 64.dp),
+      )
+      Spacer(Modifier.height(4.dp))
+    }
+
+    syncState.availableSync?.let { sync ->
+      AvailableSyncButton(
+        currentTime = sync.currentTime,
+        targetTime = sync.targetTime,
+        syncTimeInMillis = sync.syncTimeInMillis,
+        targetContent = {
+          sync.targetChapterTitle?.let { title ->
+            TargetSyncContent(title)
           }
-        } else if (session.libraryItem.media.tracks.isNotEmpty()) {
-          scope.launch {
-            val result = overlayHost.showAudioTrackBottomSheet(
-              audioTracks = session.libraryItem.media.tracks,
-              currentAudioTrack = session.audioTrack,
-              playbackSpeed = playerState.speed,
-            )
-            if (result is AudioTrackResult.Selected) {
-              playerState.eventSink(PlayerUiEvent.AudioTrackSelected(result.audioTrack))
-            }
-          }
-        }
+        },
+        onClick = {
+          syncState.eventSink(SyncUiEvent.Sync)
+        },
+        modifier = Modifier
+          .align(Alignment.CenterHorizontally)
+          .padding(
+            horizontal = 16.dp,
+            vertical = 8.dp,
+          ),
+      )
+    }
+
+    PlaybackActions(
+      state = playerState.state,
+      isInteracting = isInteracting,
+      buttonSize = 72.dp,
+      buttonShape = MaterialTheme.shapes.largeIncreased,
+      playButtonExtraWidth = 20.dp,
+      onSkipPreviousClick = {
+        playerState.eventSink(PlayerUiEvent.PreviousClick)
       },
-      showChapters = session?.episodeId == null,
-      onDescriptionClick = {
-        val episode = session?.episode ?: return@ActionRow
-        scope.launch {
-          overlayHost.showEpisodeDescriptionBottomSheet(
-            episode = episode,
-            onSeek = { duration ->
-              playerState.eventSink(PlayerUiEvent.Seek.Position(duration))
-            },
-          )
-        }
+      onRewindClick = {
+        playerState.eventSink(PlayerUiEvent.RewindClick)
       },
-      showDescription = session?.episodeId != null,
-      onHistoryClick = {
-        scope.launch {
-          val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
-          if (result is PlaybackHistoryResult.Selected) {
-            val position = result.action.toPosition ?: result.action.fromPosition
-            playerState.eventSink(PlayerUiEvent.Seek.Position(position))
-          }
-        }
+      onPlayPauseClick = {
+        playerState.eventSink(PlayerUiEvent.PlayPauseClick)
       },
-      showHistory = playbackHistoryEnabled,
+      onForwardClick = {
+        playerState.eventSink(PlayerUiEvent.FastForwardClick)
+      },
+      onSkipNextClick = {
+        playerState.eventSink(PlayerUiEvent.NextClick)
+      },
+    )
+
+    Spacer(Modifier.height(8.dp))
+
+    PlaybackSeekBar(
+      state = playerState.state,
+      currentTime = playerState.time,
+      currentDuration = playerState.duration,
+      playbackSpeed = playerState.speed,
+      onSeek = { percent ->
+        playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
+      },
+      interactionSource = interactionSource,
     )
   }
+}
+
+
+@Composable
+private fun PlaybackOptionsColumn(
+  scope: CoroutineScope,
+  overlayHost: OverlayHost,
+  session: Session?,
+  playerState: PlayerUiState,
+  playbackHistoryEnabled: Boolean,
+  modifier: Modifier = Modifier
+) {
+  ActionColumn(
+    onBookmarksClick = {
+      scope.launch {
+        when (val result = overlayHost.showBookmarksBottomSheet(session!!.libraryItem.id)) {
+          is BookmarkResult.Selected -> {
+            playerState.eventSink(PlayerUiEvent.BookmarkSelected(result.bookmark))
+          }
+
+          BookmarkResult.None -> Unit
+        }
+      }
+    },
+    speedContent = {
+      PlaybackSpeedAction(
+        playbackSpeed = playerState.speed,
+        onClick = {
+          scope.launch {
+            overlayHost.showPlaybackSpeedBottomSheet(playerState.speed)
+          }
+        },
+      )
+    },
+    timerContent = {
+      RunningTimerAction(
+        runningTimer = playerState.timer,
+        currentTime = playerState.time,
+        currentDuration = playerState.duration,
+        playbackSpeed = playerState.speed,
+        onClick = {
+          scope.launch {
+            when (val result = overlayHost.showSleepTimerBottomSheet(playerState.timer)) {
+              is TimerResult.Selected -> {
+                playerState.eventSink(PlayerUiEvent.TimerSelected(result.timer))
+              }
+
+              TimerResult.Cleared -> {
+                playerState.eventSink(PlayerUiEvent.ClearTimer)
+              }
+
+              else -> Unit
+            }
+          }
+        },
+      )
+    },
+    onChapterListClick = {
+      if (session!!.libraryItem.media.chapters.isNotEmpty()) {
+        scope.launch {
+          val result = overlayHost.showChapterBottomSheet(
+            chapters = session.libraryItem.media.chapters,
+            currentChapter = session.chapter,
+            playbackSpeed = playerState.speed,
+          )
+          if (result is ChapterResult.Selected) {
+            playerState.eventSink(PlayerUiEvent.ChapterSelected(result.chapter))
+          }
+        }
+      } else if (session.libraryItem.media.tracks.isNotEmpty()) {
+        scope.launch {
+          val result = overlayHost.showAudioTrackBottomSheet(
+            audioTracks = session.libraryItem.media.tracks,
+            currentAudioTrack = session.audioTrack,
+            playbackSpeed = playerState.speed,
+          )
+          if (result is AudioTrackResult.Selected) {
+            playerState.eventSink(PlayerUiEvent.AudioTrackSelected(result.audioTrack))
+          }
+        }
+      }
+    },
+    showChapters = session?.episodeId == null,
+    onDescriptionClick = {
+      val episode = session?.episode ?: return@ActionColumn
+      scope.launch {
+        overlayHost.showEpisodeDescriptionBottomSheet(
+          episode = episode,
+          onSeek = { duration ->
+            playerState.eventSink(PlayerUiEvent.Seek.Position(duration))
+          },
+        )
+      }
+    },
+    showDescription = session?.episodeId != null,
+    onHistoryClick = {
+      scope.launch {
+        val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
+        if (result is PlaybackHistoryResult.Selected) {
+          val position = result.action.toPosition ?: result.action.fromPosition
+          playerState.eventSink(PlayerUiEvent.Seek.Position(position))
+        }
+      }
+    },
+    showHistory = playbackHistoryEnabled,
+    modifier = modifier,
+  )
 }

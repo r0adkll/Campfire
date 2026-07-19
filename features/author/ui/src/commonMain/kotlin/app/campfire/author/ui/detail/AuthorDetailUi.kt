@@ -4,9 +4,12 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -66,6 +69,8 @@ fun AuthorDetail(
       CampfireTopAppBar(
         title = { Text(screen.authorName) },
         scrollBehavior = scrollBehavior,
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars.asPaddingValues(),
         navigationIcon = {
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {

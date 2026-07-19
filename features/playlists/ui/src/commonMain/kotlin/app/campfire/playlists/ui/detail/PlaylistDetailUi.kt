@@ -4,9 +4,14 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -88,7 +93,7 @@ fun PlaylistDetail(
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   val scope = rememberCoroutineScope()
-  val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
   var showDeleteConfirmation by remember { mutableStateOf(false) }
   if (showDeleteConfirmation) {
@@ -179,7 +184,7 @@ fun PlaylistDetail(
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
         zIndexInOverlay = 0f,
       ),
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
   ) { paddingValues ->
     when (state.playlistContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
@@ -239,6 +244,8 @@ private fun PlaylistTopBar(
     modifier = modifier,
     title = { Text(name) },
     scrollBehavior = scrollBehavior,
+    windowInsets = WindowInsets(),
+    contentPadding = WindowInsets.statusBars.asPaddingValues(),
     navigationIcon = {
       val backLabel = stringResource(Res.string.action_back)
       IconButtonTooltip(text = backLabel) {

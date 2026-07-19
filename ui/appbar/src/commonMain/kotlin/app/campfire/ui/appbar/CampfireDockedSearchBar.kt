@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -112,8 +113,7 @@ private fun CampfireDockedSearchBar(
       inputField = inputField,
       scrollBehavior = scrollBehavior,
       modifier = Modifier.fillMaxWidth(),
-      windowInsets = SearchBarDefaults.windowInsets
-        .only(WindowInsetsSides.Horizontal),
+      windowInsets = WindowInsets(),
       contentPadding = SearchBarDefaults.windowInsets
         .only(WindowInsetsSides.Top)
         .asPaddingValues() + PaddingValues(horizontal = 8.dp),

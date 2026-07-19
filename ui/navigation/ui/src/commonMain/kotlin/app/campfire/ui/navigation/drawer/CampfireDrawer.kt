@@ -9,20 +9,30 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Brightness6
 import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Palette
+import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -42,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.layout.NavigationType
+import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
@@ -85,40 +96,55 @@ fun CampfireDrawer(
     component.navigationPresenterFactory()
   }
   val state = presenter.presentDrawer()
+  val windowSizeClass = LocalWindowSizeClass.current
 
   DrawerSheet(
     modifier = modifier,
+    windowInsets = if (windowSizeClass.isLandscapePhone) {
+      DrawerDefaults.windowInsets
+        .only(WindowInsetsSides.Horizontal)
+    } else {
+      DrawerDefaults.windowInsets
+    }
   ) {
-    accountSwitcher()
+    Column(
+      modifier = Modifier
+        .weight(1f)
+        .verticalScroll(rememberScrollState())
+    ) {
+      if (windowSizeClass.isLandscapePhone) {
+        Spacer(Modifier.height(24.dp))
+      }
 
-    component.whatsNewWidget.Content(
-      onClick = {
-        navigator.goTo(ChangelogScreen)
-        scope.launch {
-          drawerState.close()
-        }
-      },
-      modifier = Modifier.padding(
-        horizontal = 16.dp,
-      ),
-    )
+      accountSwitcher()
 
-    Spacer(Modifier.height(8.dp))
-
-    state.navigationItems.forEach { item ->
-      DestinationListItem(
-        item = item,
-        rootScreen = rootScreen,
+      component.whatsNewWidget.Content(
         onClick = {
-          navigator.goTo(item.screen)
+          navigator.goTo(ChangelogScreen)
           scope.launch {
             drawerState.close()
           }
         },
+        modifier = Modifier.padding(
+          horizontal = 16.dp,
+        ),
       )
-    }
 
-    Spacer(Modifier.weight(1f))
+      Spacer(Modifier.height(8.dp))
+
+      state.navigationItems.forEach { item ->
+        DestinationListItem(
+          item = item,
+          rootScreen = rootScreen,
+          onClick = {
+            navigator.goTo(item.screen)
+            scope.launch {
+              drawerState.close()
+            }
+          },
+        )
+      }
+    }
 
     Row(
       modifier = Modifier
@@ -248,6 +274,7 @@ private fun DestinationListItem(
 @Composable
 private fun DrawerSheet(
   modifier: Modifier = Modifier,
+  windowInsets: WindowInsets = DrawerDefaults.windowInsets,
   content: @Composable ColumnScope.() -> Unit,
 ) {
   val navigationType = LocalWindowSizeClass.current.navigationType
@@ -255,11 +282,13 @@ private fun DrawerSheet(
     PermanentDrawerSheet(
       content = content,
       modifier = modifier,
+      windowInsets = windowInsets,
     )
   } else {
     ModalDrawerSheet(
       content = content,
       modifier = modifier,
+      windowInsets = windowInsets,
     )
   }
 }
