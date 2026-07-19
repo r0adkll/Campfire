@@ -64,7 +64,6 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
@@ -85,7 +84,6 @@ import app.campfire.sessions.ui.playback.SyncUiState
 import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
-import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
 import app.campfire.sessions.ui.playback.expanded.composables.ClearQueueButton
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
@@ -373,7 +371,6 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         .fillMaxWidth()
         .weight(1f),
     ) {
-
       this@SmallExpandedPlaybackContent.ItemMetadata(
         navigator = navigator,
         playerState = playerState,
@@ -393,7 +390,7 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         interactionSource = interactionSource,
         modifier = Modifier
           .fillMaxHeight()
-          .weight(1.2f)
+          .weight(1.2f),
       )
 
       PlaybackOptionsColumn(
@@ -402,7 +399,7 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         session = session,
         playerState = playerState,
         playbackHistoryEnabled = playbackHistoryEnabled,
-        modifier = Modifier.padding(bottom = 16.dp)
+        modifier = Modifier.padding(bottom = 16.dp),
       )
     }
   }
@@ -425,7 +422,6 @@ private fun SharedTransitionScope.ItemMetadata(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
   ) {
-
     ExpandedItemImage(
       currentMetadata = playerState.metadata,
       runningTimer = playerState.timer,
@@ -504,7 +500,6 @@ private fun ItemActions(
     modifier = modifier,
     verticalArrangement = Arrangement.Center,
   ) {
-
     if (playerState.error != null) {
       Text(
         text = stringResource(Res.string.playback_error_message),
@@ -579,7 +574,6 @@ private fun ItemActions(
   }
 }
 
-
 @Composable
 private fun PlaybackOptionsColumn(
   scope: CoroutineScope,
@@ -587,7 +581,7 @@ private fun PlaybackOptionsColumn(
   session: Session?,
   playerState: PlayerUiState,
   playbackHistoryEnabled: Boolean,
-  modifier: Modifier = Modifier
+  modifier: Modifier = Modifier,
 ) {
   ActionColumn(
     onBookmarksClick = {

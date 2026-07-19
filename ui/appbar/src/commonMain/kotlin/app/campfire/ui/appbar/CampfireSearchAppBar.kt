@@ -75,7 +75,9 @@ internal fun CampfireSearchAppBar(
             .padding(4.dp),
         )
       }
-    } else null,
+    } else {
+      null
+    },
     actions = actions,
     modifier = modifier,
     scrollBehavior = scrollBehavior,

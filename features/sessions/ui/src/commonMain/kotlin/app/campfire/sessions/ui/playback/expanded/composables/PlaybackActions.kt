@@ -71,7 +71,6 @@ internal fun PlaybackActions(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
     ) {
-
       @Composable
       fun AccessoryButton(
         onClick: () -> Unit,

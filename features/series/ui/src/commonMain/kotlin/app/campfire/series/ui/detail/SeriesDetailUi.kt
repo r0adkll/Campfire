@@ -88,7 +88,7 @@ fun SeriesDetail(
         zIndexInOverlay = -(MaxBookDisplay + 1).toFloat(),
       )
       .nestedScroll(scrollBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets
+    contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     when (state.seriesContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

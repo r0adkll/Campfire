@@ -60,7 +60,7 @@ internal fun ActionRow(
       showDescription = showDescription,
       onHistoryClick = onHistoryClick,
       showHistory = showHistory,
-      actionModifier = Modifier.weight(1f)
+      actionModifier = Modifier.weight(1f),
     )
   }
 }
@@ -95,7 +95,7 @@ internal fun ActionColumn(
       showDescription = showDescription,
       onHistoryClick = onHistoryClick,
       showHistory = showHistory,
-      actionModifier = Modifier.weight(1f)
+      actionModifier = Modifier.weight(1f),
     )
   }
 }

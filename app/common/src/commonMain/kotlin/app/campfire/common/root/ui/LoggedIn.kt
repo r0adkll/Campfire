@@ -406,7 +406,7 @@ private fun LoggedInUi(
                 700.dp
               } else {
                 500.dp
-              }
+              },
             )
             .fillMaxWidth(),
         )
