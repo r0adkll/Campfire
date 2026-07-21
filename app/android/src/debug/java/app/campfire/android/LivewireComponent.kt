@@ -52,8 +52,6 @@ interface LivewireComponent {
           artworkLoader = CoilDebugArtworkLoader(application),
         ),
       )
-
-      debugLogging(true)
     }
   }
 }

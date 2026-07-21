@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Missing runtime permission on Android 17 when connecting to local network addresses
+
 ### Other Notes & Contributions
 
 ## [0.13.0-beta]
