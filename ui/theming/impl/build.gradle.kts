@@ -49,7 +49,7 @@ kotlin {
         implementation(libs.halogen.provider.nano)
         // Direct ML Kit GenAI dependency so DiagnosticGeminiNanoProvider can call
         // checkStatus() and surface the raw FeatureStatus to logcat.
-        implementation("com.google.mlkit:genai-prompt:1.0.0-beta3")
+        implementation("com.google.mlkit:genai-prompt:1.0.0-beta4")
       }
     }
 
