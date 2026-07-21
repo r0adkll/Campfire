@@ -6,6 +6,7 @@ import app.campfire.auth.ui.login.LoginPresenter
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.UserScope
+import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -18,6 +19,7 @@ import me.tatarka.inject.annotations.Inject
 class WelcomePresenter(
   private val authRepository: AuthRepository,
   private val oauthAuthorizationFlow: AuthorizationFlow,
+  private val localNetworkPermission: LocalNetworkPermissionController,
   @Assisted private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -26,6 +28,7 @@ class WelcomePresenter(
     navigator = navigator,
     authRepository = authRepository,
     oauthAuthorizationFlow = oauthAuthorizationFlow,
+    localNetworkPermission = localNetworkPermission,
   )
 
   @Composable

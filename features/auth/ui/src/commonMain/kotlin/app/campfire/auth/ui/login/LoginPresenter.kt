@@ -25,6 +25,7 @@ import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.Tent
 import app.campfire.core.model.UserId
+import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import coil3.toUri
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -43,6 +44,7 @@ class LoginPresenter(
   @Assisted private val navigator: Navigator,
   private val authRepository: AuthRepository,
   private val oauthAuthorizationFlow: AuthorizationFlow,
+  private val localNetworkPermission: LocalNetworkPermissionController,
 ) : Presenter<LoginUiState> {
 
   private val initialTent: Tent = when (screen) {
@@ -226,6 +228,10 @@ class LoginPresenter(
         connectionState = ConnectionState.Error(IllegalArgumentException("Invalid URL"))
         return@LaunchedEffect
       }
+
+      // A LAN server (e.g. 192.168.x.x) needs the local-network permission on Android 16+, or the
+      // status probe below silently times out. Prompt lazily now that a private address is present.
+      localNetworkPermission.requestIfNeeded(serverUrl)
 
       authRepository.status(serverUrl, networkSettings)
         .onSuccess { status ->

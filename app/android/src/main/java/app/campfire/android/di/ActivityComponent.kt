@@ -2,6 +2,7 @@ package app.campfire.android.di
 
 import android.app.Activity
 import androidx.core.os.ConfigurationCompat
+import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.impl.MediaControllerConnector
 import app.campfire.audioplayer.impl.cast.MediaRouterCastController
 import app.campfire.audioplayer.offline.OfflineDownloadManager
@@ -10,6 +11,7 @@ import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
+import app.campfire.core.permission.LocalNetworkPermissionController
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import java.util.Locale
 import me.tatarka.inject.annotations.Provides
@@ -25,6 +27,8 @@ interface ActivityComponent {
   val mediaRouterCastController: MediaRouterCastController
   val componentActivityPlugins: Set<ComponentActivityPlugin>
   val offlineDownloadManager: OfflineDownloadManager
+  val userSessionManager: UserSessionManager
+  val localNetworkPermission: LocalNetworkPermissionController
 
   @Provides
   fun provideActivityLocale(activity: Activity): Locale {

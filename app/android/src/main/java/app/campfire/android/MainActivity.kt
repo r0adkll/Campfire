@@ -24,11 +24,15 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
+import app.campfire.core.session.serverUrl
 import app.campfire.core.toast.GlobalToaster
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
 class MainActivity : ComponentActivity() {
@@ -57,6 +61,17 @@ class MainActivity : ComponentActivity() {
     // Register all flow launchers
     component.componentActivityPlugins.forEach { launcher ->
       launcher.register(this)
+    }
+
+    // Upgrade path: a user already signed in to a LAN server before the app began targeting
+    // Android 16+ won't pass through the login screen, so prompt for local-network access here
+    // if their active server is private and the permission is missing. Waits for the session to
+    // restore (it may still be Loading at onCreate), then requests once. No-ops otherwise.
+    lifecycleScope.launch {
+      val serverUrl = component.userSessionManager.observe()
+        .mapNotNull { it.serverUrl }
+        .first()
+      component.localNetworkPermission.requestIfNeeded(serverUrl)
     }
 
     WindowCompat.setDecorFitsSystemWindows(window, false)

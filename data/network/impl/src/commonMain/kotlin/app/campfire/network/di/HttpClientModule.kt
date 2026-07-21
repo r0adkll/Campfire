@@ -21,6 +21,7 @@ import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.cache.HttpCache
@@ -56,7 +57,17 @@ interface HttpClientModule {
     applicationInfo: ApplicationInfo,
   ): HttpClient {
     return HttpClient {
-      install(LivewireNetworkPlugin)
+      // Debug-only network inspection. This installs a ResponseObserver that reads the full
+      // body of every response, so it must never ride along on release builds.
+      if (applicationInfo.debugBuild) {
+        install(LivewireNetworkPlugin)
+      }
+
+      install(HttpTimeout) {
+        connectTimeoutMillis = 10_000
+        requestTimeoutMillis = 30_000
+        socketTimeoutMillis = 30_000
+      }
 
       install(ContentNegotiation) {
         json(

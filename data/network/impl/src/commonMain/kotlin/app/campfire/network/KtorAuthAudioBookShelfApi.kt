@@ -58,7 +58,7 @@ class KtorAuthAudioBookShelfApi(
     extraHeaders: Map<String, String>?,
   ): Result<ServerStatus> {
     return trySendRequest {
-      client.get("$serverUrl/status") {
+      client.get("${cleanServerUrl(serverUrl)}/status") {
         maybeHeaders(extraHeaders)
       }
     }
