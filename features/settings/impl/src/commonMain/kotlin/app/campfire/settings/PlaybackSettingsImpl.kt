@@ -3,14 +3,19 @@ package app.campfire.settings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.ResumeRewindConfig
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -71,7 +76,69 @@ class PlaybackSettingsImpl(
   override var playbackHistoryEnabled: Boolean by playbackHistoryEnabledProperty
   override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = playbackHistoryEnabledProperty.observe()
 
+  private val autoRewindOnResumeEnabledProperty = booleanSetting(
+    PREF_AUTO_REWIND_ON_RESUME,
+    DEFAULT_AUTO_REWIND_ON_RESUME,
+  )
+  override var autoRewindOnResumeEnabled: Boolean by autoRewindOnResumeEnabledProperty
+  override fun observeAutoRewindOnResumeEnabled(): StateFlow<Boolean> = autoRewindOnResumeEnabledProperty.observe()
+
+  private val minPauseThresholdProperty = durationSetting(
+    PREF_MIN_PAUSE_THRESHOLD,
+    ResumeRewindConfig.Default.minPauseThreshold,
+  )
+  private var minPauseThreshold: Duration by minPauseThresholdProperty
+
+  private val minResumeRewindProperty = durationSetting(PREF_MIN_RESUME_REWIND, ResumeRewindConfig.Default.minRewind)
+  private var minResumeRewind: Duration by minResumeRewindProperty
+
+  private val maxResumeRewindProperty = durationSetting(PREF_MAX_RESUME_REWIND, ResumeRewindConfig.Default.maxRewind)
+  private var maxResumeRewind: Duration by maxResumeRewindProperty
+
+  override var resumeRewindConfig: ResumeRewindConfig
+    get() = ResumeRewindConfig(minPauseThreshold, minResumeRewind, maxResumeRewind)
+    set(value) {
+      minPauseThreshold = value.minPauseThreshold
+      minResumeRewind = value.minRewind
+      maxResumeRewind = value.maxRewind
+    }
+
+  override fun observeResumeRewindConfig(): StateFlow<ResumeRewindConfig> = combine(
+    minPauseThresholdProperty.observe(),
+    minResumeRewindProperty.observe(),
+    maxResumeRewindProperty.observe(),
+  ) { minPause, minRewind, maxRewind ->
+    ResumeRewindConfig(minPause, minRewind, maxRewind)
+  }.stateIn(scope, SharingStarted.Lazily, resumeRewindConfig)
+
+  private val autoRewindStopAtChapterBoundaryProperty = booleanSetting(
+    PREF_AUTO_REWIND_STOP_AT_CHAPTER,
+    DEFAULT_AUTO_REWIND_STOP_AT_CHAPTER,
+  )
+  override var autoRewindStopAtChapterBoundary: Boolean by autoRewindStopAtChapterBoundaryProperty
+  override fun observeAutoRewindStopAtChapterBoundary(): StateFlow<Boolean> =
+    autoRewindStopAtChapterBoundaryProperty.observe()
+
+  override var pendingResumeRewind: PendingResumeRewind?
+    get() = settings.getStringOrNull(PREF_PENDING_RESUME_REWIND)?.toPendingResumeRewind()
+    set(value) {
+      if (value == null) {
+        settings.remove(PREF_PENDING_RESUME_REWIND)
+      } else {
+        settings.putString(PREF_PENDING_RESUME_REWIND, value.serialize())
+      }
+    }
+
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
+
+  private fun PendingResumeRewind.serialize(): String =
+    "$pausedAtEpochMillis$PENDING_RESUME_REWIND_SEPARATOR$libraryItemId"
+
+  private fun String.toPendingResumeRewind(): PendingResumeRewind? {
+    val epochMillis = substringBefore(PENDING_RESUME_REWIND_SEPARATOR).toLongOrNull() ?: return null
+    val libraryItemId = substringAfter(PENDING_RESUME_REWIND_SEPARATOR, "").ifEmpty { return null }
+    return PendingResumeRewind(epochMillis, libraryItemId)
+  }
 }
 
 internal const val PREF_MP3_SEEKING = "pref_playback_mp3_seeking"
@@ -96,3 +163,13 @@ internal const val DEFAULT_SYNCHRONIZATION = true
 internal const val DEFAULT_AUTO_SYNC = true
 internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
 internal const val DEFAULT_PLAYBACK_HISTORY = true
+
+internal const val PREF_AUTO_REWIND_ON_RESUME = "pref_playback_auto_rewind_on_resume"
+internal const val DEFAULT_AUTO_REWIND_ON_RESUME = false
+internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
+internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
+internal const val PREF_MAX_RESUME_REWIND = "pref_playback_resume_rewind_max"
+internal const val PREF_PENDING_RESUME_REWIND = "pref_playback_pending_resume_rewind"
+internal const val PENDING_RESUME_REWIND_SEPARATOR = "|"
+internal const val PREF_AUTO_REWIND_STOP_AT_CHAPTER = "pref_playback_auto_rewind_stop_at_chapter"
+internal const val DEFAULT_AUTO_REWIND_STOP_AT_CHAPTER = true

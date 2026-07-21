@@ -47,4 +47,31 @@ interface PlaybackSettings {
    */
   var playbackHistoryEnabled: Boolean
   fun observePlaybackHistoryEnabled(): StateFlow<Boolean>
+
+  /**
+   * When true, resuming playback after a pause rewinds by an amount that scales with how long playback was
+   * paused, per the sliding window derived from [resumeRewindConfig].
+   */
+  var autoRewindOnResumeEnabled: Boolean
+  fun observeAutoRewindOnResumeEnabled(): StateFlow<Boolean>
+
+  /**
+   * The configuration (min pause floor + rewind range) from which the auto-rewind sliding window is derived.
+   * See [ResumeRewindConfig], [ResumeRewindConfig.tiers], and [rewindForPause].
+   */
+  var resumeRewindConfig: ResumeRewindConfig
+  fun observeResumeRewindConfig(): StateFlow<ResumeRewindConfig>
+
+  /**
+   * When true, an auto-rewind on resume never crosses back past the start of the current chapter — if the
+   * rewind would go before the chapter boundary, it stops at the boundary instead.
+   */
+  var autoRewindStopAtChapterBoundary: Boolean
+  fun observeAutoRewindStopAtChapterBoundary(): StateFlow<Boolean>
+
+  /**
+   * Transient, persisted marker for a pause that may still owe a rewind on resume. Persisted so that a pause
+   * interrupted by the app being killed still rewinds when playback resumes. Null when no pause is pending.
+   */
+  var pendingResumeRewind: PendingResumeRewind?
 }

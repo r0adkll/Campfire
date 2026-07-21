@@ -13,6 +13,8 @@ import app.campfire.core.model.Server
 import app.campfire.core.model.Tent
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
+import app.campfire.settings.api.ResumeRewindConfig
+import app.campfire.settings.api.ResumeRewindTier
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
@@ -82,6 +84,10 @@ data class PlaybackSettingsInfo(
   val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
   val playbackHistoryEnabled: Boolean,
+  val autoRewindOnResumeEnabled: Boolean,
+  val resumeRewindConfig: ResumeRewindConfig,
+  val resumeRewindPreview: List<ResumeRewindTier>,
+  val autoRewindStopAtChapterBoundary: Boolean,
 )
 
 @Immutable
@@ -183,6 +189,13 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoSyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class PlaybackHistoryEnabled(val enabled: Boolean) : PlaybackSettingEvent
+    data class AutoRewindOnResumeEnabled(val enabled: Boolean) : PlaybackSettingEvent
+    data class MinPauseThreshold(val threshold: Duration) : PlaybackSettingEvent
+    data class ResumeRewindRange(
+      val minRewind: Duration,
+      val maxRewind: Duration,
+    ) : PlaybackSettingEvent
+    data class AutoRewindStopAtChapterBoundary(val enabled: Boolean) : PlaybackSettingEvent
   }
 
   // Sleep Setting Events

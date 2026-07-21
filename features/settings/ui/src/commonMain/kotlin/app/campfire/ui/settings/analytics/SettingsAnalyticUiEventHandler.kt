@@ -90,6 +90,17 @@ class SettingsAnalyticUiEventHandler(
       is SyncEnabled -> send("sync", Updated, event.enabled)
       is AutoSyncEnabled -> send("auto_sync", Updated, event.enabled)
       is PlaybackHistoryEnabled -> send("playback_history", Updated, event.enabled)
+      is SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled ->
+        send("auto_rewind_on_resume", Updated, event.enabled)
+      is SettingsUiEvent.PlaybackSettingEvent.MinPauseThreshold ->
+        send("resume_rewind_min_pause", Updated, event.threshold.inWholeMilliseconds)
+      is SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange -> send(
+        "resume_rewind_range",
+        Updated,
+        "${event.minRewind.inWholeMilliseconds}-${event.maxRewind.inWholeMilliseconds}",
+      )
+      is SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary ->
+        send("resume_rewind_stop_at_chapter", Updated, event.enabled)
     }
 
     is SettingsUiEvent.SleepSettingEvent -> when (event) {

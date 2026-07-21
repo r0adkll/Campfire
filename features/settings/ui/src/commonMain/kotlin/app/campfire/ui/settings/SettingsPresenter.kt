@@ -33,6 +33,7 @@ import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
+import app.campfire.settings.api.tiers
 import app.campfire.shake.ShakeDetector
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.AttributionsClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
@@ -50,12 +51,16 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.MinPauseThreshold
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHistoryEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindAmount
@@ -140,6 +145,12 @@ class SettingsPresenter(
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
+    val autoRewindOnResumeEnabled by remember { playbackSettings.observeAutoRewindOnResumeEnabled() }.collectAsState()
+    val resumeRewindConfig by remember { playbackSettings.observeResumeRewindConfig() }.collectAsState()
+    val resumeRewindPreview = remember(resumeRewindConfig) { resumeRewindConfig.tiers() }
+    val autoRewindStopAtChapterBoundary by remember {
+      playbackSettings.observeAutoRewindStopAtChapterBoundary()
+    }.collectAsState()
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -224,6 +235,10 @@ class SettingsPresenter(
         syncEnabled = syncEnabled,
         autoSyncEnabled = syncEnabled && autoSyncEnabled,
         playbackHistoryEnabled = playbackHistoryEnabled,
+        autoRewindOnResumeEnabled = autoRewindOnResumeEnabled,
+        resumeRewindConfig = resumeRewindConfig,
+        resumeRewindPreview = resumeRewindPreview,
+        autoRewindStopAtChapterBoundary = autoRewindStopAtChapterBoundary,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -320,6 +335,19 @@ class SettingsPresenter(
               scope.launch { playbackHistoryRepository.clearAll() }
             }
           }
+          is AutoRewindOnResumeEnabled -> playbackSettings.autoRewindOnResumeEnabled = event.enabled
+          is MinPauseThreshold -> {
+            playbackSettings.resumeRewindConfig =
+              playbackSettings.resumeRewindConfig.copy(minPauseThreshold = event.threshold)
+          }
+          is ResumeRewindRange -> {
+            playbackSettings.resumeRewindConfig = playbackSettings.resumeRewindConfig.copy(
+              minRewind = event.minRewind,
+              maxRewind = event.maxRewind,
+            )
+          }
+          is AutoRewindStopAtChapterBoundary ->
+            playbackSettings.autoRewindStopAtChapterBoundary = event.enabled
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

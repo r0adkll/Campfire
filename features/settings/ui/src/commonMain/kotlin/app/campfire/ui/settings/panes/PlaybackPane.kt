@@ -1,18 +1,27 @@
 package app.campfire.ui.settings.panes
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.settings.api.MinPauseThresholdRange
+import app.campfire.settings.api.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent
 import app.campfire.ui.settings.SettingsUiState
+import app.campfire.ui.settings.composables.DurationRangeSliderSetting
+import app.campfire.ui.settings.composables.DurationSliderSetting
 import app.campfire.ui.settings.composables.Header
+import app.campfire.ui.settings.composables.ResumeRewindPreviewRow
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TimeJumpSetting
 import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.header_auto_rewind_on_resume
 import campfire.features.settings.ui.generated.resources.header_playback_history
 import campfire.features.settings.ui.generated.resources.header_synchronization
+import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_title
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_subtitle
@@ -21,10 +30,17 @@ import campfire.features.settings.ui.generated.resources.setting_playback_forwar
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_title
 import campfire.features.settings.ui.generated.resources.setting_playback_history_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_history_title
+import campfire.features.settings.ui.generated.resources.setting_playback_min_pause_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_min_pause_title
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_mp3seeking_title
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_remote_skip_title
+import campfire.features.settings.ui.generated.resources.setting_playback_resume_rewind_preview_header
+import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_title
+import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_title
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_title
@@ -92,6 +108,65 @@ internal fun PlaybackPane(
       headlineContent = { Text(stringResource(Res.string.setting_playback_remote_skip_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
     )
+
+    Header(
+      title = { Text(stringResource(Res.string.header_auto_rewind_on_resume)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.autoRewindOnResumeEnabled,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.AutoRewindOnResumeEnabled(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_auto_rewind_on_resume_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_auto_rewind_on_resume_subtitle)) },
+    )
+
+    AnimatedVisibility(
+      visible = state.playbackSettings.autoRewindOnResumeEnabled,
+    ) {
+      Column {
+        val config = state.playbackSettings.resumeRewindConfig
+
+        DurationSliderSetting(
+          title = stringResource(Res.string.setting_playback_min_pause_title),
+          subtitle = stringResource(Res.string.setting_playback_min_pause_subtitle),
+          value = config.minPauseThreshold,
+          valueRange = MinPauseThresholdRange,
+          stepSeconds = 1,
+          onValueChange = { state.eventSink(PlaybackSettingEvent.MinPauseThreshold(it)) },
+        )
+
+        DurationRangeSliderSetting(
+          title = stringResource(Res.string.setting_playback_rewind_range_title),
+          subtitle = stringResource(Res.string.setting_playback_rewind_range_subtitle),
+          min = config.minRewind,
+          max = config.maxRewind,
+          valueRange = ResumeRewindRange,
+          stepSeconds = 5,
+          onValueChange = { min, max ->
+            state.eventSink(PlaybackSettingEvent.ResumeRewindRange(min, max))
+          },
+        )
+
+        SwitchSetting(
+          value = state.playbackSettings.autoRewindStopAtChapterBoundary,
+          onValueChange = {
+            state.eventSink(PlaybackSettingEvent.AutoRewindStopAtChapterBoundary(it))
+          },
+          headlineContent = { Text(stringResource(Res.string.setting_playback_rewind_stop_chapter_title)) },
+          supportingContent = { Text(stringResource(Res.string.setting_playback_rewind_stop_chapter_subtitle)) },
+        )
+
+        Header(
+          title = { Text(stringResource(Res.string.setting_playback_resume_rewind_preview_header)) },
+        )
+
+        state.playbackSettings.resumeRewindPreview.forEach { tier ->
+          ResumeRewindPreviewRow(tier = tier)
+        }
+      }
+    }
 
     Header(
       title = { Text(stringResource(Res.string.header_synchronization)) },

@@ -50,6 +50,8 @@ kotlin {
       dependencies {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
+        implementation(projects.infra.audioplayer.test)
+        implementation(projects.features.settings.test)
       }
     }
 
