@@ -5,6 +5,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.CampfireSettings
@@ -86,6 +87,20 @@ class CampfireSettingsImpl(
   override var seriesSortDirection: SortDirection by seriesSortDirectionProperty
   override fun observeSeriesSortDirection(): StateFlow<SortDirection> = seriesSortDirectionProperty.observe()
 
+  private val seriesDisplayStateProperty = enumSetting(KEY_SERIES_DISPLAY_STATE, GroupDisplayState)
+  override var seriesDisplayState: GroupDisplayState by seriesDisplayStateProperty
+  override fun observeSeriesDisplayState(): StateFlow<GroupDisplayState> = seriesDisplayStateProperty.observe()
+
+  private val collectionsDisplayStateProperty = enumSetting(KEY_COLLECTIONS_DISPLAY_STATE, GroupDisplayState)
+  override var collectionsDisplayState: GroupDisplayState by collectionsDisplayStateProperty
+  override fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState> =
+    collectionsDisplayStateProperty.observe()
+
+  private val playlistsDisplayStateProperty = enumSetting(KEY_PLAYLISTS_DISPLAY_STATE, GroupDisplayState)
+  override var playlistsDisplayState: GroupDisplayState by playlistsDisplayStateProperty
+  override fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState> =
+    playlistsDisplayStateProperty.observe()
+
   private val currentUserIdProperty = stringOrNullSetting(KEY_CURRENT_USER_ID)
   override var currentUserId: UserId? by currentUserIdProperty
   override fun observeCurrentUserId(): StateFlow<UserId?> = currentUserIdProperty.observe()
@@ -126,6 +141,9 @@ internal const val KEY_AUTHOR_SORT_MODE = "pref_authors_sort_mode"
 internal const val KEY_AUTHORS_SORT_DIRECTION = "pref_authors_sort_direction"
 internal const val KEY_SERIES_SORT_MODE = "pref_series_sort_mode"
 internal const val KEY_SERIES_SORT_DIRECTION = "pref_series_sort_direction"
+internal const val KEY_SERIES_DISPLAY_STATE = "pref_series_display_state"
+internal const val KEY_COLLECTIONS_DISPLAY_STATE = "pref_collections_display_state"
+internal const val KEY_PLAYLISTS_DISPLAY_STATE = "pref_playlists_display_state"
 internal const val KEY_CURRENT_USER_ID = "pref_current_user_id"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"

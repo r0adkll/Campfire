@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- List/grid display toggle for the Series, Collections, and Playlists screens, remembered independently per screen
+- New grid-style collection card with a dynamic cover mosaic (adapts to 1–4+ items) for the grid layout
+
 ### Changed
+
+- Collection, series, and playlist cards now show an item-count badge in the corner of the cover
 
 ### Deprecated
 

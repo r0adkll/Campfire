@@ -5,11 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridItemScope
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
@@ -19,22 +19,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.ContentPagingScaffold
+import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.ItemCollectionCard
+import app.campfire.common.compose.widgets.ItemCollectionGridCard
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Series
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SeriesSortModes
 import app.campfire.core.settings.SortDirection
@@ -85,6 +90,7 @@ fun Series(
       filter = state.filter,
       sortMode = state.sortMode,
       sortDirection = state.sortDirection,
+      displayState = state.displayState,
       onSeriesClick = { state.eventSink(SeriesUiEvent.SeriesClicked(it)) },
       onFilterClick = {
         scope.launch {
@@ -111,6 +117,9 @@ fun Series(
           }
         }
       },
+      onDisplayStateClick = {
+        state.eventSink(SeriesUiEvent.ToggleDisplayState)
+      },
       contentPadding = paddingValues,
     )
   }
@@ -124,9 +133,11 @@ private fun LoadedState(
   filter: ContentFilter?,
   sortMode: ContentSortMode,
   sortDirection: SortDirection,
+  displayState: GroupDisplayState,
   onSeriesClick: (Series) -> Unit,
   onFilterClick: () -> Unit,
   onSortClick: () -> Unit,
+  onDisplayStateClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyGridState = rememberLazyGridState(),
@@ -137,46 +148,29 @@ private fun LoadedState(
     emptyMessage = stringResource(Res.string.empty_series_items_message),
     indicatorPadding = contentPadding.calculateTopPadding(),
   ) {
-    LazyCampfireGrid(
-      columns = GridCells.Adaptive(LargeAdaptiveColumnSize),
+    SeriesGrid(
+      totalCount = totalCount,
+      lazyPagingItems = lazyPagingItems,
+      filter = filter,
+      sortMode = sortMode,
+      sortDirection = sortDirection,
+      filterBarDisplayState = when (displayState) {
+        GroupDisplayState.List -> ItemDisplayState.List
+        GroupDisplayState.Grid -> ItemDisplayState.Grid
+      },
+      onFilterClick = onFilterClick,
+      onSortClick = onSortClick,
+      onDisplayStateClick = onDisplayStateClick,
+      modifier = modifier,
+      contentPadding = contentPadding,
+      adaptiveColumnSize = when (displayState) {
+        GroupDisplayState.List -> LargeAdaptiveColumnSize
+        GroupDisplayState.Grid -> DefaultAdaptiveColumnSize
+      },
       state = state,
-      contentPadding = contentPadding + PaddingValues(horizontal = ContentPadding),
-      modifier = Modifier.fillMaxSize(),
-      verticalArrangement = Arrangement.spacedBy(8.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-      item(
-        span = { GridItemSpan(this.maxLineSpan) },
-        key = "filter-bar",
-      ) {
-        FilterBar(
-          count = {
-            if (totalCount != INVALID_SERIES_COUNT) {
-              Text(
-                text = pluralStringResource(Res.plurals.filter_bar_series_count, totalCount, totalCount),
-              )
-            } else {
-              Text("--")
-            }
-          },
-          itemDisplayState = ItemDisplayState.Grid,
-          isFiltered = filter != null,
-          onFilterClick = onFilterClick,
-          sortMode = sortMode,
-          sortDirection = sortDirection,
-          onSortClick = onSortClick,
-        )
-      }
-
-      items(
-        count = lazyPagingItems.itemCount,
-        key = lazyPagingItems.itemKey { it.id },
-        contentType = lazyPagingItems.itemContentType { "series-item" },
-      ) { index ->
-        val series = lazyPagingItems[index]
-        if (series == null) {
-          PlaceholderItem()
-        } else {
+    ) { series ->
+      when (displayState) {
+        GroupDisplayState.List -> {
           ItemCollectionCard(
             sharedTransitionKey = series.id,
             name = series.name,
@@ -190,10 +184,87 @@ private fun LoadedState(
               .animateItem(),
           )
         }
+        GroupDisplayState.Grid -> {
+          ItemCollectionGridCard(
+            sharedTransitionKey = series.id,
+            name = series.name,
+            items = series.books
+              ?.sortedBy { it.media.metadata.seriesSequence?.sequence }
+              ?: emptyList(),
+            onClick = { onSeriesClick(series) },
+            modifier = Modifier
+              .fillMaxWidth()
+              .animateItem(),
+          )
+        }
       }
-
-      appendingIndicatorItem()
     }
+  }
+}
+
+@Composable
+private fun ContentPagingScaffoldScope.SeriesGrid(
+  totalCount: Int,
+  lazyPagingItems: LazyPagingItems<Series>,
+  filter: ContentFilter?,
+  sortMode: ContentSortMode,
+  sortDirection: SortDirection,
+  filterBarDisplayState: ItemDisplayState,
+  onFilterClick: () -> Unit,
+  onSortClick: () -> Unit,
+  onDisplayStateClick: () -> Unit,
+  modifier: Modifier = Modifier,
+  adaptiveColumnSize: Dp = LargeAdaptiveColumnSize,
+  contentPadding: PaddingValues = PaddingValues(),
+  state: LazyGridState = rememberLazyGridState(),
+  seriesItem: @Composable LazyGridItemScope.(Series) -> Unit,
+) {
+  LazyCampfireGrid(
+    columns = GridCells.Adaptive(adaptiveColumnSize),
+    state = state,
+    contentPadding = contentPadding + PaddingValues(horizontal = ContentPadding),
+    modifier = modifier,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+    horizontalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    item(
+      span = { GridItemSpan(this.maxLineSpan) },
+      key = "filter-bar",
+    ) {
+      FilterBar(
+        count = {
+          if (totalCount != INVALID_SERIES_COUNT) {
+            Text(
+              text = pluralStringResource(Res.plurals.filter_bar_series_count, totalCount, totalCount),
+            )
+          } else {
+            Text("--")
+          }
+        },
+        itemDisplayState = filterBarDisplayState,
+        isFiltered = filter != null,
+        onFilterClick = onFilterClick,
+        sortMode = sortMode,
+        sortDirection = sortDirection,
+        onSortClick = onSortClick,
+        onDisplayStateClick = onDisplayStateClick,
+      )
+    }
+
+    items(
+      count = lazyPagingItems.itemCount,
+      key = lazyPagingItems.itemKey { it.id },
+      contentType = lazyPagingItems.itemContentType { "series-item" },
+    ) { index ->
+      val series = lazyPagingItems[index]
+      if (series == null) {
+        PlaceholderItem()
+      } else {
+        seriesItem(series)
+      }
+    }
+
+    appendingIndicatorItem()
   }
 }
 

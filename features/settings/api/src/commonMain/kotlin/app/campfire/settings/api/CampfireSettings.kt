@@ -2,6 +2,7 @@ package app.campfire.settings.api
 
 import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +49,15 @@ interface CampfireSettings {
 
   var seriesSortDirection: SortDirection
   fun observeSeriesSortDirection(): StateFlow<SortDirection>
+
+  var seriesDisplayState: GroupDisplayState
+  fun observeSeriesDisplayState(): StateFlow<GroupDisplayState>
+
+  var collectionsDisplayState: GroupDisplayState
+  fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState>
+
+  var playlistsDisplayState: GroupDisplayState
+  fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState>
 
   var currentUserId: UserId?
   fun observeCurrentUserId(): StateFlow<UserId?>

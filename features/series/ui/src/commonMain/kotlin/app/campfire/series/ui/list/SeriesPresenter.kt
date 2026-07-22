@@ -63,6 +63,10 @@ class SeriesPresenter(
       settings.observeSeriesSortDirection()
     }.collectAsState()
 
+    val displayState by remember {
+      settings.observeSeriesDisplayState()
+    }.collectAsState()
+
     val currentUser by userRepository.userFlow.collectAsState()
 
     val lazyPagingItems = rememberRetained(
@@ -94,6 +98,7 @@ class SeriesPresenter(
       filter = filter,
       sortMode = sortMode,
       sortDirection = sortDirection,
+      displayState = displayState,
     ) { event ->
       when (event) {
         is SeriesUiEvent.SeriesClicked -> {
@@ -112,6 +117,11 @@ class SeriesPresenter(
             settings.seriesSortDirection = sortDirection.flip()
           }
           settings.seriesSortMode = event.mode
+        }
+
+        SeriesUiEvent.ToggleDisplayState -> {
+          analytics.send(ActionEvent("series_display_state", "toggle"))
+          settings.seriesDisplayState = displayState.next()
         }
       }
     }

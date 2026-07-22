@@ -48,10 +48,10 @@ private val FilterBarHeight = 56.dp
 fun FilterBar(
   count: @Composable () -> Unit,
   itemDisplayState: ItemDisplayState,
-  sortMode: ContentSortMode,
-  sortDirection: SortDirection,
-  onSortClick: () -> Unit,
   modifier: Modifier = Modifier,
+  sortMode: ContentSortMode? = null,
+  sortDirection: SortDirection = SortDirection.Ascending,
+  onSortClick: (() -> Unit)? = null,
   onDisplayStateClick: (() -> Unit)? = null,
   isFiltered: Boolean = false,
   onFilterClick: (() -> Unit)? = null,
@@ -96,12 +96,14 @@ fun FilterBar(
 
       Spacer(Modifier.weight(1f))
 
-      SortIconButton(
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-        onClick = onSortClick,
-        modifier = Modifier.offset(x = 12.dp),
-      )
+      if (sortMode != null && onSortClick != null) {
+        SortIconButton(
+          sortMode = sortMode,
+          sortDirection = sortDirection,
+          onClick = onSortClick,
+          modifier = Modifier.offset(x = 12.dp),
+        )
+      }
 
       if (onFilterClick != null) {
         val filterLabel = stringResource(Res.string.action_filter)

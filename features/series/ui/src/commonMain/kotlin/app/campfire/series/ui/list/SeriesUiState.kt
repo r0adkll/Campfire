@@ -5,6 +5,7 @@ import androidx.paging.compose.LazyPagingItems
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Series
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.SortDirection
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -16,6 +17,7 @@ data class SeriesUiState(
   val filter: ContentFilter?,
   val sortMode: ContentSortMode,
   val sortDirection: SortDirection,
+  val displayState: GroupDisplayState,
   val eventSink: (SeriesUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -23,4 +25,5 @@ sealed interface SeriesUiEvent : CircuitUiEvent {
   data class SeriesClicked(val series: Series) : SeriesUiEvent
   data class FilterChanged(val filter: ContentFilter?) : SeriesUiEvent
   data class SortModeChanged(val mode: ContentSortMode) : SeriesUiEvent
+  data object ToggleDisplayState : SeriesUiEvent
 }

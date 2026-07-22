@@ -3,6 +3,7 @@ package app.campfire.common.compose.widgets
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.Layout
@@ -76,16 +78,25 @@ fun ItemCollectionCard(
     onClick = onClick,
     colors = colors,
   ) {
-    MultiBookLayout(
-      items = items,
-      sharedTransitionKeyModifier = name,
-      itemSize = itemSize,
-      modifier = Modifier
-        .background(MaterialTheme.colorScheme.primaryContainer)
-        .defaultMinSize(minHeight = BookImageSize)
-        .fillMaxWidth()
-        .clip(RoundedCornerShape(BookCornerSize)),
-    )
+    Box {
+      MultiBookLayout(
+        items = items,
+        sharedTransitionKeyModifier = name,
+        itemSize = itemSize,
+        modifier = Modifier
+          .background(MaterialTheme.colorScheme.primaryContainer)
+          .defaultMinSize(minHeight = BookImageSize)
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(BookCornerSize)),
+      )
+
+      CollectionCountBadge(
+        count = items.size,
+        modifier = Modifier
+          .align(Alignment.TopEnd)
+          .padding(8.dp),
+      )
+    }
 
     Column(
       Modifier.padding(

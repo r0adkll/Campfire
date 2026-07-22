@@ -2,6 +2,7 @@ package app.campfire.settings.test
 
 import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
+import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.CampfireSettings
@@ -85,6 +86,21 @@ class TestCampfireSettings(
   override fun observeSeriesSortDirection(): StateFlow<SortDirection> =
     observeEnum<SortDirection>(::seriesSortDirection)
       .stateIn(testScope, SharingStarted.Lazily, seriesSortDirection)
+
+  override var seriesDisplayState: GroupDisplayState by enum()
+  override fun observeSeriesDisplayState(): StateFlow<GroupDisplayState> =
+    observeEnum<GroupDisplayState>(::seriesDisplayState)
+      .stateIn(testScope, SharingStarted.Lazily, seriesDisplayState)
+
+  override var collectionsDisplayState: GroupDisplayState by enum()
+  override fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState> =
+    observeEnum<GroupDisplayState>(::collectionsDisplayState)
+      .stateIn(testScope, SharingStarted.Lazily, collectionsDisplayState)
+
+  override var playlistsDisplayState: GroupDisplayState by enum()
+  override fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState> =
+    observeEnum<GroupDisplayState>(::playlistsDisplayState)
+      .stateIn(testScope, SharingStarted.Lazily, playlistsDisplayState)
 
   override var currentUserId: UserId? by stringOrNull()
   override fun observeCurrentUserId(): StateFlow<UserId?> =

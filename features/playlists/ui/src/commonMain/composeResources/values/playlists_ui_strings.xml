@@ -1,5 +1,10 @@
 <resources>
   <string name="playlists_title">Playlists</string>
+
+  <plurals name="filter_bar_playlist_count">
+    <item quantity="one">%1$d Playlist</item>
+    <item quantity="other">%1$d Playlists</item>
+  </plurals>
   <string name="empty_playlists_message">Doesn't look like you have any playlists. Try adding one now!</string>
   <string name="error_playlists_message">Something went wrong when trying to load this library's playlists</string>
   <string name="empty_playlist_detail_message">No items in this playlist, go add some!</string>
