@@ -29,9 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
-import androidx.navigationevent.NavigationEventInfo
-import androidx.navigationevent.compose.NavigationBackHandler
-import androidx.navigationevent.compose.rememberNavigationEventState
 import app.campfire.account.ui.picker.AccountPickerResult
 import app.campfire.account.ui.picker.showAccountPicker
 import app.campfire.account.ui.switcher.AccountSwitcher
@@ -40,6 +37,7 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
+import app.campfire.common.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
@@ -247,13 +245,6 @@ private fun LoggedInUi(
   }
 
   val overlayHost = rememberOverlayHost()
-  NavigationBackHandler(
-    state = rememberNavigationEventState(NavigationEventInfo.None),
-    isBackEnabled = overlayHost.currentOverlayData != null || detailRootScreen !is EmptyScreen,
-    onBackCompleted = {
-      overlayHost.currentOverlayData?.finish(Unit) ?: detailNavigator.pop()
-    },
-  )
 
   val homeNavigator = remember(navigator, windowSizeClass) {
     HomeNavigator(
@@ -271,12 +262,27 @@ private fun LoggedInUi(
   }
 
   var playbackBarExpanded by rememberRetainedSaveable { mutableStateOf(false) }
-  NavigationBackHandler(
-    state = rememberNavigationEventState(NavigationEventInfo.None),
-    isBackEnabled = playbackBarExpanded,
-    onBackCompleted = {
-      Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
-      playbackBarExpanded = false
+
+  // A single, deterministic back handler for all "chrome" back consumers. The order of the
+  // `when` below *is* the priority — read top to bottom. Registered at PRIORITY_OVERLAY (via
+  // OverlayPriorityBackHandler) so it always takes precedence over Circuit's main back stack
+  // pop, regardless of composition order. Circuit still animates the pop when nothing here is
+  // active.
+  OverlayPriorityBackHandler(
+    enabled = overlayHost.currentOverlayData != null ||
+      playbackBarExpanded ||
+      detailRootScreen !is EmptyScreen,
+    onBack = {
+      when {
+        overlayHost.currentOverlayData != null -> overlayHost.currentOverlayData?.finish(Unit)
+
+        playbackBarExpanded -> {
+          Analytics.send(ActionEvent("playback_bar", "collapsed", "back_handler"))
+          playbackBarExpanded = false
+        }
+
+        detailRootScreen !is EmptyScreen -> detailNavigator.pop()
+      }
     },
   )
 
