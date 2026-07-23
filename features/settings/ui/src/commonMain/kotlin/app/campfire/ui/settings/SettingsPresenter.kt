@@ -3,8 +3,10 @@ package app.campfire.ui.settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
@@ -75,6 +77,7 @@ import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
+import app.campfire.updates.source.AppUpdateSource
 import app.campfire.whatsnew.api.screen.ChangelogScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -112,6 +115,7 @@ class SettingsPresenter(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
+  private val appUpdateSource: AppUpdateSource,
 ) : NonPausablePresenter<SettingsUiState> {
 
   @Composable
@@ -199,6 +203,8 @@ class SettingsPresenter(
       .collectAsState()
     val appUpdateSignInDismissed by remember { settings.observeAppUpdateSignInDismissed() }
       .collectAsState()
+    var appUpdateInvalidator by remember { mutableIntStateOf(0) }
+    val appUpdateSignedIn = remember(appUpdateInvalidator) { appUpdateSource.isSignedIn() }
 
     // Android Auto Settings
     val androidAutoCategories by remember {
@@ -261,7 +267,7 @@ class SettingsPresenter(
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
-        appUpdateSignInDismissed = appUpdateSignInDismissed,
+        showAppUpdateSignIn = appUpdateSignInDismissed && !appUpdateSignedIn,
       ),
       androidAutoSettings = AndroidAutoSettingsInfo(
         isAndroidAutoAvailable = isAndroidAutoAvailable,
@@ -381,8 +387,14 @@ class SettingsPresenter(
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
             settings.crashReportingEnabled = event.enabled
           }
-          SettingsUiEvent.AboutSettingEvent.RestoreAppUpdateSignIn -> {
-            settings.appUpdateSignInDismissed = false
+          SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick -> {
+            scope.launch {
+              appUpdateSource.signIn()
+              if (appUpdateSource.isSignedIn()) {
+                settings.appUpdateSignInDismissed = false
+              }
+              appUpdateInvalidator++
+            }
           }
         }
 

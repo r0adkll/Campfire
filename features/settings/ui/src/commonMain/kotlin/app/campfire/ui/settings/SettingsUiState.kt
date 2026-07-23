@@ -111,7 +111,7 @@ data class SleepSettingsInfo(
 data class AboutSettingsInfo(
   val crashReportingEnabled: Boolean,
   val analyticReportingEnabled: Boolean,
-  val appUpdateSignInDismissed: Boolean,
+  val showAppUpdateSignIn: Boolean,
 )
 
 @Immutable
@@ -220,7 +220,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object ChangelogClick : AboutSettingEvent
     data class CrashReportingEnabled(val enabled: Boolean) : AboutSettingEvent
     data class AnalyticReportingEnabled(val enabled: Boolean) : AboutSettingEvent
-    data object RestoreAppUpdateSignIn : AboutSettingEvent
+    data object AppUpdateSignInClick : AboutSettingEvent
   }
 
   sealed interface DeveloperSettingEvent : SettingsUiEvent {

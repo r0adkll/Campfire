@@ -186,10 +186,11 @@ class AppUpdateWidgetImpl(
           }
           append(" is available to update")
 
-          if (!appUpdate.releaseNotes.isNullOrBlank()) {
+          val releaseNotes = appUpdate.releaseNotes
+          if (!releaseNotes.isNullOrBlank()) {
             appendLine()
             appendLine()
-            append(appUpdate.releaseNotes.trim())
+            append(releaseNotes.trim())
           }
         },
         action = "Update now",
