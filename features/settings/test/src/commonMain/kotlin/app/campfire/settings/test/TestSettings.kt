@@ -5,6 +5,7 @@ import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.getBooleanFlow
 import com.russhwolf.settings.coroutines.getIntFlow
+import com.russhwolf.settings.coroutines.getLongFlow
 import com.russhwolf.settings.coroutines.getStringFlow
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
 import com.russhwolf.settings.get
@@ -59,6 +60,15 @@ abstract class TestSettings {
 
   protected fun observeBoolean(property: KProperty<*>): Flow<Boolean> {
     return settings.getBooleanFlow(property.name, false)
+  }
+
+  protected fun long() = property(
+    getter = { getLongOrNull(it) ?: 0L },
+    setter = { key, value -> putLong(key, value) },
+  )
+
+  protected fun observeLong(property: KProperty<*>): Flow<Long> {
+    return settings.getLongFlow(property.name, 0L)
   }
 
   protected inline fun <reified E : Enum<E>> enum() = property(

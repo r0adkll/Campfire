@@ -421,8 +421,9 @@ class SettingsPresenter(
             devSettings.fakeAppUpdateAvailable = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateFailDownload ->
             devSettings.fakeAppUpdateFailDownload = event.enabled
-          is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateSignInDismissal -> {
+          is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateDismissals -> {
             settings.appUpdateSignInDismissed = false
+            settings.appUpdateDismissedVersionCode = 0L
             appUpdateInvalidator++
           }
         }

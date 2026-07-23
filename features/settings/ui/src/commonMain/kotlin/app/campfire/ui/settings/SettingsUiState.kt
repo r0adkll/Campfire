@@ -235,7 +235,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class FakeAppUpdateSignedIn(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateAvailable(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateFailDownload(val enabled: Boolean) : DeveloperSettingEvent
-    data object ResetAppUpdateSignInDismissal : DeveloperSettingEvent
+    data object ResetAppUpdateDismissals : DeveloperSettingEvent
   }
 
   // Android Auto Pane Events

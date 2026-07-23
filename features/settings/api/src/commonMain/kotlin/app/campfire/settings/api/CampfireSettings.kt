@@ -82,6 +82,14 @@ interface CampfireSettings {
   fun observeAppUpdateSignInDismissed(): StateFlow<Boolean>
 
   /**
+   * The versionCode of the last app update the user dismissed from the update widget.
+   * The widget stays hidden for that release but shows again for a different one.
+   * `0` when no update has been dismissed.
+   */
+  var appUpdateDismissedVersionCode: Long
+  fun observeAppUpdateDismissedVersionCode(): StateFlow<Long>
+
+  /**
    * When `true`, the realtime Socket.IO connection to the ABS server is enabled and the client
    * receives live updates (library/series/collection/podcast changes, media progress, etc.).
    * When `false`, the socket stays disconnected and [app.campfire.socket.SocketState.Disabled]

@@ -21,7 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -93,10 +93,12 @@ class AppUpdateWidgetImpl(
       }
     }.collectAsState(null)
     val signInDismissed by campfireSettings.observeAppUpdateSignInDismissed().collectAsState()
+    val dismissedVersionCode by campfireSettings.observeAppUpdateDismissedVersionCode().collectAsState()
 
     val currentState = state
+    val availableUpdate = currentState?.appUpdate?.takeIf { it.versionCode != dismissedVersionCode }
     val mode = when {
-      currentState?.appUpdate != null -> WidgetMode.UpdateAvailable(currentState.appUpdate)
+      availableUpdate != null -> WidgetMode.UpdateAvailable(availableUpdate)
       currentState?.isSignedIn == false && !signInDismissed -> WidgetMode.SignIn
       else -> null
     }
@@ -120,12 +122,15 @@ class AppUpdateWidgetImpl(
         is WidgetMode.UpdateAvailable -> AppUpdateWidgetCard(
           title = "Update available",
           subtitle = m.update.versionName,
-          icon = Icons.Rounded.SystemUpdate,
+          icon = Icons.Rounded.NewReleases,
           onClick = {
             scope.launch {
               overlayHost.showAppUpdateSheet(m.update)
               invalidator++
             }
+          },
+          onDismiss = {
+            campfireSettings.appUpdateDismissedVersionCode = m.update.versionCode
           },
           modifier = Modifier
             .fillMaxWidth()
@@ -272,8 +277,8 @@ private fun AppUpdateWidgetCard(
   Card(
     modifier = modifier,
     colors = CardDefaults.cardColors(
-      containerColor = MaterialTheme.colorScheme.secondaryContainer,
-      contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+      containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+      contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
     ),
     shape = MaterialTheme.shapes.large,
     onClick = onClick,
@@ -283,14 +288,13 @@ private fun AppUpdateWidgetCard(
     ) {
       Box(
         modifier = Modifier
-          .padding(12.dp)
-          .size(48.dp),
+          .padding(16.dp),
         contentAlignment = Alignment.Center,
       ) {
         Icon(
           icon,
           contentDescription = null,
-          modifier = Modifier.size(32.dp),
+          modifier = Modifier.size(24.dp),
         )
       }
 
@@ -300,7 +304,7 @@ private fun AppUpdateWidgetCard(
         Text(
           text = title,
           style = MaterialTheme.typography.titleMedium,
-          fontFamily = PaytoneOneFontFamily,
+          fontWeight = FontWeight.SemiBold,
         )
 
         Text(

@@ -11,7 +11,8 @@ import androidx.compose.ui.Modifier
  *   that can be permanently dismissed.
  * - If the user is signed-in and an update is available, a compact "update available"
  *   card is shown that opens a bottom sheet with the full release details, download
- *   action, and download progress.
+ *   action, and download progress. Dismissing it hides the card for that release
+ *   until a different one becomes available.
  * - Otherwise, nothing is rendered.
  */
 interface AppUpdateWidget {

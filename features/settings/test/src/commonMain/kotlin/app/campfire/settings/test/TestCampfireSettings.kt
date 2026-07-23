@@ -131,4 +131,9 @@ class TestCampfireSettings(
   override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> =
     observeBoolean(::appUpdateSignInDismissed)
       .stateIn(testScope, SharingStarted.Lazily, appUpdateSignInDismissed)
+
+  override var appUpdateDismissedVersionCode: Long by long()
+  override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
+    observeLong(::appUpdateDismissedVersionCode)
+      .stateIn(testScope, SharingStarted.Lazily, appUpdateDismissedVersionCode)
 }

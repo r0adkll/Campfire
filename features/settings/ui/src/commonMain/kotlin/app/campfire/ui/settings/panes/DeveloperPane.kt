@@ -132,12 +132,12 @@ internal fun DeveloperPane(
       )
 
       ActionSetting(
-        headlineContent = { Text("Reset sign-in prompt dismissal") },
+        headlineContent = { Text("Reset dismissed widgets") },
         supportingContent = {
-          Text("Clears the dismissal of the update sign-in widget so it shows in the drawer again.")
+          Text("Clears dismissals of the update widgets so they show in the drawer again.")
         },
         onClick = {
-          state.eventSink(DeveloperSettingEvent.ResetAppUpdateSignInDismissal)
+          state.eventSink(DeveloperSettingEvent.ResetAppUpdateDismissals)
         },
       )
     }
