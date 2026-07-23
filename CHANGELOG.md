@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- ExoPlayer cache evictor causing downloads to be evicted by streaming playback.
+- Offline playback of downloaded audiobooks failing when the server is unreachable
 
 ### Other Notes & Contributions
 

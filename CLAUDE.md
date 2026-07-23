@@ -117,6 +117,10 @@ fun MyUi(state: MyUiState, modifier: Modifier = Modifier) { /* ... */ }
 - `@Parcelize` is multiplatform via expect/actual (see `ParcelizeConventionPlugin`)
 - Package structure: `app.campfire.[module].[submodule]`
 
+## Changelog
+
+Every PR that changes app behavior must include an entry in `CHANGELOG.md` under `## [Unreleased]`, in the most appropriate [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) category (Added / Changed / Deprecated / Removed / Fixed / Other Notes & Contributions). Write a single concise, user-facing line describing the change — no implementation details (e.g. "Offline playback failing when the server is unreachable", not "Split the ExoPlayer SimpleCache into download and streaming caches"). Update the changelog before opening the PR.
+
 ## Database Migrations
 
 Schema lives in `data/db/core/src/commonMain/sqldelight/app/campfire/data/*.sq`; migrations live alongside in `migrations/{N}.sqm` and the baseline schema dump is `app/campfire/databases/1.db`. SQLDelight's `verifyCommonMainCampfireDatabaseMigration` task compares the migrated database against the fresh `.sq` schema — any drift fails the build.
