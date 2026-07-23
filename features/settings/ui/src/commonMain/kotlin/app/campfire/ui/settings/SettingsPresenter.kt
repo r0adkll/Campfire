@@ -197,6 +197,8 @@ class SettingsPresenter(
       .collectAsState()
     val socketSyncEnabled by remember { settings.observeSocketEnabled() }
       .collectAsState()
+    val appUpdateSignInDismissed by remember { settings.observeAppUpdateSignInDismissed() }
+      .collectAsState()
 
     // Android Auto Settings
     val androidAutoCategories by remember {
@@ -259,6 +261,7 @@ class SettingsPresenter(
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
+        appUpdateSignInDismissed = appUpdateSignInDismissed,
       ),
       androidAutoSettings = AndroidAutoSettingsInfo(
         isAndroidAutoAvailable = isAndroidAutoAvailable,
@@ -377,6 +380,9 @@ class SettingsPresenter(
           }
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
             settings.crashReportingEnabled = event.enabled
+          }
+          SettingsUiEvent.AboutSettingEvent.RestoreAppUpdateSignIn -> {
+            settings.appUpdateSignInDismissed = false
           }
         }
 

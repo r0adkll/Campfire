@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.LogoDev
 import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Copyright
 import androidx.compose.material.icons.rounded.LogoDev
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +36,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.ChangelogClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.DeveloperClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
+import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.RestoreAppUpdateSignIn
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfServiceClick
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
@@ -56,6 +58,8 @@ import campfire.features.settings.ui.generated.resources.about_header_data_colle
 import campfire.features.settings.ui.generated.resources.about_header_developer
 import campfire.features.settings.ui.generated.resources.about_header_legal
 import campfire.features.settings.ui.generated.resources.about_privacy_policy_title
+import campfire.features.settings.ui.generated.resources.about_restore_update_sign_in_subtitle
+import campfire.features.settings.ui.generated.resources.about_restore_update_sign_in_title
 import campfire.features.settings.ui.generated.resources.about_tos_title
 import campfire.features.settings.ui.generated.resources.about_version_title
 import campfire.features.settings.ui.generated.resources.setting_about_title
@@ -184,6 +188,15 @@ internal fun AboutPane(
         Unit
       }.takeIf { !state.developerSettings.developerModeEnabled },
     )
+
+    if (state.aboutSettings.appUpdateSignInDismissed) {
+      ActionSetting(
+        leadingContent = { Icon(Icons.Rounded.SystemUpdate, contentDescription = null) },
+        headlineContent = { Text(stringResource(Res.string.about_restore_update_sign_in_title)) },
+        supportingContent = { Text(stringResource(Res.string.about_restore_update_sign_in_subtitle)) },
+        onClick = { sendEvent(RestoreAppUpdateSignIn) },
+      )
+    }
   }
 }
 

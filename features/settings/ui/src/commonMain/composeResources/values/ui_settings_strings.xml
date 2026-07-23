@@ -133,6 +133,8 @@
   <string name="about_attributions_title">Open source attributions</string>
   <string name="about_changelog_title">Changelog</string>
   <string name="about_version_title">Version</string>
+  <string name="about_restore_update_sign_in_title">Restore update sign-in</string>
+  <string name="about_restore_update_sign_in_subtitle">Show the app update sign-in prompt again</string>
 
   <!-- Android Auto setting -->
   <string name="android_auto_unavailable_warning_title">Warning</string>
