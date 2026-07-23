@@ -60,7 +60,6 @@ import app.campfire.settings.api.ThemeMode.SYSTEM
 import app.campfire.ui.navigation.HomeNavigationItem
 import app.campfire.ui.navigation.NavigationPresenterFactory
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
-import app.campfire.updates.AppUpdateWidget
 import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import app.campfire.whatsnew.api.screen.ChangelogScreen
 import campfire.ui.navigation.ui.generated.resources.Res
@@ -74,7 +73,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface CampfireDrawerComponent {
-  val appUpdateWidget: AppUpdateWidget
   val whatsNewWidget: WhatsNewWidgetProvider
   val navigationPresenterFactory: NavigationPresenterFactory
 }
@@ -236,11 +234,6 @@ fun CampfireDrawer(
         }
       }
     }
-
-    component.appUpdateWidget.Content(
-      Modifier
-        .fillMaxWidth(),
-    )
   }
 }
 

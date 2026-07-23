@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
  * On StandardRelease builds:
  *   - This will use the GooglePlay InAppUpdates to check for new releases
  *   - If so, it will prompt the user to update the app.
+ *
+ * The sign-in prompt can be permanently dismissed by the user, in which case
+ * nothing is rendered until an update is otherwise available.
  */
 interface AppUpdateWidget {
 

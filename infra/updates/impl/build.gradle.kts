@@ -16,6 +16,7 @@ kotlin {
 
         implementation(projects.core)
         implementation(projects.common.compose)
+        implementation(projects.features.settings.api)
 
         implementation(libs.compose.runtime)
         implementation(libs.compose.ui)

@@ -19,6 +19,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -43,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.core.di.AppScope
 import app.campfire.core.extensions.asReadableBytes
+import app.campfire.settings.api.CampfireSettings
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
@@ -55,6 +57,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class AppUpdateWidgetImpl(
   private val appUpdateSource: AppUpdateSource,
+  private val campfireSettings: CampfireSettings,
 ) : AppUpdateWidget {
 
   private var invalidator by mutableIntStateOf(0)
@@ -82,18 +85,20 @@ class AppUpdateWidgetImpl(
         }
       }
     }.collectAsState(AppUpdateState())
+    val signInDismissed by campfireSettings.observeAppUpdateSignInDismissed().collectAsState()
 
-    Content(state, modifier)
+    Content(state, signInDismissed, modifier)
   }
 
   @Composable
   private fun Content(
     state: AppUpdateState,
+    signInDismissed: Boolean,
     modifier: Modifier = Modifier,
   ) {
     when {
       state.isSignedIn && state.appUpdate != null -> UpdateContent(state.appUpdate, modifier)
-      !state.isSignedIn -> SignInContent(modifier)
+      !state.isSignedIn && !signInDismissed -> SignInContent(modifier)
       else -> Unit
     }
   }
@@ -124,6 +129,10 @@ class AppUpdateWidgetImpl(
             appUpdateSource.signIn()
             invalidator++
           }
+        },
+        secondaryAction = "No thanks",
+        onSecondaryClick = {
+          campfireSettings.appUpdateSignInDismissed = true
         },
       )
     }
@@ -281,6 +290,8 @@ class AppUpdateWidgetImpl(
     text: AnnotatedString,
     action: String,
     onClick: () -> Unit = {},
+    secondaryAction: String? = null,
+    onSecondaryClick: () -> Unit = {},
   ) {
     var isExpandable by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
@@ -310,13 +321,27 @@ class AppUpdateWidgetImpl(
 
     Spacer(Modifier.height(16.dp))
 
-    Button(
-      onClick = onClick,
+    Row(
+      horizontalArrangement = Arrangement.spacedBy(8.dp),
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 16.dp),
     ) {
-      Text(action)
+      if (secondaryAction != null) {
+        OutlinedButton(
+          onClick = onSecondaryClick,
+          modifier = Modifier.weight(1f),
+        ) {
+          Text(secondaryAction)
+        }
+      }
+
+      Button(
+        onClick = onClick,
+        modifier = Modifier.weight(1f),
+      ) {
+        Text(action)
+      }
     }
 
     Spacer(Modifier.height(16.dp))

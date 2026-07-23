@@ -65,6 +65,13 @@ interface CampfireSettings {
   fun observeLastSeenVersion(): StateFlow<String?>
 
   /**
+   * When `true`, the user has dismissed the app update sign-in prompt and it should
+   * no longer be shown.
+   */
+  var appUpdateSignInDismissed: Boolean
+  fun observeAppUpdateSignInDismissed(): StateFlow<Boolean>
+
+  /**
    * When `true`, the realtime Socket.IO connection to the ABS server is enabled and the client
    * receives live updates (library/series/collection/podcast changes, media progress, etc.).
    * When `false`, the socket stays disconnected and [app.campfire.socket.SocketState.Disabled]

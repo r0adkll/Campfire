@@ -16,6 +16,7 @@ kotlin {
         implementation(projects.features.libraries.api)
         implementation(projects.infra.whatsNew.api)
         implementation(projects.infra.audioplayer.api)
+        implementation(projects.infra.updates.api)
         implementation(projects.infra.shake)
         implementation(projects.ui.theming.api)
 
