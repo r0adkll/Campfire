@@ -217,6 +217,9 @@ class SettingsPresenter(
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState()
     val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState()
+    val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState()
+    val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState()
+    val fakeAppUpdateFailDownload by remember { devSettings.observeFakeAppUpdateFailDownload() }.collectAsState()
 
     return SettingsUiState(
       server = server,
@@ -279,6 +282,9 @@ class SettingsPresenter(
         showWidgetPinningPrompt = showWidgetPinningPrompt,
         analyticsDebugState = analytics.debugState,
         mediaButtonPackages = mediaButtonPackages,
+        fakeAppUpdateSignedIn = fakeAppUpdateSignedIn,
+        fakeAppUpdateAvailable = fakeAppUpdateAvailable,
+        fakeAppUpdateFailDownload = fakeAppUpdateFailDownload,
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)
@@ -408,6 +414,16 @@ class SettingsPresenter(
             scope.launch {
               accountManager.invalidateAccount(userSession.requiredUser)
             }
+          }
+          is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateSignedIn ->
+            devSettings.fakeAppUpdateSignedIn = event.enabled
+          is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateAvailable ->
+            devSettings.fakeAppUpdateAvailable = event.enabled
+          is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateFailDownload ->
+            devSettings.fakeAppUpdateFailDownload = event.enabled
+          is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateSignInDismissal -> {
+            settings.appUpdateSignInDismissed = false
+            appUpdateInvalidator++
           }
         }
 

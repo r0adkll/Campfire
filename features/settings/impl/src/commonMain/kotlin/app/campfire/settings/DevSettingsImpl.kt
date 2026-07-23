@@ -55,11 +55,32 @@ class DevSettingsImpl(
   override fun clearMediaButtonPackages() {
     mediaButtonPackages = emptySet()
   }
+
+  private val fakeAppUpdateSignedInProperty = booleanSetting(KEY_FAKE_APP_UPDATE_SIGNED_IN, true)
+  override var fakeAppUpdateSignedIn: Boolean by fakeAppUpdateSignedInProperty
+
+  override fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean> =
+    fakeAppUpdateSignedInProperty.observe()
+
+  private val fakeAppUpdateAvailableProperty = booleanSetting(KEY_FAKE_APP_UPDATE_AVAILABLE, false)
+  override var fakeAppUpdateAvailable: Boolean by fakeAppUpdateAvailableProperty
+
+  override fun observeFakeAppUpdateAvailable(): StateFlow<Boolean> =
+    fakeAppUpdateAvailableProperty.observe()
+
+  private val fakeAppUpdateFailDownloadProperty = booleanSetting(KEY_FAKE_APP_UPDATE_FAIL_DOWNLOAD, false)
+  override var fakeAppUpdateFailDownload: Boolean by fakeAppUpdateFailDownloadProperty
+
+  override fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean> =
+    fakeAppUpdateFailDownloadProperty.observe()
 }
 
 internal const val KEY_DEVELOPER_MODE = "pref_developer_mode_enabled"
 internal const val KEY_SESSION_AGE = "pref_dev_setting_session_age"
 internal const val KEY_MEDIA_BUTTON_PACKAGES = "pref_dev_setting_media_button_packages"
+internal const val KEY_FAKE_APP_UPDATE_SIGNED_IN = "pref_dev_setting_fake_app_update_signed_in"
+internal const val KEY_FAKE_APP_UPDATE_AVAILABLE = "pref_dev_setting_fake_app_update_available"
+internal const val KEY_FAKE_APP_UPDATE_FAIL_DOWNLOAD = "pref_dev_setting_fake_app_update_fail_download"
 
 private const val PACKAGE_SEPARATOR = "|"
 

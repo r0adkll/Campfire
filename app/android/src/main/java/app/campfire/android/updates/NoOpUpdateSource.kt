@@ -12,6 +12,8 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(AppScope::class)
 @Inject
 class NoOpUpdateSource : AppUpdateSource {
+  override val isSupported: Boolean = false
+
   override fun isSignedIn(): Boolean = true
 
   override suspend fun signIn() {

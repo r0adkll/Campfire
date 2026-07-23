@@ -33,6 +33,8 @@ class FirebaseAppUpdateSource(
     FirebaseAppDistribution.getInstance()
   }
 
+  override val isSupported: Boolean = true
+
   override fun isSignedIn(): Boolean {
     return appDistribution.isTesterSignedIn
   }

@@ -127,6 +127,9 @@ data class DeveloperSettingsInfo(
   val showWidgetPinningPrompt: Boolean,
   val analyticsDebugState: String,
   val mediaButtonPackages: Set<String>,
+  val fakeAppUpdateSignedIn: Boolean,
+  val fakeAppUpdateAvailable: Boolean,
+  val fakeAppUpdateFailDownload: Boolean,
 )
 
 enum class SettingsPane {
@@ -229,6 +232,10 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object ClearMediaButtonPackages : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
+    data class FakeAppUpdateSignedIn(val enabled: Boolean) : DeveloperSettingEvent
+    data class FakeAppUpdateAvailable(val enabled: Boolean) : DeveloperSettingEvent
+    data class FakeAppUpdateFailDownload(val enabled: Boolean) : DeveloperSettingEvent
+    data object ResetAppUpdateSignInDismissal : DeveloperSettingEvent
   }
 
   // Android Auto Pane Events

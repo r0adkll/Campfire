@@ -1,6 +1,5 @@
 package app.campfire.ui.settings.panes
 
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Login
 import androidx.compose.material.icons.outlined.LogoDev
@@ -17,7 +16,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AreaChart
 import app.campfire.common.compose.icons.rounded.Crash
@@ -27,7 +25,6 @@ import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.toast.LocalToast
 import app.campfire.core.app.ApplicationInfo
-import app.campfire.core.di.UserScope
 import app.campfire.core.toast.Toast
 import app.campfire.core.toast.ToastHandle
 import app.campfire.ui.settings.SettingsUiEvent
@@ -42,7 +39,6 @@ import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
-import app.campfire.updates.AppUpdateWidget
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.about_app_update_sign_in_subtitle
 import campfire.features.settings.ui.generated.resources.about_app_update_sign_in_title
@@ -63,21 +59,14 @@ import campfire.features.settings.ui.generated.resources.about_privacy_policy_ti
 import campfire.features.settings.ui.generated.resources.about_tos_title
 import campfire.features.settings.ui.generated.resources.about_version_title
 import campfire.features.settings.ui.generated.resources.setting_about_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
-
-@ContributesTo(UserScope::class)
-interface AboutPaneComponent {
-  val appUpdateWidget: AppUpdateWidget
-}
 
 @Composable
 internal fun AboutPane(
   state: SettingsUiState,
   onBackClick: () -> Unit,
   modifier: Modifier = Modifier,
-  component: AboutPaneComponent = rememberComponent(),
 ) {
   SettingPaneLayout(
     title = { Text(stringResource(Res.string.setting_about_title)) },
@@ -87,10 +76,6 @@ internal fun AboutPane(
     fun sendEvent(event: SettingsUiEvent.AboutSettingEvent) {
       state.eventSink(event)
     }
-
-    component.appUpdateWidget.Content(
-      Modifier.fillMaxWidth(),
-    )
 
     Header(
       title = { Text(stringResource(Res.string.about_header_developer)) },

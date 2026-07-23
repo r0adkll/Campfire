@@ -18,6 +18,8 @@ kotlin {
         implementation(projects.common.compose)
         implementation(projects.features.settings.api)
 
+        implementation(libs.circuit.overlay)
+        implementation(libs.circuitx.overlays)
         implementation(libs.compose.runtime)
         implementation(libs.compose.ui)
       }

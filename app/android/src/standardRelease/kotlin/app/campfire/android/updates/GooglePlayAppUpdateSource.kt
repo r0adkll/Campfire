@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import me.tatarka.inject.annotations.Inject
 
-@ContributesBinding(AppScope::class)
+@ContributesBinding(AppScope::class, replaces = [NoOpUpdateSource::class])
 @Inject
 class GooglePlayAppUpdateSource : AppUpdateSource {
+  override val isSupported: Boolean = false
+
   override fun isSignedIn(): Boolean {
     return true
   }

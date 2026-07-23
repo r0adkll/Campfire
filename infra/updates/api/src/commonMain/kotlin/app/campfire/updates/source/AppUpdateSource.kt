@@ -1,11 +1,25 @@
 package app.campfire.updates.source
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 /**
  * Implementations for this will live in the respective app platform modules
  */
 interface AppUpdateSource {
+
+  /**
+   * Emits whenever the update state may have changed outside of direct user action,
+   * e.g. developer tooling manipulating faked update state. Observers should re-query
+   * [isSignedIn] / [getAvailableUpdate] on each emission.
+   */
+  fun changes(): Flow<Unit> = emptyFlow()
+
+  /**
+   * Whether or not this build supports in-app updates at all. When false, no update
+   * UI should be rendered.
+   */
+  val isSupported: Boolean
 
   /**
    * Whether or not the user is signed-in to receive app updates. This is need for Beta

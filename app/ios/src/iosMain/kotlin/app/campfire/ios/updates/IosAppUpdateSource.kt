@@ -16,6 +16,8 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class IosAppUpdateSource : AppUpdateSource {
 
+  override val isSupported: Boolean = false
+
   override fun isSignedIn(): Boolean = true
 
   override suspend fun signIn() {

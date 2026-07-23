@@ -38,4 +38,29 @@ interface DevSettings {
    * Clear all recorded media button package names.
    */
   fun clearMediaButtonPackages()
+
+  /**
+   * Debug-build only: the faked tester sign-in state used by the fake app update
+   * source to test the update widget and flows.
+   * Default: `true` so debug builds behave like a signed-in production build.
+   */
+  var fakeAppUpdateSignedIn: Boolean
+
+  fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean>
+
+  /**
+   * Debug-build only: when `true`, the fake app update source reports a faked
+   * available release to test the update widget and details sheet.
+   */
+  var fakeAppUpdateAvailable: Boolean
+
+  fun observeFakeAppUpdateAvailable(): StateFlow<Boolean>
+
+  /**
+   * Debug-build only: when `true`, simulated update downloads fail partway through
+   * to test the failure/retry UX.
+   */
+  var fakeAppUpdateFailDownload: Boolean
+
+  fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean>
 }
