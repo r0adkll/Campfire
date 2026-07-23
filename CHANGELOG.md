@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- ExoPlayer cache evictor causing downloads to be evicted by streaming playback.
+
 ### Other Notes & Contributions
 
 ## [0.13.1-beta]
