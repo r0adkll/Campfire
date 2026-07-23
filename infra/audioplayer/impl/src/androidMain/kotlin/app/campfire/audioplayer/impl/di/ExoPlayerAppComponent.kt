@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
+import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
@@ -48,13 +49,32 @@ interface ExoPlayerAppComponent {
   @OptIn(UnstableApi::class)
   @SingleIn(AppScope::class)
   @Provides
-  fun provideSimpleCache(
+  @DownloadCache
+  fun provideDownloadCache(
     application: Application,
     databaseProvider: DatabaseProvider,
   ): SimpleCache {
     val downloadDirectory = File(application.filesDir, "exoPlayerDownloads")
     return SimpleCache(
       downloadDirectory,
+      // Downloads must never be evicted, otherwise downloaded items silently lose their bytes
+      // and offline playback falls through to the network.
+      NoOpCacheEvictor(),
+      databaseProvider,
+    )
+  }
+
+  @OptIn(UnstableApi::class)
+  @SingleIn(AppScope::class)
+  @Provides
+  @StreamingCache
+  fun provideStreamingCache(
+    application: Application,
+    databaseProvider: DatabaseProvider,
+  ): SimpleCache {
+    val streamingCacheDirectory = File(application.cacheDir, "exoPlayerStreamingCache")
+    return SimpleCache(
+      streamingCacheDirectory,
       LeastRecentlyUsedCacheEvictor(512 * 1024 * 1024L), // 512 MB disk cap
       databaseProvider,
     )
@@ -68,7 +88,7 @@ interface ExoPlayerAppComponent {
     sessionManager: UserSessionManager,
     accountManager: AccountManager,
     databaseProvider: DatabaseProvider,
-    simpleCache: SimpleCache,
+    @DownloadCache downloadCache: SimpleCache,
     appInfo: ApplicationInfo,
     @UserClient userClient: HttpClient,
   ): DownloadManager {
@@ -79,7 +99,7 @@ interface ExoPlayerAppComponent {
     return DownloadManager(
       application,
       databaseProvider,
-      simpleCache,
+      downloadCache,
       createAuthenticatingDataSource(
         userSessionProvider = { sessionManager.current },
         accountManager = accountManager,
@@ -96,7 +116,8 @@ interface ExoPlayerAppComponent {
   fun provideMediaSourceFactory(
     application: Application,
     settings: PlaybackSettings,
-    simpleCache: SimpleCache,
+    @DownloadCache downloadCache: SimpleCache,
+    @StreamingCache streamingCache: SimpleCache,
     sessionManager: UserSessionManager,
     accountManager: AccountManager,
     appInfo: ApplicationInfo,
@@ -108,9 +129,16 @@ interface ExoPlayerAppComponent {
 
     val authRetryFactory = AuthRefreshingHttpDataSource.Factory(httpDataSourceFactory, userClient)
 
-    val cacheDataSourceFactory = CacheDataSource.Factory()
-      .setCache(simpleCache)
+    val streamingCacheDataSourceFactory = CacheDataSource.Factory()
+      .setCache(streamingCache)
       .setUpstreamDataSourceFactory(authRetryFactory)
+
+    val cacheDataSourceFactory = CacheDataSource.Factory()
+      .setCache(downloadCache)
+      // Read-only: only the DownloadManager writes into the download cache. Streamed
+      // (non-downloaded) content is cached in the size-capped streaming cache instead.
+      .setCacheWriteDataSinkFactory(null)
+      .setUpstreamDataSourceFactory(streamingCacheDataSourceFactory)
 
     val extractorsFactory = DefaultExtractorsFactory()
 
