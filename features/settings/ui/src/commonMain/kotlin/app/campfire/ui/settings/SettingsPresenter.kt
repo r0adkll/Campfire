@@ -57,10 +57,12 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindO
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BackwardTime
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.BookTimeInPlaybackUi
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.MinPauseThreshold
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHistoryEnabled
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
@@ -155,6 +157,8 @@ class SettingsPresenter(
     val autoRewindStopAtChapterBoundary by remember {
       playbackSettings.observeAutoRewindStopAtChapterBoundary()
     }.collectAsState()
+    val bookTimeInPlaybackUi by remember { playbackSettings.observeBookTimeInPlaybackUi() }.collectAsState()
+    val playbackWavyScrubber by remember { playbackSettings.observePlaybackWavyScrubber() }.collectAsState()
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -250,6 +254,8 @@ class SettingsPresenter(
         resumeRewindConfig = resumeRewindConfig,
         resumeRewindPreview = resumeRewindPreview,
         autoRewindStopAtChapterBoundary = autoRewindStopAtChapterBoundary,
+        bookTimeInPlaybackUi = bookTimeInPlaybackUi,
+        playbackWavyScrubber = playbackWavyScrubber,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -363,6 +369,8 @@ class SettingsPresenter(
           }
           is AutoRewindStopAtChapterBoundary ->
             playbackSettings.autoRewindStopAtChapterBoundary = event.enabled
+          is BookTimeInPlaybackUi -> playbackSettings.bookTimeInPlaybackUi = event.enabled
+          is PlaybackWavyScrubber -> playbackSettings.playbackWavyScrubber = event.enabled
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

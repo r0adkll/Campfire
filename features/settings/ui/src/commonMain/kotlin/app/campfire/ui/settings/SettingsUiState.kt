@@ -88,6 +88,8 @@ data class PlaybackSettingsInfo(
   val resumeRewindConfig: ResumeRewindConfig,
   val resumeRewindPreview: List<ResumeRewindTier>,
   val autoRewindStopAtChapterBoundary: Boolean,
+  val bookTimeInPlaybackUi: Boolean,
+  val playbackWavyScrubber: Boolean,
 )
 
 @Immutable
@@ -200,6 +202,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
       val maxRewind: Duration,
     ) : PlaybackSettingEvent
     data class AutoRewindStopAtChapterBoundary(val enabled: Boolean) : PlaybackSettingEvent
+    data class BookTimeInPlaybackUi(val enabled: Boolean) : PlaybackSettingEvent
+    data class PlaybackWavyScrubber(val enabled: Boolean) : PlaybackSettingEvent
   }
 
   // Sleep Setting Events

@@ -101,6 +101,10 @@ class SettingsAnalyticUiEventHandler(
       )
       is SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary ->
         send("resume_rewind_stop_at_chapter", Updated, event.enabled)
+      is SettingsUiEvent.PlaybackSettingEvent.BookTimeInPlaybackUi ->
+        send("book_time_playback_ui", Updated, event.enabled)
+      is SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber ->
+        send("wavy_playback_slider", Updated, event.enabled)
     }
 
     is SettingsUiEvent.SleepSettingEvent -> when (event) {

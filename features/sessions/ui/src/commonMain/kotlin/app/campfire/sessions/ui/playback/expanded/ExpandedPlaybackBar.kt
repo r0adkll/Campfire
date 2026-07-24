@@ -1,6 +1,7 @@
 package app.campfire.sessions.ui.playback.expanded
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -17,6 +18,7 @@ import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -25,14 +27,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,8 +65,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -87,11 +95,13 @@ import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
 import app.campfire.sessions.ui.playback.expanded.composables.ClearQueueButton
+import app.campfire.sessions.ui.playback.expanded.composables.DefaultThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
 import app.campfire.sessions.ui.playback.expanded.composables.QueueButton
 import app.campfire.sessions.ui.playback.expanded.composables.QueueContent
+import app.campfire.sessions.ui.playback.expanded.composables.SmallThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -113,6 +123,8 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -394,7 +406,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             if (session == null) return@clickable
             scope.launch {
               onClose()
-              delay(350L)
+              delay(350.milliseconds)
               navigator.goTo(
                 LibraryItemScreen(
                   libraryItemId = session.libraryItem.id,
@@ -414,6 +426,10 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           fontWeight = FontWeight.SemiBold,
           fontFamily = PaytoneOneFontFamily,
           maxLines = 3,
+          autoSize = TextAutoSize.StepBased(
+            minFontSize = 24.sp,
+            maxFontSize = 28.sp,
+          ),
           overflow = TextOverflow.Ellipsis,
           modifier = Modifier
             .align(Alignment.CenterHorizontally)
@@ -488,6 +504,11 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
       val isDragged by interactionSource.collectIsDraggedAsState()
       val isInteracting = isPressed || isDragged
 
+      if (playerState.bookTimeEnabled) {
+        BookTimeProgressIndicator(session, playerState)
+        Spacer(Modifier.height(4.dp))
+      }
+
       PlaybackSeekBar(
         state = playerState.state,
         currentTime = playerState.time,
@@ -497,6 +518,12 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           playerState.eventSink(PlayerUiEvent.Seek.Percent(percent))
         },
         interactionSource = interactionSource,
+        waveEnabled = playerState.wavySliderEnabled,
+        thumbSize = if (playerState.bookTimeEnabled) {
+          SmallThumbSize
+        } else {
+          DefaultThumbSize
+        },
       )
 
       Spacer(Modifier.height(24.dp))
@@ -617,6 +644,61 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
         }
       },
       showHistory = playbackHistoryEnabled,
+    )
+  }
+}
+
+@Composable
+private fun ColumnScope.BookTimeProgressIndicator(
+  session: Session?,
+  playerState: PlayerUiState,
+) {
+  val bookDuration = session?.duration ?: Duration.ZERO
+  if (bookDuration != Duration.ZERO) {
+    Row(
+      modifier = Modifier.align(Alignment.CenterHorizontally),
+    ) {
+      val isAccelerated = playerState.speed != 1f
+      AnimatedVisibility(
+        visible = isAccelerated,
+      ) {
+        Icon(
+          Icons.Rounded.KeyboardDoubleArrowRight,
+          contentDescription = null,
+          modifier = Modifier.size(16.dp),
+          tint = MaterialTheme.colorScheme.secondary,
+        )
+      }
+
+      val currentRemainingDuration = (bookDuration - playerState.bookTime).div(playerState.speed.toDouble())
+      Text(
+        text = "${currentRemainingDuration.readoutFormat()} left",
+        style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
+          copy(
+            fontWeight = FontWeight.Bold,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.secondary,
+            fontSize = 12.sp,
+          )
+        },
+      )
+    }
+
+    Spacer(Modifier.height(4.dp))
+
+    LinearProgressIndicator(
+      progress = { (playerState.bookTime / bookDuration).toFloat() },
+      trackColor = MaterialTheme.colorScheme.surfaceContainer,
+      color = MaterialTheme.colorScheme.secondary,
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 32.dp),
+    )
+  } else {
+    LinearProgressIndicator(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 32.dp),
     )
   }
 }

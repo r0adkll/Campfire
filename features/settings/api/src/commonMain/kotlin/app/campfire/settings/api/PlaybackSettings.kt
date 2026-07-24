@@ -74,4 +74,17 @@ interface PlaybackSettings {
    * interrupted by the app being killed still rewinds when playback resumes. Null when no pause is pending.
    */
   var pendingResumeRewind: PendingResumeRewind?
+
+  /**
+   * When true, the book's overall time will display in a progress bar in
+   * in the playback ui.
+   */
+  var bookTimeInPlaybackUi: Boolean
+  fun observeBookTimeInPlaybackUi(): StateFlow<Boolean>
+
+  /**
+   * When true, the playback slider will be wavy
+   */
+  var playbackWavyScrubber: Boolean
+  fun observePlaybackWavyScrubber(): StateFlow<Boolean>
 }

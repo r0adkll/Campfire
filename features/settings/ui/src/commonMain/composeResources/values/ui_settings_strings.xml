@@ -67,6 +67,11 @@
   <string name="setting_playback_track_reset_subtitle">How far into a track that skip previous will just restart it</string>
   <string name="setting_playback_remote_skip_title">Bluetooth next/prev skips chapters</string>
   <string name="setting_playback_remote_skip_subtitle">When enabled, Bluetooth next/previous buttons skip to next/previous chapter. When disabled, they seek forward/backward by the configured time.</string>
+  <string name="header_player_interface">Player interface</string>
+  <string name="setting_playback_book_time_title">Show book progress</string>
+  <string name="setting_playback_book_time_subtitle">Display the overall book progress and time remaining above the seek bar in the player</string>
+  <string name="setting_playback_wavy_scrubber_title">Wavy seek bar</string>
+  <string name="setting_playback_wavy_scrubber_subtitle">Animate the player seek bar as a wave while playing</string>
   <string name="header_auto_rewind_on_resume">Auto-rewind on resume</string>
   <string name="setting_playback_auto_rewind_on_resume_title">Rewind when resuming</string>
   <string name="setting_playback_auto_rewind_on_resume_subtitle">After a pause, rewind by an amount that scales with how long playback was paused — even if the app was closed while paused.</string>

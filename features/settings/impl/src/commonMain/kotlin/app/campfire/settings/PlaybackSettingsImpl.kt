@@ -129,6 +129,22 @@ class PlaybackSettingsImpl(
       }
     }
 
+  private val bookTimeInPlaybackUiProperty = booleanSetting(
+    PREF_BOOK_TIME_UI,
+    false,
+  )
+  override var bookTimeInPlaybackUi: Boolean by bookTimeInPlaybackUiProperty
+  override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> =
+    bookTimeInPlaybackUiProperty.observe()
+
+  private val playbackWavyScrubberProperty = booleanSetting(
+    PREF_WAVY_SLIDER,
+    true,
+  )
+  override var playbackWavyScrubber: Boolean by playbackWavyScrubberProperty
+  override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
+    playbackWavyScrubberProperty.observe()
+
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 
   private fun PendingResumeRewind.serialize(): String =
@@ -149,6 +165,17 @@ internal const val PREF_PLAYBACK_RATES = "pref_playback_rates"
 internal const val PREF_PLAYBACK_SPEED = "pref_playback_speed"
 internal const val PREF_SYNC = "pref_synchronization"
 internal const val PREF_AUTO_SYNC = "pref_auto_sync"
+internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
+internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
+internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
+internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
+internal const val PREF_MAX_RESUME_REWIND = "pref_playback_resume_rewind_max"
+internal const val PREF_PENDING_RESUME_REWIND = "pref_playback_pending_resume_rewind"
+internal const val PENDING_RESUME_REWIND_SEPARATOR = "|"
+internal const val PREF_AUTO_REWIND_STOP_AT_CHAPTER = "pref_playback_auto_rewind_stop_at_chapter"
+internal const val PREF_AUTO_REWIND_ON_RESUME = "pref_playback_auto_rewind_on_resume"
+internal const val PREF_BOOK_TIME_UI = "pref_book_time_playback_ui"
+internal const val PREF_WAVY_SLIDER = "pref_wavy_playback_slider"
 
 internal const val PLAYBACK_RATES_SEPARATOR = "::"
 
@@ -157,19 +184,8 @@ internal const val DEFAULT_BACKWARD_TIME_MS = 10L * 1000L // 15s
 internal const val DEFAULT_TRACK_RESET_THRESHOLD_SECONDS = 5.0 // 5s
 internal val DEFAULT_PLAYBACK_RATES = listOf(1f, 1.1f, 1.25f, 1.5f, 2f)
 internal const val DEFAULT_PLAYBACK_SPEED = 1f
-internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
 internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = true
-internal const val DEFAULT_SYNCHRONIZATION = true
 internal const val DEFAULT_AUTO_SYNC = true
-internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
 internal const val DEFAULT_PLAYBACK_HISTORY = true
-
-internal const val PREF_AUTO_REWIND_ON_RESUME = "pref_playback_auto_rewind_on_resume"
 internal const val DEFAULT_AUTO_REWIND_ON_RESUME = false
-internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
-internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
-internal const val PREF_MAX_RESUME_REWIND = "pref_playback_resume_rewind_max"
-internal const val PREF_PENDING_RESUME_REWIND = "pref_playback_pending_resume_rewind"
-internal const val PENDING_RESUME_REWIND_SEPARATOR = "|"
-internal const val PREF_AUTO_REWIND_STOP_AT_CHAPTER = "pref_playback_auto_rewind_stop_at_chapter"
 internal const val DEFAULT_AUTO_REWIND_STOP_AT_CHAPTER = true

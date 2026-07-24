@@ -90,4 +90,19 @@ class FakePlaybackSettings : PlaybackSettings {
     _autoRewindStopAtChapterBoundary.asStateFlow()
 
   override var pendingResumeRewind: PendingResumeRewind? = null
+
+  private val _bookTimeInPlaybackUi = MutableStateFlow(false)
+  override var bookTimeInPlaybackUi: Boolean
+    get() = _bookTimeInPlaybackUi.value
+    set(value) { _bookTimeInPlaybackUi.value = value }
+  override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> =
+    _bookTimeInPlaybackUi.asStateFlow()
+
+  private val _playbackWavyScrubber = MutableStateFlow(true)
+  override var playbackWavyScrubber: Boolean
+    get() = _playbackWavyScrubber.value
+    set(value) { _playbackWavyScrubber.value = value }
+
+  override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
+    _playbackWavyScrubber.asStateFlow()
 }

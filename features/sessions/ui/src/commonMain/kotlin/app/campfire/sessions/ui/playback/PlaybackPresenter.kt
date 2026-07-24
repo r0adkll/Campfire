@@ -194,6 +194,16 @@ class PlaybackPresenter(
         }
     }.collectAsState(Duration.ZERO)
 
+    val bookTime by remember {
+      snapshotFlow { player }
+        .filterNotNull()
+        .flatMapLatest {
+          it.overallTime.map { time ->
+            time.inWholeSeconds.seconds
+          }
+        }
+    }.collectAsState(Duration.ZERO)
+
     val duration by remember {
       snapshotFlow { player }
         .filterNotNull()
@@ -242,9 +252,20 @@ class PlaybackPresenter(
         }
     }.collectAsState(null)
 
+    val bookTimeEnabled by remember {
+      playbackSettings.observeBookTimeInPlaybackUi()
+    }.collectAsState()
+
+    val wavySliderEnabled by remember {
+      playbackSettings.observePlaybackWavyScrubber()
+    }.collectAsState()
+
     return PlayerUiState(
       time = time,
       duration = duration,
+      bookTime = bookTime,
+      bookTimeEnabled = bookTimeEnabled,
+      wavySliderEnabled = wavySliderEnabled,
       metadata = metadata,
       state = state,
       speed = speed,

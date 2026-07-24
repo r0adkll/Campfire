@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
@@ -35,6 +36,9 @@ import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
 
+val DefaultThumbSize = DpSize(4.dp, 44.dp)
+val SmallThumbSize = DpSize(4.dp, 32.dp)
+
 @Composable
 internal fun PlaybackSeekBar(
   state: AudioPlayer.State,
@@ -43,6 +47,8 @@ internal fun PlaybackSeekBar(
   playbackSpeed: Float,
   onSeek: (Float) -> Unit,
   modifier: Modifier = Modifier,
+  waveEnabled: Boolean = true,
+  thumbSize: DpSize = DefaultThumbSize,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
   Column(
@@ -66,25 +72,35 @@ internal fun PlaybackSeekBar(
       }
     }
 
-    val waveHeight = if (state == AudioPlayer.State.Playing) 16.dp else 0.dp
-    val waveVelocity = if (state == AudioPlayer.State.Playing) 40.dp else 0.dp
-    val waveThickness = if (state == AudioPlayer.State.Playing) 12.dp else 16.dp
+    val waveHeight = if (state == AudioPlayer.State.Playing && waveEnabled) 16.dp else 0.dp
+    val waveVelocity = if (state == AudioPlayer.State.Playing && waveEnabled) 40.dp else 0.dp
+    val waveThickness = if (state == AudioPlayer.State.Playing && waveEnabled) 12.dp else 16.dp
 
+    val colors = SliderDefaults.colors(
+      inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
+    )
+    val enabled = state == AudioPlayer.State.Playing || state == AudioPlayer.State.Paused
     WavySlider(
-      enabled = state == AudioPlayer.State.Playing || state == AudioPlayer.State.Paused,
+      enabled = enabled,
       value = softSliderValue,
       onValueChange = { sliderValue = it },
       onValueChangeFinished = {
         onSeek(sliderValue)
       },
       interactionSource = interactionSource,
-      colors = SliderDefaults.colors(
-        inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
-      ),
+      colors = colors,
       waveLength = 50.dp,
       waveHeight = waveHeight,
       waveVelocity = waveVelocity to WaveDirection.TAIL,
       waveThickness = waveThickness,
+      thumb = {
+        SliderDefaults.Thumb(
+          interactionSource = interactionSource,
+          colors = colors,
+          enabled = enabled,
+          thumbSize = thumbSize,
+        )
+      },
       modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 24.dp),

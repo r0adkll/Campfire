@@ -32,7 +32,10 @@ data class PlaybackUiState(
 @Immutable
 data class PlayerUiState(
   val time: Duration,
+  val bookTime: Duration,
+  val bookTimeEnabled: Boolean,
   val duration: Duration,
+  val wavySliderEnabled: Boolean,
   val metadata: Metadata,
   val state: AudioPlayer.State,
   val speed: Float,

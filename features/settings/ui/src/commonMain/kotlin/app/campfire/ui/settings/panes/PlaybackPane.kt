@@ -19,6 +19,7 @@ import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_auto_rewind_on_resume
 import campfire.features.settings.ui.generated.resources.header_playback_history
+import campfire.features.settings.ui.generated.resources.header_player_interface
 import campfire.features.settings.ui.generated.resources.header_synchronization
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_title
@@ -26,6 +27,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_auto_s
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_backward_title
+import campfire.features.settings.ui.generated.resources.setting_playback_book_time_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_book_time_title
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_forward_title
 import campfire.features.settings.ui.generated.resources.setting_playback_history_subtitle
@@ -46,6 +49,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_sync_t
 import campfire.features.settings.ui.generated.resources.setting_playback_title
 import campfire.features.settings.ui.generated.resources.setting_playback_track_reset_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_track_reset_title
+import campfire.features.settings.ui.generated.resources.setting_playback_wavy_scrubber_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_wavy_scrubber_title
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.compose.resources.stringResource
@@ -107,6 +112,28 @@ internal fun PlaybackPane(
       },
       headlineContent = { Text(stringResource(Res.string.setting_playback_remote_skip_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
+    )
+
+    Header(
+      title = { Text(stringResource(Res.string.header_player_interface)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.bookTimeInPlaybackUi,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.BookTimeInPlaybackUi(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_book_time_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_book_time_subtitle)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.playbackWavyScrubber,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.PlaybackWavyScrubber(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_wavy_scrubber_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_wavy_scrubber_subtitle)) },
     )
 
     Header(
