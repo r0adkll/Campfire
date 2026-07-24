@@ -504,7 +504,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
       val isDragged by interactionSource.collectIsDraggedAsState()
       val isInteracting = isPressed || isDragged
 
-      if (playerState.bookTimeEnabled) {
+      if (playerState.bookTimeEnabled && session?.episodeId == null) {
         BookTimeProgressIndicator(session, playerState)
         Spacer(Modifier.height(4.dp))
       }
