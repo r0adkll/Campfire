@@ -8,6 +8,8 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUserId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.mapToEpisodeShelfRow
@@ -29,6 +31,7 @@ class ShelfSourceOfTruthFactory(
   private val libraryItemDao: LibraryItemDao,
   private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
+  private val userSession: UserSession,
 ) {
 
   fun create(): SourceOfTruth<Key, Unit, List<ShelfEntity>> {
@@ -49,7 +52,12 @@ class ShelfSourceOfTruthFactory(
   }
 
   private fun readLibraryItems(shelfId: ShelfId): Flow<List<LibraryItem>> {
-    return db.libraryItemsQueries.selectForShelf(shelfId, ::mapToLibraryItemWithProgress)
+    return db.libraryItemsQueries
+      .selectForShelf(
+        userId = userSession.requiredUserId,
+        shelfId = shelfId,
+        mapper = ::mapToLibraryItemWithProgress,
+      )
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { items -> items.map { libraryItemDao.hydrateItem(it) } }

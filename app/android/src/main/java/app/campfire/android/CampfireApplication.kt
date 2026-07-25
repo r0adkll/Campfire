@@ -1,6 +1,8 @@
 package app.campfire.android
 
 import android.app.Application
+import androidx.compose.runtime.Composer
+import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import app.campfire.android.di.AndroidAppComponent
 import app.campfire.android.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
@@ -26,5 +28,8 @@ class CampfireApplication : Application() {
 
     // Call startup initializers
     component.startupInitializer.initialize()
+
+    // Enable more useful compose stack traces in crashes
+    Composer.setDiagnosticStackTraceMode(ComposeStackTraceMode.Auto)
   }
 }

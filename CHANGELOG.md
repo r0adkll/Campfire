@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Offline playback of downloaded audiobooks failing when the server is unreachable
+- Crash on launch when more than one account on the device had listening progress for the same book
 
 ### Other Notes & Contributions
 

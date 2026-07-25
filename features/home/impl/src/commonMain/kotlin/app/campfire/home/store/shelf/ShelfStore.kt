@@ -6,6 +6,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
+import app.campfire.core.session.UserSession
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.home.api.model.ShelfId
 import kotlin.time.Duration.Companion.minutes
@@ -27,6 +28,7 @@ object ShelfStore : Cork {
     libraryItemDao: LibraryItemDao,
     urlHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
+    userSession: UserSession,
   ) {
 
     private val sourceOfTruthFactory = ShelfSourceOfTruthFactory(
@@ -34,6 +36,7 @@ object ShelfStore : Cork {
       libraryItemDao = libraryItemDao,
       urlHydrator = urlHydrator,
       dispatcherProvider = dispatcherProvider,
+      userSession = userSession,
     )
 
     fun create(): Store<Key, List<ShelfEntity>> {
