@@ -18,8 +18,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class LibrarySettings(
-  val coverAspectRatio: Int,
-  val disableWatcher: Boolean,
+  val coverAspectRatio: Int = 1,
+  val disableWatcher: Boolean = false,
   val skipMatchingMediaWithAsin: Boolean = false,
   val skipMatchingMediaWithIsbn: Boolean = false,
   val autoScanCronExpression: String? = null,

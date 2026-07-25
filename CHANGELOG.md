@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Offline playback of downloaded audiobooks failing when the server is unreachable
 - Crash when the server sends a real-time library update containing unusual line-break characters (seen with some podcast descriptions)
+- Crash on launch when more than one account on the device had listening progress for the same book
 
 ### Other Notes & Contributions
 

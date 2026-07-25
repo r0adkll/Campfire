@@ -8,6 +8,9 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
+import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUserId
+import app.campfire.crashreporting.CrashReporter
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.mapToEpisodeShelfRow
@@ -29,6 +32,7 @@ class ShelfSourceOfTruthFactory(
   private val libraryItemDao: LibraryItemDao,
   private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
+  private val userSession: UserSession,
 ) {
 
   fun create(): SourceOfTruth<Key, Unit, List<ShelfEntity>> {
@@ -49,10 +53,16 @@ class ShelfSourceOfTruthFactory(
   }
 
   private fun readLibraryItems(shelfId: ShelfId): Flow<List<LibraryItem>> {
-    return db.libraryItemsQueries.selectForShelf(shelfId, ::mapToLibraryItemWithProgress)
+    return db.libraryItemsQueries
+      .selectForShelf(
+        userId = userSession.requiredUserId,
+        shelfId = shelfId,
+        mapper = ::mapToLibraryItemWithProgress,
+      )
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { items -> items.map { libraryItemDao.hydrateItem(it) } }
+      .mapLatest { items -> items.dropDuplicates(shelfId) { it.id } }
   }
 
   /**
@@ -64,6 +74,7 @@ class ShelfSourceOfTruthFactory(
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { items -> items.map { libraryItemDao.hydratePodcastItem(it) } }
+      .mapLatest { items -> items.dropDuplicates(shelfId) { it.id } }
   }
 
   /**
@@ -75,6 +86,10 @@ class ShelfSourceOfTruthFactory(
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { rows -> rows.map { it.asDomainModel(urlHydrator) } }
+      .mapLatest { entries ->
+        // Match the UI's key: libraryItemId + recentEpisodeId
+        entries.dropDuplicates(shelfId) { it.libraryItem.id to it.recentEpisode.id }
+      }
   }
 
   private fun readSeries(shelfId: ShelfId): Flow<List<Series>> {
@@ -94,7 +109,7 @@ class ShelfSourceOfTruthFactory(
             .sortedBy { it.media.metadata.seriesSequence?.sequence }
 
           s.asDomainModel(sortedBooks)
-        }
+        }.dropDuplicates(shelfId) { it.id }
       }
   }
 
@@ -103,7 +118,26 @@ class ShelfSourceOfTruthFactory(
       .asFlow()
       .mapToList(dispatcherProvider.databaseRead)
       .mapLatest { authors ->
-        authors.map { it.asDomainModel() }
+        authors.map { it.asDomainModel() }.dropDuplicates(shelfId) { it.id }
       }
   }
 }
+
+/**
+ * The home UI keys its LazyRow items by entity id, so duplicate entities within a
+ * single shelf are fatal. Duplicates should be impossible (the queries are scoped and
+ * the join tables have composite PKs), so rather than let a data bug crash every app
+ * launch, drop the duplicates and record a non-fatal to keep the bug visible.
+ */
+private inline fun <T, K> List<T>.dropDuplicates(shelfId: ShelfId, keySelector: (T) -> K): List<T> {
+  val distinct = distinctBy(keySelector)
+  if (distinct.size != size) {
+    CrashReporter.record(DuplicateShelfEntitiesException(shelfId, size - distinct.size))
+  }
+  return distinct
+}
+
+class DuplicateShelfEntitiesException(
+  shelfId: ShelfId,
+  count: Int,
+) : IllegalStateException("Shelf [$shelfId] emitted $count duplicate entities; duplicates were dropped")

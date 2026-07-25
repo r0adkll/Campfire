@@ -174,7 +174,7 @@ class DefaultSocketManager(
       socket = newSocket
 
       newSocket.on(Socket.EVENT_CONNECT) {
-        ibark { "Socket connected to $url; reading token and sending auth" }
+        ibark { "Socket connected; reading token and sending auth" }
         _state.value = SocketState.Authenticating
         coroutineScope.launch {
           val freshToken = accountManager.getToken(userId)?.accessToken
@@ -194,7 +194,7 @@ class DefaultSocketManager(
         val authedUserId = payload?.string("userId")
         val username = payload?.string("username")
         if (authedUserId != null && username != null) {
-          ibark { "Socket authenticated as $username ($authedUserId)" }
+          ibark { "Socket authenticated!" }
           _state.value = SocketState.Authenticated(authedUserId, username)
         }
       }

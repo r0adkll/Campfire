@@ -11,6 +11,7 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.loggableId
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.serverUrl
 import app.campfire.data.LibraryItem as DbLibraryItem
 import app.campfire.data.MediaAudioFiles
@@ -156,7 +157,11 @@ class SqlDelightLibraryItemDao(
     MediaType.Book -> {
       val full = withContext(dispatcherProvider.databaseRead) {
         db.libraryItemsQueries
-          .selectForIdFull(item.id, ::mapToLibraryItemWithProgress)
+          .selectForIdFull(
+            userId = userSession.requiredUserId,
+            id = item.id,
+            mapper = ::mapToLibraryItemWithProgress,
+          )
           .awaitAsOne()
       }
       hydrateItem(full)
@@ -164,7 +169,11 @@ class SqlDelightLibraryItemDao(
     MediaType.Podcast -> {
       val full = withContext(dispatcherProvider.databaseRead) {
         db.libraryItemsQueries
-          .selectForPodcastIdFull(item.id, ::mapToPodcastLibraryItemWithProgress)
+          .selectForPodcastIdFull(
+            userId = userSession.requiredUserId,
+            id = item.id,
+            mapper = ::mapToPodcastLibraryItemWithProgress,
+          )
           .awaitAsOne()
       }
       hydratePodcastItem(full)
@@ -181,7 +190,11 @@ class SqlDelightLibraryItemDao(
       MediaType.Book -> {
         val full = withContext(dispatcherProvider.databaseRead) {
           db.libraryItemsQueries
-            .selectForIdFull(id, ::mapToLibraryItemWithProgress)
+            .selectForIdFull(
+              userId = userSession.requiredUserId,
+              id = id,
+              mapper = ::mapToLibraryItemWithProgress,
+            )
             .awaitAsOneOrNull()
         } ?: return null
         hydrateItem(full)
@@ -189,7 +202,11 @@ class SqlDelightLibraryItemDao(
       MediaType.Podcast -> {
         val full = withContext(dispatcherProvider.databaseRead) {
           db.libraryItemsQueries
-            .selectForPodcastIdFull(id, ::mapToPodcastLibraryItemWithProgress)
+            .selectForPodcastIdFull(
+              userId = userSession.requiredUserId,
+              id = id,
+              mapper = ::mapToPodcastLibraryItemWithProgress,
+            )
             .awaitAsOneOrNull()
         } ?: return null
         hydratePodcastItem(full)

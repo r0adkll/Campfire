@@ -14,6 +14,7 @@ kotlin {
       dependencies {
         implementation(projects.features.settings.api)
         implementation(projects.core)
+        implementation(projects.data.crashreporting.api)
         implementation(projects.data.db.core)
         implementation(projects.data.db.mapping)
         implementation(projects.data.network.api)

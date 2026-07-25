@@ -44,7 +44,8 @@ SELECT libraryItem.*, media.*, mediaProgress.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
-WHERE libraryItem.id = ?;
+  AND mediaProgress.userId = :userId
+WHERE libraryItem.id = :id;
 
 -- Used by the source-of-truth to decide which join to run for an item.
 selectMediaTypeForId:
@@ -64,7 +65,8 @@ SELECT libraryItem.*, podcastMedia.*, mediaProgress.* FROM libraryItem
 INNER JOIN podcastMedia ON podcastMedia.libraryItemId = libraryItem.id
 LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
-WHERE libraryItem.id = ?;
+  AND mediaProgress.userId = :userId
+WHERE libraryItem.id = :id;
 
 selectForLibrary:
 SELECT * FROM libraryItem
@@ -84,7 +86,8 @@ INNER JOIN shelfJoin ON shelfJoin.entityId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
-WHERE shelfJoin.shelfId = ?
+  AND mediaProgress.userId = :userId
+WHERE shelfJoin.shelfId = :shelfId
 ORDER BY shelfJoin.shelfOrder ASC;
 
 -- Podcast variant: same shape as selectForShelf but joins podcastMedia. Used by
