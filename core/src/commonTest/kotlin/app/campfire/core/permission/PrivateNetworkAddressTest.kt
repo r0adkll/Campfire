@@ -1,7 +1,9 @@
 package app.campfire.core.permission
 
 import assertk.assertThat
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
 
@@ -54,5 +56,15 @@ class PrivateNetworkAddressTest {
   fun blank_or_garbage_is_not_private() {
     assertThat(isPrivateNetworkAddress("")).isFalse()
     assertThat(isPrivateNetworkAddress("   ")).isFalse()
+  }
+
+  @Test
+  fun extractUrlHost_pulls_bare_host_from_url_forms() {
+    assertThat(extractUrlHost("https://abs.example.com")).isEqualTo("abs.example.com")
+    assertThat(extractUrlHost("https://abs.example.com:13378/status?x=1")).isEqualTo("abs.example.com")
+    assertThat(extractUrlHost("http://user:pass@abs.example.com:80/path")).isEqualTo("abs.example.com")
+    assertThat(extractUrlHost("abs.example.com:13378")).isEqualTo("abs.example.com")
+    assertThat(extractUrlHost("http://[fd00::1]:8080")).isEqualTo("fd00::1")
+    assertThat(extractUrlHost("")).isNull()
   }
 }

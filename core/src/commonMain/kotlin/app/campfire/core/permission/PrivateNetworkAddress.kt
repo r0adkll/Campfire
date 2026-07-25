@@ -9,7 +9,7 @@ package app.campfire.core.permission
  * library so it can live in `:core`. Unknown/public hosts return `false`.
  */
 fun isPrivateNetworkAddress(serverUrl: String): Boolean {
-  val host = extractHost(serverUrl)?.lowercase() ?: return false
+  val host = extractUrlHost(serverUrl)?.lowercase() ?: return false
 
   if (host == "localhost" ||
     host.endsWith(".local") ||
@@ -46,7 +46,7 @@ fun isPrivateNetworkAddress(serverUrl: String): Boolean {
 }
 
 /** Pulls the bare host out of a possibly-schemed `host:port/path` string. */
-private fun extractHost(serverUrl: String): String? {
+fun extractUrlHost(serverUrl: String): String? {
   var s = serverUrl.trim()
   if (s.isEmpty()) return null
 
