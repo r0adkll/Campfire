@@ -29,6 +29,7 @@ jb-compose-navigationevent = "1.1.0"
 junit = "4.13.2"
 kimchi = "0.7.0"
 kmp-socketio = "1.4.4"
+socketio-kotlin = "2.8.0"
 kotlin = "2.4.10"
 kotlin-inject = "0.9.0"
 kotlinpoet = "2.2.0"
@@ -235,6 +236,7 @@ connectivity-android = { module = "dev.jordond.connectivity:connectivity-android
 connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity" }
 connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
 kmp-socketio = { module = "com.piasy:kmp-socketio", version.ref = "kmp-socketio" }
+socketio-kotlin = { module = "org.hildan.socketio:socketio-kotlin", version.ref = "socketio-kotlin" }
 oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.16.5" }
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
