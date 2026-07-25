@@ -241,7 +241,6 @@ class SqlDelightSessionDataSource(
 
   override suspend fun updateCurrentTime(libraryItemId: LibraryItemId, currentTime: Duration) {
     val currentUserId = userSession.userId ?: return
-    ibark { "PLAYBACK::updateCurrentTime($currentTime)" }
     write {
       // Update the playback session information with the new time
       db.sessionQueries.updatePlayback(
