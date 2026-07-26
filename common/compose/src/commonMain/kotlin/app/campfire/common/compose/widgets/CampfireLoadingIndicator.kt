@@ -72,7 +72,6 @@ private fun NoisyCampfireLoadingIndicator(
     maxDistance = maxDistance,
   ) {
     LoadingCampfireIcon(
-      size = LoaderIndicatorSize - 16.dp,
       modifier = Modifier
         .fillMaxSize()
         .padding(8.dp),

@@ -7,12 +7,10 @@ import androidx.compose.animation.core.withInfiniteAnimationFrameMillis
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.IntSize
-import app.campfire.core.extensions.fluentIf
 
 @Composable
 actual fun Modifier.applyNoiseEffect(
@@ -20,7 +18,6 @@ actual fun Modifier.applyNoiseEffect(
   frequencyY: Float,
   speed: Float,
   amplitude: Float,
-  size: IntSize,
 ): Modifier {
   if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return this
 
@@ -32,35 +29,23 @@ actual fun Modifier.applyNoiseEffect(
     }
   }
 
-  val shader = RuntimeShader(PerlinNoise).apply {
-    setFloatUniform("frequencyX", frequencyX)
-    setFloatUniform("frequencyY", frequencyY)
-    setFloatUniform("speed", speed)
-    setFloatUniform("amplitude", amplitude)
+  val shader = remember { RuntimeShader(PerlinNoise) }
 
-    if (size != IntSize.Zero) {
-      setFloatUniform(
-        "resolution",
-        size.width.toFloat(),
-        size.height.toFloat(),
-      )
+  return graphicsLayer {
+    // A zero-sized resolution produces NaN uv offsets in the shader, rendering garbage frames
+    if (size.minDimension <= 0f) {
+      renderEffect = null
+      return@graphicsLayer
     }
+
+    shader.setFloatUniform("resolution", size.width, size.height)
+    shader.setFloatUniform("frequencyX", frequencyX)
+    shader.setFloatUniform("frequencyY", frequencyY)
+    shader.setFloatUniform("speed", speed)
+    shader.setFloatUniform("amplitude", amplitude)
+    shader.setFloatUniform("time", time)
+    renderEffect = RenderEffect
+      .createRuntimeShaderEffect(shader, "contents")
+      .asComposeRenderEffect()
   }
-
-  return this
-    .fluentIf(size == IntSize.Zero) {
-      onSizeChanged {
-        shader.setFloatUniform(
-          "resolution",
-          it.width.toFloat(),
-          it.height.toFloat(),
-        )
-      }
-    }
-    .graphicsLayer {
-      shader.setFloatUniform("time", time)
-      renderEffect = RenderEffect
-        .createRuntimeShaderEffect(shader, "contents")
-        .asComposeRenderEffect()
-    }
 }

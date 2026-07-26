@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash when the server sends a real-time library update containing unusual line-break characters (seen with some podcast descriptions)
 - Crash on launch when more than one account on the device had listening progress for the same book
 - Server addresses that resolve to a local IP through custom DNS being rejected on Android 16+ (the local network permission is now requested for them)
+- Campfire logo flame flickering during the Welcome to Login screen transition
 
 ### Other Notes & Contributions
 

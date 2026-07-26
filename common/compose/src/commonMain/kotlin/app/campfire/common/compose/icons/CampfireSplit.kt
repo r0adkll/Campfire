@@ -22,12 +22,9 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.group
 import androidx.compose.ui.graphics.vector.path
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.common.compose.shaders.applyNoiseEffect
-import app.campfire.common.compose.util.withDensity
 
 private var _CampfireLogs: ImageVector? = null
 private var _CampfireFireInner: ImageVector? = null
@@ -250,13 +247,8 @@ fun NoisyCampfireIcon(
 
 @Composable
 fun LoadingCampfireIcon(
-  size: Dp,
   modifier: Modifier = Modifier,
 ) {
-  val pixelSize = withDensity {
-    IntSize(size.roundToPx(), size.roundToPx())
-  }
-
   Box(
     modifier = modifier,
   ) {
@@ -294,7 +286,6 @@ fun LoadingCampfireIcon(
           frequencyY = 3f,
           speed = 0.8f,
           amplitude = 0.03f,
-          size = pixelSize,
         )
         .scale(outerScale),
     )
@@ -322,7 +313,6 @@ fun LoadingCampfireIcon(
           frequencyY = 5f,
           amplitude = 0.05f,
           speed = .75f,
-          size = pixelSize,
         )
         .scale(innerScale),
     )
