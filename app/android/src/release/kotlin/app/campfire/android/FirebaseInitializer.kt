@@ -52,16 +52,16 @@ class FirebaseInitializer(
     // Setup Crash Reporting
     CrashReporter.Delegator += FirebaseCrashReporter
 
-    // Scrub server URLs out of fatal crashes before Crashlytics uploads them
-    installRedactingExceptionHandler()
-
     // Start the observer for firebase crash reporting setting to enable/disable
     observeFirebaseSetting()
   }
 
+  private var redactingHandlerInstalled = false
+
   private fun installRedactingExceptionHandler() {
-    // Force Crashlytics to finish initializing so the handler we capture below is its own
-    FirebaseCrashlytics.getInstance()
+    // The crash reporting setting can toggle repeatedly — only wrap the handler once
+    if (redactingHandlerInstalled) return
+    redactingHandlerInstalled = true
 
     // Uncaught throwables never pass through CrashReporter.record, so their messages
     // (Ktor embeds the full request URL in its exception messages) would upload raw.
@@ -86,6 +86,15 @@ class FirebaseInitializer(
           crashlytics.isCrashlyticsCollectionEnabled = true
         } else if (!enabled && crashlytics.isCrashlyticsCollectionEnabled) {
           crashlytics.isCrashlyticsCollectionEnabled = false
+        }
+
+        if (enabled) {
+          // Only wrap Crashlytics' handler once the user has actually opted into crash
+          // reporting; if they never do, we never touch the exception handler chain.
+          // Left in place on disable — Crashlytics stops reporting either way, and
+          // uninstalling a chained handler safely isn't possible if anything else
+          // wrapped it after us.
+          installRedactingExceptionHandler()
         }
       }
     }
