@@ -8,6 +8,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -52,10 +53,13 @@ internal fun SharedTransitionScope.ExpandedItemImage(
       contentDescription = session?.libraryItem?.media?.metadata?.title,
       size = size,
       shape = shape,
-      modifier = Modifier.sharedElement(
-        rememberSharedContentState(SharedImage),
-        animatedVisibilityScope = animatedVisibilityScope,
-      ),
+      sharedElementModifier = Modifier.fillMaxSize(),
+      modifier = Modifier
+        .fillMaxSize()
+        .sharedElement(
+          rememberSharedContentState(SharedImage),
+          animatedVisibilityScope = animatedVisibilityScope,
+        ),
     )
 
     AnimatedVisibility(

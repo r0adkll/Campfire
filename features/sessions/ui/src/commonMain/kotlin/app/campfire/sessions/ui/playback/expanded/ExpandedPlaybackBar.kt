@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -64,6 +65,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.ui.cast.CastButton
@@ -397,24 +399,26 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           runningTimer = playerState.timer,
           session = session,
           animatedVisibilityScope = animatedVisibilityScope,
-          size = if (windowSizeClass.isSupportingPaneEnabled) {
-            LargeCoverImageSize
-          } else {
-            CoverImageSize
-          },
-          modifier = Modifier.clickable {
-            if (session == null) return@clickable
-            scope.launch {
-              onClose()
-              delay(350.milliseconds)
-              navigator.goTo(
-                LibraryItemScreen(
-                  libraryItemId = session.libraryItem.id,
-                  episodeId = session.episodeId,
-                ),
-              )
-            }
-          },
+          size = Dp.Unspecified,
+          modifier = Modifier
+            .weight(1f)
+            .padding(
+              horizontal = 48.dp,
+            )
+            .aspectRatio(1f)
+            .clickable {
+              if (session == null) return@clickable
+              scope.launch {
+                onClose()
+                delay(350.milliseconds)
+                navigator.goTo(
+                  LibraryItemScreen(
+                    libraryItemId = session.libraryItem.id,
+                    episodeId = session.episodeId,
+                  ),
+                )
+              }
+            },
         )
 
         Spacer(Modifier.height(16.dp))
@@ -475,6 +479,8 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
               .padding(horizontal = 64.dp),
           )
         }
+
+        Spacer(Modifier.height(16.dp))
       }
 
       syncState.availableSync?.let { sync ->
@@ -649,7 +655,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
 }
 
 @Composable
-private fun ColumnScope.BookTimeProgressIndicator(
+internal fun ColumnScope.BookTimeProgressIndicator(
   session: Session?,
   playerState: PlayerUiState,
 ) {

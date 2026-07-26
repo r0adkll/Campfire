@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -384,6 +386,7 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
       )
 
       ItemActions(
+        session = session,
         playerState = playerState,
         syncState = syncState,
         isInteracting = isInteracting,
@@ -427,21 +430,25 @@ private fun SharedTransitionScope.ItemMetadata(
       runningTimer = playerState.timer,
       session = session,
       animatedVisibilityScope = animatedVisibilityScope,
-      size = 180.dp,
+      size = Dp.Unspecified,
       shape = RoundedCornerShape(16.dp),
-      modifier = Modifier.clickable {
-        if (session == null) return@clickable
-        scope.launch {
-          onClose()
-          delay(350.milliseconds)
-          navigator.goTo(
-            LibraryItemScreen(
-              libraryItemId = session.libraryItem.id,
-              episodeId = session.episodeId,
-            ),
-          )
-        }
-      },
+      modifier = Modifier
+        .weight(1f)
+        .padding(horizontal = 16.dp)
+        .aspectRatio(1f)
+        .clickable {
+          if (session == null) return@clickable
+          scope.launch {
+            onClose()
+            delay(350.milliseconds)
+            navigator.goTo(
+              LibraryItemScreen(
+                libraryItemId = session.libraryItem.id,
+                episodeId = session.episodeId,
+              ),
+            )
+          }
+        },
     )
 
     Spacer(Modifier.height(16.dp))
@@ -484,12 +491,15 @@ private fun SharedTransitionScope.ItemMetadata(
           .padding(horizontal = 64.dp),
       )
     }
+
+    Spacer(Modifier.height(16.dp))
   }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ItemActions(
+  session: Session?,
   playerState: PlayerUiState,
   syncState: SyncUiState,
   isInteracting: Boolean,
@@ -560,6 +570,11 @@ private fun ItemActions(
     )
 
     Spacer(Modifier.height(8.dp))
+
+    if (playerState.bookTimeEnabled && session?.episodeId == null) {
+      BookTimeProgressIndicator(session, playerState)
+      Spacer(Modifier.height(4.dp))
+    }
 
     PlaybackSeekBar(
       state = playerState.state,

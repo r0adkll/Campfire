@@ -17,12 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.placeholder_person
@@ -80,7 +82,9 @@ fun CoverImage(
       contentDescription = contentDescription,
       contentScale = contentScale,
       modifier = sharedElementModifier
-        .size(size)
+        .fluentIf(size != Dp.Unspecified) {
+          size(size)
+        }
         .clip(shape),
     )
 
@@ -134,7 +138,9 @@ private fun LoadingCover(
         color = MaterialTheme.colorScheme.primaryContainer,
         shape = shape,
       )
-      .size(size),
+      .fluentIf(size != Dp.Unspecified) {
+        size(size)
+      },
     contentAlignment = Alignment.Center,
   ) {
     CircularProgressIndicator(
