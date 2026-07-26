@@ -74,7 +74,6 @@ import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.common.compose.widgets.CoverImageSize
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
