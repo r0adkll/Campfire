@@ -123,10 +123,10 @@ class KtorAuthAudioBookShelfApi(
         Result.failure(ApiException(response.status.value, errorBody ?: "/auth/openid failed!"))
       }
     } catch (e: IOException) {
-      e.printStackTrace()
+      bark(priority = LogPriority.ERROR, throwable = e) { "/auth/openid request failed" }
       Result.failure(e)
     } catch (e: NoTransformationFoundException) {
-      e.printStackTrace()
+      bark(priority = LogPriority.ERROR, throwable = e) { "/auth/openid request failed" }
       Result.failure(e)
     }
   }

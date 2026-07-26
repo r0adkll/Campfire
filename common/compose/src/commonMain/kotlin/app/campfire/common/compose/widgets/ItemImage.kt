@@ -37,9 +37,11 @@ fun ItemImage(
     val painter = rememberAsyncImagePainter(imageUrl)
 
     val imageState by painter.state.collectAsState()
-    when (val state = imageState) {
+    when (imageState) {
+      // The raw throwable message embeds the full image URL (user's server host),
+      // which would leak through the accessibility tree — keep this static.
       is AsyncImagePainter.State.Error -> ImageError(
-        errorMessage = "${state.result.throwable.message}",
+        errorMessage = "Image failed to load",
       )
       is AsyncImagePainter.State.Loading -> ImageLoading()
       // Do nothing in the other states

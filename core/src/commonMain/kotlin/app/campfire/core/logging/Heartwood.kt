@@ -22,7 +22,9 @@ class Heartwood private constructor() {
     }
 
     override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {
-      barks.forEach { it.log(priority, tag, extras, message) }
+      // Redact lazily (and once) so barks that drop the message never pay for it.
+      val redacted by lazy { LogRedaction.redact(message()) }
+      barks.forEach { it.log(priority, tag, extras) { redacted } }
     }
 
     override fun log(
@@ -32,6 +34,8 @@ class Heartwood private constructor() {
       message: () -> String,
       throwable: Throwable?,
     ) {
+      // Redaction of this path happens in messageWithStacktrace, which every Bark's
+      // default throwable overload funnels through, so the stacktrace text is covered too.
       barks.forEach { it.log(priority, tag, extras, message, throwable) }
     }
   }
@@ -83,7 +87,9 @@ fun messageWithStacktrace(t: Throwable?, msg: String): String {
   if (t != null) {
     message += "\n${t.stackTraceToString()}"
   }
-  return message
+  // Throwable messages (Ktor, ExoPlayer, etc.) routinely embed the user's server URL,
+  // and on release builds this string becomes a Crashlytics breadcrumb.
+  return LogRedaction.redact(message)
 }
 
 @PublishedApi

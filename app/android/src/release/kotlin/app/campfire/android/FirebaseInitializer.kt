@@ -15,6 +15,7 @@ import app.campfire.core.logging.LogPriority.WARN
 import app.campfire.core.logging.bark
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.crashreporting.impl.FirebaseCrashReporter
+import app.campfire.crashreporting.impl.redactedCopyOrSelf
 import app.campfire.settings.api.CampfireSettings
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -51,8 +52,30 @@ class FirebaseInitializer(
     // Setup Crash Reporting
     CrashReporter.Delegator += FirebaseCrashReporter
 
+    // Scrub server URLs out of fatal crashes before Crashlytics uploads them
+    installRedactingExceptionHandler()
+
     // Start the observer for firebase crash reporting setting to enable/disable
     observeFirebaseSetting()
+  }
+
+  private fun installRedactingExceptionHandler() {
+    // Force Crashlytics to finish initializing so the handler we capture below is its own
+    FirebaseCrashlytics.getInstance()
+
+    // Uncaught throwables never pass through CrashReporter.record, so their messages
+    // (Ktor embeds the full request URL in its exception messages) would upload raw.
+    // Wrapping Crashlytics' own handler lets us hand it a sanitized mirror instead.
+    val crashlyticsHandler = Thread.getDefaultUncaughtExceptionHandler() ?: return
+    Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+      val sanitized = try {
+        throwable.redactedCopyOrSelf()
+      } catch (t: Throwable) {
+        // Never lose the crash report over a redaction failure
+        throwable
+      }
+      crashlyticsHandler.uncaughtException(thread, sanitized)
+    }
   }
 
   private fun observeFirebaseSetting() {

@@ -25,6 +25,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.LogRedaction
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.di.DesktopApplicationComponent
@@ -37,6 +38,8 @@ import kotlinx.coroutines.launch
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
 fun main() = application {
+  // Desktop only logs to local stdout — keep raw URLs readable for development.
+  LogRedaction.enabled = false
   Heartwood.grow(
     object : Heartwood.Bark {
       override fun log(priority: LogPriority, tag: String?, extras: Extras?, message: () -> String) {

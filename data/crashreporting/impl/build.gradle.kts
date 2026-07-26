@@ -24,7 +24,18 @@ kotlin {
       }
     }
 
+    // Shared between the JVM and Android targets so throwable redaction (which needs
+    // JVM stack trace APIs unavailable in commonMain) can be unit tested from jvmTest.
+    val jvmShared by creating {
+      dependsOn(commonMain.get())
+    }
+
+    jvmMain {
+      dependsOn(jvmShared)
+    }
+
     androidMain {
+      dependsOn(jvmShared)
       dependencies {
         implementation(project.dependencies.platform(libs.google.firebase.bom))
         implementation(libs.google.firebase.crashlytics)

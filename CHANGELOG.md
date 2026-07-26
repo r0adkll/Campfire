@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Collection, series, and playlist cards now show an item-count badge in the corner of the cover
+- Server addresses are now redacted from diagnostic logs and crash reports to better protect your privacy
 
 ### Deprecated
 

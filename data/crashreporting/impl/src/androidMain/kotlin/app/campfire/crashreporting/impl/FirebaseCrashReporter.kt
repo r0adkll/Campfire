@@ -10,6 +10,6 @@ object FirebaseCrashReporter : CrashReporter {
   }
 
   override fun record(t: Throwable) {
-    FirebaseCrashlytics.getInstance().recordException(t)
+    FirebaseCrashlytics.getInstance().recordException(t.redactedCopyOrSelf())
   }
 }

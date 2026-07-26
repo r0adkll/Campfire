@@ -1,5 +1,7 @@
 package app.campfire.core.model
 
+import app.campfire.core.logging.loggableUrl
+
 data class Server(
   val url: String,
   val user: User,
@@ -7,6 +9,11 @@ data class Server(
   val tent: Tent,
   val settings: Settings,
 ) {
+
+  // Deliberately redacts url — Server objects get interpolated into logs that ship
+  // to crash reporting as breadcrumbs.
+  override fun toString(): String =
+    "Server(url=${url.loggableUrl}, user=$user, name=$name, tent=$tent, settings=$settings)"
 
   data class Settings(
     val scannerFindCovers: Boolean,

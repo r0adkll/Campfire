@@ -3,6 +3,9 @@ package app.campfire.audioplayer.impl.util
 import platform.Foundation.NSError
 
 fun NSError.asDebugString(): String {
+  // AVFoundation/NSURLError failures carry the full stream URL (the user's server) in
+  // keys like NSErrorFailingURLKey / NSErrorFailingURLStringKey — drop them from logs.
+  val safeUserInfo = userInfo.entries.filterNot { it.key.toString().contains("URL") }
   return """
     NSError(
       code = $code,
@@ -14,7 +17,7 @@ fun NSError.asDebugString(): String {
         ${localizedRecoveryOptions?.joinToString(separator = "\n") { it.toString() }}
       ],
       userInfo = {
-        ${userInfo.entries.joinToString(separator = "\n") { "${it.key} = ${it.value}," }}
+        ${safeUserInfo.joinToString(separator = "\n") { "${it.key} = ${it.value}," }}
       }
     )
   """.trimIndent()

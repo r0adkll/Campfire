@@ -3,7 +3,6 @@ package app.campfire.network.di
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.app.ApplicationInfo
-import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
@@ -36,6 +35,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.url
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -81,15 +81,17 @@ interface HttpClientModule {
       install(HttpCache)
 
       install(Logging) {
+        // Ktor logs the full request URL (user's private server host included) at INFO,
+        // so this must stay NONE on anything that forwards logs to crash reporting.
         level = when {
           applicationInfo.debugBuild -> LogLevel.INFO
-          applicationInfo.flavor == Flavor.Alpha -> LogLevel.INFO
           else -> LogLevel.NONE
         }
 
         filter { builder ->
           // Ignore image requests
-          !builder.url.toString().endsWith("/cover")
+          val path = builder.url.encodedPath
+          !path.endsWith("/cover") && !path.endsWith("/image")
         }
 
         logger = object : Logger {

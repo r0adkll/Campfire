@@ -1,5 +1,7 @@
 package app.campfire.core.model
 
+import app.campfire.core.logging.loggableUrl
+
 typealias UserId = String
 
 data class User(
@@ -14,6 +16,13 @@ data class User(
   val permissions: Permissions,
   val serverUrl: String,
 ) {
+
+  // Deliberately redacts serverUrl — User objects get interpolated into logs that ship
+  // to crash reporting as breadcrumbs.
+  override fun toString(): String =
+    "User(id=$id, name=$name, selectedLibraryId=$selectedLibraryId, type=$type, " +
+      "isActive=$isActive, isLocked=$isLocked, lastSeen=$lastSeen, createdAt=$createdAt, " +
+      "permissions=$permissions, serverUrl=${serverUrl.loggableUrl})"
 
   val canEditCollections: Boolean
     get() = type == Type.Admin || type == Type.Root

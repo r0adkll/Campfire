@@ -1,5 +1,7 @@
 package app.campfire.network
 
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.network.di.ServerUrl
 import app.campfire.network.models.NetworkModel
 import io.ktor.client.call.NoTransformationFoundException
@@ -44,16 +46,16 @@ internal suspend inline fun <reified T> trySendRequest(
       Result.failure(ApiException(response.status.value, "Network request failed"))
     }
   } catch (e: IOException) {
-    e.printStackTrace()
+    bark("SendRequests", LogPriority.ERROR, throwable = e) { "Network request failed" }
     Result.failure(e)
   } catch (e: NoTransformationFoundException) {
-    e.printStackTrace()
+    bark("SendRequests", LogPriority.ERROR, throwable = e) { "Network request failed" }
     Result.failure(e)
   } catch (e: IllegalArgumentException) {
-    e.printStackTrace()
+    bark("SendRequests", LogPriority.ERROR, throwable = e) { "Network request failed" }
     Result.failure(e)
   } catch (e: URLParserException) {
-    e.printStackTrace()
+    bark("SendRequests", LogPriority.ERROR, throwable = e) { "Network request failed" }
     Result.failure(e)
   } catch (t: Throwable) {
     Result.failure(t)

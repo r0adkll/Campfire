@@ -8,6 +8,7 @@ import android.os.ParcelFileDescriptor
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Corked
+import app.campfire.core.logging.loggableUrl
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import java.io.FileNotFoundException
@@ -36,12 +37,12 @@ class CoverContentProvider : ContentProvider() {
       ?: throw FileNotFoundException("Coil disk cache is not configured")
 
     cache.openSnapshot(url)?.use { snapshot ->
-      dbark { "Cover snapshot for $url found" }
+      dbark { "Cover snapshot for ${url.loggableUrl} found" }
       return ParcelFileDescriptor.open(snapshot.data.toFile(), ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     return runBlocking {
-      dbark { "Requesting cover snapshot for $url" }
+      dbark { "Requesting cover snapshot for ${url.loggableUrl}" }
       val warmed = withTimeoutOrNull(CoverFetchTimeout) {
         loader.execute(
           ImageRequest.Builder(ctx)

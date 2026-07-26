@@ -15,6 +15,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -55,9 +56,11 @@ class SeriesDetailPresenter(
 
       groupedBooks.forEach { (key, value) ->
         if (value.size > 1) {
-          bark { "Series Item Overlap! [$key]" }
+          bark { "Series Item Overlap! [${key.loggableId}]" }
           value.forEach {
-            bark { "-- $it" }
+            // Log a hash instead of the item itself — LibraryItem's toString carries
+            // cover/track URLs — while still showing whether the duplicates differ.
+            bark { "-- ${it.id.loggableId} hash=${it.hashCode()}" }
           }
         }
       }
