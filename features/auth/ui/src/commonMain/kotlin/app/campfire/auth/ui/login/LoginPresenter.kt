@@ -107,7 +107,11 @@ class LoginPresenter(
       }
     }
 
-    val connectionState = connectionState(serverUrl, networkSettings)
+    val connectionState = connectionState(
+      serverUrl = serverUrl,
+      networkSettings = networkSettings,
+      onUrlResolved = { serverUrl = it },
+    )
 
     LaunchedEffect(serverUrl, connectionState) {
       serverUrl.toUri().authority?.split('.')?.firstOrNull()?.let {
@@ -214,12 +218,20 @@ class LoginPresenter(
     }
   }
 
+  /**
+   * Probes [serverUrl] for a reachable Audiobookshelf server. Scheme-less input (e.g.
+   * `192.168.1.50:13378` or `abs.example.com`) is probed with both schemes via
+   * [serverUrlProbeCandidates]; when one connects, [onUrlResolved] is invoked with the
+   * full URL so the field reflects the scheme that actually worked.
+   */
   @Composable
   private fun connectionState(
     serverUrl: String,
     networkSettings: NetworkSettings?,
+    onUrlResolved: (String) -> Unit,
   ): ConnectionState? {
     var connectionState by remember { mutableStateOf<ConnectionState?>(null) }
+    var autoResolvedUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(serverUrl, networkSettings) {
       if (serverUrl.isBlank()) {
@@ -227,23 +239,37 @@ class LoginPresenter(
         return@LaunchedEffect
       }
 
+      // The field was just rewritten with the scheme that connected; the current Success
+      // state already belongs to this exact URL, so don't probe (and flash Loading) again.
+      if (serverUrl == autoResolvedUrl && connectionState is ConnectionState.Success) {
+        return@LaunchedEffect
+      }
+      autoResolvedUrl = null
+
       connectionState = ConnectionState.Loading
 
       // Give the user some time to type the URL
       delay(PING_DELAY)
 
-      val uri = serverUrl.toUri()
-      if (uri.scheme == null || uri.authority == null) {
+      val candidates = serverUrlProbeCandidates(serverUrl)
+        .filter { candidate ->
+          val uri = candidate.toUri()
+          uri.scheme != null && uri.authority != null
+        }
+      if (candidates.isEmpty()) {
         connectionState = ConnectionState.Error(IllegalArgumentException("Invalid URL"))
         return@LaunchedEffect
       }
 
       // A LAN server (e.g. 192.168.x.x) needs the local-network permission on Android 16+, or the
       // status probe below silently times out. Prompt lazily now that a private address is present.
-      localNetworkPermission.requestIfNeeded(serverUrl)
+      localNetworkPermission.requestIfNeeded(candidates.first())
 
-      authRepository.status(serverUrl, networkSettings)
-        .onSuccess { status ->
+      var lastError: Throwable? = null
+      for (candidate in candidates) {
+        val result = authRepository.status(candidate, networkSettings)
+        val status = result.getOrNull()
+        if (status != null) {
           connectionState = ConnectionState.Success(
             AuthMethodState(
               passwordAuthEnabled = status.authMethods.contains(AUTH_METHOD_LOCAL),
@@ -257,10 +283,18 @@ class LoginPresenter(
               },
             ),
           )
+          if (candidate != serverUrl) {
+            autoResolvedUrl = candidate
+            onUrlResolved(candidate)
+          }
+          return@LaunchedEffect
         }
-        .onFailure { e ->
-          connectionState = ConnectionState.Error(e)
-        }
+        lastError = result.exceptionOrNull()
+      }
+
+      connectionState = ConnectionState.Error(
+        lastError ?: IllegalArgumentException("Unable to connect"),
+      )
     }
 
     return connectionState

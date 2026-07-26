@@ -59,13 +59,16 @@ import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.
 import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component4
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -116,6 +119,7 @@ internal fun ServerCard(
   onServerNameChange: (String) -> Unit,
   serverUrl: String,
   onServerUrlChange: (String) -> Unit,
+  urlState: ServerUrlFieldState,
   networkSettings: NetworkSettings?,
   onEditNetworkSettingsClick: () -> Unit,
   username: String,
@@ -178,10 +182,17 @@ internal fun ServerCard(
 
     Spacer(Modifier.size(16.dp))
 
+    if (urlState.value.text != serverUrl) {
+      urlState.value = TextFieldValue(serverUrl, TextRange(serverUrl.length))
+    }
+
     OutlinedTextField(
       enabled = !isAuthenticating,
-      value = serverUrl,
-      onValueChange = onServerUrlChange,
+      value = urlState.value,
+      onValueChange = {
+        urlState.value = it
+        if (it.text != serverUrl) onServerUrlChange(it.text)
+      },
       label = { Text(stringResource(Res.string.label_server_url)) },
       leadingIcon = {
         Icon(
@@ -228,7 +239,7 @@ internal fun ServerCard(
       },
       keyboardOptions = KeyboardOptions(
         keyboardType = KeyboardType.Uri,
-        autoCorrectEnabled = true,
+        autoCorrectEnabled = false,
         imeAction = ImeAction.Next,
       ),
       isError = connectionState is ConnectionState.Error,
@@ -239,6 +250,7 @@ internal fun ServerCard(
           horizontal = 16.dp,
         )
         .focusRequester(serverUrlFocus)
+        .onFocusChanged { urlState.isFocused = it.isFocused }
         .focusProperties {
           previous = serverNameFocus
           next = usernameFocus

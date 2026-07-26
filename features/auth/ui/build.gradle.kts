@@ -25,5 +25,11 @@ kotlin {
         implementation(libs.circuitx.overlays)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
   }
 }

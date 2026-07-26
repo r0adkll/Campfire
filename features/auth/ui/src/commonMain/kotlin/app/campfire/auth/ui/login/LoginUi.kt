@@ -47,7 +47,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.login.composables.ServerCard
+import app.campfire.auth.ui.login.composables.ServerUrlAssistBar
+import app.campfire.auth.ui.login.composables.ServerUrlFieldState
 import app.campfire.auth.ui.login.composables.TitleBanner
+import app.campfire.auth.ui.login.composables.rememberServerUrlFieldState
 import app.campfire.auth.ui.login.settings.NetworkSettingsResult
 import app.campfire.auth.ui.login.settings.showNetworkSettingsBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -105,46 +108,58 @@ private fun LoginContent(
       .systemBarsPadding()
       .fillMaxSize(),
   ) {
-    Box {
-      if (screen !is LoginScreen.New) {
-        CampfireTopAppBar(
-          title = {
-            Text(
-              when (screen) {
-                is LoginScreen.Additional -> stringResource(Res.string.login_add_account_title)
-                is LoginScreen.ReAuthentication -> stringResource(Res.string.login_reauth_account_title)
-              },
-            )
-          },
-          navigationIcon = {
-            if (screen is LoginScreen.Additional) {
-              val backLabel = stringResource(Res.string.action_back)
-              IconButtonTooltip(text = backLabel) {
-                IconButton(
-                  onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
-                ) {
-                  Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+    val urlFieldState = rememberServerUrlFieldState(state.serverUrl)
+    Box(Modifier.fillMaxSize()) {
+      Box(Modifier.fillMaxSize()) {
+        if (screen !is LoginScreen.New) {
+          CampfireTopAppBar(
+            title = {
+              Text(
+                when (screen) {
+                  is LoginScreen.Additional -> stringResource(Res.string.login_add_account_title)
+                  is LoginScreen.ReAuthentication -> stringResource(Res.string.login_reauth_account_title)
+                },
+              )
+            },
+            navigationIcon = {
+              if (screen is LoginScreen.Additional) {
+                val backLabel = stringResource(Res.string.action_back)
+                IconButtonTooltip(text = backLabel) {
+                  IconButton(
+                    onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
+                  ) {
+                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                  }
                 }
               }
-            }
-          },
-        )
-      } else {
-        TitleBanner(
+            },
+          )
+        } else {
+          TitleBanner(
+            modifier = Modifier
+              .padding(
+                horizontal = 24.dp,
+                vertical = 48.dp,
+              ),
+          )
+        }
+
+        LoginUiContent(
+          state = state,
+          urlFieldState = urlFieldState,
+          autoFocus = screen is LoginScreen.Additional,
           modifier = Modifier
-            .padding(
-              horizontal = 24.dp,
-              vertical = 48.dp,
-            ),
+            .align(Alignment.Center)
+            .fillMaxWidth(),
         )
       }
 
-      LoginUiContent(
-        state = state,
-        autoFocus = screen is LoginScreen.Additional,
+      ServerUrlAssistBar(
+        urlState = urlFieldState,
+        onUrlChange = { state.eventSink(LoginUiEvent.ServerUrl(it)) },
         modifier = Modifier
-          .align(Alignment.Center)
-          .fillMaxWidth(),
+          .align(Alignment.BottomCenter)
+          .imePadding(),
       )
     }
   }
@@ -154,6 +169,7 @@ private fun LoginContent(
 @Composable
 internal fun LoginUiContent(
   state: LoginUiState,
+  urlFieldState: ServerUrlFieldState,
   modifier: Modifier = Modifier,
   autoFocus: Boolean = false,
 ) {
@@ -175,6 +191,7 @@ internal fun LoginUiContent(
       onServerNameChange = { eventSink(LoginUiEvent.ServerName(it)) },
       serverUrl = state.serverUrl,
       onServerUrlChange = { eventSink(LoginUiEvent.ServerUrl(it)) },
+      urlState = urlFieldState,
       networkSettings = state.networkSettings,
       onEditNetworkSettingsClick = {
         scope.launch {

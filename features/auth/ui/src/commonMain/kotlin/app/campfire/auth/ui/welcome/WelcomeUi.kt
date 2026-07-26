@@ -2,6 +2,7 @@ package app.campfire.auth.ui.welcome
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -13,6 +14,9 @@ import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.auth.ui.composables.SinglePaneLayout
 import app.campfire.auth.ui.composables.TwoPaneLayout
 import app.campfire.auth.ui.login.LoginUiContent
+import app.campfire.auth.ui.login.LoginUiEvent
+import app.campfire.auth.ui.login.composables.ServerUrlAssistBar
+import app.campfire.auth.ui.login.composables.rememberServerUrlFieldState
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
 import app.campfire.auth.ui.welcome.composables.AddCampsiteCard
@@ -41,9 +45,18 @@ fun Welcome(
   ) {
     if (windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium) {
       TwoPaneLayout(modifier) {
+        val urlFieldState = rememberServerUrlFieldState(state.loginUiState.serverUrl)
         LoginUiContent(
           state = state.loginUiState,
+          urlFieldState = urlFieldState,
           modifier = Modifier.align(Alignment.CenterStart),
+        )
+        ServerUrlAssistBar(
+          urlState = urlFieldState,
+          onUrlChange = { state.loginUiState.eventSink(LoginUiEvent.ServerUrl(it)) },
+          modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .imePadding(),
         )
       }
     } else {

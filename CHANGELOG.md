@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - List/grid display toggle for the Series, Collections, and Playlists screens
 - Optional overall book progress indicator with time remaining in the player, toggleable in Playback settings
 - Setting to disable the wavy playback seek bar animation
+- Quick-insert bar above the keyboard when typing the server address at login, with one-tap snippets for https://, http://, local network prefixes, and the default Audiobookshelf port
+- Server addresses no longer require typing http(s):// — the login screen detects the right scheme automatically and fills it in
 
 ### Changed
 
