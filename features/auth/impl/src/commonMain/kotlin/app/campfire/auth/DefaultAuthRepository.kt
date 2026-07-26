@@ -10,7 +10,6 @@ import app.campfire.auth.local.UserStorageStrategy
 import app.campfire.auth.model.asDomainModel
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.NetworkSettings
-import app.campfire.core.model.Tent
 import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.AuthAudioBookShelfApi
@@ -41,7 +40,6 @@ class DefaultAuthRepository(
     serverName: String,
     username: String,
     password: String,
-    tent: Tent,
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
@@ -56,7 +54,6 @@ class DefaultAuthRepository(
       handleLoginResponse(
         serverUrl = serverUrl,
         serverName = serverName,
-        tent = tent,
         response = response,
         userId = userId,
         networkSettings = networkSettings,
@@ -74,7 +71,6 @@ class DefaultAuthRepository(
     codeVerifier: String,
     code: String,
     state: String,
-    tent: Tent,
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
@@ -89,7 +85,6 @@ class DefaultAuthRepository(
       handleLoginResponse(
         serverUrl = serverUrl,
         serverName = serverName,
-        tent = tent,
         response = response,
         userId = userId,
         networkSettings = networkSettings,
@@ -110,7 +105,6 @@ class DefaultAuthRepository(
   private suspend fun handleLoginResponse(
     serverUrl: String,
     serverName: String,
-    tent: Tent,
     response: LoginResponse,
     userId: UserId?,
     networkSettings: NetworkSettings?,
@@ -123,7 +117,6 @@ class DefaultAuthRepository(
     }
 
     storageStrategy.store(
-      tent = tent,
       serverName = serverName,
       serverUrl = serverUrl,
       serverSettings = response.serverSettings,

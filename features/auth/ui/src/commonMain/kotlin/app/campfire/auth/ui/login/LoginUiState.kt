@@ -3,13 +3,13 @@ package app.campfire.auth.ui.login
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import app.campfire.core.model.NetworkSettings
-import app.campfire.core.model.Tent
+import app.campfire.ui.theming.api.AppTheme
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 @Stable
 data class LoginUiState(
-  val tent: Tent,
+  val theme: AppTheme.Fixed,
   val serverName: String,
   val serverUrl: String,
   val connectionState: ConnectionState?,
@@ -36,7 +36,7 @@ data class AuthMethodState(
 
 sealed interface LoginUiEvent : CircuitUiEvent {
   data object NavigateBack : LoginUiEvent
-  data class ChangeTent(val tent: Tent) : LoginUiEvent
+  data class ChangeTheme(val theme: AppTheme.Fixed) : LoginUiEvent
   data class ServerName(val serverName: String) : LoginUiEvent
   data class ServerUrl(val url: String) : LoginUiEvent
   data class UserName(val userName: String) : LoginUiEvent

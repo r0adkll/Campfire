@@ -44,7 +44,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfServiceClick
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeName
-import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
@@ -301,10 +300,6 @@ class SettingsPresenter(
         is SettingsUiEvent.AccountSettingEvent -> when (event) {
           is ChangeName -> {
             scope.launch { serverRepository.changeName(event.name) }
-          }
-
-          is ChangeTent -> {
-            scope.launch { serverRepository.changeTent(event.tent) }
           }
 
           is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {

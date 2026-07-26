@@ -48,7 +48,6 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.filled.PersonAdd
-import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.widgets.CampsiteIcon
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.coroutines.LoadState
@@ -280,7 +279,6 @@ private fun AccountListItem(
     ),
     leadingContent = {
       CampsiteIcon(
-        tent = server.server.tent,
         hasFire = isCurrent,
         modifier = Modifier.size(TentIconSize),
       )

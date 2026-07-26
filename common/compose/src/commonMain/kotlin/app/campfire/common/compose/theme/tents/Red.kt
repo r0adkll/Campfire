@@ -450,7 +450,7 @@ private val highContrastDarkColorScheme = darkColorScheme(
 )
 
 /**
- * @see app.campfire.core.model.Tent.Red
+ * Used by the `AppTheme.Fixed.Tent` default app theme.
  */
 val RedColorPalette = ColorPalette(
   lightScheme,

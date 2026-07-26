@@ -8,7 +8,6 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.model.Server
-import app.campfire.core.model.Tent
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.crashreporting.CrashReporter
@@ -79,15 +78,6 @@ class StoreServerRepository(
   override suspend fun getAllServers(): List<Server> {
     val output = serverStore.get(ServerStore.Operation.All) as ServerStore.Output.Collection
     return output.servers
-  }
-
-  override suspend fun changeTent(tent: Tent) {
-    withContext(dispatcherProvider.databaseWrite) {
-      db.serversQueries.updateTent(
-        tent = tent,
-        userId = userSessionManager.current.requiredUserId,
-      )
-    }
   }
 
   override suspend fun changeName(newName: String) {

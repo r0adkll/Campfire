@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import app.campfire.common.compose.icons.icon
 import app.campfire.ui.theming.api.AppTheme
 
 internal val IconSize = 48.dp

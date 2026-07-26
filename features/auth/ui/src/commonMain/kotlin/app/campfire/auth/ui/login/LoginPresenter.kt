@@ -13,7 +13,7 @@ import app.campfire.auth.api.model.AUTH_METHOD_OPENID
 import app.campfire.auth.ui.BuildConfig
 import app.campfire.auth.ui.login.LoginUiEvent.AddCampsite
 import app.campfire.auth.ui.login.LoginUiEvent.ChangeNetworkSettings
-import app.campfire.auth.ui.login.LoginUiEvent.ChangeTent
+import app.campfire.auth.ui.login.LoginUiEvent.ChangeTheme
 import app.campfire.auth.ui.login.LoginUiEvent.NavigateBack
 import app.campfire.auth.ui.login.LoginUiEvent.Password
 import app.campfire.auth.ui.login.LoginUiEvent.ServerName
@@ -23,10 +23,11 @@ import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.capitalized
 import app.campfire.core.model.NetworkSettings
-import app.campfire.core.model.Tent
 import app.campfire.core.model.UserId
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
+import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.AppThemeRepository
 import coil3.toUri
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -45,12 +46,8 @@ class LoginPresenter(
   private val authRepository: AuthRepository,
   private val oauthAuthorizationFlow: AuthorizationFlow,
   private val localNetworkPermission: LocalNetworkPermissionController,
+  private val appThemeRepository: AppThemeRepository,
 ) : Presenter<LoginUiState> {
-
-  private val initialTent: Tent = when (screen) {
-    is LoginScreen.ReAuthentication -> screen.tent
-    else -> Tent.Default
-  }
 
   private val initialServerName: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.serverName
@@ -85,7 +82,7 @@ class LoginPresenter(
   override fun present(): LoginUiState {
     val coroutineScope = rememberCoroutineScope()
 
-    var tent by remember { mutableStateOf(initialTent) }
+    var theme by remember { mutableStateOf<AppTheme.Fixed>(AppTheme.Fixed.Tent) }
     var serverName by remember { mutableStateOf(initialServerName) }
     var serverUrl by remember { mutableStateOf(initialServerUrl) }
     var networkSettings by remember { mutableStateOf<NetworkSettings?>(null) }
@@ -121,7 +118,7 @@ class LoginPresenter(
     }
 
     return LoginUiState(
-      tent = tent,
+      theme = theme,
       serverName = serverName,
       serverUrl = serverUrl,
       userName = username,
@@ -134,7 +131,7 @@ class LoginPresenter(
       when (event) {
         NavigateBack -> navigator.pop()
 
-        is ChangeTent -> tent = event.tent
+        is ChangeTheme -> theme = event.theme
         is ChangeNetworkSettings -> networkSettings = event.settings
         is UserName -> username = event.userName
         is Password -> password = event.password
@@ -159,10 +156,11 @@ class LoginPresenter(
               serverName = serverName,
               username = username,
               password = password,
-              tent = tent,
               userId = existingUserId,
               networkSettings = networkSettings,
-            ).onFailure {
+            ).onSuccess {
+              applySelectedTheme(theme)
+            }.onFailure {
               isAuthenticating = false
               authError = when (it.cause) {
                 is IOException -> AuthError.NetworkError
@@ -184,10 +182,11 @@ class LoginPresenter(
                   codeVerifier = authorization.codeVerifier,
                   code = authorization.code,
                   state = authorization.state,
-                  tent = tent,
                   userId = existingUserId,
                   networkSettings = networkSettings,
-                ).onFailure { e ->
+                ).onSuccess {
+                  applySelectedTheme(theme)
+                }.onFailure { e ->
                   isAuthenticating = false
                   authError = when (e.cause) {
                     is IOException -> AuthError.NetworkError
@@ -202,6 +201,16 @@ class LoginPresenter(
           }
         }
       }
+    }
+  }
+
+  /**
+   * A fresh login treats the picked default theme as the user's starting app theme.
+   * Re-authentication must not clobber whatever theme (possibly custom/AI) they already use.
+   */
+  private fun applySelectedTheme(theme: AppTheme.Fixed) {
+    if (screen !is LoginScreen.ReAuthentication) {
+      appThemeRepository.setCurrentTheme(theme)
     }
   }
 

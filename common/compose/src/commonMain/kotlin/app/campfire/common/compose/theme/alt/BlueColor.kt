@@ -171,7 +171,7 @@ private val darkScheme = darkColorScheme(
 )
 
 /**
- * @see app.campfire.core.model.Tent.Blue
+ * Used by the `AppTheme.Fixed.WaterBottle` default app theme.
  */
 val AltBlueColorPalette = ColorPalette(
   lightScheme,

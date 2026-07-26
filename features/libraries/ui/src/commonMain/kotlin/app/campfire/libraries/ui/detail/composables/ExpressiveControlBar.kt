@@ -78,7 +78,6 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.MediaProgress
-import app.campfire.core.model.Tent
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
@@ -920,7 +919,6 @@ fun ExpressiveControlSlotPreview(
 ) {
   CampfireTheme(
     useDarkColors = false,
-    tent = Tent.Red,
   ) {
     CompositionLocalProvider(
       LocalContentLayout provides ContentLayout.Root,

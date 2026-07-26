@@ -75,7 +75,6 @@ import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.icon
 import app.campfire.common.compose.icons.rounded.AssignmentGlobe
 import app.campfire.common.compose.icons.rounded.Connected
 import app.campfire.common.compose.icons.rounded.Disconnected
@@ -83,7 +82,8 @@ import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.model.NetworkSettings
-import app.campfire.core.model.Tent
+import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.DefaultAppThemes
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_clear_server_url
 import campfire.features.auth.ui.generated.resources.action_hide_password
@@ -110,8 +110,8 @@ import org.jetbrains.compose.resources.stringResource
 )
 @Composable
 internal fun ServerCard(
-  tent: Tent,
-  onTentChange: (Tent) -> Unit,
+  theme: AppTheme.Fixed,
+  onThemeChange: (AppTheme.Fixed) -> Unit,
   serverName: String,
   onServerNameChange: (String) -> Unit,
   serverUrl: String,
@@ -165,8 +165,8 @@ internal fun ServerCard(
 
     ServerNameAndIcon(
       enabled = !isAuthenticating,
-      tent = tent,
-      onTentChange = onTentChange,
+      theme = theme,
+      onThemeChange = onThemeChange,
       name = serverName,
       onNameChange = onServerNameChange,
       focusRequester = serverNameFocus,
@@ -389,8 +389,8 @@ internal fun ServerCard(
 @Composable
 private fun ServerNameAndIcon(
   enabled: Boolean,
-  tent: Tent,
-  onTentChange: (Tent) -> Unit,
+  theme: AppTheme.Fixed,
+  onThemeChange: (AppTheme.Fixed) -> Unit,
   name: String,
   onNameChange: (String) -> Unit,
   focusRequester: FocusRequester,
@@ -409,7 +409,7 @@ private fun ServerNameAndIcon(
         },
     ) {
       Image(
-        tent.icon,
+        theme.icon.icon(),
         contentDescription = null,
         modifier = Modifier
           .sharedElement(
@@ -441,14 +441,14 @@ private fun ServerNameAndIcon(
           vertical = 8.dp,
         ),
       ) {
-        Tent.entries.forEach { tentOption ->
+        DefaultAppThemes.forEach { themeOption ->
           Image(
-            tentOption.icon,
+            themeOption.icon.icon(),
             contentDescription = null,
             modifier = Modifier
               .clip(RoundedCornerShape(8.dp))
               .clickable {
-                onTentChange(tentOption)
+                onThemeChange(themeOption)
                 showTentPickerMenu = false
               },
           )

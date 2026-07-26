@@ -94,7 +94,6 @@ internal fun ServerTab(
       rows = listOf(
         "name" to currentServer.name,
         "url" to currentServer.url,
-        "tent" to currentServer.tent.toString(),
         "user" to currentServer.user.name,
       ),
     )

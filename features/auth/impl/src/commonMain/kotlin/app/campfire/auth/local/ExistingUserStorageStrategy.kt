@@ -4,7 +4,6 @@ import app.campfire.CampfireDatabase
 import app.campfire.auth.di.ExistingUser
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.model.Tent
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.models.ServerSettings
 import app.campfire.network.models.User
@@ -21,7 +20,6 @@ class ExistingUserStorageStrategy(
 ) : UserStorageStrategy {
 
   override suspend fun store(
-    tent: Tent,
     serverName: String,
     serverUrl: String,
     serverSettings: ServerSettings,
@@ -32,7 +30,6 @@ class ExistingUserStorageStrategy(
       // Update Server/Settings
       db.serversQueries.update(
         name = serverName,
-        tent = tent,
         scannerFindCovers = serverSettings.scannerFindCovers,
         scannerCoverProvider = serverSettings.scannerCoverProvider,
         scannerParseSubtitle = serverSettings.scannerParseSubtitle,

@@ -11,13 +11,13 @@ import app.campfire.common.compose.theme.color.CampfireColorScheme
 import app.campfire.common.compose.theme.color.LocalCampfireColorScheme
 import app.campfire.common.compose.theme.color.darkCampfireColorScheme
 import app.campfire.common.compose.theme.color.lightCampfireColorScheme
-import app.campfire.core.model.Tent
+import app.campfire.common.compose.theme.tents.RedColorPalette
 import com.r0adkll.swatchbuckler.compose.Theme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CampfireTheme(
-  tent: Tent = Tent.Default,
+  colorPalette: ColorPalette = RedColorPalette,
   useDarkColors: Boolean = isSystemInDarkTheme(),
   useDynamicColors: Boolean = false,
   content: @Composable () -> Unit,
@@ -30,7 +30,6 @@ fun CampfireTheme(
     LocalUseDarkColors provides useDarkColors,
     LocalCampfireColorScheme provides campfireColorScheme,
   ) {
-    val colorPalette = tent.colorPalette
     val colorScheme = colorScheme(colorPalette, useDarkColors, useDynamicColors)
 
     MaterialExpressiveTheme(

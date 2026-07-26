@@ -18,6 +18,7 @@ kotlin {
         api(projects.data.network.oidc)
         implementation(projects.features.auth.api)
         implementation(projects.data.account.api)
+        implementation(projects.ui.theming.api)
 
         implementation(libs.compose.components.resources)
 

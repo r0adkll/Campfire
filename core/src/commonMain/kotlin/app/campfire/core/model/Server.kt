@@ -6,14 +6,13 @@ data class Server(
   val url: String,
   val user: User,
   val name: String,
-  val tent: Tent,
   val settings: Settings,
 ) {
 
   // Deliberately redacts url — Server objects get interpolated into logs that ship
   // to crash reporting as breadcrumbs.
   override fun toString(): String =
-    "Server(url=${url.loggableUrl}, user=$user, name=$name, tent=$tent, settings=$settings)"
+    "Server(url=${url.loggableUrl}, user=$user, name=$name, settings=$settings)"
 
   data class Settings(
     val scannerFindCovers: Boolean,

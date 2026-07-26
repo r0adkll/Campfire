@@ -197,7 +197,7 @@ private val darkColorScheme = darkColorScheme(
 )
 
 /**
- * @see app.campfire.core.model.Tent.Yellow
+ * Used by the `AppTheme.Fixed.Rucksack` default app theme.
  */
 val AltYellowColorPalette = ColorPalette(
   lightColorScheme = lightColorScheme,

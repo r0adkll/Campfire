@@ -1,4 +1,3 @@
-import app.campfire.core.model.Tent;
 import kotlin.Boolean;
 import kotlin.Int;
 import kotlin.String;
@@ -8,7 +7,6 @@ CREATE TABLE IF NOT EXISTS server (
   url TEXT NOT NULL PRIMARY KEY,
   userId TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
-  tent TEXT AS Tent NOT NULL,
   scannerFindCovers INTEGER AS Boolean NOT NULL DEFAULT 0,
   scannerCoverProvider TEXT NOT NULL,
   scannerParseSubtitle INTEGER AS Boolean NOT NULL DEFAULT 0,
@@ -57,7 +55,6 @@ VALUES ?;
 update:
 UPDATE server
 SET name = :name,
-    tent = :tent,
     scannerFindCovers = :scannerFindCovers,
     scannerCoverProvider = :scannerCoverProvider,
     scannerParseSubtitle = :scannerParseSubtitle,
@@ -84,11 +81,6 @@ SET name = :name,
     logLevel = :logLevel,
     version = :version
 WHERE userId = :userId;
-
-updateTent:
-UPDATE server
-SET tent = ?
-WHERE userId = ?;
 
 updateName:
 UPDATE server

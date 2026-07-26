@@ -14,7 +14,6 @@ import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.GithubClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.PrivacyPolicyClick
 import app.campfire.ui.settings.SettingsUiEvent.AboutSettingEvent.TermsOfServiceClick
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeName
-import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.ChangeTent
 import app.campfire.ui.settings.SettingsUiEvent.AccountSettingEvent.Logout
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming
 import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming
@@ -56,7 +55,6 @@ class SettingsAnalyticUiEventHandler(
 
     is SettingsUiEvent.AccountSettingEvent -> when (event) {
       is ChangeName -> send("account_name", Updated)
-      is ChangeTent -> send("account_tent", Updated)
       is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }

@@ -71,7 +71,6 @@ class DatabaseFactory(
   fun build(): CampfireDatabase = CampfireDatabase(
     driver = driver,
     serverAdapter = Server.Adapter(
-      tentAdapter = EnumColumnAdapter(),
       loggerScannerLogsToKeepAdapter = IntColumnAdapter,
       backupsToKeepAdapter = IntColumnAdapter,
       bookshelfViewAdapter = IntColumnAdapter,

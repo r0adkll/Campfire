@@ -4,7 +4,6 @@ import app.campfire.core.model.AuthorId
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.Server
-import app.campfire.core.model.Tent
 import app.campfire.core.model.UserId
 import app.campfire.core.parcelize.Parcelize
 import com.slack.circuit.runtime.screen.Screen
@@ -52,7 +51,6 @@ sealed class LoginScreen : BaseScreen(name = "Login") {
   data class ReAuthentication(
     val userId: UserId,
     val userName: String,
-    val tent: Tent,
     val serverName: String,
     val serverUrl: String,
   ) : LoginScreen() {
@@ -60,7 +58,6 @@ sealed class LoginScreen : BaseScreen(name = "Login") {
     constructor(server: Server) : this(
       userId = server.user.id,
       userName = server.user.name,
-      tent = server.tent,
       serverName = server.name,
       serverUrl = server.url,
     )

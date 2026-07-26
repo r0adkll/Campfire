@@ -1,14 +1,12 @@
 package app.campfire.account.server.db
 
 import app.campfire.core.model.Server
-import app.campfire.core.model.Tent
 import app.campfire.core.model.User
 
 data class ServerWithUser(
   val url: String,
   val userId: String,
   val name: String,
-  val tent: Tent,
   val scannerFindCovers: Boolean,
   val scannerCoverProvider: String,
   val scannerParseSubtitle: Boolean,
@@ -78,7 +76,6 @@ data class ServerWithUser(
         ),
       ),
       name = name,
-      tent = tent,
       settings = Server.Settings(
         scannerFindCovers = scannerFindCovers,
         scannerCoverProvider = scannerCoverProvider,

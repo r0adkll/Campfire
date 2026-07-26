@@ -17,10 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Collection, series, and playlist cards now show an item-count badge in the corner of the cover
 - Server addresses are now redacted from diagnostic logs and crash reports to better protect your privacy
+- The tent picker on the login screen now offers the app's default themes, previews your choice live, and applies it as your app theme after signing in
 
 ### Deprecated
 
 ### Removed
+
+- The per-server tent color: the tent picker in Account settings is gone and campsite icons now share one look — theming is handled entirely by the theme picker
 
 ### Fixed
 

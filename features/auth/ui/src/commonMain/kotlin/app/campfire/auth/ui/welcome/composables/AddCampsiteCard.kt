@@ -17,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Tent
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.Red
+import app.campfire.ui.theming.api.AppTheme
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.welcome_add_campsite_subtitle
 import campfire.features.auth.ui.generated.resources.welcome_add_campsite_title
@@ -44,7 +43,7 @@ internal fun AddCampsiteCard(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Image(
-        CampfireIcons.Tents.Red,
+        AppTheme.Fixed.Tent.icon.icon(),
         contentDescription = null,
         modifier = Modifier
           .sharedElement(

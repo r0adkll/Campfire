@@ -26,7 +26,6 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
-import app.campfire.core.model.Tent
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.action_back
 import campfire.features.stats.ui.generated.resources.action_toggle_dark_mode
@@ -34,14 +33,12 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun PreviewScaffold(
-  tent: Tent = Tent.Default,
   useDarkColors: Boolean = false,
   content: @Composable ColumnScope.() -> Unit,
 ) {
   var _useDarkColors by remember { mutableStateOf(useDarkColors) }
 
   CampfireTheme(
-    tent = tent,
     useDarkColors = _useDarkColors,
   ) {
     Scaffold(

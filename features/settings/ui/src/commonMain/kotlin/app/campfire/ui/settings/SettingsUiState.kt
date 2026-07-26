@@ -10,7 +10,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
-import app.campfire.core.model.Tent
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.ResumeRewindConfig
@@ -163,7 +162,6 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   // Account Pane Events
   sealed interface AccountSettingEvent : SettingsUiEvent {
-    data class ChangeTent(val tent: Tent) : AccountSettingEvent
     data class ChangeName(val name: String) : AccountSettingEvent
     data class SocketSyncEnabled(val enabled: Boolean) : AccountSettingEvent
     data object Logout : AccountSettingEvent

@@ -171,7 +171,7 @@ private val darkScheme = darkColorScheme(
 )
 
 /**
- * @see app.campfire.core.model.Tent.Green
+ * Used by the `AppTheme.Fixed.Forest` default app theme.
  */
 val AltGreenColorPalette = ColorPalette(
   lightScheme,

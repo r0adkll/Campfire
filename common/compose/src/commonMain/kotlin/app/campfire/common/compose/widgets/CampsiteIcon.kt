@@ -7,20 +7,18 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.util.fastRoundToInt
 import app.campfire.common.compose.icons.Campfire
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.icon
-import app.campfire.core.model.Tent
+import app.campfire.common.compose.icons.theme.Tent
 import kotlin.math.max
 
 @Composable
 fun CampsiteIcon(
-  tent: Tent,
   hasFire: Boolean,
   modifier: Modifier = Modifier,
 ) {
   Layout(
     content = {
       Image(
-        tent.icon,
+        CampfireIcons.Theme.Tent,
         contentDescription = null,
       )
 

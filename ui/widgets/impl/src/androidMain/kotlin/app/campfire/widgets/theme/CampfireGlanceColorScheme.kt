@@ -4,13 +4,12 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.glance.color.ColorProviders
 import androidx.glance.material3.ColorProviders
 import androidx.glance.unit.ColorProvider
-import app.campfire.common.compose.theme.colorPalette
-import app.campfire.core.model.Tent
+import app.campfire.common.compose.theme.tents.RedColorPalette
 import com.r0adkll.swatchbuckler.compose.Theme
 
 object CampfireGlanceColorScheme {
 
-  val palette = Tent.Default.colorPalette
+  val palette = RedColorPalette
 
   val colors = ColorProviders(
     light = palette.lightColorScheme,
