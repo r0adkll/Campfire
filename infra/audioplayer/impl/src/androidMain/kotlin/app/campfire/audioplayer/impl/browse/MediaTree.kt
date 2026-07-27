@@ -57,6 +57,8 @@ import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
 
@@ -87,12 +89,33 @@ class MediaTree(
       )
       .build()
 
-  // TODO: Support paging through this api
+  /**
+   * Return one page of a parent's children. The full child list is loaded (and cached)
+   * on the first page request; later pages slice the cached list so paging browsers
+   * don't re-run the underlying repository loads per page. Page 0 always reloads, which
+   * is how a browser re-querying after [invalidationParentIds] notifications gets fresh
+   * data.
+   */
   suspend fun getChildren(
     parentId: String,
     page: Int,
     pageSize: Int,
   ): List<MediaItem> {
+    val children = childrenCacheMutex.withLock {
+      val cached = childrenCache
+      if (page > 0 && cached?.first == parentId) {
+        cached.second
+      } else {
+        loadChildren(parentId).also { childrenCache = parentId to it }
+      }
+    }
+    return children.paginate(page, pageSize)
+  }
+
+  private val childrenCacheMutex = Mutex()
+  private var childrenCache: Pair<String, List<MediaItem>>? = null
+
+  private suspend fun loadChildren(parentId: String): List<MediaItem> {
     return when (parentId) {
       ROOT_ID -> {
         val mediaType = currentMediaType()
@@ -347,18 +370,39 @@ class MediaTree(
     return null
   }
 
+  /**
+   * Run a fresh search and cache the full result list. Called when the browser submits a
+   * query — the returned size feeds `notifySearchResultChanged`, after which the browser
+   * pages through the same results via [getSearchResults].
+   */
   suspend fun search(query: String): List<MediaItem> {
     val result = searchRepository.searchCurrentLibrary(query)
       .firstOrNull { it !is SearchResult.Loading }
     bark { "Search result: $result" }
-    return if (result is SearchResult.Success) {
+    val items = if (result is SearchResult.Success) {
       result.books.map { it.asBrowsableMediaItem(titleHint = "Books") } +
         result.series.map { it.asBrowsableMediaItem(titleHint = "Series") } +
         result.authors.map { it.asBrowsableMediaItem(titleHint = "Authors") }
     } else {
       emptyList()
     }
+    searchCacheMutex.withLock { searchCache = query to items }
+    return items
   }
+
+  /**
+   * Return one page of the results for [query], serving from the cache populated by
+   * [search] so paging doesn't re-hit the search repository per page.
+   */
+  suspend fun getSearchResults(query: String, page: Int, pageSize: Int): List<MediaItem> {
+    val cached = searchCacheMutex.withLock {
+      searchCache?.takeIf { it.first == query }?.second
+    }
+    return (cached ?: search(query)).paginate(page, pageSize)
+  }
+
+  private val searchCacheMutex = Mutex()
+  private var searchCache: Pair<String, List<MediaItem>>? = null
 
   @OptIn(UnstableApi::class)
   private fun LibraryItem.asBrowsableMediaItem(

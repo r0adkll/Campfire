@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Real-time sync socket not connecting after logging in until the app was restarted
 - Podcasts in Android Auto can now be browsed into their episode list, and episode entries show the episode's title, artwork, and duration and play the correct episode instead of failing to start
 - Android Auto category tabs hanging indefinitely instead of showing an empty list when the library has no playlists, series, authors, or downloads
+- Android Auto browse and search lists now respect the head unit's requested page size instead of returning every item at once, fixing truncated lists in large libraries
 
 ### Other Notes & Contributions
 

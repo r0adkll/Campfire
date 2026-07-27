@@ -197,7 +197,8 @@ internal class MediaSessionCallback(
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
     val children = userComponent.mediaTree.getChildren(parentId, page, pageSize)
-    if (children.isNotEmpty()) {
+    // An empty page past the first is a valid end-of-pagination signal, not an error.
+    if (children.isNotEmpty() || page > 0) {
       return LibraryResult.ofItemList(children, params)
     }
     return LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
@@ -233,7 +234,7 @@ internal class MediaSessionCallback(
     pageSize: Int,
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
-    return userComponent.mediaTree.search(query).let {
+    return userComponent.mediaTree.getSearchResults(query, page, pageSize).let {
       LibraryResult.ofItemList(it, params)
     }
   }
