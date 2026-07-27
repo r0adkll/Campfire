@@ -30,6 +30,8 @@ fun libraryItem(
   tags: List<String> = listOf("Lit", "RPG", "NoPants", "Tootsies"),
   seriesSequence: SeriesSequence? = null,
   numOfChapters: Int = 20,
+  numTracks: Int = 10,
+  ebookFormat: String? = null,
   userMediaProgress: MediaProgress? = null,
 ) = LibraryItem(
   id = id,
@@ -75,11 +77,12 @@ fun libraryItem(
     coverImageUrl = "",
     coverPath = null,
     tags = tags,
-    numTracks = 10,
-    numAudioFiles = 10,
+    numTracks = numTracks,
+    numAudioFiles = numTracks,
     numChapters = 23,
     numMissingParts = 0,
     numInvalidAudioFiles = 0,
+    ebookFormat = ebookFormat,
     durationInMillis = duration.inWholeMilliseconds,
     sizeInBytes = 1L * 1024L * 1024L,
     chapters = (0 until numOfChapters).map { chapter ->

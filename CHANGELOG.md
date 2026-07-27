@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Setting to disable the wavy playback seek bar animation
 - Quick-insert bar above the keyboard when typing the server address at login, with one-tap snippets for https://, http://, local network prefixes, and the default Audiobookshelf port
 - Server addresses no longer require typing http(s):// — the login screen detects the right scheme automatically and fills it in
+- eBook-only library items now show a format badge on their covers and their play, download, and queue actions are disabled since reading eBooks isn't supported yet
 
 ### Changed
 

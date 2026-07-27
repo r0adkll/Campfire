@@ -112,6 +112,8 @@ internal fun emptyLibraryItem(
   genres: List<String> = emptyList(),
   tags: List<String> = emptyList(),
   numOfChapters: Int = 0,
+  numTracks: Int = 10,
+  ebookFormat: String? = null,
 ) = libraryItem(
   id = id,
   description = description,
@@ -120,6 +122,8 @@ internal fun emptyLibraryItem(
   genres = genres,
   tags = tags,
   numOfChapters = numOfChapters,
+  numTracks = numTracks,
+  ebookFormat = ebookFormat,
 )
 
 /**

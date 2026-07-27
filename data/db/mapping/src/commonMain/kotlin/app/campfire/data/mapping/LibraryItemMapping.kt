@@ -134,9 +134,9 @@ fun <T : Media> T.asDbModel(
     mediaId = id,
     coverPath = coverPath,
     tags = tags,
-    numTracks = numTracks,
-    numAudioFiles = numAudioFiles,
-    numChapters = numChapters,
+    numTracks = resolvedNumTracks,
+    numAudioFiles = resolvedNumAudioFiles,
+    numChapters = resolvedNumChapters,
     numMissingParts = numMissingParts,
     numInvalidAudioFiles = numInvalidAudioFiles,
     durationInMillis = duration?.seconds?.inWholeMilliseconds ?: run {
@@ -157,7 +157,7 @@ fun <T : Media> T.asDbModel(
       } ?: 0L
     },
     propertySize = propertySize,
-    ebookFormat = ebookFormat,
+    ebookFormat = resolvedEbookFormat,
 
     metadata_title = metadata.title,
     metadata_subtitle = metadata.subtitle,
@@ -309,14 +309,14 @@ private fun LibraryItemExpanded.Book.asDomainModelBook(
         coverImageUrl = urlHydrator.hydrateLibraryItem(id),
         coverPath = coverPath,
         tags = tags ?: emptyList(),
-        numTracks = numTracks,
-        numAudioFiles = numAudioFiles,
-        numChapters = numChapters,
+        numTracks = resolvedNumTracks,
+        numAudioFiles = resolvedNumAudioFiles,
+        numChapters = resolvedNumChapters,
         numMissingParts = numMissingParts,
         numInvalidAudioFiles = numInvalidAudioFiles,
         durationInMillis = duration?.seconds?.inWholeMilliseconds ?: 0,
         sizeInBytes = size ?: -1,
-        ebookFormat = ebookFormat,
+        ebookFormat = resolvedEbookFormat,
 
         audioFiles = audioFiles.map {
           it.asDomainModel()

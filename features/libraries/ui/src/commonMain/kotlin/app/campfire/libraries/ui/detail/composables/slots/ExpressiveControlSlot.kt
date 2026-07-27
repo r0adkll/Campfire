@@ -85,6 +85,7 @@ class ExpressiveControlSlot(
       isQueued = isQueued,
       hasSession = hasSession,
       isCurrentSession = isCurrentSession,
+      isEbookOnly = libraryItem.isEbookOnly,
       offlineDownload = offlineDownload,
       totalSizeInBytes = libraryItem.media.sizeInBytes,
       mediaProgress = mediaProgress,

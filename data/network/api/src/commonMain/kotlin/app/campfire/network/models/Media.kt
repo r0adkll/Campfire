@@ -26,6 +26,23 @@ abstract class Media {
 
   abstract val propertySize: Int?
   abstract val ebookFormat: String?
+
+  // The server only serializes numTracks/numAudioFiles/numChapters/ebookFormat on the
+  // MINIFIED media shape. The expanded shape carries the full tracks/audioFiles/chapters
+  // arrays and an ebookFile object instead, leaving the flat fields at their 0/null
+  // defaults. Map from these resolved accessors so an expanded fetch doesn't clobber
+  // good minified values already stored locally.
+  val resolvedNumTracks: Int
+    get() = if (this is MediaExpanded) tracks.size else numTracks
+
+  val resolvedNumAudioFiles: Int
+    get() = if (this is MediaExpanded) audioFiles.size else numAudioFiles
+
+  val resolvedNumChapters: Int
+    get() = if (this is MediaExpanded) chapters.size else numChapters
+
+  val resolvedEbookFormat: String?
+    get() = ebookFormat ?: (this as? MediaExpanded)?.ebookFile?.ebookFormat
 }
 
 @Serializable
@@ -63,4 +80,5 @@ data class MediaExpanded(
   val audioFiles: List<AudioFile> = emptyList(),
   val chapters: List<BookChapter> = emptyList(),
   val tracks: List<AudioTrack> = emptyList(),
+  val ebookFile: EBookFile? = null,
 ) : Media()

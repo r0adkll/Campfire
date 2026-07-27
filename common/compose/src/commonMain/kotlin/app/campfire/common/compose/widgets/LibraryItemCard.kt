@@ -151,6 +151,12 @@ fun LibraryItemCard(
                 offlineStatus = offlineStatus,
                 isTransitioning = isTransitioning,
               )
+            } else if (item.isEbookOnly) {
+              // Render the ebook format decoration
+              EbookFormatDecorator(
+                format = item.media.ebookFormat.orEmpty(),
+                isTransitioning = isTransitioning,
+              )
             } else {
               // Render the offline status decoration
               OfflineStatusDecorator(
@@ -362,6 +368,47 @@ private fun BoxScope.PodcastEpisodeDecorator(
       )
     }
   }
+}
+
+@Composable
+private fun BoxScope.EbookFormatDecorator(
+  format: String,
+  isTransitioning: Boolean,
+) {
+  AnimatedVisibility(
+    visible = isTransitioning,
+    enter = fadeIn(),
+    exit = fadeOut(),
+    modifier = Modifier
+      .align(Alignment.TopEnd)
+      .padding(
+        end = 8.dp,
+        top = 8.dp,
+      ),
+  ) {
+    EbookFormatBadge(format = format)
+  }
+}
+
+@Composable
+fun EbookFormatBadge(
+  format: String,
+  modifier: Modifier = Modifier,
+) {
+  Text(
+    text = format.uppercase(),
+    style = MaterialTheme.typography.labelSmall,
+    color = Color.White,
+    modifier = modifier
+      .clip(CircleShape)
+      .background(
+        color = MaterialTheme.colorScheme.scrim.copy(0.68f),
+      )
+      .padding(
+        horizontal = 8.dp,
+        vertical = 4.dp,
+      ),
+  )
 }
 
 @Composable

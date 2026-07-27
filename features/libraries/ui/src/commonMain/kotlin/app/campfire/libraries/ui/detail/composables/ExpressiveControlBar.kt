@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.rounded.Delete
@@ -90,6 +91,7 @@ import campfire.features.libraries.ui.generated.resources.action_add_to_playlist
 import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_delete_download
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
+import campfire.features.libraries.ui.generated.resources.action_ebook_not_supported
 import campfire.features.libraries.ui.generated.resources.action_play
 import campfire.features.libraries.ui.generated.resources.action_resume_listening
 import campfire.features.libraries.ui.generated.resources.action_retry_download
@@ -119,6 +121,7 @@ internal fun ExpressiveControlBar(
   onAddToQueueClick: () -> Unit,
   modifier: Modifier = Modifier,
   totalSizeInBytes: Long = -1L,
+  isEbookOnly: Boolean = false,
 ) {
   Surface(
     modifier = modifier
@@ -141,6 +144,7 @@ internal fun ExpressiveControlBar(
         onDownloadClick = onDownloadClick,
         hasProgress = hasProgress,
         isCurrentSession = isCurrentSession,
+        isEbookOnly = isEbookOnly,
       )
 
       if (!offlineDownload.isNullOrNone()) {
@@ -169,7 +173,7 @@ internal fun ExpressiveControlBar(
 
       AddToButtons(
         isQueued = isQueued,
-        canQueue = hasSession && !isCurrentSession,
+        canQueue = hasSession && !isCurrentSession && !isEbookOnly,
         onAddToPlaylistClick = onAddToPlaylistClick,
         onAddToQueueClick = onAddToQueueClick,
       )
@@ -690,6 +694,7 @@ private fun PlayAndDownloadButtons(
   onDownloadClick: () -> Unit,
   hasProgress: Boolean,
   isCurrentSession: Boolean,
+  isEbookOnly: Boolean,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -703,11 +708,11 @@ private fun PlayAndDownloadButtons(
     val pressedSplitButtonRadius = 6.dp
     val pressedCornerRadius = if (hasOfflineDownload) pressedSplitButtonRadius else 12.dp
     val endCornerRadius by animateDpAsState(
-      targetValue = if (hasOfflineDownload) size / 2 else splitButtonRadius,
+      targetValue = if (hasOfflineDownload || isEbookOnly) size / 2 else splitButtonRadius,
     )
 
     Button(
-      enabled = !isCurrentSession,
+      enabled = !isCurrentSession && !isEbookOnly,
       onClick = onPlayClick,
       modifier = Modifier
         .heightIn(size)
@@ -731,6 +736,7 @@ private fun PlayAndDownloadButtons(
     ) {
       Icon(
         when {
+          isEbookOnly -> Icons.AutoMirrored.Rounded.MenuBook
           isCurrentSession -> CampfireIcons.Rounded.MotionPlay
           hasProgress -> Icons.Outlined.Autoplay
           else -> Icons.Rounded.PlayArrow
@@ -741,6 +747,7 @@ private fun PlayAndDownloadButtons(
       Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
       Text(
         text = when {
+          isEbookOnly -> stringResource(Res.string.action_ebook_not_supported)
           isCurrentSession -> stringResource(Res.string.action_currently_playing)
           hasProgress -> stringResource(Res.string.action_resume_listening)
           else -> stringResource(Res.string.action_play)
@@ -752,7 +759,7 @@ private fun PlayAndDownloadButtons(
     Spacer(Modifier.width(2.dp))
 
     AnimatedVisibility(
-      visible = !hasOfflineDownload,
+      visible = !hasOfflineDownload && !isEbookOnly,
       enter = expandHorizontally(),
       exit = shrinkHorizontally(),
     ) {
@@ -801,6 +808,16 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
   override val values: Sequence<ExpressiveControlSlot> = sequenceOf(
     ExpressiveControlSlot(
       libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = null,
+      isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
+      showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    ),
+    ExpressiveControlSlot(
+      libraryItem = libraryItem(numOfChapters = 0, numTracks = 0, ebookFormat = "epub"),
       offlineDownload = null,
       mediaProgress = null,
       isCurrentSession = false,

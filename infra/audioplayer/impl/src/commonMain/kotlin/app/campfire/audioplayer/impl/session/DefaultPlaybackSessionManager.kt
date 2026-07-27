@@ -36,6 +36,15 @@ class DefaultPlaybackSessionManager(
   ) {
     withContext(dispatcherProvider.io) {
       val session = sessionsRepository.createSession(libraryItemId, episodeId)
+
+      // eBook-only items have no audio to prepare. Guarded here (not just in the UI) so
+      // media browser entry points like Android Auto can't hand the player an empty track list.
+      if (session.libraryItem.isEbookOnly) {
+        wbark { "Refusing playback session for ebook-only item ${libraryItemId.loggableId}" }
+        sessionsRepository.markDeleted(libraryItemId, episodeId)
+        return@withContext
+      }
+
       ibark { "Preparing playback session for ${libraryItemId.loggableId}: ${session.id}" }
 
       val player = audioPlayerHolder.currentPlayer.value

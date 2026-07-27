@@ -204,6 +204,7 @@ class BookPresenter(
     ) { event ->
       when (event) {
         LibraryItemUiEvent.AddToQueue -> {
+          if (libraryItem.isEbookOnly) return@ContentUiState
           scope.launch {
             sessionQueue.add(libraryItem)
           }
@@ -216,6 +217,7 @@ class BookPresenter(
         }
 
         is LibraryItemUiEvent.PlayClick -> {
+          if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("play_item", Click))
           playbackController.startSession(libraryItem.id)
         }
@@ -310,6 +312,7 @@ class BookPresenter(
         }
 
         is LibraryItemUiEvent.DownloadClick -> {
+          if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("download", Click))
           settings.showConfirmDownload = !event.doNotShowAgain
 

@@ -21,6 +21,7 @@ import app.cash.burst.burstValues
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.hasSize
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
@@ -75,6 +76,29 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       item.eventSink(eventTest.event)
 
       eventTest.assert(this@LibraryItemPresenterEventsTest)
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun ebookOnlyItem_ignoresPlayDownloadAndQueueEvents() = runTest {
+    val ebookItem = emptyLibraryItem(numTracks = 0, ebookFormat = "epub")
+    libraryItemRepository.libraryItemFlow.emit(ebookItem)
+
+    presenter.test {
+      skipItems(1)
+      val item = awaitItem()
+
+      item.eventSink(LibraryItemUiEvent.PlayClick)
+      item.eventSink(LibraryItemUiEvent.DownloadClick())
+      item.eventSink(LibraryItemUiEvent.AddToQueue)
+
+      assertThat(playbackController.session)
+        .isEqualTo(PlaybackControllerSession.None)
+      assertThat(offlineDownloadManager.invocations).isEmpty()
+      assertThat(sessionQueue.queue).isEmpty()
+      assertThat(analytics.events).isEmpty()
 
       cancelAndIgnoreRemainingEvents()
     }

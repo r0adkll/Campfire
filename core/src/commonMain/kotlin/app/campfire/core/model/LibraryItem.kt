@@ -30,6 +30,12 @@ data class LibraryItem(
 ) : ShelfEntity {
 
   /**
+   * @see Media.isEbookOnly
+   */
+  val isEbookOnly: Boolean
+    get() = media.isEbookOnly
+
+  /**
    * Get the current chapter for the total duration of time passed in the
    * playback
    *

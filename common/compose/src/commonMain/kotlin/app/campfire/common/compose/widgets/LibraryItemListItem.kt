@@ -122,6 +122,15 @@ fun LibraryItemListItem(
             .padding(8.dp),
         )
 
+        if (libraryItem.isEbookOnly) {
+          EbookFormatBadge(
+            format = libraryItem.media.ebookFormat.orEmpty(),
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(8.dp),
+          )
+        }
+
         if (mediaProgress?.isFinished == true) {
           MediaFinishedIndicator(
             size = 18.dp,

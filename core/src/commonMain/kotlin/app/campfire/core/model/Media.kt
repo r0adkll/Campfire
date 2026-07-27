@@ -28,6 +28,14 @@ sealed interface Media {
   val chapters: List<Chapter> get() = emptyList()
   val tracks: List<AudioTrack> get() = emptyList()
 
+  /**
+   * A book whose media only contains an ebook file with no audio content. Campfire
+   * doesn't support reading ebooks (yet), so playback and download actions are
+   * guarded for these items.
+   */
+  val isEbookOnly: Boolean
+    get() = this is Book && ebookFormat != null && numTracks == 0 && tracks.isEmpty()
+
   val durationInSeconds: Float
     get() = durationInMillis.milliseconds.asSeconds()
 
