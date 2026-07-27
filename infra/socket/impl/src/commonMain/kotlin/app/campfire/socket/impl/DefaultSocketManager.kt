@@ -56,6 +56,7 @@ import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,8 +154,12 @@ class DefaultSocketManager(
   @Volatile
   private var socket: Socket? = null
 
-  internal suspend fun start() {
-    val session = userSessionManager.current as? UserSession.LoggedIn ?: return
+  /** Foreground/background observer for the currently active socket; cancelled on [stop] so a
+   * replaced socket's observer can't reopen the stale connection alongside the new one. */
+  @Volatile
+  private var appLifecycleJob: Job? = null
+
+  internal suspend fun start(session: UserSession.LoggedIn) {
     if (accountManager.getToken(session.user.id)?.accessToken == null) {
       wbark { "No access token for user ${session.user.id}; skipping socket connect" }
       return
@@ -280,7 +285,8 @@ class DefaultSocketManager(
 
       newSocket.open()
 
-      coroutineScope.launch {
+      appLifecycleJob?.cancel()
+      appLifecycleJob = coroutineScope.launch {
         appLifecycleObserver.state.collectLatest { lifecycleState ->
           when (lifecycleState) {
             AppLifecycleState.Background -> {
@@ -305,6 +311,8 @@ class DefaultSocketManager(
   }
 
   internal suspend fun stop() {
+    appLifecycleJob?.cancel()
+    appLifecycleJob = null
     val current = socket
     socket = null
     if (current != null) {
@@ -327,7 +335,12 @@ class DefaultSocketManager(
     }
     coroutineScope.launch {
       stop()
-      start()
+      val session = userSessionManager.current as? UserSession.LoggedIn
+      if (session == null) {
+        ibark { "retryConnection called without a logged-in session; ignoring" }
+        return@launch
+      }
+      start(session)
     }
   }
 
@@ -349,14 +362,23 @@ class DefaultSocketManager(
   @Inject
   class Lifecycle(
     private val socketManager: DefaultSocketManager,
+    // The session this UserScope was built for. During login the global
+    // UserSessionManager.current is still Loading when onCreate fires (changeSession only
+    // publishes it after the graph is created), so reading the global here races and the
+    // socket would silently never connect. The graph-bound session is always correct.
+    private val userSession: UserSession,
   ) : Scoped {
+
+    private var observerJob: Job? = null
+
     override suspend fun onCreate() {
+      val session = userSession as? UserSession.LoggedIn ?: return
       // collectLatest cancels the previous start when the setting flips, so toggling off
       // mid-connection cleanly disconnects and toggling back on spins up a fresh socket.
-      socketManager.coroutineScope.launch {
+      observerJob = socketManager.coroutineScope.launch {
         socketManager.settings.observeSocketEnabled().collectLatest { enabled ->
           if (enabled) {
-            socketManager.start()
+            socketManager.start(session)
           } else {
             socketManager.stopForDisable()
           }
@@ -365,6 +387,10 @@ class DefaultSocketManager(
     }
 
     override suspend fun onDestroy() {
+      // Cancel the settings observer so destroyed UserScopes don't accumulate collectors
+      // on the app scope, each restarting the socket whenever the setting flips.
+      observerJob?.cancel()
+      observerJob = null
       socketManager.stop()
     }
   }
