@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server addresses that resolve to a local IP through custom DNS being rejected on Android 16+ (the local network permission is now requested for them)
 - Campfire logo flame flickering during the Welcome to Login screen transition
 - Real-time sync socket not connecting after logging in until the app was restarted
+- Podcasts in Android Auto can now be browsed into their episode list, and episode entries show the episode's title, artwork, and duration and play the correct episode instead of failing to start
 
 ### Other Notes & Contributions
 

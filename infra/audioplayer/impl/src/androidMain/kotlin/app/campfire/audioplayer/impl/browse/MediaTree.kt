@@ -27,8 +27,11 @@ import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.Media
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
+import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
 import app.campfire.core.model.ShelfEntity
@@ -105,19 +108,27 @@ class MediaTree(
         parentId.startsWith(PLAYLISTS_PREFIX) -> getPlaylistItems(parentId.removePrefix(PLAYLISTS_PREFIX))
         parentId.startsWith(COLLECTIONS_PREFIX) -> getCollectionItems(parentId.removePrefix(COLLECTIONS_PREFIX))
         parentId.startsWith(AUTHORS_PREFIX) -> getAuthorItems(parentId.removePrefix(AUTHORS_PREFIX))
+        parentId.startsWith(PODCAST_PREFIX) -> getPodcastEpisodes(parentId.removePrefix(PODCAST_PREFIX))
 
         else -> emptyList()
       }
     }
   }
 
-  suspend fun resolveMediaItem(libraryItemId: LibraryItemId): List<MediaItem> {
+  suspend fun resolveMediaItem(mediaId: String): List<MediaItem> {
     return try {
-      val item = libraryItemRepository.getLibraryItem(libraryItemId)
-      MediaItemBuilder.build(item).map { it.asPlatformMediaItem(application) }
+      val browseId = BrowseMediaId.decode(mediaId)
+      val item = libraryItemRepository.getLibraryItem(browseId.libraryItemId)
+      val episode = item.findEpisode(browseId.episodeId)
+      val mediaItems = if (episode != null) {
+        MediaItemBuilder.buildPodcastEpisode(item, episode)
+      } else {
+        MediaItemBuilder.build(item)
+      }
+      mediaItems.map { it.asPlatformMediaItem(application) }
     } catch (e: Throwable) {
       bark(LogPriority.ERROR, throwable = e) {
-        "Unable to find item for ${libraryItemId.loggableId}"
+        "Unable to find item for ${mediaId.loggableId}"
       }
       emptyList()
     }
@@ -146,9 +157,10 @@ class MediaTree(
             is Series -> item.asBrowsableMediaItem(titleHint = shelf.label)
             is Author -> item.asBrowsableMediaItem(titleHint = shelf.label)
 
-            // TODO: This doesn't properly account for the episode information
-            //  and we should adapt the media item better
-            is ShelfEntity.EpisodeShelfEntry -> item.libraryItem.asBrowsableMediaItem(titleHint = shelf.label)
+            is ShelfEntity.EpisodeShelfEntry -> item.libraryItem.asBrowsableMediaItem(
+              titleHint = shelf.label,
+              episode = item.recentEpisode,
+            )
           }
         }
       }
@@ -206,10 +218,8 @@ class MediaTree(
       .firstOrNull()
       ?: return emptyList()
 
-    // Browse currently surfaces the parent library item; podcast episodes within a
-    // playlist still resolve to the parent podcast for Android Auto navigation.
     return items.map { item ->
-      item.libraryItem.asBrowsableMediaItem()
+      item.libraryItem.asBrowsableMediaItem(episode = item.episode)
     }
   }
 
@@ -231,6 +241,22 @@ class MediaTree(
     }
   }
 
+  private suspend fun getPodcastEpisodes(libraryItemId: LibraryItemId): List<MediaItem> {
+    return try {
+      val item = libraryItemRepository.getLibraryItem(libraryItemId)
+      (item.media as? Media.Podcast)
+        ?.episodes
+        .orEmpty()
+        .sortedByDescending { it.publishedAtMillis ?: it.addedAtMillis }
+        .map { episode -> item.asBrowsableMediaItem(episode = episode) }
+    } catch (e: Throwable) {
+      bark(LogPriority.ERROR, throwable = e) {
+        "Unable to load episodes for ${libraryItemId.loggableId}"
+      }
+      emptyList()
+    }
+  }
+
   private suspend fun loadDownloads(): List<MediaItem> {
     val downloadItems = offlineDownloadManager.observeAll()
       .map { downloads ->
@@ -244,6 +270,9 @@ class MediaTree(
     return downloadItems.map { (download, libraryItem) ->
       libraryItem.asBrowsableMediaItem(
         download = download,
+        episode = download.episodeId?.let { episodeId ->
+          (libraryItem.media as? Media.Podcast)?.episodes?.find { it.id == episodeId }
+        },
       )
     }
   }
@@ -253,15 +282,19 @@ class MediaTree(
     if (
       mediaId != ROOT_ID ||
       mediaId.startsWith(SERIES_PREFIX) ||
+      mediaId.startsWith(PLAYLISTS_PREFIX) ||
       mediaId.startsWith(COLLECTIONS_PREFIX) ||
       mediaId.startsWith(AUTHORS_PREFIX) ||
+      mediaId.startsWith(PODCAST_PREFIX) ||
       TopLevelMediaItem.All.any { it.mediaId == mediaId }
     ) {
       return null
     }
 
     try {
-      return libraryItemRepository.getLibraryItem(mediaId).asBrowsableMediaItem()
+      val browseId = BrowseMediaId.decode(mediaId)
+      val item = libraryItemRepository.getLibraryItem(browseId.libraryItemId)
+      return item.asBrowsableMediaItem(episode = item.findEpisode(browseId.episodeId))
     } catch (e: Throwable) {
       bark(LogPriority.ERROR, throwable = e) {
         "Error getting item for ${mediaId.loggableId}"
@@ -287,53 +320,95 @@ class MediaTree(
   private fun LibraryItem.asBrowsableMediaItem(
     titleHint: String? = null,
     download: OfflineDownload? = null,
-  ) = MediaItem.Builder()
-    .setMediaId(id)
-    .setMediaMetadata(
-      MediaMetadata.Builder()
-        .setTitle(media.metadata.title)
-        .setArtist(media.metadata.authorName)
-        .setArtworkUri(coverContentUriForItem(application, id))
-        .setDescription(media.metadata.description)
-        .setDurationMs(media.durationInMillis)
-        .setGenre(media.metadata.genres.firstOrNull())
-        .setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
-        .setTotalTrackCount(media.numChapters)
-        .setExtras(
-          Bundle().apply {
-            if (titleHint != null) {
-              putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
+    episode: PodcastEpisode? = null,
+  ): MediaItem {
+    val podcast = media as? Media.Podcast
+
+    // Podcast items without a specific episode (library lists, downloads of a whole show)
+    // present as browsable folders whose children are the podcast's episodes. The episode
+    // listing re-fetches the full item, so this works even when this item's media is
+    // minified and doesn't carry the episode list itself.
+    val isPodcastFolder = podcast != null && episode == null
+
+    return MediaItem.Builder()
+      .setMediaId(
+        when {
+          episode != null -> BrowseMediaId(id, episode.id).encoded()
+          isPodcastFolder -> "$PODCAST_PREFIX$id"
+          else -> id
+        },
+      )
+      .setMediaMetadata(
+        MediaMetadata.Builder()
+          .apply {
+            when {
+              episode != null -> {
+                setTitle(episode.title)
+                setSubtitle(media.metadata.title)
+                setAlbumTitle(media.metadata.title)
+                setArtist(media.metadata.author ?: media.metadata.title)
+                setDescription(episode.description)
+                setDurationMs(episode.durationInMillis)
+                setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST_EPISODE)
+              }
+
+              podcast != null -> {
+                setTitle(media.metadata.title)
+                setArtist(media.metadata.author)
+                setDescription(media.metadata.description)
+                setDurationMs(media.durationInMillis)
+                setMediaType(MediaMetadata.MEDIA_TYPE_PODCAST)
+                setTotalTrackCount(podcast.numEpisodes)
+              }
+
+              else -> {
+                setTitle(media.metadata.title)
+                setArtist(media.metadata.authorName)
+                setDescription(media.metadata.description)
+                setDurationMs(media.durationInMillis)
+                setMediaType(MediaMetadata.MEDIA_TYPE_AUDIO_BOOK)
+                setTotalTrackCount(media.numChapters)
+              }
             }
+          }
+          .setArtworkUri(coverContentUriForItem(application, id))
+          .setGenre(media.metadata.genres.firstOrNull())
+          .setExtras(
+            Bundle().apply {
+              if (titleHint != null) {
+                putString(MediaConstants.EXTRAS_KEY_CONTENT_STYLE_GROUP_TITLE, titleHint)
+              }
 
-            if (download != null) {
-              putLong(
-                MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS,
-                when (download.state) {
-                  OfflineDownload.State.Stopped,
-                  OfflineDownload.State.Failed,
-                  OfflineDownload.State.None,
-                  -> MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED
+              if (download != null) {
+                putLong(
+                  MediaConstants.EXTRAS_KEY_DOWNLOAD_STATUS,
+                  when (download.state) {
+                    OfflineDownload.State.Stopped,
+                    OfflineDownload.State.Failed,
+                    OfflineDownload.State.None,
+                    -> MediaConstants.EXTRAS_VALUE_STATUS_NOT_DOWNLOADED
 
-                  OfflineDownload.State.Queued,
-                  OfflineDownload.State.Downloading,
-                  -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADING
+                    OfflineDownload.State.Queued,
+                    OfflineDownload.State.Downloading,
+                    -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADING
 
-                  OfflineDownload.State.Completed -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED
-                },
-              )
+                    OfflineDownload.State.Completed -> MediaConstants.EXTRAS_VALUE_STATUS_DOWNLOADED
+                  },
+                )
 
-              putFloat(
-                MediaConstants.EXTRAS_KEY_DOWNLOAD_PROGRESS,
-                download.progress.percent.coerceIn(0f..1f),
-              )
-            }
-          },
-        )
-        .setIsBrowsable(false)
-        .setIsPlayable(true)
-        .build(),
-    )
-    .build()
+                putFloat(
+                  MediaConstants.EXTRAS_KEY_DOWNLOAD_PROGRESS,
+                  download.progress.percent.coerceIn(0f..1f),
+                )
+              }
+            },
+          )
+          .setIsBrowsable(isPodcastFolder)
+          .setIsPlayable(!isPodcastFolder)
+          .build(),
+      )
+      .build()
+  }
 
   @OptIn(UnstableApi::class)
   private fun Series.asBrowsableMediaItem(
@@ -419,6 +494,11 @@ class MediaTree(
     .build()
 }
 
+private fun LibraryItem.findEpisode(episodeId: PodcastEpisodeId?): PodcastEpisode? {
+  if (episodeId == null) return null
+  return (media as? Media.Podcast)?.episodes?.find { it.id == episodeId }
+}
+
 private fun AndroidAutoCategory.toTopLevelMediaItem(): TopLevelMediaItem? = when (this) {
   AndroidAutoCategory.Home -> TopLevelMediaItem.Home
   AndroidAutoCategory.Series -> TopLevelMediaItem.Series
@@ -484,3 +564,4 @@ private const val PLAYLISTS_PREFIX = "playlists_"
 private const val COLLECTIONS_ID = "collections-campfire"
 private const val COLLECTIONS_PREFIX = "collections_"
 private const val DOWNLOADS_ID = "downloads-campfire"
+private const val PODCAST_PREFIX = "podcast_"
