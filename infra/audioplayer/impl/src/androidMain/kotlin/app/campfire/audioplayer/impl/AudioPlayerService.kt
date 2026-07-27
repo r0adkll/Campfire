@@ -23,7 +23,9 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.infra.audioplayer.impl.R
+import app.campfire.libraries.api.LibraryRepository
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -31,6 +33,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @ContributesTo(AppScope::class)
 interface AudioPlayerComponent {
@@ -39,6 +47,7 @@ interface AudioPlayerComponent {
   val devSettings: DevSettings // AppScope
   val activityIntentProvider: ActivityIntentProvider // AppScope
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope
+  val androidAutoSettings: AndroidAutoSettings // AppScope
 }
 
 @ContributesTo(UserScope::class)
@@ -46,6 +55,7 @@ interface AudioPlayerUserComponent {
   val mediaTree: MediaTree
   val sessionsRepository: SessionsRepository
   val playbackSessionManager: PlaybackSessionManager
+  val libraryRepository: LibraryRepository
 }
 
 @SuppressLint("UnsafeOptInUsageError")
@@ -117,6 +127,35 @@ class AudioPlayerService : MediaLibraryService() {
         setSmallIcon(R.drawable.ic_notification)
       }
     setMediaNotificationProvider(mediaNotificationProvider)
+
+    observeBrowseTreeInvalidation()
+  }
+
+  /**
+   * Re-notify connected browsers (Android Auto head units, etc.) when the inputs to the
+   * browse tree change — the active library (switching libraries changes the root tabs and
+   * every tab's contents) or the Android Auto category settings (order/visibility/layout).
+   */
+  private fun observeBrowseTreeInvalidation() {
+    serviceScope.launch {
+      combine(
+        userComponent.libraryRepository.observeCurrentLibrary(refresh = false)
+          .map { it.id to it.mediaType }
+          .distinctUntilChanged(),
+        component.androidAutoSettings.observeCategoryConfigs(),
+      ) { library, configs -> library to configs }
+        // Browsers that connect later query a fresh tree anyway; only notify on change.
+        .drop(1)
+        .collect {
+          // Media3 requires the session be accessed on the thread it was created on.
+          withContext(Dispatchers.Main) {
+            val session = session ?: return@withContext
+            userComponent.mediaTree.invalidationParentIds.forEach { parentId ->
+              session.notifyChildrenChanged(parentId, Int.MAX_VALUE, null)
+            }
+          }
+        }
+    }
   }
 
   override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = session

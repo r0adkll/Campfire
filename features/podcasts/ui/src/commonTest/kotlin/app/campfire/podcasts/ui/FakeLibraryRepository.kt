@@ -3,6 +3,7 @@ package app.campfire.podcasts.ui
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -23,6 +24,7 @@ class FakeLibraryRepository(
 
   override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> = emptyFlow()
   override fun observeAllLibraries(refresh: Boolean): Flow<List<Library>> = flowOf(emptyList())
+  override fun observeCurrentLibraryItems(refresh: Boolean): Flow<List<LibraryItem>> = flowOf(emptyList())
   override fun createLibraryItemPager(
     user: User,
     filter: ContentFilter?,

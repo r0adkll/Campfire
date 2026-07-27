@@ -3,6 +3,7 @@ package app.campfire.libraries.api
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -20,6 +21,16 @@ interface LibraryRepository {
    * Observe all libraries for the current server
    */
   fun observeAllLibraries(refresh: Boolean = true): Flow<List<Library>>
+
+  /**
+   * Observe every library item in the currently selected library as a flat list, sorted by
+   * title. Refreshes from the network when [refresh] is true.
+   *
+   * Intended for whole-library consumers such as the Android Auto "Shows" tab for podcast
+   * libraries — it materializes the entire library in memory, so prefer
+   * [createLibraryItemPager] for UI listing of potentially large book libraries.
+   */
+  fun observeCurrentLibraryItems(refresh: Boolean = true): Flow<List<LibraryItem>>
 
   fun createLibraryItemPager(
     user: User,

@@ -153,6 +153,7 @@
   <string name="android_auto_header_categories">Categories</string>
   <string name="android_auto_categories_description">Drag to reorder. Toggle each category's visibility and choose whether its contents appear as a grid or list.</string>
   <string name="android_auto_category_home">Home</string>
+  <string name="android_auto_category_shows">Shows</string>
   <string name="android_auto_category_series">Series</string>
   <string name="android_auto_category_authors">Authors</string>
   <string name="android_auto_category_playlists">Playlists</string>

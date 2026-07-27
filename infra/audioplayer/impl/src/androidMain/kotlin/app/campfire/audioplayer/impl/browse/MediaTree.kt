@@ -28,6 +28,7 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.PodcastEpisode
@@ -40,6 +41,7 @@ import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.LibraryRepository
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
@@ -47,11 +49,15 @@ import app.campfire.series.api.SeriesRepository
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoSettings
 import kotlin.collections.firstOrNull
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
 
 @Inject
@@ -59,6 +65,7 @@ import me.tatarka.inject.annotations.Inject
 class MediaTree(
   private val application: Application,
   private val homeRepository: HomeRepository,
+  private val libraryRepository: LibraryRepository,
   private val libraryItemRepository: LibraryItemRepository,
   private val seriesRepository: SeriesRepository,
   private val playlistsRepository: PlaylistsRepository,
@@ -87,16 +94,20 @@ class MediaTree(
     pageSize: Int,
   ): List<MediaItem> {
     return when (parentId) {
-      ROOT_ID -> androidAutoSettings.observeCategoryConfigs().value
-        .filter { it.visible }
-        .mapNotNull { config ->
-          config.category.toTopLevelMediaItem()?.asBrowsableMediaItem(
-            context = application,
-            isGridLayout = config.isGridLayout,
-          )
-        }
+      ROOT_ID -> {
+        val mediaType = currentMediaType()
+        androidAutoSettings.observeCategoryConfigs().value
+          .filter { it.visible && it.category.isAvailableFor(mediaType) }
+          .mapNotNull { config ->
+            config.category.toTopLevelMediaItem()?.asBrowsableMediaItem(
+              context = application,
+              isGridLayout = config.isGridLayout,
+            )
+          }
+      }
 
       HOME_ID -> loadHome()
+      SHOWS_ID -> loadShows()
       SERIES_ID -> loadSeries()
       AUTHORS_ID -> loadAuthors()
       PLAYLISTS_ID -> loadPlaylists()
@@ -113,6 +124,23 @@ class MediaTree(
         else -> emptyList()
       }
     }
+  }
+
+  /**
+   * The parent ids the media session should invalidate when the browse tree's inputs
+   * change (active library switch, Android Auto category settings edits).
+   */
+  val invalidationParentIds: List<String>
+    get() = listOf(ROOT_ID) + TopLevelMediaItem.All.map { it.mediaId }
+
+  /**
+   * Resolve the active library's media type, falling back to [MediaType.Book] (today's
+   * behavior) when nothing is cached yet — a cold cache store stream may never emit.
+   */
+  private suspend fun currentMediaType(): MediaType {
+    return withTimeoutOrNull(MediaTypeTimeout) {
+      libraryRepository.observeCurrentLibrary(refresh = false).firstOrNull()?.mediaType
+    } ?: MediaType.Book
   }
 
   suspend fun resolveMediaItem(mediaId: String): List<MediaItem> {
@@ -166,10 +194,16 @@ class MediaTree(
       }
   }
 
+  private suspend fun loadShows(): List<MediaItem> {
+    return libraryRepository.observeCurrentLibraryItems()
+      .firstNonEmptyOrEmpty()
+      .filter { it.media is Media.Podcast }
+      .map { it.asBrowsableMediaItem() }
+  }
+
   private suspend fun loadSeries(): List<MediaItem> {
     val series = seriesRepository.observeAllSeries()
-      .firstOrNull { it.isNotEmpty() }
-      ?: return emptyList()
+      .firstNonEmptyOrEmpty()
 
     return series.map { item ->
       item.asBrowsableMediaItem()
@@ -187,7 +221,7 @@ class MediaTree(
   }
 
   private suspend fun loadAuthors(): List<MediaItem> {
-    val authors = authorRepository.observeAuthors().firstOrNull { it.isNotEmpty() } ?: return emptyList()
+    val authors = authorRepository.observeAuthors().firstNonEmptyOrEmpty()
 
     return authors.map { author ->
       author.asBrowsableMediaItem()
@@ -206,7 +240,7 @@ class MediaTree(
   }
 
   private suspend fun loadPlaylists(): List<MediaItem> {
-    val playlists = playlistsRepository.observeAllPlaylists().firstOrNull { it.isNotEmpty() } ?: return emptyList()
+    val playlists = playlistsRepository.observeAllPlaylists().firstNonEmptyOrEmpty()
 
     return playlists.map { playlist ->
       playlist.asBrowsableMediaItem()
@@ -258,14 +292,15 @@ class MediaTree(
   }
 
   private suspend fun loadDownloads(): List<MediaItem> {
-    val downloadItems = offlineDownloadManager.observeAll()
-      .map { downloads ->
-        downloads.associateWith { download ->
-          libraryItemRepository.getLibraryItem(download.libraryItemId)
+    val downloadItems = withTimeoutOrNull(LoadTimeout) {
+      offlineDownloadManager.observeAll()
+        .map { downloads ->
+          downloads.associateWith { download ->
+            libraryItemRepository.getLibraryItem(download.libraryItemId)
+          }
         }
-      }
-      .firstOrNull { it.isNotEmpty() }
-      ?: return emptyList()
+        .firstOrNull { it.isNotEmpty() }
+    }.orEmpty()
 
     return downloadItems.map { (download, libraryItem) ->
       libraryItem.asBrowsableMediaItem(
@@ -276,6 +311,15 @@ class MediaTree(
       )
     }
   }
+
+  /**
+   * Await the first non-empty emission, bounded so repositories whose flows never emit a
+   * non-empty value (e.g. book-only concepts on a podcast library, or an empty playlist
+   * list that Store suppresses) can't hang the browse request forever.
+   */
+  private suspend fun <T> Flow<List<T>>.firstNonEmptyOrEmpty(
+    timeout: Duration = LoadTimeout,
+  ): List<T> = withTimeoutOrNull(timeout) { firstOrNull { it.isNotEmpty() } }.orEmpty()
 
   suspend fun getItem(mediaId: String): MediaItem? {
     // Don't attempt to fetch our folder media items.
@@ -501,6 +545,7 @@ private fun LibraryItem.findEpisode(episodeId: PodcastEpisodeId?): PodcastEpisod
 
 private fun AndroidAutoCategory.toTopLevelMediaItem(): TopLevelMediaItem? = when (this) {
   AndroidAutoCategory.Home -> TopLevelMediaItem.Home
+  AndroidAutoCategory.Shows -> TopLevelMediaItem.Shows
   AndroidAutoCategory.Series -> TopLevelMediaItem.Series
   AndroidAutoCategory.Authors -> TopLevelMediaItem.Authors
   AndroidAutoCategory.Playlists -> TopLevelMediaItem.Playlists
@@ -512,8 +557,10 @@ enum class TopLevelMediaItem(
   val mediaId: String,
   @get:StringRes val title: Int,
   val isGridLayout: Boolean = false,
+  val folderMediaType: Int = MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS,
 ) {
   Home(HOME_ID, R.string.folder_home_title, true),
+  Shows(SHOWS_ID, R.string.folder_shows_title, true, MediaMetadata.MEDIA_TYPE_FOLDER_PODCASTS),
   Series(SERIES_ID, R.string.folder_series_title),
   Authors(AUTHORS_ID, R.string.folder_authors_title),
   Playlists(PLAYLISTS_ID, R.string.folder_playlists_title),
@@ -530,7 +577,7 @@ enum class TopLevelMediaItem(
     .setMediaMetadata(
       MediaMetadata.Builder()
         .setTitle(context.getString(title))
-        .setMediaType(MediaMetadata.MEDIA_TYPE_FOLDER_AUDIO_BOOKS)
+        .setMediaType(folderMediaType)
         .setIsBrowsable(true)
         .setIsPlayable(false)
         .fluentIf(isGridLayout) {
@@ -552,9 +599,13 @@ enum class TopLevelMediaItem(
   }
 }
 
+private val MediaTypeTimeout = 3.seconds
+private val LoadTimeout = 5.seconds
+
 private const val ROOT_ID = "root-campfire"
 
 private const val HOME_ID = "home-campfire"
+private const val SHOWS_ID = "shows-campfire"
 private const val SERIES_ID = "series-campfire"
 private const val SERIES_PREFIX = "series_"
 private const val AUTHORS_ID = "authors-campfire"

@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quick-insert bar above the keyboard when typing the server address at login, with one-tap snippets for https://, http://, local network prefixes, and the default Audiobookshelf port
 - Server addresses no longer require typing http(s):// — the login screen detects the right scheme automatically and fills it in
 - eBook-only library items now show a format badge on their covers and their play, download, and queue actions are disabled since reading eBooks isn't supported yet
+- Android Auto tabs now adapt to the active library: podcast libraries get a Shows tab for browsing every podcast and its episodes, hide the book-only Series, Authors, and Collections tabs, and the tab list refreshes live when switching libraries or changing Android Auto settings
 
 ### Changed
 
@@ -37,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campfire logo flame flickering during the Welcome to Login screen transition
 - Real-time sync socket not connecting after logging in until the app was restarted
 - Podcasts in Android Auto can now be browsed into their episode list, and episode entries show the episode's title, artwork, and duration and play the correct episode instead of failing to start
+- Android Auto category tabs hanging indefinitely instead of showing an empty list when the library has no playlists, series, authors, or downloads
 
 ### Other Notes & Contributions
 

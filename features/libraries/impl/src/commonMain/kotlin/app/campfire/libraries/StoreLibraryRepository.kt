@@ -1,12 +1,14 @@
 package app.campfire.libraries
 
 import app.campfire.CampfireDatabase
+import app.campfire.account.api.UrlHydrator
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.Library
 import app.campfire.core.model.LibraryId
+import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
@@ -17,6 +19,7 @@ import app.campfire.data.Library as DbLibrary
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.libraries.api.AddPodcastContext
 import app.campfire.libraries.api.LibraryFolder
@@ -24,7 +27,9 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.paging.LibraryItemPagerFactory
 import app.campfire.libraries.paging.LibraryItemPagingInput
+import app.campfire.libraries.paging.fetchAllLibraryItems
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.models.LibraryItemMinified
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -55,10 +60,18 @@ class StoreLibraryRepository(
   private val db: CampfireDatabase,
   private val userRepository: UserRepository,
   private val libraryItemPagingFactory: LibraryItemPagerFactory,
+  private val libraryItemDao: LibraryItemDao,
+  private val urlHydrator: UrlHydrator,
   private val dispatcherProvider: DispatcherProvider,
 ) : LibraryRepository {
 
   data class SingleLibraryRequest(val userId: UserId, val libraryId: LibraryId)
+
+  data class LibraryItemsRequest(
+    val userId: UserId,
+    val libraryId: LibraryId,
+    val serverUrl: String,
+  )
 
   private val singleLibraryStore = StoreBuilder.from(
     fetcher = Fetcher.ofResult { request: SingleLibraryRequest ->
@@ -145,6 +158,47 @@ class StoreLibraryRepository(
       .build(),
   ).build()
 
+  private val currentLibraryItemsStore = StoreBuilder.from(
+    fetcher = Fetcher.ofResult { request: LibraryItemsRequest ->
+      fetchAllLibraryItems(api, request.libraryId).asFetcherResult()
+    },
+    sourceOfTruth = SourceOfTruth.of(
+      reader = { request: LibraryItemsRequest ->
+        db.libraryItemsQueries.selectAllForLibrary(request.libraryId)
+          .asFlow()
+          .mapToList(dispatcherProvider.databaseRead)
+          .map { rows ->
+            rows
+              .map { libraryItemDao.hydratePagedItem(it) }
+              .sortedBy { it.media.metadata.title?.lowercase() }
+          }
+      },
+      writer = { request: LibraryItemsRequest, data ->
+        withContext(dispatcherProvider.databaseWrite) {
+          db.transaction {
+            data.forEach { item ->
+              when (item) {
+                is LibraryItemMinified.Book -> {
+                  db.libraryItemsQueries.insertOrIgnore(item.asDbModel(request.serverUrl))
+                  db.mediaQueries.insertOrIgnore(item.media.asDbModel(item.id))
+                }
+                is LibraryItemMinified.Podcast -> {
+                  db.libraryItemsQueries.insertOrIgnore(item.asDbModel(request.serverUrl))
+                  db.podcastMediaQueries.insertOrIgnore(item.media.asDbModel(item.id, urlHydrator))
+                }
+              }
+            }
+          }
+        }
+      },
+    ),
+  ).cachePolicy(
+    MemoryPolicy.builder<LibraryItemsRequest, List<LibraryItem>>()
+      .setMaxSize(4)
+      .setExpireAfterAccess(30.minutes)
+      .build(),
+  ).build()
+
   override fun observeCurrentLibrary(refresh: Boolean): Flow<Library> {
     return userRepository.userFlow
       .flatMapLatest { user ->
@@ -154,6 +208,17 @@ class StoreLibraryRepository(
         singleLibraryStore
           .stream(StoreReadRequest.cached(request, refresh = refresh))
           .debugLogging("SingleLibraryStore")
+          .mapNotNull { it.dataOrNull() }
+      }
+  }
+
+  override fun observeCurrentLibraryItems(refresh: Boolean): Flow<List<LibraryItem>> {
+    return userRepository.userFlow
+      .flatMapLatest { user ->
+        val request = LibraryItemsRequest(user.id, user.selectedLibraryId, user.serverUrl)
+        currentLibraryItemsStore
+          .stream(StoreReadRequest.cached(request, refresh = refresh))
+          .debugLogging("CurrentLibraryItemsStore")
           .mapNotNull { it.dataOrNull() }
       }
   }

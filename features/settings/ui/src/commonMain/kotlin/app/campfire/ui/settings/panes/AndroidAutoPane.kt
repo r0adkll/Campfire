@@ -55,6 +55,7 @@ import campfire.features.settings.ui.generated.resources.android_auto_category_d
 import campfire.features.settings.ui.generated.resources.android_auto_category_home
 import campfire.features.settings.ui.generated.resources.android_auto_category_playlists
 import campfire.features.settings.ui.generated.resources.android_auto_category_series
+import campfire.features.settings.ui.generated.resources.android_auto_category_shows
 import campfire.features.settings.ui.generated.resources.android_auto_drag_handle_description
 import campfire.features.settings.ui.generated.resources.android_auto_header_categories
 import campfire.features.settings.ui.generated.resources.android_auto_layout_grid
@@ -308,6 +309,7 @@ private fun AnnotatedString.Builder.appendBulletedList(vararg items: String) {
 private val AndroidAutoCategory.label: StringResource
   get() = when (this) {
     AndroidAutoCategory.Home -> Res.string.android_auto_category_home
+    AndroidAutoCategory.Shows -> Res.string.android_auto_category_shows
     AndroidAutoCategory.Series -> Res.string.android_auto_category_series
     AndroidAutoCategory.Authors -> Res.string.android_auto_category_authors
     AndroidAutoCategory.Playlists -> Res.string.android_auto_category_playlists

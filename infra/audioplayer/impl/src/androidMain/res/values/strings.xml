@@ -25,6 +25,7 @@
   <string name="exo_controls_skip_next">Skip next</string>
   <string name="exo_controls_skip_previous">Skip previous</string>
   <string name="folder_home_title">Home</string>
+  <string name="folder_shows_title">Shows</string>
   <string name="folder_series_title">Series</string>
   <string name="folder_collections_title">Collections</string>
   <string name="folder_authors_title">Authors</string>

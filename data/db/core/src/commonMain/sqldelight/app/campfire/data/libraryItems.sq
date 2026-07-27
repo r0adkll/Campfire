@@ -73,6 +73,13 @@ SELECT * FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 WHERE libraryItem.libraryId = ?;
 
+-- Bare rows for every item in a library regardless of media type (selectForLibrary
+-- joins the book `media` table and silently drops podcasts). Callers dispatch on
+-- `mediaType` per row to hydrate the matching media variant.
+selectAllForLibrary:
+SELECT * FROM libraryItem
+WHERE libraryItem.libraryId = ?;
+
 selectForSeries:
 SELECT libraryItem.*,media.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
