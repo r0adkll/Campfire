@@ -240,5 +240,9 @@ include(
   ":ui:theming:test",
 )
 include(":scripts:app")
+include(
+  ":thirdparty:kmp-socketio",
+  ":thirdparty:socketio-kotlin",
+)
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")

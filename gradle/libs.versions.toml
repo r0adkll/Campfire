@@ -28,8 +28,6 @@ halogen = "0.2.0"
 jb-compose-navigationevent = "1.1.0"
 junit = "4.13.2"
 kimchi = "0.7.0"
-kmp-socketio = "1.4.4"
-socketio-kotlin = "2.8.0"
 kotlin = "2.4.10"
 kotlin-inject = "0.9.0"
 kotlinpoet = "2.2.0"
@@ -228,15 +226,17 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-contentnegotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", version.ref = "connectivity" }
 connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity" }
 connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity" }
 connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
-kmp-socketio = { module = "com.piasy:kmp-socketio", version.ref = "kmp-socketio" }
-socketio-kotlin = { module = "org.hildan.socketio:socketio-kotlin", version.ref = "socketio-kotlin" }
+kmp-xlog-api = "com.piasy:kmp-xlog-api:1.5.0"
+kotlinx-io-bytestring = "org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1"
 oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.16.5" }
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"

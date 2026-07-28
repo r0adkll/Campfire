@@ -16,12 +16,11 @@ kotlin {
         implementation(projects.core)
         implementation(projects.data.account.api)
         implementation(projects.features.settings.api)
-        implementation(libs.kmp.socketio)
-        // Forces kmp-socketio's transitive socketio-kotlin from 2.6.0 up to a version whose
-        // packet regex tolerates line-terminator chars (U+2028 etc.) inside JSON payloads;
-        // 2.6.0 throws InvalidSocketIOPacketException on such packets, crashing the app.
-        // Safe to remove once kmp-socketio depends on socketio-kotlin >= 2.8.0 itself.
-        implementation(libs.socketio.kotlin)
+        // Patched vendored copies of kmp-socketio and (transitively) socketio-kotlin — every
+        // published socketio-kotlin's packet regex crashes on Audiobookshelf payloads, and the
+        // published kmp-socketio lets decode exceptions escape its internal coroutines and crash
+        // the app. See thirdparty/kmp-socketio/README.md and the vendored SocketIO.kt.
+        implementation(projects.thirdparty.kmpSocketio)
         implementation(libs.kotlinx.coroutines.core)
         implementation(libs.kotlinx.serialization.json)
       }

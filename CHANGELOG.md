@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Crash when the server sends large or malformed realtime sync updates, such as progress updates for accounts with a long listening history
+
 ### Other Notes & Contributions
 
 ## [1.0.0-rc2]

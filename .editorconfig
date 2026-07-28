@@ -20,6 +20,12 @@ ktlint_standard_filename = disabled
 [*.df.kts]
 ktlint_standard_no-wildcard-imports = disabled
 
+# Vendored third-party sources keep upstream's formatting so re-syncs stay trivial diffs.
+[thirdparty/**.kt]
+indent_size = 4
+ij_continuation_indent_size = 4
+ktlint_standard = disabled
+
 [*.sq]
 indent_size = 2
 ij_continuation_indent_size = 2
