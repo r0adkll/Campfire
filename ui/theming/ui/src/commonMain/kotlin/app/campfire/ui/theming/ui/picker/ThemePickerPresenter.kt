@@ -8,9 +8,10 @@ import app.campfire.core.Platform
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
+import app.campfire.ui.theming.api.AiThemeBuilder
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
-import app.campfire.ui.theming.api.HalogenThemeManager
+import app.campfire.ui.theming.api.NoOpAiThemeBuilder
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
@@ -27,8 +28,9 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class ThemePickerPresenter(
   private val appThemeRepository: AppThemeRepository,
-  private val halogenThemeManager: HalogenThemeManager,
   @Assisted private val navigator: Navigator,
+  // Defaults to NoOp when the optional :ui:theming:ai module isn't in this build.
+  private val aiThemeBuilder: AiThemeBuilder = NoOpAiThemeBuilder,
 ) : Presenter<ThemePickerUiState> {
 
   @Composable
@@ -58,7 +60,7 @@ class ThemePickerPresenter(
       appThemeRepository.observeCurrentAppTheme()
     }.collectAsState()
 
-    val aiThemeBuilderAvailable: Boolean by halogenThemeManager.observeIsAvailable()
+    val aiThemeBuilderAvailable: Boolean by aiThemeBuilder.observeIsAvailable()
       .collectAsState()
 
     return ThemePickerUiState(
@@ -70,9 +72,15 @@ class ThemePickerPresenter(
       when (event) {
         ThemePickerUiEvent.Back -> navigator.pop()
         is ThemePickerUiEvent.OpenThemeBuilder -> {
-          when (event.theme) {
-            is AppTheme.Fixed.Ai -> navigator.goTo(AiThemeBuilderScreen(event.theme))
-            is AppTheme.Fixed.Custom -> navigator.goTo(ThemeBuilderScreen(event.theme.id))
+          when (val theme = event.theme) {
+            // Without the AI module the screen has no presenter; fall back to the
+            // regular builder, which loads AI themes via their custom theme id.
+            is AppTheme.Fixed.Ai -> if (aiThemeBuilder.isSupported) {
+              navigator.goTo(AiThemeBuilderScreen(theme))
+            } else {
+              navigator.goTo(ThemeBuilderScreen(theme.id))
+            }
+            is AppTheme.Fixed.Custom -> navigator.goTo(ThemeBuilderScreen(theme.id))
             else -> navigator.goTo(ThemeBuilderScreen())
           }
         }

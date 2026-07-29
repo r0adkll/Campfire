@@ -29,7 +29,7 @@ private val GridPadding = 8.dp
 private val GridWidth = IconSize * ColumnCount + IconSpacing * (ColumnCount - 1) + GridPadding * 2
 
 @Composable
-internal fun IconPicker(
+fun IconPicker(
   icon: AppTheme.Icon,
   onIconClick: (AppTheme.Icon) -> Unit,
   modifier: Modifier = Modifier,

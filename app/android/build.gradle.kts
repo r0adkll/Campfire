@@ -126,6 +126,12 @@ dependencies {
   implementation(projects.app.common)
   implementation(projects.common.screens)
 
+  // On-device AI theme generation (Gemini Nano via ML Kit). Kept out of `main` so a
+  // future foss flavor can ship without any proprietary Google dependencies.
+  "standardImplementation"(projects.ui.theming.ai)
+  "alphaImplementation"(projects.ui.theming.ai)
+  "betaImplementation"(projects.ui.theming.ai)
+
   implementation(libs.about.libraries.core)
 
   implementation(libs.androidx.activity.compose)
