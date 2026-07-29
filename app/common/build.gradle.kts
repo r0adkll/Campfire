@@ -23,7 +23,6 @@ kotlin {
         api(projects.data.account.impl)
         api(projects.data.account.ui)
         api(projects.data.analytics.impl)
-        api(projects.data.analytics.mixpanel)
         api(projects.data.crashreporting.impl)
 
         // Infra Modules

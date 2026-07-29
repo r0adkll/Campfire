@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+import app.campfire.convention.campfireVersionCode
+import app.campfire.convention.campfireVersionName
+
 plugins {
   id("app.campfire.android.application")
   id("app.campfire.kotlin.android")
@@ -26,9 +29,8 @@ android {
   defaultConfig {
     applicationId = "app.campfire.android"
 
-    versionCode = properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull() ?: 999999999
-    versionName = properties["CAMPFIRE_VERSIONNAME"]?.toString()
-      ?: providers.gradleProperty("campfire.version").get()
+    versionCode = campfireVersionCode()
+    versionName = campfireVersionName()
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
@@ -50,6 +52,18 @@ android {
 
     create("beta") {
     }
+
+    // 100% FOSS build for F-Droid / IzzyOnDroid: same applicationId as standard, but the
+    // flavor-scoped proprietary modules (Firebase, Mixpanel, ML Kit) are never wired in.
+    create("foss") {
+    }
+  }
+
+  dependenciesInfo {
+    // The Play-encrypted dependency metadata block is useless outside Google Play and
+    // F-Droid flags APKs that carry it. Play consumes it from the AAB instead.
+    includeInApk = false
+    includeInBundle = true
   }
 
   sourceSets {
@@ -85,7 +99,14 @@ android {
     }
 
     getByName("release") {
-      signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+      val releaseSigning = signingConfigs.findByName("release")
+      // A versioned (tagged) release must never fall back to the committed debug key:
+      // IzzyOnDroid rejects debug-signed APKs and users couldn't upgrade across keys.
+      check(releaseSigning != null || properties["CAMPFIRE_VERSIONNAME"] == null) {
+        "CAMPFIRE_VERSIONNAME is set but app/signing/campfire.keystore is missing; " +
+          "refusing to sign a versioned release build with the debug key."
+      }
+      signingConfig = releaseSigning ?: signingConfigs["debug"]
       isMinifyEnabled = true
       isShrinkResources = true
 
@@ -126,11 +147,29 @@ dependencies {
   implementation(projects.app.common)
   implementation(projects.common.screens)
 
-  // On-device AI theme generation (Gemini Nano via ML Kit). Kept out of `main` so a
-  // future foss flavor can ship without any proprietary Google dependencies.
+  // Proprietary integrations are wired per flavor so the foss flavor ships without them.
+
+  // On-device AI theme generation (Gemini Nano via ML Kit)
   "standardImplementation"(projects.ui.theming.ai)
   "alphaImplementation"(projects.ui.theming.ai)
   "betaImplementation"(projects.ui.theming.ai)
+
+  // Mixpanel analytics (opt-in, off by default)
+  "standardImplementation"(projects.data.analytics.mixpanel)
+  "alphaImplementation"(projects.data.analytics.mixpanel)
+  "betaImplementation"(projects.data.analytics.mixpanel)
+
+  // Firebase Crashlytics — release variants only, matching the previous src/release
+  // FirebaseInitializer behavior (debug builds never initialize Firebase). These
+  // variant-scoped configurations are created late by AGP, so they're added lazily.
+  val crashlyticsVariants = setOf(
+    "standardReleaseImplementation",
+    "alphaReleaseImplementation",
+    "betaReleaseImplementation",
+  )
+  configurations.matching { it.name in crashlyticsVariants }.configureEach {
+    dependencies.add(project.dependencies.create(projects.data.crashreporting.firebase))
+  }
 
   implementation(libs.about.libraries.core)
 

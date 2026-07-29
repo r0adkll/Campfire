@@ -46,6 +46,17 @@ jobs:
         run: |
           echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
 
+      # Built BEFORE google-services.json is written so the Firebase gradle plugins stay
+      # disabled and no Firebase project config leaks into the FOSS APK. The versionCode
+      # is derived from the release tag so the build is reproducible from the tag alone.
+      - name: Assemble Foss Release APK
+        run: ./gradlew :app:android:assembleFossRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
+          CI: true
+
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -60,7 +71,6 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
           ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONCODE: ${{ github.run_number }}
           ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
           CI: true
 
@@ -97,4 +107,16 @@ jobs:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
           asset_path: app/android/build/outputs/apk/beta/release/android-beta-release.apk
           asset_name: campfire-beta-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      # Stable asset name consumed by IzzyOnDroid's daily update checker and F-Droid's
+      # reproducible-builds Binaries: URL.
+      - name: Upload Foss APK to release
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: app/android/build/outputs/apk/foss/release/android-foss-release.apk
+          asset_name: campfire-foss-release.apk
           asset_content_type: application/vnd.android.package-archive

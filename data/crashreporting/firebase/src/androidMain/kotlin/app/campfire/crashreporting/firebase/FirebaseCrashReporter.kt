@@ -1,6 +1,7 @@
-package app.campfire.crashreporting.impl
+package app.campfire.crashreporting.firebase
 
 import app.campfire.crashreporting.CrashReporter
+import app.campfire.crashreporting.impl.redactedCopyOrSelf
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 object FirebaseCrashReporter : CrashReporter {

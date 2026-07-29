@@ -64,9 +64,6 @@ dependencyResolutionManagement {
 
     google()
     mavenCentral()
-
-    // Prerelease versions of Compose Multiplatform
-    maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
   }
 }
 
@@ -135,6 +132,7 @@ include(
 include(
   ":data:crashreporting:api",
   ":data:crashreporting:impl",
+  ":data:crashreporting:firebase",
 )
 include(
   ":data:network:api",

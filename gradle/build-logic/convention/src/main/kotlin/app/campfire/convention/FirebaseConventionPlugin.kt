@@ -9,19 +9,14 @@ import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
-import org.gradle.kotlin.dsl.dependencies
 
 class FirebaseConventionPlugin : Plugin<Project> {
   override fun apply(target: Project) {
     with(target) {
-      // Runtime deps are always declared so src/release & src/preRelease compile;
-      // the Gradle plugins (which fail without google-services.json) are conditional.
-      dependencies {
-        add("implementation", platform(libs.findLibrary("google-firebase-bom").get()))
-        add("implementation", libs.findLibrary("google-firebase-analytics").get())
-        add("implementation", libs.findLibrary("google-firebase-crashlytics").get())
-      }
-
+      // The Crashlytics runtime ships via :data:crashreporting:firebase, wired per flavor
+      // in the app module, so nothing Firebase reaches the foss flavor. The only direct
+      // dependency added here is the App Distribution SDK that powers the in-app
+      // self-updater on the alpha/beta channels (used by src/preRelease sources).
       val appDistributionDep = libs.findLibrary("google-firebase-appdistribution").get()
       configurations
         .matching { it.name == "alphaImplementation" || it.name == "betaImplementation" }

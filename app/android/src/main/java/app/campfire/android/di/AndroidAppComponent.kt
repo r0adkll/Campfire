@@ -32,6 +32,7 @@ abstract class AndroidAppComponent(
       flavor = when (BuildConfig.FLAVOR) {
         "standard" -> Flavor.Standard
         "beta" -> Flavor.Beta
+        "foss" -> Flavor.Foss
         else -> Flavor.Alpha
       },
       versionName = packageInfo.versionName ?: "unknown",

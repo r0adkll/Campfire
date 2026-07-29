@@ -36,10 +36,6 @@ kotlin {
 
     androidMain {
       dependsOn(jvmShared)
-      dependencies {
-        implementation(project.dependencies.platform(libs.google.firebase.bom))
-        implementation(libs.google.firebase.crashlytics)
-      }
     }
   }
 }

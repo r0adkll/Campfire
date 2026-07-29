@@ -1,4 +1,4 @@
-package app.campfire.android
+package app.campfire.crashreporting.firebase
 
 import android.app.Application
 import app.campfire.core.app.AppInitializer
@@ -14,7 +14,6 @@ import app.campfire.core.logging.LogPriority.VERBOSE
 import app.campfire.core.logging.LogPriority.WARN
 import app.campfire.core.logging.bark
 import app.campfire.crashreporting.CrashReporter
-import app.campfire.crashreporting.impl.FirebaseCrashReporter
 import app.campfire.crashreporting.impl.redactedCopyOrSelf
 import app.campfire.settings.api.CampfireSettings
 import com.google.firebase.FirebaseApp

@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Other Notes & Contributions
 
 - The on-device AI theme builder is now an optional component, laying the groundwork for fully FOSS builds for F-Droid
+- Added a new FOSS build variant with no Google or analytics components, in preparation for F-Droid and IzzyOnDroid distribution
+- Release version numbers are now derived from the release tag so builds are reproducible
 
 ## [1.0.0-rc3]
 
