@@ -19,6 +19,14 @@ dependencies {
   compileOnly(libs.google.services.gradlePlugin)
   compileOnly(libs.firebase.crashlytics.gradlePlugin)
   compileOnly(libs.firebase.appdistribution.gradlePlugin)
+
+  // JsonElement builder DSL only — no @Serializable classes, so the serialization
+  // compiler plugin (which would have to version-match Gradle's embedded Kotlin)
+  // isn't needed here.
+  implementation(libs.kotlinx.serialization.json)
+
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlin.test)
 }
 
 gradlePlugin {
@@ -31,6 +39,11 @@ gradlePlugin {
     register("ui") {
       id = "app.campfire.ui"
       implementationClass = "app.campfire.convention.UiConventionPlugin"
+    }
+
+    register("changelog") {
+      id = "app.campfire.changelog"
+      implementationClass = "app.campfire.convention.changelog.ChangelogConventionPlugin"
     }
 
     register("compose") {

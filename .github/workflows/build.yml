@@ -172,6 +172,9 @@ jobs:
             echo "Skipping google-services.json (no secret available — fork PR or external contributor)"
           fi
 
+      - name: Build-logic tests
+        run: ./gradlew -p gradle/build-logic :convention:test
+
       - name: Validate Android compilation
         run: ./gradlew :app:android:compileAlphaReleaseSources
 
