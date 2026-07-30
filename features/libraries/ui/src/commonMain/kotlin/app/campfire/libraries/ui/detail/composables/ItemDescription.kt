@@ -1,3 +1,6 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 @file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package app.campfire.libraries.ui.detail.composables

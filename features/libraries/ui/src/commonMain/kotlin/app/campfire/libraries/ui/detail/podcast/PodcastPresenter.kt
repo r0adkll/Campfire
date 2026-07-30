@@ -1,3 +1,6 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 package app.campfire.libraries.ui.detail.podcast
 
 import androidx.compose.runtime.Composable

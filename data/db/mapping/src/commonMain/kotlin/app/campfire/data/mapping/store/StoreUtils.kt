@@ -1,3 +1,6 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 package app.campfire.data.mapping.store
 
 import app.campfire.core.extensions.isUnknownHostException

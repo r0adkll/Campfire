@@ -1,5 +1,5 @@
-// Copyright 2023, Drew Heavner and the Campfire project contributors
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
 
 plugins {
   `kotlin-dsl`

@@ -1,3 +1,6 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
 @file:DependsOn("com.gianluz:danger-kotlin-android-lint-plugin:0.1.0")
 
 import com.gianluz.dangerkotlin.androidlint.AndroidLint
