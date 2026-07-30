@@ -24,6 +24,7 @@ import me.tatarka.inject.annotations.Inject
 @ContributesBinding(
   scope = AppScope::class,
   boundType = CastController::class,
+  replaces = [NoOpCastController::class],
 )
 @Inject
 class MediaRouterCastController(
@@ -39,7 +40,7 @@ class MediaRouterCastController(
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
 
   @MainThread
-  fun initialize() {
+  override fun initialize() {
     try {
       val castContext = SafeCastContext.getContext(application) ?: return
       castContext.addCastStateListener(this)
@@ -54,7 +55,7 @@ class MediaRouterCastController(
   }
 
   @MainThread
-  fun destroy() {
+  override fun destroy() {
     try {
       SafeCastContext.getContext(application)?.removeCastStateListener(this)
     } catch (e: Throwable) {
@@ -66,7 +67,7 @@ class MediaRouterCastController(
   }
 
   @MainThread
-  fun scanForDevices() {
+  override fun scanForDevices() {
     try {
       val selector = MediaRouteSelector.Builder()
         .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
@@ -89,7 +90,7 @@ class MediaRouterCastController(
   }
 
   @MainThread
-  fun stopScanningForDevices() {
+  override fun stopScanningForDevices() {
     try {
       val mediaRouter = MediaRouter.getInstance(application)
       mediaRouter.removeCallback(this)

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <application>
+    <!-- Enables Cast media transfer (output switcher) via androidx.mediarouter -->
+    <receiver
+      android:name="androidx.mediarouter.media.MediaTransferReceiver"
+      android:exported="true">
+    </receiver>
+
+    <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+      android:value="app.campfire.audioplayer.impl.cast.CastOptionsProvider"
+      />
+  </application>
+</manifest>

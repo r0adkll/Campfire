@@ -40,17 +40,9 @@
       </intent-filter>
     </service>
 
-    <receiver
-      android:name="androidx.mediarouter.media.MediaTransferReceiver"
-      android:exported="true">
-    </receiver>
-
+    <!-- Android Auto declaration — string meta-data + xml resource only, no GMS artifact -->
     <meta-data android:name="com.google.android.gms.car.application"
       android:resource="@xml/automotive_app_desc"/>
-
-    <meta-data android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-      android:value="app.campfire.audioplayer.impl.cast.CastOptionsProvider"
-      />
 
     <provider
       android:name="app.campfire.audioplayer.impl.content.CoverContentProvider"

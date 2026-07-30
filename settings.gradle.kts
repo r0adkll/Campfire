@@ -98,6 +98,7 @@ include(":core")
 include(
   ":infra:audioplayer:api",
   ":infra:audioplayer:impl",
+  ":infra:audioplayer:cast",
   ":infra:audioplayer:public-ui",
   ":infra:audioplayer:test",
   ":infra:shake",

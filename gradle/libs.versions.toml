@@ -263,6 +263,9 @@ media3-session = { module = "androidx.media3:media3-session", version.ref = "med
 
 # This will force an upgrade in the 'media3-cast' library
 play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.1"
+# Pinned to the version play-services-cast-framework resolves so behavior is unchanged;
+# declared explicitly because :infra:audioplayer:cast uses mediarouter APIs directly.
+androidx-mediarouter = "androidx.mediarouter:mediarouter:1.8.1"
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 
 # Analytics

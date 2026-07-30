@@ -159,6 +159,11 @@ dependencies {
   "alphaImplementation"(projects.data.analytics.mixpanel)
   "betaImplementation"(projects.data.analytics.mixpanel)
 
+  // Google Cast remote playback (play-services-cast-framework + media3-cast)
+  "standardImplementation"(projects.infra.audioplayer.cast)
+  "alphaImplementation"(projects.infra.audioplayer.cast)
+  "betaImplementation"(projects.infra.audioplayer.cast)
+
   // Firebase Crashlytics — release variants only, matching the previous src/release
   // FirebaseInitializer behavior (debug builds never initialize Firebase). These
   // variant-scoped configurations are created late by AGP, so they're added lazily.

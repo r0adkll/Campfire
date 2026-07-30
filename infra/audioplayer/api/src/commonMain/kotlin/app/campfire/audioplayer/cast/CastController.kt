@@ -8,6 +8,16 @@ interface CastController {
   val availableDevices: StateFlow<List<CastDevice>>
 
   fun connect(device: CastDevice)
+
+  /*
+   * Lifecycle hooks driven by the host Activity. Default no-ops so implementations on
+   * platforms (or build flavors) without cast support don't need to override them.
+   */
+
+  fun initialize() {}
+  fun destroy() {}
+  fun scanForDevices() {}
+  fun stopScanningForDevices() {}
 }
 
 enum class CastState {

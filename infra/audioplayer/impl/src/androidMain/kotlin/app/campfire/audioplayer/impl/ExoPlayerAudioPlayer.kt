@@ -2,7 +2,6 @@ package app.campfire.audioplayer.impl
 
 import android.content.Context
 import androidx.annotation.OptIn
-import androidx.media3.cast.CastPlayer
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.DeviceInfo
@@ -24,7 +23,6 @@ import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
-import app.campfire.audioplayer.impl.cast.SafeCastContext
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
@@ -66,6 +64,7 @@ class ExoPlayerAudioPlayer(
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
+  private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
 ) : AudioPlayer, Player.Listener, Cork {
 
   override val tag: String = AUDIO_TAG
@@ -80,6 +79,8 @@ class ExoPlayerAudioPlayer(
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
+    // Defaults to NoOp when the optional :infra:audioplayer:cast module isn't in this build.
+    private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
   ) {
 
     fun create(context: Context): ExoPlayerAudioPlayer {
@@ -89,6 +90,7 @@ class ExoPlayerAudioPlayer(
         mediaSourceFactory = mediaSourceFactory,
         playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
+        remotePlayerFactory = remotePlayerFactory,
       )
     }
   }
@@ -127,18 +129,15 @@ class ExoPlayerAudioPlayer(
     .build()
     .also { AudioPlayerDebugHooks.Holder.hooks.onExoPlayerCreated(it) }
 
-  private val castPlayer: CastPlayer? = SafeCastContext.getContext(context)?.let {
-    CastPlayer.Builder(context)
-      .setLocalPlayer(exoPlayer)
-      .build()
-  }
+  private val remotePlayer: Player? = remotePlayerFactory.create(context, exoPlayer)
 
   /**
    * A proxy accessor for the correct player client. All listener and access goes through the
-   * [castPlayer] which configures the [exoPlayer] as the local player to use when a MediaRoute
-   * is not directed at remote playback.
+   * [remotePlayer] (a CastPlayer when the cast module is present) which configures the
+   * [exoPlayer] as the local player to use when a MediaRoute is not directed at remote
+   * playback.
    */
-  internal val internalPlayer: Player = (castPlayer ?: exoPlayer).apply {
+  internal val internalPlayer: Player = (remotePlayer ?: exoPlayer).apply {
     addListener(this@ExoPlayerAudioPlayer)
   }
 

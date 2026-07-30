@@ -15,11 +15,5 @@ kotlin {
         implementation(libs.compose.components.resources)
       }
     }
-
-    androidMain {
-      dependencies {
-        implementation(libs.play.services.cast.framework)
-      }
-    }
   }
 }
