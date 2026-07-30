@@ -1,0 +1,1 @@
+Fixed a crash when the server sends large or malformed real-time sync updates, such as progress updates for accounts with a long listening history.
