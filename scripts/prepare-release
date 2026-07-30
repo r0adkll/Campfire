@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+# Copyright 2026, Drew Heavner and the Campfire project contributors
+# SPDX-License-Identifier: GPL-3.0-only
+#
+# Prepares a Campfire release:
+#   1. Bumps `campfire.version` in gradle.properties
+#   2. Rolls the `## [Unreleased]` section of CHANGELOG.md into a `## [<version>]`
+#      section (dropping empty categories) and inserts a fresh Unreleased skeleton
+#   3. Writes fastlane/metadata/android/en-US/changelogs/<versionCode>.txt for
+#      F-Droid / IzzyOnDroid (warns when it exceeds their 500-character limit)
+#
+# The versionCode math mirrors gradle/build-logic Versioning.kt (MMmmppRR: rc
+# number, or 99 for a final release) so the file name always matches the code
+# CI derives from the tag.
+#
+# Usage:
+#   scripts/prepare-release <version>     # e.g. scripts/prepare-release 1.0.0-rc4
+#
+# Review the diff, then commit, tag, and push:
+#   git commit -am "Prepare release <version>" && git tag <version> && git push --tags
+
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+GRADLE_PROPERTIES = REPO_ROOT / "gradle.properties"
+CHANGELOG = REPO_ROOT / "CHANGELOG.md"
+FASTLANE_CHANGELOGS = REPO_ROOT / "fastlane/metadata/android/en-US/changelogs"
+
+SEMVER_REGEX = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-rc(\d+))?$", re.IGNORECASE)
+CATEGORIES = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Other Notes & Contributions"]
+FASTLANE_CHAR_LIMIT = 500
+
+UNRELEASED_SKELETON = "## [Unreleased]\n\n" + "\n\n".join(f"### {c}" for c in CATEGORIES) + "\n"
+
+
+def fail(message):
+    print(f"error: {message}", file=sys.stderr)
+    sys.exit(1)
+
+
+def derive_version_code(version):
+    """MMmmppRR, matching Versioning.kt: 1.0.0-rc3 -> 1000003, 1.0.0 -> 1000099."""
+    match = SEMVER_REGEX.match(version)
+    major, minor, patch, rc = match.groups()
+    return int(major) * 1_000_000 + int(minor) * 10_000 + int(patch) * 100 + int(rc or 99)
+
+
+def resolve_tag(version):
+    """Returns the existing tag name for a version, trying both bare and v-prefixed."""
+    for candidate in (version, f"v{version}"):
+        result = subprocess.run(
+            ["git", "rev-parse", "-q", "--verify", f"refs/tags/{candidate}"],
+            cwd=REPO_ROOT, capture_output=True,
+        )
+        if result.returncode == 0:
+            return candidate
+    return None
+
+
+def bump_gradle_properties(version):
+    content = GRADLE_PROPERTIES.read_text()
+    updated, count = re.subn(
+        r"^campfire\.version=.*$", f"campfire.version={version}", content, flags=re.MULTILINE,
+    )
+    if count != 1:
+        fail(f"expected exactly one campfire.version property in gradle.properties, found {count}")
+    GRADLE_PROPERTIES.write_text(updated)
+
+
+def roll_changelog(version):
+    """Renames [Unreleased] to [version], reinserts a fresh skeleton, and returns the
+    released section's bullet lines grouped by category."""
+    content = CHANGELOG.read_text()
+    if f"## [{version}]" in content:
+        fail(f"CHANGELOG.md already has a section for {version}")
+
+    match = re.search(r"^## \[Unreleased\]\n(.*?)(?=^## \[)", content, re.MULTILINE | re.DOTALL)
+    if not match:
+        fail("could not find the ## [Unreleased] section in CHANGELOG.md")
+    unreleased_body = match.group(1)
+
+    # Split the Unreleased body into categories, keeping only those with content.
+    sections = {}
+    for section in re.split(r"^### ", unreleased_body, flags=re.MULTILINE)[1:]:
+        heading, _, body = section.partition("\n")
+        body = body.strip("\n")
+        if body:
+            sections[heading.strip()] = body
+    if not sections:
+        fail("the Unreleased section has no entries — nothing to release")
+
+    released = [f"## [{version}]"]
+    for category in CATEGORIES:
+        if category in sections:
+            released.append(f"\n### {category}\n\n{sections[category]}")
+    released_section = "\n".join(released) + "\n\n"
+
+    content = content[: match.start()] + UNRELEASED_SKELETON + "\n" + released_section + content[match.end():]
+
+    # Insert a compare link above the previous release's link, using the tag name
+    # as it actually exists on the remote (recent tags have no v prefix).
+    previous = re.search(r"^## \[(?!Unreleased)([^\]]+)\]", content[match.end():], re.MULTILINE)
+    if previous:
+        prev_version = previous.group(1)
+        prev_tag = resolve_tag(prev_version) or prev_version
+        link = f"[{version}]: https://github.com/r0adkll/Campfire/compare/{prev_tag}...{version}\n"
+        link_anchor = f"[{prev_version}]:"
+        index = content.find(link_anchor)
+        if index != -1:
+            content = content[:index] + link + content[index:]
+
+    CHANGELOG.write_text(content)
+    return sections
+
+
+def write_fastlane_changelog(version_code, sections):
+    bullets = []
+    multiple = len(sections) > 1
+    for category in CATEGORIES:
+        if category not in sections:
+            continue
+        if multiple:
+            bullets.append(f"{category}:")
+        bullets.append(sections[category])
+    text = "\n".join(bullets) + "\n"
+
+    FASTLANE_CHANGELOGS.mkdir(parents=True, exist_ok=True)
+    path = FASTLANE_CHANGELOGS / f"{version_code}.txt"
+    path.write_text(text)
+    return path, len(text)
+
+
+def main():
+    if len(sys.argv) != 2 or sys.argv[1] in ("-h", "--help"):
+        print(__doc__ or "usage: scripts/prepare-release <version>")
+        print("usage: scripts/prepare-release <version>   e.g. scripts/prepare-release 1.0.0-rc4")
+        sys.exit(0 if len(sys.argv) == 2 else 1)
+
+    version = sys.argv[1].lstrip("vV")
+    if not SEMVER_REGEX.match(version):
+        fail(f"'{version}' is not a valid version (expected major.minor.patch[-rcN])")
+    if resolve_tag(version):
+        fail(f"a tag for {version} already exists")
+
+    version_code = derive_version_code(version)
+    bump_gradle_properties(version)
+    sections = roll_changelog(version)
+    changelog_path, length = write_fastlane_changelog(version_code, sections)
+
+    print(f"Prepared release {version} (versionCode {version_code}):")
+    print(f"  - gradle.properties: campfire.version={version}")
+    print(f"  - CHANGELOG.md: [Unreleased] rolled into [{version}]")
+    print(f"  - {changelog_path.relative_to(REPO_ROOT)} ({length} chars)")
+    if length > FASTLANE_CHAR_LIMIT:
+        print(f"\nWARNING: the fastlane changelog is over the {FASTLANE_CHAR_LIMIT}-character")
+        print("store limit — trim it down to a user-facing summary before committing.")
+    print("\nReview the diff, then:")
+    print(f'  git commit -am "Prepare release {version}" && git tag {version} && git push && git push --tags')
+
+
+if __name__ == "__main__":
+    main()
