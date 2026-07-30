@@ -5,8 +5,8 @@ on:
     types: [ created ]
 
 jobs:
-  android-release:
-    name: Build Android Release
+  android-beta:
+    name: Build Android Beta Release
     runs-on: ubuntu-latest
 
     steps:
@@ -46,17 +46,6 @@ jobs:
         run: |
           echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
 
-      # Built BEFORE google-services.json is written so the Firebase gradle plugins stay
-      # disabled and no Firebase project config leaks into the FOSS APK. The versionCode
-      # is derived from the release tag so the build is reproducible from the tag alone.
-      - name: Assemble Foss Release APK
-        run: ./gradlew :app:android:assembleFossRelease
-        env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
-          CI: true
-
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
@@ -90,7 +79,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: android-build-outputs
+          name: android-beta-build-outputs
           path: app/android/build/outputs
 
       - name: Get release information
@@ -108,6 +97,72 @@ jobs:
           asset_path: app/android/build/outputs/apk/beta/release/android-beta-release.apk
           asset_name: campfire-beta-release.apk
           asset_content_type: application/vnd.android.package-archive
+
+  android-foss:
+    name: Build Android FOSS Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup swap
+        run: |
+          sudo swapon --show
+          sudo swapoff -a
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
+      - name: Free up disk space
+        run: |
+          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
+            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
+          sudo apt autoremove -yq
+          sudo apt clean
+          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
+
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
+        run: |
+          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
+
+      # google-services.json is intentionally never written in this job: the Firebase
+      # gradle plugins stay disabled and no Firebase project config leaks into the FOSS
+      # APK. The versionCode is derived from the release tag so the build is reproducible
+      # from the tag alone.
+      - name: Assemble Foss Release APK
+        run: ./gradlew :app:android:assembleFossRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
+          CI: true
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-foss-build-outputs
+          path: app/android/build/outputs
+
+      - name: Get release information
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
       # Stable asset name consumed by IzzyOnDroid's daily update checker and F-Droid's
       # reproducible-builds Binaries: URL.
