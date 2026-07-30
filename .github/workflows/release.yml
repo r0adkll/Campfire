@@ -98,6 +98,88 @@ jobs:
           asset_name: campfire-beta-release.apk
           asset_content_type: application/vnd.android.package-archive
 
+  android-play:
+    name: Build Android Play Release Bundle
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup swap
+        run: |
+          sudo swapon --show
+          sudo swapoff -a
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
+      - name: Free up disk space
+        run: |
+          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
+            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
+          sudo apt autoremove -yq
+          sudo apt clean
+          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
+
+      - uses: actions/checkout@v6
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
+        run: |
+          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
+
+      - name: Download Service Accounts
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+
+      # The AAB is signed with the release keystore as the Play App Signing *upload* key;
+      # Play re-signs it with the app signing key for distribution. Attached to the GitHub
+      # release for upload to the Play Console.
+      - name: Bundle Standard Release AAB
+        run: ./gradlew :app:android:bundleStandardRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
+          CI: true
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-play-build-outputs
+          path: app/android/build/outputs
+
+      - name: Get release information
+        id: get_release
+        uses: bruceadams/get-release@v1.3.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Upload AAB to release
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: app/android/build/outputs/bundle/standardRelease/android-standard-release.aab
+          asset_name: campfire-play-release.aab
+          asset_content_type: application/octet-stream
+
   android-foss:
     name: Build Android FOSS Release
     runs-on: ubuntu-latest

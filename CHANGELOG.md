@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Google Play builds can now update the app in-place when a new version is available on the Play Store
+
 ### Changed
 
 ### Deprecated

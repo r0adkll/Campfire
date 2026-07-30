@@ -179,6 +179,12 @@ dependencies {
     dependencies.add(project.dependencies.create(projects.data.crashreporting.firebase))
   }
 
+  // Google Play in-app updates — only the Play-distributed production variant self-updates
+  // through Play; alpha/beta use Firebase App Distribution and foss updates via its store.
+  configurations.matching { it.name == "standardReleaseImplementation" }.configureEach {
+    dependencies.add(project.dependencies.create(libs.google.play.app.update.get()))
+  }
+
   implementation(libs.about.libraries.core)
 
   implementation(libs.androidx.activity.compose)

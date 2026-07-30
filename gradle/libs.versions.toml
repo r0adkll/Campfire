@@ -161,6 +161,7 @@ google-firebase-crashlytics = { module = "com.google.firebase:firebase-crashlyti
 google-firebase-perf = { module = "com.google.firebase:firebase-perf" }
 google-firebase-appdistribution-api = { module = "com.google.firebase:firebase-appdistribution-api-ktx", version.ref = "appdistribution" }
 google-firebase-appdistribution = { module = "com.google.firebase:firebase-appdistribution", version.ref = "appdistribution" }
+google-play-app-update = { module = "com.google.android.play:app-update-ktx", version = "2.1.0" }
 
 # Settings
 multiplatformsettings-core = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatformsettings" }
