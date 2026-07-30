@@ -18,6 +18,8 @@ import app.campfire.core.model.ShelfType
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.model.Shelf
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.test.FakeMediaProgressRepository
 import assertk.Assert
 import assertk.all
 import assertk.assertThat
@@ -43,6 +45,7 @@ class HomePresenterTest {
   val navigator = FakeNavigator(HomeScreen)
   val analytics = FakeAnalytics()
   val offlineDownloadManager = FakeOfflineDownloadManager()
+  val mediaProgressRepository = FakeMediaProgressRepository()
 
   @Test
   fun present_LoadingState() = runTest {
@@ -54,6 +57,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -82,6 +86,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -138,6 +143,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -193,11 +199,12 @@ class HomePresenterTest {
     val shelfOneEntities = List(2) { libraryItem(id = "one_$it") }
     val shelfTwoEntities = List(3) { libraryItem(id = "two_$it") }
     val mediaProgress =
-      List(2) { mediaProgress(libraryItemId = "one_$it") }.associateBy { it.libraryItemId } +
-        List(3) { mediaProgress(libraryItemId = "two_$it") }.associateBy { it.libraryItemId }
+      List(2) { mediaProgress(libraryItemId = "one_$it") } +
+        List(3) { mediaProgress(libraryItemId = "two_$it") }
+    mediaProgressRepository.allProgressFlow.value = mediaProgress
     val repository = FakeHomeRepository(
       homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
-      mediaProgressFlowFactory = { flowOf(mediaProgress) },
+      mediaProgressFlowFactory = { emptyFlow() },
       shelfEntityFlowFactory = { shelfId, _ ->
         when (shelfId) {
           "one" -> flowOf(shelfOneEntities)
@@ -209,6 +216,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -219,11 +227,11 @@ class HomePresenterTest {
 
       assertThat(awaitItem()).all {
         progressStates.all {
-          key("one_0").isNotNull()
-          key("one_1").isNotNull()
-          key("two_0").isNotNull()
-          key("two_1").isNotNull()
-          key("two_2").isNotNull()
+          key(MediaProgressKey("one_0")).isNotNull()
+          key(MediaProgressKey("one_1")).isNotNull()
+          key(MediaProgressKey("two_0")).isNotNull()
+          key(MediaProgressKey("two_1")).isNotNull()
+          key(MediaProgressKey("two_2")).isNotNull()
         }
       }
     }
@@ -255,6 +263,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -285,6 +294,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -312,6 +322,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -339,6 +350,7 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       analytics = analytics,
     )
@@ -373,7 +385,7 @@ private val Assert<HomeUiState>.homeFeed: AssertHomeFeedResponse
 private val Assert<HomeUiState>.offlineStates: Assert<ImmutableMap<LibraryItemId, OfflineDownload>>
   get() = prop(HomeUiState::offlineStates)
 
-private val Assert<HomeUiState>.progressStates: Assert<ImmutableMap<LibraryItemId, MediaProgress>>
+private val Assert<HomeUiState>.progressStates: Assert<ImmutableMap<MediaProgressKey, MediaProgress>>
   get() = prop(HomeUiState::progressStates)
 
 private fun AssertHomeFeedResponse.isLoading(): Assert<FeedResponse.Loading> {
