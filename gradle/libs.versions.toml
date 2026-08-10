@@ -238,7 +238,7 @@ connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", v
 connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
 kmp-xlog-api = "com.piasy:kmp-xlog-api:1.5.0"
 kotlinx-io-bytestring = "org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1"
-oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.16.5" }
+oidc-crypto = { module = "io.github.kalinjul.kotlin.multiplatform:oidc-crypto", version = "0.17.0" }
 
 tools-desugarjdklibs = "com.android.tools:desugar_jdk_libs:2.1.5"
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
