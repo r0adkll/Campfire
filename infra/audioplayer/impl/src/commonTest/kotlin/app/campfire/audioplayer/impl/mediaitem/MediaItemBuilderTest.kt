@@ -80,7 +80,7 @@ class MediaItemBuilderTest {
     authorNameLastFirst = authorName,
     narratorName = null,
     seriesName = seriesName,
-    seriesSequence = null,
+    series = emptyList(),
     genres = emptyList(),
     publishedYear = null,
     publishedDate = null,

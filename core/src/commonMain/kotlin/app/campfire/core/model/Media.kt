@@ -104,7 +104,8 @@ sealed interface Media {
     val authorNameLastFirst: String? get() = null
     val narratorName: String? get() = null
     val seriesName: String? get() = null
-    val seriesSequence: SeriesSequence? get() = null
+    val series: List<SeriesSequence> get() = emptyList()
+    val seriesSequence: SeriesSequence? get() = series.firstOrNull()
     val publishedYear: String? get() = null
     val publishedDate: String? get() = null
     val publisher: String? get() = null
@@ -137,7 +138,7 @@ sealed interface Media {
       override val authorNameLastFirst: String?,
       override val narratorName: String?,
       override val seriesName: String?,
-      override val seriesSequence: SeriesSequence?,
+      override val series: List<SeriesSequence>,
       override val genres: List<String>,
       override val publishedYear: String?,
       override val publishedDate: String?,

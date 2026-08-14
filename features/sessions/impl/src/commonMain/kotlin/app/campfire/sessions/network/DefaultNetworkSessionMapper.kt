@@ -72,15 +72,13 @@ class DefaultNetworkSessionMapper(
           narratorName = narratorName,
           seriesName = seriesName,
           authors = authors.map { AuthorSeries(it.id, it.name) },
-          series = seriesSequence?.let {
-            listOf(
-              SeriesSequence(
-                id = it.id,
-                name = it.name,
-                sequence = it.sequence.toString(),
-              ),
+          series = series.map {
+            SeriesSequence(
+              id = it.id,
+              name = it.name,
+              sequence = it.sequence.toString(),
             )
-          },
+          }.ifEmpty { null },
           narrators = narrators,
         )
       },

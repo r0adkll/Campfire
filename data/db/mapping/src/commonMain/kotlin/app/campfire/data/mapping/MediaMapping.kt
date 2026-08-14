@@ -18,13 +18,15 @@ fun MinifiedBookMetadata.asDomainModel(): Media.Metadata.Book {
     authorNameLastFirst = authorNameLF,
     narratorName = narratorName,
     seriesName = seriesName,
-    seriesSequence = series?.let {
-      SeriesSequence(
-        id = it.id,
-        name = it.name,
-        sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
-      )
-    },
+    series = listOfNotNull(
+      series?.let {
+        SeriesSequence(
+          id = it.id,
+          name = it.name,
+          sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
+        )
+      },
+    ),
     genres = genres ?: emptyList(),
     publishedYear = publishedYear,
     publishedDate = publishedDate,
@@ -53,13 +55,13 @@ fun ExpandedBookMetadata.asDomainModel(): Media.Metadata.Book {
         name = it.name,
       )
     } ?: emptyList(),
-    seriesSequence = series?.map {
+    series = series?.map {
       SeriesSequence(
         id = it.id,
         name = it.name,
         sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
       )
-    }?.firstOrNull(),
+    } ?: emptyList(),
     narrators = narrators ?: emptyList(),
     genres = genres ?: emptyList(),
     publishedYear = publishedYear,

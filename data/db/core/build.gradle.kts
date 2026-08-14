@@ -35,6 +35,7 @@ kotlin {
         api(libs.sqldelight.coroutines)
         api(libs.sqldelight.async)
         api(libs.kotlinx.datetime)
+        implementation(libs.kotlinx.serialization.json)
         implementation(libs.sqldelight.primitive)
       }
     }

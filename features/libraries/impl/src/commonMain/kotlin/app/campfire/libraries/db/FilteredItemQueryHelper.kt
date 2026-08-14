@@ -6,6 +6,7 @@ package app.campfire.libraries.db
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
 import app.campfire.data.mapping.model.LibraryItemWithMedia
@@ -123,6 +124,7 @@ class FilteredItemQueryHelper(
       metadata_series_name: String?,
       metadata_series_sequence: Int?,
       libraryItemId: String,
+      metadata_series: List<SeriesSequence>?,
     ) -> T,
   ): T {
     return mapper(
@@ -178,6 +180,7 @@ class FilteredItemQueryHelper(
       cursor.getString(49),
       cursor.getLong(50)?.let { adapters.mediaAdapter.metadata_series_sequenceAdapter.decode(it) },
       cursor.getString(51)!!,
+      cursor.getString(52)?.let { adapters.mediaAdapter.metadata_seriesAdapter.decode(it) },
     )
   }
 

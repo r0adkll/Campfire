@@ -1,3 +1,4 @@
+import app.campfire.core.model.SeriesSequence;
 import kotlin.Boolean;
 import kotlin.Int;
 import kotlin.String;
@@ -40,6 +41,10 @@ CREATE TABLE IF NOT EXISTS media (
   metadata_series_sequence INTEGER AS Int,
 
   libraryItemId TEXT NOT NULL,
+
+  -- Every series this book belongs to; the metadata_series_* columns above remain the
+  -- "primary" series used for sorting/filtering and series-sequence backfill.
+  metadata_series TEXT AS List<SeriesSequence>,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 

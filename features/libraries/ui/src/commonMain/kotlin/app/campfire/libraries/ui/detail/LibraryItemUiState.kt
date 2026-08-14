@@ -11,6 +11,7 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.PodcastEpisode
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
@@ -50,7 +51,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
 
   data object PlayClick : LibraryItemUiEvent
   data class PlayEpisodeClick(val episode: PodcastEpisode) : LibraryItemUiEvent
-  data class SeriesClick(val item: LibraryItem) : LibraryItemUiEvent
+  data class SeriesClick(val item: LibraryItem, val series: SeriesSequence) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkFinished(val item: LibraryItem) : LibraryItemUiEvent
   data class MarkNotFinished(val item: LibraryItem) : LibraryItemUiEvent

@@ -15,12 +15,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.SeriesSequence
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.SeriesMetadata
 
+data class SeriesWithBooks(
+  val series: SeriesSequence,
+  val books: List<LibraryItem>,
+)
+
 class SeriesSlot(
   private val libraryItem: LibraryItem,
-  private val seriesBooks: List<LibraryItem>,
+  private val series: List<SeriesWithBooks>,
 ) : ContentSlot {
 
   override val id: String = "series"
@@ -38,20 +44,20 @@ class SeriesSlot(
             horizontal = 16.dp,
           ),
       )
-      Spacer(Modifier.height(8.dp))
-      SeriesMetadata(
-        seriesName = libraryItem.media.metadata.seriesSequence?.name
-          ?: libraryItem.media.metadata.seriesName
-          ?: "--",
-        seriesBooks = seriesBooks,
-        modifier = Modifier
-          .clickable(
-            onClick = {
-              eventSink(LibraryItemUiEvent.SeriesClick(libraryItem))
-            },
-          )
-          .padding(horizontal = 16.dp),
-      )
+      series.forEachIndexed { index, (seriesSequence, seriesBooks) ->
+        Spacer(Modifier.height(if (index == 0) 8.dp else 16.dp))
+        SeriesMetadata(
+          seriesName = seriesSequence.name,
+          seriesBooks = seriesBooks,
+          modifier = Modifier
+            .clickable(
+              onClick = {
+                eventSink(LibraryItemUiEvent.SeriesClick(libraryItem, seriesSequence))
+              },
+            )
+            .padding(horizontal = 16.dp),
+        )
+      }
     }
   }
 }

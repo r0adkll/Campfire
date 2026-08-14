@@ -48,6 +48,7 @@ import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
+import app.campfire.libraries.ui.detail.composables.slots.SeriesWithBooks
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SplitAttributionSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
@@ -69,8 +70,8 @@ import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -128,13 +129,19 @@ class BookPresenter(
     }.collectAsState(LoadState.Loading)
 
     val seriesContentState by remember {
-      flowOf(libraryItem.media.metadata.seriesSequence)
-        .filterNotNull()
-        .flatMapLatest { seriesSequence ->
-          seriesRepository.observeSeriesLibraryItems(seriesSequence.id)
-            .map { LoadState.Loaded(it) as LoadState<List<LibraryItem>> }
-            .catch { emit(LoadState.Error as LoadState<List<LibraryItem>>) }
-        }
+      val allSeries = libraryItem.media.metadata.series
+      if (allSeries.isEmpty()) {
+        flowOf(LoadState.Loaded(emptyList<SeriesWithBooks>()) as LoadState<List<SeriesWithBooks>>)
+      } else {
+        combine(
+          allSeries.map { series ->
+            seriesRepository.observeSeriesLibraryItems(series.id)
+              .map { SeriesWithBooks(series, it) }
+          },
+        ) { it.toList() }
+          .map { LoadState.Loaded(it) as LoadState<List<SeriesWithBooks>> }
+          .catch { emit(LoadState.Error as LoadState<List<SeriesWithBooks>>) }
+      }
     }.collectAsState(LoadState.Loading)
 
     val offlineDownloadState by remember {
@@ -241,8 +248,7 @@ class BookPresenter(
 
         is LibraryItemUiEvent.SeriesClick -> {
           analytics.send(ActionEvent("series", Click))
-          val series = event.item.media.metadata.seriesSequence ?: return@ContentUiState
-          navigator.goTo(SeriesDetailScreen(series.id, series.name))
+          navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
         }
 
         is LibraryItemUiEvent.DiscardProgress -> {
@@ -359,7 +365,7 @@ private fun buildSlots(
   playbackSpeed: Float,
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
-  seriesContentState: LoadState<out List<LibraryItem>>,
+  seriesContentState: LoadState<out List<SeriesWithBooks>>,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
   hasSession: Boolean,
@@ -445,12 +451,13 @@ private fun buildSlots(
       )
     }
 
-    seriesContentState.onLoaded { seriesBooks ->
-      if (seriesBooks.isNotEmpty()) {
+    seriesContentState.onLoaded { seriesWithBooks ->
+      val populatedSeries = seriesWithBooks.filter { it.books.isNotEmpty() }
+      if (populatedSeries.isNotEmpty()) {
         this += SpacerSlot.medium("series_spacer")
         this += SeriesSlot(
           libraryItem = libraryItem,
-          seriesBooks = seriesBooks,
+          series = populatedSeries,
         )
       }
     }

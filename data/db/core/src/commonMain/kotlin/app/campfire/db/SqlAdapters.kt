@@ -4,12 +4,21 @@
 package app.campfire.db
 
 import app.campfire.core.model.BasicSearchResult
+import app.campfire.core.model.SeriesSequence
 import app.cash.sqldelight.ColumnAdapter
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.intOrNull
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 
 object StringListAdapter : ColumnAdapter<List<String>, String> {
   override fun decode(databaseValue: String): List<String> {
@@ -65,6 +74,34 @@ object DurationAdapter : ColumnAdapter<Duration, Long> {
 object UuidAdapter : ColumnAdapter<Uuid, String> {
   override fun decode(databaseValue: String): Uuid = Uuid.parse(databaseValue)
   override fun encode(value: Uuid): String = value.toString()
+}
+
+// Series names can contain arbitrary characters, so encode as JSON rather than
+// a delimiter-separated string.
+object SeriesSequenceListAdapter : ColumnAdapter<List<SeriesSequence>, String> {
+  override fun decode(databaseValue: String): List<SeriesSequence> {
+    if (databaseValue.isEmpty()) return emptyList()
+    return Json.parseToJsonElement(databaseValue).jsonArray.mapNotNull { element ->
+      val obj = element.jsonObject
+      SeriesSequence(
+        id = obj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null,
+        name = obj["name"]?.jsonPrimitive?.content ?: return@mapNotNull null,
+        sequence = obj["sequence"]?.jsonPrimitive?.intOrNull ?: Int.MAX_VALUE,
+      )
+    }
+  }
+
+  override fun encode(value: List<SeriesSequence>): String {
+    return buildJsonArray {
+      value.forEach { series ->
+        addJsonObject {
+          put("id", series.id)
+          put("name", series.name)
+          put("sequence", series.sequence)
+        }
+      }
+    }.toString()
+  }
 }
 
 object BasicSearchResultListAdapter : ColumnAdapter<List<BasicSearchResult>, String> {

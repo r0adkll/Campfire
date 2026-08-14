@@ -235,6 +235,7 @@ private val SeriesClick = EventTest(
         }
       }
     },
+    SeriesSequence("test_series_id", "test_series_name", 0),
   ),
   assert = {
     assertThat(analytics.events)

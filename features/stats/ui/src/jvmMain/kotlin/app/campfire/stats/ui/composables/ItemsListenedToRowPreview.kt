@@ -71,7 +71,7 @@ private fun createItemListenedTo(
     authorNameLastFirst = null,
     narratorName = null,
     seriesName = null,
-    seriesSequence = null,
+    series = emptyList(),
     genres = emptyList(),
     publishedYear = null,
     publishedDate = null,

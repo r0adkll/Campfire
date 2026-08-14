@@ -1,0 +1,4 @@
+-- Books can belong to multiple series, but media only stored a single one. Add a column
+-- holding the full encoded series list; the existing metadata_series_* columns stay as
+-- the "primary" series for sorting/filtering.
+ALTER TABLE media ADD COLUMN metadata_series TEXT;

@@ -77,6 +77,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.User
 import app.campfire.core.model.User.Permissions
 import app.campfire.core.model.User.Type
@@ -96,6 +97,7 @@ import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
+import app.campfire.libraries.ui.detail.composables.slots.SeriesWithBooks
 import app.campfire.libraries.ui.detail.composables.slots.SpacerSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
 import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
@@ -438,11 +440,16 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
               SpacerSlot.medium("series_spacer"),
               SeriesSlot(
                 libraryItem = libraryItem,
-                seriesBooks = listOf(
-                  libraryItem(),
-                  libraryItem(),
-                  libraryItem(),
-                  libraryItem(),
+                series = listOf(
+                  SeriesWithBooks(
+                    series = SeriesSequence("series_id", "Dungeon Crawler Carl", 1),
+                    books = listOf(
+                      libraryItem(),
+                      libraryItem(),
+                      libraryItem(),
+                      libraryItem(),
+                    ),
+                  ),
                 ),
               ),
               SpacerSlot.medium("genres_spacer"),

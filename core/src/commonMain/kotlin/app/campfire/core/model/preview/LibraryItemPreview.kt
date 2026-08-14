@@ -65,7 +65,7 @@ fun libraryItem(
       authorNameLastFirst = null,
       narratorName = "Jeff Hays",
       seriesName = "Dungeon Crawler Carl",
-      seriesSequence = seriesSequence,
+      series = listOfNotNull(seriesSequence),
       genres = genres,
       publishedYear = publishedYear,
       publishedDate = null,

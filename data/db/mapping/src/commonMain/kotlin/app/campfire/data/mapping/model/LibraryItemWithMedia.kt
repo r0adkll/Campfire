@@ -5,6 +5,7 @@ package app.campfire.data.mapping.model
 
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.util.createIfNotNull
 
 /**
@@ -69,6 +70,7 @@ data class LibraryItemWithMedia(
   val metadata_series_name: String?,
   val metadata_series_sequence: Int?,
   val libraryItemId: String,
+  val metadata_series: List<SeriesSequence>?,
   val userMediaProgress: LibraryItemProgress? = null,
 )
 
@@ -145,6 +147,7 @@ fun mapToLibraryItem(
   metadata_series_name: String?,
   metadata_series_sequence: Int?,
   libraryItemId: String,
+  metadata_series: List<SeriesSequence>?,
 ): LibraryItemWithMedia = LibraryItemWithMedia(
   id = id,
   ino = ino,
@@ -198,6 +201,7 @@ fun mapToLibraryItem(
   metadata_series_name = metadata_series_name,
   metadata_series_sequence = metadata_series_sequence,
   libraryItemId = libraryItemId,
+  metadata_series = metadata_series,
 )
 
 fun mapToLibraryItemWithProgress(
@@ -253,6 +257,7 @@ fun mapToLibraryItemWithProgress(
   metadata_series_name: String?,
   metadata_series_sequence: Int?,
   libraryItemId: String,
+  metadata_series: List<SeriesSequence>?,
   id_: String?,
   libraryItemId_: String?,
   userId: String?,
@@ -323,6 +328,7 @@ fun mapToLibraryItemWithProgress(
   metadata_series_name = metadata_series_name,
   metadata_series_sequence = metadata_series_sequence,
   libraryItemId = libraryItemId,
+  metadata_series = metadata_series,
   userMediaProgress = createIfNotNull(
     id_,
     libraryItemId_,

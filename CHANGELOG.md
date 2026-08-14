@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Books belonging to multiple series now show all of their series on the book detail screen
+
 ### Other Notes & Contributions
 
 - The on-device AI theme builder is now an optional component, laying the groundwork for fully FOSS builds for F-Droid

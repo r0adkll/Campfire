@@ -130,7 +130,7 @@ fun mediaMetadata(
     authorNameLastFirst = authorNameLastFirst,
     narratorName = narratorName,
     seriesName = seriesName,
-    seriesSequence = seriesSequence,
+    series = listOfNotNull(seriesSequence),
     genres = genres,
     publishedYear = publishedYear,
     publishedDate = publishedDate,
