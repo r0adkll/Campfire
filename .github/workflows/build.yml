@@ -36,7 +36,7 @@ jobs:
         if: ${{ github.event.pull_request.head.repo.full_name != github.repository && github.event_name != 'push' }}
 
       - name: Cache ktlint
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/campfire
           key: ktlint-${{ runner.os }}-${{ hashFiles('scripts/ktlint') }}
@@ -86,7 +86,7 @@ jobs:
       # Kotlin/Native dist + cinterop caches live outside ~/.gradle. Cache them so KMP
       # configuration / cinterop steps don't re-download the K/N dist on every run.
       - name: Cache Kotlin/Native (~/.konan)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
@@ -329,7 +329,7 @@ jobs:
       # restored by setup-java's gradle cache or setup-gradle. Caching ~/.konan
       # avoids re-downloading and re-compiling the K/N dist on every run.
       - name: Cache Kotlin/Native (~/.konan)
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml', 'gradle/wrapper/gradle-wrapper.properties') }}
