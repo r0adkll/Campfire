@@ -22,7 +22,17 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
 
+        implementation(libs.kotlinx.io.core)
+
         api(projects.features.auth.api)
+      }
+    }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
+        implementation(libs.kotlinx.serialization.json)
       }
     }
   }

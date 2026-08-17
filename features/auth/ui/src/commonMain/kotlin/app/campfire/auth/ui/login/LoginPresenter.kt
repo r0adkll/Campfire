@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
@@ -169,10 +170,7 @@ class LoginPresenter(
               applySelectedTheme(theme)
             }.onFailure {
               isAuthenticating = false
-              authError = when (it.cause) {
-                is IOException -> AuthError.NetworkError
-                else -> AuthError.InvalidCredentials
-              }
+              authError = it.asAuthError()
             }
           }
         }
@@ -195,10 +193,7 @@ class LoginPresenter(
                   applySelectedTheme(theme)
                 }.onFailure { e ->
                   isAuthenticating = false
-                  authError = when (e.cause) {
-                    is IOException -> AuthError.NetworkError
-                    else -> AuthError.InvalidCredentials
-                  }
+                  authError = e.asAuthError()
                 }
               }
               .onFailure {
@@ -302,6 +297,16 @@ class LoginPresenter(
 
     return connectionState
   }
+}
+
+private fun Throwable.asAuthError(): AuthError = when (this) {
+  is AuthException.InvalidCredentials -> AuthError.InvalidCredentials
+  is AuthException.NoAccessibleLibraries -> AuthError.NoLibraryAccess
+  is AuthException.Network -> AuthError.NetworkError
+  is AuthException.UnexpectedResponse -> AuthError.UnexpectedResponse
+  // Fallbacks for errors thrown outside of AuthRepository's typed mapping
+  is IOException -> AuthError.NetworkError
+  else -> if (cause is IOException) AuthError.NetworkError else AuthError.UnexpectedResponse
 }
 
 private fun Throwable.toOAuthAuthError(): AuthError {

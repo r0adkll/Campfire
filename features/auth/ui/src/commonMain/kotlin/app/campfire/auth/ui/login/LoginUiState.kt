@@ -51,6 +51,8 @@ sealed interface LoginUiEvent : CircuitUiEvent {
 
 sealed interface AuthError {
   data object InvalidCredentials : AuthError
+  data object NoLibraryAccess : AuthError
+  data object UnexpectedResponse : AuthError
   data object NetworkError : AuthError
   data object OAuthError : AuthError
   data object OAuthInvalidRedirectUri : AuthError

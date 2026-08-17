@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Books belonging to multiple series now show all of their series on the book detail screen
 - App freezing completely when connecting to Android Auto
+- Logging in with an account that has no library access now explains the problem instead of incorrectly reporting bad credentials
 
 ### Other Notes & Contributions
 

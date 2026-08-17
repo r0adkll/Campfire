@@ -17,7 +17,8 @@ data class LoginRequest(
 @Serializable
 data class LoginResponse(
   val user: User,
-  val userDefaultLibraryId: String,
+  // Null when the user has no accessible libraries on the server
+  val userDefaultLibraryId: String? = null,
   val serverSettings: ServerSettings,
   @SerialName("Source") val source: String,
 )

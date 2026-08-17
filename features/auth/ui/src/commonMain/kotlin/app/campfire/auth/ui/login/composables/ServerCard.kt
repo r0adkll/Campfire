@@ -97,8 +97,10 @@ import campfire.features.auth.ui.generated.resources.action_show_password
 import campfire.features.auth.ui.generated.resources.invalid_server_url
 import campfire.features.auth.ui.generated.resources.label_login_error_auth
 import campfire.features.auth.ui.generated.resources.label_login_error_network
+import campfire.features.auth.ui.generated.resources.label_login_error_no_libraries
 import campfire.features.auth.ui.generated.resources.label_login_error_oauth
 import campfire.features.auth.ui.generated.resources.label_login_error_oauth_invalid_redirect_uri
+import campfire.features.auth.ui.generated.resources.label_login_error_unexpected_response
 import campfire.features.auth.ui.generated.resources.label_password
 import campfire.features.auth.ui.generated.resources.label_server_name_placeholder
 import campfire.features.auth.ui.generated.resources.label_server_url
@@ -384,6 +386,8 @@ internal fun ServerCard(
             text = stringResource(
               when (authError) {
                 AuthError.InvalidCredentials -> Res.string.label_login_error_auth
+                AuthError.NoLibraryAccess -> Res.string.label_login_error_no_libraries
+                AuthError.UnexpectedResponse -> Res.string.label_login_error_unexpected_response
                 AuthError.NetworkError -> Res.string.label_login_error_network
                 AuthError.OAuthError -> Res.string.label_login_error_oauth
                 AuthError.OAuthInvalidRedirectUri -> Res.string.label_login_error_oauth_invalid_redirect_uri

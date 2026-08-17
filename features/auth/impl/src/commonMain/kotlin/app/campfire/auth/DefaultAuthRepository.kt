@@ -3,8 +3,8 @@
 
 package app.campfire.auth
 
-import app.campfire.CampfireDatabase
 import app.campfire.account.api.AccountManager
+import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.auth.di.ExistingUser
@@ -15,16 +15,17 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.envelopes.LoginResponse
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAuthRepository(
   private val api: AuthAudioBookShelfApi,
-  private val db: CampfireDatabase,
   private val accountManager: AccountManager,
   @NewUser private val newUserStorageStrategy: UserStorageStrategy,
   @ExistingUser private val existingUserStorageStrategy: UserStorageStrategy,
@@ -47,25 +48,13 @@ class DefaultAuthRepository(
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
     val result = api.login(serverUrl, username, password, networkSettings?.extraHeaders)
-
-    if (result.isSuccess) {
-      val response = result.getOrThrow()
-      if (!validateResponse(response)) {
-        return Result.failure(IllegalStateException("Unable to authenticate user. No valid tokens."))
-      }
-
-      handleLoginResponse(
-        serverUrl = serverUrl,
-        serverName = serverName,
-        response = response,
-        userId = userId,
-        networkSettings = networkSettings,
-      )
-
-      return Result.success(Unit)
-    } else {
-      return result.map { Unit }
-    }
+    return processLoginResult(
+      result = result,
+      serverUrl = serverUrl,
+      serverName = serverName,
+      userId = userId,
+      networkSettings = networkSettings,
+    )
   }
 
   override suspend fun authenticate(
@@ -78,25 +67,13 @@ class DefaultAuthRepository(
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
     val result = api.oauth(serverUrl, state, code, codeVerifier, networkSettings?.extraHeaders)
-
-    if (result.isSuccess) {
-      val response = result.getOrThrow()
-      if (!validateResponse(response)) {
-        return Result.failure(IllegalStateException("Unable to authenticate user. No valid tokens."))
-      }
-
-      handleLoginResponse(
-        serverUrl = serverUrl,
-        serverName = serverName,
-        response = response,
-        userId = userId,
-        networkSettings = networkSettings,
-      )
-
-      return Result.success(Unit)
-    } else {
-      return result.map { Unit }
-    }
+    return processLoginResult(
+      result = result,
+      serverUrl = serverUrl,
+      serverName = serverName,
+      userId = userId,
+      networkSettings = networkSettings,
+    )
   }
 
   override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? {
@@ -105,10 +82,39 @@ class DefaultAuthRepository(
     }
   }
 
+  private suspend fun processLoginResult(
+    result: Result<LoginResponse>,
+    serverUrl: String,
+    serverName: String,
+    userId: UserId?,
+    networkSettings: NetworkSettings?,
+  ): Result<Unit> {
+    val response = result.getOrElse { return Result.failure(it.asAuthException()) }
+
+    if (response.user.accessToken == null) {
+      return Result.failure(AuthException.UnexpectedResponse("No valid tokens found in the login response"))
+    }
+
+    val defaultLibraryId = response.userDefaultLibraryId
+      ?: return Result.failure(AuthException.NoAccessibleLibraries())
+
+    handleLoginResponse(
+      serverUrl = serverUrl,
+      serverName = serverName,
+      response = response,
+      defaultLibraryId = defaultLibraryId,
+      userId = userId,
+      networkSettings = networkSettings,
+    )
+
+    return Result.success(Unit)
+  }
+
   private suspend fun handleLoginResponse(
     serverUrl: String,
     serverName: String,
     response: LoginResponse,
+    defaultLibraryId: String,
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ) {
@@ -124,7 +130,7 @@ class DefaultAuthRepository(
       serverUrl = serverUrl,
       serverSettings = response.serverSettings,
       user = response.user,
-      userDefaultLibraryId = response.userDefaultLibraryId,
+      userDefaultLibraryId = defaultLibraryId,
     )
 
     // Add the new account/user and set it as the current session
@@ -133,11 +139,18 @@ class DefaultAuthRepository(
       accessToken = requireNotNull(response.user.accessToken),
       refreshToken = response.user.refreshToken,
       extraHeaders = networkSettings?.extraHeaders,
-      user = response.user.asDomainModel(serverUrl, response.userDefaultLibraryId),
+      user = response.user.asDomainModel(serverUrl, defaultLibraryId),
     )
   }
 
-  private fun validateResponse(response: LoginResponse): Boolean {
-    return response.user.accessToken != null
+  private fun Throwable.asAuthException(): AuthException = when {
+    this is AuthException -> this
+    this is IOException -> AuthException.Network(this)
+    this is ApiException && statusCode == HTTP_UNAUTHORIZED -> AuthException.InvalidCredentials(this)
+    else -> AuthException.UnexpectedResponse("The server returned an unexpected response", this)
+  }
+
+  companion object {
+    private const val HTTP_UNAUTHORIZED = 401
   }
 }
