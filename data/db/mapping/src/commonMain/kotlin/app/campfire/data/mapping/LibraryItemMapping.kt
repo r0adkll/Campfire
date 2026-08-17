@@ -14,6 +14,7 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.core.model.MetaTags
 import app.campfire.core.model.SeriesSequence
+import app.campfire.core.model.sortedByName
 import app.campfire.core.util.createIfAnyNotNull
 import app.campfire.core.util.createIfNotNull
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
@@ -119,8 +120,13 @@ fun <T : Media> T.asDbModel(
   val metadataAuthorNameLF = metadata.authorNameLF
     ?: (metadata as? ExpandedBookMetadata)?.authors?.firstOrNull()?.name?.lastFirst
 
+  // The server builds the expanded series array from an unordered join, so sort it
+  // before picking the primary series or storing the list to keep both deterministic.
+  val expandedSeries = (metadata as? ExpandedBookMetadata)?.series
+    ?.sortedWith(compareBy({ it.name.lowercase() }, { it.id }))
+
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
-    ?: (metadata as? ExpandedBookMetadata)?.series?.firstOrNull()
+    ?: expandedSeries?.firstOrNull()
 
   val metadataSeriesSequence = metadataSeries?.sequence?.toIntOrNull() ?: run {
     // This is super-duper hacky, but the API does not have a great way to
@@ -134,7 +140,7 @@ fun <T : Media> T.asDbModel(
   // The full set of series this book belongs to; the primary metadata_series_* columns
   // only capture the first one.
   val metadataSeriesList = (
-    (metadata as? ExpandedBookMetadata)?.series
+    expandedSeries
       ?: listOfNotNull((metadata as? MinifiedBookMetadata)?.series)
     ).map { series ->
     SeriesSequence(
@@ -256,7 +262,8 @@ fun DomainMedia.asDbModel(
  * Rebuild the full series list from the database representation. The primary
  * metadata_series_* columns win for their series (they receive sequence backfill from
  * [app.campfire.data.MediaQueries.updateSeriesSequence]), with the remaining series
- * from the encoded metadata_series column appended after.
+ * from the encoded metadata_series column. The result is sorted by name so the order
+ * is stable regardless of the order the server returned the series in.
  */
 private fun mergedSeries(
   primary: SeriesSequence?,
@@ -264,7 +271,7 @@ private fun mergedSeries(
 ): List<SeriesSequence> = buildList {
   primary?.let(::add)
   series?.forEach { if (it.id != primary?.id) add(it) }
-}
+}.sortedByName()
 
 private val String.lastFirst: String
   get() {

@@ -6,6 +6,7 @@ package app.campfire.data.mapping
 import app.campfire.core.extensions.toIntOrElse
 import app.campfire.core.model.Media
 import app.campfire.core.model.SeriesSequence
+import app.campfire.core.model.sortedByName
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.MinifiedBookMetadata
 
@@ -61,7 +62,7 @@ fun ExpandedBookMetadata.asDomainModel(): Media.Metadata.Book {
         name = it.name,
         sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
       )
-    } ?: emptyList(),
+    }?.sortedByName() ?: emptyList(),
     narrators = narrators ?: emptyList(),
     genres = genres ?: emptyList(),
     publishedYear = publishedYear,
