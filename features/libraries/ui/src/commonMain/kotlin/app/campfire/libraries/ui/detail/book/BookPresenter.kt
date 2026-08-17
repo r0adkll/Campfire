@@ -128,8 +128,10 @@ class BookPresenter(
         .catch { emit(LoadState.Error as LoadState<MediaProgress?>) }
     }.collectAsState(LoadState.Loading)
 
-    val seriesContentState by remember {
-      val allSeries = libraryItem.media.metadata.series
+    // Keyed on the series list so the flow rebuilds when the expanded metadata
+    // (with the full series list) loads in after the initial minified item.
+    val allSeries = libraryItem.media.metadata.series
+    val seriesContentState by remember(allSeries) {
       if (allSeries.isEmpty()) {
         flowOf(LoadState.Loaded(emptyList<SeriesWithBooks>()) as LoadState<List<SeriesWithBooks>>)
       } else {
