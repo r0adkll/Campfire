@@ -28,27 +28,13 @@ abstract class SuspendingMediaLibrarySessionCallback(
   private val serviceScope: CoroutineScope,
 ) : MediaLibrarySession.Callback {
 
-  @SuppressLint("UnsafeOptInUsageError")
-  override fun onGetLibraryRoot(
-    session: MediaLibrarySession,
-    browser: MediaSession.ControllerInfo,
-    params: MediaLibraryService.LibraryParams?,
-  ): ListenableFuture<LibraryResult<MediaItem>> {
-    return serviceScope.future {
-      try {
-        onGetLibraryRootInternal(session, browser, params)
-      } catch (e: Exception) {
-        bark(LogPriority.ERROR, throwable = e) { "onGetLibraryRoot: ${browser.uid}" }
-        LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
-      }
-    }
-  }
-
-  protected abstract suspend fun onGetLibraryRootInternal(
-    session: MediaLibrarySession,
-    browser: MediaSession.ControllerInfo,
-    params: MediaLibraryService.LibraryParams?,
-  ): LibraryResult<MediaItem>
+  // onGetLibraryRoot is deliberately NOT adapted to a coroutine here. Media3's legacy
+  // browser stub (the path Android Auto connects through) blocks the session's application
+  // thread on the returned future and opens its ConditionVariable from a callback posted
+  // back to that same thread — so any future that isn't already complete when returned
+  // deadlocks the main thread for as long as the browser stays connected (see
+  // MediaLibraryServiceLegacyStub.onGetRoot in media3 1.11.0). Implementations must
+  // override onGetLibraryRoot directly and return an already-completed future.
 
   @SuppressLint("UnsafeOptInUsageError")
   override fun onGetItem(

@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # We need to use a Personal Access Token from an admin to be able to commit to main,
           # as it is a protected branch.
@@ -58,7 +58,7 @@ jobs:
           ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
 
       - name: AVD cache
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         id: avd-cache
         with:
           path: |

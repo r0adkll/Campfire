@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Books belonging to multiple series now show all of their series on the book detail screen
+- App freezing completely when connecting to Android Auto
 
 ### Other Notes & Contributions
 

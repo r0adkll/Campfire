@@ -183,12 +183,20 @@ internal class MediaSessionCallback(
     return super.onMediaButtonEvent(session, controllerInfo, intent)
   }
 
-  override suspend fun onGetLibraryRootInternal(
+  override fun onGetLibraryRoot(
     session: MediaLibrarySession,
     browser: MediaSession.ControllerInfo,
     params: LibraryParams?,
-  ): LibraryResult<MediaItem> {
-    return LibraryResult.ofItem(userComponent.mediaTree.root, params)
+  ): ListenableFuture<LibraryResult<MediaItem>> {
+    // Must return an already-completed future: Android Auto's legacy browser path blocks
+    // the main thread on this result (see SuspendingMediaLibrarySessionCallback). The root
+    // is a static item, so it can be built synchronously.
+    return try {
+      Futures.immediateFuture(LibraryResult.ofItem(userComponent.mediaTree.root, params))
+    } catch (e: Exception) {
+      bark(LogPriority.ERROR, throwable = e) { "onGetLibraryRoot: ${browser.uid}" }
+      Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
+    }
   }
 
   override suspend fun onGetChildrenInternal(
