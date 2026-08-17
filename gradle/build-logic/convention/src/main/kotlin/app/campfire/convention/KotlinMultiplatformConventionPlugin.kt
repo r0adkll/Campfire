@@ -128,6 +128,14 @@ fun Project.addKspDependencyForCommon(dependencyNotation: Any) {
     }
   }
 
+  // The per-target KSP tasks (e.g. kspKotlinJvm) also process the generated commonMain
+  // sources, so they need the same explicit dependency or Gradle fails the build with an
+  // implicit-dependency validation error. Matched by name since the KSP plugin's task
+  // types aren't on this plugin's classpath.
+  tasks.matching { it.name.startsWith("ksp") && it.name != "kspCommonMainKotlinMetadata" }.configureEach {
+    dependsOn("kspCommonMainKotlinMetadata")
+  }
+
   extensions.configure<KotlinMultiplatformExtension> {
     sourceSets["commonMain"].apply {
       kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")

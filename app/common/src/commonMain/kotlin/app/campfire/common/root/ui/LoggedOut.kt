@@ -117,10 +117,8 @@ private fun LoggedOutUi(
           NavigableCircuitContent(
             navigator = navigator,
             backStack = backstack,
-            decoratorFactory = remember(navigator) {
-              GestureNavigationDecorationFactory(
-                onBackInvoked = navigator::pop,
-              )
+            decoratorFactory = remember {
+              GestureNavigationDecorationFactory()
             },
           )
         }

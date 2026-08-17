@@ -376,10 +376,8 @@ private fun LoggedInUi(
           NavigableCircuitContent(
             navigator = homeNavigator,
             backStack = backstack,
-            decoratorFactory = remember(navigator) {
-              GestureNavigationDecorationFactory(
-                onBackInvoked = navigator::pop,
-              )
+            decoratorFactory = remember {
+              GestureNavigationDecorationFactory()
             },
           )
         }
