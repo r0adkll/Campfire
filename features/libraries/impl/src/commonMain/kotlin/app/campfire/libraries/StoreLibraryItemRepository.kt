@@ -13,6 +13,7 @@ import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.AudioBookShelfApi
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.firstOrNull
@@ -48,10 +49,22 @@ class StoreLibraryItemRepository(
       .firstOrNull()
       ?.dataOrNull()
 
-    return if (cached != null && cached.isHydratedForPlayback) {
-      cached
-    } else {
+    if (cached != null && cached.isHydratedForPlayback) return cached
+
+    return try {
       itemStore.fresh(itemId)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      // The server may be unreachable (offline, DNS failure, timeout) or the item may have been
+      // removed (404). Prefer a partially-hydrated cached copy over crashing the caller; only
+      // propagate when we have nothing at all to hand back.
+      if (cached != null) {
+        bark(throwable = e) { "Failed to refresh library item $itemId, falling back to cached copy" }
+        cached
+      } else {
+        throw e
+      }
     }
   }
 

@@ -26,6 +26,7 @@ import app.campfire.core.app.ApplicationUrls
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Media
 import app.campfire.core.model.Server
 import app.campfire.core.session.UserSession
@@ -87,6 +88,7 @@ import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -175,7 +177,16 @@ class SettingsPresenter(
         .mapLatest { items ->
           items
             .mapNotNull { download ->
-              val libraryItem = libraryItemRepository.getLibraryItem(download.libraryItemId)
+              // A download whose item can't be resolved (server unreachable with no cached copy,
+              // or deleted on the server) shouldn't take the whole settings screen down.
+              val libraryItem = try {
+                libraryItemRepository.getLibraryItem(download.libraryItemId)
+              } catch (e: CancellationException) {
+                throw e
+              } catch (e: Exception) {
+                bark(throwable = e) { "Unable to resolve library item for download ${download.libraryItemId}" }
+                return@mapNotNull null
+              }
               val episodeId = download.episodeId
               if (episodeId == null) {
                 DownloadEntry.Book(libraryItem, download)

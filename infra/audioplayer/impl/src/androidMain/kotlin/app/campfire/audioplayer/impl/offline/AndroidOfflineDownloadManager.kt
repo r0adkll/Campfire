@@ -200,12 +200,30 @@ class AndroidOfflineDownloadManager(
   }
 
   override fun resumeDownloads() {
-    DownloadService.sendResumeDownloads(
-      application,
-      CampfireDownloadService::class.java,
-      /*foreground=*/
-      true,
-    )
+    // Android 12+ can refuse a foreground service start even from Activity.onStart() (e.g. when
+    // the activity is brought up while the device is locked or before the process is promoted
+    // to TOP). Fall back to a plain start and, failing that, simply skip — the service resumes
+    // downloads on its own the next time it's started.
+    try {
+      DownloadService.sendResumeDownloads(
+        application,
+        CampfireDownloadService::class.java,
+        /*foreground=*/
+        true,
+      )
+    } catch (e: IllegalStateException) {
+      bark(throwable = e) { "Unable to start download service in the foreground, retrying in background" }
+      try {
+        DownloadService.sendResumeDownloads(
+          application,
+          CampfireDownloadService::class.java,
+          /*foreground=*/
+          false,
+        )
+      } catch (e: IllegalStateException) {
+        bark(throwable = e) { "Unable to start download service, skipping resume" }
+      }
+    }
   }
 
   private fun episodeDownloadId(itemId: LibraryItemId, episodeId: PodcastEpisodeId): String =

@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Crash when the server is unreachable or an item was deleted while opening Settings or resuming playback
+- Crash when resuming downloads on app launch on some Android 12+ devices
+- Crash when opening Android Auto settings on devices without Android Auto installed
+- Playback resumption from Bluetooth / media buttons killing the app when the server is offline
+
 ### Other Notes & Contributions
 
 

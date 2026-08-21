@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.guava.future
 
@@ -126,12 +127,22 @@ internal class MediaSessionCallback(
       "onPlaybackResumptionInternal(controller=${controller.packageName}, isForPlayback=$isForPlayback)"
     }
 
-    userComponent.sessionsRepository.getCurrentSession()?.let { session ->
-      userComponent.playbackSessionManager.startSession(
-        libraryItemId = session.libraryItem.id,
-        playImmediately = isForPlayback,
-        episodeId = session.episodeId,
-      )
+    // Resumption is often triggered from the background (Bluetooth / media button) where the
+    // server may be unreachable. Resolving the session hits the repository layer, so guard it:
+    // an exception escaping here would leave the freshly started foreground service without a
+    // notification and Android would kill the process.
+    try {
+      userComponent.sessionsRepository.getCurrentSession()?.let { session ->
+        userComponent.playbackSessionManager.startSession(
+          libraryItemId = session.libraryItem.id,
+          playImmediately = isForPlayback,
+          episodeId = session.episodeId,
+        )
+      }
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(LogPriority.ERROR, throwable = e) { "Failed to resume playback from current session" }
     }
 
     // Return an error from this response as we've taken responsibility for starting playback and

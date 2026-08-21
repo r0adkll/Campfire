@@ -4,9 +4,11 @@
 package app.campfire.ui.settings.auto
 
 import android.app.Application
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import androidx.core.net.toUri
 import app.campfire.core.di.AppScope
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import me.tatarka.inject.annotations.Inject
@@ -56,6 +58,30 @@ class AndroidAutoWrapper(
     val settingsIntent = Intent("com.google.android.projection.gearhead.SETTINGS")
     settingsIntent.setPackage(androidAutoPackageName) // Target Android Auto specifically
     settingsIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    application.startActivity(settingsIntent)
+    try {
+      application.startActivity(settingsIntent)
+    } catch (e: ActivityNotFoundException) {
+      // Android Auto isn't installed (or doesn't expose its settings activity on this device).
+      // Send the user to its Play Store listing instead of crashing.
+      openPlayStoreListing()
+    }
+  }
+
+  private fun openPlayStoreListing() {
+    val marketIntent = Intent(Intent.ACTION_VIEW, "market://details?id=$androidAutoPackageName".toUri())
+      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+      application.startActivity(marketIntent)
+    } catch (e: ActivityNotFoundException) {
+      val webIntent = Intent(
+        Intent.ACTION_VIEW,
+        "https://play.google.com/store/apps/details?id=$androidAutoPackageName".toUri(),
+      ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+      try {
+        application.startActivity(webIntent)
+      } catch (e: ActivityNotFoundException) {
+        // No browser either; nothing sensible left to do.
+      }
+    }
   }
 }
