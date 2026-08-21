@@ -8,3 +8,4 @@
 - [Socket.IO Surface](socketio-surface.md) — Complete inventory: connection path, post-connect auth flow, all client→server and server→client events, broadcast scoping rules
 - [Auth Token Lifecycle](auth-token-lifecycle.md) — Access/refresh TTLs, /auth/refresh contract, rotation race condition, socket never re-validates JWT after initial auth, Campfire client gap
 - [Book Media Shapes](book-media-shapes.md) — Exact minified/basic/expanded field lists for Book media, ebookFile shape, numMissingParts doesn't exist
+- [Scanner Metadata Parsing](scanner-metadata-parsing.md) — metadata.json schema/precedence for books & podcasts, folder-name parsing, cover filename rules, ffprobe validity/chapter import
