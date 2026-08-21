@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Tap the speed value in the playback speed sheet to type an exact playback speed
+
 ### Changed
 
-- Playback speed slider now snaps to 0.05 increments so speeds like 1.2x are easy to land on
+
 ### Deprecated
 
 ### Removed

@@ -64,7 +64,6 @@ import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
-import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -173,7 +172,7 @@ private fun PlaybackSpeedBottomSheet(
 
       val setSpeed: (Float) -> Unit = { raw ->
         val speed = raw.roundToHundredths().coerceIn(DefaultSpeedRange)
-        // Snapping means many drag frames resolve to the same stop; only push real changes to the player
+        // Rounding to hundredths means nearby drag frames resolve to the same value; only push real changes
         if (speed != sliderValue) {
           sliderValue = speed
           Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("speed" to speed)))
@@ -184,7 +183,7 @@ private fun PlaybackSpeedBottomSheet(
       WavySlider(
         value = sliderValue,
         valueRange = DefaultSpeedRange,
-        onValueChange = { setSpeed(it.snapToSliderIncrement()) },
+        onValueChange = setSpeed,
         waveLength = waveLength,
         waveHeight = waveHeight,
         waveVelocity = waveVelocity to WaveDirection.TAIL,
@@ -296,8 +295,3 @@ private val WaveThicknessRange = 16.dp.rangeTo(6.dp)
 
 internal val DefaultSpeedRange = 0.5f.rangeTo(2f)
 private val ClosedFloatingPointRange<Float>.length: Float get() = endInclusive - start
-
-private const val SpeedSliderIncrement = 0.05f
-
-/** Snap a raw slider value to the nearest [SpeedSliderIncrement] so drags land on clean stops like 1.2 instead of 1.18. */
-internal fun Float.snapToSliderIncrement(): Float = (this / SpeedSliderIncrement).roundToInt() * SpeedSliderIncrement
