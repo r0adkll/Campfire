@@ -190,7 +190,7 @@ halogen-provider-nano = { module = "me.mmckenna.halogen:halogen-provider-nano", 
 
 materialcolorsutilities = "dev.sasikanth:material-color-utilities:1.0.0-alpha01"
 wavy-slider = "ir.mahozad.multiplatform:wavy-slider:2.2.0"
-compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.0.0"
+compose-rich-text = "com.mohamedrejeb.richeditor:richeditor-compose:1.1.0"
 color-picker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpicker-compose" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 
