@@ -116,6 +116,7 @@ fun MyUi(state: MyUiState, modifier: Modifier = Modifier) { /* ... */ }
 - Use `@CircuitInject` for screens with the appropriate scope (usually `UserScope`)
 - `@Parcelize` is multiplatform via expect/actual (see `ParcelizeConventionPlugin`)
 - Package structure: `app.campfire.[module].[submodule]`
+- Do not add comments to dependency notations in `build.gradle.kts` files or in `gradle/libs.versions.toml` — keep dependency declarations bare. If a dependency exists for a non-obvious reason, explain it in the PR/commit message instead.
 
 ## Changelog
 

@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other Notes & Contributions
 
+- Fixed the Google Play release bundle build failing on a lint check
+
 
 ## [1.0.0]
 

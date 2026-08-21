@@ -188,6 +188,7 @@ dependencies {
   implementation(libs.about.libraries.core)
 
   implementation(libs.androidx.activity.compose)
+  implementation(libs.androidx.fragment)
   implementation(libs.androidx.browser)
   implementation(libs.androidx.compose.ui)
 

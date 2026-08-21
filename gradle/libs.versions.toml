@@ -4,6 +4,7 @@ about-libraries = "15.1.0"
 accompanist = "0.37.3"
 androidxlifecycle = "2.11.0"
 androidxactivity = "1.13.0"
+androidxfragment = "1.8.9"
 androidxcomposeui = "1.12.0"
 androidxtracing = "2.0.0"
 androidxtracingperfetto = "1.0.1"
@@ -95,6 +96,7 @@ about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3"
 #Android
 androidx-activity-activity = { module = "androidx.activity:activity", version.ref = "androidxactivity" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidxactivity" }
+androidx-fragment = { module = "androidx.fragment:fragment", version.ref = "androidxfragment" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime", version.ref = "androidxlifecycle" }
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxlifecycle" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
