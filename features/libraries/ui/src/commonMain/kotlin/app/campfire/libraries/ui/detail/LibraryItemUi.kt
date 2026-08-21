@@ -442,7 +442,7 @@ fun LibraryItemPreview() = PreviewSharedElementTransitionLayout {
                 libraryItem = libraryItem,
                 series = listOf(
                   SeriesWithBooks(
-                    series = SeriesSequence("series_id", "Dungeon Crawler Carl", 1),
+                    series = SeriesSequence("series_id", "Dungeon Crawler Carl", 1.0),
                     books = listOf(
                       libraryItem(),
                       libraryItem(),

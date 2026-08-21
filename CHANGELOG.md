@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Series with decimal sequence numbers (1.1, 1.2, …) now sort in the correct order instead of jumping to the end
 - Covers updated on the server now refresh in the app instead of showing the old image until the cache expires
 
 ### Other Notes & Contributions

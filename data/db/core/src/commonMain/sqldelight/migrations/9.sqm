@@ -4,7 +4,12 @@ import kotlin.Int;
 import kotlin.String;
 import kotlin.collections.List;
 
-CREATE TABLE IF NOT EXISTS media (
+-- Series sequences on the server are free-form text and frequently fractional ("1.5",
+-- "2.1"). The column was INTEGER-typed so those books lost their position and sorted to
+-- the end of the series. Change it to REAL; SQLite can't alter a column type in place, so
+-- rebuild the table. Child rows (chapters, tracks, files, authors) are cached server
+-- data and are re-hydrated on the next sync.
+CREATE TABLE media_new (
   mediaId TEXT NOT NULL PRIMARY KEY,
   coverPath TEXT,
   tags TEXT AS List<String>,
@@ -42,23 +47,20 @@ CREATE TABLE IF NOT EXISTS media (
 
   libraryItemId TEXT NOT NULL,
 
-  -- Every series this book belongs to; the metadata_series_* columns above remain the
-  -- "primary" series used for sorting/filtering and series-sequence backfill.
   metadata_series TEXT AS List<SeriesSequence>,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
-insert:
-INSERT OR REPLACE INTO media
-VALUES ?;
+INSERT INTO media_new
+SELECT mediaId, coverPath, tags, numTracks, numAudioFiles, numChapters, numMissingParts,
+       numInvalidAudioFiles, durationInMillis, sizeInBytes, propertySize, ebookFormat,
+       metadata_title, metadata_subtitle, metadata_genres, metadata_publishedYear,
+       metadata_publishedDate, metadata_publisher, metadata_description, metadata_isbn,
+       metadata_asin, metadata_language, metadata_explicit, metadata_abridged,
+       metadata_titleIgnorePrefix, metadata_authorName, metadata_authorNameLF,
+       metadata_narratorName, metadata_seriesName, metadata_series_id, metadata_series_name,
+       CAST(metadata_series_sequence AS REAL), libraryItemId, metadata_series
+FROM media;
 
-insertOrIgnore:
-INSERT OR IGNORE INTO media
-VALUES ?;
-
-updateSeriesSequence:
-UPDATE media
-SET metadata_series_id = ?,
-    metadata_series_name = ?,
-    metadata_series_sequence = ?
-WHERE libraryItemId = ?;
+DROP TABLE media;
+ALTER TABLE media_new RENAME TO media;

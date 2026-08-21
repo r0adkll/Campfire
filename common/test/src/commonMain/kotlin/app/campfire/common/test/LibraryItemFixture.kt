@@ -107,7 +107,7 @@ fun mediaMetadata(
   seriesSequence: SeriesSequence? = SeriesSequence(
     id = "1234",
     name = "Test Series",
-    sequence = 0,
+    sequence = 0.0,
   ),
   genres: List<String> = listOf("Fantasy", "Testing"),
   publishedYear: String? = "2024",
@@ -256,7 +256,7 @@ class MetadataBuilder {
   var authors: List<Media.AuthorMetadata> = listOf(authorMetadata())
   var narrators: List<String> = emptyList()
   var seriesName: String? = null
-  var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0)
+  var seriesSequence: SeriesSequence? = SeriesSequence("1234", "Test Series", 0.0)
 
   internal fun build(): Media.Metadata.Book {
     return mediaMetadata(

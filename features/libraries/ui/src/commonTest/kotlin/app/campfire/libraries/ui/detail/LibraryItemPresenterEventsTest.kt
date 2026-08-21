@@ -231,11 +231,11 @@ private val SeriesClick = EventTest(
     libraryItem {
       media {
         metadata {
-          seriesSequence = SeriesSequence("test_series_id", "test_series_name", 0)
+          seriesSequence = SeriesSequence("test_series_id", "test_series_name", 0.0)
         }
       }
     },
-    SeriesSequence("test_series_id", "test_series_name", 0),
+    SeriesSequence("test_series_id", "test_series_name", 0.0),
   ),
   assert = {
     assertThat(analytics.events)

@@ -3,10 +3,10 @@
 
 package app.campfire.data.mapping
 
-import app.campfire.core.extensions.toIntOrElse
 import app.campfire.core.model.Media
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.sortedByName
+import app.campfire.core.model.toSeriesSequenceOrNull
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.MinifiedBookMetadata
 
@@ -24,7 +24,7 @@ fun MinifiedBookMetadata.asDomainModel(): Media.Metadata.Book {
         SeriesSequence(
           id = it.id,
           name = it.name,
-          sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
+          sequence = it.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE,
         )
       },
     ),
@@ -60,7 +60,7 @@ fun ExpandedBookMetadata.asDomainModel(): Media.Metadata.Book {
       SeriesSequence(
         id = it.id,
         name = it.name,
-        sequence = it.sequence.toIntOrElse { Int.MAX_VALUE },
+        sequence = it.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE,
       )
     }?.sortedByName() ?: emptyList(),
     narrators = narrators ?: emptyList(),

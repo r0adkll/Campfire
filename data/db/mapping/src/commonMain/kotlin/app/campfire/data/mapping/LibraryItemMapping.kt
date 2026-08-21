@@ -15,6 +15,7 @@ import app.campfire.core.model.MediaType as DomainMediaType
 import app.campfire.core.model.MetaTags
 import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.sortedByName
+import app.campfire.core.model.toSeriesSequenceOrNull
 import app.campfire.core.util.createIfAnyNotNull
 import app.campfire.core.util.createIfNotNull
 import app.campfire.data.LibraryItem as DatabaseLibraryItem
@@ -102,11 +103,11 @@ fun LibraryItem.asDbModel(
  * of "Some Book Series #5". We should be able to reasonably determine the
  * sequence # for ordering from this, or fallback onto another value if available.
  */
-private val SERIES_SEQUENCE_REGEX = ".*#([0-9]+)".toRegex()
+private val SERIES_SEQUENCE_REGEX = ".*#([0-9]+(?:\\.[0-9]+)?)".toRegex()
 
 fun <T : Media> T.asDbModel(
   libraryItemId: String,
-  fallbackSeriesSequence: Int? = null,
+  fallbackSeriesSequence: Double? = null,
 ): DatabaseMedia {
   val metadata: BookMetadata = when (this) {
     is NetworkMediaMinified -> metadata
@@ -128,12 +129,12 @@ fun <T : Media> T.asDbModel(
   val metadataSeries = (metadata as? MinifiedBookMetadata)?.series
     ?: expandedSeries?.firstOrNull()
 
-  val metadataSeriesSequence = metadataSeries?.sequence?.toIntOrNull() ?: run {
+  val metadataSeriesSequence = metadataSeries?.sequence.toSeriesSequenceOrNull() ?: run {
     // This is super-duper hacky, but the API does not have a great way to
     // interpret the sequence int for books in a series. So if the data doesn't have any
     // then let's try to determine based on seriesName
     metadata.seriesName?.let { seriesName ->
-      SERIES_SEQUENCE_REGEX.find(seriesName)?.groupValues?.getOrNull(1)?.toIntOrNull()
+      SERIES_SEQUENCE_REGEX.find(seriesName)?.groupValues?.getOrNull(1)?.toDoubleOrNull()
     } ?: fallbackSeriesSequence
   }
 
@@ -147,9 +148,9 @@ fun <T : Media> T.asDbModel(
       id = series.id,
       name = series.name,
       sequence = if (series.id == metadataSeries?.id) {
-        metadataSeriesSequence ?: Int.MAX_VALUE
+        metadataSeriesSequence ?: SeriesSequence.UNKNOWN_SEQUENCE
       } else {
-        series.sequence?.toIntOrNull() ?: Int.MAX_VALUE
+        series.sequence.toSeriesSequenceOrNull() ?: SeriesSequence.UNKNOWN_SEQUENCE
       },
     )
   }

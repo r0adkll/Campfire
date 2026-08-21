@@ -256,7 +256,7 @@ class HomeSourceOfTruthFactory(
       // Insert the series books
       series.books?.forEachIndexed { index, book ->
         val libraryItem = book.asDbModel()
-        val media = book.media.asDbModel(book.id, fallbackSeriesSequence = index + 1)
+        val media = book.media.asDbModel(book.id, fallbackSeriesSequence = (index + 1).toDouble())
 
         // If these items exist, lets not overwrite their metadata
         db.libraryItemsQueries.insertOrIgnore(libraryItem)

@@ -95,7 +95,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_Series_GeneratesSeriesSlot() = runTest {
     val libraryItem = libraryItem(
-      seriesSequence = SeriesSequence("", "", 0),
+      seriesSequence = SeriesSequence("", "", 0.0),
     )
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
     val seriesBooks = listOf(libraryItem())
@@ -112,7 +112,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_EmptySeries_NoSeriesSlot() = runTest {
     val libraryItem = libraryItem(
-      seriesSequence = SeriesSequence("", "", 0),
+      seriesSequence = SeriesSequence("", "", 0.0),
     )
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
     seriesRepository.seriesLibraryItemsFlow.emit(emptyList())

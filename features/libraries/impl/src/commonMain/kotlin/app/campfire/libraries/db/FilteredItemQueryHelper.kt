@@ -122,7 +122,7 @@ class FilteredItemQueryHelper(
       metadata_seriesName: String?,
       metadata_series_id: String?,
       metadata_series_name: String?,
-      metadata_series_sequence: Int?,
+      metadata_series_sequence: Double?,
       libraryItemId: String,
       metadata_series: List<SeriesSequence>?,
     ) -> T,
@@ -178,7 +178,7 @@ class FilteredItemQueryHelper(
       cursor.getString(47),
       cursor.getString(48),
       cursor.getString(49),
-      cursor.getLong(50)?.let { adapters.mediaAdapter.metadata_series_sequenceAdapter.decode(it) },
+      cursor.getDouble(50),
       cursor.getString(51)!!,
       cursor.getString(52)?.let { adapters.mediaAdapter.metadata_seriesAdapter.decode(it) },
     )

@@ -29,7 +29,7 @@ class SeriesSlotTest {
           seriesSequence = SeriesSequence(
             id = "",
             name = "test_series_name",
-            sequence = 0,
+            sequence = 0.0,
           )
         }
       }
@@ -38,7 +38,7 @@ class SeriesSlotTest {
       libraryItem = libraryItem,
       series = listOf(
         SeriesWithBooks(
-          series = SeriesSequence(id = "", name = "test_series_name", sequence = 0),
+          series = SeriesSequence(id = "", name = "test_series_name", sequence = 0.0),
           books = listOf(libraryItem()),
         ),
       ),
@@ -56,8 +56,8 @@ class SeriesSlotTest {
 
   @Test
   fun multipleSeriesContentTest() = runComposeUiTest {
-    val firstSeries = SeriesSequence(id = "series_1", name = "test_series_one", sequence = 1)
-    val secondSeries = SeriesSequence(id = "series_2", name = "test_series_two", sequence = 3)
+    val firstSeries = SeriesSequence(id = "series_1", name = "test_series_one", sequence = 1.0)
+    val secondSeries = SeriesSequence(id = "series_2", name = "test_series_two", sequence = 3.0)
     val libraryItem = libraryItem {
       media {
         metadata {
