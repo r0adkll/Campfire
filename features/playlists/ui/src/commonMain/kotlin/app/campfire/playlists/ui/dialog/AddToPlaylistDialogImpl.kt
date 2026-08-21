@@ -64,6 +64,7 @@ import app.campfire.common.compose.widgets.AlertDialogContent
 import app.campfire.common.compose.widgets.AlertDialogFlowRow
 import app.campfire.common.compose.widgets.ButtonsCrossAxisSpacing
 import app.campfire.common.compose.widgets.ButtonsMainAxisSpacing
+import app.campfire.common.compose.widgets.rememberDrawSizedRequest
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
@@ -231,7 +232,7 @@ class AddToPlaylistDialogImpl(
               contentAlignment = Alignment.Center,
             ) {
               val painter = rememberAsyncImagePainter(
-                playlist.items.firstOrNull()?.libraryItem?.media?.coverImageUrl,
+                rememberDrawSizedRequest(playlist.items.firstOrNull()?.libraryItem?.media?.coverImageUrl),
               )
               Image(
                 painter = painter,

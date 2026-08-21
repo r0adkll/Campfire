@@ -48,7 +48,7 @@ fun ImageAvatar(
     )
   },
 ) {
-  val action = rememberAsyncImagePainter(url)
+  val action = rememberAsyncImagePainter(rememberDrawSizedRequest(url))
 
   Avatar(modifier) {
     Image(

@@ -328,7 +328,7 @@ private fun CoverCell(
   ) {
     val painter = key(imageUrl) {
       rememberAsyncImagePainter(
-        model = imageUrl,
+        model = rememberDrawSizedRequest(imageUrl),
         error = painterResource(Res.drawable.placeholder_book),
       )
     }

@@ -59,6 +59,7 @@ import app.campfire.common.compose.widgets.AlertDialogContent
 import app.campfire.common.compose.widgets.AlertDialogFlowRow
 import app.campfire.common.compose.widgets.ButtonsCrossAxisSpacing
 import app.campfire.common.compose.widgets.ButtonsMainAxisSpacing
+import app.campfire.common.compose.widgets.rememberDrawSizedRequest
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
@@ -212,7 +213,8 @@ class AddToCollectionDialogImpl(
             )
           },
           leadingContent = {
-            val painter = rememberAsyncImagePainter(collection.books.firstOrNull()?.media?.coverImageUrl)
+            val painter =
+              rememberAsyncImagePainter(rememberDrawSizedRequest(collection.books.firstOrNull()?.media?.coverImageUrl))
             Image(
               painter = painter,
               contentDescription = null,

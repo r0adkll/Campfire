@@ -37,7 +37,7 @@ fun ItemImage(
   Box(
     modifier = modifier,
   ) {
-    val painter = rememberAsyncImagePainter(imageUrl)
+    val painter = rememberAsyncImagePainter(rememberDrawSizedRequest(imageUrl))
 
     val imageState by painter.state.collectAsState()
     when (imageState) {

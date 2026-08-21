@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.rememberDrawSizedRequest
 import app.campfire.core.model.LibraryItem
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -130,7 +131,7 @@ private fun BookImage(
     contentAlignment = Alignment.Center,
   ) {
     val painter = rememberAsyncImagePainter(
-      model = imageUrl,
+      model = rememberDrawSizedRequest(imageUrl),
     )
 
     Image(

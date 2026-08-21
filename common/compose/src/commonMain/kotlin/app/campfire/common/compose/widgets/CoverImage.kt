@@ -63,7 +63,7 @@ fun CoverImage(
   ) {
     val painter = key(imageUrl) {
       rememberAsyncImagePainter(
-        model = imageUrl,
+        model = rememberDrawSizedRequest(imageUrl),
         error = placeholder,
       )
     }

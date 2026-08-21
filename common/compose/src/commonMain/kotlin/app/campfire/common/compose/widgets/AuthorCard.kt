@@ -93,7 +93,7 @@ fun AuthorCard(
 
       val contentScale = ContentScale.Crop
       val painter = rememberAsyncImagePainter(
-        model = author.imagePath,
+        model = rememberDrawSizedRequest(author.imagePath),
         placeholder = painterResource(placeHolderResource),
         error = painterResource(placeHolderResource),
         onError = {
