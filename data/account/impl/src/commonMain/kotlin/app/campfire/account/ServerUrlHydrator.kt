@@ -22,11 +22,16 @@ class ServerUrlHydrator(
     return "${userSession.serverUrl}$absolutePath"
   }
 
-  override fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
-    return "${userSession.serverUrl}/api/items/$libraryItemId/cover"
+  override fun hydrateLibraryItem(libraryItemId: LibraryItemId, updatedAtMillis: Long?): String {
+    return "${userSession.serverUrl}/api/items/$libraryItemId/cover".withTimestamp(updatedAtMillis)
   }
 
-  override fun hydrateAuthor(authorId: AuthorId): String {
-    return "${userSession.serverUrl}/api/authors/$authorId/image"
+  override fun hydrateAuthor(authorId: AuthorId, updatedAtMillis: Long?): String {
+    return "${userSession.serverUrl}/api/authors/$authorId/image".withTimestamp(updatedAtMillis)
+  }
+
+  private fun String.withTimestamp(updatedAtMillis: Long?): String {
+    if (updatedAtMillis == null || updatedAtMillis <= 0L) return this
+    return "$this?ts=$updatedAtMillis"
   }
 }

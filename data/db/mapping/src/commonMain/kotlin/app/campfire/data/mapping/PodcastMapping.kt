@@ -281,7 +281,7 @@ fun PodcastLibraryItemWithMedia.asDomainModel(
   val podcast = Media.Podcast(
     id = mediaId,
     metadata = metadata,
-    coverImageUrl = urlHydrator.hydrateLibraryItem(id),
+    coverImageUrl = urlHydrator.hydrateLibraryItem(id, updatedAt),
     coverPath = coverPath,
     tags = tags ?: emptyList(),
     sizeInBytes = sizeInBytes,

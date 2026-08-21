@@ -20,7 +20,7 @@ suspend fun NetworkAuthor.asDbModel(
     asin = asin,
     name = name,
     description = description,
-    imagePath = imageHydrator.hydrateAuthor(id),
+    imagePath = imageHydrator.hydrateAuthor(id, updatedAt),
     addedAt = addedAt,
     updatedAt = updatedAt,
     numBooks = numBooks,

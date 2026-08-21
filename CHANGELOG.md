@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Cover art is now requested at the size it is displayed, so full-screen player and detail artwork is sharp instead of upscaled
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Covers updated on the server now refresh in the app instead of showing the old image until the cache expires
 
 ### Other Notes & Contributions
 

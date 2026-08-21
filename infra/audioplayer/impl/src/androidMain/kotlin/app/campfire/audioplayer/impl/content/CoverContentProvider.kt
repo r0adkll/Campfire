@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import app.campfire.account.api.UrlHydrator
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.image.CoverUrls
 import app.campfire.core.logging.Corked
 import app.campfire.core.logging.loggableUrl
 import coil3.imageLoader
@@ -32,7 +33,10 @@ class CoverContentProvider : ContentProvider() {
 
     val ctx = context
       ?: throw FileNotFoundException("ContentProvider has no context")
+    // The app's image loader rewrites server cover URLs to request a sized rendition, and that rewritten
+    // URL is the disk cache key — so look up (and warm) the same rendition it would produce.
     val url = resolveRemoteUrl(uri)
+      ?.let { CoverUrls.sized(it, CoverUrls.ARTWORK_WIDTH) }
       ?: throw FileNotFoundException("Unable to resolve remote URL for $uri")
 
     val loader = ctx.imageLoader
@@ -50,6 +54,7 @@ class CoverContentProvider : ContentProvider() {
         loader.execute(
           ImageRequest.Builder(ctx)
             .data(url)
+            .size(CoverUrls.ARTWORK_WIDTH)
             .build(),
         )
       }

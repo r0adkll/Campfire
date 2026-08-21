@@ -13,11 +13,11 @@ class FakeUrlHydrator : UrlHydrator {
     return absolutePath
   }
 
-  override fun hydrateLibraryItem(libraryItemId: LibraryItemId): String {
+  override fun hydrateLibraryItem(libraryItemId: LibraryItemId, updatedAtMillis: Long?): String {
     return "https://fakeserver.com/library/item/$libraryItemId"
   }
 
-  override fun hydrateAuthor(authorId: AuthorId): String {
+  override fun hydrateAuthor(authorId: AuthorId, updatedAtMillis: Long?): String {
     return "https://fakeserver.com/author/$authorId"
   }
 }

@@ -33,6 +33,7 @@ class CoilAppInitializer(
             .build()
         }
         .components {
+          add(CoverSizingInterceptor())
           add(
             KtorNetworkFetcherFactory(
               httpClient = {

@@ -5,6 +5,7 @@ package app.campfire.audioplayer.impl.mediaitem
 
 import app.campfire.core.extensions.isIn
 import app.campfire.core.extensions.seconds
+import app.campfire.core.image.CoverUrls
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Session
@@ -33,7 +34,7 @@ object IosMediaItemBuilder {
       description = episode.description ?: "",
       subtitle = episode.subtitle,
       albumTitle = item.media.metadata.title,
-      artworkUri = item.media.coverImageUrl,
+      artworkUri = CoverUrls.sized(item.media.coverImageUrl, CoverUrls.ARTWORK_WIDTH),
       durationMs = durationMs,
       libraryItemId = item.id,
     )

@@ -14,6 +14,7 @@ import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
+import app.campfire.core.image.CoverUrls
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
@@ -91,7 +92,7 @@ class VlcAudioPlayer(
       currentDuration.value = podcastEpisode.duration
       currentMetadata.value = Metadata(
         title = podcastEpisode.title,
-        artworkUri = session.libraryItem.media.coverImageUrl,
+        artworkUri = CoverUrls.sized(session.libraryItem.media.coverImageUrl, CoverUrls.ARTWORK_WIDTH),
       )
       overallTime.value = resumeMs.milliseconds
     } else if (chapterId != null) {
@@ -112,7 +113,7 @@ class VlcAudioPlayer(
       currentDuration.value = chapter.duration
       currentMetadata.value = Metadata(
         title = chapter.title,
-        artworkUri = session.libraryItem.media.coverImageUrl,
+        artworkUri = CoverUrls.sized(session.libraryItem.media.coverImageUrl, CoverUrls.ARTWORK_WIDTH),
       )
       overallTime.value = overallProgressOfChapterMs.milliseconds
     } else if (session.currentTime.isFinite() && session.currentTime > 0.seconds) {
@@ -129,7 +130,7 @@ class VlcAudioPlayer(
         currentDuration.value = chapter.duration
         currentMetadata.value = Metadata(
           title = chapter.title,
-          artworkUri = session.libraryItem.media.coverImageUrl,
+          artworkUri = CoverUrls.sized(session.libraryItem.media.coverImageUrl, CoverUrls.ARTWORK_WIDTH),
         )
         overallTime.value = session.currentTime
       } else if (track != null) {
@@ -144,7 +145,7 @@ class VlcAudioPlayer(
         currentDuration.value = track.duration.seconds
         currentMetadata.value = Metadata(
           title = track.taggedTitle,
-          artworkUri = session.libraryItem.media.coverImageUrl,
+          artworkUri = CoverUrls.sized(session.libraryItem.media.coverImageUrl, CoverUrls.ARTWORK_WIDTH),
         )
         overallTime.value = session.currentTime
       } else {
