@@ -52,6 +52,7 @@ fun CoverImage(
   sharedElementModifier: Modifier = Modifier,
   placeholder: Painter? = null,
   size: Dp = CoverImageSize,
+  requestSize: Dp = size,
   shape: Shape = CoverImageShape,
   impressionThreshold: Duration = 500.milliseconds,
   contentScale: ContentScale = ContentScale.Crop,
@@ -63,7 +64,7 @@ fun CoverImage(
   ) {
     val painter = key(imageUrl) {
       rememberAsyncImagePainter(
-        model = rememberDrawSizedRequest(imageUrl),
+        model = rememberDrawSizedRequest(imageUrl, requestSize),
         error = placeholder,
       )
     }

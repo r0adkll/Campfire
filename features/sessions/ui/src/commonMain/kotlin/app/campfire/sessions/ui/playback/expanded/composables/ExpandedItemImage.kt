@@ -11,6 +11,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,16 +46,21 @@ internal fun SharedTransitionScope.ExpandedItemImage(
   modifier: Modifier = Modifier,
   shape: Shape = CoverImageShape,
 ) {
-  Box(
+  BoxWithConstraints(
     contentAlignment = Alignment.Center,
     modifier = modifier,
   ) {
     val mediaUrl = currentMetadata.artworkUri
       ?: session?.libraryItem?.media?.coverImageUrl
+    // The cover fills a weight/aspectRatio slot, so its layout size is Dp.Unspecified. Request the
+    // rendition at the measured slot width instead, otherwise the shared-element transition latches
+    // the draw-bounds resolver onto the tiny mini-bar bounds and the full-screen cover renders blurry.
+    val coverRequestSize = if (size != Dp.Unspecified) size else maxWidth
     CoverImage(
       imageUrl = mediaUrl,
       contentDescription = session?.libraryItem?.media?.metadata?.title,
       size = size,
+      requestSize = coverRequestSize,
       shape = shape,
       sharedElementModifier = Modifier.fillMaxSize(),
       modifier = Modifier
