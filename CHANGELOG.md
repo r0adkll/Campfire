@@ -9,8 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Tap the speed value in the playback speed sheet to type an exact playback speed
 ### Changed
 
+- Playback speed slider now snaps to 0.05 increments so speeds like 1.2x are easy to land on
 ### Deprecated
 
 ### Removed
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crash when resuming downloads on app launch on some Android 12+ devices
 - Crash when opening Android Auto settings on devices without Android Auto installed
 - Playback resumption from Bluetooth / media buttons killing the app when the server is offline
+- Playback speeds between x.01 and x.09 displaying incorrectly (e.g. 1.03x showing as 1.3x)
 
 ### Other Notes & Contributions
 

@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.widgets.IconButtonTooltip
-import app.campfire.sessions.ui.sheets.speed.readableHundredths
+import app.campfire.core.extensions.readableHundredths
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_playback_speed
 import org.jetbrains.compose.resources.stringResource
