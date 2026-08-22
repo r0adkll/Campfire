@@ -170,6 +170,7 @@ name = "Home"
 classes = ["phone", "seven", "ten"]
 steps = [
     { play = "Carl's Doomsday Scenario" },
+    { wait = 1500 },
     { navigate = "home" },
 ]
 

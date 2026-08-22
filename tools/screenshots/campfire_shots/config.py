@@ -1,9 +1,17 @@
 import os
 import tomllib
+from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .proc import ShotError
+
+
+def pinned_now() -> datetime:
+    """The instant every run pretends it is: today at 12:00 local. The emulator clock is pinned to it
+    and Fixture timestamps (listening sessions) are seeded relative to it, so "today" on the device
+    and "today" in the data always agree."""
+    return datetime.now().replace(hour=12, minute=0, second=0, microsecond=0)
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 TOOL_DIR = Path(__file__).resolve().parents[1]

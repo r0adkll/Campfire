@@ -10,7 +10,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from .config import ServerConfig, Spec, WORK_DIR
+from .config import ServerConfig, Spec, WORK_DIR, pinned_now
 from .proc import ShotError, log, out, run, wait_until, which
 
 
@@ -256,7 +256,7 @@ class Fixture:
         # Listening sessions (drive the statistics screen). Seeded *before* progress so the
         # progress PATCH below is the newest write and wins for Continue Listening.
         if self.spec.sessions:
-            now_ms = int(time.time() * 1000)
+            now_ms = int(pinned_now().timestamp() * 1000)
             payload = []
             for seed in self.spec.sessions:
                 item = self.find_book(seed.title)

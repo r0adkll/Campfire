@@ -6,7 +6,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from .config import DeviceClass, WORK_DIR
+from .config import DeviceClass, WORK_DIR, pinned_now
 from .proc import ShotError, log, out, run, wait_until, which
 
 SDK = Path(os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT") or "~/Library/Android/sdk").expanduser()
@@ -258,6 +258,8 @@ def prepare(adb: Adb) -> None:
     adb("emu", "gsm", "voice", "home", check=False)
     adb("emu", "gsm", "data", "home", check=False)
     adb("emu", "gsm", "signal-profile", "4", check=False)
+    # Mobile data off (Wi-Fi carries the traffic) so the RAT label ("5G") can never join the bar.
+    adb.shell("svc", "data", "disable", check=False)
     set_clock(adb)
     # Hide the "USB debugging connected" notification icon
     adb.shell("setprop", "persist.adb.notify", "0", check=False)
@@ -267,9 +269,9 @@ def prepare(adb: Adb) -> None:
     adb.shell("cmd", "statusbar", "send-disable-flag", "notification-icons", check=False)
 
 
-def set_clock(adb: Adb, hhmm: str = "1200") -> None:
-    """Pin the device clock (needs root). Called before every capture so it never drifts."""
-    adb.shell("date", f"0821{hhmm}2026.00", check=False)
+def set_clock(adb: Adb) -> None:
+    """Pin the device clock to `pinned_now()` (needs root). Called before every capture so it never drifts."""
+    adb.shell("date", pinned_now().strftime("%m%d%H%M%Y.%S"), check=False)
     adb.shell("am", "broadcast", "-a", "android.intent.action.TIME_SET", check=False)
 
 
