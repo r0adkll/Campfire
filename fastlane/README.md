@@ -54,3 +54,4 @@ Authentication is a Play Console service account passed as the `PLAY_SERVICE_ACC
 repository secret (`SUPPLY_JSON_KEY_DATA` for fastlane). Every Play job is skipped while that
 secret is absent. Note that the Publishing API refuses an app that has never had a bundle
 uploaded through the Console, so the very first AAB of a new listing is uploaded by hand.
+The privacy policy URL for the listing is https://thescavengers.software/campfire/privacy.
