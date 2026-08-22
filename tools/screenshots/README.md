@@ -85,12 +85,13 @@ shots are captured *while playing* — the progress position will differ run to 
 
 ## Design decisions
 
-- **Phone class is 9:16 (1080×1920).** Google Play rejects screenshots whose long side is more than
-  twice the short side and favours 9:16 for promotion placements, while F-Droid/IzzyOnDroid accept
-  anything — so the phone emulator is pinned to a 9:16 panel and files are committed at native size.
-  Tablet classes (16:10) are within Play's limit as-is. Play also caps each class at 8 screenshots, so
-  keep `shots.toml` to at most 8 enabled shots per class. Changing a class definition recreates its AVD
-  on the next run.
+- **Phone class is 2:1 (1080×2160).** Google Play rejects screenshots whose long side is more than
+  twice the short side; 2:1 is the tallest it accepts and matches a modern phone. 9:16 would also
+  qualify the listing for featured placements — deliberately skipped for the larger, more
+  representative shots. Tablet classes (16:10) are within the limit as-is. Play also caps each class
+  at 8 screenshots, so keep `shots.toml` to at most 8 enabled shots per class. Changing a class
+  definition recreates its AVD on the next run; a recreated AVD cold-boots, and that first boot is
+  slow enough to spoil captures — run the class once to warm it, then again for the real shots.
 - **Debug intent hooks, not UI-driven login.** Driving the real login/settings UI from an instrumented
   test is brittle (breaks on any copy or layout change) and slow. `MainActivity` accepts extra
   `DeepLink`s (`setup`, `navigate`, `play`, `expand_player`, `stop_playback`) only when

@@ -125,13 +125,14 @@ root = "fastlane/metadata/android"
 # Device classes: one pinned emulator definition each. AVDs are created as
 # `campfire-shots-<class>` and never touch your personal AVDs.
 # ---------------------------------------------------------------------------
-# Phone is 9:16: Google Play rejects screenshots whose long side exceeds 2x the short side and
-# favours 9:16 for promotion placements; F-Droid/IzzyOnDroid have no ratio requirement.
+# Phone is 2:1 (18:9): the tallest Google Play accepts ("max dimension can't be more than twice the
+# min dimension"). 9:16 would additionally qualify for featured placements; deliberately skipped in
+# favour of a modern-phone shape. F-Droid/IzzyOnDroid have no ratio requirement.
 [classes.phone]
 store_dir = "phoneScreenshots"
 system_image = "system-images;android-36;google_apis;arm64-v8a"
 width = 1080
-height = 1920
+height = 2160
 density = 420
 orientation = "portrait"
 
