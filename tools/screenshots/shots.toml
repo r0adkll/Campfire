@@ -1,4 +1,4 @@
-# Shot Spec for store screenshots. See tools/screenshots/README.md and CONTEXT.md.
+# Shot Spec for store screenshots. See tools/screenshots/README.md.
 #
 # Run:  tools/screenshots/run.py --class phone
 #       tools/screenshots/run.py --class ten --shots Home,Library

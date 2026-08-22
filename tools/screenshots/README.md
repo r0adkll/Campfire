@@ -4,8 +4,11 @@ Reproducible Play / F-Droid screenshots for phone and tablet. One command boots 
 Audiobookshelf server seeded with the Sample Library, boots a pinned emulator, signs the app in,
 walks each Shot in `shots.toml`, and writes the PNGs into Store Metadata (`fastlane/metadata/android`).
 
-Vocabulary (Shot, Shot Spec, Device Class, Fixture, Sample Library, Store Metadata) is defined in
-`CONTEXT.md`. Design decisions: `docs/adr/0001-*.md`, `docs/adr/0002-*.md`.
+Vocabulary: a **Shot** is one named screenshot (screen to reach, device classes, locale, theme);
+the **Shot Spec** is `shots.toml`; a **Device Class** is a store screenshot category (phone,
+seven-inch, ten-inch) backed by one pinned emulator; the **Fixture** is the known server state a run
+starts from (Sample Library + fresh scan + seeded progress/sessions); **Store Metadata** is the
+`fastlane/` tree.
 
 ## Prerequisites
 
@@ -26,7 +29,7 @@ tools/screenshots/run.py --class phone --shots Home,Player   # only those (other
 tools/screenshots/run.py --class phone --out /tmp/preview    # don't touch Store Metadata
 ```
 
-Flags: `--locale de-DE` (switches the emulator locale), `--crop-9-16` (opt-in, see ADR-0001),
+Flags: `--locale de-DE` (switches the emulator locale), `--crop-9-16` (opt-in, see "Design decisions"),
 `--cold`, `--headless`, `--skip-build`, `--keep-server`, `--keep-emulator`, `--regenerate`, `--server-only`
 (start the server + Fixture and wait, for poking at the app by hand).
 
@@ -76,6 +79,20 @@ Step kinds: `navigate` (`home`, `library`, `series`, `authors`, `collections`, `
 
 Titles are resolved against the running server, so anything in the Sample Library works. Playback
 shots are captured *while playing* — the progress position will differ run to run by design.
+
+## Design decisions
+
+- **Native resolution, not Play's 9:16.** Google Play recommends 9:16 (1080×1920) phone screenshots and
+  gates some promotion placements on it, but a 9:16 crop would cut the bottom of every shot — exactly
+  where the mini player and navigation live — and the same files feed F-Droid/IzzyOnDroid, which have
+  no ratio requirement. Files are committed at the emulator's native size; `--crop-9-16` exists for
+  the day promotion eligibility matters more.
+- **Debug intent hooks, not UI-driven login.** Driving the real login/settings UI from an instrumented
+  test is brittle (breaks on any copy or layout change) and slow. `MainActivity` accepts extra
+  `DeepLink`s (`setup`, `navigate`, `play`, `expand_player`, `stop_playback`) only when
+  `BuildConfig.DEBUG`, so they are unreachable in release builds. Consequence: these hooks are a
+  supported automation surface — changes to account setup or root navigation must keep them working,
+  and screenshots are always taken from `fossDebug`.
 
 ## Troubleshooting
 

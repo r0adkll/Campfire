@@ -39,7 +39,7 @@ def write_shots(spec: Spec, cls: DeviceClass, locale: str, captured: list[tuple[
 
 
 def _crop_9_16(path: Path, cls: DeviceClass) -> None:
-    """Opt-in, top-anchored crop to 9:16 (see docs/adr/0001). Pure Python: keeps the first N
+    """Opt-in, top-anchored crop to 9:16 (see README "Design decisions"). Pure Python: keeps the first N
     scanlines of the PNG, which stay valid because PNG row filters only reference earlier rows."""
     data = path.read_bytes()
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):

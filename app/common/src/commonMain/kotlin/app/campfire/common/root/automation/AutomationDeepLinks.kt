@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.first
 /**
  * Handlers for the debug-only automation deep links. These exist so the store screenshot tool
  * (`tools/screenshots/`) can put the app into a known state without driving the login and
- * settings UI. See `docs/adr/0002-debug-intent-hooks-drive-screenshot-state.md`.
+ * settings UI, which would be brittle. See tools/screenshots/README.md ("Design decisions").
  */
 object AutomationDeepLinks {
 

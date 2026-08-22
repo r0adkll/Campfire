@@ -14,7 +14,7 @@ object DeepLinkKeys {
    * Keys for the debug-only automation deep links. All keys are prefixed `campfire_` because
    * `adb shell am start` parses some bare names (e.g. `username`) as its own options. ([DeepLink.Setup], [DeepLink.Navigate],
    * [DeepLink.Play], [DeepLink.ExpandPlayer]). These are only parsed by debug builds; see
-   * `docs/adr/0002-debug-intent-hooks-drive-screenshot-state.md`.
+   * tools/screenshots/README.md ("Design decisions").
    */
   const val Action = "campfire_action"
   const val ActionSetup = "setup"
