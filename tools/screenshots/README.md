@@ -77,7 +77,7 @@ steps = [
 
 Step kinds: `navigate` (`home`, `library`, `series`, `authors`, `collections`, `playlists`,
 `statistics`, `theme_picker`, `settings` + `arg = "<Page>"`, `library_item` + `title = "…"`),
-`play = "<title>"`, `expand_player = true`, `tap = "<regex over text / content-description>"`,
+`play = "<title>"`, `expand_player = true`, `wait_for = "<regex over text / content-description>"` (blocks until it is on screen — use after `play`, which is asynchronous), `tap = "<regex>"`,
 `type = "…"`, `swipe = "up"|"down"`, `wait = <ms>`, `back = true`.
 
 Titles are resolved against the running server, so anything in the Sample Library works. Playback

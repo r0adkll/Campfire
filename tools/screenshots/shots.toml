@@ -154,8 +154,9 @@ orientation = "landscape"
 # ---------------------------------------------------------------------------
 # Shots, in output order. Step kinds:
 #   { navigate = "<screen>" [, title = "<book title>" | arg = "<value>"] }
-#   { play = "<book title>" }          start playback (captured while playing)
+#   { play = "<book title>" }          start playback; blocks until the media session is playing
 #   { expand_player = true }           open the full player
+#   { wait_for = "<regex>" [, timeout = <ms>] }   block until a node matches (text / content-description)
 #   { tap = "<text or content-description regex>" }
 #   { type = "<text>" }
 #   { swipe = "up" | "down" [, times = N, distance = <fraction of screen, default 0.5>] }
@@ -184,7 +185,6 @@ name = "Player"
 classes = ["phone", "seven", "ten"]
 steps = [
     { play = "Carl's Doomsday Scenario" },
-    { wait = 1500 },
     { expand_player = true },
 ]
 
@@ -202,11 +202,15 @@ steps = [{ navigate = "series" }]
 name = "Authors"
 classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "authors" }]
+# Grid of remote images; give the list and its covers time to land.
+settle_ms = 4000
 
 [[shot]]
 name = "Playlists"
 classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "playlists" }]
+# Grid of remote images; give the list and its covers time to land.
+settle_ms = 4000
 
 [[shot]]
 name = "Stats"

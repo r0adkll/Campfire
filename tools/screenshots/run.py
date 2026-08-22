@@ -46,6 +46,8 @@ def run_steps(app: App, fixture: Fixture, shot: Shot, settle_ms: int) -> None:
             app.expand_player()
         elif step.get("stop_playback"):
             app.stop_playback()
+        elif "wait_for" in step:
+            app.wait_for(step["wait_for"], int(step.get("timeout", 20000)))
         elif "tap" in step:
             app.tap(step["tap"])
         elif "type" in step:

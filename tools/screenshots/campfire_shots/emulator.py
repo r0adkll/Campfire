@@ -258,8 +258,9 @@ def prepare(adb: Adb) -> None:
     adb("emu", "gsm", "voice", "home", check=False)
     adb("emu", "gsm", "data", "home", check=False)
     adb("emu", "gsm", "signal-profile", "4", check=False)
-    # Mobile data off (Wi-Fi carries the traffic) so the RAT label ("5G") can never join the bar.
-    adb.shell("svc", "data", "disable", check=False)
+    # Hide the mobile signal/RAT icons: the "5G" label comes and goes between runs. Cosmetic only —
+    # disabling mobile data instead breaks the emulator's route to the host.
+    adb.shell("settings", "put", "secure", "icon_blacklist", "mobile", check=False)
     set_clock(adb)
     # Hide the "USB debugging connected" notification icon
     adb.shell("setprop", "persist.adb.notify", "0", check=False)
