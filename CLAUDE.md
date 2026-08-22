@@ -29,7 +29,8 @@ tools/screenshots/run.py --class phone
 
 # Cut a release of `campfire.version` (gradle.properties): regenerates baseline profiles,
 # rolls CHANGELOG.md, writes the fastlane changelog, pushes main and creates the GitHub
-# release. `baseline` / `prepare` / `publish` run one phase; `--skip-baseline`; `--dry-run`.
+# release. `baseline` / `prepare` / `publish` run one phase; `--skip-baseline`;
+# `--emulator-wtf` (needs EW_API_TOKEN) instead of a local emulator; `--dry-run`.
 scripts/release
 ```
 

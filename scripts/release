@@ -9,7 +9,8 @@ post-release job in .github/workflows/release.yml bumps it to the next version o
 release ships). The script:
 
   baseline 0. Regenerates the app baseline/startup profiles on a Gradle managed device
-              (app/android/src/main/generated/baselineProfiles). Needs a test server:
+              (app/android/src/main/generated/baselineProfiles) — a local emulator by
+              default, or emulator.wtf with --emulator-wtf (needs EW_API_TOKEN). Needs a test server:
               campfire_server_url / campfire_username / campfire_password as Gradle
               properties (~/.gradle/gradle.properties or ORG_GRADLE_PROJECT_* env vars)
   prepare  1. Validates the version (semver, not yet tagged, not yet in CHANGELOG.md)
@@ -26,6 +27,7 @@ release ships). The script:
 Usage:
   scripts/release                 # baseline + prepare + publish (asks for confirmation)
   scripts/release --skip-baseline # same, without regenerating baseline profiles
+  scripts/release --emulator-wtf  # generate the profiles on emulator.wtf instead of a local emulator
   scripts/release baseline        # only step 0
   scripts/release prepare         # only steps 1-3; edit the files, then `scripts/release publish`
   scripts/release publish         # steps 4-5 on an already prepared tree
@@ -55,6 +57,8 @@ BASELINE_GRADLE_ARGS = [
     "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile",
 ]
 BASELINE_PROPERTIES = ("campfire_server_url", "campfire_username", "campfire_password")
+EMULATOR_WTF_GRADLE_ARG = "-Pcampfire.config.useEmulatorWtf=true"
+EMULATOR_WTF_TOKEN_ENV = "EW_API_TOKEN"
 
 REPO = "r0adkll/Campfire"
 REPO_URL = f"https://github.com/{REPO}"
@@ -127,7 +131,7 @@ def has_gradle_property(name):
     return user_props.exists() and re.search(rf"^{name}=", user_props.read_text(), re.MULTILINE) is not None
 
 
-def generate_baseline_profiles(dry_run):
+def generate_baseline_profiles(dry_run, emulator_wtf):
     missing = [name for name in BASELINE_PROPERTIES if not has_gradle_property(name)]
     if missing:
         fail(
@@ -137,10 +141,15 @@ def generate_baseline_profiles(dry_run):
             "or re-run with --skip-baseline"
         )
     command = ["./gradlew", *BASELINE_GRADLE_ARGS]
+    if emulator_wtf:
+        if not os.environ.get(EMULATOR_WTF_TOKEN_ENV):
+            fail(f"--emulator-wtf needs {EMULATOR_WTF_TOKEN_ENV} in the environment")
+        command.append(EMULATOR_WTF_GRADLE_ARG)
     if dry_run:
         print(f"[dry-run] would run: {' '.join(command)}")
         return
-    print("Generating baseline profiles on the Gradle managed device (this takes a while)...")
+    where = "emulator.wtf" if emulator_wtf else "the local Gradle managed device"
+    print(f"Generating baseline profiles on {where} (this takes a while)...")
     run(command, capture=False)
     changed = git("status", "--porcelain", "--", str(BASELINE_PROFILES.relative_to(REPO_ROOT)))
     if changed:
@@ -357,6 +366,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("command", nargs="?", choices=["baseline", "prepare", "publish"], help="run only one phase")
     parser.add_argument("--skip-baseline", action="store_true", help="don't regenerate baseline profiles")
+    parser.add_argument("--emulator-wtf", action="store_true", help="generate baseline profiles on emulator.wtf (needs EW_API_TOKEN)")
     parser.add_argument("--dry-run", action="store_true", help="print what would happen without changing anything")
     parser.add_argument("-y", "--yes", action="store_true", help="skip the confirmation prompt")
     args = parser.parse_args()
@@ -365,7 +375,7 @@ def main():
     print(f"Releasing campfire.version={version}")
 
     if args.command == "baseline" or (args.command is None and not args.skip_baseline):
-        generate_baseline_profiles(args.dry_run)
+        generate_baseline_profiles(args.dry_run, args.emulator_wtf)
         if args.command == "baseline":
             return
     if args.command in (None, "prepare"):
