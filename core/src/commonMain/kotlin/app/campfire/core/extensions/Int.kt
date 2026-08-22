@@ -21,6 +21,9 @@ fun Long.asDateTime(): LocalDateTime = Instant.fromEpochMilliseconds(this)
 
 fun Long.asDate(): LocalDate = asDateTime().date
 
+/**
+ * Human readable binary size with one decimal place (e.g. 1536 -> "1.5 KB", 10 MiB -> "10.0 MB").
+ */
 fun Long.asReadableBytes(): String {
   val kb = this.toDouble() / 1024.0
   val mb = kb / 1024.0
@@ -28,13 +31,13 @@ fun Long.asReadableBytes(): String {
   val tb = gb / 1024.0
 
   return if (tb >= 1.0) {
-    tb.toFloat().toString(2) + " TB"
+    tb.toFloat().toString(1) + " TB"
   } else if (gb >= 1.0) {
-    gb.toFloat().toString(2) + " GB"
+    gb.toFloat().toString(1) + " GB"
   } else if (mb >= 1.0) {
-    mb.toFloat().toString(2) + " MB"
+    mb.toFloat().toString(1) + " MB"
   } else if (kb >= 1.0) {
-    kb.toFloat().toString(2) + " KB"
+    kb.toFloat().toString(1) + " KB"
   } else {
     "$this B"
   }

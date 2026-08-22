@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - App freezing on the search empty state when system animations are disabled (e.g. the "Remove animations" accessibility setting)
 - Series with decimal sequence numbers (1.1, 1.2, …) now sort in the correct order instead of jumping to the end
 - Covers updated on the server now refresh in the app instead of showing the old image until the cache expires
+- Download and file sizes showing two decimal places (e.g. 1.00 MB) instead of one
 
 ### Other Notes & Contributions
 
