@@ -125,11 +125,13 @@ root = "fastlane/metadata/android"
 # Device classes: one pinned emulator definition each. AVDs are created as
 # `campfire-shots-<class>` and never touch your personal AVDs.
 # ---------------------------------------------------------------------------
+# Phone is 9:16: Google Play rejects screenshots whose long side exceeds 2x the short side and
+# favours 9:16 for promotion placements; F-Droid/IzzyOnDroid have no ratio requirement.
 [classes.phone]
 store_dir = "phoneScreenshots"
 system_image = "system-images;android-36;google_apis;arm64-v8a"
 width = 1080
-height = 2424
+height = 1920
 density = 420
 orientation = "portrait"
 
@@ -166,7 +168,24 @@ orientation = "landscape"
 [[shot]]
 name = "Home"
 classes = ["phone", "seven", "ten"]
-steps = [{ navigate = "home" }]
+steps = [
+    { play = "Carl's Doomsday Scenario" },
+    { navigate = "home" },
+]
+
+[[shot]]
+name = "Detail"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "library_item", title = "Project Hail Mary" }]
+
+[[shot]]
+name = "Player"
+classes = ["phone", "seven", "ten"]
+steps = [
+    { play = "Carl's Doomsday Scenario" },
+    { wait = 1500 },
+    { expand_player = true },
+]
 
 [[shot]]
 name = "Library"
@@ -189,56 +208,11 @@ classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "playlists" }]
 
 [[shot]]
-name = "Detail"
-classes = ["phone", "seven", "ten"]
-steps = [{ navigate = "library_item", title = "Project Hail Mary" }]
-
-[[shot]]
-name = "Detail2"
-classes = ["phone"]
-steps = [
-  { navigate = "library_item", title = "Dungeon Crawler Carl" },
-  { swipe = "up", distance = 0.7 },
-]
-
-[[shot]]
-name = "Player"
-classes = ["phone", "seven", "ten"]
-steps = [
-  { play = "Carl's Doomsday Scenario" },
-  { wait = 1500 },
-  { expand_player = true },
-]
-
-[[shot]]
-name = "MiniPlayer"
-classes = ["phone"]
-steps = [
-  { play = "Carl's Doomsday Scenario" },
-  { navigate = "home" },
-]
-
-[[shot]]
-name = "Search"
-classes = ["phone", "seven", "ten"]
-steps = [
-  { navigate = "home" },
-  { tap = "^Search$" },
-  { type = "carl" },
-  { wait = 1000 },
-]
-
-[[shot]]
 name = "Stats"
 classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "statistics" }]
 # Per-item tiles load their covers lazily; give them time.
 settle_ms = 6000
-
-[[shot]]
-name = "ThemePicker"
-classes = ["phone"]
-steps = [{ navigate = "theme_picker" }]
 
 [[shot]]
 name = "Podcasts"

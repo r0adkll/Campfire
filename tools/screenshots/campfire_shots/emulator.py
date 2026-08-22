@@ -1,6 +1,7 @@
 """Create, boot, and prepare the per-Device-Class emulators."""
 import os
 import shlex
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -38,11 +39,16 @@ class Adb:
 
 
 def ensure_avd(cls: DeviceClass) -> None:
-    """Write the AVD files directly (no avdmanager needed) if the AVD doesn't exist."""
+    """Write the AVD files directly (no avdmanager needed) if the AVD doesn't exist or its pinned
+    definition (resolution, density, orientation, system image) changed in shots.toml."""
     avd_dir = AVD_HOME / f"{cls.avd_name}.avd"
     ini = AVD_HOME / f"{cls.avd_name}.ini"
     if avd_dir.exists() and ini.exists():
-        return
+        if _avd_matches(avd_dir / "config.ini", cls):
+            return
+        log(f"AVD {cls.avd_name} no longer matches shots.toml; recreating")
+        shutil.rmtree(avd_dir)
+        ini.unlink()
 
     parts = cls.system_image.split(";")  # system-images;android-36;google_apis;arm64-v8a
     if len(parts) != 4:
@@ -104,6 +110,21 @@ def ensure_avd(cls: DeviceClass) -> None:
         f"path.rel=avd/{cls.avd_name}.avd\n"
         f"target={platform}\n"
     )
+
+
+def _avd_matches(config_ini: Path, cls: DeviceClass) -> bool:
+    if not config_ini.exists():
+        return False
+    current = dict(line.split("=", 1) for line in config_ini.read_text().splitlines() if "=" in line)
+    _, platform, tag, abi = cls.system_image.split(";")
+    expected = {
+        "hw.lcd.width": str(cls.width),
+        "hw.lcd.height": str(cls.height),
+        "hw.lcd.density": str(cls.density),
+        "hw.initialOrientation": cls.orientation,
+        "image.sysdir.1": f"system-images/{platform}/{tag}/{abi}/",
+    }
+    return all(current.get(k) == v for k, v in expected.items())
 
 
 def _running_serials() -> list[str]:

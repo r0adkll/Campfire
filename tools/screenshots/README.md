@@ -29,8 +29,7 @@ tools/screenshots/run.py --class phone --shots Home,Player   # only those (other
 tools/screenshots/run.py --class phone --out /tmp/preview    # don't touch Store Metadata
 ```
 
-Flags: `--locale de-DE` (switches the emulator locale), `--crop-9-16` (opt-in, see "Design decisions"),
-`--cold`, `--headless`, `--skip-build`, `--keep-server`, `--keep-emulator`, `--regenerate`, `--server-only`
+Flags: `--locale de-DE` (switches the emulator locale), `--cold`, `--headless`, `--skip-build`, `--keep-server`, `--keep-emulator`, `--regenerate`, `--server-only`
 (start the server + Fixture and wait, for poking at the app by hand).
 
 A run with no `--shots` filter **replaces** the class directory; a filtered run overwrites only the
@@ -86,11 +85,12 @@ shots are captured *while playing* — the progress position will differ run to 
 
 ## Design decisions
 
-- **Native resolution, not Play's 9:16.** Google Play recommends 9:16 (1080×1920) phone screenshots and
-  gates some promotion placements on it, but a 9:16 crop would cut the bottom of every shot — exactly
-  where the mini player and navigation live — and the same files feed F-Droid/IzzyOnDroid, which have
-  no ratio requirement. Files are committed at the emulator's native size; `--crop-9-16` exists for
-  the day promotion eligibility matters more.
+- **Phone class is 9:16 (1080×1920).** Google Play rejects screenshots whose long side is more than
+  twice the short side and favours 9:16 for promotion placements, while F-Droid/IzzyOnDroid accept
+  anything — so the phone emulator is pinned to a 9:16 panel and files are committed at native size.
+  Tablet classes (16:10) are within Play's limit as-is. Play also caps each class at 8 screenshots, so
+  keep `shots.toml` to at most 8 enabled shots per class. Changing a class definition recreates its AVD
+  on the next run.
 - **Debug intent hooks, not UI-driven login.** Driving the real login/settings UI from an instrumented
   test is brittle (breaks on any copy or layout change) and slow. `MainActivity` accepts extra
   `DeepLink`s (`setup`, `navigate`, `play`, `expand_player`, `stop_playback`) only when
