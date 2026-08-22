@@ -10,7 +10,9 @@ release ships). The script:
 
   baseline 0. Regenerates the app baseline/startup profiles on a Gradle managed device
               (app/android/src/main/generated/baselineProfiles) — a local emulator by
-              default, or emulator.wtf with --emulator-wtf (needs EW_API_TOKEN). Needs a test server:
+              default, or emulator.wtf with --emulator-wtf. The emulator.wtf token comes from
+              the macOS Keychain (store it once with `scripts/release set-ew-token`) or, as a
+              fallback, the EW_API_TOKEN environment variable. Needs a test server:
               campfire_server_url / campfire_username / campfire_password as Gradle
               properties (~/.gradle/gradle.properties or ORG_GRADLE_PROJECT_* env vars)
   prepare  1. Validates the version (semver, not yet tagged, not yet in CHANGELOG.md)
@@ -28,6 +30,7 @@ Usage:
   scripts/release                 # baseline + prepare + publish (asks for confirmation)
   scripts/release --skip-baseline # same, without regenerating baseline profiles
   scripts/release --emulator-wtf  # generate the profiles on emulator.wtf instead of a local emulator
+  scripts/release set-ew-token    # store the emulator.wtf API token in the macOS Keychain (prompts)
   scripts/release baseline        # only step 0
   scripts/release prepare         # only steps 1-3; edit the files, then `scripts/release publish`
   scripts/release publish         # steps 4-5 on an already prepared tree
@@ -40,8 +43,10 @@ from the tag.
 """
 
 import argparse
+import getpass
 import json
 import os
+import shutil
 import re
 import subprocess
 import sys
@@ -59,6 +64,8 @@ BASELINE_GRADLE_ARGS = [
 BASELINE_PROPERTIES = ("campfire_server_url", "campfire_username", "campfire_password")
 EMULATOR_WTF_GRADLE_ARG = "-Pcampfire.config.useEmulatorWtf=true"
 EMULATOR_WTF_TOKEN_ENV = "EW_API_TOKEN"
+KEYCHAIN_SERVICE = "emulator.wtf"
+KEYCHAIN_ACCOUNT = "campfire-release"
 
 REPO = "r0adkll/Campfire"
 REPO_URL = f"https://github.com/{REPO}"
@@ -131,6 +138,39 @@ def has_gradle_property(name):
     return user_props.exists() and re.search(rf"^{name}=", user_props.read_text(), re.MULTILINE) is not None
 
 
+def keychain_available():
+    return shutil.which("security") is not None
+
+
+def read_emulator_wtf_token():
+    """Keychain first (never in the shell environment), EW_API_TOKEN as a fallback."""
+    if keychain_available():
+        result = subprocess.run(
+            ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-a", KEYCHAIN_ACCOUNT, "-w"],
+            capture_output=True, text=True,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            return result.stdout.strip()
+    return os.environ.get(EMULATOR_WTF_TOKEN_ENV)
+
+
+def store_emulator_wtf_token():
+    if not keychain_available():
+        fail("the macOS Keychain (`security`) is not available; export EW_API_TOKEN instead")
+    token = getpass.getpass("emulator.wtf API token (input hidden): ").strip()
+    if not token:
+        fail("no token entered")
+    # -U updates an existing item in place; the token is passed via -w so it never hits argv history.
+    run([
+        "security", "add-generic-password", "-U",
+        "-s", KEYCHAIN_SERVICE, "-a", KEYCHAIN_ACCOUNT,
+        "-l", "emulator.wtf API token (Campfire scripts/release)",
+        "-w", token,
+    ])
+    print(f"Stored in the login Keychain as service '{KEYCHAIN_SERVICE}', account '{KEYCHAIN_ACCOUNT}'.")
+    print("Remove it with: security delete-generic-password -s emulator.wtf -a campfire-release")
+
+
 def generate_baseline_profiles(dry_run, emulator_wtf):
     missing = [name for name in BASELINE_PROPERTIES if not has_gradle_property(name)]
     if missing:
@@ -141,16 +181,20 @@ def generate_baseline_profiles(dry_run, emulator_wtf):
             "or re-run with --skip-baseline"
         )
     command = ["./gradlew", *BASELINE_GRADLE_ARGS]
+    env = None
     if emulator_wtf:
-        if not os.environ.get(EMULATOR_WTF_TOKEN_ENV):
-            fail(f"--emulator-wtf needs {EMULATOR_WTF_TOKEN_ENV} in the environment")
+        token = read_emulator_wtf_token()
+        if not token:
+            fail("no emulator.wtf token found — run `scripts/release set-ew-token` (or export EW_API_TOKEN)")
         command.append(EMULATOR_WTF_GRADLE_ARG)
+        # Only the Gradle child process sees the token.
+        env = {**os.environ, EMULATOR_WTF_TOKEN_ENV: token}
     if dry_run:
         print(f"[dry-run] would run: {' '.join(command)}")
         return
     where = "emulator.wtf" if emulator_wtf else "the local Gradle managed device"
     print(f"Generating baseline profiles on {where} (this takes a while)...")
-    run(command, capture=False)
+    subprocess.run(command, cwd=REPO_ROOT, check=True, env=env)
     changed = git("status", "--porcelain", "--", str(BASELINE_PROFILES.relative_to(REPO_ROOT)))
     if changed:
         print("Baseline profiles updated:\n  " + "\n  ".join(baseline_profile_files()))
@@ -364,12 +408,19 @@ def publish(version, dry_run, assume_yes):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", nargs="?", choices=["baseline", "prepare", "publish"], help="run only one phase")
+    parser.add_argument(
+        "command", nargs="?", choices=["baseline", "prepare", "publish", "set-ew-token"],
+        help="run only one phase, or store the emulator.wtf token in the Keychain",
+    )
     parser.add_argument("--skip-baseline", action="store_true", help="don't regenerate baseline profiles")
-    parser.add_argument("--emulator-wtf", action="store_true", help="generate baseline profiles on emulator.wtf (needs EW_API_TOKEN)")
+    parser.add_argument("--emulator-wtf", action="store_true", help="generate baseline profiles on emulator.wtf")
     parser.add_argument("--dry-run", action="store_true", help="print what would happen without changing anything")
     parser.add_argument("-y", "--yes", action="store_true", help="skip the confirmation prompt")
     args = parser.parse_args()
+
+    if args.command == "set-ew-token":
+        store_emulator_wtf_token()
+        return
 
     version = read_version()
     print(f"Releasing campfire.version={version}")
