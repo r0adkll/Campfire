@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.rememberDrawSizedRequest
 import coil3.compose.AsyncImage
 
 @Composable
@@ -28,7 +29,9 @@ internal fun Thumbnail(
 ) {
   val shape = RoundedCornerShape(cornerRadius)
   AsyncImage(
-    model = imageUrl,
+    // Request a sized rendition like CoverImage everywhere else, rather than passing the bare URL:
+    // a content:// artwork URI from the media session only resolves through this path.
+    model = rememberDrawSizedRequest(imageUrl, size),
     contentDescription = contentDescription,
     contentScale = ContentScale.Crop,
     modifier = modifier
