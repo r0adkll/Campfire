@@ -12,12 +12,15 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
+import app.campfire.auth.api.AuthRepository
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.root.automation.AutomationDeepLinks
 import app.campfire.common.root.ui.LoggedInWindow
 import app.campfire.common.root.ui.LoggedOutWindow
 import app.campfire.core.navigation.DeepLink
@@ -25,6 +28,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
+import app.campfire.whatsnew.api.WhatsNewRepository
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
 import me.tatarka.inject.annotations.Assisted
@@ -50,6 +54,8 @@ fun CampfireContentWithInsets(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
+  authRepository: AuthRepository,
+  whatsNewRepository: WhatsNewRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
   val appUriHandler = remember(onOpenUrl) {
@@ -66,7 +72,21 @@ fun CampfireContentWithInsets(
     LocalUriHandler provides appUriHandler,
   ) {
     UserComponentContent(userSessionManager) { userComponent ->
-      when (userComponent.currentUserSession) {
+      val session = userComponent.currentUserSession
+      if (deepLink is DeepLink.Setup && session != UserSession.Loading) {
+        LaunchedEffect(deepLink) {
+          AutomationDeepLinks.applySetup(
+            setup = deepLink,
+            isLoggedIn = session is UserSession.LoggedIn,
+            authRepository = authRepository,
+            settings = settings,
+            themeRepository = themeRepository,
+            whatsNewRepository = whatsNewRepository,
+          )
+        }
+      }
+
+      when (session) {
         is UserSession.NeedsAuthentication,
         UserSession.LoggedOut,
         -> LoggedOutWindow(
@@ -110,6 +130,8 @@ fun CampfireContent(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
+  authRepository: AuthRepository,
+  whatsNewRepository: WhatsNewRepository,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
@@ -118,6 +140,8 @@ fun CampfireContent(
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     themeRepository = themeRepository,
+    authRepository = authRepository,
+    whatsNewRepository = whatsNewRepository,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars
       .exclude(WindowInsets.statusBars)

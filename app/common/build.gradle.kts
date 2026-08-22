@@ -117,6 +117,7 @@ kotlin {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
         implementation(libs.kotlinx.coroutines.test)
+        implementation(projects.features.settings.test)
       }
     }
 

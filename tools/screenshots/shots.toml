@@ -1,0 +1,216 @@
+# Shot Spec for store screenshots. See tools/screenshots/README.md and CONTEXT.md.
+#
+# Run:  tools/screenshots/run.py --class phone
+#       tools/screenshots/run.py --class ten --shots Home,Library
+
+[server]
+# Local Audiobookshelf checkout. Cloned from `repo` at `tag` if the path does not exist.
+path = "~/OpenSource/audiobookshelf"
+repo = "https://github.com/advplyr/audiobookshelf.git"
+tag = "v2.34.0"
+port = 13378
+# Node 20-22 command used to run the server. "auto" = PATH `node`, then `nix shell nixpkgs#nodejs_22`.
+node = "auto"
+# Root user created on the fresh server; nothing secret.
+username = "demo"
+password = "campfire"
+server_name = "Home Library"
+
+[sample_library]
+path = "~/Libation/StoreSampleLibrary"
+# Optional: command run (in `path`) when --regenerate is passed.
+regenerate = "_tools/venv/bin/python _tools/generate.py"
+
+[[sample_library.libraries]]
+name = "Audiobooks"
+folder = "Audiobooks"
+media_type = "book"
+
+[[sample_library.libraries]]
+name = "Podcasts"
+folder = "Podcasts"
+media_type = "podcast"
+
+# Listening progress seeded after the scan. Titles are resolved against the server.
+# A finished first book plus an *untouched* second book is what makes "Continue Series" appear.
+[[fixture.progress]]
+title = "Project Hail Mary"
+progress = 0.38
+
+[[fixture.progress]]
+title = "Carl's Doomsday Scenario"
+progress = 0.61
+
+[[fixture.progress]]
+title = "All Systems Red"
+progress = 0.12
+
+[[fixture.progress]]
+title = "The Hobbit"
+finished = true
+
+[[fixture.progress]]
+title = "Dungeon Crawler Carl"
+finished = true
+
+# Listening sessions, backdated by `days_ago`, so the statistics screen has a week of data.
+[[fixture.sessions]]
+title = "Carl's Doomsday Scenario"
+minutes = 55
+days_ago = 0
+
+[[fixture.sessions]]
+title = "Project Hail Mary"
+minutes = 42
+days_ago = 1
+
+[[fixture.sessions]]
+title = "Carl's Doomsday Scenario"
+minutes = 38
+days_ago = 2
+
+[[fixture.sessions]]
+title = "All Systems Red"
+minutes = 24
+days_ago = 3
+
+[[fixture.sessions]]
+title = "Project Hail Mary"
+minutes = 65
+days_ago = 4
+
+[[fixture.sessions]]
+title = "The Hobbit"
+minutes = 30
+days_ago = 5
+
+[[fixture.sessions]]
+title = "Dungeon Crawler Carl"
+minutes = 80
+days_ago = 6
+
+[app]
+variant = "fossDebug"
+package = "app.campfire.android"
+activity = "app.campfire.android.MainActivity"
+library = "Audiobooks"
+# Defaults for every shot; a shot may override `theme_mode` / `theme`.
+theme_mode = "light"
+theme = "Tent"
+locale = "en-US"
+settle_ms = 2000
+
+[output]
+# Relative to the repo root. <class dir> is phoneScreenshots / sevenInchScreenshots / tenInchScreenshots.
+root = "fastlane/metadata/android"
+
+# ---------------------------------------------------------------------------
+# Device classes: one pinned emulator definition each. AVDs are created as
+# `campfire-shots-<class>` and never touch your personal AVDs.
+# ---------------------------------------------------------------------------
+[classes.phone]
+store_dir = "phoneScreenshots"
+system_image = "system-images;android-36;google_apis;arm64-v8a"
+width = 1080
+height = 2424
+density = 420
+orientation = "portrait"
+
+[classes.seven]
+store_dir = "sevenInchScreenshots"
+system_image = "system-images;android-36;google_apis;arm64-v8a"
+width = 1920
+height = 1200
+density = 320
+orientation = "landscape"
+
+[classes.ten]
+store_dir = "tenInchScreenshots"
+system_image = "system-images;android-36;google_apis;arm64-v8a"
+width = 2560
+height = 1600
+density = 320
+orientation = "landscape"
+
+# ---------------------------------------------------------------------------
+# Shots, in output order. Step kinds:
+#   { navigate = "<screen>" [, title = "<book title>" | arg = "<value>"] }
+#   { play = "<book title>" }          start playback (captured while playing)
+#   { expand_player = true }           open the full player
+#   { tap = "<text or content-description regex>" }
+#   { type = "<text>" }
+#   { swipe = "up" | "down" [, times = N, distance = <fraction of screen, default 0.5>] }
+#   { stop_playback = true }           stop the current session (also done after every shot)
+#   { wait = <ms> }
+#   { hide_keyboard = true }
+#   { back = true }
+# A capture is taken after the last step, after `settle_ms`.
+# ---------------------------------------------------------------------------
+[[shot]]
+name = "Home"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "home" }]
+
+[[shot]]
+name = "Library"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "library" }]
+
+[[shot]]
+name = "Detail"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "library_item", title = "Project Hail Mary" }]
+
+[[shot]]
+name = "Detail2"
+classes = ["phone"]
+steps = [
+  { navigate = "library_item", title = "Dungeon Crawler Carl" },
+  { swipe = "up", distance = 0.7 },
+]
+
+[[shot]]
+name = "Player"
+classes = ["phone", "seven", "ten"]
+steps = [
+  { play = "Carl's Doomsday Scenario" },
+  { wait = 1500 },
+  { expand_player = true },
+]
+
+[[shot]]
+name = "MiniPlayer"
+classes = ["phone"]
+steps = [
+  { play = "Carl's Doomsday Scenario" },
+  { navigate = "home" },
+]
+
+[[shot]]
+name = "Search"
+classes = ["phone", "seven", "ten"]
+steps = [
+  { navigate = "home" },
+  { tap = "^Search$" },
+  { type = "carl" },
+  { wait = 1000 },
+]
+
+[[shot]]
+name = "Stats"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "statistics" }]
+# Per-item tiles load their covers lazily; give them time.
+settle_ms = 6000
+
+[[shot]]
+name = "ThemePicker"
+classes = ["phone"]
+steps = [{ navigate = "theme_picker" }]
+
+[[shot]]
+name = "Podcasts"
+enabled = false
+classes = ["phone"]
+library = "Podcasts"
+steps = [{ navigate = "library" }]

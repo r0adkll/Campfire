@@ -23,6 +23,9 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 
 # Generate module dependency graph (updates docs/architecture/MODULARIZATION.md)
 ./gradlew moduleGraph
+
+# Store screenshots (phone | seven | ten) → fastlane/metadata/android (see tools/screenshots/README.md)
+tools/screenshots/run.py --class phone
 ```
 
 ## Technology Stack

@@ -26,7 +26,6 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
-import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.session.serverUrl
 import app.campfire.core.toast.GlobalToaster
 import app.campfire.tracing.Trace
@@ -80,12 +79,7 @@ class MainActivity : ComponentActivity() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
 
     // Parse Deeplink
-    if (intent != null) {
-      val libraryItemId = intent.extras?.getString(DeepLinkKeys.LibraryItemId)
-      if (libraryItemId != null) {
-        deepLinkFlow.value = DeepLink.ItemDetail(libraryItemId)
-      }
-    }
+    intent?.let { updateDeepLink(it) }
 
     // Configure toaster
     val toaster = AndroidToast(this)
@@ -115,10 +109,16 @@ class MainActivity : ComponentActivity() {
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
 
-    // Parse DeepLink parameters
-    val libraryItemId = intent.extras?.getString(DeepLinkKeys.LibraryItemId)
-    if (libraryItemId != null) {
-      deepLinkFlow.value = DeepLink.ItemDetail(libraryItemId)
+    updateDeepLink(intent)
+  }
+
+  private fun updateDeepLink(intent: Intent) {
+    val deepLink = intent.toDeepLink(
+      allowAutomation = BuildConfig.DEBUG,
+      nonce = System.nanoTime(),
+    )
+    if (deepLink != DeepLink.None) {
+      deepLinkFlow.value = deepLink
     }
   }
 

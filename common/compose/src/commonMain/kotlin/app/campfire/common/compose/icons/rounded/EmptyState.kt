@@ -549,14 +549,19 @@ private fun Road(
 
     val lineOn = 16f
     val lineOff = 24f
+    val period = lineOn + lineOff
     val roadLineOffsetX by infiniteTransition.animateFloat(
       initialValue = 0f,
-      targetValue = lineOn + lineOff,
+      targetValue = period,
       animationSpec = infiniteRepeatable(
         animation = tween(600, easing = LinearEasing),
         repeatMode = RepeatMode.Restart,
       ),
     )
+    // The animated value can sit exactly on `period` (e.g. animator duration scale 0 — the
+    // "Remove animations" accessibility setting), which is the same dash phase as 0. Without
+    // this wrap the first iteration below would advance `start` by 0 and never terminate.
+    val offset = roadLineOffsetX % period
 
     Path(
       stroke = SolidColor(Color(0xFFF7E96D)),
@@ -570,21 +575,21 @@ private fun Road(
       var start = startX
       while (start < endX) {
         if (startX == start) {
-          val trimmedStep = (lineOn - roadLineOffsetX)
+          val trimmedStep = lineOn - offset
           if (trimmedStep >= 0) {
             horizontalLineToRelative(trimmedStep)
             moveToRelative(lineOff, 0f)
           } else {
-            moveToRelative((lineOn + lineOff) - roadLineOffsetX, 0f)
+            moveToRelative(period - offset, 0f)
           }
-          start += trimmedStep + lineOff
+          start += period - offset
         } else if ((start + lineOn) > endX) {
           horizontalLineTo(endX)
-          start += lineOn + lineOff
+          start += period
         } else {
           horizontalLineToRelative(lineOn)
           moveToRelative(lineOff, 0f)
-          start += lineOn + lineOff
+          start += period
         }
       }
     }
