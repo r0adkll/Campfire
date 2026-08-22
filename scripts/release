@@ -63,6 +63,8 @@ PR_NUMBER_REGEX = re.compile(r"\(#(\d+)\)\s*$")
 CATEGORIES = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Other Notes & Contributions"]
 FASTLANE_CHAR_LIMIT = 500
 EXCLUDED_AUTHOR_PATTERNS = ("[bot]", "renovate", "app/", "dependabot", "github-actions")
+# Automated housekeeping PRs opened by our own workflows via CAMPFIRE_BOT_PAT.
+EXCLUDED_TITLE_PREFIXES = ("Bump campfire.version to ", "Update app baseline profile")
 UNRELEASED_SKELETON = "## [Unreleased]\n\n" + "\n\n".join(f"### {c}" for c in CATEGORIES) + "\n"
 
 BASELINE_GRADLE_ARGS = [
@@ -560,7 +562,7 @@ def build_release_notes(version, prev_tag):
             skipped.append(number)
             continue
         login = pr["author"]["login"]
-        if is_excluded_author(login):
+        if is_excluded_author(login) or pr["title"].startswith(EXCLUDED_TITLE_PREFIXES):
             continue
         lines.append(f"* {pr['title']} by @{login} in {REPO_URL}/pull/{number}")
     notes = "## What's Changed\n" + "\n".join(lines) + "\n"

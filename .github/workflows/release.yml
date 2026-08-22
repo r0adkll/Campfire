@@ -296,13 +296,26 @@ jobs:
           fi
           echo "next=$next" >> "$GITHUB_OUTPUT"
 
+      # Pushes straight to main when the PAT's user can bypass the branch ruleset; otherwise
+      # opens a PR and lets auto-merge land it once the required checks pass.
       - name: Commit and push
         if: steps.next.outputs.skip != 'true'
         env:
           NEXT: ${{ steps.next.outputs.next }}
+          GH_TOKEN: ${{ secrets.CAMPFIRE_BOT_PAT }}
         run: |
           sed -i "s/^campfire\.version=.*/campfire.version=$NEXT/" gradle.properties
           git config user.name "campfire-bot"
           git config user.email "campfire-bot@users.noreply.github.com"
           git commit -am "Bump campfire.version to $NEXT [skip ci]"
-          git push origin main
+          if git push origin main; then
+            exit 0
+          fi
+          echo "::warning::direct push to main was rejected by the branch ruleset; opening a PR instead"
+          branch="bump-version-$NEXT"
+          git checkout -b "$branch"
+          git push --force origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Bump campfire.version to $NEXT" \
+            --body "Automated bump after releasing ${{ github.event.release.tag_name }}. Auto-merges when checks pass."
+          gh pr merge "$branch" --auto --squash
