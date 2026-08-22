@@ -1,0 +1,38 @@
+name: Play Metadata
+
+# Syncs the Google Play store listing from fastlane/metadata/android. Runs when the listing
+# changes on main and on demand; never touches binaries or per-release changelogs.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'fastlane/metadata/android/**'
+      - '!fastlane/metadata/android/**/changelogs/**'
+
+jobs:
+  metadata:
+    name: Sync store listing
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check for Play credentials
+        id: creds
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: echo "present=$([ -n "$PLAY_SERVICE_ACCOUNT_JSON" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: ruby/setup-ruby@v1
+        if: steps.creds.outputs.present == 'true'
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Upload listing
+        if: steps.creds.outputs.present == 'true'
+        run: bundle exec fastlane android metadata
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}

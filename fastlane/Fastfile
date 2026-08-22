@@ -1,0 +1,78 @@
+# Store publishing lanes. Building is Gradle's job (see .github/workflows/release.yml); these
+# lanes only move already-built artifacts and the metadata/ listing into the stores.
+#
+#   fastlane android beta       aab:<path> [mapping:<path>]   rc tags   -> open testing, 100%
+#   fastlane android production aab:<path> [mapping:<path>]   final tag -> production, staged 20%
+#   fastlane android rollout    [fraction:<0..1>]             promote the in-progress production release
+#   fastlane android metadata                                 sync listing text/images (no binaries)
+#
+# iOS lanes (TestFlight / App Store via pilot + deliver) will live under `platform :ios`.
+
+skip_docs
+default_platform(:android)
+
+ANDROID_METADATA = File.expand_path("metadata/android", __dir__)
+DEFAULT_STAGED_ROLLOUT = "0.2"
+
+platform :android do
+  desc "Release-candidate build to the open testing (beta) track"
+  lane :beta do |options|
+    publish(options.merge(track: "beta"))
+  end
+
+  desc "Final build to production as a staged rollout (default #{DEFAULT_STAGED_ROLLOUT})"
+  lane :production do |options|
+    publish(options.merge(track: "production", rollout: options[:rollout] || DEFAULT_STAGED_ROLLOUT))
+  end
+
+  desc "Move the in-progress production release to `fraction` of users (default 1 = complete)"
+  lane :rollout do |options|
+    fraction = (options[:fraction] || "1").to_s
+    upload_to_play_store(
+      track: "production",
+      rollout: fraction,
+      release_status: release_status_for(fraction),
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Sync the store listing (descriptions, icon, feature graphic, screenshots) from fastlane/metadata"
+  lane :metadata do
+    upload_to_play_store(
+      metadata_path: ANDROID_METADATA,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: true,
+    )
+  end
+
+  # The AAB's versionCode selects metadata/android/<locale>/changelogs/<versionCode>.txt as the
+  # release notes, which scripts/release writes when cutting the release.
+  private_lane :publish do |options|
+    aab = options[:aab] || UI.user_error!("pass aab:<path to .aab>")
+    mapping = options[:mapping]
+    mapping = nil if mapping && !File.exist?(mapping)
+    rollout = options[:rollout]&.to_s
+
+    upload_to_play_store(
+      aab: aab,
+      mapping: mapping,
+      track: options[:track],
+      rollout: rollout,
+      release_status: rollout ? release_status_for(rollout) : "completed",
+      metadata_path: ANDROID_METADATA,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+end
+
+def release_status_for(fraction)
+  fraction.to_f >= 1 ? "completed" : "inProgress"
+end

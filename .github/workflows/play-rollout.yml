@@ -1,0 +1,30 @@
+name: Play Rollout
+
+# Promotes the in-progress production release on Google Play to a larger share of users.
+# Final releases start at a 20% staged rollout (see release.yml); run this to widen it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      fraction:
+        description: 'Share of users to roll out to (0.0 - 1.0; 1 completes the rollout)'
+        required: true
+        default: '1'
+
+jobs:
+  rollout:
+    name: Roll out production release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - name: Update rollout fraction
+        run: bundle exec fastlane android rollout fraction:"${{ inputs.fraction }}"
+        env:
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}

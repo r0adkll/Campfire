@@ -1,0 +1,7 @@
+title: Campfire
+description: Unofficial Audiobookshelf client for Android, iOS, and Desktop
+theme: jekyll-theme-primer
+exclude:
+  - agents
+  - architecture
+  - adr

@@ -258,6 +258,52 @@ jobs:
           asset_name: campfire-foss-release.apk
           asset_content_type: application/vnd.android.package-archive
 
+  # Uploads the AAB built above to Google Play. Separate from the build so a failed upload can
+  # be re-run without rebuilding, and so the Play credentials never enter the build job. No-ops
+  # until PLAY_SERVICE_ACCOUNT_JSON exists. Pre-releases (rc tags) go to open testing; final
+  # releases start a 20% staged production rollout — widen it with the Play Rollout workflow.
+  android-play-upload:
+    name: Upload AAB to Google Play
+    needs: [ android-play ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check for Play credentials
+        id: creds
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::PLAY_SERVICE_ACCOUNT_JSON is not set; skipping Google Play upload"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: ruby/setup-ruby@v1
+        if: steps.creds.outputs.present == 'true'
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+
+      - uses: actions/download-artifact@v7
+        if: steps.creds.outputs.present == 'true'
+        with:
+          name: android-play-build-outputs
+          path: app/android/build/outputs
+
+      - name: Upload to Google Play
+        if: steps.creds.outputs.present == 'true'
+        run: |
+          bundle exec fastlane android "$LANE" \
+            aab:app/android/build/outputs/bundle/standardRelease/android-standard-release.aab \
+            mapping:app/android/build/outputs/mapping/standardRelease/mapping.txt
+        env:
+          LANE: ${{ github.event.release.prerelease && 'beta' || 'production' }}
+          SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
   bump-version:
     name: Bump campfire.version
     needs: [ android-beta, android-play, android-foss ]
