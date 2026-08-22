@@ -305,8 +305,8 @@ jobs:
           GH_TOKEN: ${{ secrets.CAMPFIRE_BOT_PAT }}
         run: |
           sed -i "s/^campfire\.version=.*/campfire.version=$NEXT/" gradle.properties
-          git config user.name "campfire-bot"
-          git config user.email "campfire-bot@users.noreply.github.com"
+          git config user.name "Rotom-Bot"
+          git config user.email "38791843+Rotom-Bot@users.noreply.github.com"
           git commit -am "Bump campfire.version to $NEXT [skip ci]"
           if git push origin main; then
             exit 0

@@ -81,8 +81,8 @@ jobs:
         run: |
           # If the baseline profile has changed, commit it
           if [[ $(git diff --stat app/android/src) != '' ]]; then
-            git config user.name Rotom-Bot
-            git config user.email veedubusc+deckbox@gmail.com
+            git config user.name "Rotom-Bot"
+            git config user.email "38791843+Rotom-Bot@users.noreply.github.com"
             git add app/android/src
             git commit -m "Update app baseline profile [skip ci]"
             git pull --rebase
