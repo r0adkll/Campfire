@@ -118,6 +118,7 @@ kotlin {
         implementation(libs.assertk)
         implementation(libs.kotlinx.coroutines.test)
         implementation(projects.features.settings.test)
+        implementation(projects.features.sessions.test)
       }
     }
 

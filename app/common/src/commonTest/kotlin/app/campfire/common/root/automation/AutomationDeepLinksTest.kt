@@ -3,6 +3,7 @@
 
 package app.campfire.common.root.automation
 
+import app.campfire.audioplayer.PlaybackController
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.common.screens.HomeScreen
@@ -14,8 +15,12 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaType
 import app.campfire.core.model.NetworkSettings
+import app.campfire.core.model.PlayMethod
+import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.core.model.Session
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
+import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.SortDirection
@@ -24,6 +29,7 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.paging.LibraryItemPager
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
+import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.test.TestCampfireSettings
 import app.campfire.ui.theming.api.AppTheme
@@ -36,38 +42,42 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
+import kotlin.time.Duration
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDateTime
 
 class AutomationDeepLinksTest {
 
   @Test
   fun `resolveScreen maps known names`() {
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("home"))).isEqualTo(HomeScreen)
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("library"))).isEqualTo(LibraryScreen())
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("statistics"))).isEqualTo(StatisticsScreen)
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("theme_picker"))).isEqualTo(ThemePickerScreen)
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("library_item", "abc")))
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("home"))).isEqualTo(HomeScreen)
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("library"))).isEqualTo(LibraryScreen())
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("statistics"))).isEqualTo(StatisticsScreen)
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("theme_picker"))).isEqualTo(ThemePickerScreen)
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("library_item", "abc")))
       .isEqualTo(LibraryItemScreen("abc"))
   }
 
   @Test
   fun `resolveScreen maps settings pages case-insensitively and defaults to root`() {
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("settings", "appearance")))
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("settings", "appearance")))
       .isEqualTo(SettingsScreen(SettingsScreen.Page.Appearance))
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("settings", "nope")))
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("settings", "nope")))
       .isEqualTo(SettingsScreen(SettingsScreen.Page.Root))
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("settings")))
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("settings")))
       .isEqualTo(SettingsScreen(SettingsScreen.Page.Root))
   }
 
   @Test
   fun `resolveScreen returns null for unknown names or a missing item id`() {
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("bogus"))).isNull()
-    assertThat(AutomationDeepLinks.resolveScreen(DeepLink.Navigate("library_item"))).isNull()
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("bogus"))).isNull()
+    assertThat(AutomationScreens.resolve(DeepLink.Navigate("library_item"))).isNull()
   }
 
   @Test
@@ -77,13 +87,9 @@ class AutomationDeepLinksTest {
     val themes = FakeAppThemeRepository()
     val whatsNew = FakeWhatsNewRepository()
 
-    AutomationDeepLinks.applySetup(
+    AutomationDeepLinks(auth, settings, themes, whatsNew).applySetup(
       setup = DeepLink.Setup("http://h", "Home", "demo", "pw", themeMode = "dark", theme = "forest"),
       isLoggedIn = false,
-      authRepository = auth,
-      settings = settings,
-      themeRepository = themes,
-      whatsNewRepository = whatsNew,
     )
 
     assertThat(settings.hasEverConsented).isTrue()
@@ -99,13 +105,9 @@ class AutomationDeepLinksTest {
     val auth = FakeAuthRepository()
     val themes = FakeAppThemeRepository()
 
-    AutomationDeepLinks.applySetup(
+    AutomationDeepLinks(auth, TestCampfireSettings(this), themes, FakeWhatsNewRepository()).applySetup(
       setup = DeepLink.Setup("http://h", "Home", "demo", "pw", theme = "not-a-theme"),
       isLoggedIn = true,
-      authRepository = auth,
-      settings = TestCampfireSettings(this),
-      themeRepository = themes,
-      whatsNewRepository = FakeWhatsNewRepository(),
     )
 
     assertThat(auth.calls).isEqualTo(emptyList())
@@ -117,12 +119,60 @@ class AutomationDeepLinksTest {
     val audiobooks = library("1", "Audiobooks")
     val podcasts = library("2", "Podcasts")
     val repo = FakeLibraryRepository(listOf(audiobooks, podcasts))
+    val playback = FakePlaybackController()
+    val automation = UserAutomationDeepLinks(repo, playback, FakeSessionsRepository())
 
-    AutomationDeepLinks.selectLibrary("podcasts", repo)
+    automation.selectLibrary("podcasts")
     assertThat(repo.selected).isEqualTo(podcasts)
 
-    AutomationDeepLinks.selectLibrary("Comics", repo)
+    automation.selectLibrary("Comics")
     assertThat(repo.selected).isEqualTo(podcasts)
+  }
+
+  @Test
+  fun `play starts a session and stopPlayback stops the current one`() = runTest {
+    val playback = FakePlaybackController()
+    val sessions = FakeSessionsRepository()
+    val automation = UserAutomationDeepLinks(FakeLibraryRepository(emptyList()), playback, sessions)
+
+    automation.play("item-1")
+    assertThat(playback.started).isEqualTo(listOf("item-1"))
+
+    automation.stopPlayback()
+    assertThat(playback.stopped).isEqualTo(emptyList())
+
+    sessions.currentSession = sessionFor("item-1")
+    automation.stopPlayback()
+    assertThat(playback.stopped).isEqualTo(listOf("item-1"))
+  }
+
+  @OptIn(ExperimentalUuidApi::class)
+  private fun sessionFor(itemId: String) = Session(
+    id = Uuid.random(),
+    libraryItem = libraryItem(id = itemId),
+    userId = "user",
+    isDeleted = false,
+    playMethod = PlayMethod.DirectPlay,
+    mediaPlayer = "exoplayer",
+    timeListening = Duration.ZERO,
+    startTime = Duration.ZERO,
+    currentTime = Duration.ZERO,
+    lastPlayedAt = null,
+    startedAt = LocalDateTime(2026, 1, 1, 0, 0),
+    updatedAt = LocalDateTime(2026, 1, 1, 0, 0),
+  )
+
+  private class FakePlaybackController : PlaybackController {
+    val started = mutableListOf<String>()
+    val stopped = mutableListOf<String>()
+
+    override fun startSession(itemId: String, playImmediately: Boolean, chapterId: Int?, episodeId: PodcastEpisodeId?) {
+      started += itemId
+    }
+
+    override fun stopSession(itemId: String, clearQueue: Boolean, episodeId: PodcastEpisodeId?) {
+      stopped += itemId
+    }
   }
 
   private fun library(id: LibraryId, name: String) = Library(

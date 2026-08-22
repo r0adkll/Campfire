@@ -55,7 +55,7 @@ import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.di.UserComponent
 import app.campfire.common.navigator.HomeNavigator
 import app.campfire.common.navigator.OpenUrlNavigator
-import app.campfire.common.root.automation.AutomationDeepLinks
+import app.campfire.common.root.automation.AutomationScreens
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen
@@ -121,18 +121,11 @@ internal fun LoggedInWindow(
 
   // Debug-only automation deep links that need user-scoped dependencies
   LaunchedEffect(deepLink, userComponent) {
+    val automation = userComponent.automationDeepLinks
     when (deepLink) {
-      is DeepLink.Setup -> deepLink.libraryName?.let {
-        AutomationDeepLinks.selectLibrary(it, userComponent.libraryRepository)
-      }
-      is DeepLink.Play -> userComponent.playbackController.startSession(deepLink.libraryItemId)
-      is DeepLink.StopPlayback -> userComponent.sessionsRepository.getCurrentSession()?.let { session ->
-        userComponent.playbackController.stopSession(
-          itemId = session.libraryItem.id,
-          clearQueue = true,
-          episodeId = session.episodeId,
-        )
-      }
+      is DeepLink.Setup -> deepLink.libraryName?.let { automation.selectLibrary(it) }
+      is DeepLink.Play -> automation.play(deepLink.libraryItemId)
+      is DeepLink.StopPlayback -> automation.stopPlayback()
       else -> Unit
     }
   }
@@ -290,10 +283,10 @@ private fun LoggedInUi(
     when (deepLink) {
       is DeepLink.Navigate -> {
         playbackBarExpanded = false
-        val screen = AutomationDeepLinks.resolveScreen(deepLink)
+        val screen = AutomationScreens.resolve(deepLink)
         when {
           screen == null -> bark { "Automation: unknown screen '${deepLink.screen}'" }
-          deepLink.screen in AutomationDeepLinks.rootScreenNames -> {
+          deepLink.screen in AutomationScreens.rootScreenNames -> {
             // Also close whatever the supporting pane is showing so the root is truly reset
             detailBackStack.popUntil { it.screen is EmptyScreen }
             homeNavigator.resetRoot(screen)

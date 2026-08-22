@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
-import app.campfire.auth.api.AuthRepository
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.root.automation.AutomationDeepLinks
 import app.campfire.common.root.ui.LoggedInWindow
@@ -28,7 +27,6 @@ import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
-import app.campfire.whatsnew.api.WhatsNewRepository
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
 import me.tatarka.inject.annotations.Assisted
@@ -54,8 +52,7 @@ fun CampfireContentWithInsets(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
-  authRepository: AuthRepository,
-  whatsNewRepository: WhatsNewRepository,
+  automationDeepLinks: AutomationDeepLinks,
   @Assisted modifier: Modifier = Modifier,
 ) {
   val appUriHandler = remember(onOpenUrl) {
@@ -75,13 +72,9 @@ fun CampfireContentWithInsets(
       val session = userComponent.currentUserSession
       if (deepLink is DeepLink.Setup && session != UserSession.Loading) {
         LaunchedEffect(deepLink) {
-          AutomationDeepLinks.applySetup(
+          automationDeepLinks.applySetup(
             setup = deepLink,
             isLoggedIn = session is UserSession.LoggedIn,
-            authRepository = authRepository,
-            settings = settings,
-            themeRepository = themeRepository,
-            whatsNewRepository = whatsNewRepository,
           )
         }
       }
@@ -130,8 +123,7 @@ fun CampfireContent(
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
-  authRepository: AuthRepository,
-  whatsNewRepository: WhatsNewRepository,
+  automationDeepLinks: AutomationDeepLinks,
   @Assisted modifier: Modifier = Modifier,
 ) {
   CampfireContentWithInsets(
@@ -140,8 +132,7 @@ fun CampfireContent(
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     themeRepository = themeRepository,
-    authRepository = authRepository,
-    whatsNewRepository = whatsNewRepository,
+    automationDeepLinks = automationDeepLinks,
     onOpenUrl = onOpenUrl,
     windowInsets = WindowInsets.systemBars
       .exclude(WindowInsets.statusBars)

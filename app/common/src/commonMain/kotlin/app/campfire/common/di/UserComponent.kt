@@ -3,8 +3,8 @@
 
 package app.campfire.common.di
 
-import app.campfire.audioplayer.PlaybackController
 import app.campfire.auth.api.screen.AnalyticConsentScreen
+import app.campfire.common.root.automation.UserAutomationDeepLinks
 import app.campfire.common.screens.BaseScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.LoginScreen
@@ -17,7 +17,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
-import app.campfire.libraries.api.LibraryRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesSubcomponent
@@ -51,9 +50,8 @@ interface UserComponent {
 
   val sessionsRepository: SessionsRepository
 
-  // Used by the debug-only automation deep links (see AutomationDeepLinks)
-  val libraryRepository: LibraryRepository
-  val playbackController: PlaybackController
+  /** Debug-only automation deep links that need user-scoped dependencies */
+  val automationDeepLinks: UserAutomationDeepLinks
 
   @Provides @RootScreen
   fun provideRootScreen(
