@@ -97,6 +97,28 @@ class AbsClient:
         if failed:
             raise ShotError(f"Session seeding failed: {failed}")
 
+    def list_authors(self, library_id: str) -> list[dict]:
+        res = self.request("GET", f"/api/libraries/{library_id}/authors") or {}
+        return list(res.get("authors", []))
+
+    def match_author(self, author_id: str, name: str, region: str) -> bool:
+        """Quick-match an author against Audible so ABS saves a real author photo. Returns success."""
+        try:
+            res = self.request("POST", f"/api/authors/{author_id}/match", {"q": name, "region": region}, timeout=60)
+        except ShotError as e:
+            log(f"  match failed for {name}: {e}")
+            return False
+        return bool((res or {}).get("author", {}).get("imagePath") or (res or {}).get("updated"))
+
+    def create_playlist(self, library_id: str, name: str, description: str, item_ids: list[str]) -> str:
+        res = self.request("POST", "/api/playlists", {
+            "libraryId": library_id,
+            "name": name,
+            "description": description,
+            "items": [{"libraryItemId": i} for i in item_ids],
+        })
+        return res["id"]
+
     def set_progress(self, item_id: str, duration: float, *, progress: float | None, finished: bool):
         body: dict = {"duration": duration}
         if finished:
@@ -257,6 +279,23 @@ class Fixture:
                 })
             self.client.sync_local_sessions(payload)
             log(f"Seeded {len(payload)} listening sessions ({sum(s.minutes for s in self.spec.sessions)} min)")
+
+        if self.spec.match_authors:
+            for name, lib_id in self.library_ids.items():
+                authors = self.client.list_authors(lib_id)
+                matched = sum(
+                    self.client.match_author(a["id"], a["name"], self.spec.author_region)
+                    for a in authors if not a.get("imagePath")
+                )
+                log(f"Matched author images in '{name}': {matched}/{len(authors)} (via Audible {self.spec.author_region})")
+
+        for playlist in self.spec.playlists:
+            items = [self.find_book(t) for t in playlist.titles]
+            library_ids = {i["libraryId"] for i in items}
+            if len(library_ids) != 1:
+                raise ShotError(f"Playlist '{playlist.name}' spans libraries {library_ids}; ABS playlists are per-library")
+            self.client.create_playlist(library_ids.pop(), playlist.name, playlist.description, [i["id"] for i in items])
+            log(f"Created playlist '{playlist.name}' ({len(items)} items)")
 
         for seed in self.spec.progress:
             item = self.find_book(seed.title)

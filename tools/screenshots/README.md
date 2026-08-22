@@ -41,8 +41,10 @@ named shots. Files are numbered by spec order (`01_Home.png`, …). Commit the r
 1. **Server** — starts `node index.js` from the checkout on `[server].port` with a throwaway data dir
    under `tools/screenshots/.work/server/`, creates the root user, creates one library per
    `[[sample_library.libraries]]`, scans, then seeds `[[fixture.sessions]]` (backdated listening
-   sessions for the statistics screen) and `[[fixture.progress]]` (Continue Listening / Listen Again)
-   by title.
+   sessions for the statistics screen), `[[fixture.playlists]]`, and `[[fixture.progress]]`
+   (Continue Listening / Listen Again) — all by title. With `[fixture] match_authors = true` every
+   author is quick-matched against Audible through the server so the Authors screen has real photos
+   (needs internet; unmatched authors keep the placeholder).
    The server is always stopped afterwards unless `--keep-server`.
 2. **Emulator** — stops any *other* `campfire-shots-*` emulator (personal AVDs are never touched),
    creates `campfire-shots-<class>` from `[classes.<class>]` if missing (written directly
@@ -52,7 +54,9 @@ named shots. Files are numbered by spec order (`01_Home.png`, …). Commit the r
    stale icons remain. SystemUI *demo mode* is deliberately not used — on the pinned android-36
    image it renders broken glyphs. The soft keyboard is suppressed by disabling the keyboard IMEs
    and selecting the (invisible) voice IME, so `type` steps never show Gboard.
-3. **App** — builds and installs `[app].variant`, clears its data, then sends the debug-only
+3. **App** — builds `[app].variant` with `-Pcampfire_no_test_credentials=true` (so a developer's
+   login prefill from `~/.gradle/gradle.properties` never ends up in a shot — prefer a fresh build over
+   `--skip-build` after changing those properties), installs it, clears its data, then sends the debug-only
    `setup` intent (server URL, credentials, library, theme) and waits until a signed-in Home is on
    screen (dismissing an ANR dialog or re-sending setup if needed). Release builds ignore these intents.
 4. **Shots** — runs each shot's steps, waits `settle_ms`, captures with `screencap`.
@@ -72,7 +76,7 @@ steps = [
 # optional: enabled = false, library = "Podcasts", theme_mode = "dark", theme = "Forest", settle_ms = 3000
 ```
 
-Step kinds: `navigate` (`home`, `library`, `series`, `authors`, `collections`, `playlists`,
+Step kinds: `welcome = true` (signed-out Welcome screen), `navigate` (`home`, `library`, `series`, `authors`, `collections`, `playlists`,
 `statistics`, `theme_picker`, `settings` + `arg = "<Page>"`, `library_item` + `title = "…"`),
 `play = "<title>"`, `expand_player = true`, `tap = "<regex over text / content-description>"`,
 `type = "…"`, `swipe = "up"|"down"`, `wait = <ms>`, `back = true`.

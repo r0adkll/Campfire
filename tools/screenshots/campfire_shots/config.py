@@ -56,6 +56,13 @@ class SessionSeed:
 
 
 @dataclass
+class PlaylistSeed:
+    name: str
+    description: str
+    titles: list[str]
+
+
+@dataclass
 class DeviceClass:
     key: str
     store_dir: str
@@ -90,6 +97,9 @@ class Spec:
     libraries: list[LibraryDef]
     progress: list[ProgressSeed]
     sessions: list[SessionSeed]
+    playlists: list[PlaylistSeed]
+    match_authors: bool
+    author_region: str
     app: dict
     output_root: Path
     classes: dict[str, DeviceClass]
@@ -141,6 +151,10 @@ def load_spec(path: Path) -> Spec:
         SessionSeed(title=x["title"], minutes=int(x["minutes"]), days_ago=int(x.get("days_ago", 0)))
         for x in raw.get("fixture", {}).get("sessions", [])
     ]
+    playlists = [
+        PlaylistSeed(name=x["name"], description=x.get("description", ""), titles=list(x["titles"]))
+        for x in raw.get("fixture", {}).get("playlists", [])
+    ]
     classes = {
         key: DeviceClass(key=key, **{k: v for k, v in c.items()})
         for key, c in raw["classes"].items()
@@ -157,6 +171,8 @@ def load_spec(path: Path) -> Spec:
         ))
     return Spec(
         server=server, sample_library_path=sample_path, regenerate_cmd=sl.get("regenerate"),
-        libraries=libraries, progress=progress, sessions=sessions, app=raw["app"],
+        libraries=libraries, progress=progress, sessions=sessions, playlists=playlists,
+        match_authors=bool(raw.get("fixture", {}).get("match_authors", False)),
+        author_region=raw.get("fixture", {}).get("author_region", "us"), app=raw["app"],
         output_root=(REPO_ROOT / raw["output"]["root"]).resolve(), classes=classes, shots=shots, raw=raw,
     )

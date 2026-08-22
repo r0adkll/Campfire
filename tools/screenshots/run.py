@@ -36,7 +36,9 @@ def parse_args(argv):
 
 def run_steps(app: App, fixture: Fixture, shot: Shot, settle_ms: int) -> None:
     for step in shot.steps:
-        if "navigate" in step:
+        if step.get("welcome"):
+            app.reset_to_welcome()
+        elif "navigate" in step:
             arg = step.get("arg")
             if "title" in step:
                 arg = fixture.find_book(step["title"])["id"]
@@ -133,6 +135,11 @@ def main(argv=None) -> int:
                 app.setup(library=default_library, theme_mode=spec.app.get("theme_mode"), theme=spec.app.get("theme"))
                 time.sleep(2)
             # Reset to a neutral state so shots don't leak into each other
+            if app.needs_setup:
+                send_setup()
+                time.sleep(6)
+                app.wait_for_home(resend_setup=send_setup)
+                app.needs_setup = False
             app.stop_playback()
             app.navigate("home")
             time.sleep(1)

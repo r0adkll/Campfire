@@ -6,11 +6,17 @@ plugins {
   alias(libs.plugins.buildConfig)
 }
 
+// Developer convenience: prefill the login form from ~/.gradle/gradle.properties. Builds that must
+// not carry personal credentials (e.g. store screenshots) pass -Pcampfire_no_test_credentials=true.
+val noTestCredentials = providers.gradleProperty("campfire_no_test_credentials").orNull == "true"
+fun testCredential(name: String): String? =
+  if (noTestCredentials) null else providers.gradleProperty(name).orNull
+
 buildConfig {
   packageName("app.campfire.auth.ui")
-  buildConfigField("String?", "TEST_SERVER_URL", providers.gradleProperty("campfire_server_url").orNull)
-  buildConfigField("String?", "TEST_USERNAME", providers.gradleProperty("campfire_username").orNull)
-  buildConfigField("String?", "TEST_PASSWORD", providers.gradleProperty("campfire_password").orNull)
+  buildConfigField("String?", "TEST_SERVER_URL", testCredential("campfire_server_url"))
+  buildConfigField("String?", "TEST_USERNAME", testCredential("campfire_username"))
+  buildConfigField("String?", "TEST_PASSWORD", testCredential("campfire_password"))
   useKotlinOutput()
 }
 

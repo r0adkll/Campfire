@@ -31,6 +31,12 @@ name = "Podcasts"
 folder = "Podcasts"
 media_type = "podcast"
 
+# Fetch real author photos by quick-matching every author against Audible through the server
+# (POST /api/authors/:id/match). Needs internet; failures are logged and skipped.
+[fixture]
+match_authors = true
+author_region = "us"
+
 # Listening progress seeded after the scan. Titles are resolved against the server.
 # A finished first book plus an *untouched* second book is what makes "Continue Series" appear.
 [[fixture.progress]]
@@ -89,6 +95,17 @@ title = "Dungeon Crawler Carl"
 minutes = 80
 days_ago = 6
 
+# Playlists (per library; every title must live in the same library).
+[[fixture.playlists]]
+name = "Road Trip"
+description = "Long drives, big skies, and a little space travel."
+titles = ["Project Hail Mary", "The Martian", "Artemis", "Dungeon Crawler Carl"]
+
+[[fixture.playlists]]
+name = "Cozy Sci-Fi"
+description = "Low stakes, warm hearts, found family."
+titles = ["A Psalm for the Wild-Built", "The Long Way to a Small, Angry Planet", "All Systems Red"]
+
 [app]
 variant = "fossDebug"
 package = "app.campfire.android"
@@ -134,6 +151,7 @@ orientation = "landscape"
 
 # ---------------------------------------------------------------------------
 # Shots, in output order. Step kinds:
+#   { welcome = true }                 signed-out Welcome screen (clears app data; setup is re-sent after)
 #   { navigate = "<screen>" [, title = "<book title>" | arg = "<value>"] }
 #   { play = "<book title>" }          start playback (captured while playing)
 #   { expand_player = true }           open the full player
@@ -147,6 +165,11 @@ orientation = "landscape"
 # A capture is taken after the last step, after `settle_ms`.
 # ---------------------------------------------------------------------------
 [[shot]]
+name = "Welcome"
+classes = ["phone", "seven", "ten"]
+steps = [{ welcome = true }, { wait = 1500 }]
+
+[[shot]]
 name = "Home"
 classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "home" }]
@@ -155,6 +178,21 @@ steps = [{ navigate = "home" }]
 name = "Library"
 classes = ["phone", "seven", "ten"]
 steps = [{ navigate = "library" }]
+
+[[shot]]
+name = "Series"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "series" }]
+
+[[shot]]
+name = "Authors"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "authors" }]
+
+[[shot]]
+name = "Playlists"
+classes = ["phone", "seven", "ten"]
+steps = [{ navigate = "playlists" }]
 
 [[shot]]
 name = "Detail"
