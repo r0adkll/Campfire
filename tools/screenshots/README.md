@@ -76,7 +76,7 @@ steps = [
 # optional: enabled = false, library = "Podcasts", theme_mode = "dark", theme = "Forest", settle_ms = 3000
 ```
 
-Step kinds: `welcome = true` (signed-out Welcome screen), `navigate` (`home`, `library`, `series`, `authors`, `collections`, `playlists`,
+Step kinds: `navigate` (`home`, `library`, `series`, `authors`, `collections`, `playlists`,
 `statistics`, `theme_picker`, `settings` + `arg = "<Page>"`, `library_item` + `title = "…"`),
 `play = "<title>"`, `expand_player = true`, `tap = "<regex over text / content-description>"`,
 `type = "…"`, `swipe = "up"|"down"`, `wait = <ms>`, `back = true`.

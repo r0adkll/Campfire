@@ -151,7 +151,6 @@ orientation = "landscape"
 
 # ---------------------------------------------------------------------------
 # Shots, in output order. Step kinds:
-#   { welcome = true }                 signed-out Welcome screen (clears app data; setup is re-sent after)
 #   { navigate = "<screen>" [, title = "<book title>" | arg = "<value>"] }
 #   { play = "<book title>" }          start playback (captured while playing)
 #   { expand_player = true }           open the full player
@@ -164,11 +163,6 @@ orientation = "landscape"
 #   { back = true }
 # A capture is taken after the last step, after `settle_ms`.
 # ---------------------------------------------------------------------------
-[[shot]]
-name = "Welcome"
-classes = ["phone", "seven", "ten"]
-steps = [{ welcome = true }, { wait = 1500 }]
-
 [[shot]]
 name = "Home"
 classes = ["phone", "seven", "ten"]

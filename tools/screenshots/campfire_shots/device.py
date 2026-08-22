@@ -20,7 +20,6 @@ class App:
         self.package = spec.app["package"]
         self.activity = spec.app.get("activity", MAIN)
         self.variant = spec.app["variant"]
-        self.needs_setup = False
 
     # -- install -------------------------------------------------------------------------
     def build_and_install(self, *, skip_build: bool = False) -> None:
@@ -28,7 +27,7 @@ class App:
         if not skip_build:
             log(f"Building {self.variant} APK")
             # Never bake the developer's login prefill (~/.gradle/gradle.properties) into this APK:
-            # the signed-out Welcome shot would show the server address and username.
+            # the signed-out screen seen during setup must not leak the server address or username.
             run([str(REPO_ROOT / "gradlew"), f":app:android:assemble{self.variant[0].upper()}{self.variant[1:]}",
                  "-Pcampfire_no_test_credentials=true", "-q"], cwd=str(REPO_ROOT))
         pattern = str(REPO_ROOT / "app" / "android" / "build" / "outputs" / "apk" / flavor / "debug" / "*.apk")
@@ -48,15 +47,6 @@ class App:
 
     def launch(self) -> None:
         self._start()
-
-    def reset_to_welcome(self) -> None:
-        """Clear app data and launch cold: the signed-out Welcome screen. Setup must be re-sent after."""
-        self.stop()
-        self.adb.shell("pm", "clear", self.package)
-        for perm in ("android.permission.POST_NOTIFICATIONS", "android.permission.ACCESS_LOCAL_NETWORK"):
-            self.adb.shell("pm", "grant", self.package, perm, check=False)
-        self._start()
-        self.needs_setup = True
 
     def setup(self, *, library: str, theme_mode: str | None, theme: str | None) -> None:
         cfg = self.spec.server
