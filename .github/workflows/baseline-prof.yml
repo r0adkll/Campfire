@@ -8,14 +8,14 @@ on:
   pull_request:
     paths:
       - 'app/baselineprofile/**'
-      - '.github/workflows/baseline-profile.yml'
+      - '.github/workflows/baseline-prof.yml'
 
 jobs:
   baseline-profile:
     # Skip on fork PRs — this workflow needs first-party secrets and pushes back to main.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v7
@@ -25,11 +25,23 @@ jobs:
           # https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token#creating-a-fine-grained-personal-access-token
           token: ${{ secrets.CAMPFIRE_BOT_PAT }}
 
-      - name: Enable KVM
+      - name: Setup swap
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules
-          sudo udevadm trigger --name-match=kvm
+          sudo swapon --show
+          sudo swapoff -a
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
+      - name: Free up disk space
+        run: |
+          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
+            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
+          sudo apt autoremove -yq
+          sudo apt clean
+          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -41,60 +53,26 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Accept Android SDK license
-        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
-
       - name: Download Service Accounts
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
 
-      - name: Build app and benchmark
-        run: ./gradlew assembleNonMinifiedRelease
-        env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-
-      - name: AVD cache
-        uses: actions/cache@v6
-        id: avd-cache
-        with:
-          path: |
-            ~/.android/avd/*
-            ~/.android/adb*
-          key: avd-36
-
+      # The generator runs on an emulator.wtf managed device (see app/baselineprofile) rather
+      # than an emulator on the runner — hosted runners were too slow and hung regularly.
+      # The test credentials are read as Gradle properties by features/auth/ui, so the
+      # ORG_GRADLE_PROJECT_ names must match them exactly (lowercase).
       - name: Generate Baseline Profiles
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 36
-          target: google_apis
-          arch: x86_64
-          profile: pixel_7
-          ram-size: 4096M
-          disk-size: 6000M
-          heap-size: 600M
-          script: |
-            ./gradlew generateBaselineProfile \
-              -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+        run: |
+          ./gradlew :app:android:generateBaselineProfile \
+            -Pcampfire.config.useEmulatorWtf=true \
+            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
         env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
-#
-#      - name: Generate Baseline Profiles
-#        run: |
-#          ./gradlew generateBaselineProfile \
-#            -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" \
-#            -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile \
-#            -Pandroid.experimental.testOptions.managedDevices.setupTimeoutMinutes=10 \
-#            --no-configuration-cache
-#        env:
-#          ORG_GRADLE_PROJECT_CAMPFIRE_SERVER_URL: ${{ secrets.SERVER_URL }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_USERNAME: ${{ secrets.TEST_USER_NAME }}
-#          ORG_GRADLE_PROJECT_CAMPFIRE_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          EW_API_TOKEN: ${{ secrets.EW_API_TOKEN }}
+          ORG_GRADLE_PROJECT_campfire_server_url: ${{ secrets.SERVER_URL }}
+          ORG_GRADLE_PROJECT_campfire_username: ${{ secrets.TEST_USER_NAME }}
+          ORG_GRADLE_PROJECT_campfire_password: ${{ secrets.TEST_USER_PASSWORD }}
 
       # If we're on main branch, copy over the baseline profile and
       # commit it to the repository (if changed)
@@ -106,7 +84,7 @@ jobs:
             git config user.name Rotom-Bot
             git config user.email veedubusc+deckbox@gmail.com
             git add app/android/src
-            git commit -m "Update app baseline profile"
+            git commit -m "Update app baseline profile [skip ci]"
             git pull --rebase
             git push
           fi
@@ -118,3 +96,4 @@ jobs:
           name: reports
           path: |
             **/build/reports/*
+            app/baselineprofile/build/outputs/managed_device_android_test_additional_output/**

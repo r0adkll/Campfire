@@ -37,6 +37,9 @@ pluginManagement {
     google()
     gradlePluginPortal()
     mavenCentral()
+    maven("https://maven.emulator.wtf/releases/") {
+      content { includeGroup("wtf.emulator") }
+    }
   }
 }
 
@@ -67,6 +70,9 @@ dependencyResolutionManagement {
 
     google()
     mavenCentral()
+    maven("https://maven.emulator.wtf/releases/") {
+      content { includeGroup("wtf.emulator") }
+    }
   }
 }
 

@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added `scripts/release` to cut releases in one step; the Release workflow now bumps `campfire.version` automatically after a release
 - Alpha build release notes now describe the PR that produced the build instead of the cumulative Unreleased changelog
+- Baseline profiles are generated once per release (on emulator.wtf in CI, or locally via `scripts/release`) instead of once per flavor on a hosted-runner emulator
 
 ## [1.0.1]
 

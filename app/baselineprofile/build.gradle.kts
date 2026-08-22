@@ -2,38 +2,49 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 import com.android.build.api.dsl.ManagedVirtualDevice
+import wtf.emulator.DeviceModel
+import wtf.emulator.ewDevices
 
 plugins {
   id("app.campfire.android.test")
   id("app.campfire.kotlin.android")
   alias(libs.plugins.baselineprofile)
+  alias(libs.plugins.emulatorwtf)
 }
+
+// Baseline profiles are merged into :app:android's src/main (mergeIntoMain), so every flavor
+// ships the same profile and the generator only needs to run against one of them. Pinning the
+// test module to the standard flavor means a single emulator session instead of one per flavor.
+// Set -Pcampfire.config.useEmulatorWtf=true (CI) to generate on emulator.wtf instead of a local
+// Gradle managed device; it needs EW_API_TOKEN in the environment.
+val useEmulatorWtf = providers.gradleProperty("campfire.config.useEmulatorWtf").orNull == "true"
 
 android {
   namespace = "app.campfire.baselineprofile"
 
   defaultConfig {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-  }
-
-  flavorDimensions += "default"
-  productFlavors {
-    create("standard") { dimension = "default" }
-    create("alpha") { dimension = "default" }
-    create("beta") { dimension = "default" }
+    missingDimensionStrategy("default", "standard")
   }
 
   targetProjectPath = ":app:android"
 
-  // This code creates the gradle managed device used to generate baseline profiles.
-  // To use GMD please invoke generation through the command line:
+  // Devices used to generate baseline profiles, invoked via
   // ./gradlew :app:android:generateBaselineProfile
-  testOptions.managedDevices.allDevices {
-    @Suppress("UnstableApiUsage")
-    create<ManagedVirtualDevice>("pixel6Api34") {
-      device = "Pixel 6"
-      apiLevel = 34
-      systemImageSource = "google"
+  testOptions.managedDevices {
+    allDevices {
+      @Suppress("UnstableApiUsage")
+      create<ManagedVirtualDevice>("pixel6Api34") {
+        device = "Pixel 6"
+        apiLevel = 34
+        systemImageSource = "google"
+      }
+    }
+    ewDevices {
+      register("ewPixel7Api34") {
+        device.set(DeviceModel.PIXEL_7)
+        apiLevel.set(34)
+      }
     }
   }
 }
@@ -41,7 +52,7 @@ android {
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
-  managedDevices += "pixel6Api34"
+  managedDevices += if (useEmulatorWtf) "ewPixel7Api34" else "pixel6Api34"
   useConnectedDevices = false
   // Uncomment this to enable the emulator display for testing
   // enableEmulatorDisplay = true

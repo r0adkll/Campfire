@@ -8,6 +8,10 @@ The version being released is always `campfire.version` in gradle.properties (th
 post-release job in .github/workflows/release.yml bumps it to the next version once a
 release ships). The script:
 
+  baseline 0. Regenerates the app baseline/startup profiles on a Gradle managed device
+              (app/android/src/main/generated/baselineProfiles). Needs a test server:
+              campfire_server_url / campfire_username / campfire_password as Gradle
+              properties (~/.gradle/gradle.properties or ORG_GRADLE_PROJECT_* env vars)
   prepare  1. Validates the version (semver, not yet tagged, not yet in CHANGELOG.md)
            2. Rolls `## [Unreleased]` in CHANGELOG.md into `## [<version>]` (dropping empty
               categories), inserts a fresh Unreleased skeleton and a compare link
@@ -20,7 +24,9 @@ release ships). The script:
               Release workflow that builds and attaches the APKs/AAB.
 
 Usage:
-  scripts/release                 # prepare + publish (asks for confirmation)
+  scripts/release                 # baseline + prepare + publish (asks for confirmation)
+  scripts/release --skip-baseline # same, without regenerating baseline profiles
+  scripts/release baseline        # only step 0
   scripts/release prepare         # only steps 1-3; edit the files, then `scripts/release publish`
   scripts/release publish         # steps 4-5 on an already prepared tree
   scripts/release --dry-run       # show everything that would happen without touching git/GitHub
@@ -33,6 +39,7 @@ from the tag.
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -42,6 +49,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 GRADLE_PROPERTIES = REPO_ROOT / "gradle.properties"
 CHANGELOG = REPO_ROOT / "CHANGELOG.md"
 FASTLANE_CHANGELOGS = REPO_ROOT / "fastlane/metadata/android/en-US/changelogs"
+BASELINE_PROFILES = REPO_ROOT / "app/android/src/main/generated/baselineProfiles"
+BASELINE_GRADLE_ARGS = [
+    ":app:android:generateBaselineProfile",
+    "-Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile",
+]
+BASELINE_PROPERTIES = ("campfire_server_url", "campfire_username", "campfire_password")
 
 REPO = "r0adkll/Campfire"
 REPO_URL = f"https://github.com/{REPO}"
@@ -98,6 +111,42 @@ def previous_tag():
     """The most recent tag reachable from HEAD, i.e. the last release cut from main."""
     tag = run(["git", "describe", "--tags", "--abbrev=0"], check=False).stdout.strip()
     return tag or None
+
+
+# --------------------------------------------------------------------------- baseline
+
+
+def baseline_profile_files():
+    return sorted(str(path.relative_to(REPO_ROOT)) for path in BASELINE_PROFILES.glob("*.txt"))
+
+
+def has_gradle_property(name):
+    if f"ORG_GRADLE_PROJECT_{name}" in os.environ:
+        return True
+    user_props = Path.home() / ".gradle" / "gradle.properties"
+    return user_props.exists() and re.search(rf"^{name}=", user_props.read_text(), re.MULTILINE) is not None
+
+
+def generate_baseline_profiles(dry_run):
+    missing = [name for name in BASELINE_PROPERTIES if not has_gradle_property(name)]
+    if missing:
+        fail(
+            "baseline profile generation needs a test server; set "
+            + ", ".join(missing)
+            + " in ~/.gradle/gradle.properties (or ORG_GRADLE_PROJECT_<name> env vars), "
+            "or re-run with --skip-baseline"
+        )
+    command = ["./gradlew", *BASELINE_GRADLE_ARGS]
+    if dry_run:
+        print(f"[dry-run] would run: {' '.join(command)}")
+        return
+    print("Generating baseline profiles on the Gradle managed device (this takes a while)...")
+    run(command, capture=False)
+    changed = git("status", "--porcelain", "--", str(BASELINE_PROFILES.relative_to(REPO_ROOT)))
+    if changed:
+        print("Baseline profiles updated:\n  " + "\n  ".join(baseline_profile_files()))
+    else:
+        print("Baseline profiles unchanged")
 
 
 # --------------------------------------------------------------------------- prepare
@@ -212,7 +261,7 @@ def check_publish_preconditions(version, dry_run):
         )
 
     # Only the release files may be dirty; anything else is probably unrelated work.
-    allowed = {"CHANGELOG.md", str(path.relative_to(REPO_ROOT))}
+    allowed = {"CHANGELOG.md", str(path.relative_to(REPO_ROOT)), *baseline_profile_files()}
     status = run(["git", "status", "--porcelain", "--untracked-files=all"]).stdout
     dirty = [line[3:].split(" -> ")[-1] for line in status.splitlines()]
     unexpected = sorted(set(dirty) - allowed)
@@ -284,7 +333,7 @@ def publish(version, dry_run, assume_yes):
             print("aborted — nothing was pushed")
             sys.exit(1)
 
-    files = ["CHANGELOG.md", str(fastlane_path(version).relative_to(REPO_ROOT))]
+    files = ["CHANGELOG.md", str(fastlane_path(version).relative_to(REPO_ROOT)), *baseline_profile_files()]
     if git("status", "--porcelain", "--", *files):
         run(["git", "add", *files])
         # [skip ci]: the release itself builds from the tag; no alpha needed for this commit.
@@ -306,7 +355,8 @@ def publish(version, dry_run, assume_yes):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("command", nargs="?", choices=["prepare", "publish"], help="run only one phase")
+    parser.add_argument("command", nargs="?", choices=["baseline", "prepare", "publish"], help="run only one phase")
+    parser.add_argument("--skip-baseline", action="store_true", help="don't regenerate baseline profiles")
     parser.add_argument("--dry-run", action="store_true", help="print what would happen without changing anything")
     parser.add_argument("-y", "--yes", action="store_true", help="skip the confirmation prompt")
     args = parser.parse_args()
@@ -314,6 +364,10 @@ def main():
     version = read_version()
     print(f"Releasing campfire.version={version}")
 
+    if args.command == "baseline" or (args.command is None and not args.skip_baseline):
+        generate_baseline_profiles(args.dry_run)
+        if args.command == "baseline":
+            return
     if args.command in (None, "prepare"):
         prepare(version, args.dry_run)
         if args.command == "prepare":
