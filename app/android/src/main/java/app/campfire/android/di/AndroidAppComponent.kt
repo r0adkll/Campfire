@@ -34,7 +34,6 @@ abstract class AndroidAppComponent(
       debugBuild = BuildConfig.DEBUG,
       flavor = when (BuildConfig.FLAVOR) {
         "standard" -> Flavor.Standard
-        "beta" -> Flavor.Beta
         "foss" -> Flavor.Foss
         else -> Flavor.Alpha
       },

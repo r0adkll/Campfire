@@ -5,99 +5,6 @@ on:
     types: [ created ]
 
 jobs:
-  android-beta:
-    name: Build Android Beta Release
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Setup swap
-        run: |
-          sudo swapon --show
-          sudo swapoff -a
-          sudo fallocate -l 8G /swapfile
-          sudo chmod 600 /swapfile
-          sudo mkswap /swapfile
-          sudo swapon /swapfile
-          sudo swapon -s
-
-      - name: Free up disk space
-        run: |
-          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
-            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
-          sudo apt autoremove -yq
-          sudo apt clean
-          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
-
-      - uses: actions/checkout@v7
-
-      - name: Set up JDK
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'zulu'
-          java-version: 21
-          cache: gradle
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
-
-      - name: Decode Keystore
-        env:
-          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
-        run: |
-          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
-
-      - name: Download Service Accounts
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
-        run: |
-          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
-          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
-
-      - name: Assemble Beta Release APK
-        run: ./gradlew :app:android:assembleBetaRelease
-        env:
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
-          ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
-          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
-          CI: true
-
-      - name: Create Release Notes
-        run: |
-          ./campfire changelog > app/android/release-notes.txt
-          echo " "
-          cat app/android/release-notes.txt
-
-      - name: Firebase App Distribution
-        run: |
-          ./gradlew :app:android:appDistributionUploadBetaRelease \
-            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
-            --releaseNotesFile="app/android/release-notes.txt"
-
-      - name: Upload build outputs
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: android-beta-build-outputs
-          path: app/android/build/outputs
-
-      - name: Get release information
-        id: get_release
-        uses: bruceadams/get-release@v1.3.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Upload APK to release
-        uses: actions/upload-release-asset@v1.0.2
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: app/android/build/outputs/apk/beta/release/android-beta-release.apk
-          asset_name: campfire-beta-release.apk
-          asset_content_type: application/vnd.android.package-archive
-
   android-play:
     name: Build Android Play Release Bundle
     runs-on: ubuntu-latest
@@ -148,8 +55,8 @@ jobs:
       # The AAB is signed with the release keystore as the Play App Signing *upload* key;
       # Play re-signs it with the app signing key for distribution. Attached to the GitHub
       # release for upload to the Play Console.
-      - name: Bundle Standard Release AAB
-        run: ./gradlew :app:android:bundleStandardRelease
+      - name: Build Standard Release (AAB for Play, APK for sideloading)
+        run: ./gradlew :app:android:bundleStandardRelease :app:android:assembleStandardRelease
         env:
           ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
           ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
@@ -179,6 +86,18 @@ jobs:
           asset_path: app/android/build/outputs/bundle/standardRelease/android-standard-release.aab
           asset_name: campfire-play-release.aab
           asset_content_type: application/octet-stream
+
+      # The full-featured (non-FOSS) APK, self-signed with the release key, for users who prefer
+      # to sideload from the GitHub release rather than install from Google Play.
+      - name: Upload standard APK to release
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: app/android/build/outputs/apk/standard/release/android-standard-release.apk
+          asset_name: campfire-standard-release.apk
+          asset_content_type: application/vnd.android.package-archive
 
   android-foss:
     name: Build Android FOSS Release
@@ -306,7 +225,7 @@ jobs:
 
   bump-version:
     name: Bump campfire.version
-    needs: [ android-beta, android-play, android-foss ]
+    needs: [ android-play, android-foss ]
     runs-on: ubuntu-latest
 
     steps:
@@ -340,7 +259,15 @@ jobs:
             echo "::error::unrecognised release tag '$released'"
             exit 1
           fi
+          # Keep campfire.versionCode (MMmmppRR) in lockstep with campfire.version — the build
+          # reads the code directly and CI asserts they agree (see :app:android:verifyVersionCode).
+          if [[ "$next" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(-rc([0-9]+))?$ ]]; then
+            code=$(( ${BASH_REMATCH[1]} * 1000000 + ${BASH_REMATCH[2]} * 10000 + ${BASH_REMATCH[3]} * 100 + ${BASH_REMATCH[5]:-99} ))
+          else
+            echo "::error::cannot derive versionCode from '$next'"; exit 1
+          fi
           echo "next=$next" >> "$GITHUB_OUTPUT"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
 
       # Pushes straight to main when the PAT's user can bypass the branch ruleset; otherwise
       # opens a PR and lets auto-merge land it once the required checks pass.
@@ -348,9 +275,11 @@ jobs:
         if: steps.next.outputs.skip != 'true'
         env:
           NEXT: ${{ steps.next.outputs.next }}
+          CODE: ${{ steps.next.outputs.code }}
           GH_TOKEN: ${{ secrets.CAMPFIRE_BOT_PAT }}
         run: |
           sed -i "s/^campfire\.version=.*/campfire.version=$NEXT/" gradle.properties
+          sed -i "s/^campfire\.versionCode=.*/campfire.versionCode=$CODE/" gradle.properties
           git config user.name "Rotom-Bot"
           git config user.email "38791843+Rotom-Bot@users.noreply.github.com"
           git commit -am "Bump campfire.version to $NEXT [skip ci]"

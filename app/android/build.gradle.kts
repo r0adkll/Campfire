@@ -5,6 +5,7 @@
 
 import app.campfire.convention.campfireVersionCode
 import app.campfire.convention.campfireVersionName
+import app.campfire.convention.deriveVersionCode
 
 plugins {
   id("app.campfire.android.application")
@@ -53,11 +54,8 @@ android {
       versionNameSuffix = "-alpha"
     }
 
-    create("beta") {
-    }
-
-    // 100% FOSS build for F-Droid / IzzyOnDroid: same applicationId as standard, but the
-    // flavor-scoped proprietary modules (Firebase, Mixpanel, ML Kit) are never wired in.
+    // 100% FOSS build for F-Droid: same applicationId as standard, but the flavor-scoped
+    // proprietary modules (Firebase, Mixpanel, ML Kit, Cast) are never wired in.
     create("foss") {
     }
   }
@@ -71,7 +69,7 @@ android {
 
   sourceSets {
     matching {
-      listOf("alphaRelease", "betaRelease").contains(it.name)
+      it.name == "alphaRelease"
     }.configureEach {
       kotlin.directories.add("src/preRelease/kotlin")
     }
@@ -136,6 +134,28 @@ android {
   }
 }
 
+// Guards the source-of-truth invariant: campfire.versionCode must equal
+// deriveVersionCode(campfire.version). The build reads campfire.versionCode directly, so a drift
+// would silently ship the wrong code. Run in CI on every push (see build.yml).
+tasks.register("verifyVersionCode") {
+  group = "verification"
+  description = "Assert campfire.versionCode == deriveVersionCode(campfire.version)."
+  val versionName = providers.gradleProperty("campfire.version")
+  val versionCode = providers.gradleProperty("campfire.versionCode")
+  doLast {
+    val name = versionName.get()
+    val expected = deriveVersionCode(name)
+      ?: error("campfire.version '$name' is not a valid semver (major.minor.patch[-rcN])")
+    val actual = versionCode.orNull?.toIntOrNull()
+      ?: error("campfire.versionCode is missing or not an integer")
+    check(actual == expected) {
+      "campfire.versionCode ($actual) != deriveVersionCode(campfire.version=$name) ($expected). " +
+        "Update gradle.properties so the two agree."
+    }
+    logger.lifecycle("campfire.versionCode $actual matches campfire.version $name")
+  }
+}
+
 baselineProfile {
   dexLayoutOptimization = true
   saveInSrc = true
@@ -155,17 +175,14 @@ dependencies {
   // On-device AI theme generation (Gemini Nano via ML Kit)
   "standardImplementation"(projects.ui.theming.ai)
   "alphaImplementation"(projects.ui.theming.ai)
-  "betaImplementation"(projects.ui.theming.ai)
 
   // Mixpanel analytics (opt-in, off by default)
   "standardImplementation"(projects.data.analytics.mixpanel)
   "alphaImplementation"(projects.data.analytics.mixpanel)
-  "betaImplementation"(projects.data.analytics.mixpanel)
 
   // Google Cast remote playback (play-services-cast-framework + media3-cast)
   "standardImplementation"(projects.infra.audioplayer.cast)
   "alphaImplementation"(projects.infra.audioplayer.cast)
-  "betaImplementation"(projects.infra.audioplayer.cast)
 
   // Firebase Crashlytics — release variants only, matching the previous src/release
   // FirebaseInitializer behavior (debug builds never initialize Firebase). These
@@ -173,14 +190,13 @@ dependencies {
   val crashlyticsVariants = setOf(
     "standardReleaseImplementation",
     "alphaReleaseImplementation",
-    "betaReleaseImplementation",
   )
   configurations.matching { it.name in crashlyticsVariants }.configureEach {
     dependencies.add(project.dependencies.create(projects.data.crashreporting.firebase))
   }
 
   // Google Play in-app updates — only the Play-distributed production variant self-updates
-  // through Play; alpha/beta use Firebase App Distribution and foss updates via its store.
+  // through Play; alpha uses Firebase App Distribution and foss updates via its store.
   configurations.matching { it.name == "standardReleaseImplementation" }.configureEach {
     dependencies.add(project.dependencies.create(libs.google.play.app.update.get()))
   }

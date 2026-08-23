@@ -16,10 +16,10 @@ class FirebaseConventionPlugin : Plugin<Project> {
       // The Crashlytics runtime ships via :data:crashreporting:firebase, wired per flavor
       // in the app module, so nothing Firebase reaches the foss flavor. The only direct
       // dependency added here is the App Distribution SDK that powers the in-app
-      // self-updater on the alpha/beta channels (used by src/preRelease sources).
+      // self-updater on the alpha channel (used by src/preRelease sources).
       val appDistributionDep = libs.findLibrary("google-firebase-appdistribution").get()
       configurations
-        .matching { it.name == "alphaImplementation" || it.name == "betaImplementation" }
+        .matching { it.name == "alphaImplementation" }
         .configureEach {
           dependencies.add(appDistributionDep.get())
         }
@@ -50,13 +50,6 @@ class FirebaseConventionPlugin : Plugin<Project> {
           firebaseAppDistribution {
             artifactType = "APK"
             groups = "internal,alpha-public"
-          }
-        }
-
-        productFlavors.matching { it.name == "beta" }.configureEach {
-          firebaseAppDistribution {
-            artifactType = "APK"
-            groups = "internal,external-public"
           }
         }
       }

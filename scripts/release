@@ -256,6 +256,20 @@ def derive_version_code(version):
     return int(major) * 1_000_000 + int(minor) * 10_000 + int(patch) * 100 + int(rc or 99)
 
 
+def read_version_code():
+    match = re.search(r"^campfire\.versionCode=(\d+)$", GRADLE_PROPERTIES.read_text(), re.MULTILINE)
+    return int(match.group(1)) if match else None
+
+
+def set_version_code(code):
+    text = GRADLE_PROPERTIES.read_text()
+    if re.search(r"^campfire\.versionCode=.+$", text, re.MULTILINE):
+        text = re.sub(r"^campfire\.versionCode=.+$", f"campfire.versionCode={code}", text, count=1, flags=re.MULTILINE)
+    else:
+        text = re.sub(r"^(campfire\.version=.+)$", rf"\1\ncampfire.versionCode={code}", text, count=1, flags=re.MULTILINE)
+    GRADLE_PROPERTIES.write_text(text)
+
+
 def resolve_tag(version):
     for candidate in (version, f"v{version}"):
         if run(["git", "rev-parse", "-q", "--verify", f"refs/tags/{candidate}"], check=False).returncode == 0:
@@ -276,7 +290,7 @@ def baseline_profile_files():
 
 
 def release_files(version):
-    return ["CHANGELOG.md", str(fastlane_path(version).relative_to(REPO_ROOT)), *baseline_profile_files()]
+    return ["gradle.properties", "CHANGELOG.md", str(fastlane_path(version).relative_to(REPO_ROOT)), *baseline_profile_files()]
 
 
 # =========================================================================== keychain
@@ -333,6 +347,20 @@ def step_preflight(ui, version, dry_run):
         error(f"GitHub release {version} already exists")
         raise Abort("bump campfire.version in gradle.properties to the version you want to release")
     ok(f"{version} is not tagged or released yet")
+
+    # Guard the source-of-truth invariant: campfire.versionCode must equal
+    # deriveVersionCode(campfire.version) (the build reads campfire.versionCode directly). It is
+    # normally kept in sync by the Release workflow's bump-version job, but a manual minor/major
+    # bump can leave it stale — correct it here so the release ships the right code.
+    expected_code = derive_version_code(version)
+    actual_code = read_version_code()
+    if actual_code == expected_code:
+        ok(f"campfire.versionCode {expected_code} matches campfire.version")
+    elif dry_run:
+        warn(f"campfire.versionCode is {actual_code}; would set it to {expected_code}")
+    else:
+        set_version_code(expected_code)
+        ok(f"campfire.versionCode set to {expected_code}" + (f" (was {actual_code})" if actual_code else ""))
 
     with Spinner("fetching origin"):
         run(["git", "fetch", "--quiet", "origin", "main", "--tags"])

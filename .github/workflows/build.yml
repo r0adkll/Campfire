@@ -175,6 +175,11 @@ jobs:
       - name: Build-logic tests
         run: ./gradlew -p gradle/build-logic :convention:test
 
+      # Guards the source-of-truth invariant that the build depends on:
+      # campfire.versionCode must equal deriveVersionCode(campfire.version).
+      - name: Verify versionCode matches version
+        run: ./gradlew :app:android:verifyVersionCode
+
       - name: Validate Android compilation
         run: ./gradlew :app:android:compileAlphaReleaseSources
 

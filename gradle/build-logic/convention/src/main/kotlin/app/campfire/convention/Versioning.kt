@@ -11,18 +11,19 @@ const val DEV_VERSION_CODE = 999999999
 /**
  * Resolves the effective versionCode for a build:
  * 1. An explicit `CAMPFIRE_VERSIONCODE` gradle property (CI alpha/PR builds pass the run number)
- * 2. Derived from `CAMPFIRE_VERSIONNAME` when provided (tagged releases), so the code is
- *    reproducible from the git tag alone — required for F-Droid auto-updates and
- *    reproducible builds
- * 3. [DEV_VERSION_CODE]
+ * 2. The committed `campfire.versionCode` from gradle.properties — the source of truth, kept in
+ *    lockstep with `campfire.version` by scripts/release + a CI guard. Reading it directly (rather
+ *    than deriving) means the build produces the exact same code F-Droid's UpdateCheckData reads,
+ *    with no risk of drift, and `git checkout <tag> && ./gradlew ...` is reproducible with no args.
+ * 3. [DEV_VERSION_CODE] as a last-resort safety net (only if the property is missing/unparseable).
  */
 fun Project.campfireVersionCode(): Int =
-  properties["CAMPFIRE_VERSIONCODE"]?.toString()?.toIntOrNull()
-    ?: properties["CAMPFIRE_VERSIONNAME"]?.toString()?.let(::deriveVersionCode)
+  providers.gradleProperty("CAMPFIRE_VERSIONCODE").orNull?.toIntOrNull()
+    ?: providers.gradleProperty("campfire.versionCode").orNull?.toIntOrNull()
     ?: DEV_VERSION_CODE
 
 fun Project.campfireVersionName(): String =
-  properties["CAMPFIRE_VERSIONNAME"]?.toString()
+  providers.gradleProperty("CAMPFIRE_VERSIONNAME").orNull
     ?: providers.gradleProperty("campfire.version").get()
 
 /**
