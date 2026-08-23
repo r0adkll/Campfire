@@ -39,19 +39,14 @@ class ChangelogConventionPlugin : Plugin<Project> {
         extensions.configure<ResourcesExtension> {
           customDirectory(
             sourceSetName = "commonMain",
-            directoryProvider = generatedResources,
+            // Derive the directory from the task provider so it carries generateChangelog as an
+            // implicit dependency: every compose-resource consumer — including the Android asset
+            // packaging — then waits for it, rather than relying on a brittle task-name match that
+            // could miss a consumer and drop changelog.json from the APK on a cold build.
+            directoryProvider = generateChangelog.map { generatedResources.get() },
           )
         }
       }
-    }
-
-    tasks.matching {
-      it.name.startsWith("generateComposeResClass") ||
-        it.name.startsWith("copyNonXmlValueResourcesFor") ||
-        it.name.startsWith("prepareComposeResourcesTaskFor") ||
-        it.name.startsWith("generateResourceAccessorsFor")
-    }.configureEach {
-      dependsOn(generateChangelog)
     }
   }
 }

@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- What's New screen could occasionally ship without its changelog content
+
 ### Other Notes & Contributions
 
 ## [1.0.3]
