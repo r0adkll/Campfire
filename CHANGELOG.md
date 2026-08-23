@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other Notes & Contributions
 
+- Made the FOSS (F-Droid) build reproducible while keeping the baseline profile for startup performance
+
 ## [1.0.3]
 
 ### Fixed

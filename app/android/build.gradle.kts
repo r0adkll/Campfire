@@ -160,6 +160,14 @@ baselineProfile {
   dexLayoutOptimization = true
   saveInSrc = true
   mergeIntoMain = true
+
+  // F-Droid does a byte-for-byte reproducible build of the foss flavor and startup profiles break these.
+  // (https://f-droid.org/docs/Reproducible_Builds/)
+  variants {
+    create("foss") {
+      dexLayoutOptimization = false
+    }
+  }
 }
 
 aboutLibraries {
