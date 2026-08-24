@@ -16,6 +16,16 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
         apply("org.gradle.android.cache-fix")
       }
 
+      // Firebase (Crashlytics + App Distribution) is isolated in the :firebase build-logic
+      // module so its proprietary Gradle plugins can be dropped from FOSS builds. Apply it only
+      // when a google-services.json is present (release builds); FOSS and local builds without
+      // one skip it — matching the plugin's prior no-op behavior and letting F-Droid scandelete
+      // the module. (When scandeleted, :firebase isn't on the classpath, but this guard is false
+      // too, so the id is never requested.)
+      if (rootProject.file("app/android/google-services.json").exists()) {
+        pluginManager.apply("app.campfire.firebase")
+      }
+
       configureAndroid(computeNamespace = false)
       configureLauncherTasks()
 

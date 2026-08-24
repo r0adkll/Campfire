@@ -16,9 +16,14 @@ dependencies {
   compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.compose.gradlePlugin)
   compileOnly(libs.composeCompiler.gradlePlugin)
-  compileOnly(libs.google.services.gradlePlugin)
-  compileOnly(libs.firebase.crashlytics.gradlePlugin)
-  compileOnly(libs.firebase.appdistribution.gradlePlugin)
+
+  // The proprietary Firebase plugins live in the sibling :firebase module, which F-Droid
+  // scandeletes for FOSS builds. Depend on it (so `app.campfire.firebase` is resolvable when
+  // AndroidApplicationConventionPlugin applies it) only when present, so an absent/scandeleted
+  // module leaves build-logic buildable rather than referencing a non-existent project.
+  if (file("../firebase/build.gradle.kts").exists()) {
+    runtimeOnly(project(":firebase"))
+  }
 
   // JsonElement builder DSL only — no @Serializable classes, so the serialization
   // compiler plugin (which would have to version-match Gradle's embedded Kotlin)
@@ -84,11 +89,6 @@ gradlePlugin {
     register("parcelize") {
       id = "app.campfire.parcelize"
       implementationClass = "app.campfire.convention.ParcelizeConventionPlugin"
-    }
-
-    register("firebase") {
-      id = "app.campfire.firebase"
-      implementationClass = "app.campfire.convention.FirebaseConventionPlugin"
     }
   }
 }

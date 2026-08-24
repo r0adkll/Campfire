@@ -37,9 +37,6 @@ pluginManagement {
     google()
     gradlePluginPortal()
     mavenCentral()
-    maven("https://maven.emulator.wtf/releases/") {
-      content { includeGroup("wtf.emulator") }
-    }
   }
 }
 
@@ -70,10 +67,16 @@ dependencyResolutionManagement {
 
     google()
     mavenCentral()
-    maven("https://maven.emulator.wtf/releases/") {
-      content { includeGroup("wtf.emulator") }
-    }
   }
+}
+
+// The emulator.wtf plugin resolves from mavenCentral, but its `ew-cli` runner lives on
+// maven.emulator.wtf. That repo is registered by a standalone script, applied only when present, so
+// F-Droid can `scandelete` it: a custom Maven repo declared in any .gradle(.kts) trips F-Droid's
+// source scanner, and a FOSS build never runs emulator.wtf. Any build that does (CI profile
+// generation, local runs, future emulator.wtf use) just needs the file present — no extra flags.
+if (file("gradle/emulatorwtf-repo.gradle.kts").exists()) {
+  apply(from = "gradle/emulatorwtf-repo.gradle.kts")
 }
 
 plugins {

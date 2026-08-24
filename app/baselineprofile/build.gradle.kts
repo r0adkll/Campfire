@@ -49,6 +49,14 @@ android {
   }
 }
 
+// The maven.emulator.wtf repo (for the `ew-cli` runner) is registered by
+// gradle/emulatorwtf-repo.gradle.kts, which F-Droid scandeletes for FOSS builds. Only enforce the
+// plugin's startup repo check when that file is present; when it's absent (F-Droid) nothing runs
+// emulator.wtf, so skip the check rather than fail configuration.
+emulatorwtf {
+  repositoryCheckEnabled.set(rootProject.file("gradle/emulatorwtf-repo.gradle.kts").exists())
+}
+
 // This is the configuration block for the Baseline Profile plugin.
 // You can specify to run the generators on a managed devices or connected devices.
 baselineProfile {
