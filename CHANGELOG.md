@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- App widgets breaking due to large image size
+
 ### Other Notes & Contributions
 
 ## [1.0.5]

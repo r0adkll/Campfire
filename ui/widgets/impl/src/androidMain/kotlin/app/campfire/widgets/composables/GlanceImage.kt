@@ -29,6 +29,13 @@ import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+/**
+ * Now that Campfire will dynamically request images @ size
+ * the widgets could end up trying to render very large images
+ * that break them. So if not specified, let's cap widget image sizes.
+ */
+private const val DEFAULT_IMAGE_SIZE = 400
+
 @Composable
 internal fun GlanceImage(
   url: Any?,
@@ -44,7 +51,7 @@ internal fun GlanceImage(
     withContext(Dispatchers.IO) {
       val request = ImageRequest.Builder(context)
         .data(url)
-        .size { size ?: Size.ORIGINAL }
+        .size { size ?: Size(DEFAULT_IMAGE_SIZE, DEFAULT_IMAGE_SIZE) }
         .build()
 
       bitmap = when (val result = context.imageLoader.execute(request)) {
