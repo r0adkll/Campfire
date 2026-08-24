@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other Notes & Contributions
 
+- FOSS (F-Droid) builds are now byte-for-byte reproducible
+
 ## [1.0.4]
 
 ### Fixed
