@@ -59,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -66,6 +67,7 @@ import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.cast.CastDevice
+import app.campfire.audioplayer.cast.CastDevice.Type
 import app.campfire.audioplayer.cast.CastState
 import app.campfire.audioplayer.cast.ConnectionAttempt
 import app.campfire.common.compose.analytics.Impression
@@ -75,6 +77,7 @@ import app.campfire.common.compose.icons.rounded.Cast
 import app.campfire.common.compose.icons.rounded.CastConnected
 import app.campfire.common.compose.icons.rounded.CastConnecting
 import app.campfire.common.compose.icons.rounded.CastWarning
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -574,5 +577,93 @@ private fun CastDeviceListItem(
         }
       }
     }
+  }
+}
+
+/*
+ * Previews — the connect failure and progress states are hard to catch on a device
+ * (discovery recovers faster than the failure can be observed), so verify them here.
+ */
+
+private class PreviewCastDevice(
+  id: String,
+  name: String,
+  type: Type,
+  isSelected: Boolean = false,
+  requiresSession: Boolean = true,
+) : CastDevice(
+  id = id,
+  name = name,
+  description = null,
+  iconUri = null,
+  type = type,
+  isSelected = isSelected,
+  requiresSession = requiresSession,
+)
+
+private val PreviewDevices = listOf(
+  PreviewCastDevice(CastDevice.DEFAULT_ID, "Phone", Type.SMARTPHONE, requiresSession = false),
+  PreviewCastDevice("office-speaker", "Office speaker", Type.SPEAKER),
+  PreviewCastDevice("kitchen-speaker", "Kitchen speaker", Type.SPEAKER),
+  PreviewCastDevice("living-room-tv", "Living room TV", Type.TV, isSelected = true),
+)
+
+@Preview
+@Composable
+private fun CastDevicesCardFailedPreview() {
+  CampfireTheme {
+    CastDevicesCard(
+      devices = PreviewDevices,
+      connectionAttempt = ConnectionAttempt("office-speaker", ConnectionAttempt.Status.Failed),
+      showLocalNetworkPermission = true,
+      onRequestLocalNetworkPermission = {},
+      onDeviceClick = {},
+      onDismissRequest = {},
+    )
+  }
+}
+
+@Preview
+@Composable
+private fun CastDevicesCardFailedOnSelectedPreview() {
+  CampfireTheme {
+    CastDevicesCard(
+      devices = PreviewDevices,
+      connectionAttempt = ConnectionAttempt("living-room-tv", ConnectionAttempt.Status.Failed),
+      showLocalNetworkPermission = false,
+      onRequestLocalNetworkPermission = {},
+      onDeviceClick = {},
+      onDismissRequest = {},
+    )
+  }
+}
+
+@Preview
+@Composable
+private fun CastDevicesCardConnectingPreview() {
+  CampfireTheme {
+    CastDevicesCard(
+      devices = PreviewDevices,
+      connectionAttempt = ConnectionAttempt("office-speaker", ConnectionAttempt.Status.Connecting),
+      showLocalNetworkPermission = false,
+      onRequestLocalNetworkPermission = {},
+      onDeviceClick = {},
+      onDismissRequest = {},
+    )
+  }
+}
+
+@Preview
+@Composable
+private fun CastDevicesCardDarkFailedPreview() {
+  CampfireTheme(useDarkColors = true) {
+    CastDevicesCard(
+      devices = PreviewDevices,
+      connectionAttempt = ConnectionAttempt("office-speaker", ConnectionAttempt.Status.Failed),
+      showLocalNetworkPermission = true,
+      onRequestLocalNetworkPermission = {},
+      onDeviceClick = {},
+      onDismissRequest = {},
+    )
   }
 }
