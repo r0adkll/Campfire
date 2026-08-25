@@ -9,6 +9,8 @@
   <string name="label_connecting">Connecting…</string>
   <string name="media_route_dialog_title">Devices</string>
   <string name="action_cast">Cast</string>
+  <string name="action_allow_local_network">Allow local network access</string>
+  <string name="label_local_network_rationale">Needed to find cast devices on your network</string>
 
   <string name="option_shake_to_reset_title">Shake-to-reset</string>
   <string name="option_shake_to_reset_subtitle">Enable shaking to reset the current or previous timer</string>

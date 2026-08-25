@@ -4,25 +4,54 @@
 package app.campfire.audioplayer.impl.cast
 
 import android.app.Application
-import android.os.Bundle
 import androidx.annotation.MainThread
-import androidx.mediarouter.media.MediaControlIntent
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.media3.cast.DefaultCastOptionsProvider
+import androidx.media3.common.util.UnstableApi
 import androidx.mediarouter.media.MediaRouteSelector
 import androidx.mediarouter.media.MediaRouter
 import androidx.mediarouter.media.MediaRouter.RouteInfo
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.cast.CastDevice
 import app.campfire.audioplayer.cast.CastState
+import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
-import app.campfire.core.logging.LogPriority
+import app.campfire.core.permission.LocalNetworkPermissionController
+import com.google.android.gms.cast.CastDevice as GmsCastDevice
+import com.google.android.gms.cast.CastMediaControlIntent
+import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 
+/**
+ * Discovers Google Cast (and system output) routes and exposes them to the shared cast UI.
+ *
+ * Lifecycle is driven by [ProcessLifecycleOwner] rather than the host Activity: an app-scoped
+ * singleton torn down from `Activity.onStop`/`onDestroy` loses its MediaRouter callback on every
+ * configuration change, because the old activity's teardown runs *after* the new activity's
+ * startup and unregisters what was just registered.
+ *
+ * Discovery intensity follows the SDK's own UI conventions: passive
+ * [MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY] while the app is foregrounded, and
+ * [MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN] only while the device picker is open. Active
+ * scans self-suppress after 30 seconds, so the picker re-registers the callback on a timer to
+ * keep the window fresh.
+ */
 @SingleIn(AppScope::class)
 @ContributesBinding(
   scope = AppScope::class,
@@ -32,6 +61,9 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class MediaRouterCastController(
   private val application: Application,
+  private val localNetworkPermission: LocalNetworkPermissionController,
+  private val dispatcherProvider: DispatcherProvider,
+  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : CastController,
   CastStateListener,
   MediaRouter.Callback(),
@@ -41,77 +73,181 @@ class MediaRouterCastController(
 
   override val state = MutableStateFlow(CastState.Unavailable)
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
+  override val needsLocalNetworkPermission = MutableStateFlow(false)
 
+  private var initialized = false
+  private var castContext: CastContext? = null
+  private var foregrounded = false
+  private var devicePickerOpen = false
+  private var activeScanRefreshJob: Job? = null
+
+  private val processLifecycleObserver = object : DefaultLifecycleObserver {
+    override fun onStart(owner: LifecycleOwner) {
+      foregrounded = true
+      SafeCastContext.initialize(application)
+      updateDiscovery()
+    }
+
+    override fun onStop(owner: LifecycleOwner) {
+      foregrounded = false
+      updateDiscovery()
+    }
+  }
+
+  /**
+   * Called once at app startup by [CastControllerInitializer]. Registers the process-lifecycle
+   * observer that drives discovery from app foreground state.
+   */
   @MainThread
-  override fun initialize() {
-    try {
-      val castContext = SafeCastContext.getContext(application) ?: return
-      castContext.addCastStateListener(this)
+  fun initialize() {
+    if (initialized) return
+    initialized = true
 
-      // Emit the current state, if any
-      state.value = castContext.castState.asDomain()
-
-      ibark { "CastController:initialize(state = ${castContext.castState.asDomain()})" }
-    } catch (e: Throwable) {
-      wbark(throwable = e) { "Unable to initialize CastContext" }
+    needsLocalNetworkPermission.value = localNetworkPermission.isPermissionMissing()
+    ProcessLifecycleOwner.get().lifecycle.addObserver(processLifecycleObserver)
+    applicationScope.launch(dispatcherProvider.main) {
+      val context = SafeCastContext.castContext.filterNotNull().first()
+      onCastContextReady(context)
     }
   }
 
   @MainThread
-  override fun destroy() {
-    try {
-      SafeCastContext.getContext(application)?.removeCastStateListener(this)
-    } catch (e: Throwable) {
-      wbark(throwable = e) { "Failed to destroy CastContext" }
-    } finally {
-      state.value = CastState.Unavailable
-      availableDevices.value = emptyList()
-    }
-  }
-
-  @MainThread
-  override fun scanForDevices() {
-    try {
-      val selector = MediaRouteSelector.Builder()
-        .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
-        .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_AUDIO_PLAYBACK)
-        .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)
-        .build()
-
-      val mediaRouter = MediaRouter.getInstance(application)
-
-      mediaRouter.addCallback(selector, this, MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY)
-
-      // Enumerate existing routes immediately so devices that are already
-      // available appear without waiting for a callback event.
-      updateDevices(mediaRouter)
-
-      ibark { "CastController:scanForDevices()" }
-    } catch (e: Throwable) {
-      wbark(throwable = e) { "Failed to start device scan" }
-    }
-  }
-
-  @MainThread
-  override fun stopScanningForDevices() {
-    try {
-      val mediaRouter = MediaRouter.getInstance(application)
-      mediaRouter.removeCallback(this)
-      ibark { "Stop scanning for devices" }
-    } catch (e: Throwable) {
-      wbark(throwable = e) { "Failed to stop scanning for devices" }
-    }
+  private fun onCastContextReady(context: CastContext) {
+    castContext = context
+    context.addCastStateListener(this)
+    state.value = context.castState.asDomain()
+    updateDiscovery()
+    ibark { "CastController:ready(state = ${context.castState.asDomain()})" }
   }
 
   override fun connect(device: CastDevice) {
     try {
-      val mediaRouteCastDevice = device as MediaRouterCastDevice
       val mediaRouter = MediaRouter.getInstance(application)
-      ibark { "Connecting route: ${mediaRouteCastDevice.route}" }
-      mediaRouter.selectRoute(mediaRouteCastDevice.route)
+      // Re-find the live route by id: MediaRouter silently ignores selection of a RouteInfo
+      // instance that is no longer in its current route list.
+      val route = mediaRouter.routes.find { it.id == device.id }
+      if (route == null) {
+        wbark { "Route ${device.id} is no longer available; ignoring connect request" }
+        return
+      }
+      ibark { "Connecting route: $route" }
+      mediaRouter.selectRoute(route)
     } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to connect to device" }
     }
+  }
+
+  @MainThread
+  override fun startActiveScan() {
+    devicePickerOpen = true
+    needsLocalNetworkPermission.value = localNetworkPermission.isPermissionMissing()
+    activeScanRefreshJob?.cancel()
+    activeScanRefreshJob = applicationScope.launch(dispatcherProvider.main) {
+      while (isActive) {
+        updateDiscovery()
+        delay(ACTIVE_SCAN_REFRESH_MS)
+      }
+    }
+    ibark { "CastController:startActiveScan()" }
+  }
+
+  @MainThread
+  override fun stopActiveScan() {
+    devicePickerOpen = false
+    activeScanRefreshJob?.cancel()
+    activeScanRefreshJob = null
+    updateDiscovery()
+    ibark { "CastController:stopActiveScan()" }
+  }
+
+  override fun requestLocalNetworkPermission() {
+    applicationScope.launch(dispatcherProvider.main) {
+      localNetworkPermission.request()
+      val missing = localNetworkPermission.isPermissionMissing()
+      needsLocalNetworkPermission.value = missing
+      if (!missing) {
+        restartDiscovery()
+      }
+    }
+  }
+
+  /**
+   * Fully stops and restarts route discovery. Needed after the local-network permission is
+   * granted mid-session: enforcement happens per socket operation, so the cast module's mDNS
+   * sockets — created while access was denied, with failed multicast group joins — stay dead
+   * after the grant. Dropping every discovery request and cycling the receiver application id
+   * makes the Cast route provider tear down its scanner and recreate those sockets under the
+   * granted permission.
+   */
+  @OptIn(UnstableApi::class)
+  private suspend fun restartDiscovery() {
+    try {
+      activeScanRefreshJob?.cancel()
+      activeScanRefreshJob = null
+      MediaRouter.getInstance(application).removeCallback(this)
+
+      // No session can exist here (discovery was dead without the permission), so cycling the
+      // receiver id only affects the provider's discovery configuration.
+      castContext?.let { context ->
+        context.setReceiverApplicationId(CastMediaControlIntent.DEFAULT_MEDIA_RECEIVER_APPLICATION_ID)
+        delay(DISCOVERY_RESTART_DELAY_MS)
+        context.setReceiverApplicationId(DefaultCastOptionsProvider.APP_ID_DEFAULT_RECEIVER_WITH_DRM)
+      }
+      delay(DISCOVERY_RESTART_DELAY_MS)
+
+      // In case CastContext initialization itself failed while the permission was missing
+      SafeCastContext.initialize(application)
+
+      if (devicePickerOpen) {
+        startActiveScan()
+      } else {
+        updateDiscovery()
+      }
+      ibark { "CastController:restartDiscovery()" }
+    } catch (e: Throwable) {
+      wbark(throwable = e) { "Failed to restart discovery after permission grant" }
+    }
+  }
+
+  /**
+   * Single point of (de)registration for the MediaRouter callback. Re-invoking
+   * [MediaRouter.addCallback] with the same callback updates its selector and flags in place.
+   */
+  @MainThread
+  private fun updateDiscovery() {
+    try {
+      val mediaRouter = MediaRouter.getInstance(application)
+      val context = castContext
+      if (context == null || !foregrounded) {
+        mediaRouter.removeCallback(this)
+        return
+      }
+
+      // The Cast route provider only reports devices for selectors containing its own
+      // category; the merged selector is the SDK's source of truth for that.
+      val selector = context.mergedSelector ?: defaultSelector()
+      val flags = if (devicePickerOpen) {
+        MediaRouter.CALLBACK_FLAG_PERFORM_ACTIVE_SCAN
+      } else {
+        MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY
+      }
+      mediaRouter.addCallback(selector, this, flags)
+
+      // Enumerate existing routes immediately so devices that are already
+      // available appear without waiting for a callback event.
+      updateDevices(mediaRouter)
+    } catch (e: Throwable) {
+      wbark(throwable = e) { "Failed to update device discovery" }
+    }
+  }
+
+  @OptIn(UnstableApi::class)
+  private fun defaultSelector(): MediaRouteSelector {
+    return MediaRouteSelector.Builder()
+      .addControlCategory(
+        CastMediaControlIntent.categoryForCast(DefaultCastOptionsProvider.APP_ID_DEFAULT_RECEIVER_WITH_DRM),
+      )
+      .build()
   }
 
   /*
@@ -140,12 +276,12 @@ class MediaRouterCastController(
       "CastController:onRouteSelected(device = ${selectedRoute.id}, reason = $reason, " +
         "requestedRoute = ${requestedRoute.id})"
     }
-    updateDevicesAndState(router)
+    updateDevices(router)
   }
 
   override fun onRouteUnselected(router: MediaRouter, route: RouteInfo, reason: Int) {
     ibark { "CastController:onRouteUnselected(device = ${route.id}, reason = $reason)" }
-    updateDevicesAndState(router)
+    updateDevices(router)
   }
 
   override fun onRouteAdded(
@@ -153,7 +289,7 @@ class MediaRouterCastController(
     route: RouteInfo,
   ) {
     ibark { "CastController:onRouteAdded(route = ${route.id})" }
-    updateDevicesAndState(router)
+    updateDevices(router)
   }
 
   override fun onRouteRemoved(
@@ -161,7 +297,7 @@ class MediaRouterCastController(
     route: RouteInfo,
   ) {
     ibark { "CastController:onRouteRemoved(route = ${route.id})" }
-    updateDevicesAndState(router)
+    updateDevices(router)
   }
 
   override fun onRouteChanged(
@@ -169,44 +305,20 @@ class MediaRouterCastController(
     route: RouteInfo,
   ) {
     ibark { "CastController:onRouteChanged(route = ${route.id})" }
-    updateDevicesAndState(router)
-  }
-
-  /**
-   * Update both the device list and derive connection state from
-   * the MediaRouter's selected route so non-Cast devices (Bluetooth,
-   * wired headphones, etc.) are accurately reflected.
-   */
-  private fun updateDevicesAndState(router: MediaRouter) {
     updateDevices(router)
-
-    val selected = router.selectedRoute
-    if (!selected.isDefaultOrBluetooth()) {
-      // A non-default, non-system route is selected – treat as connected
-      state.value = CastState.Connected
-    }
-    // Otherwise let the CastStateListener drive the state value
   }
 
   private fun updateDevices(router: MediaRouter) {
-    val selectedRouteId = router.selectedRoute.id
+    val selectedRoute = router.selectedRoute
+    val selectedCastDeviceId = selectedRoute.castDeviceId
 
     availableDevices.value = router.routes
       .filter { it.isEnabled }
-      .filter { it.description != "Google Cast Multizone Member" }
-      .filter { route ->
-        val extras: Bundle? = route.extras
-        if (extras != null) {
-          try {
-            if (extras.getString("com.google.android.gms.cast.EXTRA_SESSION_ID") != null) {
-              return@filter false
-            }
-          } catch (t: Throwable) {
-            bark(LogPriority.ERROR, throwable = t) { "Unable to find class for EXTRA_SESSION_ID" }
-          }
-        }
-        true
-      }
+      .filter { it.description != MULTIZONE_MEMBER_DESCRIPTION }
+      // The Cast provider publishes an extra session-scoped route for a connected device
+      // alongside the device's own route; drop the duplicate.
+      .filter { route -> route.extras?.getString(EXTRA_SESSION_ID) == null }
+      .distinctBy { route -> route.castDeviceId ?: route.id }
       .sortedBy {
         when {
           it.isSystemRoute -> 0
@@ -214,8 +326,33 @@ class MediaRouterCastController(
         }
       }
       .map { route ->
-        MediaRouterCastDevice(route, isSelected = route.id == selectedRouteId)
+        // Selection may land on the session-scoped duplicate we filtered out, so match the
+        // underlying device by its Cast device id as well as by route id.
+        val isSelected = route.id == selectedRoute.id ||
+          (selectedCastDeviceId != null && route.castDeviceId == selectedCastDeviceId)
+        MediaRouterCastDevice(route, isSelected = isSelected)
       }
+  }
+
+  private val RouteInfo.castDeviceId: String?
+    get() = try {
+      GmsCastDevice.getFromBundle(extras ?: return null)?.deviceId
+    } catch (t: Throwable) {
+      null
+    }
+
+  companion object {
+    private const val EXTRA_SESSION_ID = "com.google.android.gms.cast.EXTRA_SESSION_ID"
+    private const val MULTIZONE_MEMBER_DESCRIPTION = "Google Cast Multizone Member"
+
+    // Active scans are suppressed 30s after registration
+    // (MediaRouterActiveScanThrottlingHelper.MAX_ACTIVE_SCAN_DURATION_MS); re-register
+    // just under that to keep scanning while the picker stays open.
+    private const val ACTIVE_SCAN_REFRESH_MS = 25_000L
+
+    // Propagation window for an empty discovery request / receiver-id change to reach the
+    // Cast route provider before discovery is re-registered.
+    private const val DISCOVERY_RESTART_DELAY_MS = 500L
   }
 }
 

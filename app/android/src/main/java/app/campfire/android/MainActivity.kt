@@ -56,10 +56,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Initialize the CastContext used for Google Cast
-    // https://developers.google.com/cast/docs/android_sender/integrate#kotlin
-    component.castController.initialize()
-
     // Register all flow launchers
     component.componentActivityPlugins.forEach { launcher ->
       launcher.register(this)
@@ -125,27 +121,13 @@ class MainActivity : ComponentActivity() {
   override fun onStart() {
     super.onStart()
     bark { "MainActivity::onStart()" }
-    with(component) {
-      mediaControllerConnector.connect()
-      castController.scanForDevices()
-      offlineDownloadManager.resumeDownloads()
-    }
-  }
-
-  override fun onStop() {
-    super.onStop()
-    bark { "MainActivity::onStop()" }
-    with(component) {
-      mediaControllerConnector.disconnect()
-      castController.stopScanningForDevices()
-    }
+    component.offlineDownloadManager.resumeDownloads()
   }
 
   override fun onDestroy() {
     super.onDestroy()
     bark { "MainActivity::onDestroy()" }
     GlobalToaster.unregister()
-    component.castController.destroy()
     component.componentActivityPlugins.forEach { launcher ->
       launcher.unregister()
     }

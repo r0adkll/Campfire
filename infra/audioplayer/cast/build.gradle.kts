@@ -23,6 +23,7 @@ kotlin {
         // relying on it arriving transitively through the cast framework.
         api(libs.androidx.mediarouter)
         api(libs.play.services.cast.framework)
+        implementation(libs.androidx.lifecycle.process)
         implementation(libs.media3.cast)
       }
     }

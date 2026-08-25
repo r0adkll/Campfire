@@ -18,8 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - App widgets breaking due to large image size
+- Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
 
 ### Other Notes & Contributions
+
+- The cast device list now offers to request local network access on Android 16+ when it may be needed to find devices
 
 ## [1.0.5]
 

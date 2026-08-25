@@ -59,6 +59,27 @@ class AndroidLocalNetworkPermissionController(
     return granted
   }
 
+  override fun isPermissionMissing(): Boolean {
+    if (Build.VERSION.SDK_INT < LNP_MIN_SDK) return false
+    return !isGranted()
+  }
+
+  override suspend fun request(): Boolean {
+    if (Build.VERSION.SDK_INT < LNP_MIN_SDK) return true
+    if (isGranted()) return true
+
+    // User-initiated, so don't gate on requestedThisSession — but record the attempt so the
+    // automatic server-url path doesn't prompt again afterwards.
+    mutex.withLock {
+      if (isGranted()) return true
+      requestedThisSession = true
+    }
+
+    val granted = launcher.launch(ACCESS_LOCAL_NETWORK).getOrDefault(false)
+    bark { "ACCESS_LOCAL_NETWORK permission ${if (granted) "granted" else "denied"} (explicit request)" }
+    return granted
+  }
+
   /**
    * A public-looking hostname can still resolve to a LAN address via split-horizon DNS
    * (e.g. `abs.example.com` overridden to `192.168.x.x` on the local resolver), which LNP

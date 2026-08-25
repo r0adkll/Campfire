@@ -46,6 +46,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -72,14 +73,17 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Cast
 import app.campfire.common.compose.icons.rounded.CastConnected
 import app.campfire.common.compose.icons.rounded.CastConnecting
+import app.campfire.common.compose.icons.rounded.CastWarning
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.AppScope
 import app.campfire.core.extensions.fluentIf
 import campfire.infra.audioplayer.public_ui.generated.resources.Res
+import campfire.infra.audioplayer.public_ui.generated.resources.action_allow_local_network
 import campfire.infra.audioplayer.public_ui.generated.resources.action_cast
 import campfire.infra.audioplayer.public_ui.generated.resources.label_connecting
+import campfire.infra.audioplayer.public_ui.generated.resources.label_local_network_rationale
 import campfire.infra.audioplayer.public_ui.generated.resources.media_route_dialog_title
 import coil3.compose.AsyncImage
 import com.r0adkll.kimchi.annotations.ContributesTo
@@ -125,8 +129,23 @@ fun CastButton(
   }
 
   if (showDevices) {
+    // Intensive discovery only while the picker is visible; the controller keeps the
+    // active-scan window fresh until this leaves composition.
+    DisposableEffect(component) {
+      component.castController.startActiveScan()
+      onDispose { component.castController.stopActiveScan() }
+    }
+
+    val needsLocalNetworkPermission by remember(component) {
+      component.castController.needsLocalNetworkPermission
+    }.collectAsState()
+
     CastDevices(
       devices = devices,
+      showLocalNetworkPermission = needsLocalNetworkPermission,
+      onRequestLocalNetworkPermission = {
+        component.castController.requestLocalNetworkPermission()
+      },
       onDeviceClick = { device ->
         component.castController.connect(device)
         showDevices = false
@@ -242,6 +261,8 @@ private fun CurrentDeviceButton(
 @Composable
 private fun CastDevices(
   devices: List<CastDevice>,
+  showLocalNetworkPermission: Boolean,
+  onRequestLocalNetworkPermission: () -> Unit,
   onDeviceClick: (CastDevice) -> Unit,
   onDismissRequest: () -> Unit,
 ) {
@@ -294,6 +315,8 @@ private fun CastDevices(
       ) {
         CastDevicesCard(
           devices = devices,
+          showLocalNetworkPermission = showLocalNetworkPermission,
+          onRequestLocalNetworkPermission = onRequestLocalNetworkPermission,
           onDeviceClick = onDeviceClick,
           onDismissRequest = onDismissRequest,
         )
@@ -305,6 +328,8 @@ private fun CastDevices(
 @Composable
 private fun CastDevicesCard(
   devices: List<CastDevice>,
+  showLocalNetworkPermission: Boolean,
+  onRequestLocalNetworkPermission: () -> Unit,
   onDeviceClick: (CastDevice) -> Unit,
   onDismissRequest: () -> Unit,
   modifier: Modifier = Modifier,
@@ -345,6 +370,71 @@ private fun CastDevicesCard(
           onClick = {
             onDeviceClick(device)
           },
+        )
+      }
+
+      if (showLocalNetworkPermission) {
+        item(key = "local_network_permission") {
+          LocalNetworkPermissionListItem(
+            onClick = onRequestLocalNetworkPermission,
+          )
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Opt-in action shown when finding cast devices may require the platform's local network
+ * permission. Never triggered automatically — the user chooses to grant it from here.
+ */
+@Composable
+private fun LocalNetworkPermissionListItem(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val shape = RoundedCornerShape(16.dp)
+  Row(
+    modifier = modifier
+      .fillMaxWidth()
+      .clip(shape)
+      .border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.outlineVariant,
+        shape = shape,
+      )
+      .clickable(onClick = onClick),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    CompositionLocalProvider(
+      LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
+    ) {
+      Box(
+        modifier = Modifier
+          .padding(16.dp),
+      ) {
+        Icon(
+          CampfireIcons.Rounded.CastWarning,
+          contentDescription = null,
+        )
+      }
+
+      Column(
+        modifier = Modifier
+          .weight(1f)
+          .padding(
+            end = 16.dp,
+            top = 8.dp,
+            bottom = 8.dp,
+          ),
+      ) {
+        Text(
+          text = stringResource(Res.string.action_allow_local_network),
+          style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+          text = stringResource(Res.string.label_local_network_rationale),
+          style = MaterialTheme.typography.labelSmall,
         )
       }
     }

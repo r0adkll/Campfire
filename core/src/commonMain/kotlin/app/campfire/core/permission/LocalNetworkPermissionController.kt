@@ -23,4 +23,20 @@ interface LocalNetworkPermissionController {
    * work — so callers may proceed regardless.
    */
   suspend fun requestIfNeeded(serverUrl: String): Boolean
+
+  /**
+   * True when the platform gates local-network traffic behind a permission that has not been
+   * granted yet. Unlike [requestIfNeeded], this is independent of the server address — features
+   * that are inherently LAN-bound (e.g. Google Cast) need the permission even when the
+   * Audiobookshelf server itself is remote.
+   */
+  fun isPermissionMissing(): Boolean = false
+
+  /**
+   * Explicitly prompts for the local-network permission, regardless of the server address.
+   * Intended for user-initiated flows (e.g. an "allow access" action in the cast device picker),
+   * so it bypasses the once-per-session throttle of [requestIfNeeded]; a permanent denial
+   * resolves immediately without UI. Returns `true` when access is available afterwards.
+   */
+  suspend fun request(): Boolean = true
 }

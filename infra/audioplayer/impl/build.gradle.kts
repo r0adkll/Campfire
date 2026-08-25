@@ -74,6 +74,7 @@ kotlin {
         implementation(libs.media3.exoplayer.hls)
         implementation(libs.media3.session)
         implementation(libs.androidx.lifecycle.runtime)
+        implementation(libs.androidx.lifecycle.process)
         implementation(libs.androidx.activity.compose)
         implementation(libs.kotlinx.coroutines.guava)
         implementation(libs.coil)
