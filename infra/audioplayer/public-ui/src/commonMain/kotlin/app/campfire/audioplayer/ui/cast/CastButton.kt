@@ -552,10 +552,17 @@ private fun CastDeviceListItem(
         )
 
         if (attemptStatus == ConnectionAttempt.Status.Failed) {
+          // errorContainer/onErrorContainer is a guaranteed-contrast pair in every theme,
+          // unlike bare `error` over this row's variable container colors
           Text(
             text = stringResource(Res.string.label_couldnt_connect),
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.error,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+            modifier = Modifier
+              .padding(top = 2.dp)
+              .clip(CircleShape)
+              .background(MaterialTheme.colorScheme.errorContainer)
+              .padding(horizontal = 8.dp, vertical = 2.dp),
           )
         } else {
           device.description?.let { desc ->
