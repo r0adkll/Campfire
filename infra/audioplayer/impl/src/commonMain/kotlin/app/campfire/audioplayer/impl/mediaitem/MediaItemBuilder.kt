@@ -52,6 +52,24 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     )
   }
 
+  /**
+   * Builds one [MediaItem] per audio track, ignoring chapters entirely. This is the queue shape
+   * used for remote (Cast) playback: clipped chapter items can't cross the cast boundary
+   * (receivers don't honor clipping), so the remote queue is whole files and chapter semantics
+   * are re-derived from the absolute position.
+   */
+  fun buildTracks(session: Session): List<MediaItem> {
+    val episode = session.episode
+    if (episode != null) {
+      return buildPodcastEpisode(session.libraryItem, episode)
+    }
+    return buildTracks(session.libraryItem)
+  }
+
+  fun buildTracks(item: LibraryItem): List<MediaItem> = with(item) {
+    media.tracks.map { track -> createMediaItem(track, media, id) }
+  }
+
   fun build(item: LibraryItem): List<MediaItem> = with(item) {
     val chapters = media.chapters
     val audioTracks = media.tracks

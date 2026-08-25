@@ -69,6 +69,7 @@ class MediaRouterCastController(
   private val application: Application,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val dispatcherProvider: DispatcherProvider,
+  private val tokenHolder: CastMediaTokenHolder,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : CastController,
   CastStateListener,
@@ -146,6 +147,9 @@ class MediaRouterCastController(
       }
       ibark { "Connecting route: $route" }
       if (device.requiresSession) {
+        // Snapshot a fresh access token while the session establishes — the media item
+        // converter needs it synchronously when the queue is sent to the receiver.
+        tokenHolder.refresh()
         connectToCastRoute(device.id, route)
       } else {
         // Instant output switches (this phone, Bluetooth, …). Moving off a cast route also

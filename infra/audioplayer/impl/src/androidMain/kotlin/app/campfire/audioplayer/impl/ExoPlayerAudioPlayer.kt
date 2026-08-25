@@ -41,6 +41,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
+import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.core.toast.GlobalToaster
@@ -410,11 +411,26 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun seekTo(itemIndex: Int) {
+    if (isRemotePlayback) {
+      val absolute = absoluteTimeOfLocalQueueIndex(itemIndex)
+      if (absolute != null) {
+        remoteSeekTo(absolute, play = true)
+        return
+      }
+    }
     player.seekToDefaultPosition(itemIndex)
     player.play()
   }
 
   override fun seekTo(progress: Float) {
+    if (isRemotePlayback) {
+      val chapter = chapterAt(overallTime.value)
+      if (chapter != null) {
+        remoteSeekTo(chapter.start.seconds + chapter.duration * progress.toDouble(), play = false)
+        currentTime.value = chapter.duration * progress.toDouble()
+        return
+      }
+    }
     val positionMs = (progress * player.duration).toLong()
     player.seekTo(positionMs)
     currentTime.value = positionMs.milliseconds
@@ -425,6 +441,10 @@ class ExoPlayerAudioPlayer(
   }
 
   private fun seekTo(timestamp: Duration, play: Boolean) {
+    if (isRemotePlayback) {
+      remoteSeekTo(timestamp, play)
+      return
+    }
     val timestampInMillis = timestamp.inWholeMilliseconds
     var mediaItemOffsetMs = 0L
 
@@ -445,10 +465,31 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun skipToNext() {
+    if (isRemotePlayback) {
+      // The remote queue is per-track; skip by chapter on the absolute timeline instead
+      val chapter = chapterAt(overallTime.value)
+      if (chapter != null) {
+        remoteSeekTo(chapter.end.seconds, play = false)
+        return
+      }
+    }
     player.seekToNextMediaItem()
   }
 
   override fun skipToPrevious() {
+    if (isRemotePlayback) {
+      val chapter = chapterAt(overallTime.value)
+      if (chapter != null) {
+        val progressInChapter = (overallTime.value - chapter.start.seconds).coerceAtLeast(Duration.ZERO)
+        val target = if (progressInChapter > settings.trackResetThreshold) {
+          chapter.start.seconds
+        } else {
+          chapterAt(chapter.start.seconds - 1.milliseconds)?.start?.seconds ?: chapter.start.seconds
+        }
+        remoteSeekTo(target, play = false)
+        return
+      }
+    }
     if (player.currentPosition.milliseconds > settings.trackResetThreshold) {
       player.seekToDefaultPosition()
       player.play()
@@ -501,6 +542,7 @@ class ExoPlayerAudioPlayer(
       dbark { "onDeviceInfoChanged: Local Player" }
       isRemotePlayback = false
       armCastWatchdog(null)
+      updateProgress(player)
     } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
       dbark { "onDeviceInfoChanged: Remote Player" }
       if (!isRemotePlayback) {
@@ -509,6 +551,7 @@ class ExoPlayerAudioPlayer(
         // (unreachable/unauthorized media, dead receiver) — a handoff that never reaches
         // READY is the only signal, so give it a deadline.
         armCastWatchdog(CAST_HANDOFF_READY_TIMEOUT_MS)
+        updateProgress(player)
       }
     }
   }
@@ -541,6 +584,9 @@ class ExoPlayerAudioPlayer(
         delay(100)
       }
     }
+    // Sync from actual state rather than the listener event, which may not have landed yet —
+    // the seek below must use local (chapter-queue) semantics
+    isRemotePlayback = player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL
 
     player.pause()
     seekTo(resumeTime, play = false)
@@ -584,10 +630,24 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+    if (isRemotePlayback) {
+      updateProgress(player)
+      return
+    }
     currentDuration.value = player.duration.milliseconds
   }
 
   override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
+    if (isRemotePlayback) {
+      // Item metadata is track-granular while remote; chapter-relative title/duration are
+      // derived from the absolute position in updateProgress instead
+      currentMetadata.value = currentMetadata.value.copy(
+        artworkUri = mediaMetadata.artworkUri?.toString()
+          ?: currentMetadata.value.artworkUri,
+      )
+      updateProgress(player)
+      return
+    }
     currentDuration.value = player.duration.milliseconds
     currentMetadata.value = Metadata(
       title = mediaMetadata.title?.toString(),
@@ -662,9 +722,94 @@ class ExoPlayerAudioPlayer(
   }
 
   private fun updateProgress(player: Player) {
+    if (isRemotePlayback) {
+      val overallMs = remoteOverallPositionMs(player)
+      if (overallMs != null) {
+        overallTime.value = overallMs.milliseconds
+        updateRemoteChapterState(overallMs.milliseconds, player)
+        return
+      }
+    }
     currentTime.value = player.currentPosition.milliseconds
     currentDuration.value = player.duration.milliseconds
     overallTime.value = player.overallPosition.milliseconds
+  }
+
+  /**
+   * Absolute position while remote, derived from the session's track table rather than item
+   * metadata: the remote queue is one item per audio track, and items in the cast timeline
+   * may not carry our duration metadata.
+   */
+  private fun remoteOverallPositionMs(player: Player): Long? {
+    val session = preparedSession ?: return null
+    if (session.episode != null) return player.currentPosition
+    val track = session.libraryItem.media.tracks.getOrNull(player.currentMediaItemIndex) ?: return null
+    return track.startOffset.seconds.inWholeMilliseconds + player.currentPosition
+  }
+
+  /**
+   * While remote the queue is per-track but the UI speaks chapters: re-derive chapter-relative
+   * time, duration, and title from the absolute position so the playback UI matches local
+   * playback exactly.
+   */
+  private fun updateRemoteChapterState(overall: Duration, player: Player) {
+    val chapter = chapterAt(overall)
+    if (chapter != null) {
+      currentTime.value = (overall - chapter.start.seconds).coerceAtLeast(Duration.ZERO)
+      currentDuration.value = chapter.duration
+      if (currentMetadata.value.title != chapter.title) {
+        currentMetadata.value = currentMetadata.value.copy(title = chapter.title)
+      }
+    } else {
+      currentTime.value = player.currentPosition.milliseconds
+      currentDuration.value = player.duration.milliseconds
+    }
+  }
+
+  /** The chapter containing [time] on the absolute book/episode timeline, if any. */
+  private fun chapterAt(time: Duration): Chapter? {
+    val session = preparedSession ?: return null
+    val timeMs = time.inWholeMilliseconds
+    return session.episode?.chapters?.find { chapter ->
+      timeMs >= chapter.start.seconds.inWholeMilliseconds && timeMs < chapter.end.seconds.inWholeMilliseconds
+    } ?: session.libraryItem.getChapterForDuration(timeMs)
+  }
+
+  /**
+   * Seeks while remote using the session's track table (the remote queue is per-track and its
+   * timeline metadata may not survive the cast round-trip).
+   */
+  private fun remoteSeekTo(timestamp: Duration, play: Boolean) {
+    val session = preparedSession ?: return
+    if (session.episode != null) {
+      player.seekTo(timestamp.inWholeMilliseconds)
+    } else {
+      val track = session.libraryItem.getAudioTrackForDuration(timestamp.inWholeMilliseconds) ?: return
+      val trackIndex = session.libraryItem.media.tracks.indexOf(track)
+      if (trackIndex < 0) return
+      val offsetMs = timestamp.inWholeMilliseconds - track.startOffset.seconds.inWholeMilliseconds
+      player.seekTo(trackIndex, offsetMs.coerceAtLeast(0L))
+    }
+    overallTime.value = timestamp
+    if (play) {
+      player.play()
+    }
+  }
+
+  /**
+   * The UI addresses seeks by local-queue index (chapter id when the item has chapters, track
+   * ordinal otherwise). While remote the player's queue is per-track, so translate the local
+   * index to absolute time first. Null when no translation applies (podcasts, unknown index).
+   */
+  private fun absoluteTimeOfLocalQueueIndex(itemIndex: Int): Duration? {
+    val session = preparedSession ?: return null
+    if (session.episode != null) return null
+    val chapters = session.libraryItem.media.chapters
+    return if (chapters.isNotEmpty()) {
+      chapters.find { it.id == itemIndex }?.start?.seconds
+    } else {
+      session.libraryItem.media.tracks.getOrNull(itemIndex)?.startOffset?.seconds
+    }
   }
 }
 

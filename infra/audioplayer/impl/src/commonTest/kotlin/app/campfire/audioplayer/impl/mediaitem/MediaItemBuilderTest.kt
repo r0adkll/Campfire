@@ -141,6 +141,46 @@ class MediaItemBuilderTest {
 
   // endregion
 
+  // region buildTracks — remote (cast) queue shape
+
+  @Test
+  fun `buildTracks ignores chapters and returns one unclipped item per track`() {
+    val tracks = listOf(
+      track(index = 0, startOffset = 0f, duration = 300f),
+      track(index = 1, startOffset = 300f, duration = 400f),
+    )
+    val chapters = listOf(
+      chapter(id = 0, start = 0f, end = 150f),
+      chapter(id = 1, start = 150f, end = 300f),
+      chapter(id = 2, start = 300f, end = 700f),
+    )
+    val item = libraryItem(media = media(tracks = tracks, chapters = chapters))
+
+    val result = MediaItemBuilder.buildTracks(item)
+
+    assertThat(result).hasSize(2)
+    assertThat(result[0].id).isEqualTo("media-1_0")
+    assertThat(result[0].clipping).isNull()
+    assertThat(result[1].id).isEqualTo("media-1_1")
+    assertThat(result[1].clipping).isNull()
+  }
+
+  @Test
+  fun `buildTracks carries track durations for absolute timeline math`() {
+    val tracks = listOf(
+      track(index = 0, startOffset = 0f, duration = 300f),
+      track(index = 1, startOffset = 300f, duration = 400f),
+    )
+    val item = libraryItem(media = media(tracks = tracks))
+
+    val result = MediaItemBuilder.buildTracks(item)
+
+    assertThat(result[0].metadata?.durationMs).isEqualTo(300_000L)
+    assertThat(result[1].metadata?.durationMs).isEqualTo(400_000L)
+  }
+
+  // endregion
+
   // region No chapters — tracks only
 
   @Test
