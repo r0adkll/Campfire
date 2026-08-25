@@ -6,6 +6,8 @@
     to the controller</string>
   <string name="notification_channel_name">Audio Playback Notifications</string>
 
+  <string name="cast_failed_resumed_locally">Casting failed — resumed on this phone, paused</string>
+
   <string name="download_notification_channel_name">Offline Download Notifications</string>
   <string name="download_notification_channel_description">Notifications about downloading media for
     offline playback will appear in this channel</string>

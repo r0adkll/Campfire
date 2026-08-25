@@ -8,6 +8,7 @@ import androidx.annotation.MainThread
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.media3.cast.Cast as Media3Cast
 import androidx.media3.cast.DefaultCastOptionsProvider
 import androidx.media3.common.util.UnstableApi
 import androidx.mediarouter.media.MediaRouteSelector
@@ -16,6 +17,7 @@ import androidx.mediarouter.media.MediaRouter.RouteInfo
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.cast.CastDevice
 import app.campfire.audioplayer.cast.CastState
+import app.campfire.audioplayer.cast.ConnectionAttempt
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
@@ -24,9 +26,12 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.permission.LocalNetworkPermissionController
 import com.google.android.gms.cast.CastDevice as GmsCastDevice
 import com.google.android.gms.cast.CastMediaControlIntent
+import com.google.android.gms.cast.CastStatusCodes
 import com.google.android.gms.cast.framework.CastContext
+import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
+import com.google.android.gms.cast.framework.SessionManagerListener
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -52,6 +57,7 @@ import me.tatarka.inject.annotations.Inject
  * scans self-suppress after 30 seconds, so the picker re-registers the callback on a timer to
  * keep the window fresh.
  */
+@OptIn(UnstableApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(
   scope = AppScope::class,
@@ -74,12 +80,16 @@ class MediaRouterCastController(
   override val state = MutableStateFlow(CastState.Unavailable)
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
   override val needsLocalNetworkPermission = MutableStateFlow(false)
+  override val connectionAttempt = MutableStateFlow<ConnectionAttempt?>(null)
 
   private var initialized = false
   private var castContext: CastContext? = null
   private var foregrounded = false
   private var devicePickerOpen = false
   private var activeScanRefreshJob: Job? = null
+
+  private var connectListener: SessionManagerListener<CastSession>? = null
+  private var connectTimeoutJob: Job? = null
 
   private val processLifecycleObserver = object : DefaultLifecycleObserver {
     override fun onStart(owner: LifecycleOwner) {
@@ -120,6 +130,7 @@ class MediaRouterCastController(
     ibark { "CastController:ready(state = ${context.castState.asDomain()})" }
   }
 
+  @MainThread
   override fun connect(device: CastDevice) {
     try {
       val mediaRouter = MediaRouter.getInstance(application)
@@ -128,13 +139,146 @@ class MediaRouterCastController(
       val route = mediaRouter.routes.find { it.id == device.id }
       if (route == null) {
         wbark { "Route ${device.id} is no longer available; ignoring connect request" }
+        if (device.requiresSession) {
+          connectionAttempt.value = ConnectionAttempt(device.id, ConnectionAttempt.Status.Failed)
+        }
         return
       }
       ibark { "Connecting route: $route" }
-      mediaRouter.selectRoute(route)
+      if (device.requiresSession) {
+        connectToCastRoute(device.id, route)
+      } else {
+        // Instant output switches (this phone, Bluetooth, …). Moving off a cast route also
+        // ends the active session, if any.
+        if (route.isDefault) disconnect()
+        mediaRouter.selectRoute(route)
+      }
     } catch (e: Throwable) {
       wbark(throwable = e) { "Failed to connect to device" }
+      if (device.requiresSession) {
+        connectionAttempt.value = ConnectionAttempt(device.id, ConnectionAttempt.Status.Failed)
+      }
     }
+  }
+
+  @MainThread
+  override fun disconnect() {
+    try {
+      cleanupConnectionAttempt()
+      connectionAttempt.value = null
+      // stopCasting = true: also stop the receiver app, mirroring
+      // setStopReceiverApplicationWhenEndingSession in CastOptionsProvider
+      Media3Cast.getSingletonInstance(application).endCurrentSession(true)
+    } catch (e: Throwable) {
+      wbark(throwable = e) { "Failed to end cast session" }
+    }
+  }
+
+  /**
+   * Establishes a Cast session for [route]. Route selection is only the trigger — the Cast
+   * SDK's SessionManager observes MediaRouter selection and drives the session, so success and
+   * failure are read from a one-shot [SessionManagerListener]. Retry policy follows
+   * jellyfin-android's battle-tested ChromecastConnection: transient network/timeout start
+   * failures and ghost ended-before-started events are retried by re-selecting the live route.
+   */
+  @MainThread
+  private fun connectToCastRoute(deviceId: String, route: RouteInfo) {
+    cleanupConnectionAttempt()
+    connectionAttempt.value = ConnectionAttempt(deviceId, ConnectionAttempt.Status.Connecting)
+
+    val mediaCast = Media3Cast.getSingletonInstance(application)
+
+    // When switching devices mid-session, SessionManager ends the current session before
+    // starting the new one; that end event must not count against the new attempt.
+    val previousSessionId = mediaCast.currentCastSession?.sessionId
+
+    var startFailureRetries = 0
+    var endedBeforeStartRetries = 0
+
+    val listener = object : SessionManagerListener<CastSession> {
+      override fun onSessionStarted(session: CastSession, sessionId: String) = succeedConnection()
+      override fun onSessionResumed(session: CastSession, wasSuspended: Boolean) = succeedConnection()
+
+      override fun onSessionStartFailed(session: CastSession, error: Int) {
+        val retryable = error == CastStatusCodes.NETWORK_ERROR || error == CastStatusCodes.TIMEOUT
+        if (retryable && startFailureRetries < MAX_START_FAILURE_RETRIES) {
+          startFailureRetries++
+          wbark { "Cast session start failed (error=$error), retrying ($startFailureRetries)" }
+          reselectRoute(deviceId)
+        } else {
+          failConnection(deviceId, "session start failed (error=$error)")
+        }
+      }
+
+      override fun onSessionResumeFailed(session: CastSession, error: Int) {
+        failConnection(deviceId, "session resume failed (error=$error)")
+      }
+
+      override fun onSessionEnded(session: CastSession, error: Int) {
+        if (session.sessionId != null && session.sessionId == previousSessionId) return
+        if (endedBeforeStartRetries < MAX_ENDED_BEFORE_START_RETRIES) {
+          endedBeforeStartRetries++
+          wbark { "Cast session ended before starting, retrying ($endedBeforeStartRetries)" }
+          reselectRoute(deviceId)
+        } else {
+          failConnection(deviceId, "session repeatedly ended before starting")
+        }
+      }
+
+      override fun onSessionStarting(session: CastSession) = Unit
+      override fun onSessionEnding(session: CastSession) = Unit
+      override fun onSessionResuming(session: CastSession, sessionId: String) = Unit
+      override fun onSessionSuspended(session: CastSession, reason: Int) = Unit
+    }
+
+    connectListener = listener
+    mediaCast.addSessionManagerListener(listener)
+
+    connectTimeoutJob = applicationScope.launch(dispatcherProvider.main) {
+      delay(CONNECT_TIMEOUT_MS)
+      failConnection(deviceId, "timed out after ${CONNECT_TIMEOUT_MS}ms")
+    }
+
+    MediaRouter.getInstance(application).selectRoute(route)
+  }
+
+  @MainThread
+  private fun reselectRoute(deviceId: String) {
+    val mediaRouter = MediaRouter.getInstance(application)
+    val route = mediaRouter.routes.find { it.id == deviceId }
+    if (route != null) {
+      mediaRouter.selectRoute(route)
+    } else {
+      failConnection(deviceId, "route disappeared during retry")
+    }
+  }
+
+  @MainThread
+  private fun succeedConnection() {
+    ibark { "Cast session established" }
+    cleanupConnectionAttempt()
+    connectionAttempt.value = null
+  }
+
+  @MainThread
+  private fun failConnection(deviceId: String, reason: String) {
+    wbark { "Cast connect failed: $reason" }
+    cleanupConnectionAttempt()
+    connectionAttempt.value = ConnectionAttempt(deviceId, ConnectionAttempt.Status.Failed)
+  }
+
+  @MainThread
+  private fun cleanupConnectionAttempt() {
+    connectTimeoutJob?.cancel()
+    connectTimeoutJob = null
+    connectListener?.let { listener ->
+      try {
+        Media3Cast.getSingletonInstance(application).removeSessionManagerListener(listener)
+      } catch (e: Throwable) {
+        wbark(throwable = e) { "Failed to remove session manager listener" }
+      }
+    }
+    connectListener = null
   }
 
   @MainThread
@@ -156,6 +300,10 @@ class MediaRouterCastController(
     devicePickerOpen = false
     activeScanRefreshJob?.cancel()
     activeScanRefreshJob = null
+    // A failure message is only meaningful while the picker is showing it
+    if (connectionAttempt.value?.status == ConnectionAttempt.Status.Failed) {
+      connectionAttempt.value = null
+    }
     updateDiscovery()
     ibark { "CastController:stopActiveScan()" }
   }
@@ -328,9 +476,14 @@ class MediaRouterCastController(
       .map { route ->
         // Selection may land on the session-scoped duplicate we filtered out, so match the
         // underlying device by its Cast device id as well as by route id.
+        val castDeviceId = route.castDeviceId
         val isSelected = route.id == selectedRoute.id ||
-          (selectedCastDeviceId != null && route.castDeviceId == selectedCastDeviceId)
-        MediaRouterCastDevice(route, isSelected = isSelected)
+          (selectedCastDeviceId != null && castDeviceId == selectedCastDeviceId)
+        MediaRouterCastDevice(
+          route = route,
+          isSelected = isSelected,
+          requiresSession = castDeviceId != null,
+        )
       }
   }
 
@@ -353,12 +506,17 @@ class MediaRouterCastController(
     // Propagation window for an empty discovery request / receiver-id change to reach the
     // Cast route provider before discovery is re-registered.
     private const val DISCOVERY_RESTART_DELAY_MS = 500L
+
+    private const val CONNECT_TIMEOUT_MS = 15_000L
+    private const val MAX_START_FAILURE_RETRIES = 3
+    private const val MAX_ENDED_BEFORE_START_RETRIES = 10
   }
 }
 
 class MediaRouterCastDevice(
   internal val route: RouteInfo,
   isSelected: Boolean,
+  requiresSession: Boolean,
 ) : CastDevice(
   id = route.id,
   name = route.name,
@@ -366,6 +524,7 @@ class MediaRouterCastDevice(
   iconUri = route.iconUri?.toString(),
   type = route.deviceType.asType(),
   isSelected = isSelected,
+  requiresSession = requiresSession,
 )
 
 private fun Int.asDomain(): CastState = when (this) {

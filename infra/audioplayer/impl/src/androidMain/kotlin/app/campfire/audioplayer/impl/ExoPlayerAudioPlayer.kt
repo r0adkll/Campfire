@@ -25,6 +25,7 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.DefaultBandwidthMeter
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
+import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
@@ -42,7 +43,10 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
+import app.campfire.core.toast.GlobalToaster
+import app.campfire.core.toast.Toast
 import app.campfire.crashreporting.CrashReporter
+import app.campfire.infra.audioplayer.impl.R
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -58,7 +62,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import me.tatarka.inject.annotations.Inject
+
+// The remote cast player surfaces no PlaybackException for receiver-side failures, so dead
+// handoffs and vanished receivers are detected by deadline instead (see armCastWatchdog).
+private const val CAST_HANDOFF_READY_TIMEOUT_MS = 20_000L
+private const val CAST_STALL_TIMEOUT_MS = 30_000L
+private const val CAST_FALLBACK_SWAP_TIMEOUT_MS = 5_000L
 
 @OptIn(UnstableApi::class)
 class ExoPlayerAudioPlayer(
@@ -66,6 +77,7 @@ class ExoPlayerAudioPlayer(
   private val settings: PlaybackSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val playbackHistoryRecorder: PlaybackHistoryRecorder,
+  private val castController: CastController,
   private val mediaSourceFactory: MediaSource.Factory = DefaultMediaSourceFactory(context),
   private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
 ) : AudioPlayer, Player.Listener, Cork {
@@ -82,6 +94,7 @@ class ExoPlayerAudioPlayer(
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
+    private val castController: CastController,
     // Defaults to NoOp when the optional :infra:audioplayer:cast module isn't in this build.
     private val remotePlayerFactory: RemotePlayerFactory = RemotePlayerFactory.NoOp,
   ) {
@@ -93,6 +106,7 @@ class ExoPlayerAudioPlayer(
         mediaSourceFactory = mediaSourceFactory,
         playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
+        castController = castController,
         remotePlayerFactory = remotePlayerFactory,
       )
     }
@@ -181,6 +195,8 @@ class ExoPlayerAudioPlayer(
   private var progressJob: Job? = null
   private var fadeJob: Job? = null
   private var previousVolumeLevel: Float = 0f
+  private var isRemotePlayback = false
+  private var castWatchdogJob: Job? = null
 
   override var preparedSession: Session? = null
   private var finishedListener: OnFinishedListener? = null
@@ -405,6 +421,10 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun seekTo(timestamp: Duration) {
+    seekTo(timestamp, play = true)
+  }
+
+  private fun seekTo(timestamp: Duration, play: Boolean) {
     val timestampInMillis = timestamp.inWholeMilliseconds
     var mediaItemOffsetMs = 0L
 
@@ -415,7 +435,9 @@ class ExoPlayerAudioPlayer(
       if (timestampInMillis in mediaItemOffsetMs until mediaItemEnd) {
         val progressInMediaItem = timestampInMillis - mediaItemOffsetMs
         player.seekTo(index, progressInMediaItem)
-        player.play()
+        if (play) {
+          player.play()
+        }
         return
       }
       mediaItemOffsetMs = mediaItemEnd
@@ -477,9 +499,55 @@ class ExoPlayerAudioPlayer(
   override fun onDeviceInfoChanged(deviceInfo: DeviceInfo) {
     if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
       dbark { "onDeviceInfoChanged: Local Player" }
+      isRemotePlayback = false
+      armCastWatchdog(null)
     } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
       dbark { "onDeviceInfoChanged: Remote Player" }
+      if (!isRemotePlayback) {
+        isRemotePlayback = true
+        // The remote player surfaces no PlaybackException for receiver-side failures
+        // (unreachable/unauthorized media, dead receiver) — a handoff that never reaches
+        // READY is the only signal, so give it a deadline.
+        armCastWatchdog(CAST_HANDOFF_READY_TIMEOUT_MS)
+      }
     }
+  }
+
+  /**
+   * (Re)arms the dead-cast watchdog with [timeoutMs], or cancels it when null. If the deadline
+   * elapses before READY is observed, the cast session is ended and playback falls back to the
+   * local player, paused at the last known position.
+   */
+  private fun armCastWatchdog(timeoutMs: Long?) {
+    castWatchdogJob?.cancel()
+    castWatchdogJob = if (timeoutMs == null) {
+      null
+    } else {
+      scope.launch {
+        delay(timeoutMs)
+        onCastPlaybackDead()
+      }
+    }
+  }
+
+  private suspend fun onCastPlaybackDead() {
+    wbark { "Cast playback failed to reach READY in time; falling back to local playback" }
+    val resumeTime = overallTime.value
+    castController.disconnect()
+
+    // The composite CastPlayer swaps back to the local player when the session ends
+    withTimeoutOrNull(CAST_FALLBACK_SWAP_TIMEOUT_MS) {
+      while (player.deviceInfo.playbackType != DeviceInfo.PLAYBACK_TYPE_LOCAL) {
+        delay(100)
+      }
+    }
+
+    player.pause()
+    seekTo(resumeTime, play = false)
+    GlobalToaster.show(
+      context.getString(R.string.cast_failed_resumed_locally),
+      Toast.Duration.LONG,
+    )
   }
 
   override fun onPlayerError(error: PlaybackException) {
@@ -489,6 +557,17 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun onPlaybackStateChanged(playbackState: Int) {
+    if (isRemotePlayback) {
+      when (playbackState) {
+        // Receiver is healthy; a later stall (powered off, network drop) re-arms below
+        Player.STATE_READY -> armCastWatchdog(null)
+        // A receiver that vanishes mid-playback leaves the player buffering forever
+        // (androidx/media #2182), so bound it
+        Player.STATE_BUFFERING -> armCastWatchdog(CAST_STALL_TIMEOUT_MS)
+        else -> Unit
+      }
+    }
+
     if (playbackState == Player.STATE_ENDED) {
       dbark { "Playback has ended! Mark the item as finished" }
       scope.launch {

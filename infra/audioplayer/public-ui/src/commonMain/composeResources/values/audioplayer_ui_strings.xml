@@ -9,6 +9,7 @@
   <string name="label_connecting">Connecting…</string>
   <string name="media_route_dialog_title">Devices</string>
   <string name="action_cast">Cast</string>
+  <string name="label_couldnt_connect">Couldn\'t connect</string>
   <string name="action_allow_local_network">Allow local network access</string>
   <string name="label_local_network_rationale">Needed to find cast devices on your network</string>
 

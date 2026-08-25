@@ -67,6 +67,7 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.cast.CastDevice
 import app.campfire.audioplayer.cast.CastState
+import app.campfire.audioplayer.cast.ConnectionAttempt
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
@@ -83,6 +84,7 @@ import campfire.infra.audioplayer.public_ui.generated.resources.Res
 import campfire.infra.audioplayer.public_ui.generated.resources.action_allow_local_network
 import campfire.infra.audioplayer.public_ui.generated.resources.action_cast
 import campfire.infra.audioplayer.public_ui.generated.resources.label_connecting
+import campfire.infra.audioplayer.public_ui.generated.resources.label_couldnt_connect
 import campfire.infra.audioplayer.public_ui.generated.resources.label_local_network_rationale
 import campfire.infra.audioplayer.public_ui.generated.resources.media_route_dialog_title
 import coil3.compose.AsyncImage
@@ -140,15 +142,38 @@ fun CastButton(
       component.castController.needsLocalNetworkPermission
     }.collectAsState()
 
+    val connectionAttempt by remember(component) {
+      component.castController.connectionAttempt
+    }.collectAsState()
+
+    // A brokered connect keeps the picker open showing progress; close it once the
+    // attempt resolves successfully (Connecting -> null).
+    var sawConnecting by remember { mutableStateOf(false) }
+    LaunchedEffect(connectionAttempt) {
+      when (connectionAttempt?.status) {
+        ConnectionAttempt.Status.Connecting -> sawConnecting = true
+        ConnectionAttempt.Status.Failed -> sawConnecting = false
+        null -> if (sawConnecting) {
+          sawConnecting = false
+          showDevices = false
+        }
+      }
+    }
+
     CastDevices(
       devices = devices,
+      connectionAttempt = connectionAttempt,
       showLocalNetworkPermission = needsLocalNetworkPermission,
       onRequestLocalNetworkPermission = {
         component.castController.requestLocalNetworkPermission()
       },
       onDeviceClick = { device ->
         component.castController.connect(device)
-        showDevices = false
+        // Session-based devices (Google Cast) resolve asynchronously and drive the
+        // popup through connectionAttempt; instant output switches close it directly.
+        if (!device.requiresSession) {
+          showDevices = false
+        }
       },
       onDismissRequest = { showDevices = false },
     )
@@ -261,6 +286,7 @@ private fun CurrentDeviceButton(
 @Composable
 private fun CastDevices(
   devices: List<CastDevice>,
+  connectionAttempt: ConnectionAttempt?,
   showLocalNetworkPermission: Boolean,
   onRequestLocalNetworkPermission: () -> Unit,
   onDeviceClick: (CastDevice) -> Unit,
@@ -315,6 +341,7 @@ private fun CastDevices(
       ) {
         CastDevicesCard(
           devices = devices,
+          connectionAttempt = connectionAttempt,
           showLocalNetworkPermission = showLocalNetworkPermission,
           onRequestLocalNetworkPermission = onRequestLocalNetworkPermission,
           onDeviceClick = onDeviceClick,
@@ -328,6 +355,7 @@ private fun CastDevices(
 @Composable
 private fun CastDevicesCard(
   devices: List<CastDevice>,
+  connectionAttempt: ConnectionAttempt?,
   showLocalNetworkPermission: Boolean,
   onRequestLocalNetworkPermission: () -> Unit,
   onDeviceClick: (CastDevice) -> Unit,
@@ -367,6 +395,7 @@ private fun CastDevicesCard(
       ) { device ->
         CastDeviceListItem(
           device = device,
+          attemptStatus = connectionAttempt?.status?.takeIf { connectionAttempt.deviceId == device.id },
           onClick = {
             onDeviceClick(device)
           },
@@ -444,6 +473,7 @@ private fun LocalNetworkPermissionListItem(
 @Composable
 private fun CastDeviceListItem(
   device: CastDevice,
+  attemptStatus: ConnectionAttempt.Status?,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -487,35 +517,53 @@ private fun CastDeviceListItem(
         modifier = Modifier
           .padding(16.dp),
       ) {
-        device.iconUri?.let { uri ->
-          AsyncImage(
-            model = uri,
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(contentColor),
-            modifier = Modifier
-              .size(24.dp),
+        if (attemptStatus == ConnectionAttempt.Status.Connecting) {
+          CircularProgressIndicator(
+            modifier = Modifier.size(24.dp),
+            color = LocalContentColor.current,
+            strokeWidth = 3.dp,
           )
-        } ?: run {
-          Icon(
-            device.asIcon(),
-            contentDescription = null,
-          )
+        } else {
+          device.iconUri?.let { uri ->
+            AsyncImage(
+              model = uri,
+              contentDescription = null,
+              colorFilter = ColorFilter.tint(contentColor),
+              modifier = Modifier
+                .size(24.dp),
+            )
+          } ?: run {
+            Icon(
+              device.asIcon(),
+              contentDescription = null,
+            )
+          }
         }
       }
 
       Column(
-        modifier = Modifier.weight(1f),
+        modifier = Modifier
+          .weight(1f)
+          .padding(vertical = 8.dp),
       ) {
         Text(
           text = device.displayName,
           style = MaterialTheme.typography.titleMedium,
         )
 
-        device.description?.let { desc ->
+        if (attemptStatus == ConnectionAttempt.Status.Failed) {
           Text(
-            text = desc,
+            text = stringResource(Res.string.label_couldnt_connect),
             style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.error,
           )
+        } else {
+          device.description?.let { desc ->
+            Text(
+              text = desc,
+              style = MaterialTheme.typography.labelMedium,
+            )
+          }
         }
       }
     }

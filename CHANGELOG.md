@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - App widgets breaking due to large image size
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
+- Selecting a cast device could hang audio playback until the app was restarted — connection failures now show in the device picker and playback automatically falls back to this phone
 
 ### Other Notes & Contributions
 

@@ -18,7 +18,17 @@ interface CastController {
    */
   val needsLocalNetworkPermission: StateFlow<Boolean> get() = MutableStateFlow(false)
 
+  /**
+   * The in-flight or failed attempt to connect to a device that [CastDevice.requiresSession],
+   * or null when no attempt is pending. Cleared to null on success; a [ConnectionAttempt.Status.Failed]
+   * value persists until the next attempt or until the device picker closes.
+   */
+  val connectionAttempt: StateFlow<ConnectionAttempt?> get() = MutableStateFlow(null)
+
   fun connect(device: CastDevice)
+
+  /** Ends the active cast session, if any, returning playback to this device. */
+  fun disconnect() {}
 
   /*
    * Default no-ops so implementations on platforms (or build flavors) without cast
@@ -44,6 +54,16 @@ enum class CastState {
   Unavailable,
 }
 
+data class ConnectionAttempt(
+  val deviceId: String,
+  val status: Status,
+) {
+  enum class Status {
+    Connecting,
+    Failed,
+  }
+}
+
 abstract class CastDevice(
   val id: String,
   val name: String,
@@ -51,6 +71,12 @@ abstract class CastDevice(
   val iconUri: String?,
   val type: Type,
   val isSelected: Boolean,
+  /**
+   * True when connecting to this device is asynchronous (a Google Cast session must be
+   * established) rather than an instant output switch (Bluetooth, built-in speaker). The
+   * picker keeps itself open and shows progress for these via [CastController.connectionAttempt].
+   */
+  val requiresSession: Boolean = false,
 ) {
 
   override fun toString(): String {

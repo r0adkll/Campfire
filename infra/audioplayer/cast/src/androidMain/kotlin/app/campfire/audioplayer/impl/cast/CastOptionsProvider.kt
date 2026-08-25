@@ -23,6 +23,12 @@ class CastOptionsProvider : OptionsProvider {
           .setNotificationOptions(null)
           .build(),
       )
+      // Match media3's DefaultCastOptionsProvider: media3 owns playback state, so saved-session
+      // resume and the GMS reconnection service only resurrect sessions it doesn't know about.
+      .setResumeSavedSession(false)
+      .setEnableReconnectionService(false)
+      .setRemoteToLocalEnabled(true)
+      .setStopReceiverApplicationWhenEndingSession(true)
       .build()
   }
 
