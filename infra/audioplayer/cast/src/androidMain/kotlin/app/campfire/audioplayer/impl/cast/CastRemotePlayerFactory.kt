@@ -40,16 +40,20 @@ class CastRemotePlayerFactory(
     // in a process-wide static for its lifetime.
     val appContext = context.applicationContext
     SafeCastContext.initialize(appContext)
+    // Gate only on the module being genuinely absent — never on init still being in flight.
+    // The playback service is created in the same startup burst that kicks the async
+    // CastContext load, so a readiness gate loses that race on every cold start and the
+    // process runs without any cast integration. media3's players handle a late-arriving
+    // CastContext themselves (session listeners are deferred until it loads).
+    if (SafeCastContext.isModuleUnavailable) return null
     tokenHolder.refresh()
-    return SafeCastContext.getIfReady()?.let {
-      val remotePlayer = RemoteCastPlayer.Builder(appContext)
-        .setMediaItemConverter(CampfireMediaItemConverter(tokenHolder))
-        .build()
-      CastPlayer.Builder(appContext)
-        .setLocalPlayer(localPlayer)
-        .setRemotePlayer(remotePlayer)
-        .setTransferCallback(CampfireCastTransferCallback(appContext, audioPlayerHolder))
-        .build()
-    }
+    val remotePlayer = RemoteCastPlayer.Builder(appContext)
+      .setMediaItemConverter(CampfireMediaItemConverter(tokenHolder))
+      .build()
+    return CastPlayer.Builder(appContext)
+      .setLocalPlayer(localPlayer)
+      .setRemotePlayer(remotePlayer)
+      .setTransferCallback(CampfireCastTransferCallback(appContext, audioPlayerHolder))
+      .build()
   }
 }

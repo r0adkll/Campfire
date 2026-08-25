@@ -66,6 +66,9 @@ object SafeCastContext {
   /** The shared [CastContext] if initialization has completed, without waiting. */
   fun getIfReady(): CastContext? = _castContext.value
 
+  /** True when the Play services cast module is known to be missing from this device. */
+  val isModuleUnavailable: Boolean get() = moduleUnavailable
+
   private fun onInitializationFailed(error: Throwable?) {
     val isModuleUnavailable = generateSequence(error) { it.cause }
       .any { it is ModuleUnavailableException }

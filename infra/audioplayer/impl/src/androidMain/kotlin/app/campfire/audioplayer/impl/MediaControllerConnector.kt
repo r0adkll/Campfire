@@ -95,5 +95,6 @@ class MediaControllerConnector(private val application: Application) {
 
   companion object : Cork {
     override val tag: String = "MediaControllerConnector"
+    override val enabled: Boolean = true
   }
 }

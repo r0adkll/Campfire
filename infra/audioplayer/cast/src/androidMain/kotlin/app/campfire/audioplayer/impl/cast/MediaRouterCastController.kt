@@ -77,6 +77,7 @@ class MediaRouterCastController(
   Cork {
 
   override val tag: String = "CastContextController"
+  override val enabled: Boolean = true
 
   override val state = MutableStateFlow(CastState.Unavailable)
   override val availableDevices = MutableStateFlow<List<CastDevice>>(emptyList())
@@ -464,13 +465,24 @@ class MediaRouterCastController(
     val selectedRoute = router.selectedRoute
     val selectedCastDeviceId = selectedRoute.castDeviceId
 
-    availableDevices.value = router.routes
+    val routes = router.routes
       .filter { it.isEnabled }
       .filter { it.description != MULTIZONE_MEMBER_DESCRIPTION }
       // The Cast provider publishes an extra session-scoped route for a connected device
       // alongside the device's own route; drop the duplicate.
       .filter { route -> route.extras?.getString(EXTRA_SESSION_ID) == null }
       .distinctBy { route -> route.castDeviceId ?: route.id }
+
+    // The system output-switcher provider publishes its own copy of every Cast device,
+    // identically named but without the Cast extras. Selecting that copy performs a plain
+    // system transfer instead of starting a Cast session (and Pixels bounce it entirely when
+    // Bluetooth audio is connected), so only the Cast provider's route may represent a device.
+    val castRouteNames = routes.mapNotNullTo(mutableSetOf()) { route ->
+      route.name.takeIf { route.castDeviceId != null }
+    }
+
+    availableDevices.value = routes
+      .filter { route -> route.castDeviceId != null || route.name !in castRouteNames }
       .sortedBy {
         when {
           it.isSystemRoute -> 0

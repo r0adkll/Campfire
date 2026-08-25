@@ -84,6 +84,7 @@ class ExoPlayerAudioPlayer(
 ) : AudioPlayer, Player.Listener, Cork {
 
   override val tag: String = AUDIO_TAG
+  override val enabled: Boolean = true
 
   // Re-enable to emit verbose logging around Player.Listener events for
   // debugging.
