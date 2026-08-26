@@ -662,9 +662,13 @@ class KtorAudioBookShelfApi(
     timeListened: Double,
     duration: Double,
   ): Result<Unit> {
-    require(timeListened > 0.0) {
-      "timeListened must be a positive delta; the server treats zero-delta syncs as inert " +
-        "for session keepalive yet still writes media progress from them"
+    if (timeListened <= 0.0) {
+      return Result.failure(
+        IllegalArgumentException(
+          "timeListened must be a positive delta; the server treats zero-delta syncs as inert " +
+            "for session keepalive yet still writes media progress from them",
+        ),
+      )
     }
     return trySendRequest(
       responseMapper = {},
