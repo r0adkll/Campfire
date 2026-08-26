@@ -27,6 +27,7 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
+import app.campfire.audioplayer.impl.chapters.ChapterTimeline
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
@@ -41,7 +42,6 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
-import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.core.toast.GlobalToaster
@@ -199,6 +199,8 @@ class ExoPlayerAudioPlayer(
   private var previousVolumeLevel: Float = 0f
   private var isRemotePlayback = false
   private var castWatchdogJob: Job? = null
+  private var chapterTimeline: ChapterTimeline? = null
+  private var lastBoundaryCheckTime: Duration? = null
 
   override var preparedSession: Session? = null
   private var finishedListener: OnFinishedListener? = null
@@ -223,6 +225,8 @@ class ExoPlayerAudioPlayer(
     onFinished: OnFinishedListener,
   ) = withContext(Dispatchers.Main) {
     preparedSession = session
+    chapterTimeline = ChapterTimeline(session)
+    lastBoundaryCheckTime = null
     finishedListener = onFinished
     _error.value = null
     state.value = AudioPlayer.State.Initializing
@@ -407,15 +411,17 @@ class ExoPlayerAudioPlayer(
 
   override fun stop() {
     preparedSession = null
+    chapterTimeline = null
+    lastBoundaryCheckTime = null
     finishedListener = null
     player.stop()
   }
 
   override fun seekTo(itemIndex: Int) {
     if (isRemotePlayback) {
-      val absolute = absoluteTimeOfLocalQueueIndex(itemIndex)
+      val absolute = chapterTimeline?.startOfLocalQueueIndex(itemIndex)
       if (absolute != null) {
-        remoteSeekTo(absolute, play = true)
+        coarseSeekTo(absolute, play = true)
         return
       }
     }
@@ -425,9 +431,9 @@ class ExoPlayerAudioPlayer(
 
   override fun seekTo(progress: Float) {
     if (isRemotePlayback) {
-      val chapter = chapterAt(overallTime.value)
+      val chapter = chapterTimeline?.chapterAt(overallTime.value)
       if (chapter != null) {
-        remoteSeekTo(chapter.start.seconds + chapter.duration * progress.toDouble(), play = false)
+        coarseSeekTo(chapter.start.seconds + chapter.duration * progress.toDouble(), play = false)
         currentTime.value = chapter.duration * progress.toDouble()
         return
       }
@@ -443,7 +449,7 @@ class ExoPlayerAudioPlayer(
 
   private fun seekTo(timestamp: Duration, play: Boolean) {
     if (isRemotePlayback) {
-      remoteSeekTo(timestamp, play)
+      coarseSeekTo(timestamp, play)
       return
     }
     val timestampInMillis = timestamp.inWholeMilliseconds
@@ -467,10 +473,10 @@ class ExoPlayerAudioPlayer(
 
   override fun skipToNext() {
     if (isRemotePlayback) {
-      // The remote queue is per-track; skip by chapter on the absolute timeline instead
-      val chapter = chapterAt(overallTime.value)
-      if (chapter != null) {
-        remoteSeekTo(chapter.end.seconds, play = false)
+      // The coarse queue is per-track; skip by chapter on the absolute timeline instead
+      val target = chapterTimeline?.nextChapterStart(overallTime.value)
+      if (target != null) {
+        coarseSeekTo(target, play = false)
         return
       }
     }
@@ -479,15 +485,9 @@ class ExoPlayerAudioPlayer(
 
   override fun skipToPrevious() {
     if (isRemotePlayback) {
-      val chapter = chapterAt(overallTime.value)
-      if (chapter != null) {
-        val progressInChapter = (overallTime.value - chapter.start.seconds).coerceAtLeast(Duration.ZERO)
-        val target = if (progressInChapter > settings.trackResetThreshold) {
-          chapter.start.seconds
-        } else {
-          chapterAt(chapter.start.seconds - 1.milliseconds)?.start?.seconds ?: chapter.start.seconds
-        }
-        remoteSeekTo(target, play = false)
+      val target = chapterTimeline?.previousChapterTarget(overallTime.value, settings.trackResetThreshold)
+      if (target != null) {
+        coarseSeekTo(target, play = false)
         return
       }
     }
@@ -701,9 +701,10 @@ class ExoPlayerAudioPlayer(
       }
     }
 
-    // If the media item transitions (i.e. chapter) and the timer is
-    // end of chapter, then stop the playback
-    if (events.containsAny(EVENT_MEDIA_ITEM_TRANSITION)) {
+    // If the media item transitions (i.e. chapter) and the timer is end of chapter, then
+    // stop the playback. Coarse queues (remote per-track) transition on tracks rather than
+    // chapters, so there the boundary detection in updateProgress owns this signal instead.
+    if (events.containsAny(EVENT_MEDIA_ITEM_TRANSITION) && !isRemotePlayback) {
       sleepTimerManager.endOfChapter()
     }
   }
@@ -723,11 +724,13 @@ class ExoPlayerAudioPlayer(
   }
 
   private fun updateProgress(player: Player) {
-    if (isRemotePlayback) {
-      val overallMs = remoteOverallPositionMs(player)
-      if (overallMs != null) {
-        overallTime.value = overallMs.milliseconds
-        updateRemoteChapterState(overallMs.milliseconds, player)
+    val timeline = chapterTimeline
+    if (isRemotePlayback && timeline != null) {
+      val overall = timeline.timeAtTrackPosition(player.currentMediaItemIndex, player.currentPosition.milliseconds)
+      if (overall != null) {
+        detectChapterBoundary(timeline, overall)
+        overallTime.value = overall
+        updateCoarseChapterState(timeline, overall, player)
         return
       }
     }
@@ -737,29 +740,29 @@ class ExoPlayerAudioPlayer(
   }
 
   /**
-   * Absolute position while remote, derived from the session's track table rather than item
-   * metadata: the remote queue is one item per audio track, and items in the cast timeline
-   * may not carry our duration metadata.
+   * Coarse queues have no media-item transition at chapter boundaries, so the end-of-chapter
+   * sleep timer is driven by detecting the crossing between progress ticks instead.
    */
-  private fun remoteOverallPositionMs(player: Player): Long? {
-    val session = preparedSession ?: return null
-    if (session.episode != null) return player.currentPosition
-    val track = session.libraryItem.media.tracks.getOrNull(player.currentMediaItemIndex) ?: return null
-    return track.startOffset.seconds.inWholeMilliseconds + player.currentPosition
+  private fun detectChapterBoundary(timeline: ChapterTimeline, overall: Duration) {
+    val previous = lastBoundaryCheckTime
+    lastBoundaryCheckTime = overall
+    if (previous != null && timeline.crossedChapterBoundary(previous, overall)) {
+      sleepTimerManager.endOfChapter()
+    }
   }
 
   /**
-   * While remote the queue is per-track but the UI speaks chapters: re-derive chapter-relative
-   * time, duration, and title from the absolute position so the playback UI matches local
-   * playback exactly.
+   * Coarse queues (per-track remote, single-item HLS) don't match the UI's chapter language:
+   * re-derive chapter-relative time, duration, and title from the absolute position so the
+   * playback UI matches chapter-granular queues exactly.
    */
-  private fun updateRemoteChapterState(overall: Duration, player: Player) {
-    val chapter = chapterAt(overall)
-    if (chapter != null) {
-      currentTime.value = (overall - chapter.start.seconds).coerceAtLeast(Duration.ZERO)
-      currentDuration.value = chapter.duration
-      if (currentMetadata.value.title != chapter.title) {
-        currentMetadata.value = currentMetadata.value.copy(title = chapter.title)
+  private fun updateCoarseChapterState(timeline: ChapterTimeline, overall: Duration, player: Player) {
+    val progress = timeline.progressAt(overall)
+    if (progress != null) {
+      currentTime.value = progress.position
+      currentDuration.value = progress.duration
+      if (currentMetadata.value.title != progress.chapter.title) {
+        currentMetadata.value = currentMetadata.value.copy(title = progress.chapter.title)
       }
     } else {
       currentTime.value = player.currentPosition.milliseconds
@@ -767,49 +770,19 @@ class ExoPlayerAudioPlayer(
     }
   }
 
-  /** The chapter containing [time] on the absolute book/episode timeline, if any. */
-  private fun chapterAt(time: Duration): Chapter? {
-    val session = preparedSession ?: return null
-    val timeMs = time.inWholeMilliseconds
-    return session.episode?.chapters?.find { chapter ->
-      timeMs >= chapter.start.seconds.inWholeMilliseconds && timeMs < chapter.end.seconds.inWholeMilliseconds
-    } ?: session.libraryItem.getChapterForDuration(timeMs)
-  }
-
   /**
-   * Seeks while remote using the session's track table (the remote queue is per-track and its
-   * timeline metadata may not survive the cast round-trip).
+   * Seeks on a coarse queue by translating the absolute timestamp through the session's
+   * track table (queue items may not carry our duration metadata across the cast boundary).
    */
-  private fun remoteSeekTo(timestamp: Duration, play: Boolean) {
-    val session = preparedSession ?: return
-    if (session.episode != null) {
-      player.seekTo(timestamp.inWholeMilliseconds)
-    } else {
-      val track = session.libraryItem.getAudioTrackForDuration(timestamp.inWholeMilliseconds) ?: return
-      val trackIndex = session.libraryItem.media.tracks.indexOf(track)
-      if (trackIndex < 0) return
-      val offsetMs = timestamp.inWholeMilliseconds - track.startOffset.seconds.inWholeMilliseconds
-      player.seekTo(trackIndex, offsetMs.coerceAtLeast(0L))
-    }
+  private fun coarseSeekTo(timestamp: Duration, play: Boolean) {
+    val timeline = chapterTimeline ?: return
+    val position = timeline.trackPositionAt(timestamp) ?: return
+    player.seekTo(position.queueIndex, position.offset.inWholeMilliseconds)
     overallTime.value = timestamp
+    // A deliberate seek is not a chapter boundary crossing
+    lastBoundaryCheckTime = timestamp
     if (play) {
       player.play()
-    }
-  }
-
-  /**
-   * The UI addresses seeks by local-queue index (chapter id when the item has chapters, track
-   * ordinal otherwise). While remote the player's queue is per-track, so translate the local
-   * index to absolute time first. Null when no translation applies (podcasts, unknown index).
-   */
-  private fun absoluteTimeOfLocalQueueIndex(itemIndex: Int): Duration? {
-    val session = preparedSession ?: return null
-    if (session.episode != null) return null
-    val chapters = session.libraryItem.media.chapters
-    return if (chapters.isNotEmpty()) {
-      chapters.find { it.id == itemIndex }?.start?.seconds
-    } else {
-      session.libraryItem.media.tracks.getOrNull(itemIndex)?.startOffset?.seconds
     }
   }
 }
