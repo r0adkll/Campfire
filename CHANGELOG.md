@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- End-of-chapter sleep timer now stops at actual chapter boundaries while casting, instead of at file boundaries or not at all
 - Cast playback stopping after about an hour — the receiver now streams through credential-free session links on servers running Audiobookshelf 2.22.0 or newer
 - App widgets breaking due to large image size
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
