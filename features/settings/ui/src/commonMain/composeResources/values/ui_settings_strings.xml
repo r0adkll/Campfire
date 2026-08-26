@@ -88,6 +88,14 @@
   <string name="header_streaming">Streaming</string>
   <string name="setting_server_sessions_title">Server listening sessions</string>
   <string name="setting_server_sessions_subtitle">Report your listening to the server in real time while streaming. When off, listening syncs after you pause instead</string>
+  <string name="setting_streaming_method_title">Streaming method</string>
+  <string name="setting_streaming_method_subtitle">How streamed audiobooks are delivered from your server</string>
+  <string name="streaming_method_auto">Auto</string>
+  <string name="streaming_method_auto_description">Stream large single-file books over HLS, everything else directly</string>
+  <string name="streaming_method_direct_play">Direct play</string>
+  <string name="streaming_method_direct_play_description">Always play the original audio files directly</string>
+  <string name="streaming_method_prefer_hls">Prefer HLS</string>
+  <string name="streaming_method_prefer_hls_description">Always stream over HLS when the server supports it</string>
   <string name="header_playback_history">History</string>
   <string name="setting_playback_history_title">Enable playback history</string>
   <string name="setting_playback_history_subtitle">Record playback actions like play, pause, and seek. Disabling this will clear all existing history.</string>

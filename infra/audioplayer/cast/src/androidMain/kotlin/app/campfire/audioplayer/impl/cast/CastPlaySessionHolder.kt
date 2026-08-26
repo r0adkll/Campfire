@@ -15,6 +15,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.ServerVersion
 import app.campfire.core.model.Session
 import app.campfire.core.session.serverUrl
@@ -119,9 +120,12 @@ class CastPlaySessionHolder(
       // Prefer the phone's own attached session (opened by ServerSessionAttacher): the
       // public track endpoint's only check is that the session exists, so the receiver can
       // share it — and admins then see exactly one advancing session while casting. The
-      // preparedSession snapshot predates the attach, so read the live row.
+      // preparedSession snapshot predates the attach, so read the live row. Transcode (HLS)
+      // sessions are excluded: their public URLs redirect into /hls, which the server
+      // doesn't serve with CORS headers, so receivers can't load them.
       val phoneSessionId = userComponent.sessionsRepository
         .getSession(session.libraryItem.id)
+        ?.takeIf { it.playMethod != PlayMethod.Transcode }
         ?.serverSessionId
       if (phoneSessionId != null) {
         stage(session, key, phoneSessionId, serverUrl, owned = false)

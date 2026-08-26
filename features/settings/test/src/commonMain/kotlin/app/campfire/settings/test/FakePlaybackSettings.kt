@@ -6,6 +6,7 @@ package app.campfire.settings.test
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
+import app.campfire.settings.api.StreamingMethod
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -78,6 +79,12 @@ class FakePlaybackSettings : PlaybackSettings {
     get() = _serverSessionsEnabled.value
     set(value) { _serverSessionsEnabled.value = value }
   override fun observeServerSessionsEnabled(): StateFlow<Boolean> = _serverSessionsEnabled.asStateFlow()
+
+  private val _streamingMethod = MutableStateFlow(StreamingMethod.DIRECT_PLAY_ONLY)
+  override var streamingMethod: StreamingMethod
+    get() = _streamingMethod.value
+    set(value) { _streamingMethod.value = value }
+  override fun observeStreamingMethod(): StateFlow<StreamingMethod> = _streamingMethod.asStateFlow()
 
   private val _autoRewindOnResumeEnabled = MutableStateFlow(false)
   override var autoRewindOnResumeEnabled: Boolean

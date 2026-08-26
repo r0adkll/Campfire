@@ -61,6 +61,14 @@ interface PlaybackSettings {
   fun observeServerSessionsEnabled(): StateFlow<Boolean>
 
   /**
+   * How streamed items are delivered — see [StreamingMethod]. Defaults to
+   * [StreamingMethod.DIRECT_PLAY_ONLY] for now; intended to default to [StreamingMethod.AUTO]
+   * once the HLS route has proven itself in the wild.
+   */
+  var streamingMethod: StreamingMethod
+  fun observeStreamingMethod(): StateFlow<StreamingMethod>
+
+  /**
    * When true, resuming playback after a pause rewinds by an amount that scales with how long playback was
    * paused, per the sliding window derived from [resumeRewindConfig].
    */

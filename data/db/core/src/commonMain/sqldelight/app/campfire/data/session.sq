@@ -163,3 +163,9 @@ UPDATE session
 SET reportedTimeListening = :reportedTimeListening
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId;
+
+updatePlayMethod:
+UPDATE session
+SET playMethod = :playMethod
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;

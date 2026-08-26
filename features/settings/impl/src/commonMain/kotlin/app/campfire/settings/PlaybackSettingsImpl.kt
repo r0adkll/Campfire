@@ -9,6 +9,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
+import app.campfire.settings.api.StreamingMethod
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
@@ -82,6 +83,10 @@ class PlaybackSettingsImpl(
   private val serverSessionsEnabledProperty = booleanSetting(PREF_SERVER_SESSIONS, DEFAULT_SERVER_SESSIONS)
   override var serverSessionsEnabled: Boolean by serverSessionsEnabledProperty
   override fun observeServerSessionsEnabled(): StateFlow<Boolean> = serverSessionsEnabledProperty.observe()
+
+  private val streamingMethodProperty = enumSetting(PREF_STREAMING_METHOD, StreamingMethod)
+  override var streamingMethod: StreamingMethod by streamingMethodProperty
+  override fun observeStreamingMethod(): StateFlow<StreamingMethod> = streamingMethodProperty.observe()
 
   private val autoRewindOnResumeEnabledProperty = booleanSetting(
     PREF_AUTO_REWIND_ON_RESUME,
@@ -175,6 +180,7 @@ internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
 internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
 internal const val PREF_SERVER_SESSIONS = "pref_server_sessions_enabled"
+internal const val PREF_STREAMING_METHOD = "pref_streaming_method"
 internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
 internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
 internal const val PREF_MAX_RESUME_REWIND = "pref_playback_resume_rewind_max"

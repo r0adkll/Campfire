@@ -50,6 +50,15 @@ interface ServerSessionAttacher {
 
   /** Fire-and-forget: attaches a server session to [session] when eligible. */
   fun attachAsync(session: Session)
+
+  /**
+   * Opens a transcode (HLS) server session for [session], returning its id or null on any
+   * failure or timeout. Unlike [attachAsync] this is a *bounded-blocking* call — an HLS
+   * queue cannot exist without the session id in its playlist URL — but the /play response
+   * itself is ~15ms (the playlist is pre-generated; ffmpeg spawns asynchronously), so the
+   * bound is a safety net, not an expected wait.
+   */
+  suspend fun openTranscodeSession(session: Session): String?
 }
 
 @OptIn(ExperimentalAtomicApi::class)
@@ -108,6 +117,33 @@ class DefaultServerSessionAttacher(
     while (true) {
       val current = pending.load()
       if (pending.compareAndSet(current, current - itemId)) return
+    }
+  }
+
+  override suspend fun openTranscodeSession(session: Session): String? {
+    if (!playbackSettings.serverSessionsEnabled) return null
+    val itemId = session.libraryItem.id
+    if (!markPending(itemId)) return null
+    try {
+      val playSession = withTimeoutOrNull(TRANSCODE_OPEN_TIMEOUT_MS) {
+        api.startPlaybackSession(
+          libraryItemId = itemId,
+          episodeId = session.episodeId,
+          deviceInfo = deviceInfo(session),
+          mediaPlayer = platformMediaPlayer(),
+          supportedMimeTypes = platformSupportedMimeTypes(),
+          forceTranscode = true,
+        ).getOrElse { error ->
+          wbark(throwable = error) { "Transcode session open failed; falling back to direct play" }
+          null
+        }
+      }
+      if (playSession != null) {
+        ibark { "Opened transcode session ${playSession.id} for $itemId" }
+      }
+      return playSession?.id
+    } finally {
+      clearPending(itemId)
     }
   }
 
@@ -203,5 +239,8 @@ class DefaultServerSessionAttacher(
 
   companion object {
     private const val ATTACH_TIMEOUT_MS = 10_000L
+
+    // Blocking-adjacent: this bound is what playback start waits on for HLS items
+    private const val TRANSCODE_OPEN_TIMEOUT_MS = 4_000L
   }
 }

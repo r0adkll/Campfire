@@ -80,4 +80,9 @@ interface SessionDataSource {
     libraryItemId: LibraryItemId,
     reported: Duration,
   )
+
+  suspend fun updatePlayMethod(
+    libraryItemId: LibraryItemId,
+    playMethod: PlayMethod,
+  )
 }

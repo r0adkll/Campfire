@@ -201,6 +201,27 @@ class ExoPlayerAudioPlayer(
   private var castWatchdogJob: Job? = null
   private var chapterTimeline: ChapterTimeline? = null
   private var lastBoundaryCheckTime: Duration? = null
+  private var hlsQueueActive = false
+  private var hlsFallbackAttempted = false
+
+  /**
+   * How the current queue's media items map onto the book:
+   * - [QueueShape.CHAPTERS] — one (possibly clipped) item per chapter; item boundaries ARE
+   *   chapter boundaries, so player-native transitions/seeks carry chapter semantics.
+   * - [QueueShape.TRACKS] — one item per whole file (remote/Cast: receivers don't honor
+   *   clipping); chapter semantics are re-derived from the absolute position.
+   * - [QueueShape.SINGLE] — one HLS stream item spanning the whole book; every position is
+   *   already absolute.
+   * Cast takes precedence: handing off mid-HLS rebuilds the queue per-track.
+   */
+  private val queueShape: QueueShape
+    get() = when {
+      isRemotePlayback -> QueueShape.TRACKS
+      hlsQueueActive -> QueueShape.SINGLE
+      else -> QueueShape.CHAPTERS
+    }
+
+  private enum class QueueShape { CHAPTERS, TRACKS, SINGLE }
 
   override var preparedSession: Session? = null
   private var finishedListener: OnFinishedListener? = null
@@ -227,6 +248,8 @@ class ExoPlayerAudioPlayer(
     preparedSession = session
     chapterTimeline = ChapterTimeline(session)
     lastBoundaryCheckTime = null
+    hlsQueueActive = session.episode == null && session.hlsStreamUrl != null
+    hlsFallbackAttempted = false
     finishedListener = onFinished
     _error.value = null
     state.value = AudioPlayer.State.Initializing
@@ -271,6 +294,36 @@ class ExoPlayerAudioPlayer(
           artworkUri = session.libraryItem.media.coverImageUrl,
         )
         overallTime.value = resumeMs.milliseconds
+      } else if (hlsQueueActive) {
+        // Single stream item: every position is absolute, so both an explicit chapter and
+        // a resume point reduce to one absolute seek on item 0.
+        val resume = when {
+          chapterId != null ->
+            session.libraryItem.media.chapters.find { it.id == chapterId }?.start?.seconds
+              ?: session.currentTime
+          else -> session.currentTime
+        }.takeIf { it.isFinite() && it > 0.seconds } ?: 0.seconds
+
+        seekTo(0, resume.inWholeMilliseconds)
+        overallTime.value = resume
+        lastBoundaryCheckTime = resume
+
+        val progress = chapterTimeline?.progressAt(resume)
+        if (progress != null) {
+          currentTime.value = progress.position
+          currentDuration.value = progress.duration
+          currentMetadata.value = Metadata(
+            title = progress.chapter.title,
+            artworkUri = session.libraryItem.media.coverImageUrl,
+          )
+        } else {
+          currentTime.value = resume
+          currentDuration.value = session.duration
+          currentMetadata.value = Metadata(
+            title = session.libraryItem.media.metadata.title,
+            artworkUri = session.libraryItem.media.coverImageUrl,
+          )
+        }
       } else if (chapterId != null) {
         if (session.libraryItem.media.chapters.isNotEmpty()) {
           // If the Chapter Id is passed explicitly then we can take that intention as
@@ -413,12 +466,14 @@ class ExoPlayerAudioPlayer(
     preparedSession = null
     chapterTimeline = null
     lastBoundaryCheckTime = null
+    hlsQueueActive = false
+    hlsFallbackAttempted = false
     finishedListener = null
     player.stop()
   }
 
   override fun seekTo(itemIndex: Int) {
-    if (isRemotePlayback) {
+    if (queueShape != QueueShape.CHAPTERS) {
       val absolute = chapterTimeline?.startOfLocalQueueIndex(itemIndex)
       if (absolute != null) {
         coarseSeekTo(absolute, play = true)
@@ -430,7 +485,7 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun seekTo(progress: Float) {
-    if (isRemotePlayback) {
+    if (queueShape != QueueShape.CHAPTERS) {
       val chapter = chapterTimeline?.chapterAt(overallTime.value)
       if (chapter != null) {
         coarseSeekTo(chapter.start.seconds + chapter.duration * progress.toDouble(), play = false)
@@ -448,7 +503,7 @@ class ExoPlayerAudioPlayer(
   }
 
   private fun seekTo(timestamp: Duration, play: Boolean) {
-    if (isRemotePlayback) {
+    if (queueShape != QueueShape.CHAPTERS) {
       coarseSeekTo(timestamp, play)
       return
     }
@@ -472,8 +527,9 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun skipToNext() {
-    if (isRemotePlayback) {
-      // The coarse queue is per-track; skip by chapter on the absolute timeline instead
+    if (queueShape != QueueShape.CHAPTERS) {
+      // Coarse queues (per-track, single HLS stream) don't transition on chapters; skip by
+      // chapter on the absolute timeline instead
       val target = chapterTimeline?.nextChapterStart(overallTime.value)
       if (target != null) {
         coarseSeekTo(target, play = false)
@@ -484,7 +540,7 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun skipToPrevious() {
-    if (isRemotePlayback) {
+    if (queueShape != QueueShape.CHAPTERS) {
       val target = chapterTimeline?.previousChapterTarget(overallTime.value, settings.trackResetThreshold)
       if (target != null) {
         coarseSeekTo(target, play = false)
@@ -600,6 +656,32 @@ class ExoPlayerAudioPlayer(
   override fun onPlayerError(error: PlaybackException) {
     ebark { "Playback error: errorCode=${error.errorCode} message=${error.message}" }
     CrashReporter.record(error)
+
+    // An HLS stream that dies (server restarted, ffmpeg reset, playlist gone) is recoverable:
+    // the same session can always direct-play its tracks. One attempt only — if the rebuilt
+    // direct queue also fails, the error surfaces normally.
+    val session = preparedSession
+    if (queueShape == QueueShape.SINGLE && !hlsFallbackAttempted && session != null) {
+      hlsFallbackAttempted = true
+      wbark { "HLS stream failed (errorCode=${error.errorCode}); rebuilding as direct play" }
+      val resumeTime = overallTime.value
+      val wasPlaying = player.playWhenReady
+      val listener = finishedListener ?: { }
+      scope.launch {
+        prepare(
+          session = session.copy(hlsStreamUrl = null, currentTime = resumeTime),
+          playImmediately = wasPlaying,
+          chapterId = null,
+          onFinished = listener,
+        )
+        GlobalToaster.show(
+          context.getString(R.string.hls_failed_switched_to_direct),
+          Toast.Duration.LONG,
+        )
+      }
+      return
+    }
+
     _error.value = error
   }
 
@@ -631,7 +713,7 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-    if (isRemotePlayback) {
+    if (queueShape != QueueShape.CHAPTERS) {
       updateProgress(player)
       return
     }
@@ -639,9 +721,9 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-    if (isRemotePlayback) {
-      // Item metadata is track-granular while remote; chapter-relative title/duration are
-      // derived from the absolute position in updateProgress instead
+    if (queueShape != QueueShape.CHAPTERS) {
+      // Item metadata is stream/track-granular on coarse queues; chapter-relative
+      // title/duration are derived from the absolute position in updateProgress instead
       currentMetadata.value = currentMetadata.value.copy(
         artworkUri = mediaMetadata.artworkUri?.toString()
           ?: currentMetadata.value.artworkUri,
@@ -702,9 +784,9 @@ class ExoPlayerAudioPlayer(
     }
 
     // If the media item transitions (i.e. chapter) and the timer is end of chapter, then
-    // stop the playback. Coarse queues (remote per-track) transition on tracks rather than
-    // chapters, so there the boundary detection in updateProgress owns this signal instead.
-    if (events.containsAny(EVENT_MEDIA_ITEM_TRANSITION) && !isRemotePlayback) {
+    // stop the playback. Coarse queues (remote per-track, single HLS) transition on tracks
+    // or never, so there the boundary detection in updateProgress owns this signal instead.
+    if (events.containsAny(EVENT_MEDIA_ITEM_TRANSITION) && queueShape == QueueShape.CHAPTERS) {
       sleepTimerManager.endOfChapter()
     }
   }
@@ -725,8 +807,13 @@ class ExoPlayerAudioPlayer(
 
   private fun updateProgress(player: Player) {
     val timeline = chapterTimeline
-    if (isRemotePlayback && timeline != null) {
-      val overall = timeline.timeAtTrackPosition(player.currentMediaItemIndex, player.currentPosition.milliseconds)
+    val shape = queueShape
+    if (shape != QueueShape.CHAPTERS && timeline != null) {
+      val overall = when (shape) {
+        // A single HLS item spans the whole book, so the player position IS absolute
+        QueueShape.SINGLE -> player.currentPosition.milliseconds
+        else -> timeline.timeAtTrackPosition(player.currentMediaItemIndex, player.currentPosition.milliseconds)
+      }
       if (overall != null) {
         detectChapterBoundary(timeline, overall)
         overallTime.value = overall
@@ -775,9 +862,14 @@ class ExoPlayerAudioPlayer(
    * track table (queue items may not carry our duration metadata across the cast boundary).
    */
   private fun coarseSeekTo(timestamp: Duration, play: Boolean) {
-    val timeline = chapterTimeline ?: return
-    val position = timeline.trackPositionAt(timestamp) ?: return
-    player.seekTo(position.queueIndex, position.offset.inWholeMilliseconds)
+    if (queueShape == QueueShape.SINGLE) {
+      // One stream item: the absolute timestamp needs no track translation
+      player.seekTo(0, timestamp.inWholeMilliseconds)
+    } else {
+      val timeline = chapterTimeline ?: return
+      val position = timeline.trackPositionAt(timestamp) ?: return
+      player.seekTo(position.queueIndex, position.offset.inWholeMilliseconds)
+    }
     overallTime.value = timestamp
     // A deliberate seek is not a chapter boundary crossing
     lastBoundaryCheckTime = timestamp

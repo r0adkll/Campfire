@@ -48,6 +48,14 @@ data class Session(
    * session rows, so re-reporting server-delivered time would double-count it.
    */
   val reportedTimeListening: Duration = Duration.ZERO,
+
+  /**
+   * The fully-hydrated HLS playlist URL when this is a transcode session
+   * ([playMethod] == [PlayMethod.Transcode] with a live [serverSessionId]). Derived at
+   * hydration time, never persisted — the URL's validity is tied to the server session.
+   * Null for direct-play and local sessions.
+   */
+  val hlsStreamUrl: String? = null,
 ) {
   /**
    * If this is a podcast session and a matching episode is found on the library item,

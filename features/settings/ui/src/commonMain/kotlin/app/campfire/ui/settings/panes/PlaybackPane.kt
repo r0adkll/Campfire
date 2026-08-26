@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.settings.api.MinPauseThresholdRange
 import app.campfire.settings.api.ResumeRewindRange
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent
@@ -16,6 +18,7 @@ import app.campfire.ui.settings.composables.DurationRangeSliderSetting
 import app.campfire.ui.settings.composables.DurationSliderSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.ResumeRewindPreviewRow
+import app.campfire.ui.settings.composables.StreamingMethodSetting
 import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TimeJumpSetting
 import app.campfire.ui.settings.composables.TimeJumps
@@ -239,6 +242,19 @@ internal fun PlaybackPane(
       headlineContent = { Text(stringResource(Res.string.setting_server_sessions_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_server_sessions_subtitle)) },
     )
+
+    // HLS delivery rides on server sessions and is Android-only for now, so the chooser
+    // only appears where it can take effect
+    AnimatedVisibility(
+      visible = state.playbackSettings.serverSessionsEnabled && currentPlatform == Platform.ANDROID,
+    ) {
+      StreamingMethodSetting(
+        method = state.playbackSettings.streamingMethod,
+        onMethodChange = {
+          state.eventSink(PlaybackSettingEvent.StreamingMethodChanged(it))
+        },
+      )
+    }
 
     Header(
       title = { Text(stringResource(Res.string.header_playback_history)) },

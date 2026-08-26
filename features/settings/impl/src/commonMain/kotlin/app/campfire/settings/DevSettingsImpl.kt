@@ -11,6 +11,7 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,11 @@ class DevSettingsImpl(
   override var sessionAge: Duration by sessionAgeProperty
 
   override fun observeSessionAge(): StateFlow<Duration> = sessionAgeProperty.observe()
+
+  private val hlsLargeItemThresholdProperty = durationSetting(KEY_HLS_LARGE_ITEM_THRESHOLD, 8.hours)
+  override var hlsLargeItemThreshold: Duration by hlsLargeItemThresholdProperty
+
+  override fun observeHlsLargeItemThreshold(): StateFlow<Duration> = hlsLargeItemThresholdProperty.observe()
 
   private val mediaButtonPackagesProperty = customSetting(
     key = KEY_MEDIA_BUTTON_PACKAGES,
@@ -80,6 +86,7 @@ class DevSettingsImpl(
 
 internal const val KEY_DEVELOPER_MODE = "pref_developer_mode_enabled"
 internal const val KEY_SESSION_AGE = "pref_dev_setting_session_age"
+internal const val KEY_HLS_LARGE_ITEM_THRESHOLD = "pref_dev_setting_hls_large_item_threshold"
 internal const val KEY_MEDIA_BUTTON_PACKAGES = "pref_dev_setting_media_button_packages"
 internal const val KEY_FAKE_APP_UPDATE_SIGNED_IN = "pref_dev_setting_fake_app_update_signed_in"
 internal const val KEY_FAKE_APP_UPDATE_AVAILABLE = "pref_dev_setting_fake_app_update_available"

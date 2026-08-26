@@ -57,6 +57,18 @@ internal fun DeveloperPane(
     )
 
     if (currentPlatform == Platform.ANDROID) {
+      DurationInputSetting(
+        value = state.developerSettings.hlsLargeItemThreshold,
+        onValueChange = { state.eventSink(DeveloperSettingEvent.HlsLargeItemThreshold(it)) },
+        headlineContent = { Text("HLS large-item threshold") },
+        supportingContent = {
+          Text(
+            "Single-file books longer than this stream over HLS when the streaming method " +
+              "is set to Auto.",
+          )
+        },
+      )
+
       SwitchSetting(
         value = !state.developerSettings.showWidgetPinningPrompt,
         onValueChange = {

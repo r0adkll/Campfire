@@ -25,6 +25,15 @@ interface DevSettings {
   fun observeSessionAge(): StateFlow<Duration>
 
   /**
+   * Minimum item duration for the AUTO streaming method to pick an HLS transcode session for
+   * a single-file streamed book. Tunable while the heuristic is calibrated against real
+   * servers. Default: `8 hours`
+   */
+  var hlsLargeItemThreshold: Duration
+
+  fun observeHlsLargeItemThreshold(): StateFlow<Duration>
+
+  /**
    * Observe the set of package names that have triggered skip-next / skip-previous media button
    * events on Android. Used by developer settings to surface unknown Bluetooth / remote control
    * package names so we can add them to our interception allow-list.

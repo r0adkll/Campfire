@@ -24,7 +24,33 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     if (episode != null) {
       return buildPodcastEpisode(session.libraryItem, episode)
     }
+    // A routed HLS session plays as a single stream item: the playlist spans the whole
+    // book, so chapter/track segmentation lives in seek math (ChapterTimeline), not the
+    // queue. Clipping can't apply to a live-window-less VOD playlist anyway.
+    session.hlsStreamUrl?.let { streamUrl ->
+      return listOf(buildHlsStream(session, streamUrl))
+    }
     return build(session.libraryItem)
+  }
+
+  private fun buildHlsStream(session: Session, streamUrl: String): MediaItem {
+    val media = session.libraryItem.media
+    return MediaItem(
+      id = "${media.id}_hls",
+      uri = streamUrl,
+      mimeType = "application/x-mpegURL",
+      metadata = MediaItem.Metadata(
+        id = 0,
+        title = media.metadata.title,
+        artist = media.metadata.authorName,
+        description = media.metadata.description ?: "",
+        subtitle = media.metadata.subtitle,
+        albumTitle = media.metadata.title,
+        artworkUri = media.coverImageUrl,
+        durationMs = session.duration.inWholeMilliseconds,
+        libraryItemId = session.libraryItem.id,
+      ),
+    )
   }
 
   fun buildPodcastEpisode(item: LibraryItem, episode: PodcastEpisode): List<MediaItem> {

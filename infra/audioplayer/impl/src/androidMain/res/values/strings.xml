@@ -8,6 +8,8 @@
 
   <string name="cast_failed_resumed_locally">Casting failed — resumed on this phone, paused</string>
 
+  <string name="hls_failed_switched_to_direct">Streaming interrupted — switched to direct playback</string>
+
   <string name="download_notification_channel_name">Offline Download Notifications</string>
   <string name="download_notification_channel_description">Notifications about downloading media for
     offline playback will appear in this channel</string>

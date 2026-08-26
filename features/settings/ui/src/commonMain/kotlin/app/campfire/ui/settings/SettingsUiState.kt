@@ -20,6 +20,7 @@ import app.campfire.settings.api.ResumeRewindTier
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
+import app.campfire.settings.api.StreamingMethod
 import app.campfire.settings.api.ThemeMode
 import app.campfire.ui.theming.api.AppTheme
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -86,6 +87,7 @@ data class PlaybackSettingsInfo(
   val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
   val serverSessionsEnabled: Boolean,
+  val streamingMethod: StreamingMethod,
   val playbackHistoryEnabled: Boolean,
   val autoRewindOnResumeEnabled: Boolean,
   val resumeRewindConfig: ResumeRewindConfig,
@@ -129,6 +131,7 @@ data class AndroidAutoSettingsInfo(
 data class DeveloperSettingsInfo(
   val developerModeEnabled: Boolean,
   val sessionAge: Duration,
+  val hlsLargeItemThreshold: Duration,
   val showWidgetPinningPrompt: Boolean,
   val analyticsDebugState: String,
   val mediaButtonPackages: Set<String>,
@@ -197,6 +200,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoSyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class ServerSessionsEnabled(val enabled: Boolean) : PlaybackSettingEvent
+    data class StreamingMethodChanged(val method: StreamingMethod) : PlaybackSettingEvent
     data class PlaybackHistoryEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoRewindOnResumeEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class MinPauseThreshold(val threshold: Duration) : PlaybackSettingEvent
@@ -238,6 +242,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object InvalidateCurrentAccount : DeveloperSettingEvent
     data object ClearMediaButtonPackages : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
+    data class HlsLargeItemThreshold(val threshold: Duration) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateSignedIn(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateAvailable(val enabled: Boolean) : DeveloperSettingEvent

@@ -21,6 +21,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
+import app.campfire.core.session.serverUrl
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.Session as DbSession
@@ -365,6 +366,20 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  override suspend fun updatePlayMethod(
+    libraryItemId: LibraryItemId,
+    playMethod: PlayMethod,
+  ) {
+    val currentUserId = userSession.userId ?: return
+    write {
+      db.sessionQueries.updatePlayMethod(
+        playMethod = playMethod,
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+      )
+    }
+  }
+
   private suspend fun hydrateSession(session: DbSession): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(session.libraryItemId)
     return Session(
@@ -384,6 +399,9 @@ class SqlDelightSessionDataSource(
       episodeId = session.episodeId.takeIf { it.isNotEmpty() },
       serverSessionId = session.serverSessionId,
       reportedTimeListening = session.reportedTimeListening,
+      hlsStreamUrl = session.serverSessionId
+        ?.takeIf { session.playMethod == PlayMethod.Transcode }
+        ?.let { sid -> userSession.serverUrl?.let { "$it/hls/$sid/output.m3u8" } },
     )
   }
 
