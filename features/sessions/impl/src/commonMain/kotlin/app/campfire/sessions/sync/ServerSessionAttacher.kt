@@ -23,6 +23,8 @@ import app.campfire.sessions.db.SessionDataSource
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -50,6 +52,7 @@ interface ServerSessionAttacher {
   fun attachAsync(session: Session)
 }
 
+@OptIn(ExperimentalAtomicApi::class)
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class, boundType = ServerSessionAttacher::class)
 @Inject
@@ -66,10 +69,12 @@ class DefaultServerSessionAttacher(
   override val tag: String = "ServerSessionAttacher"
   override val enabled: Boolean = true
 
-  private val pending = mutableSetOf<LibraryItemId>()
+  // Copy-on-write set behind a multiplatform atomic: `synchronized` is JVM-only and this
+  // class is commonMain (compiled for iOS too)
+  private val pending = AtomicReference<Set<LibraryItemId>>(emptySet())
 
   override fun isAttachPending(libraryItemId: LibraryItemId): Boolean {
-    return synchronized(pending) { libraryItemId in pending }
+    return libraryItemId in pending.load()
   }
 
   override fun attachAsync(session: Session) {
@@ -79,15 +84,30 @@ class DefaultServerSessionAttacher(
     if (session.serverSessionId != null) return
 
     val itemId = session.libraryItem.id
-    val alreadyPending = synchronized(pending) { !pending.add(itemId) }
-    if (alreadyPending) return
+    if (!markPending(itemId)) return
 
     applicationScope.launch(dispatcherProvider.io) {
       try {
         attach(session)
       } finally {
-        synchronized(pending) { pending.remove(itemId) }
+        clearPending(itemId)
       }
+    }
+  }
+
+  /** Returns false when [itemId] was already pending. */
+  private fun markPending(itemId: LibraryItemId): Boolean {
+    while (true) {
+      val current = pending.load()
+      if (itemId in current) return false
+      if (pending.compareAndSet(current, current + itemId)) return true
+    }
+  }
+
+  private fun clearPending(itemId: LibraryItemId) {
+    while (true) {
+      val current = pending.load()
+      if (pending.compareAndSet(current, current - itemId)) return
     }
   }
 
