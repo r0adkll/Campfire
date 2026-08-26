@@ -62,4 +62,22 @@ interface SessionDataSource {
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId? = null,
   )
+
+  /** Attaches a server playback session to the row, resetting its reported watermark. */
+  suspend fun attachServerSession(
+    libraryItemId: LibraryItemId,
+    serverSessionId: String,
+    episodeId: PodcastEpisodeId? = null,
+  )
+
+  /**
+   * Detaches the server session, keeping the reported watermark so the local-session sync
+   * path only ever uploads the unreported remainder of the row's listening time.
+   */
+  suspend fun clearServerSession(libraryItemId: LibraryItemId)
+
+  suspend fun updateReportedTimeListening(
+    libraryItemId: LibraryItemId,
+    reported: Duration,
+  )
 }

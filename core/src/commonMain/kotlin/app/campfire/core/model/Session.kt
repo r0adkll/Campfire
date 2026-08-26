@@ -33,6 +33,21 @@ data class Session(
 
   // Podcast-only: the episode currently being played. Null for book sessions.
   val episodeId: PodcastEpisodeId? = null,
+
+  /**
+   * The id of the server-side playback session this row reports through, when one was
+   * opened via /api/items/{id}/play. Null means locally owned: listening time syncs
+   * after the fact through the local-session batch endpoint as before.
+   */
+  val serverSessionId: String? = null,
+
+  /**
+   * How much of [timeListening] has already been delivered to [serverSessionId] via
+   * /api/session/{id}/sync. If the server session dies, only the remainder may be
+   * uploaded through the local-session path — the server sums listening stats across
+   * session rows, so re-reporting server-delivered time would double-count it.
+   */
+  val reportedTimeListening: Duration = Duration.ZERO,
 ) {
   /**
    * If this is a podcast session and a matching episode is found on the library item,

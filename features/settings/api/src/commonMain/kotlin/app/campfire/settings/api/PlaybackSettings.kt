@@ -52,6 +52,15 @@ interface PlaybackSettings {
   fun observePlaybackHistoryEnabled(): StateFlow<Boolean>
 
   /**
+   * When true (the default), streaming playback opportunistically opens a server playback
+   * session and reports listening in real time through it. When false, every session is
+   * locally owned and syncs after the fact — the pre-server-session behavior, and the
+   * escape hatch if server-session accounting misbehaves.
+   */
+  var serverSessionsEnabled: Boolean
+  fun observeServerSessionsEnabled(): StateFlow<Boolean>
+
+  /**
    * When true, resuming playback after a pause rewinds by an amount that scales with how long playback was
    * paused, per the sliding window derived from [resumeRewindConfig].
    */

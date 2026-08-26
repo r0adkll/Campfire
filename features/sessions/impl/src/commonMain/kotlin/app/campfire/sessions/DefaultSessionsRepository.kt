@@ -14,6 +14,7 @@ import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.db.SessionDataSource
+import app.campfire.sessions.sync.ServerSessionAttacher
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
@@ -29,6 +30,7 @@ class DefaultSessionsRepository(
   private val mediaProgressRepository: MediaProgressRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val dataSource: SessionDataSource,
+  private val serverSessionAttacher: ServerSessionAttacher,
 ) : SessionsRepository {
 
   override fun observeCurrentSession(): Flow<Session?> {
@@ -52,7 +54,7 @@ class DefaultSessionsRepository(
     val progress = mediaProgressRepository.getProgress(libraryItemId, episodeId)
     val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
 
-    return dataSource.createOrStartSession(
+    val session = dataSource.createOrStartSession(
       libraryItemId = libraryItemId,
       playMethod = if (offlineDownload.isCompleted) {
         PlayMethod.Local
@@ -62,6 +64,12 @@ class DefaultSessionsRepository(
       progress = progress,
       episodeId = episodeId,
     )
+
+    // Opportunistic, fire-and-forget: playback never waits on this. If it lands, the row
+    // reports through the server session; if not, nothing changes.
+    serverSessionAttacher.attachAsync(session)
+
+    return session
   }
 
   override suspend fun markDeleted(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {

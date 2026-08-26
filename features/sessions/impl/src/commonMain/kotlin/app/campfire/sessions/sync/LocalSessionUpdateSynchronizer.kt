@@ -91,8 +91,12 @@ class LocalSessionUpdateSynchronizer(
       }
     }
 
-    // Trigger an update if conditions are right
-//    component.remoteSessionsUpdater.update()
+    // Periodic sync while playing (throttled to 15s/60s-metered inside the updater).
+    // This was disabled in #682 out of caution for multi-device sync, but the protection
+    // was never write-avoidance: the MediaProgress source-of-truth freshness guard is what
+    // keeps a device's own server echoes from clobbering fresher local state, and the
+    // progress PATCH path pushed on this same cadence all along.
+    component.remoteSessionsUpdater.update()
   }
 
   companion object : Corked("LocalSessionUpdateSynchronizer") {

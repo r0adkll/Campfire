@@ -27,6 +27,18 @@ CREATE TABLE IF NOT EXISTS session (
   -- null-safe `IS` comparisons.
   episodeId TEXT NOT NULL DEFAULT '',
 
+  -- The id of the server-side playback session this row is attached to, when one was
+  -- opened via /api/items/{id}/play. Null means the row is locally owned: its listening
+  -- time syncs after the fact through /api/session/local-all as before.
+  serverSessionId TEXT,
+
+  -- How much of timeListening has already been delivered to the server session via
+  -- /api/session/{id}/sync. When a server session dies mid-row, only the remainder
+  -- (timeListening - reportedTimeListening) may be uploaded through the local-session
+  -- path — the server sums listening stats across session rows, so re-reporting
+  -- server-delivered time would double-count it.
+  reportedTimeListening INTEGER AS Duration NOT NULL DEFAULT 0,
+
   PRIMARY KEY(userId, libraryItemId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -128,3 +140,26 @@ SET currentTime = :currentTime,
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId
   AND episodeId = :episodeId;
+
+-- Attaching resets the watermark: a fresh server session has been told nothing yet.
+attachServerSession:
+UPDATE session
+SET serverSessionId = :serverSessionId,
+    reportedTimeListening = 0
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId
+  AND episodeId = :episodeId;
+
+-- Detaching keeps the watermark: it marks how much listening time the dead server session
+-- already recorded, so the local-session path only ever uploads the remainder.
+clearServerSession:
+UPDATE session
+SET serverSessionId = NULL
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;
+
+updateReportedTimeListening:
+UPDATE session
+SET reportedTimeListening = :reportedTimeListening
+WHERE libraryItemId = :libraryItemId
+  AND userId = :userId;

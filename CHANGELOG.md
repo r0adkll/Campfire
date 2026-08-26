@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Listening activity now reports to the server in real time while playing, using Audiobookshelf's native session flow, instead of only syncing after pausing
+
 ### Deprecated
 
 ### Removed

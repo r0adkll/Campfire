@@ -125,6 +125,7 @@ class DatabaseFactory(
       startedAtAdapter = LocalDateTimeAdapter,
       updatedAtAdapter = LocalDateTimeAdapter,
       lastPlayedAtAdapter = LocalDateTimeAdapter,
+      reportedTimeListeningAdapter = DurationAdapter,
     ),
     bookmarksAdapter = Bookmarks.Adapter(
       timeInSecondsAdapter = IntColumnAdapter,

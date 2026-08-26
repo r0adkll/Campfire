@@ -229,6 +229,8 @@ class SqlDelightSessionDataSource(
         startedAt = now,
         updatedAt = now,
         episodeId = episodeId.orEmpty(),
+        serverSessionId = null,
+        reportedTimeListening = Duration.ZERO,
       )
 
       // Insert, replacing any existing session and disable any other active sessions
@@ -323,6 +325,46 @@ class SqlDelightSessionDataSource(
     }
   }
 
+  override suspend fun attachServerSession(
+    libraryItemId: LibraryItemId,
+    serverSessionId: String,
+    episodeId: PodcastEpisodeId?,
+  ) {
+    val currentUserId = userSession.userId ?: return
+    write {
+      db.sessionQueries.attachServerSession(
+        serverSessionId = serverSessionId,
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+        episodeId = episodeId.orEmpty(),
+      )
+    }
+  }
+
+  override suspend fun clearServerSession(libraryItemId: LibraryItemId) {
+    val currentUserId = userSession.userId ?: return
+    write {
+      db.sessionQueries.clearServerSession(
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+      )
+    }
+  }
+
+  override suspend fun updateReportedTimeListening(
+    libraryItemId: LibraryItemId,
+    reported: Duration,
+  ) {
+    val currentUserId = userSession.userId ?: return
+    write {
+      db.sessionQueries.updateReportedTimeListening(
+        reportedTimeListening = reported,
+        libraryItemId = libraryItemId,
+        userId = currentUserId,
+      )
+    }
+  }
+
   private suspend fun hydrateSession(session: DbSession): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(session.libraryItemId)
     return Session(
@@ -340,6 +382,8 @@ class SqlDelightSessionDataSource(
       updatedAt = session.updatedAt,
       // '' is the DB sentinel for "no episode" (book progress) — surface as null.
       episodeId = session.episodeId.takeIf { it.isNotEmpty() },
+      serverSessionId = session.serverSessionId,
+      reportedTimeListening = session.reportedTimeListening,
     )
   }
 

@@ -73,6 +73,12 @@ class FakePlaybackSettings : PlaybackSettings {
     set(value) { _playbackHistoryEnabled.value = value }
   override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = _playbackHistoryEnabled.asStateFlow()
 
+  private val _serverSessionsEnabled = MutableStateFlow(true)
+  override var serverSessionsEnabled: Boolean
+    get() = _serverSessionsEnabled.value
+    set(value) { _serverSessionsEnabled.value = value }
+  override fun observeServerSessionsEnabled(): StateFlow<Boolean> = _serverSessionsEnabled.asStateFlow()
+
   private val _autoRewindOnResumeEnabled = MutableStateFlow(false)
   override var autoRewindOnResumeEnabled: Boolean
     get() = _autoRewindOnResumeEnabled.value

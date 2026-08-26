@@ -1,0 +1,5 @@
+-- Server playback session attachment (see session.sq): the id of the /play session this
+-- row reports through while attached, and the watermark of listening time already
+-- delivered to it so the local-session sync path can never double-report.
+ALTER TABLE session ADD COLUMN serverSessionId TEXT;
+ALTER TABLE session ADD COLUMN reportedTimeListening INTEGER NOT NULL DEFAULT 0;
