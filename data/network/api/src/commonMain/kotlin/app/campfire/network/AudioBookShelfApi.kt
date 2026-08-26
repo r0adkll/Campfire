@@ -9,6 +9,7 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
+import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
@@ -18,6 +19,7 @@ import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.PagedRecentEpisodesResponse
+import app.campfire.network.models.PlaySession
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -363,6 +365,52 @@ interface AudioBookShelfApi {
    * This endpoint creates/updates a local listening session on the server. Used for syncing offline listening
    */
   suspend fun syncLocalSession(session: PlaybackSession): Result<Unit>
+
+  /**
+   * Starts a server-side playback session for a library item (or one of its podcast episodes),
+   * returning the server-created session with its per-session audio tracks: static
+   * authenticated file URLs for direct play, or a single HLS playlist URL for transcode.
+   *
+   * The server dedupes open sessions by (user, deviceInfo.id) — a new call silently closes any
+   * other session open on the same device id. Always pass a fully-populated [deviceInfo]:
+   * the server nulls stored device fields missing from a new payload.
+   */
+  suspend fun startPlaybackSession(
+    libraryItemId: String,
+    episodeId: String? = null,
+    deviceInfo: DeviceInfo,
+    mediaPlayer: String,
+    supportedMimeTypes: List<String>,
+    forceDirectPlay: Boolean = false,
+    forceTranscode: Boolean = false,
+  ): Result<PlaySession>
+
+  /**
+   * Syncs listening progress into an open server playback session. [timeListened] is a
+   * DELTA in seconds since the previous sync, not a running total, and MUST be positive:
+   * the server writes the user's media progress unconditionally on every sync — including
+   * zero-delta ones — while only positive deltas accrue listening time and keep the session
+   * alive against the server's idle reaper.
+   */
+  suspend fun syncPlaybackSession(
+    sessionId: String,
+    currentTime: Double,
+    timeListened: Double,
+    duration: Double,
+  ): Result<Unit>
+
+  /**
+   * Closes an open server playback session, optionally delivering a final sync in the same
+   * request. A final sync is only sent when [timeListened] is a positive delta — otherwise
+   * the close is sent with an empty body (a zero-delta payload would plant a stray media
+   * progress write server-side).
+   */
+  suspend fun closePlaybackSession(
+    sessionId: String,
+    currentTime: Double? = null,
+    timeListened: Double? = null,
+    duration: Double? = null,
+  ): Result<Unit>
 
   //endregion
 

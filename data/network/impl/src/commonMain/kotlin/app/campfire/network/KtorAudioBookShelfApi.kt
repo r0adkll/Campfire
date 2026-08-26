@@ -18,22 +18,26 @@ import app.campfire.network.envelopes.CollectionsResponse
 import app.campfire.network.envelopes.CreateBookmarkRequest
 import app.campfire.network.envelopes.CreatePodcastMedia
 import app.campfire.network.envelopes.CreatePodcastRequest
+import app.campfire.network.envelopes.EmptyRequest
 import app.campfire.network.envelopes.EpisodeDownloadsResponse
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
 import app.campfire.network.envelopes.MinifiedLibraryItemsResponse
 import app.campfire.network.envelopes.NewCollectionRequest
 import app.campfire.network.envelopes.NewPlaylistRequest
+import app.campfire.network.envelopes.PlayItemRequest
 import app.campfire.network.envelopes.PlaylistsResponse
 import app.campfire.network.envelopes.PodcastFeedRequest
 import app.campfire.network.envelopes.PodcastFeedResponse
 import app.campfire.network.envelopes.SeriesResponse
 import app.campfire.network.envelopes.SyncLocalSessionsResult
+import app.campfire.network.envelopes.SyncPlaybackSessionRequest
 import app.campfire.network.envelopes.SyncSessionRequest
 import app.campfire.network.envelopes.UpdateCollectionRequest
 import app.campfire.network.envelopes.UpdatePlaylistRequest
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
+import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
@@ -43,6 +47,7 @@ import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.PagedRecentEpisodesResponse
+import app.campfire.network.models.PlaySession
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -619,6 +624,91 @@ class KtorAudioBookShelfApi(
       hydratedClientRequest("/api/session/local") {
         method = HttpMethod.Post
         setBody(session)
+      }
+    }
+  }
+
+  override suspend fun startPlaybackSession(
+    libraryItemId: String,
+    episodeId: String?,
+    deviceInfo: DeviceInfo,
+    mediaPlayer: String,
+    supportedMimeTypes: List<String>,
+    forceDirectPlay: Boolean,
+    forceTranscode: Boolean,
+  ): Result<PlaySession> {
+    return trySendRequest<PlaySession> {
+      hydratedClientRequest({
+        appendPathSegments("api", "items", libraryItemId, "play")
+        episodeId?.let { appendPathSegments(it) }
+      }) {
+        method = HttpMethod.Post
+        setBody(
+          PlayItemRequest(
+            deviceInfo = deviceInfo,
+            mediaPlayer = mediaPlayer,
+            supportedMimeTypes = supportedMimeTypes,
+            forceDirectPlay = forceDirectPlay,
+            forceTranscode = forceTranscode,
+          ),
+        )
+      }
+    }
+  }
+
+  override suspend fun syncPlaybackSession(
+    sessionId: String,
+    currentTime: Double,
+    timeListened: Double,
+    duration: Double,
+  ): Result<Unit> {
+    require(timeListened > 0.0) {
+      "timeListened must be a positive delta; the server treats zero-delta syncs as inert " +
+        "for session keepalive yet still writes media progress from them"
+    }
+    return trySendRequest(
+      responseMapper = {},
+    ) {
+      hydratedClientRequest({
+        appendPathSegments("api", "session", sessionId, "sync")
+      }) {
+        method = HttpMethod.Post
+        setBody(
+          SyncPlaybackSessionRequest(
+            currentTime = currentTime,
+            timeListened = timeListened,
+            duration = duration,
+          ),
+        )
+      }
+    }
+  }
+
+  override suspend fun closePlaybackSession(
+    sessionId: String,
+    currentTime: Double?,
+    timeListened: Double?,
+    duration: Double?,
+  ): Result<Unit> {
+    val finalSync = if (currentTime != null && duration != null && timeListened != null && timeListened > 0.0) {
+      SyncPlaybackSessionRequest(
+        currentTime = currentTime,
+        timeListened = timeListened,
+        duration = duration,
+      )
+    } else {
+      null
+    }
+    return trySendRequest(
+      responseMapper = {},
+    ) {
+      hydratedClientRequest({
+        appendPathSegments("api", "session", sessionId, "close")
+      }) {
+        method = HttpMethod.Post
+        // A close with no (or a zero-delta) final sync must carry an empty body: the server
+        // writes media progress from any sync payload it sees, even a zero-delta one.
+        setBody(finalSync ?: EmptyRequest())
       }
     }
   }

@@ -11,6 +11,7 @@ import app.campfire.network.envelopes.SyncLocalSessionsResult
 import app.campfire.network.models.AudioBookmark
 import app.campfire.network.models.Author
 import app.campfire.network.models.Collection
+import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.FilterData
 import app.campfire.network.models.Library
 import app.campfire.network.models.LibraryItemExpanded
@@ -20,6 +21,7 @@ import app.campfire.network.models.LibraryStats
 import app.campfire.network.models.ListeningStats
 import app.campfire.network.models.MediaProgress
 import app.campfire.network.models.PagedRecentEpisodesResponse
+import app.campfire.network.models.PlaySession
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.PlaylistExpanded
 import app.campfire.network.models.PlaylistItem
@@ -287,6 +289,36 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun syncLocalSession(session: PlaybackSession): Result<Unit> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun startPlaybackSession(
+    libraryItemId: String,
+    episodeId: String?,
+    deviceInfo: DeviceInfo,
+    mediaPlayer: String,
+    supportedMimeTypes: List<String>,
+    forceDirectPlay: Boolean,
+    forceTranscode: Boolean,
+  ): Result<PlaySession> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun syncPlaybackSession(
+    sessionId: String,
+    currentTime: Double,
+    timeListened: Double,
+    duration: Double,
+  ): Result<Unit> {
+    TODO("Not yet implemented")
+  }
+
+  override suspend fun closePlaybackSession(
+    sessionId: String,
+    currentTime: Double?,
+    timeListened: Double?,
+    duration: Double?,
+  ): Result<Unit> {
     TODO("Not yet implemented")
   }
 

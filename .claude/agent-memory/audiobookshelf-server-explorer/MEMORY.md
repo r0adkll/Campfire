@@ -9,3 +9,5 @@
 - [Auth Token Lifecycle](auth-token-lifecycle.md) — Access/refresh TTLs, /auth/refresh contract, rotation race condition, socket never re-validates JWT after initial auth, Campfire client gap
 - [Book Media Shapes](book-media-shapes.md) — Exact minified/basic/expanded field lists for Book media, ebookFile shape, numMissingParts doesn't exist
 - [Scanner Metadata Parsing](scanner-metadata-parsing.md) — metadata.json schema/precedence for books & podcasts, folder-name parsing, cover filename rules, ffprobe validity/chapter import
+- [Playback Session API](playback-session-api.md) — /play + /public/session track + /hls surface, sync uses `timeListened` DELTA, 36h stale cleanup, device-keyed dedupe, MediaProgress double-count answer
+- [Local session sync vs progress PATCH](local-session-sync-vs-progress-patch.md) — recency guard compares client-supplied `updatedAt` via raw-SQL stamp (UPDATE-only, not CREATE); PATCH is unconditional & only route for isFinished/ebook fields; /session/local gives no success feedback, /session/local-all does
