@@ -85,6 +85,9 @@
   <string name="setting_playback_resume_rewind_tier_title">Paused ≥ %1$s</string>
   <string name="setting_playback_resume_rewind_none">None</string>
   <string name="header_synchronization">Synchronization</string>
+  <string name="header_streaming">Streaming</string>
+  <string name="setting_server_sessions_title">Server listening sessions</string>
+  <string name="setting_server_sessions_subtitle">Report your listening to the server in real time while streaming. When off, listening syncs after you pause instead</string>
   <string name="header_playback_history">History</string>
   <string name="setting_playback_history_title">Enable playback history</string>
   <string name="setting_playback_history_subtitle">Record playback actions like play, pause, and seek. Disabling this will clear all existing history.</string>

@@ -107,9 +107,10 @@ class StoreMediaProgressRepository(
     newProgress: MediaProgress,
     force: Boolean,
     skipUpload: Boolean,
+    onlyIfFresher: Boolean,
   ) {
     // Update local storage
-    val progressId = db.mediaProgressQueries.transactionWithResult {
+    val progressId = db.mediaProgressQueries.transactionWithResult<String?> {
       val existing = db.mediaProgressQueries.selectForEpisode(
         userId = newProgress.userId,
         libraryItemId = newProgress.libraryItemId,
@@ -117,12 +118,19 @@ class StoreMediaProgressRepository(
         episodeId = newProgress.episodeId.orEmpty(),
       ).awaitAsOneOrNull()
 
+      if (onlyIfFresher && existing != null && existing.lastUpdate > newProgress.lastUpdate) {
+        // The stored row is fresher (e.g. this device's own live playback writes) —
+        // dropping the incoming stale echo is the same last-write-wins rule the fetch
+        // path's insertIfFresher applies.
+        return@transactionWithResult null
+      }
+
       db.mediaProgressQueries.insert(
         newProgress.asDbModel(existing?.id),
       )
 
       existing?.id?.takeIf { it != MediaProgress.UNKNOWN_ID } ?: newProgress.id
-    }
+    } ?: return
 
     val updatedProgress = newProgress.copy(id = progressId)
 

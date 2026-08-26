@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Playback setting to turn off real-time server listening sessions, reverting to sync-after-pause
+
 ### Changed
 
 - Listening activity now reports to the server in real time while playing, using Audiobookshelf's native session flow, instead of only syncing after pausing

@@ -37,11 +37,16 @@ interface MediaProgressRepository {
    * @param skipUpload When `true`, the local write happens but the synchronizer's upload back
    *   to the server is suppressed. Use this when the progress originated remotely (e.g. came
    *   in over the socket from another client) so we don't echo it back to the server.
+   * @param onlyIfFresher When `true`, the write is skipped entirely if the stored row has a
+   *   newer [MediaProgress.lastUpdate] than [newProgress]. Use this for remotely-originated
+   *   writes so a device's own (throttled, therefore stale) server echo can never clobber
+   *   the fresher local row it is continuously writing during playback.
    */
   suspend fun updateProgress(
     newProgress: MediaProgress,
     force: Boolean = false,
     skipUpload: Boolean = false,
+    onlyIfFresher: Boolean = false,
   )
 
   suspend fun deleteProgress(

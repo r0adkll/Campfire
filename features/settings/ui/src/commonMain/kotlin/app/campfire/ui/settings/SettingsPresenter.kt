@@ -68,6 +68,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHis
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ServerSessionsEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindAmount
@@ -154,6 +155,7 @@ class SettingsPresenter(
     }.collectAsState()
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
+    val serverSessionsEnabled by remember { playbackSettings.observeServerSessionsEnabled() }.collectAsState()
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
     val autoRewindOnResumeEnabled by remember { playbackSettings.observeAutoRewindOnResumeEnabled() }.collectAsState()
     val resumeRewindConfig by remember { playbackSettings.observeResumeRewindConfig() }.collectAsState()
@@ -261,6 +263,7 @@ class SettingsPresenter(
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         syncEnabled = syncEnabled,
+        serverSessionsEnabled = serverSessionsEnabled,
         autoSyncEnabled = syncEnabled && autoSyncEnabled,
         playbackHistoryEnabled = playbackHistoryEnabled,
         autoRewindOnResumeEnabled = autoRewindOnResumeEnabled,
@@ -359,6 +362,7 @@ class SettingsPresenter(
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
           is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
           is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
+          is ServerSessionsEnabled -> playbackSettings.serverSessionsEnabled = event.enabled
           is PlaybackHistoryEnabled -> {
             playbackSettings.playbackHistoryEnabled = event.enabled
             if (!event.enabled) {

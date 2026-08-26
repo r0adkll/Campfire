@@ -108,6 +108,12 @@ class MediaProgressPlaybackSynchronizer : PlaybackSynchronizer {
       source = MediaProgress.Source.Local,
     )
 
-    component.mediaProgressRepository.updateProgress(updatedProgress, force)
+    // Local mirror only: this keeps the row that drives the sync banner and resume logic
+    // fresh, but never uploads. The server learns playback progress exclusively through
+    // session syncs now (/api/session/{id}/sync while attached, the local-session batch
+    // otherwise — both write server-side MediaProgress), so a parallel PATCH here would be
+    // a redundant second writer of the same position. Explicit finish/unfinish actions
+    // still upload through markFinished/markNotFinished, which this path never handled.
+    component.mediaProgressRepository.updateProgress(updatedProgress, force, skipUpload = true)
   }
 }

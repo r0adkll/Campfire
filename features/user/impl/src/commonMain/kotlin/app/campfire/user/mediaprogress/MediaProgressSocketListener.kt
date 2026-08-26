@@ -19,9 +19,13 @@ class MediaProgressSocketListener(
 ) : SocketEventListener {
   override suspend fun handle(event: SocketEvent) {
     if (event !is UserItemProgressUpdated) return
+    // skipUpload: never echo a remote write back to the server. onlyIfFresher: server
+    // session syncs make this device's own echoes arrive here frequently while playing;
+    // last-write-wins keeps them from clobbering the fresher local row.
     mediaProgressRepository.updateProgress(
       newProgress = event.payload.data.asDomainModel(),
       skipUpload = true,
+      onlyIfFresher = true,
     )
   }
 }

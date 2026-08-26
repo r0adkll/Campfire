@@ -44,6 +44,7 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     newProgress: MediaProgress,
     force: Boolean,
     skipUpload: Boolean,
+    onlyIfFresher: Boolean,
   ) {
     invocations += Invocation.UpdateProgress(newProgress, force, skipUpload)
   }

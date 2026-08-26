@@ -18,6 +18,7 @@ kotlin {
         implementation(projects.core)
         implementation(projects.data.account.api)
         implementation(projects.data.network.api)
+        implementation(projects.features.sessions.api)
         implementation(projects.features.settings.api)
 
         // `api` because MediaRouterCastController's supertypes (CastStateListener,

@@ -20,6 +20,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.session.serverUrl
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.DeviceInfo
+import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +32,7 @@ import me.tatarka.inject.annotations.Inject
 @ContributesTo(UserScope::class)
 interface CastPlaySessionUserComponent {
   val audioBookShelfApi: AudioBookShelfApi
+  val sessionsRepository: SessionsRepository
 }
 
 /**
@@ -69,6 +71,10 @@ class CastPlaySessionHolder(
   @Volatile
   private var sessionItemKey: String? = null
 
+  /** False when the staged id is the phone's own attached session — never ours to close. */
+  @Volatile
+  private var ownsSession: Boolean = false
+
   private val mutex = Mutex()
 
   /** The credential-free receiver URL for [trackContentUrl], if a session is staged for it. */
@@ -104,10 +110,23 @@ class CastPlaySessionHolder(
         return
       }
 
-      val api = ComponentHolder.maybeComponent<CastPlaySessionUserComponent>()?.audioBookShelfApi ?: return
+      val userComponent = ComponentHolder.maybeComponent<CastPlaySessionUserComponent>() ?: return
+      val api = userComponent.audioBookShelfApi
       val serverUrl = userSessionManager.current.serverUrl ?: return
 
       closeCurrent()
+
+      // Prefer the phone's own attached session (opened by ServerSessionAttacher): the
+      // public track endpoint's only check is that the session exists, so the receiver can
+      // share it — and admins then see exactly one advancing session while casting. The
+      // preparedSession snapshot predates the attach, so read the live row.
+      val phoneSessionId = userComponent.sessionsRepository
+        .getSession(session.libraryItem.id)
+        ?.serverSessionId
+      if (phoneSessionId != null) {
+        stage(session, key, phoneSessionId, serverUrl, owned = false)
+        return
+      }
 
       val deviceId = "${campfireSettings.deviceId}$CAST_DEVICE_ID_SUFFIX"
       val playSession = api.startPlaybackSession(
@@ -134,31 +153,43 @@ class CastPlaySessionHolder(
         return
       }
 
-      val episode = session.episode
-      val urls = if (episode != null) {
-        // Podcast sessions always expose exactly one server-side track, at index 1
-        val track = episode.audioTrack ?: return
-        mapOf(track.contentUrl to publicTrackUrl(serverUrl, playSession.id, 1))
-      } else {
-        session.libraryItem.media.tracks.associate { track ->
-          track.contentUrl to publicTrackUrl(serverUrl, playSession.id, track.index)
-        }
-      }
-
-      sessionId = playSession.id
-      sessionItemKey = key
-      publicTrackUrls = urls
-      bark { "Staged cast credential session ${playSession.id} (${urls.size} tracks)" }
+      stage(session, key, playSession.id, serverUrl, owned = true)
     } catch (e: Throwable) {
       bark(LogPriority.WARN, throwable = e) { "Failed to stage cast credential session" }
     }
   }
 
+  private fun stage(session: Session, key: String, stagedSessionId: String, serverUrl: String, owned: Boolean) {
+    val episode = session.episode
+    val urls = if (episode != null) {
+      // Podcast sessions always expose exactly one server-side track, at index 1
+      val track = episode.audioTrack ?: return
+      mapOf(track.contentUrl to publicTrackUrl(serverUrl, stagedSessionId, 1))
+    } else {
+      session.libraryItem.media.tracks.associate { track ->
+        track.contentUrl to publicTrackUrl(serverUrl, stagedSessionId, track.index)
+      }
+    }
+
+    sessionId = stagedSessionId
+    sessionItemKey = key
+    ownsSession = owned
+    publicTrackUrls = urls
+    bark { "Staged cast credential session $stagedSessionId (${urls.size} tracks, owned=$owned)" }
+  }
+
   private suspend fun closeCurrent() {
     val id = sessionId ?: return
+    val shouldClose = ownsSession
     sessionId = null
     sessionItemKey = null
+    ownsSession = false
     publicTrackUrls = emptyMap()
+
+    // The phone's own attached session is never ours to close — it belongs to the
+    // playback sync lifecycle and keeps reporting after casting ends.
+    if (!shouldClose) return
+
     try {
       val api = ComponentHolder.maybeComponent<CastPlaySessionUserComponent>()?.audioBookShelfApi ?: return
       api.closePlaybackSession(id)

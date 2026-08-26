@@ -23,6 +23,7 @@ import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_auto_rewind_on_resume
 import campfire.features.settings.ui.generated.resources.header_playback_history
 import campfire.features.settings.ui.generated.resources.header_player_interface
+import campfire.features.settings.ui.generated.resources.header_streaming
 import campfire.features.settings.ui.generated.resources.header_synchronization
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_auto_rewind_on_resume_title
@@ -54,6 +55,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_track_
 import campfire.features.settings.ui.generated.resources.setting_playback_track_reset_title
 import campfire.features.settings.ui.generated.resources.setting_playback_wavy_scrubber_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_wavy_scrubber_title
+import campfire.features.settings.ui.generated.resources.setting_server_sessions_subtitle
+import campfire.features.settings.ui.generated.resources.setting_server_sessions_title
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import org.jetbrains.compose.resources.stringResource
@@ -223,6 +226,19 @@ internal fun PlaybackPane(
         supportingContent = { Text(stringResource(Res.string.setting_playback_auto_sync_subtitle)) },
       )
     }
+
+    Header(
+      title = { Text(stringResource(Res.string.header_streaming)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.serverSessionsEnabled,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.ServerSessionsEnabled(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_server_sessions_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_server_sessions_subtitle)) },
+    )
 
     Header(
       title = { Text(stringResource(Res.string.header_playback_history)) },
