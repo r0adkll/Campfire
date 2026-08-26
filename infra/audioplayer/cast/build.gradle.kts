@@ -17,6 +17,8 @@ kotlin {
         implementation(projects.infra.audioplayer.impl)
         implementation(projects.core)
         implementation(projects.data.account.api)
+        implementation(projects.data.network.api)
+        implementation(projects.features.settings.api)
 
         // `api` because MediaRouterCastController's supertypes (CastStateListener,
         // MediaRouter.Callback) must be visible to the kimchi-generated component in the

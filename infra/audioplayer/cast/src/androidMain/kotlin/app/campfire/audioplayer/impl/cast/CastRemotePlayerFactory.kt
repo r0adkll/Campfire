@@ -32,6 +32,7 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class CastRemotePlayerFactory(
   private val tokenHolder: CastMediaTokenHolder,
+  private val playSessionHolder: CastPlaySessionHolder,
   private val audioPlayerHolder: AudioPlayerHolder,
 ) : RemotePlayerFactory {
 
@@ -48,12 +49,12 @@ class CastRemotePlayerFactory(
     if (SafeCastContext.isModuleUnavailable) return null
     tokenHolder.refresh()
     val remotePlayer = RemoteCastPlayer.Builder(appContext)
-      .setMediaItemConverter(CampfireMediaItemConverter(tokenHolder))
+      .setMediaItemConverter(CampfireMediaItemConverter(tokenHolder, playSessionHolder))
       .build()
     return CastPlayer.Builder(appContext)
       .setLocalPlayer(localPlayer)
       .setRemotePlayer(remotePlayer)
-      .setTransferCallback(CampfireCastTransferCallback(appContext, audioPlayerHolder))
+      .setTransferCallback(CampfireCastTransferCallback(appContext, audioPlayerHolder, playSessionHolder))
       .build()
   }
 }

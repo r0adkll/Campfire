@@ -70,6 +70,7 @@ class MediaRouterCastController(
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val dispatcherProvider: DispatcherProvider,
   private val tokenHolder: CastMediaTokenHolder,
+  private val playSessionHolder: CastPlaySessionHolder,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : CastController,
   CastStateListener,
@@ -148,9 +149,12 @@ class MediaRouterCastController(
       }
       ibark { "Connecting route: $route" }
       if (device.requiresSession) {
-        // Snapshot a fresh access token while the session establishes — the media item
-        // converter needs it synchronously when the queue is sent to the receiver.
+        // Stage receiver credentials while the session establishes — the media item
+        // converter needs them synchronously when the queue is sent: a credential-free
+        // public session URL map when the server supports it, and a fresh access token
+        // as the fallback either way.
         tokenHolder.refresh()
+        playSessionHolder.openForCurrentSession()
         connectToCastRoute(device.id, route)
       } else {
         // Instant output switches (this phone, Bluetooth, …). Moving off a cast route also
@@ -171,6 +175,7 @@ class MediaRouterCastController(
     try {
       cleanupConnectionAttempt()
       connectionAttempt.value = null
+      playSessionHolder.close()
       // stopCasting = true: also stop the receiver app, mirroring
       // setStopReceiverApplicationWhenEndingSession in CastOptionsProvider
       Media3Cast.getSingletonInstance(application).endCurrentSession(true)
@@ -410,6 +415,12 @@ class MediaRouterCastController(
   override fun onCastStateChanged(castState: Int) {
     state.value = castState.asDomain()
     ibark { "CastController:onCastStateChanged(state = ${castState.asDomain()})" }
+
+    // Catch-all for session ends we didn't initiate (receiver idle timeout, TV home,
+    // Google Home app): release the receiver's credential session when casting stops.
+    if (castState == GoogleCastState.NOT_CONNECTED || castState == GoogleCastState.NO_DEVICES_AVAILABLE) {
+      playSessionHolder.close()
+    }
 
     // Refresh device list so isSelected stays in sync with Cast state changes
     try {

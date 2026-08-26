@@ -30,6 +30,7 @@ import app.campfire.core.logging.bark
 internal class CampfireCastTransferCallback(
   private val context: Context,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val playSessionHolder: CastPlaySessionHolder,
 ) : CastPlayer.TransferCallback {
 
   private val fallback = DefaultCastPlayerTransferCallback()
@@ -39,6 +40,13 @@ internal class CampfireCastTransferCallback(
     if (session == null) {
       fallback.transferState(sourcePlayer, targetPlayer)
       return
+    }
+
+    if (targetPlayer is RemoteCastPlayer) {
+      // Covers connecting before anything was playing: the broker's connect-time staging
+      // found no prepared session, so stage here. Fire-and-forget — if the queue is sent
+      // before the session lands, the converter's token fallback carries this load.
+      playSessionHolder.openForCurrentSession()
     }
 
     try {
