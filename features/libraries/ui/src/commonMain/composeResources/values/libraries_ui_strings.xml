@@ -5,6 +5,7 @@
   <string name="error_item_image_message">Uh-oh! Unable to load image.</string>
 
   <string name="unknown_title">Unknown</string>
+  <string name="streaming_badge_hls">HLS</string>
 
   <string name="sort_mode_sheet_title">Sort library by</string>
   <string name="sort_mode_title">Title</string>

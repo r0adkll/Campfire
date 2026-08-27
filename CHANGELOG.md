@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Playback setting to turn off real-time server listening sessions, reverting to sync-after-pause
 - Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) — Auto streams large single-file audiobooks over HLS for faster seeking, and playback falls back to direct play automatically if the stream fails
+- Book details show an HLS tag next to the duration when the book will stream over HLS
 
 ### Changed
 

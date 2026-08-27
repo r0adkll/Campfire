@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,6 +33,7 @@ import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.streaming_badge_hls
 import campfire.features.libraries.ui.generated.resources.unknown_title
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlin.time.Duration.Companion.milliseconds
@@ -40,6 +42,7 @@ import org.jetbrains.compose.resources.stringResource
 class TitleSlot(
   private val libraryItem: LibraryItem,
   private val sharedTransitionKey: String,
+  private val showHlsBadge: Boolean = false,
 ) : ContentSlot {
 
   override val id: String = "title_author"
@@ -104,6 +107,20 @@ class TitleSlot(
           style = MaterialTheme.typography.titleSmall,
           fontWeight = FontWeight.SemiBold,
         )
+        if (showHlsBadge) {
+          Spacer(Modifier.width(12.dp))
+          Icon(
+            Icons.Outlined.Sensors,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+          )
+          Spacer(Modifier.width(4.dp))
+          Text(
+            text = stringResource(Res.string.streaming_badge_hls),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.SemiBold,
+          )
+        }
         Spacer(Modifier.width(26.dp))
       }
 

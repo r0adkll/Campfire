@@ -4,8 +4,6 @@
 package app.campfire.sessions
 
 import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.core.Platform
-import app.campfire.core.currentPlatform
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
@@ -15,11 +13,9 @@ import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.sync.ServerSessionAttacher
-import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.PlaybackSettings
-import app.campfire.settings.api.StreamingMethod
 import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.time.Duration
@@ -36,8 +32,7 @@ class DefaultSessionsRepository(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val dataSource: SessionDataSource,
   private val serverSessionAttacher: ServerSessionAttacher,
-  private val playbackSettings: PlaybackSettings,
-  private val devSettings: DevSettings,
+  private val streamingRoutePredictor: StreamingRoutePredictor,
 ) : SessionsRepository {
 
   override fun observeCurrentSession(): Flow<Session?> {
@@ -83,24 +78,17 @@ class DefaultSessionsRepository(
   }
 
   /**
-   * Decides how a streamed session is delivered, per the streaming-method setting: an HLS
-   * transcode session (the only path that waits on the network, bounded — the playlist URL
-   * can't exist without the server session id) or plain direct play. Every failure falls
-   * back to direct play, i.e. the previously shipped behavior.
+   * Decides how a streamed session is delivered, per [StreamingRoutePredictor] (the shared
+   * decision the item detail UI also reflects): an HLS transcode session (the only path
+   * that waits on the network, bounded — the playlist URL can't exist without the server
+   * session id) or plain direct play. Every failure falls back to direct play, i.e. the
+   * previously shipped behavior.
    */
   private suspend fun routeStreamingMethod(session: Session): Session {
-    // Downloads always play locally; podcast episodes stay direct play (small single files
-    // gain nothing from segmenting); HLS is Android-first while the route proves out.
+    // Downloads always play locally
     if (session.playMethod == PlayMethod.Local) return session
-    if (session.episodeId != null) return session
-    if (currentPlatform != Platform.ANDROID) return session
-    if (!playbackSettings.serverSessionsEnabled) return session
 
-    val wantsHls = when (playbackSettings.streamingMethod) {
-      StreamingMethod.DIRECT_PLAY_ONLY -> false
-      StreamingMethod.PREFER_HLS -> true
-      StreamingMethod.AUTO -> isLargeSingleFile(session)
-    }
+    val wantsHls = streamingRoutePredictor.wouldStreamHls(session.libraryItem, session.episodeId)
 
     if (!wantsHls) {
       // A reused row can carry a previous HLS decision the setting no longer wants
@@ -118,15 +106,6 @@ class DefaultSessionsRepository(
     dataSource.attachServerSession(session.libraryItem.id, transcodeSessionId, session.episodeId)
     dataSource.updatePlayMethod(session.libraryItem.id, PlayMethod.Transcode)
     return dataSource.getSession(session.libraryItem.id) ?: session
-  }
-
-  private fun isLargeSingleFile(session: Session): Boolean {
-    val media = session.libraryItem.media
-    // tracks[] is only populated on the expanded media shape; numTracks covers minified
-    val trackCount = media.tracks.size.takeIf { it > 0 } ?: media.numTracks
-    if (trackCount != 1) return false
-    return session.duration > devSettings.hlsLargeItemThreshold ||
-      media.sizeInBytes > HLS_LARGE_FILE_SIZE_BYTES
   }
 
   override suspend fun markDeleted(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
@@ -163,11 +142,5 @@ class DefaultSessionsRepository(
 
   override suspend fun markFinished(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?) {
     dataSource.markFinished(libraryItemId, episodeId)
-  }
-
-  companion object {
-    // Progressive playback degrades most on huge single files (seeks re-fetch from byte
-    // ranges deep into one blob); either signal — very long or very heavy — routes to HLS
-    private const val HLS_LARGE_FILE_SIZE_BYTES = 800L * 1024 * 1024
   }
 }

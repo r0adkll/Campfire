@@ -25,6 +25,7 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
+import app.campfire.sessions.test.FakeStreamingRoutePredictor
 import app.campfire.settings.test.TestCampfireSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
@@ -47,6 +48,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val seriesRepository = FakeSeriesRepository()
   internal val sessionsRepository = FakeSessionsRepository()
   internal val sessionQueue = FakeSessionQueue()
+  internal val streamingRoutePredictor = FakeStreamingRoutePredictor()
   internal val mediaProgressRepository = FakeMediaProgressRepository()
   internal val userRepository = FakeUserRepository()
   internal val playbackHistoryRepository = FakePlaybackHistoryRepository()
@@ -65,6 +67,7 @@ abstract class BaseLibraryItemPresenterTest {
     seriesRepository = seriesRepository,
     sessionsRepository = sessionsRepository,
     sessionQueue = sessionQueue,
+    streamingRoutePredictor = streamingRoutePredictor,
     mediaProgressRepository = mediaProgressRepository,
     playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
