@@ -100,10 +100,29 @@ class DefaultSessionsRepository(
       return session
     }
 
-    // Always open a fresh transcode session, even on a reused Transcode row: playlists die
-    // with server restarts, and the server's per-device dedupe closes the previous one.
-    val transcodeSessionId = serverSessionAttacher.openTranscodeSession(session) ?: return session
-    dataSource.attachServerSession(session.libraryItem.id, transcodeSessionId, session.episodeId)
+    // Reuse an already-attached transcode stream (a still-young reused row, or a
+    // concurrent start that just opened one). Re-opening here would make the server CLOSE
+    // that session — dedupe is per device — 404ing the playlist a racing prepare already
+    // holds. A stale reused stream (server restarted) self-heals: the player's HLS error
+    // fallback rebuilds direct play, and the sync path's 404 detaches the row so the next
+    // start opens fresh.
+    if (session.playMethod == PlayMethod.Transcode &&
+      session.serverSessionId != null &&
+      session.hlsStreamUrl != null
+    ) {
+      return session
+    }
+
+    // On open failure, re-read rather than returning the snapshot: a concurrent start may
+    // have won the pending gate and attached the stream this call couldn't open.
+    val transcode = serverSessionAttacher.openTranscodeSession(session)
+      ?: return dataSource.getSession(session.libraryItem.id) ?: session
+    dataSource.attachServerSession(
+      libraryItemId = session.libraryItem.id,
+      serverSessionId = transcode.sessionId,
+      episodeId = session.episodeId,
+      hlsStreamPath = transcode.streamPath,
+    )
     dataSource.updatePlayMethod(session.libraryItem.id, PlayMethod.Transcode)
     return dataSource.getSession(session.libraryItem.id) ?: session
   }

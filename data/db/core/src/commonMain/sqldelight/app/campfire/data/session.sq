@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS session (
   -- server-delivered time would double-count it.
   reportedTimeListening INTEGER AS Duration NOT NULL DEFAULT 0,
 
+  -- The server-relative HLS playlist path from the transcode /play response's
+  -- audioTracks[0].contentUrl — the authoritative stream location, stored rather than
+  -- derived so a non-null value always means a transcode stream was actually opened for
+  -- this attachment. Null for direct-play attachments.
+  hlsStreamPath TEXT,
+
   PRIMARY KEY(userId, libraryItemId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
@@ -145,6 +151,7 @@ WHERE libraryItemId = :libraryItemId
 attachServerSession:
 UPDATE session
 SET serverSessionId = :serverSessionId,
+    hlsStreamPath = :hlsStreamPath,
     reportedTimeListening = 0
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId
@@ -154,7 +161,8 @@ WHERE libraryItemId = :libraryItemId
 -- already recorded, so the local-session path only ever uploads the remainder.
 clearServerSession:
 UPDATE session
-SET serverSessionId = NULL
+SET serverSessionId = NULL,
+    hlsStreamPath = NULL
 WHERE libraryItemId = :libraryItemId
   AND userId = :userId;
 

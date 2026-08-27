@@ -232,6 +232,7 @@ class SqlDelightSessionDataSource(
         episodeId = episodeId.orEmpty(),
         serverSessionId = null,
         reportedTimeListening = Duration.ZERO,
+        hlsStreamPath = null,
       )
 
       // Insert, replacing any existing session and disable any other active sessions
@@ -330,11 +331,13 @@ class SqlDelightSessionDataSource(
     libraryItemId: LibraryItemId,
     serverSessionId: String,
     episodeId: PodcastEpisodeId?,
+    hlsStreamPath: String?,
   ) {
     val currentUserId = userSession.userId ?: return
     write {
       db.sessionQueries.attachServerSession(
         serverSessionId = serverSessionId,
+        hlsStreamPath = hlsStreamPath,
         libraryItemId = libraryItemId,
         userId = currentUserId,
         episodeId = episodeId.orEmpty(),
@@ -399,9 +402,16 @@ class SqlDelightSessionDataSource(
       episodeId = session.episodeId.takeIf { it.isNotEmpty() },
       serverSessionId = session.serverSessionId,
       reportedTimeListening = session.reportedTimeListening,
-      hlsStreamUrl = session.serverSessionId
-        ?.takeIf { session.playMethod == PlayMethod.Transcode }
-        ?.let { sid -> userSession.serverUrl?.let { "$it/hls/$sid/output.m3u8" } },
+      // The playlist location is whatever the transcode /play response said it is; a
+      // stored path is also the proof that a stream was actually opened (a constructed
+      // URL can point at a session that never transcoded)
+      hlsStreamUrl = session.hlsStreamPath?.let { path ->
+        if (path.startsWith("http")) {
+          path
+        } else {
+          userSession.serverUrl?.let { base -> "$base$path" }
+        }
+      },
     )
   }
 
