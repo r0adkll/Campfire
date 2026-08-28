@@ -11,11 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Playback settings for how often listening progress syncs to the server, separately for Wi-Fi and mobile data
 - Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
-- Book details show when a book will stream over HLS, with a play-options menu to choose streaming or direct play per listen
 
 ### Changed
-
-- Listening activity now reports to the server in real time while playing, using Audiobookshelf's native session flow, instead of only syncing after pausing
 
 ### Deprecated
 
