@@ -4,6 +4,7 @@
 package app.campfire.sessions.api
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
@@ -19,11 +20,16 @@ interface SessionsRepository {
    * Create a new listening session to begin playback
    * @param libraryItemId The item to begin listening to
    * @param episodeId Optional podcast episode id when [libraryItemId] points at a podcast item
+   * @param methodOverride Optional per-listen delivery override from the play-options menu:
+   *   [PlayMethod.Transcode] forces HLS (when the platform/setting gates allow it) and
+   *   [PlayMethod.DirectPlay] forces direct play, both winning over the streaming-method
+   *   setting for this session only. Downloads always play locally regardless.
    * @return The newly created session
    */
   suspend fun createSession(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId? = null,
+    methodOverride: PlayMethod? = null,
   ): Session
 
   /**

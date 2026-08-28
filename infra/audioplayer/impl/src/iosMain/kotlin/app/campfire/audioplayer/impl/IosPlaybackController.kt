@@ -16,6 +16,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
@@ -46,11 +47,12 @@ class IosPlaybackController(
     playImmediately: Boolean,
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ) {
     userScopeHolder.get().launch {
       configureAudioSession()
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId)
+      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId, methodOverride)
     }
   }
 

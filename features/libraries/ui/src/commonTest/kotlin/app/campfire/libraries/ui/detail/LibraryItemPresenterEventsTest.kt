@@ -163,8 +163,10 @@ private val PlayClick = EventTest(
 
     assertThat(playbackController.session)
       .isInstanceOf<PlaybackControllerSession.Started>()
-      .transform { it.itemId }
-      .isEqualTo(TestLibraryItemId)
+      .all {
+        transform { it.itemId }.isEqualTo(TestLibraryItemId)
+        transform { it.methodOverride }.isNull()
+      }
   },
 )
 
@@ -178,10 +180,13 @@ private val PlayClickWithMethod = EventTest(
         transform { it.params?.get("method") }.isEqualTo(PlayMethod.Transcode)
       }
 
+    // The per-listen override travels with the session start so the router honors it
     assertThat(playbackController.session)
       .isInstanceOf<PlaybackControllerSession.Started>()
-      .transform { it.itemId }
-      .isEqualTo(TestLibraryItemId)
+      .all {
+        transform { it.itemId }.isEqualTo(TestLibraryItemId)
+        transform { it.methodOverride }.isEqualTo(PlayMethod.Transcode)
+      }
   },
 )
 

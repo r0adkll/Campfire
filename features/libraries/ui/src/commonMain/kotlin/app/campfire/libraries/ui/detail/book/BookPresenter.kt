@@ -242,8 +242,7 @@ class BookPresenter(
         is LibraryItemUiEvent.PlayClick -> {
           if (libraryItem.isEbookOnly) return@ContentUiState
           analytics.send(ActionEvent("play_item", Click, extras = event.method?.let { mapOf("method" to it) }))
-          // TODO: Wire this with the passed play method to force playback type, if possible.
-          playbackController.startSession(libraryItem.id)
+          playbackController.startSession(libraryItem.id, methodOverride = event.method)
         }
 
         is LibraryItemUiEvent.AuthorClick -> {

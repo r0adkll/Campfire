@@ -12,6 +12,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -34,10 +35,11 @@ class DesktopPlaybackController(
     playImmediately: Boolean,
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ) {
     userScopeHolder.get().launch {
       initializeAudioPlayerIfNeeded()
-      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId)
+      playbackSessionManager.startSession(itemId, playImmediately, chapterId, episodeId, methodOverride)
     }
   }
 

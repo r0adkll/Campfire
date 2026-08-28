@@ -10,6 +10,7 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionQueue
@@ -36,9 +37,10 @@ class DefaultPlaybackSessionManager(
     playImmediately: Boolean,
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ) {
     withContext(dispatcherProvider.io) {
-      val session = sessionsRepository.createSession(libraryItemId, episodeId)
+      val session = sessionsRepository.createSession(libraryItemId, episodeId, methodOverride)
 
       // eBook-only items have no audio to prepare. Guarded here (not just in the UI) so
       // media browser entry points like Android Auto can't hand the player an empty track list.

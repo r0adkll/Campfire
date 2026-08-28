@@ -680,6 +680,7 @@ fun TimerBottomSheetV2Preview() {
               override suspend fun createSession(
                 libraryItemId: LibraryItemId,
                 episodeId: PodcastEpisodeId?,
+                methodOverride: PlayMethod?,
               ): Session = error("n/a")
               override suspend fun markDeleted(
                 libraryItemId: LibraryItemId,

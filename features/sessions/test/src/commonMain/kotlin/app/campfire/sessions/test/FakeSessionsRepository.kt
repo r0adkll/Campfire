@@ -4,6 +4,7 @@
 package app.campfire.sessions.test
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.sessions.api.SessionsRepository
@@ -31,8 +32,9 @@ class FakeSessionsRepository : SessionsRepository {
   override suspend fun createSession(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ): Session {
-    invocations += Invocation.CreateSession(libraryItemId, episodeId)
+    invocations += Invocation.CreateSession(libraryItemId, episodeId, methodOverride)
     return createSession
   }
 
@@ -84,6 +86,7 @@ class FakeSessionsRepository : SessionsRepository {
     data class CreateSession(
       val libraryItemId: LibraryItemId,
       val episodeId: PodcastEpisodeId? = null,
+      val methodOverride: PlayMethod? = null,
     ) : Invocation
     data class MarkDeleted(
       val libraryItemId: LibraryItemId,

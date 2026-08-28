@@ -4,6 +4,7 @@
 package app.campfire.audioplayer
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 
 /**
@@ -13,13 +14,19 @@ import app.campfire.core.model.PodcastEpisodeId
 interface PlaybackController {
 
   /**
-   * Start a new playback session for a given library item
+   * Start a new playback session for a given library item.
+   *
+   * @param methodOverride Optional per-listen delivery override — forces HLS
+   * ([app.campfire.core.model.PlayMethod.Transcode]) or direct play
+   * ([app.campfire.core.model.PlayMethod.DirectPlay]) for this session only, winning over
+   * the streaming-method setting.
    */
   fun startSession(
     itemId: LibraryItemId,
     playImmediately: Boolean = true,
     chapterId: Int? = null,
     episodeId: PodcastEpisodeId? = null,
+    methodOverride: PlayMethod? = null,
   )
 
   /**

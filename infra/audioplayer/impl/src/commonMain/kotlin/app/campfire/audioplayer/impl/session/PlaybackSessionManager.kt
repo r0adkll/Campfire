@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.session
 
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 
 /**
@@ -17,6 +18,7 @@ interface PlaybackSessionManager {
     playImmediately: Boolean = true,
     chapterId: Int? = null,
     episodeId: PodcastEpisodeId? = null,
+    methodOverride: PlayMethod? = null,
   )
 
   suspend fun stopSession(

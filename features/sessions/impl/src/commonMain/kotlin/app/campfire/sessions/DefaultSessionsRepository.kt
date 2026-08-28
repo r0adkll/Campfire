@@ -50,6 +50,7 @@ class DefaultSessionsRepository(
   override suspend fun createSession(
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ): Session {
     val libraryItem = libraryItemRepository.getLibraryItem(libraryItemId)
     // Podcast sessions resume against the episode's progress row; books read item-level.
@@ -67,7 +68,7 @@ class DefaultSessionsRepository(
       episodeId = episodeId,
     )
 
-    val routed = routeStreamingMethod(session)
+    val routed = routeStreamingMethod(session, methodOverride)
 
     // Opportunistic, fire-and-forget: playback never waits on this. If it lands, the row
     // reports through the server session; if not, nothing changes. No-ops for sessions the
@@ -81,14 +82,20 @@ class DefaultSessionsRepository(
    * Decides how a streamed session is delivered, per [StreamingRoutePredictor] (the shared
    * decision the item detail UI also reflects): an HLS transcode session (the only path
    * that waits on the network, bounded — the playlist URL can't exist without the server
-   * session id) or plain direct play. Every failure falls back to direct play, i.e. the
-   * previously shipped behavior.
+   * session id) or plain direct play. A per-listen [methodOverride] from the play-options
+   * menu wins over the setting-based decision — though a forced Transcode still requires
+   * the hard gates (platform, server sessions) to pass. Every failure falls back to direct
+   * play, i.e. the previously shipped behavior.
    */
-  private suspend fun routeStreamingMethod(session: Session): Session {
+  private suspend fun routeStreamingMethod(session: Session, methodOverride: PlayMethod?): Session {
     // Downloads always play locally
     if (session.playMethod == PlayMethod.Local) return session
 
-    val wantsHls = streamingRoutePredictor.wouldStreamHls(session.libraryItem, session.episodeId)
+    val wantsHls = when (methodOverride) {
+      PlayMethod.DirectPlay -> false
+      PlayMethod.Transcode -> streamingRoutePredictor.canStreamHls(session.libraryItem, session.episodeId)
+      else -> streamingRoutePredictor.wouldStreamHls(session.libraryItem, session.episodeId)
+    }
 
     if (!wantsHls) {
       // A reused row can carry a previous HLS decision the setting no longer wants

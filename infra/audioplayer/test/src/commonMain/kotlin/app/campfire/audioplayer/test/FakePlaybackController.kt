@@ -5,6 +5,7 @@ package app.campfire.audioplayer.test
 
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 
 class FakePlaybackController : PlaybackController {
@@ -16,12 +17,14 @@ class FakePlaybackController : PlaybackController {
     playImmediately: Boolean,
     chapterId: Int?,
     episodeId: PodcastEpisodeId?,
+    methodOverride: PlayMethod?,
   ) {
     session = PlaybackControllerSession.Started(
       itemId = itemId,
       playImmediately = playImmediately,
       chapterId = chapterId,
       episodeId = episodeId,
+      methodOverride = methodOverride,
     )
   }
 
@@ -46,6 +49,7 @@ sealed interface PlaybackControllerSession {
     val playImmediately: Boolean,
     val chapterId: Int?,
     val episodeId: PodcastEpisodeId?,
+    val methodOverride: PlayMethod? = null,
   ) : PlaybackControllerSession
 
   data class Stopped(
