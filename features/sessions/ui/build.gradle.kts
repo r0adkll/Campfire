@@ -24,5 +24,17 @@ kotlin {
         implementation(libs.reorderable)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(projects.features.libraries.test)
+        implementation(projects.features.sessions.test)
+        implementation(projects.features.settings.test)
+        implementation(projects.features.user.test)
+        implementation(projects.infra.audioplayer.test)
+        implementation(projects.ui.theming.test)
+        implementation(libs.molecule)
+      }
+    }
   }
 }

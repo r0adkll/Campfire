@@ -142,13 +142,24 @@ fun PlaybackBottomBar(
       audioPlayer?.runningTimer ?: emptyFlow()
     }.collectAsState(null)
 
+    // Until an audio player is prepared for this session (service cold start, resume
+    // priming), derive the same display values from the session row the player would seed
+    // from — the handoff to live player state is value-identical
+    val placeholder = when (playerState.value) {
+      AudioPlayer.State.Disabled,
+      AudioPlayer.State.Initializing,
+      -> currentSession?.placeholderDisplayState()
+
+      else -> null
+    }
+
     PlaybackBottomBar(
       session = currentSession,
       state = playerState.value,
       playbackSpeed = playbackSpeed.value,
-      currentTime = currentTime.value,
-      currentDuration = currentDuration.value,
-      currentMetadata = currentMetadata.value,
+      currentTime = placeholder?.time ?: currentTime.value,
+      currentDuration = placeholder?.duration ?: currentDuration.value,
+      currentMetadata = placeholder?.metadata ?: currentMetadata.value,
       runningTimer = runningTimer.value,
       onPlayPauseClick = {
         if (playerState.value == AudioPlayer.State.Disabled) {

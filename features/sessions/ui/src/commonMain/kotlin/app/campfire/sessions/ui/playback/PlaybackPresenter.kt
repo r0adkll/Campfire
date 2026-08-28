@@ -30,6 +30,7 @@ import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.sessions.ui.placeholderDisplayState
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
@@ -263,13 +264,24 @@ class PlaybackPresenter(
       playbackSettings.observePlaybackWavyScrubber()
     }.collectAsState()
 
+    // Until an audio player is prepared for this session (service cold start, resume
+    // priming), derive the same display values from the session row the player would seed
+    // from — the handoff to live player state is value-identical
+    val placeholder = when (state) {
+      AudioPlayer.State.Disabled,
+      AudioPlayer.State.Initializing,
+      -> session.value?.placeholderDisplayState()
+
+      else -> null
+    }
+
     return PlayerUiState(
-      time = time,
-      duration = duration,
-      bookTime = bookTime,
+      time = placeholder?.time ?: time,
+      duration = placeholder?.duration ?: duration,
+      bookTime = placeholder?.bookTime ?: bookTime,
       bookTimeEnabled = bookTimeEnabled,
       wavySliderEnabled = wavySliderEnabled,
-      metadata = metadata,
+      metadata = placeholder?.metadata ?: metadata,
       state = state,
       speed = speed,
       timer = timer,
