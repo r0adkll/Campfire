@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Playback settings to customize how often listening progress syncs to the server, separately for Wi-Fi and mobile data
-- Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) — Auto streams large single-file audiobooks over HLS for faster seeking, playback falls back to direct play automatically if the stream fails, and chapters stay fully intact everywhere including the media notification and Android Auto
-- Book details indicate when a book will stream over HLS: the play button reads "Stream" and an HLS tag appears next to the duration, with a play-options menu to override between streaming and direct play per listen
+- Playback settings for how often listening progress syncs to the server, separately for Wi-Fi and mobile data
+- Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
+- Book details show when a book will stream over HLS, with a play-options menu to choose streaming or direct play per listen
 
 ### Changed
 
@@ -23,13 +23,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Playback bar and screen no longer show blank timing and progress while the player spins back up after reopening the app — the saved session's position displays immediately
-- End-of-chapter sleep timer now stops at actual chapter boundaries while casting, instead of at file boundaries or not at all
-- Cast playback stopping after about an hour — the receiver now streams through credential-free session links on servers running Audiobookshelf 2.22.0 or newer
+- Playback timing and progress showing blank after reopening the app until playback started
+- End-of-chapter sleep timer not stopping at chapter boundaries while casting
+- Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
 - App widgets breaking due to large image size
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
-- Selecting a cast device could hang audio playback until the app was restarted — connection failures now show in the device picker and playback automatically falls back to this phone
-- Audiobooks now actually play on Chromecast, with chapter navigation and progress working the same as on-device playback
+- Selecting a cast device could hang audio playback until the app was restarted
+- Audiobooks not playing on Chromecast
 
 ### Other Notes & Contributions
 
