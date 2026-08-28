@@ -31,7 +31,6 @@ class DefaultStreamingRoutePredictor(
     return hlsGatesPass(
       episodeId = episodeId,
       platform = currentPlatform,
-      serverSessionsEnabled = playbackSettings.serverSessionsEnabled,
     )
   }
 
@@ -40,7 +39,6 @@ class DefaultStreamingRoutePredictor(
       libraryItem = libraryItem,
       episodeId = episodeId,
       platform = currentPlatform,
-      serverSessionsEnabled = playbackSettings.serverSessionsEnabled,
       method = playbackSettings.streamingMethod,
       largeItemThreshold = devSettings.hlsLargeItemThreshold,
     )
@@ -48,15 +46,13 @@ class DefaultStreamingRoutePredictor(
 
   override fun observeWouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Flow<Boolean> {
     return combine(
-      playbackSettings.observeServerSessionsEnabled(),
       playbackSettings.observeStreamingMethod(),
       devSettings.observeHlsLargeItemThreshold(),
-    ) { serverSessionsEnabled, method, largeItemThreshold ->
+    ) { method, largeItemThreshold ->
       decideHlsRoute(
         libraryItem = libraryItem,
         episodeId = episodeId,
         platform = currentPlatform,
-        serverSessionsEnabled = serverSessionsEnabled,
         method = method,
         largeItemThreshold = largeItemThreshold,
       )
@@ -66,20 +62,17 @@ class DefaultStreamingRoutePredictor(
 
 /**
  * The hard gates HLS delivery rides on, independent of the chosen streaming method:
- * podcast episodes stay direct play (small single files gain nothing from segmenting);
- * HLS is Android-first while the route proves out; and the transcode session rides on the
- * server-sessions machinery, so it's off when that is.
+ * podcast episodes stay direct play (small single files gain nothing from segmenting),
+ * and HLS is Android-first while the route proves out.
  *
  * Pure and platform-parameterized so the decision matrix is unit-testable from any target.
  */
 internal fun hlsGatesPass(
   episodeId: PodcastEpisodeId?,
   platform: Platform,
-  serverSessionsEnabled: Boolean,
 ): Boolean {
   if (episodeId != null) return false
-  if (platform != Platform.ANDROID) return false
-  return serverSessionsEnabled
+  return platform == Platform.ANDROID
 }
 
 /** The full HLS-vs-direct decision: [hlsGatesPass] plus the streaming-method policy. */
@@ -87,11 +80,10 @@ internal fun decideHlsRoute(
   libraryItem: LibraryItem,
   episodeId: PodcastEpisodeId?,
   platform: Platform,
-  serverSessionsEnabled: Boolean,
   method: StreamingMethod,
   largeItemThreshold: Duration,
 ): Boolean {
-  if (!hlsGatesPass(episodeId, platform, serverSessionsEnabled)) return false
+  if (!hlsGatesPass(episodeId, platform)) return false
 
   return when (method) {
     StreamingMethod.DIRECT_PLAY_ONLY -> false

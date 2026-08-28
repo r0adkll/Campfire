@@ -61,8 +61,8 @@ class DefaultSessionsRepository(
     // every start: a session that was streaming over HLS resumes over HLS — surviving app
     // death and session-age row replacement — until it ends (stop/delete) or the user
     // explicitly overrides it from the play-options menu. Read before createOrStartSession,
-    // which replaces aged rows and would wipe that memory. The hard gates still apply in
-    // the router, so e.g. turning server sessions off ends the stickiness too.
+    // which replaces aged rows and would wipe that memory. The hard gates (platform,
+    // episodes) still apply in the router.
     val priorPlayMethod = dataSource.getSession(libraryItemId)
       ?.takeIf { !it.isDeleted && it.episodeId == episodeId }
       ?.playMethod
@@ -96,7 +96,7 @@ class DefaultSessionsRepository(
    * that waits on the network, bounded — the playlist URL can't exist without the server
    * session id) or plain direct play. A per-listen [methodOverride] from the play-options
    * menu wins over the setting-based decision — though a forced Transcode still requires
-   * the hard gates (platform, server sessions) to pass. Every failure falls back to direct
+   * the hard gates (platform, episodes) to pass. Every failure falls back to direct
    * play, i.e. the previously shipped behavior.
    */
   private suspend fun routeStreamingMethod(session: Session, methodOverride: PlayMethod?): Session {

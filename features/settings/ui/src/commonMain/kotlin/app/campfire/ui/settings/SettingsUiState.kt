@@ -86,8 +86,9 @@ data class PlaybackSettingsInfo(
   val remoteNextPrevSkipsChapters: Boolean,
   val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
-  val serverSessionsEnabled: Boolean,
   val streamingMethod: StreamingMethod,
+  val syncIntervalUnmetered: Duration,
+  val syncIntervalMetered: Duration,
   val playbackHistoryEnabled: Boolean,
   val autoRewindOnResumeEnabled: Boolean,
   val resumeRewindConfig: ResumeRewindConfig,
@@ -199,8 +200,9 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class RemoteNextPrevSkipsChapters(val remoteNextPrevSkipsChapters: Boolean) : PlaybackSettingEvent
     data class SyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoSyncEnabled(val enabled: Boolean) : PlaybackSettingEvent
-    data class ServerSessionsEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class StreamingMethodChanged(val method: StreamingMethod) : PlaybackSettingEvent
+    data class SyncIntervalUnmetered(val interval: Duration) : PlaybackSettingEvent
+    data class SyncIntervalMetered(val interval: Duration) : PlaybackSettingEvent
     data class PlaybackHistoryEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class AutoRewindOnResumeEnabled(val enabled: Boolean) : PlaybackSettingEvent
     data class MinPauseThreshold(val threshold: Duration) : PlaybackSettingEvent

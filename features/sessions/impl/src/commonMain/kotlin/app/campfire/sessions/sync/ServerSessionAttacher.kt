@@ -21,7 +21,6 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.DeviceInfo
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.settings.api.CampfireSettings
-import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -76,7 +75,6 @@ class DefaultServerSessionAttacher(
   private val api: AudioBookShelfApi,
   private val sessionDataSource: SessionDataSource,
   private val campfireSettings: CampfireSettings,
-  private val playbackSettings: PlaybackSettings,
   private val applicationInfo: ApplicationInfo,
   private val dispatcherProvider: DispatcherProvider,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
@@ -96,7 +94,6 @@ class DefaultServerSessionAttacher(
   override fun attachAsync(session: Session) {
     // Downloads play entirely locally and never open server sessions
     if (session.playMethod == PlayMethod.Local) return
-    if (!playbackSettings.serverSessionsEnabled) return
     if (session.serverSessionId != null) return
 
     val itemId = session.libraryItem.id
@@ -128,7 +125,6 @@ class DefaultServerSessionAttacher(
   }
 
   override suspend fun openTranscodeSession(session: Session): ServerSessionAttacher.TranscodeStream? {
-    if (!playbackSettings.serverSessionsEnabled) return null
     val itemId = session.libraryItem.id
     if (!markPending(itemId)) return null
     try {

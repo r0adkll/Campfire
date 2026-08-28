@@ -80,9 +80,14 @@ class PlaybackSettingsImpl(
   override var playbackHistoryEnabled: Boolean by playbackHistoryEnabledProperty
   override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = playbackHistoryEnabledProperty.observe()
 
-  private val serverSessionsEnabledProperty = booleanSetting(PREF_SERVER_SESSIONS, DEFAULT_SERVER_SESSIONS)
-  override var serverSessionsEnabled: Boolean by serverSessionsEnabledProperty
-  override fun observeServerSessionsEnabled(): StateFlow<Boolean> = serverSessionsEnabledProperty.observe()
+  private val syncIntervalUnmeteredProperty =
+    durationSetting(PREF_SYNC_INTERVAL_UNMETERED, DEFAULT_SYNC_INTERVAL_UNMETERED)
+  override var syncIntervalUnmetered: Duration by syncIntervalUnmeteredProperty
+  override fun observeSyncIntervalUnmetered(): StateFlow<Duration> = syncIntervalUnmeteredProperty.observe()
+
+  private val syncIntervalMeteredProperty = durationSetting(PREF_SYNC_INTERVAL_METERED, DEFAULT_SYNC_INTERVAL_METERED)
+  override var syncIntervalMetered: Duration by syncIntervalMeteredProperty
+  override fun observeSyncIntervalMetered(): StateFlow<Duration> = syncIntervalMeteredProperty.observe()
 
   private val streamingMethodProperty = enumSetting(PREF_STREAMING_METHOD, StreamingMethod)
   override var streamingMethod: StreamingMethod by streamingMethodProperty
@@ -179,7 +184,8 @@ internal const val PREF_SYNC = "pref_synchronization"
 internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"
 internal const val PREF_PLAYBACK_HISTORY = "pref_playback_history_enabled"
-internal const val PREF_SERVER_SESSIONS = "pref_server_sessions_enabled"
+internal const val PREF_SYNC_INTERVAL_UNMETERED = "pref_sync_interval_unmetered"
+internal const val PREF_SYNC_INTERVAL_METERED = "pref_sync_interval_metered"
 internal const val PREF_STREAMING_METHOD = "pref_streaming_method"
 internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
 internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
@@ -201,6 +207,7 @@ internal const val DEFAULT_PLAYBACK_SPEED = 1f
 internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = false
 internal const val DEFAULT_AUTO_SYNC = true
 internal const val DEFAULT_PLAYBACK_HISTORY = true
-internal const val DEFAULT_SERVER_SESSIONS = true
+internal val DEFAULT_SYNC_INTERVAL_UNMETERED = 15.seconds
+internal val DEFAULT_SYNC_INTERVAL_METERED = 60.seconds
 internal const val DEFAULT_AUTO_REWIND_ON_RESUME = false
 internal const val DEFAULT_AUTO_REWIND_STOP_AT_CHAPTER = true

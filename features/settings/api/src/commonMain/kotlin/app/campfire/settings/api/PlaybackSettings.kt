@@ -4,6 +4,8 @@
 package app.campfire.settings.api
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.StateFlow
 
 interface PlaybackSettings {
@@ -52,13 +54,18 @@ interface PlaybackSettings {
   fun observePlaybackHistoryEnabled(): StateFlow<Boolean>
 
   /**
-   * When true (the default), streaming playback opportunistically opens a server playback
-   * session and reports listening in real time through it. When false, every session is
-   * locally owned and syncs after the fact — the pre-server-session behavior, and the
-   * escape hatch if server-session accounting misbehaves.
+   * The minimum interval between listening syncs to the server while on an unmetered
+   * connection (Wi-Fi). Constrained to [SyncIntervalRange].
    */
-  var serverSessionsEnabled: Boolean
-  fun observeServerSessionsEnabled(): StateFlow<Boolean>
+  var syncIntervalUnmetered: Duration
+  fun observeSyncIntervalUnmetered(): StateFlow<Duration>
+
+  /**
+   * The minimum interval between listening syncs to the server while on a metered
+   * connection (mobile data). Constrained to [SyncIntervalRange].
+   */
+  var syncIntervalMetered: Duration
+  fun observeSyncIntervalMetered(): StateFlow<Duration>
 
   /**
    * How streamed items are delivered — see [StreamingMethod]. Defaults to
@@ -108,3 +115,6 @@ interface PlaybackSettings {
   var playbackWavyScrubber: Boolean
   fun observePlaybackWavyScrubber(): StateFlow<Boolean>
 }
+
+/** The configurable bounds for the metered/unmetered listening-sync intervals. */
+val SyncIntervalRange: ClosedRange<Duration> = 5.seconds..5.minutes

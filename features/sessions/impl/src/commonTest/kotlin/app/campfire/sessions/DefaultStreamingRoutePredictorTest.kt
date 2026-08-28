@@ -24,33 +24,26 @@ class DefaultStreamingRoutePredictorTest {
   // region hlsGatesPass
 
   @Test
-  fun `gates pass for a book on Android with server sessions enabled`() {
+  fun `gates pass for a book on Android`() {
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.ANDROID, serverSessionsEnabled = true),
+      hlsGatesPass(episodeId = null, platform = Platform.ANDROID),
     ).isTrue()
   }
 
   @Test
   fun `gates fail for podcast episodes`() {
     assertThat(
-      hlsGatesPass(episodeId = "episode_id", platform = Platform.ANDROID, serverSessionsEnabled = true),
+      hlsGatesPass(episodeId = "episode_id", platform = Platform.ANDROID),
     ).isFalse()
   }
 
   @Test
   fun `gates fail off Android`() {
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.IOS, serverSessionsEnabled = true),
+      hlsGatesPass(episodeId = null, platform = Platform.IOS),
     ).isFalse()
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.DESKTOP, serverSessionsEnabled = true),
-    ).isFalse()
-  }
-
-  @Test
-  fun `gates fail when server sessions are disabled`() {
-    assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.ANDROID, serverSessionsEnabled = false),
+      hlsGatesPass(episodeId = null, platform = Platform.DESKTOP),
     ).isFalse()
   }
 
@@ -74,9 +67,6 @@ class DefaultStreamingRoutePredictorTest {
 
   @Test
   fun `prefer HLS still respects the gates`() {
-    assertThat(
-      decide(largeSingleFileItem(), method = StreamingMethod.PREFER_HLS, serverSessionsEnabled = false),
-    ).isFalse()
     assertThat(
       decide(largeSingleFileItem(), method = StreamingMethod.PREFER_HLS, episodeId = "episode_id"),
     ).isFalse()
@@ -142,13 +132,11 @@ class DefaultStreamingRoutePredictorTest {
     method: StreamingMethod,
     episodeId: PodcastEpisodeId? = null,
     platform: Platform = Platform.ANDROID,
-    serverSessionsEnabled: Boolean = true,
     largeItemThreshold: Duration = 8.hours,
   ): Boolean = decideHlsRoute(
     libraryItem = item,
     episodeId = episodeId,
     platform = platform,
-    serverSessionsEnabled = serverSessionsEnabled,
     method = method,
     largeItemThreshold = largeItemThreshold,
   )

@@ -15,6 +15,7 @@ import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
+import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
 import kotlin.time.Duration
@@ -40,6 +41,7 @@ class NetworkRemoteSessionsUpdater(
   private val userSession: UserSession,
   private val connectivity: Connectivity,
   private val fatherTime: FatherTime,
+  private val playbackSettings: PlaybackSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : RemoteSessionsUpdater {
 
@@ -53,19 +55,22 @@ class NetworkRemoteSessionsUpdater(
       return@withContext
     }
 
+    val unmeteredIntervalMs = playbackSettings.syncIntervalUnmetered.inWholeMilliseconds
+    val meteredIntervalMs = playbackSettings.syncIntervalMetered.inWholeMilliseconds
+
     // Cheap throttle first: this is called from the 500ms playback tick, so bail on the
-    // unmetered interval before touching platform connectivity. The final (possibly
-    // stricter metered) interval is re-checked against the actual connection below.
+    // shorter of the two intervals before touching platform connectivity. The final
+    // (possibly stricter) interval is re-checked against the actual connection below.
     val elapsedSinceSync = fatherTime.nowInEpochMillis() - lastSyncTimeMs
-    if (elapsedSinceSync < SYNC_INTERVAL_NOT_METERED && !skipInterval) return@withContext
+    if (elapsedSinceSync < minOf(unmeteredIntervalMs, meteredIntervalMs) && !skipInterval) return@withContext
 
     // Check for connectivity
     val status = connectivity.status()
     if (status.isConnected) {
       val elapsed = fatherTime.nowInEpochMillis() - lastSyncTimeMs
       val interval = when {
-        status.isMetered -> SYNC_INTERVAL_METERED
-        else -> SYNC_INTERVAL_NOT_METERED
+        status.isMetered -> meteredIntervalMs
+        else -> unmeteredIntervalMs
       }
 
       if (elapsed >= interval || skipInterval) {
@@ -202,8 +207,5 @@ class NetworkRemoteSessionsUpdater(
   companion object : Cork {
     override val tag: String = "NetworkRemoteSessionsUpdater"
     override val enabled: Boolean = true
-
-    private const val SYNC_INTERVAL_NOT_METERED = 15_000L // 15s
-    private const val SYNC_INTERVAL_METERED = 60_000L // 1m
   }
 }

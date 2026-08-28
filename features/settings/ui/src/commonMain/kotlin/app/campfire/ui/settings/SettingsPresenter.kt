@@ -68,9 +68,10 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHis
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
-import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ServerSessionsEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.StreamingMethodChanged
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncIntervalMetered
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncIntervalUnmetered
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.TrackResetThreshold
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindAmount
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepRewindEnabled
@@ -156,8 +157,9 @@ class SettingsPresenter(
     }.collectAsState()
     val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
     val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
-    val serverSessionsEnabled by remember { playbackSettings.observeServerSessionsEnabled() }.collectAsState()
     val streamingMethod by remember { playbackSettings.observeStreamingMethod() }.collectAsState()
+    val syncIntervalUnmetered by remember { playbackSettings.observeSyncIntervalUnmetered() }.collectAsState()
+    val syncIntervalMetered by remember { playbackSettings.observeSyncIntervalMetered() }.collectAsState()
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
     val autoRewindOnResumeEnabled by remember { playbackSettings.observeAutoRewindOnResumeEnabled() }.collectAsState()
     val resumeRewindConfig by remember { playbackSettings.observeResumeRewindConfig() }.collectAsState()
@@ -266,8 +268,9 @@ class SettingsPresenter(
         mp3IndexSeeking = mp3IndexSeeking,
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         syncEnabled = syncEnabled,
-        serverSessionsEnabled = serverSessionsEnabled,
         streamingMethod = streamingMethod,
+        syncIntervalUnmetered = syncIntervalUnmetered,
+        syncIntervalMetered = syncIntervalMetered,
         autoSyncEnabled = syncEnabled && autoSyncEnabled,
         playbackHistoryEnabled = playbackHistoryEnabled,
         autoRewindOnResumeEnabled = autoRewindOnResumeEnabled,
@@ -367,8 +370,9 @@ class SettingsPresenter(
             playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
           is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
           is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
-          is ServerSessionsEnabled -> playbackSettings.serverSessionsEnabled = event.enabled
           is StreamingMethodChanged -> playbackSettings.streamingMethod = event.method
+          is SyncIntervalUnmetered -> playbackSettings.syncIntervalUnmetered = event.interval
+          is SyncIntervalMetered -> playbackSettings.syncIntervalMetered = event.interval
           is PlaybackHistoryEnabled -> {
             playbackSettings.playbackHistoryEnabled = event.enabled
             if (!event.enabled) {
