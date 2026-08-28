@@ -1,6 +1,6 @@
 [versions]
 agp = "9.3.2"
-about-libraries = "15.1.1"
+about-libraries = "15.2.0"
 accompanist = "0.37.3"
 androidxlifecycle = "2.11.0"
 androidxactivity = "1.13.0"
