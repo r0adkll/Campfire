@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -125,6 +126,7 @@ private fun ThemeModeChip(
           SYSTEM -> Icons.Rounded.Brightness6
         },
         contentDescription = null,
+        modifier = Modifier.size(18.dp),
       )
       Spacer(Modifier.width(8.dp))
       Text(

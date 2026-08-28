@@ -9,13 +9,10 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,23 +21,19 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Backspace
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.outlined.StopCircle
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material.icons.rounded.Downloading
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonShapes
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -59,9 +52,11 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -71,10 +66,7 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.isNullOrNone
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
-import app.campfire.common.compose.icons.outline.Autoplay
-import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.MarkFinished
-import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.icons.rounded.QueuePlayNext
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -82,6 +74,7 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.model.preview.mediaProgress
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
@@ -91,12 +84,8 @@ import campfire.features.libraries.ui.generated.resources.action_add_to_dequeue
 import campfire.features.libraries.ui.generated.resources.action_add_to_enqueue
 import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_long
 import campfire.features.libraries.ui.generated.resources.action_add_to_playlist_short
-import campfire.features.libraries.ui.generated.resources.action_currently_playing
 import campfire.features.libraries.ui.generated.resources.action_delete_download
 import campfire.features.libraries.ui.generated.resources.action_delete_offline
-import campfire.features.libraries.ui.generated.resources.action_ebook_not_supported
-import campfire.features.libraries.ui.generated.resources.action_play
-import campfire.features.libraries.ui.generated.resources.action_resume_listening
 import campfire.features.libraries.ui.generated.resources.action_retry_download
 import campfire.features.libraries.ui.generated.resources.action_stop_downloading
 import campfire.features.libraries.ui.generated.resources.menu_item_discard_progress
@@ -113,7 +102,7 @@ internal fun ExpressiveControlBar(
   isCurrentSession: Boolean,
   mediaProgress: MediaProgress?,
   offlineDownload: OfflineDownload?,
-  onPlayClick: () -> Unit,
+  onPlayClick: (PlayMethod?) -> Unit,
   onDownloadClick: () -> Unit,
   onMarkFinished: () -> Unit,
   onMarkNotFinished: () -> Unit,
@@ -125,6 +114,8 @@ internal fun ExpressiveControlBar(
   modifier: Modifier = Modifier,
   totalSizeInBytes: Long = -1L,
   isEbookOnly: Boolean = false,
+  canStreamHls: Boolean = false,
+  willStreamHls: Boolean = false,
 ) {
   Surface(
     modifier = modifier
@@ -148,6 +139,8 @@ internal fun ExpressiveControlBar(
         hasProgress = hasProgress,
         isCurrentSession = isCurrentSession,
         isEbookOnly = isEbookOnly,
+        canStreamHls = canStreamHls,
+        willStreamHls = willStreamHls,
       )
 
       if (!offlineDownload.isNullOrNone()) {
@@ -690,123 +683,6 @@ private fun AddToButtons(
   }
 }
 
-@Composable
-private fun PlayAndDownloadButtons(
-  offlineDownload: OfflineDownload?,
-  onPlayClick: () -> Unit,
-  onDownloadClick: () -> Unit,
-  hasProgress: Boolean,
-  isCurrentSession: Boolean,
-  isEbookOnly: Boolean,
-) {
-  Row(
-    modifier = Modifier.fillMaxWidth(),
-    verticalAlignment = Alignment.CenterVertically,
-  ) {
-    val hasOfflineDownload = offlineDownload?.state != null &&
-      offlineDownload.state != OfflineDownload.State.None
-
-    val size = ButtonDefaults.MediumContainerHeight
-    val splitButtonRadius = 4.dp
-    val pressedSplitButtonRadius = 6.dp
-    val pressedCornerRadius = if (hasOfflineDownload) pressedSplitButtonRadius else 12.dp
-    val endCornerRadius by animateDpAsState(
-      targetValue = if (hasOfflineDownload || isEbookOnly) size / 2 else splitButtonRadius,
-    )
-
-    Button(
-      enabled = !isCurrentSession && !isEbookOnly,
-      onClick = onPlayClick,
-      modifier = Modifier
-        .heightIn(size)
-        .weight(1f)
-        .testTag("button_play"),
-      shapes = ButtonShapes(
-        shape = RoundedCornerShape(
-          topStart = CornerSize(50),
-          bottomStart = CornerSize(50),
-          topEnd = CornerSize(endCornerRadius),
-          bottomEnd = CornerSize(endCornerRadius),
-        ),
-        pressedShape = RoundedCornerShape(
-          topStart = CornerSize(12.dp), // Corner Medium
-          bottomStart = CornerSize(12.dp), // Corner Medium
-          topEnd = CornerSize(pressedCornerRadius),
-          bottomEnd = CornerSize(pressedCornerRadius),
-        ),
-      ),
-      contentPadding = ButtonDefaults.MediumContentPadding,
-    ) {
-      Icon(
-        when {
-          isEbookOnly -> Icons.AutoMirrored.Rounded.MenuBook
-          isCurrentSession -> CampfireIcons.Rounded.MotionPlay
-          hasProgress -> Icons.Outlined.Autoplay
-          else -> Icons.Rounded.PlayArrow
-        },
-        contentDescription = null,
-        modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
-      )
-      Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
-      Text(
-        text = when {
-          isEbookOnly -> stringResource(Res.string.action_ebook_not_supported)
-          isCurrentSession -> stringResource(Res.string.action_currently_playing)
-          hasProgress -> stringResource(Res.string.action_resume_listening)
-          else -> stringResource(Res.string.action_play)
-        },
-        style = ButtonDefaults.textStyleFor(size),
-      )
-    }
-
-    Spacer(Modifier.width(2.dp))
-
-    AnimatedVisibility(
-      visible = !hasOfflineDownload && !isEbookOnly,
-      enter = expandHorizontally(),
-      exit = shrinkHorizontally(),
-    ) {
-      Button(
-        onClick = onDownloadClick,
-        shapes = ButtonShapes(
-          shape = RoundedCornerShape(
-            topStart = CornerSize(splitButtonRadius),
-            bottomStart = CornerSize(splitButtonRadius),
-            topEnd = CornerSize(50),
-            bottomEnd = CornerSize(50),
-          ),
-          pressedShape = RoundedCornerShape(
-            topStart = CornerSize(pressedSplitButtonRadius),
-            bottomStart = CornerSize(pressedSplitButtonRadius),
-            topEnd = CornerSize(12.dp),
-            bottomEnd = CornerSize(12.dp),
-          ),
-        ),
-        contentPadding = PaddingValues(
-          start = 20.dp,
-          end = 24.dp,
-          top = 16.dp,
-          bottom = 16.dp,
-        ),
-        modifier = Modifier
-          .heightIn(size)
-          .testTag("button_download"),
-      ) {
-        // This is a DUMB hack to make it height match the left side button
-        Text(
-          text = "",
-          style = ButtonDefaults.textStyleFor(size),
-        )
-        Icon(
-          CampfireIcons.Rounded.Download,
-          contentDescription = "Download",
-          modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
-        )
-      }
-    }
-  }
-}
-
 class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
   override val values: Sequence<ExpressiveControlSlot> = sequenceOf(
     ExpressiveControlSlot(
@@ -828,6 +704,17 @@ class ControlSlotProvider : PreviewParameterProvider<ExpressiveControlSlot> {
       isQueued = false,
       showConfirmDownloadDialogSetting = false,
       addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+    ),
+    ExpressiveControlSlot(
+      libraryItem = libraryItem(),
+      offlineDownload = null,
+      mediaProgress = null,
+      isCurrentSession = false,
+      hasSession = false,
+      isQueued = false,
+      showConfirmDownloadDialogSetting = false,
+      addToPlaylistDialog = AddToPlaylistDialog.NoOp,
+      willStreamHls = true,
     ),
     ExpressiveControlSlot(
       libraryItem = libraryItem(),

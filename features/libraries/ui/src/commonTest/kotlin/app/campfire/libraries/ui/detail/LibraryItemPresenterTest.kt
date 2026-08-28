@@ -3,6 +3,7 @@
 
 package app.campfire.libraries.ui.detail
 
+import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.test.assert.containsInstance
 import app.campfire.common.test.assert.doesNotContainInstance
 import app.campfire.common.test.assert.firstInstanceOf
@@ -18,6 +19,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
 import app.campfire.libraries.ui.detail.composables.slots.ProgressSlot
 import app.campfire.libraries.ui.detail.composables.slots.SeriesSlot
 import app.campfire.libraries.ui.detail.composables.slots.SummarySlot
+import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.cash.turbine.ReceiveTurbine
 import assertk.Assert
 import assertk.all
@@ -225,6 +227,100 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         .firstInstanceOf<ExpressiveControlSlot>()
         .prop(ExpressiveControlSlot::showConfirmDownloadDialogSetting)
         .isEqualTo(true)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_willStreamHls_UpdatesTitleAndControlSlots() = runTest {
+    val libraryItem = emptyLibraryItem()
+    streamingRoutePredictor.canStreamHls = true
+    streamingRoutePredictor.wouldStreamHlsFlow.value = true
+    libraryItemRepository.libraryItemFlow.emit(libraryItem)
+
+    presenter.test {
+      assertThat(awaitItemMatching { it.firstExpressiveControl()?.willStreamHls == true })
+        .loadedSlots
+        .all {
+          firstInstanceOf<TitleSlot>()
+            .prop(TitleSlot::showHlsBadge)
+            .isEqualTo(true)
+          firstInstanceOf<ExpressiveControlSlot>().all {
+            prop(ExpressiveControlSlot::willStreamHls).isEqualTo(true)
+            prop(ExpressiveControlSlot::canStreamHls).isEqualTo(true)
+          }
+        }
+
+      // The decision re-evaluates live as the underlying settings change
+      streamingRoutePredictor.wouldStreamHlsFlow.value = false
+
+      assertThat(awaitItemMatching { it.firstExpressiveControl()?.willStreamHls == false })
+        .loadedSlots
+        .all {
+          firstInstanceOf<TitleSlot>()
+            .prop(TitleSlot::showHlsBadge)
+            .isEqualTo(false)
+          firstInstanceOf<ExpressiveControlSlot>()
+            .prop(ExpressiveControlSlot::willStreamHls)
+            .isEqualTo(false)
+        }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_willStreamHls_SuppressedForDownloadedItems() = runTest {
+    val libraryItem = emptyLibraryItem()
+    streamingRoutePredictor.canStreamHls = true
+    streamingRoutePredictor.wouldStreamHlsFlow.value = true
+    libraryItemRepository.libraryItemFlow.emit(libraryItem)
+    offlineDownloadManager.observeForItemFlow.emit(
+      OfflineDownload(
+        libraryItemId = libraryItem.id,
+        state = OfflineDownload.State.Completed,
+        contentLength = 1L,
+        progress = OfflineDownload.Progress(1L, 1f),
+      ),
+    )
+
+    presenter.test {
+      // Downloads play locally, so a completed download suppresses the stream indication
+      assertThat(
+        awaitItemMatching {
+          val control = it.firstExpressiveControl()
+          control != null && !control.willStreamHls
+        },
+      )
+        .loadedSlots
+        .all {
+          firstInstanceOf<TitleSlot>()
+            .prop(TitleSlot::showHlsBadge)
+            .isEqualTo(false)
+          firstInstanceOf<ExpressiveControlSlot>()
+            .prop(ExpressiveControlSlot::willStreamHls)
+            .isEqualTo(false)
+        }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_canStreamHls_IndependentOfRouteDecision() = runTest {
+    val libraryItem = emptyLibraryItem()
+    streamingRoutePredictor.canStreamHls = true
+    streamingRoutePredictor.wouldStreamHlsFlow.value = false
+    libraryItemRepository.libraryItemFlow.emit(libraryItem)
+
+    presenter.test {
+      // The play-options menu shows whenever HLS is possible, even when the current
+      // method wouldn't route to it
+      assertThat(awaitItemMatching { it.firstExpressiveControl()?.canStreamHls == true })
+        .loadedSlots
+        .firstInstanceOf<ExpressiveControlSlot>()
+        .all {
+          prop(ExpressiveControlSlot::canStreamHls).isEqualTo(true)
+          prop(ExpressiveControlSlot::willStreamHls).isEqualTo(false)
+        }
       cancelAndIgnoreRemainingEvents()
     }
   }

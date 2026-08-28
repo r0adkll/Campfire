@@ -3,6 +3,7 @@
 
 package app.campfire.libraries.ui.detail.composables.slots
 
+import androidx.annotation.VisibleForTesting
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +43,7 @@ import org.jetbrains.compose.resources.stringResource
 class TitleSlot(
   private val libraryItem: LibraryItem,
   private val sharedTransitionKey: String,
-  private val showHlsBadge: Boolean = false,
+  @get:VisibleForTesting val showHlsBadge: Boolean = false,
 ) : ContentSlot {
 
   override val id: String = "title_author"

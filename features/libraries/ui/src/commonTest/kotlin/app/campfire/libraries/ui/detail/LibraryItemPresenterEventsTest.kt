@@ -12,6 +12,7 @@ import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.test.assert.firstInstanceOf
 import app.campfire.common.test.session
 import app.campfire.core.filter.ContentFilter
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.SeriesSequence
 import app.campfire.home.ui.authorMetadata
 import app.campfire.home.ui.chapter
@@ -58,6 +59,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       NarratorClick,
       AuthorClick,
       PlayClick,
+      PlayClickWithMethod,
       DeleteItemClickSoft,
       DeleteItemClickHard,
       OnBack,
@@ -93,7 +95,7 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
       skipItems(1)
       val item = awaitItem()
 
-      item.eventSink(LibraryItemUiEvent.PlayClick)
+      item.eventSink(LibraryItemUiEvent.PlayClick(null))
       item.eventSink(LibraryItemUiEvent.DownloadClick())
       item.eventSink(LibraryItemUiEvent.AddToQueue)
 
@@ -149,12 +151,32 @@ private val OnBack = EventTest(
 )
 
 private val PlayClick = EventTest(
-  event = LibraryItemUiEvent.PlayClick,
+  event = LibraryItemUiEvent.PlayClick(null),
   assert = {
     assertThat(analytics.events)
       .single()
-      .prop(AnalyticEvent::eventName)
-      .isEqualTo("play_item_clicked")
+      .all {
+        prop(AnalyticEvent::eventName).isEqualTo("play_item_clicked")
+        // No method override → no method extra on the event
+        transform { it.params?.get("method") }.isNull()
+      }
+
+    assertThat(playbackController.session)
+      .isInstanceOf<PlaybackControllerSession.Started>()
+      .transform { it.itemId }
+      .isEqualTo(TestLibraryItemId)
+  },
+)
+
+private val PlayClickWithMethod = EventTest(
+  event = LibraryItemUiEvent.PlayClick(PlayMethod.Transcode),
+  assert = {
+    assertThat(analytics.events)
+      .single()
+      .all {
+        prop(AnalyticEvent::eventName).isEqualTo("play_item_clicked")
+        transform { it.params?.get("method") }.isEqualTo(PlayMethod.Transcode)
+      }
 
     assertThat(playbackController.session)
       .isInstanceOf<PlaybackControllerSession.Started>()

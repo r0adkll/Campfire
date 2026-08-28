@@ -39,6 +39,8 @@ class ExpressiveControlSlot(
   private val isCurrentSession: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   @get:VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
+  @get:VisibleForTesting val canStreamHls: Boolean = false,
+  @get:VisibleForTesting val willStreamHls: Boolean = false,
 ) : ContentSlot {
 
   override val id: String = "expressive_control_bar"
@@ -89,11 +91,13 @@ class ExpressiveControlSlot(
       hasSession = hasSession,
       isCurrentSession = isCurrentSession,
       isEbookOnly = libraryItem.isEbookOnly,
+      canStreamHls = canStreamHls,
+      willStreamHls = willStreamHls,
       offlineDownload = offlineDownload,
       totalSizeInBytes = libraryItem.media.sizeInBytes,
       mediaProgress = mediaProgress,
-      onPlayClick = {
-        eventSink(LibraryItemUiEvent.PlayClick)
+      onPlayClick = { method ->
+        eventSink(LibraryItemUiEvent.PlayClick(method))
       },
       onDownloadClick = {
         if (showConfirmDownloadDialogSetting) {

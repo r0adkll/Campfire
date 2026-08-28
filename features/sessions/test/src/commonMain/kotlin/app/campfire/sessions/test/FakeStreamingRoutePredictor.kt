@@ -13,6 +13,11 @@ class FakeStreamingRoutePredictor : StreamingRoutePredictor {
 
   val wouldStreamHlsFlow = MutableStateFlow(false)
 
+  var canStreamHls = false
+  override fun canStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
+    return canStreamHls
+  }
+
   override fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
     return wouldStreamHlsFlow.value
   }

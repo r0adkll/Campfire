@@ -9,6 +9,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PlaylistId
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.SeriesSequence
@@ -49,7 +50,7 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data object RemoveFromQueue : LibraryItemUiEvent
   data class SeedColorChange(val seedColor: Color) : LibraryItemUiEvent
 
-  data object PlayClick : LibraryItemUiEvent
+  data class PlayClick(val method: PlayMethod?) : LibraryItemUiEvent
   data class PlayEpisodeClick(val episode: PodcastEpisode) : LibraryItemUiEvent
   data class SeriesClick(val item: LibraryItem, val series: SeriesSequence) : LibraryItemUiEvent
   data class DiscardProgress(val item: LibraryItem) : LibraryItemUiEvent

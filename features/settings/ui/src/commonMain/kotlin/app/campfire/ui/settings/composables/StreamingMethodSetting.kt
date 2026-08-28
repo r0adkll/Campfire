@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,7 +32,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoMode
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.Sensors
 import app.campfire.settings.api.StreamingMethod
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_streaming_method_subtitle
@@ -71,15 +77,28 @@ internal fun StreamingMethodSetting(
             DropdownMenuItem(
               text = {
                 Column(
-                  modifier = Modifier.widthIn(max = 240.dp),
+                  modifier = Modifier
+                    .widthIn(max = 240.dp)
+                    .padding(
+                      vertical = 8.dp,
+                    ),
                 ) {
-                  Text(stringResource(m.label))
+                  Text(
+                    text = stringResource(m.label),
+                    style = MaterialTheme.typography.titleSmall,
+                  )
                   Text(
                     text = stringResource(m.description),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                   )
                 }
+              },
+              leadingIcon = {
+                Icon(
+                  m.icon,
+                  contentDescription = null,
+                )
               },
               onClick = {
                 onMethodChange(m)
@@ -121,6 +140,12 @@ private fun StreamingMethodChip(
     CompositionLocalProvider(
       LocalContentColor provides MaterialTheme.colorScheme.primary,
     ) {
+      Icon(
+        method.icon,
+        contentDescription = null,
+        modifier = Modifier.size(18.dp),
+      )
+      Spacer(Modifier.width(8.dp))
       Text(
         text = stringResource(method.label),
         style = MaterialTheme.typography.titleSmall,
@@ -146,4 +171,11 @@ private val StreamingMethod.description: StringResource
     StreamingMethod.AUTO -> Res.string.streaming_method_auto_description
     StreamingMethod.DIRECT_PLAY_ONLY -> Res.string.streaming_method_direct_play_description
     StreamingMethod.PREFER_HLS -> Res.string.streaming_method_prefer_hls_description
+  }
+
+private val StreamingMethod.icon: ImageVector
+  get() = when (this) {
+    StreamingMethod.AUTO -> CampfireIcons.Rounded.AutoMode
+    StreamingMethod.DIRECT_PLAY_ONLY -> CampfireIcons.Rounded.PlayArrow
+    StreamingMethod.PREFER_HLS -> CampfireIcons.Rounded.Sensors
   }

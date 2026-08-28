@@ -27,10 +27,19 @@ class DefaultStreamingRoutePredictor(
   private val devSettings: DevSettings,
 ) : StreamingRoutePredictor {
 
+  override fun canStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
+    return hlsGatesPass(
+      episodeId = episodeId,
+      platform = currentPlatform,
+      serverSessionsEnabled = playbackSettings.serverSessionsEnabled,
+    )
+  }
+
   override fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
-    return decide(
+    return decideHlsRoute(
       libraryItem = libraryItem,
       episodeId = episodeId,
+      platform = currentPlatform,
       serverSessionsEnabled = playbackSettings.serverSessionsEnabled,
       method = playbackSettings.streamingMethod,
       largeItemThreshold = devSettings.hlsLargeItemThreshold,
@@ -43,49 +52,63 @@ class DefaultStreamingRoutePredictor(
       playbackSettings.observeStreamingMethod(),
       devSettings.observeHlsLargeItemThreshold(),
     ) { serverSessionsEnabled, method, largeItemThreshold ->
-      decide(
+      decideHlsRoute(
         libraryItem = libraryItem,
         episodeId = episodeId,
+        platform = currentPlatform,
         serverSessionsEnabled = serverSessionsEnabled,
         method = method,
         largeItemThreshold = largeItemThreshold,
       )
     }
   }
+}
 
-  private fun decide(
-    libraryItem: LibraryItem,
-    episodeId: PodcastEpisodeId?,
-    serverSessionsEnabled: Boolean,
-    method: StreamingMethod,
-    largeItemThreshold: Duration,
-  ): Boolean {
-    // Podcast episodes stay direct play (small single files gain nothing from segmenting);
-    // HLS is Android-first while the route proves out; the transcode session rides on the
-    // server-sessions machinery, so it's off when that is
-    if (episodeId != null) return false
-    if (currentPlatform != Platform.ANDROID) return false
-    if (!serverSessionsEnabled) return false
+/**
+ * The hard gates HLS delivery rides on, independent of the chosen streaming method:
+ * podcast episodes stay direct play (small single files gain nothing from segmenting);
+ * HLS is Android-first while the route proves out; and the transcode session rides on the
+ * server-sessions machinery, so it's off when that is.
+ *
+ * Pure and platform-parameterized so the decision matrix is unit-testable from any target.
+ */
+internal fun hlsGatesPass(
+  episodeId: PodcastEpisodeId?,
+  platform: Platform,
+  serverSessionsEnabled: Boolean,
+): Boolean {
+  if (episodeId != null) return false
+  if (platform != Platform.ANDROID) return false
+  return serverSessionsEnabled
+}
 
-    return when (method) {
-      StreamingMethod.DIRECT_PLAY_ONLY -> false
-      StreamingMethod.PREFER_HLS -> true
-      StreamingMethod.AUTO -> isLargeSingleFile(libraryItem, largeItemThreshold)
-    }
+/** The full HLS-vs-direct decision: [hlsGatesPass] plus the streaming-method policy. */
+internal fun decideHlsRoute(
+  libraryItem: LibraryItem,
+  episodeId: PodcastEpisodeId?,
+  platform: Platform,
+  serverSessionsEnabled: Boolean,
+  method: StreamingMethod,
+  largeItemThreshold: Duration,
+): Boolean {
+  if (!hlsGatesPass(episodeId, platform, serverSessionsEnabled)) return false
+
+  return when (method) {
+    StreamingMethod.DIRECT_PLAY_ONLY -> false
+    StreamingMethod.PREFER_HLS -> true
+    StreamingMethod.AUTO -> isLargeSingleFile(libraryItem, largeItemThreshold)
   }
+}
 
-  private fun isLargeSingleFile(libraryItem: LibraryItem, largeItemThreshold: Duration): Boolean {
-    val media = libraryItem.media
-    // tracks[] is only populated on the expanded media shape; numTracks covers minified
-    val trackCount = media.tracks.size.takeIf { it > 0 } ?: media.numTracks
-    if (trackCount != 1) return false
-    return media.duration > largeItemThreshold ||
-      media.sizeInBytes > HLS_LARGE_FILE_SIZE_BYTES
-  }
+// Progressive playback degrades most on huge single files (seeks re-fetch from byte
+// ranges deep into one blob); either signal — very long or very heavy — routes to HLS
+internal const val HLS_LARGE_FILE_SIZE_BYTES = 800L * 1024 * 1024
 
-  companion object {
-    // Progressive playback degrades most on huge single files (seeks re-fetch from byte
-    // ranges deep into one blob); either signal — very long or very heavy — routes to HLS
-    private const val HLS_LARGE_FILE_SIZE_BYTES = 800L * 1024 * 1024
-  }
+private fun isLargeSingleFile(libraryItem: LibraryItem, largeItemThreshold: Duration): Boolean {
+  val media = libraryItem.media
+  // tracks[] is only populated on the expanded media shape; numTracks covers minified
+  val trackCount = media.tracks.size.takeIf { it > 0 } ?: media.numTracks
+  if (trackCount != 1) return false
+  return media.duration > largeItemThreshold ||
+    media.sizeInBytes > HLS_LARGE_FILE_SIZE_BYTES
 }

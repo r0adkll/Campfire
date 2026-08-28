@@ -18,6 +18,9 @@ import kotlinx.coroutines.flow.Flow
  */
 interface StreamingRoutePredictor {
 
+  /** Whether or not we COULD stream hls with our settings. */
+  fun canStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Boolean
+
   /** The decision as of the current settings. */
   fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Boolean
 

@@ -33,6 +33,12 @@ kotlin {
         implementation(libs.store)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
   }
 }
 

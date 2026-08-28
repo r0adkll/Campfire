@@ -195,8 +195,9 @@ class BookPresenter(
 
     var collapseListenedChapters by remember { mutableStateOf(true) }
 
-    // Keyed on the item so the decision recomputes when the expanded media (with the real
-    // track list) loads in after the initial minified item
+    val canStreamHls = remember(libraryItem) {
+      streamingRoutePredictor.canStreamHls(libraryItem)
+    }
     val willStreamHls by remember(libraryItem) {
       streamingRoutePredictor.observeWouldStreamHls(libraryItem)
     }.collectAsState(false)
@@ -217,7 +218,7 @@ class BookPresenter(
       isQueued = isQueued,
       addToPlaylistDialog = addToPlaylistDialog,
       collapseListenedChapters = collapseListenedChapters,
-      // Downloads play locally, so the delivery badge only applies to streamed playback
+      canStreamHls = canStreamHls,
       willStreamHls = willStreamHls && offlineDownloadState?.isCompleted != true,
     )
 
@@ -240,7 +241,8 @@ class BookPresenter(
 
         is LibraryItemUiEvent.PlayClick -> {
           if (libraryItem.isEbookOnly) return@ContentUiState
-          analytics.send(ActionEvent("play_item", Click))
+          analytics.send(ActionEvent("play_item", Click, extras = event.method?.let { mapOf("method" to it) }))
+          // TODO: Wire this with the passed play method to force playback type, if possible.
           playbackController.startSession(libraryItem.id)
         }
 
@@ -385,6 +387,7 @@ private fun buildSlots(
   session: Session?,
   addToPlaylistDialog: AddToPlaylistDialog,
   collapseListenedChapters: Boolean,
+  canStreamHls: Boolean,
   willStreamHls: Boolean,
 ): List<ContentSlot> {
   return buildList {
@@ -454,6 +457,8 @@ private fun buildSlots(
       isQueued = isQueued,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
       addToPlaylistDialog = addToPlaylistDialog,
+      canStreamHls = canStreamHls,
+      willStreamHls = willStreamHls,
     )
 
     libraryItem.media.metadata.description?.let { desc ->
