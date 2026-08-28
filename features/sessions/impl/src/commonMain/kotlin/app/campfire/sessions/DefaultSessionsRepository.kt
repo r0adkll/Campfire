@@ -57,6 +57,18 @@ class DefaultSessionsRepository(
     val progress = mediaProgressRepository.getProgress(libraryItemId, episodeId)
     val offlineDownload = offlineDownloadManager.getForItem(libraryItem)
 
+    // The delivery method is chosen per listening session, not re-derived from settings on
+    // every start: a session that was streaming over HLS resumes over HLS — surviving app
+    // death and session-age row replacement — until it ends (stop/delete) or the user
+    // explicitly overrides it from the play-options menu. Read before createOrStartSession,
+    // which replaces aged rows and would wipe that memory. The hard gates still apply in
+    // the router, so e.g. turning server sessions off ends the stickiness too.
+    val priorPlayMethod = dataSource.getSession(libraryItemId)
+      ?.takeIf { !it.isDeleted && it.episodeId == episodeId }
+      ?.playMethod
+    val effectiveOverride = methodOverride
+      ?: PlayMethod.Transcode.takeIf { priorPlayMethod == PlayMethod.Transcode }
+
     val session = dataSource.createOrStartSession(
       libraryItemId = libraryItemId,
       playMethod = if (offlineDownload.isCompleted) {
@@ -68,7 +80,7 @@ class DefaultSessionsRepository(
       episodeId = episodeId,
     )
 
-    val routed = routeStreamingMethod(session, methodOverride)
+    val routed = routeStreamingMethod(session, effectiveOverride)
 
     // Opportunistic, fire-and-forget: playback never waits on this. If it lands, the row
     // reports through the server session; if not, nothing changes. No-ops for sessions the
