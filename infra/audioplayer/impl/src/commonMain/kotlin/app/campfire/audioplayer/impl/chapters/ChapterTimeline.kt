@@ -23,7 +23,7 @@ import kotlin.time.Duration.Companion.milliseconds
 class ChapterTimeline(session: Session) {
 
   /** Chapters on the absolute timeline; empty when the item has none. */
-  private val chapters: List<Chapter> =
+  val chapters: List<Chapter> =
     session.episode?.chapters ?: session.libraryItem.media.chapters
 
   /** Audio tracks on the absolute timeline (a podcast episode is a single implicit track). */

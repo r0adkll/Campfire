@@ -28,6 +28,7 @@ import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.chapters.ChapterTimeline
+import app.campfire.audioplayer.impl.forwarding.ChapterWindowForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
@@ -42,6 +43,7 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
+import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.core.toast.GlobalToaster
@@ -184,14 +186,39 @@ class ExoPlayerAudioPlayer(
   internal val player: Player get() = playbackHistoryForwardingPlayer
 
   /**
-   * Binds the MediaSession to the remote control forwarding player.
-   * This enables the player to identify the source of commands and apply
-   * settings only for remote controllers (Bluetooth, car stereo, etc.).
+   * The player handed to the MediaSession. On top of the forwarding chain it projects
+   * coarse single-item (HLS) playback as a virtual chapter playlist, so controller
+   * consumers (media notification, Android Auto, external controllers) get the same
+   * chapter-granular scrubber, titles, and next/prev semantics as the in-app UI.
+   * Transparent for every other queue shape. In-app code keeps using [player] — its
+   * positions and seeks are absolute.
+   */
+  internal val sessionPlayer: ChapterWindowForwardingPlayer = ChapterWindowForwardingPlayer(
+    player = playbackHistoryForwardingPlayer,
+    settings = settings,
+    appPackageName = context.packageName,
+    host = object : ChapterWindowForwardingPlayer.Host {
+      override fun activeChapters(): List<Chapter>? = chapterTimeline
+        ?.takeIf { queueShape == QueueShape.SINGLE && it.hasChapters }
+        ?.chapters
+
+      override fun seekToAbsolute(target: Duration) = seekTo(target, play = false)
+
+      override fun skipToNextChapter() = skipToNext()
+
+      override fun skipToPreviousChapter() = skipToPrevious()
+    },
+  )
+
+  /**
+   * Binds the MediaSession to the forwarding players so they can identify the source of
+   * commands (remote controllers vs. notification/Auto) and apply user settings.
    *
    * Must be called after the MediaSession is created.
    */
   internal fun bindSession(session: androidx.media3.session.MediaSession) {
     remoteControlForwardingPlayer.session = session
+    sessionPlayer.session = session
   }
 
   private var progressJob: Job? = null
@@ -818,6 +845,11 @@ class ExoPlayerAudioPlayer(
         detectChapterBoundary(timeline, overall)
         overallTime.value = overall
         updateCoarseChapterState(timeline, overall, player)
+        if (shape == QueueShape.SINGLE) {
+          // Chapter crossings mid-item produce no player event; the session projection
+          // re-derives its virtual chapter window from this tick instead
+          sessionPlayer.onChapterProgress()
+        }
         return
       }
     }

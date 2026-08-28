@@ -90,11 +90,13 @@ class AudioPlayerService : MediaLibraryService() {
     // Create ExoPlayer instance and MediaSession instance that encapsulates the background
     // playback on Android.
     player = component.exoPlayerFactory.create(this)
-    // Use remoteControlPlayer for MediaSession so remote control commands (Bluetooth, car stereo)
-    // can be intercepted and handled based on user settings, while in-app UI uses the direct player.
+    // The session player layers two projections over the raw player: remote control commands
+    // (Bluetooth, car stereo) are intercepted per user settings, and coarse single-item (HLS)
+    // playback is presented as a virtual chapter playlist so notification/Auto scrubbers and
+    // titles stay chapter-granular. In-app UI uses the direct player.
     session = MediaLibrarySession.Builder(
       this,
-      player.player,
+      player.sessionPlayer,
       MediaSessionCallback(
         context = this,
         serviceScope = serviceScope,
