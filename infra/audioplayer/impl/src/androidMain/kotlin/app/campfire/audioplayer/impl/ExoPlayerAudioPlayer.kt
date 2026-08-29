@@ -278,6 +278,7 @@ class ExoPlayerAudioPlayer(
     hlsQueueActive = session.episode == null && session.hlsStreamUrl != null
     hlsFallbackAttempted = false
     finishedListener = onFinished
+    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
     _error.value = null
     state.value = AudioPlayer.State.Initializing
 
@@ -605,7 +606,7 @@ class ExoPlayerAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
-    settings.playbackSpeed = speed
+    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     player.setPlaybackSpeed(speed)
   }
 
@@ -735,7 +736,7 @@ class ExoPlayerAudioPlayer(
     ) {
       // Ensure that our remote cast player has up-to-date playback speed set
       // See: https://github.com/androidx/media/issues/889
-      player.setPlaybackSpeed(settings.playbackSpeed)
+      player.setPlaybackSpeed(playbackSpeed.value)
     }
   }
 

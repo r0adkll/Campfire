@@ -310,8 +310,9 @@ private fun PlaybackBottomBar(
           PlaybackSpeedAction(
             playbackSpeed = playbackSpeed,
             onClick = {
+              if (session == null) return@PlaybackSpeedAction
               scope.launch {
-                overlayHost.showPlaybackSpeedBottomSheet(playbackSpeed)
+                overlayHost.showPlaybackSpeedBottomSheet(session.libraryItem.id, playbackSpeed)
               }
             },
           )

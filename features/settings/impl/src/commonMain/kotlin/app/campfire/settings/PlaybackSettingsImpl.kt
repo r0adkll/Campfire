@@ -6,6 +6,7 @@ package app.campfire.settings
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
@@ -60,6 +61,20 @@ class PlaybackSettingsImpl(
   override fun observePlaybackRates(): StateFlow<List<Float>> = playbackRatesProperty.observe()
 
   override var playbackSpeed: Float by floatSetting(PREF_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+
+  private val itemPlaybackSpeedsProperty = customSetting(
+    key = PREF_ITEM_PLAYBACK_SPEEDS,
+    defaultValue = emptyMap<LibraryItemId, Float>(),
+    getter = { it.asItemSpeedMap() },
+    setter = { speeds ->
+      speeds.entries.joinToString(ITEM_SPEED_ENTRY_SEPARATOR) {
+        "${it.key}$ITEM_SPEED_VALUE_SEPARATOR${it.value}"
+      }
+    },
+  )
+  override var itemPlaybackSpeeds: Map<LibraryItemId, Float> by itemPlaybackSpeedsProperty
+  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> =
+    itemPlaybackSpeedsProperty.observe()
 
   private val remoteNextPrevSkipsChaptersProperty = booleanSetting(
     PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
@@ -164,6 +179,16 @@ class PlaybackSettingsImpl(
 
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 
+  private fun String.asItemSpeedMap(): Map<LibraryItemId, Float> {
+    return split(ITEM_SPEED_ENTRY_SEPARATOR)
+      .mapNotNull { entry ->
+        val itemId = entry.substringBefore(ITEM_SPEED_VALUE_SEPARATOR)
+        val speed = entry.substringAfter(ITEM_SPEED_VALUE_SEPARATOR, "").toFloatOrNull()
+        if (itemId.isEmpty() || speed == null) null else itemId to speed
+      }
+      .toMap()
+  }
+
   private fun PendingResumeRewind.serialize(): String =
     "$pausedAtEpochMillis$PENDING_RESUME_REWIND_SEPARATOR$libraryItemId"
 
@@ -180,6 +205,9 @@ internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
 internal const val PREF_TRACK_RESET_THRESHOLD = "pref_playback_track_reset_threshold"
 internal const val PREF_PLAYBACK_RATES = "pref_playback_rates"
 internal const val PREF_PLAYBACK_SPEED = "pref_playback_speed"
+internal const val PREF_ITEM_PLAYBACK_SPEEDS = "pref_item_playback_speeds"
+internal const val ITEM_SPEED_ENTRY_SEPARATOR = "::"
+internal const val ITEM_SPEED_VALUE_SEPARATOR = "|"
 internal const val PREF_SYNC = "pref_synchronization"
 internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"

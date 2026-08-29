@@ -618,7 +618,7 @@ private fun PlaybackOptionsColumn(
         playbackSpeed = playerState.speed,
         onClick = {
           scope.launch {
-            overlayHost.showPlaybackSpeedBottomSheet(playerState.speed)
+            overlayHost.showPlaybackSpeedBottomSheet(session!!.libraryItem.id, playerState.speed)
           }
         },
       )

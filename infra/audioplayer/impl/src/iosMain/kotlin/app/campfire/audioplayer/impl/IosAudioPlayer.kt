@@ -112,6 +112,7 @@ class IosAudioPlayer(
   ) {
     preparedSession = session
     finishedListener = onFinished
+    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
     player.prePrepare()
 
     setupRemoteTransportControls()
@@ -337,7 +338,7 @@ class IosAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
-    settings.playbackSpeed = speed
+    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     player.setPlaybackSpeed(speed)
   }
 

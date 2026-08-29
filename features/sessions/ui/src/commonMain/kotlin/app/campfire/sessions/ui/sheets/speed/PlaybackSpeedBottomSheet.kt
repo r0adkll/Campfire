@@ -10,15 +10,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import app.campfire.analytics.Analytics
@@ -44,11 +51,16 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.analytics.events.Speed
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.common.compose.analytics.Impression
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Book
+import app.campfire.common.compose.icons.rounded.Globe
+import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.extensions.readable
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.extensions.roundToHundredths
+import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.settings.api.PlaybackSettings
 import campfire.features.sessions.ui.generated.resources.Res
@@ -59,6 +71,7 @@ import campfire.features.sessions.ui.generated.resources.speed_custom_dialog_err
 import campfire.features.sessions.ui.generated.resources.speed_custom_dialog_label
 import campfire.features.sessions.ui.generated.resources.speed_custom_dialog_title
 import campfire.features.sessions.ui.generated.resources.speed_custom_open
+import campfire.features.sessions.ui.generated.resources.speed_per_book_toggle
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
@@ -69,23 +82,31 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import org.jetbrains.compose.resources.stringResource
 
-suspend fun OverlayHost.showPlaybackSpeedBottomSheet(speed: Float) {
+data class PlaybackSpeedInput(
+  val itemId: LibraryItemId,
+  val speed: Float,
+)
+
+suspend fun OverlayHost.showPlaybackSpeedBottomSheet(
+  itemId: LibraryItemId,
+  speed: Float,
+) {
   show(
     BottomSheetOverlay(
-      model = speed,
+      model = PlaybackSpeedInput(itemId, speed),
       onDismiss = { },
       sheetShape = RoundedCornerShape(
         topStart = 32.dp,
         topEnd = 32.dp,
       ),
       skipPartiallyExpandedState = true,
-    ) { s, _ ->
+    ) { input, _ ->
       Impression {
         ScreenViewEvent("PlaybackSpeed", ScreenType.Overlay)
       }
 
       PlaybackSpeedBottomSheet(
-        speed = s,
+        input = input,
         modifier = Modifier.navigationBarsPadding(),
       )
     },
@@ -105,10 +126,14 @@ private fun rememberPlaybackSpeedComponent(): PlaybackSpeedBottomSheetComponent 
   }
 }
 
+/**
+ * State/DI layer for the playback speed sheet: resolves the component, collects the player and
+ * settings flows, and handles events so [PlaybackSpeedSheet] stays pure and previewable.
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
 private fun PlaybackSpeedBottomSheet(
-  speed: Float,
+  input: PlaybackSpeedInput,
   modifier: Modifier = Modifier,
   component: PlaybackSpeedBottomSheetComponent = rememberPlaybackSpeedComponent(),
 ) {
@@ -117,13 +142,68 @@ private fun PlaybackSpeedBottomSheet(
       .flatMapLatest {
         it?.playbackSpeed ?: emptyFlow()
       }
-  }.collectAsState(speed)
+  }.collectAsState(input.speed)
 
   val speedOptions = remember { component.playbackSettings.playbackRates.sorted() }
 
+  val itemPlaybackSpeeds by remember {
+    component.playbackSettings.observeItemPlaybackSpeeds()
+  }.collectAsState()
+
+  PlaybackSpeedSheet(
+    currentSpeed = currentSpeed,
+    speedOptions = speedOptions,
+    perBookSpeedEnabled = input.itemId in itemPlaybackSpeeds,
+    onSpeedChange = { speed ->
+      Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("speed" to speed)))
+      component.audioPlayerHolder.currentPlayer.value
+        ?.setPlaybackSpeed(speed)
+    },
+    onPerBookSpeedChange = { enabled ->
+      Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("perBook" to enabled)))
+      if (enabled) {
+        component.playbackSettings.itemPlaybackSpeeds += (input.itemId to currentSpeed)
+      } else {
+        component.playbackSettings.itemPlaybackSpeeds -= input.itemId
+        // Snap active playback back to the global speed the item now falls back to
+        component.audioPlayerHolder.currentPlayer.value
+          ?.setPlaybackSpeed(component.playbackSettings.playbackSpeed)
+      }
+    },
+    modifier = modifier,
+  )
+}
+
+@Composable
+internal fun PlaybackSpeedSheet(
+  currentSpeed: Float,
+  speedOptions: List<Float>,
+  perBookSpeedEnabled: Boolean,
+  onSpeedChange: (Float) -> Unit,
+  onPerBookSpeedChange: (Boolean) -> Unit,
+  modifier: Modifier = Modifier,
+) {
   SessionSheetLayout(
     modifier = modifier,
     title = { Text(stringResource(Res.string.speed_bottomsheet_title)) },
+    trailingContent = {
+      Switch(
+        checked = perBookSpeedEnabled,
+        onCheckedChange = onPerBookSpeedChange,
+        thumbContent = {
+          Icon(
+            imageVector = if (perBookSpeedEnabled) {
+              CampfireIcons.Rounded.Book
+            } else {
+              CampfireIcons.Rounded.Globe
+            },
+            modifier = Modifier.size(16.dp),
+            contentDescription = stringResource(Res.string.speed_per_book_toggle),
+          )
+        },
+        modifier = Modifier.align(Alignment.CenterEnd),
+      )
+    },
   ) {
     Spacer(Modifier.height(16.dp))
 
@@ -138,11 +218,7 @@ private fun PlaybackSpeedBottomSheet(
           shape = SegmentedButtonDefaults.itemShape(index, speedOptions.size, RoundedCornerShape(16.dp)),
           selected = isCurrentSpeed,
           label = { Text("${defaultSpeed.readable}x") },
-          onClick = {
-            Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("speed" to defaultSpeed)))
-            component.audioPlayerHolder.currentPlayer.value
-              ?.setPlaybackSpeed(defaultSpeed)
-          },
+          onClick = { onSpeedChange(defaultSpeed) },
         )
       }
     }
@@ -156,7 +232,7 @@ private fun PlaybackSpeedBottomSheet(
         .padding(horizontal = 20.dp),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      var sliderValue by remember { mutableStateOf(speed) }
+      var sliderValue by remember { mutableStateOf(currentSpeed) }
 
       LaunchedEffect(currentSpeed) {
         if (sliderValue != currentSpeed) {
@@ -175,8 +251,7 @@ private fun PlaybackSpeedBottomSheet(
         // Rounding to hundredths means nearby drag frames resolve to the same value; only push real changes
         if (speed != sliderValue) {
           sliderValue = speed
-          Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("speed" to speed)))
-          component.audioPlayerHolder.currentPlayer.value?.setPlaybackSpeed(speed)
+          onSpeedChange(speed)
         }
       }
 
@@ -286,6 +361,29 @@ internal fun parsePlaybackSpeed(text: String): Float? {
     ?.roundToHundredths()
     ?: return null
   return value.takeIf { it in DefaultSpeedRange }
+}
+
+@Preview
+@Composable
+private fun PlaybackSpeedSheetPreview() {
+  CampfireTheme {
+    var speed by remember { mutableStateOf(1.25f) }
+    var perBook by remember { mutableStateOf(false) }
+
+    ModalBottomSheetLayout(
+      sheetState = rememberModalBottomSheetState(ModalBottomSheetValue.Expanded),
+      sheetContent = {
+        PlaybackSpeedSheet(
+          currentSpeed = speed,
+          speedOptions = listOf(1f, 1.1f, 1.25f, 1.5f, 2f),
+          perBookSpeedEnabled = perBook,
+          onSpeedChange = { speed = it },
+          onPerBookSpeedChange = { perBook = it },
+        )
+      },
+    ) {
+    }
+  }
 }
 
 private val WavelengthRange = 40.dp.rangeTo(135.dp)

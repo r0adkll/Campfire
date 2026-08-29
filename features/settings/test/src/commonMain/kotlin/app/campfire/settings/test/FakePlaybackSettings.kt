@@ -3,6 +3,7 @@
 
 package app.campfire.settings.test
 
+import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
@@ -49,6 +50,13 @@ class FakePlaybackSettings : PlaybackSettings {
   override fun observePlaybackRates(): StateFlow<List<Float>> = _playbackRates.asStateFlow()
 
   override var playbackSpeed: Float = 1f
+
+  private val _itemPlaybackSpeeds = MutableStateFlow(emptyMap<LibraryItemId, Float>())
+  override var itemPlaybackSpeeds: Map<LibraryItemId, Float>
+    get() = _itemPlaybackSpeeds.value
+    set(value) { _itemPlaybackSpeeds.value = value }
+  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> =
+    _itemPlaybackSpeeds.asStateFlow()
 
   private val _remoteNextPrevSkipsChapters = MutableStateFlow(true)
   override var remoteNextPrevSkipsChapters: Boolean

@@ -70,6 +70,7 @@ class VlcAudioPlayer(
   ) {
     preparedSession = session
     finishedListener = onFinished
+    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
     state.value = AudioPlayer.State.Initializing
 
     // Build and set media items for the current session
@@ -257,7 +258,7 @@ class VlcAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
-    settings.playbackSpeed = speed
+    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     mediaPlayer.setPlaybackSpeed(speed)
   }
 

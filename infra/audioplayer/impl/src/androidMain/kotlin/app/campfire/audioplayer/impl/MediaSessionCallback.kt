@@ -99,7 +99,7 @@ internal class MediaSessionCallback(
     when (customCommand.customAction) {
       WidgetSessionCommand.CYCLE_SPEED -> {
         val rates = component.playbackSettings.playbackRates
-        val currentSpeed = component.playbackSettings.playbackSpeed
+        val currentSpeed = player.playbackSpeed.value
         val currentIndex = rates.indexOfFirst { it == currentSpeed }
         val nextIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % rates.size
         player.setPlaybackSpeed(rates[nextIndex])

@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Playback settings for how often listening progress syncs to the server, separately for Wi-Fi and mobile data
 - Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
+- Per-book playback speed — a toggle in the playback speed sheet saves a speed for just that book instead of changing the global speed
 
 ### Changed
 
