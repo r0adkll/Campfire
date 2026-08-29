@@ -82,6 +82,8 @@ class SettingsAnalyticUiEventHandler(
     }
 
     is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
+      is SettingsUiEvent.PlaybackSettingEvent.PlaybackRateChanged ->
+        send("playback_rate_${event.index}", Updated, event.rate)
       is ForwardTime -> send("forward_time", Updated, event.forwardTime.inWholeMilliseconds)
       is BackwardTime -> send("backward_time", Updated, event.backwardTime.inWholeMilliseconds)
       is TrackResetThreshold -> send("track_reset_threshold", Updated, event.trackResetThreshold.inWholeMilliseconds)

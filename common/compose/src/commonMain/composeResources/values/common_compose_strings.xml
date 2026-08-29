@@ -50,4 +50,10 @@
     <item>On a journey to find the edges of the world and the depths of a good book.</item>
     <item>Every book is a new beginning.</item>
   </string-array>
+
+  <string name="playback_speed_dialog_title">Custom speed</string>
+  <string name="playback_speed_dialog_label">Speed</string>
+  <string name="playback_speed_dialog_error">Enter a value between %1$s and %2$s</string>
+  <string name="playback_speed_dialog_apply">Apply</string>
+  <string name="playback_speed_dialog_cancel">Cancel</string>
 </resources>

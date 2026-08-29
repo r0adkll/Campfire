@@ -67,6 +67,9 @@
   <string name="setting_playback_track_reset_subtitle">How far into a track that skip previous will just restart it</string>
   <string name="setting_playback_remote_skip_title">Bluetooth next/prev skips chapters</string>
   <string name="setting_playback_remote_skip_subtitle">When enabled, Bluetooth next/previous buttons skip to next/previous chapter. When disabled, they seek forward/backward by the configured time.</string>
+  <string name="header_playback_speed_options">Playback speed</string>
+  <string name="setting_playback_speed_options_description">Customize the quick speed options offered in the playback speed selector.</string>
+  <string name="setting_playback_speed_option_edit">Enter custom speed</string>
   <string name="header_player_interface">Player interface</string>
   <string name="setting_playback_book_time_title">Show book progress</string>
   <string name="setting_playback_book_time_subtitle">Display the overall book progress and time remaining above the seek bar in the player</string>

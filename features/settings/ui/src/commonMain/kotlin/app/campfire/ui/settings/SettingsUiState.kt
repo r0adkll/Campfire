@@ -79,6 +79,7 @@ sealed interface DownloadEntry {
 
 @Immutable
 data class PlaybackSettingsInfo(
+  val playbackRates: List<Float>,
   val forwardTime: Duration,
   val backwardTime: Duration,
   val trackResetThreshold: Duration,
@@ -193,6 +194,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
 
   // Playback Setting Events
   sealed interface PlaybackSettingEvent : SettingsUiEvent {
+    data class PlaybackRateChanged(val index: Int, val rate: Float) : PlaybackSettingEvent
     data class ForwardTime(val forwardTime: Duration) : PlaybackSettingEvent
     data class BackwardTime(val backwardTime: Duration) : PlaybackSettingEvent
     data class TrackResetThreshold(val trackResetThreshold: Duration) : PlaybackSettingEvent

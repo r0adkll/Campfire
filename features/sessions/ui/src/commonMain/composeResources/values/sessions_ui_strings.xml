@@ -14,11 +14,6 @@
 
   <string name="speed_bottomsheet_title">Playback speed</string>
   <string name="speed_custom_open">Enter custom speed</string>
-  <string name="speed_custom_dialog_title">Custom speed</string>
-  <string name="speed_custom_dialog_label">Speed</string>
-  <string name="speed_custom_dialog_error">Enter a value between %1$s and %2$s</string>
-  <string name="speed_custom_action_apply">Apply</string>
-  <string name="speed_custom_action_cancel">Cancel</string>
   <string name="speed_per_book_toggle">Use a separate playback speed for this book</string>
   <string name="timer_bottomsheet_title">Sleep Timer</string>
   <string name="timer_end_of_chapter">End of Chapter</string>

@@ -65,6 +65,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ForwardTime
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.MinPauseThreshold
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.Mp3IndexSeeking
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackHistoryEnabled
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackRateChanged
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
@@ -148,6 +149,7 @@ class SettingsPresenter(
     }.collectAsState()
 
     // Playback Settings
+    val playbackRates by remember { playbackSettings.observePlaybackRates() }.collectAsState()
     val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
     val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState()
     val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState()
@@ -262,6 +264,7 @@ class SettingsPresenter(
         downloads = downloadEntries,
       ),
       playbackSettings = PlaybackSettingsInfo(
+        playbackRates = playbackRates,
         forwardTime = forwardTime.milliseconds,
         backwardTime = backwardTime.milliseconds,
         trackResetThreshold = trackResetThreshold,
@@ -362,6 +365,13 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
+          is PlaybackRateChanged -> {
+            val rates = playbackSettings.playbackRates.toMutableList()
+            if (event.index in rates.indices) {
+              rates[event.index] = event.rate
+              playbackSettings.playbackRates = rates
+            }
+          }
           is ForwardTime -> playbackSettings.forwardTimeMs = event.forwardTime.inWholeMilliseconds
           is BackwardTime -> playbackSettings.backwardTimeMs = event.backwardTime.inWholeMilliseconds
           is TrackResetThreshold -> playbackSettings.trackResetThreshold = event.trackResetThreshold

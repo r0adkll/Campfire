@@ -5,9 +5,14 @@ package app.campfire.ui.settings.panes
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import app.campfire.core.Platform
 import app.campfire.core.currentPlatform
 import app.campfire.settings.api.MinPauseThresholdRange
@@ -18,6 +23,7 @@ import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.DurationRangeSliderSetting
 import app.campfire.ui.settings.composables.DurationSliderSetting
 import app.campfire.ui.settings.composables.Header
+import app.campfire.ui.settings.composables.PlaybackSpeedOptionsSetting
 import app.campfire.ui.settings.composables.ResumeRewindPreviewRow
 import app.campfire.ui.settings.composables.StreamingMethodSetting
 import app.campfire.ui.settings.composables.SwitchSetting
@@ -26,6 +32,7 @@ import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_auto_rewind_on_resume
 import campfire.features.settings.ui.generated.resources.header_playback_history
+import campfire.features.settings.ui.generated.resources.header_playback_speed_options
 import campfire.features.settings.ui.generated.resources.header_player_interface
 import campfire.features.settings.ui.generated.resources.header_streaming
 import campfire.features.settings.ui.generated.resources.header_synchronization
@@ -52,6 +59,7 @@ import campfire.features.settings.ui.generated.resources.setting_playback_rewind
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_title
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_title
+import campfire.features.settings.ui.generated.resources.setting_playback_speed_options_description
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_title
 import campfire.features.settings.ui.generated.resources.setting_playback_title
@@ -125,6 +133,28 @@ internal fun PlaybackPane(
       headlineContent = { Text(stringResource(Res.string.setting_playback_remote_skip_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_remote_skip_subtitle)) },
     )
+
+    Header(
+      title = { Text(stringResource(Res.string.header_playback_speed_options)) },
+    )
+
+    Text(
+      text = stringResource(Res.string.setting_playback_speed_options_description),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(horizontal = 16.dp),
+    )
+
+    Spacer(Modifier.height(8.dp))
+
+    PlaybackSpeedOptionsSetting(
+      rates = state.playbackSettings.playbackRates,
+      onRateChange = { index, rate ->
+        state.eventSink(PlaybackSettingEvent.PlaybackRateChanged(index, rate))
+      },
+    )
+
+    Spacer(Modifier.height(8.dp))
 
     Header(
       title = { Text(stringResource(Res.string.header_player_interface)) },
