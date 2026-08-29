@@ -140,7 +140,7 @@ internal fun PlaybackPane(
 
     Text(
       text = stringResource(Res.string.setting_playback_speed_options_description),
-      style = MaterialTheme.typography.bodySmall,
+      style = MaterialTheme.typography.bodyMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
       modifier = Modifier.padding(horizontal = 16.dp),
     )

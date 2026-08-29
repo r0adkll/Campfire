@@ -4,6 +4,7 @@
 package app.campfire.ui.settings.composables
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.PlaybackSpeedDialog
@@ -93,11 +96,19 @@ private fun SpeedOptionRow(
         }
       }
 
+      val interactionSource = remember { MutableInteractionSource() }
       Slider(
         value = sliderValue,
         onValueChange = setRate,
         valueRange = PlaybackSpeedRange,
         modifier = Modifier.weight(1f),
+        interactionSource = interactionSource,
+        thumb = {
+          SliderDefaults.Thumb(
+            interactionSource = interactionSource,
+            thumbSize = DpSize(4.dp, 32.dp),
+          )
+        },
       )
 
       var showSpeedDialog by remember { mutableStateOf(false) }
