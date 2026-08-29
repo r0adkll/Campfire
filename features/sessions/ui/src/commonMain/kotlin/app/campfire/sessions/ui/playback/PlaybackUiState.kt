@@ -6,6 +6,7 @@ package app.campfire.sessions.ui.playback
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
@@ -42,6 +43,7 @@ data class PlayerUiState(
   val metadata: Metadata,
   val state: AudioPlayer.State,
   val speed: Float,
+  val equalizer: EqualizerState,
   val timer: RunningTimer?,
   val error: Throwable?,
   val eventSink: (PlayerUiEvent) -> Unit,

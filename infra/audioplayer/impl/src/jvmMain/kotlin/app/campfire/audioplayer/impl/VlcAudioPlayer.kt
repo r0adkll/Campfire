@@ -10,15 +10,19 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.player.VlcPlayer
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.audio.EqualizerBands
+import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.extensions.seconds
 import app.campfire.core.image.CoverUrls
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
 import app.campfire.core.model.loggableId
 import app.campfire.crashreporting.CrashReporter
+import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -34,6 +38,7 @@ import kotlinx.coroutines.launch
 
 class VlcAudioPlayer(
   private val settings: PlaybackSettings,
+  private val equalizerSettings: EqualizerSettings,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
 ) : AudioPlayer {
 
@@ -55,6 +60,9 @@ class VlcAudioPlayer(
   override val currentDuration = MutableStateFlow(0.seconds)
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
+  override val equalizer = MutableStateFlow<EqualizerState>(
+    EqualizerState.Available(equalizerSettings.equalizerProfile),
+  )
 
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
@@ -71,6 +79,7 @@ class VlcAudioPlayer(
     preparedSession = session
     finishedListener = onFinished
     playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
+    applyEqualizer(equalizerSettings.equalizerProfileFor(session.libraryItem.id))
     state.value = AudioPlayer.State.Initializing
 
     // Build and set media items for the current session
@@ -262,6 +271,29 @@ class VlcAudioPlayer(
     mediaPlayer.setPlaybackSpeed(speed)
   }
 
+  override fun setEqualizer(profile: EqualizerProfile) {
+    equalizerSettings.setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
+    applyEqualizer(profile)
+  }
+
+  private fun applyEqualizer(profile: EqualizerProfile) {
+    equalizer.value = EqualizerState.Available(profile)
+
+    // libvlc has no dedicated loudness/bass effects: the loudness slider maps onto the
+    // equalizer preamp, and the bass slider folds extra gain onto the two lowest bands
+    // (60/170 Hz). VlcPlayer re-clamps everything to libvlc's +/-20 dB limit.
+    val bassBoostDb = profile.bassBoost.coerceIn(EqualizerBands.BassBoostRange) * BASS_BOOST_MAX_DB
+    val bandGainsDb = profile.bandGainsDb.mapIndexed { index, gainDb ->
+      val gain = gainDb.coerceIn(EqualizerBands.BandGainRangeDb)
+      if (index < BASS_BOOST_BAND_COUNT) gain + bassBoostDb else gain
+    }
+    mediaPlayer.setEqualizer(
+      enabled = profile.enabled,
+      preampDb = profile.loudnessGainDb.coerceIn(EqualizerBands.LoudnessGainRangeDb),
+      bandGainsDb = bandGainsDb,
+    )
+  }
+
   override fun setTimer(timer: PlaybackTimer) {
     sleepTimerManager.setTimer(timer)
   }
@@ -313,5 +345,10 @@ class VlcAudioPlayer(
         finishedListener?.invoke(preparedSession?.libraryItem?.id ?: return@launch)
       }
     }
+  }
+
+  companion object {
+    private const val BASS_BOOST_MAX_DB = 6f
+    private const val BASS_BOOST_BAND_COUNT = 2
   }
 }

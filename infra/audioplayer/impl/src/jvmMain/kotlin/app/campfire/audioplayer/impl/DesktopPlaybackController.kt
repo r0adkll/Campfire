@@ -14,6 +14,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.launch
@@ -25,6 +26,7 @@ import me.tatarka.inject.annotations.Inject
 class DesktopPlaybackController(
   private val playbackSessionManager: PlaybackSessionManager,
   private val playbackSettings: PlaybackSettings,
+  private val equalizerSettings: EqualizerSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
@@ -56,7 +58,7 @@ class DesktopPlaybackController(
 
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
-      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, sleepTimerManagerFactory))
+      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, equalizerSettings, sleepTimerManagerFactory))
     }
   }
 }

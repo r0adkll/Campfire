@@ -3,9 +3,11 @@
 
 package app.campfire.audioplayer
 
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Session
 import kotlin.time.Duration
@@ -61,6 +63,11 @@ interface AudioPlayer {
   val playbackSpeed: StateFlow<Float>
 
   /**
+   * A flow of the equalizer capability and configuration of this player.
+   */
+  val equalizer: StateFlow<EqualizerState>
+
+  /**
    * A flow of the current playback timer
    */
   val runningTimer: StateFlow<RunningTimer?>
@@ -93,6 +100,7 @@ interface AudioPlayer {
   fun seekBackward()
 
   fun setPlaybackSpeed(speed: Float)
+  fun setEqualizer(profile: EqualizerProfile)
   fun setTimer(timer: PlaybackTimer)
   fun clearTimer()
 

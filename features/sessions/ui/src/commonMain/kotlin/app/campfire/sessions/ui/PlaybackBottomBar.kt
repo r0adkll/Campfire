@@ -68,12 +68,15 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
+import app.campfire.common.compose.icons.rounded.Equalizer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -90,6 +93,7 @@ import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
+import app.campfire.sessions.ui.sheets.equalizer.showEqualizerBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
 import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
@@ -98,6 +102,7 @@ import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
+import campfire.features.sessions.ui.generated.resources.action_equalizer
 import campfire.features.sessions.ui.generated.resources.action_forward
 import campfire.features.sessions.ui.generated.resources.action_rewind
 import campfire.features.sessions.ui.generated.resources.action_skip_next
@@ -142,6 +147,10 @@ fun PlaybackBottomBar(
       audioPlayer?.runningTimer ?: emptyFlow()
     }.collectAsState(null)
 
+    val equalizer = remember(audioPlayer) {
+      audioPlayer?.equalizer ?: emptyFlow()
+    }.collectAsState(EqualizerState.Unsupported)
+
     // Until an audio player is prepared for this session (service cold start, resume
     // priming), derive the same display values from the session row the player would seed
     // from — the handoff to live player state is value-identical
@@ -161,6 +170,7 @@ fun PlaybackBottomBar(
       currentDuration = placeholder?.duration ?: currentDuration.value,
       currentMetadata = placeholder?.metadata ?: currentMetadata.value,
       runningTimer = runningTimer.value,
+      equalizer = equalizer.value,
       onPlayPauseClick = {
         if (playerState.value == AudioPlayer.State.Disabled) {
           startSession()
@@ -203,6 +213,7 @@ private fun PlaybackBottomBar(
   currentDuration: Duration,
   currentMetadata: Metadata,
   runningTimer: RunningTimer?,
+  equalizer: EqualizerState,
 
   session: Session?,
   onPlayPauseClick: () -> Unit,
@@ -325,6 +336,13 @@ private fun PlaybackBottomBar(
               TimerResult.Cleared -> onTimerCleared()
               else -> Unit
             }
+          }
+        },
+        showEqualizer = equalizer !is EqualizerState.Unsupported,
+        onEqualizerClick = {
+          if (session == null) return@ActionRow
+          scope.launch {
+            overlayHost.showEqualizerBottomSheet(session.libraryItem.id)
           }
         },
         onChapterListClick = {
@@ -608,6 +626,8 @@ private fun ActionRow(
   onBookmarkAddClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   onTimerClick: () -> Unit,
+  showEqualizer: Boolean,
+  onEqualizerClick: () -> Unit,
   onChapterListClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -687,6 +707,17 @@ private fun ActionRow(
             )
             Spacer(Modifier.width(16.dp))
           }
+        }
+      }
+    }
+
+    if (showEqualizer) {
+      val equalizerLabel = stringResource(Res.string.action_equalizer)
+      IconButtonTooltip(text = equalizerLabel) {
+        IconButton(
+          onClick = onEqualizerClick,
+        ) {
+          Icon(CampfireIcons.Rounded.Equalizer, contentDescription = equalizerLabel)
         }
       }
     }

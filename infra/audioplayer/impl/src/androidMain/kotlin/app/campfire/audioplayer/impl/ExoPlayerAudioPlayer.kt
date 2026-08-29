@@ -28,6 +28,7 @@ import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.cast.CastController
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.chapters.ChapterTimeline
+import app.campfire.audioplayer.impl.equalizer.AudioEffectsController
 import app.campfire.audioplayer.impl.forwarding.ChapterWindowForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
@@ -37,9 +38,12 @@ import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
 import app.campfire.audioplayer.impl.util.eventAsDebugLog
 import app.campfire.audioplayer.impl.util.playbackStateAsDebugLog
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.audioplayer.model.profileOrNull
+import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Cork
 import app.campfire.core.logging.Corked
@@ -50,6 +54,7 @@ import app.campfire.core.toast.GlobalToaster
 import app.campfire.core.toast.Toast
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.infra.audioplayer.impl.R
+import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -78,6 +83,7 @@ private const val CAST_FALLBACK_SWAP_TIMEOUT_MS = 5_000L
 class ExoPlayerAudioPlayer(
   private val context: Context,
   private val settings: PlaybackSettings,
+  private val equalizerSettings: EqualizerSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val castController: CastController,
@@ -95,6 +101,7 @@ class ExoPlayerAudioPlayer(
   @Inject
   class Factory(
     private val settings: PlaybackSettings,
+    private val equalizerSettings: EqualizerSettings,
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
@@ -107,6 +114,7 @@ class ExoPlayerAudioPlayer(
       return ExoPlayerAudioPlayer(
         context = context,
         settings = settings,
+        equalizerSettings = equalizerSettings,
         mediaSourceFactory = mediaSourceFactory,
         playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
@@ -263,6 +271,33 @@ class ExoPlayerAudioPlayer(
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
 
+  private val audioEffects = AudioEffectsController()
+  override val equalizer = MutableStateFlow<EqualizerState>(
+    EqualizerState.Available(equalizerSettings.equalizerProfile),
+  )
+
+  private val currentEqualizerProfile: EqualizerProfile
+    get() = equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile
+
+  init {
+    // Audio effects bind to the local audio session id, which only the underlying ExoPlayer
+    // reports — the cast composite player doesn't forward audio-sink callbacks.
+    exoPlayer.addListener(
+      object : Player.Listener {
+        override fun onAudioSessionIdChanged(audioSessionId: Int) {
+          if (audioSessionId == C.AUDIO_SESSION_ID_UNSET) {
+            audioEffects.release()
+          } else {
+            audioEffects.attach(audioSessionId, currentEqualizerProfile)
+          }
+        }
+      },
+    )
+    if (exoPlayer.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
+      audioEffects.attach(exoPlayer.audioSessionId, currentEqualizerProfile)
+    }
+  }
+
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
 
@@ -279,6 +314,7 @@ class ExoPlayerAudioPlayer(
     hlsFallbackAttempted = false
     finishedListener = onFinished
     playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
+    updateEqualizer(equalizerSettings.equalizerProfileFor(session.libraryItem.id))
     _error.value = null
     state.value = AudioPlayer.State.Initializing
 
@@ -451,6 +487,7 @@ class ExoPlayerAudioPlayer(
   override fun release() {
     preparedSession = null
     finishedListener = null
+    audioEffects.release()
     scope.cancel()
   }
 
@@ -610,6 +647,25 @@ class ExoPlayerAudioPlayer(
     player.setPlaybackSpeed(speed)
   }
 
+  override fun setEqualizer(profile: EqualizerProfile) {
+    equalizerSettings.setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
+    updateEqualizer(profile)
+  }
+
+  /**
+   * Publishes [profile] as the current equalizer state and pushes it to the audio effects
+   * when audio is rendered locally. While casting the receiver renders the audio, so effects
+   * cannot apply and the state is surfaced as [EqualizerState.Unavailable].
+   */
+  private fun updateEqualizer(profile: EqualizerProfile) {
+    if (isRemotePlayback) {
+      equalizer.value = EqualizerState.Unavailable(profile)
+    } else {
+      equalizer.value = EqualizerState.Available(profile)
+      audioEffects.apply(profile)
+    }
+  }
+
   override fun setTimer(timer: PlaybackTimer) {
     sleepTimerManager.setTimer(timer)
   }
@@ -626,12 +682,14 @@ class ExoPlayerAudioPlayer(
     if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_LOCAL) {
       dbark { "onDeviceInfoChanged: Local Player" }
       isRemotePlayback = false
+      updateEqualizer(currentEqualizerProfile)
       armCastWatchdog(null)
       updateProgress(player)
     } else if (deviceInfo.playbackType == DeviceInfo.PLAYBACK_TYPE_REMOTE) {
       dbark { "onDeviceInfoChanged: Remote Player" }
       if (!isRemotePlayback) {
         isRemotePlayback = true
+        updateEqualizer(currentEqualizerProfile)
         // The remote player surfaces no PlaybackException for receiver-side failures
         // (unreachable/unauthorized media, dead receiver) — a handoff that never reaches
         // READY is the only signal, so give it a deadline.

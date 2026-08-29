@@ -71,6 +71,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
@@ -112,6 +113,7 @@ import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
 import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
 import app.campfire.sessions.ui.sheets.description.showEpisodeDescriptionBottomSheet
+import app.campfire.sessions.ui.sheets.equalizer.showEqualizerBottomSheet
 import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
 import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
 import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
@@ -604,6 +606,12 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           },
         )
       },
+      onEqualizerClick = {
+        scope.launch {
+          overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)
+        }
+      },
+      showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
       onChapterListClick = {
         if (session!!.libraryItem.media.chapters.isNotEmpty()) {
           scope.launch {

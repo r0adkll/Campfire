@@ -18,6 +18,7 @@ import kotlin.math.floor
 import kotlin.math.roundToLong
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.media.MediaRef
+import uk.co.caprica.vlcj.player.base.Equalizer
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.base.State
@@ -42,6 +43,7 @@ class VlcPlayer {
   private var listener: Listener? = null
 
   private val mediaPlayer: MediaPlayer
+  private val vlcEqualizer: Equalizer
 
   private var didFinish: Boolean = false
 
@@ -55,8 +57,28 @@ class VlcPlayer {
 
   init {
     NativeDiscovery().discover()
-    mediaPlayer = AudioPlayerComponent().mediaPlayer()
+    val component = AudioPlayerComponent()
+    mediaPlayer = component.mediaPlayer()
+    vlcEqualizer = component.mediaPlayerFactory().equalizer().newEqualizer()
     mediaPlayer.events().addMediaPlayerEventListener(EventListener())
+  }
+
+  /**
+   * Applies the given equalizer configuration to the underlying player, or detaches the
+   * equalizer entirely when [enabled] is false. Gains map index-for-index onto libvlc's
+   * 10 ISO bands; [preampDb] is the overall pre-amplification.
+   */
+  fun setEqualizer(enabled: Boolean, preampDb: Float, bandGainsDb: List<Float>) {
+    if (!enabled) {
+      mediaPlayer.audio().setEqualizer(null)
+      return
+    }
+    vlcEqualizer.setPreamp(preampDb.coerceIn(VLC_GAIN_RANGE_DB))
+    bandGainsDb.take(vlcEqualizer.bandCount()).forEachIndexed { index, gainDb ->
+      vlcEqualizer.setAmp(index, gainDb.coerceIn(VLC_GAIN_RANGE_DB))
+    }
+    // (Re)setting the equalizer after amp changes ensures libvlc picks them up
+    mediaPlayer.audio().setEqualizer(vlcEqualizer)
   }
 
   fun setListener(listener: Listener) {
@@ -367,6 +389,9 @@ class VlcPlayer {
   companion object : Cork {
     override val tag: String = "VlcPlayer"
     override val enabled: Boolean = false
+
+    // libvlc constrains equalizer preamp/amps to +/-20 dB (LibVlcConst.MIN_GAIN/MAX_GAIN)
+    private val VLC_GAIN_RANGE_DB = -20f..20f
   }
 }
 

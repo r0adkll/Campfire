@@ -24,11 +24,13 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.Description
+import app.campfire.common.compose.icons.rounded.Equalizer
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_bookmarks
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_description
+import campfire.features.sessions.ui.generated.resources.action_equalizer
 import campfire.features.sessions.ui.generated.resources.action_history
 import org.jetbrains.compose.resources.stringResource
 
@@ -37,6 +39,8 @@ internal fun ActionRow(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  onEqualizerClick: () -> Unit,
+  showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
   showChapters: Boolean,
   onDescriptionClick: () -> Unit,
@@ -57,6 +61,8 @@ internal fun ActionRow(
       onBookmarksClick = onBookmarksClick,
       speedContent = speedContent,
       timerContent = timerContent,
+      onEqualizerClick = onEqualizerClick,
+      showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
       showChapters = showChapters,
       onDescriptionClick = onDescriptionClick,
@@ -73,6 +79,8 @@ internal fun ActionColumn(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  onEqualizerClick: () -> Unit,
+  showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
   showChapters: Boolean,
   onDescriptionClick: () -> Unit,
@@ -92,6 +100,8 @@ internal fun ActionColumn(
       onBookmarksClick = onBookmarksClick,
       speedContent = speedContent,
       timerContent = timerContent,
+      onEqualizerClick = onEqualizerClick,
+      showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
       showChapters = showChapters,
       onDescriptionClick = onDescriptionClick,
@@ -108,6 +118,8 @@ private fun ActionContent(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  onEqualizerClick: () -> Unit,
+  showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
   showChapters: Boolean,
   onDescriptionClick: () -> Unit,
@@ -142,6 +154,22 @@ private fun ActionContent(
     contentAlignment = Alignment.Center,
   ) {
     timerContent()
+  }
+
+  if (showEqualizer) {
+    Box(
+      modifier = actionModifier,
+      contentAlignment = Alignment.Center,
+    ) {
+      val equalizerLabel = stringResource(Res.string.action_equalizer)
+      IconButtonTooltip(text = equalizerLabel) {
+        IconButton(
+          onClick = onEqualizerClick,
+        ) {
+          Icon(CampfireIcons.Rounded.Equalizer, contentDescription = equalizerLabel)
+        }
+      }
+    }
   }
 
   if (showChapters) {

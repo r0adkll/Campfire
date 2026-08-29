@@ -33,6 +33,7 @@ val Chapter get() = PlaybackObj("chapter")
 val AudioTrack get() = PlaybackObj("track")
 val Bookmark get() = PlaybackObj("bookmark")
 val Speed get() = PlaybackObj("playback_speed")
+val Equalizer get() = PlaybackObj("equalizer")
 val Sync get() = PlaybackObj("sync_progress")
 
 // Verbs

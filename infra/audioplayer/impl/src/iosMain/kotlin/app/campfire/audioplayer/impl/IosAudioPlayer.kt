@@ -15,9 +15,11 @@ import app.campfire.audioplayer.impl.player.preferredIntervals
 import app.campfire.audioplayer.impl.player.supportedPlaybackRates
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
+import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Session
@@ -65,6 +67,11 @@ class IosAudioPlayer(
 
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
+
+  // AVPlayer offers no equalizer hook; a future phase can add one via an
+  // MTAudioProcessingTap or an AVAudioEngine pipeline.
+  override val equalizer: StateFlow<EqualizerState> = MutableStateFlow(EqualizerState.Unsupported)
+
   override val runningTimer: StateFlow<RunningTimer?>
     get() = sleepTimerManager.runningTimer
 
@@ -340,6 +347,10 @@ class IosAudioPlayer(
     playbackSpeed.value = speed
     settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     player.setPlaybackSpeed(speed)
+  }
+
+  override fun setEqualizer(profile: EqualizerProfile) {
+    // Unsupported on iOS; see [equalizer]
   }
 
   override fun setTimer(timer: PlaybackTimer) {

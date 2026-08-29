@@ -16,6 +16,7 @@ import androidx.compose.runtime.toMutableStateList
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.core.coroutines.flatMapIfNotNull
 import app.campfire.core.extensions.asDateTime
@@ -240,6 +241,14 @@ class PlaybackPresenter(
         }
     }.collectAsState(1f)
 
+    val equalizer by remember {
+      snapshotFlow { player }
+        .filterNotNull()
+        .flatMapLatest {
+          it.equalizer
+        }
+    }.collectAsState(EqualizerState.Unsupported)
+
     val timer by remember {
       snapshotFlow { player }
         .filterNotNull()
@@ -284,6 +293,7 @@ class PlaybackPresenter(
       metadata = placeholder?.metadata ?: metadata,
       state = state,
       speed = speed,
+      equalizer = equalizer,
       timer = timer,
       error = error,
     ) { event ->

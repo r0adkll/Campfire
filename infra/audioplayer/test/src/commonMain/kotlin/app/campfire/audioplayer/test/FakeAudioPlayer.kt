@@ -5,8 +5,10 @@ package app.campfire.audioplayer.test
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
+import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
+import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.model.Session
 import kotlin.time.Duration
 import kotlinx.coroutines.Job
@@ -24,6 +26,7 @@ class FakeAudioPlayer : AudioPlayer {
   override val currentDuration = MutableStateFlow(Duration.ZERO)
   override val currentMetadata = MutableStateFlow(Metadata())
   override val playbackSpeed = MutableStateFlow(1f)
+  override val equalizer = MutableStateFlow<EqualizerState>(EqualizerState.Available(EqualizerProfile()))
   override val runningTimer = MutableStateFlow(null)
 
   override suspend fun prepare(
@@ -88,6 +91,11 @@ class FakeAudioPlayer : AudioPlayer {
     invocations += Invocation.SetPlaybackSpeed(speed)
   }
 
+  override fun setEqualizer(profile: EqualizerProfile) {
+    invocations += Invocation.SetEqualizer(profile)
+    equalizer.value = EqualizerState.Available(profile)
+  }
+
   override fun setTimer(timer: PlaybackTimer) {
     invocations += Invocation.SetTimer(timer)
   }
@@ -114,6 +122,7 @@ class FakeAudioPlayer : AudioPlayer {
     data object SeekBackward : Invocation
     data class SeekTo(val value: Any) : Invocation
     data class SetPlaybackSpeed(val speed: Float) : Invocation
+    data class SetEqualizer(val profile: EqualizerProfile) : Invocation
     data class SetTimer(val timer: PlaybackTimer) : Invocation
     data object ClearTimer : Invocation
   }
