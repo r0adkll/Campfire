@@ -259,7 +259,7 @@ class LoginPresenter(
         return@LaunchedEffect
       }
 
-      // A LAN server (e.g. 192.168.x.x) needs the local-network permission on Android 16+, or the
+      // A LAN server (e.g. 192.168.x.x) needs the local-network permission on Android 17+, or the
       // status probe below silently times out. Prompt lazily now that a private address is present.
       localNetworkPermission.requestIfNeeded(candidates.first())
 

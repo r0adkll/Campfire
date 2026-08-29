@@ -62,7 +62,7 @@ class MainActivity : ComponentActivity() {
     }
 
     // Upgrade path: a user already signed in to a LAN server before the app began targeting
-    // Android 16+ won't pass through the login screen, so prompt for local-network access here
+    // Android 17+ won't pass through the login screen, so prompt for local-network access here
     // if their active server is private and the permission is missing. Waits for the session to
     // restore (it may still be Loading at onCreate), then requests once. No-ops otherwise.
     lifecycleScope.launch {

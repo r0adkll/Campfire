@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
 /**
- * Android 16+ Local Network Protection gates private IP ranges behind the runtime
+ * Android 17+ Local Network Protection gates private IP ranges behind the runtime
  * `ACCESS_LOCAL_NETWORK` permission. This prompts for it lazily — only once the user enters a
  * LAN address — so people connecting to a remote server are never asked.
  */
@@ -40,7 +40,7 @@ class AndroidLocalNetworkPermissionController(
   private var requestedThisSession = false
 
   override suspend fun requestIfNeeded(serverUrl: String): Boolean {
-    // LNP only applies on Android 16+; older versions have no such gate.
+    // LNP only applies on Android 17+; older versions have no such gate.
     if (Build.VERSION.SDK_INT < LNP_MIN_SDK) return true
     if (isGranted()) return true
     if (!pointsAtPrivateNetwork(serverUrl)) return true
@@ -107,8 +107,10 @@ class AndroidLocalNetworkPermissionController(
     application.checkSelfPermission(ACCESS_LOCAL_NETWORK) == PackageManager.PERMISSION_GRANTED
 
   private companion object {
-    // Local Network Protection was introduced in Android 16 (API 36).
-    const val LNP_MIN_SDK = 36
+    // Local Network Protection is enforced starting in Android 17 (API 37). Android 16 shipped
+    // the permission as opt-in for testing only: checkSelfPermission reports it as denied there,
+    // but requesting it silently no-ops, so gating on 36 surfaced a dead permission prompt.
+    const val LNP_MIN_SDK = 37
 
     // String literal rather than Manifest.permission.ACCESS_LOCAL_NETWORK so this still compiles
     // against a compileSdk that predates the constant.

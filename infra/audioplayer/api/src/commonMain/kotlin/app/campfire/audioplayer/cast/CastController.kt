@@ -13,7 +13,7 @@ interface CastController {
 
   /**
    * True when discovering devices may require a platform permission the user hasn't granted
-   * (Android 16+ local network access). The device picker surfaces an opt-in action for it —
+   * (Android 17+ local network access). The device picker surfaces an opt-in action for it —
    * the permission is never requested automatically.
    */
   val needsLocalNetworkPermission: StateFlow<Boolean> get() = MutableStateFlow(false)

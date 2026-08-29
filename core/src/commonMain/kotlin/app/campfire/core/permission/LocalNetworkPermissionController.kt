@@ -4,7 +4,7 @@
 package app.campfire.core.permission
 
 /**
- * Gates access to the platform's "local network" permission (Android 16+ Local Network
+ * Gates access to the platform's "local network" permission (Android 17+ Local Network
  * Protection). Campfire talks to self-hosted Audiobookshelf servers that frequently live on the
  * LAN (e.g. `192.168.x.x`), and on affected platforms those connections are silently dropped
  * until the user grants access.
