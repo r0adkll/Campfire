@@ -54,7 +54,6 @@ import app.campfire.common.compose.widgets.PlaybackSpeedDialog
 import app.campfire.common.compose.widgets.PlaybackSpeedRange
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.extensions.readable
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.extensions.roundToHundredths
 import app.campfire.core.model.LibraryItemId
@@ -209,7 +208,7 @@ internal fun PlaybackSpeedSheet(
         SegmentedButton(
           shape = SegmentedButtonDefaults.itemShape(index, speedOptions.size, RoundedCornerShape(16.dp)),
           selected = isCurrentSpeed,
-          label = { Text("${defaultSpeed.readable}x") },
+          label = { Text("${defaultSpeed.readableHundredths}x") },
           onClick = { onSpeedChange(defaultSpeed) },
         )
       }

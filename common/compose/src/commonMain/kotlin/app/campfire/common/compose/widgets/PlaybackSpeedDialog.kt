@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import app.campfire.core.extensions.readable
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.extensions.roundToHundredths
 import campfire.common.compose.generated.resources.Res
@@ -45,8 +44,8 @@ fun PlaybackSpeedDialog(
   val isError = input.isNotBlank() && parsed == null
   val rangeError = stringResource(
     Res.string.playback_speed_dialog_error,
-    range.start.readable,
-    range.endInclusive.readable,
+    range.start.readableHundredths,
+    range.endInclusive.readableHundredths,
   )
 
   AlertDialog(
