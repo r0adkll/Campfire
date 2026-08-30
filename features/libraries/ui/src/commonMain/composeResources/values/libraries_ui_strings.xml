@@ -134,4 +134,17 @@
 
   <string name="podcast_downloads_banner_one">%1$d episode downloading on server</string>
   <string name="podcast_downloads_banner_other">%1$d episodes downloading on server</string>
+
+  <string name="community_title">Community</string>
+  <string name="community_rating_title">Community rating</string>
+  <string name="community_rating_attribution">%1$s rating</string>
+  <string name="community_rating_count">%1$s ratings</string>
+  <string name="community_reviews_title">Reviews</string>
+  <string name="community_reviews_from">From %1$s members</string>
+  <string name="community_review_sheet_title">Review</string>
+  <string name="community_review_by_author">by %1$s</string>
+  <string name="community_review_spoiler_warning">Contains spoilers</string>
+  <string name="community_review_show_spoiler">Show review</string>
+  <string name="community_relink_provider">Reconnect %1$s to refresh</string>
+  <string name="community_open_on_provider">Open on %1$s</string>
 </resources>

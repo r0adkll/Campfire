@@ -3,7 +3,11 @@
 
 package app.campfire.common.compose.extensions
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import app.campfire.core.extensions.fluentIf
+import com.mohamedrejeb.richeditor.model.RichTextState
+import com.mohamedrejeb.richeditor.model.rememberRichTextState
 
 const val CampfireTimestampScheme = "campfire-timestamp:"
 
@@ -83,4 +87,19 @@ private inline fun String.replaceOutsideAnchors(transform: (String) -> String): 
     }
   }
   return builder.toString()
+}
+
+@Composable
+fun rememberHtmlRichTextState(
+  html: String,
+  linkify: Boolean = true,
+  transformHtml: (String) -> String = { it },
+  block: suspend RichTextState.() -> Unit = {},
+): RichTextState {
+  val state = rememberRichTextState()
+  LaunchedEffect(html) {
+    state.setHtml(transformHtml(html.toRichTextHtml(linkify)))
+    state.block()
+  }
+  return state
 }

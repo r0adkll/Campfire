@@ -30,7 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -47,7 +46,7 @@ import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.linkifyTimestamps
 import app.campfire.common.compose.extensions.readoutAtMost
-import app.campfire.common.compose.extensions.toRichTextHtml
+import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.widgets.WithTimestampUriHandler
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.core.extensions.asDate
@@ -58,9 +57,7 @@ import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.description_bottomsheet_empty_message
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
-import com.mohamedrejeb.richeditor.model.RichTextState
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
@@ -158,7 +155,7 @@ private fun EpisodeDescriptionBottomSheet(
     } else {
       WithTimestampUriHandler(onSeek = onSeek) {
         RichText(
-          state = rememberHtmlRichTextState(description),
+          state = rememberHtmlRichTextState(description, transformHtml = { it.linkifyTimestamps() }),
           style = MaterialTheme.typography.bodyLarge,
           modifier = Modifier.fillMaxWidth(),
           onTokenClick = TokenClickHandler { token, offset ->
@@ -171,15 +168,6 @@ private fun EpisodeDescriptionBottomSheet(
     Spacer(Modifier.height(16.dp))
     Spacer(Modifier.navigationBarsPadding())
   }
-}
-
-@Composable
-private fun rememberHtmlRichTextState(html: String): RichTextState {
-  val state = rememberRichTextState()
-  LaunchedEffect(html) {
-    state.setHtml(html.toRichTextHtml().linkifyTimestamps())
-  }
-  return state
 }
 
 @Composable

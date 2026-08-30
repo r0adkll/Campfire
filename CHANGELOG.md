@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-book playback speed — a toggle in the playback speed sheet saves a speed for just that book instead of changing the global speed
 - The five quick playback speed options can now be customized in Settings → Playback, with sliders from 0.5x to 3x and tap-to-type exact values
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
+- Community ratings and reviews from Hardcover on the book detail page, with attribution and a tap-through to the book on Hardcover
 
 ### Changed
 

@@ -9,6 +9,7 @@ import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
+import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
 import app.campfire.core.model.LibraryItemId
@@ -61,9 +62,11 @@ abstract class BaseLibraryItemPresenterTest {
   internal val settings = TestCampfireSettings()
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
+  internal val bookInfoRegistry = FakeBookInfoRegistry()
 
   internal val bookPresenter = BookPresenter(
     validator = libraryItemValidator,
+    bookInfoRegistry = bookInfoRegistry,
     seriesRepository = seriesRepository,
     sessionsRepository = sessionsRepository,
     sessionQueue = sessionQueue,

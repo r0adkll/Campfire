@@ -5,6 +5,7 @@ package app.campfire.libraries.ui.detail
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import app.campfire.bookinfo.api.ProviderId
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -80,6 +81,10 @@ sealed interface LibraryItemUiEvent : CircuitUiEvent {
   data class OpenEpisode(val episode: PodcastEpisode) : LibraryItemUiEvent
   data object FindEpisodes : LibraryItemUiEvent
   data object OpenDownloads : LibraryItemUiEvent
+
+  data class OpenProviderPage(val url: String) : LibraryItemUiEvent
+  data object RelinkProvider : LibraryItemUiEvent
+  data class SelectCommunitySource(val providerId: ProviderId) : LibraryItemUiEvent
 
   data class DeleteItemClick(val hardDelete: Boolean) : LibraryItemUiEvent
   data object ClearError : LibraryItemUiEvent

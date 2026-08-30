@@ -20,8 +20,14 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
+import app.campfire.bookinfo.api.CommunityInfoState
+import app.campfire.bookinfo.api.ProviderId
+import app.campfire.bookinfo.api.bestMatch
 import app.campfire.common.screens.AuthorDetailScreen
+import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onLoaded
@@ -43,6 +49,7 @@ import app.campfire.libraries.ui.detail.composables.slots.ChapterSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsSlot
 import app.campfire.libraries.ui.detail.composables.slots.ChipsTitle
 import app.campfire.libraries.ui.detail.composables.slots.CollapsedChapterSlot
+import app.campfire.libraries.ui.detail.composables.slots.CommunitySlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.campfire.libraries.ui.detail.composables.slots.CoverImageSlot
 import app.campfire.libraries.ui.detail.composables.slots.ExpressiveControlSlot
@@ -87,6 +94,7 @@ import org.jetbrains.compose.resources.stringResource
 @Inject
 class BookPresenter(
   private val validator: LibraryItemValidator,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val seriesRepository: SeriesRepository,
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
@@ -152,6 +160,17 @@ class BookPresenter(
       offlineDownloadManager.observeForItem(libraryItem)
     }.collectAsState(null)
 
+    // Session-local community source override; null lets the registry pick.
+    var communitySource by remember { mutableStateOf<ProviderId?>(null) }
+
+    // Keyed on the match identifiers so the flow rebuilds when the expanded
+    // metadata (carrying ISBN/ASIN) loads in after the initial minified item.
+    val bookMatch = libraryItem.bestMatch()
+    val communityInfoState by remember(bookMatch, communitySource) {
+      bookInfoRegistry.observeCommunityInfo(libraryItem, communitySource)
+        .catch { emit(LoadState.Loaded(null)) }
+    }.collectAsState(LoadState.Loading)
+
     val itemValidation by remember {
       flow { emit(validator.validate(libraryItem)) }
     }.collectAsState(LibraryItemValidation.Success)
@@ -211,6 +230,7 @@ class BookPresenter(
       mediaProgressState = mediaProgressState,
       offlineDownloadState = offlineDownloadState,
       seriesContentState = seriesContentState,
+      communityInfoState = communityInfoState,
       showTimeInBook = showTimeInBook,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
       hasSession = currentSession != null,
@@ -362,6 +382,21 @@ class BookPresenter(
           navigator.goTo(PlaylistDetailScreen(event.playlistId, null, null, event.isCreated))
         }
 
+        is LibraryItemUiEvent.OpenProviderPage -> {
+          analytics.send(ActionEvent("bookinfo_provider_page", Click))
+          navigator.goTo(UrlScreen(event.url))
+        }
+
+        LibraryItemUiEvent.RelinkProvider -> {
+          analytics.send(ActionEvent("bookinfo_relink", Click))
+          navigator.goTo(ConnectedProvidersScreen)
+        }
+
+        is LibraryItemUiEvent.SelectCommunitySource -> {
+          analytics.send(ActionEvent("bookinfo_source", Click))
+          communitySource = event.providerId
+        }
+
         // Drop unhandled events
         else -> Unit
       }
@@ -379,6 +414,7 @@ private fun buildSlots(
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<SeriesWithBooks>>,
+  communityInfoState: LoadState<out CommunityInfoState?>,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
   hasSession: Boolean,
@@ -467,6 +503,13 @@ private fun buildSlots(
         publisher = libraryItem.media.metadata.publisher,
         publishedYear = libraryItem.media.metadata.publishedYear,
       )
+    }
+
+    communityInfoState.onLoaded { communityInfo ->
+      if (communityInfo != null && communityInfo.info.rating != null) {
+        this += SpacerSlot.medium("community_spacer")
+        this += CommunitySlot(communityInfo)
+      }
     }
 
     seriesContentState.onLoaded { seriesWithBooks ->

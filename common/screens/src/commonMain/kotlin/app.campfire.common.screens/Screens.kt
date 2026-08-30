@@ -116,6 +116,12 @@ data object StatisticsScreen : BaseScreen(name = "Statistics") {
 data object StorageScreen : BaseScreen(name = "Storage")
 
 @Parcelize
+data object ConnectedProvidersScreen : BaseScreen(name = "ConnectedProviders") {
+  override val presentation: Presentation
+    get() = Presentation(hideBottomNav = true)
+}
+
+@Parcelize
 data class SettingsScreen(
   val page: Page = Page.Root,
 ) : BaseScreen(name = "Settings.$page") {

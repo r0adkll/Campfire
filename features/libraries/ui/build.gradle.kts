@@ -10,6 +10,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        implementation(projects.data.bookinfo.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.features.author.api)
         implementation(projects.features.collections.api)
@@ -36,6 +37,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.data.analytics.test)
+        implementation(projects.data.bookinfo.test)
         implementation(projects.features.libraries.test)
         implementation(projects.features.sessions.test)
         implementation(projects.features.series.test)

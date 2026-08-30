@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.DisabledAlpha
 import app.campfire.common.compose.extensions.relativeDayLabel
+import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.extensions.toRichTextHtml
@@ -60,8 +60,6 @@ import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.duration_finished
 import campfire.common.compose.generated.resources.duration_remaining
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
-import com.mohamedrejeb.richeditor.model.RichTextState
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material.RichText
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -180,6 +178,7 @@ fun EpisodeListItem(
       RichText(
         state = rememberHtmlRichTextState(
           episode.description?.toRichTextHtml() ?: "--",
+          linkify = false,
         ),
         style = MaterialTheme.typography.bodySmall,
         color = LocalContentColor.current.copy(
@@ -353,15 +352,6 @@ object EpisodeListItemDefaults {
     containerColor = containerColor,
     contentColor = contentColor,
   )
-}
-
-@Composable
-private fun rememberHtmlRichTextState(html: String): RichTextState {
-  val state = rememberRichTextState()
-  LaunchedEffect(html) {
-    state.setHtml(html.toRichTextHtml(linkify = false))
-  }
-  return state
 }
 
 @Preview
