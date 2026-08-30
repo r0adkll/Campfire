@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS bookInfoCache (
+  userId TEXT NOT NULL,
+  providerId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  fetchedAt INTEGER NOT NULL,
+  PRIMARY KEY (userId, providerId, libraryItemId)
+);
+
+select:
+SELECT * FROM bookInfoCache
+WHERE userId = :userId AND providerId = :providerId AND libraryItemId = :libraryItemId;
+
+upsert:
+INSERT OR REPLACE INTO bookInfoCache(userId, providerId, libraryItemId, payload, fetchedAt)
+VALUES (:userId, :providerId, :libraryItemId, :payload, :fetchedAt);
+
+delete:
+DELETE FROM bookInfoCache
+WHERE userId = :userId AND providerId = :providerId AND libraryItemId = :libraryItemId;
+
+deleteAll:
+DELETE FROM bookInfoCache;
