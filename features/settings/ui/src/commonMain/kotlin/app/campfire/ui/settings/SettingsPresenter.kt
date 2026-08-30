@@ -18,6 +18,7 @@ import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.screens.AttributionScreen
+import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.Platform
@@ -324,6 +325,7 @@ class SettingsPresenter(
       when (event) {
         SettingsUiEvent.Back -> navigator.pop()
         is SettingsUiEvent.SettingsPaneClick -> navigator.goTo(SettingsScreen(event.pane.screenPage))
+        SettingsUiEvent.ConnectedProvidersClick -> navigator.goTo(ConnectedProvidersScreen)
 
         is SettingsUiEvent.AccountSettingEvent -> when (event) {
           is ChangeName -> {

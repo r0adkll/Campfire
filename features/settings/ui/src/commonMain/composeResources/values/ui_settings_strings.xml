@@ -16,6 +16,8 @@
   <string name="setting_android_auto_subtitle">Categories, ordering, and layout</string>
   <string name="setting_about_title">About</string>
   <string name="setting_about_subtitle">Developer, attributions, and version</string>
+  <string name="setting_providers_title">Social</string>
+  <string name="setting_providers_subtitle">Community ratings and reviews</string>
   <string name="setting_developer_title">Developer</string>
   <string name="setting_developer_subtitle">Debug, Troubleshooting, and other</string>
 

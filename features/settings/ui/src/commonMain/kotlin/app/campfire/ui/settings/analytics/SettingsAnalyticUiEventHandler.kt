@@ -58,6 +58,7 @@ class SettingsAnalyticUiEventHandler(
   fun handle(event: SettingsUiEvent) = when (event) {
     SettingsUiEvent.Back -> Unit
     is SettingsUiEvent.SettingsPaneClick -> Unit
+    SettingsUiEvent.ConnectedProvidersClick -> send("connected_providers", Click)
 
     is SettingsUiEvent.AccountSettingEvent -> when (event) {
       is ChangeName -> send("account_name", Updated)

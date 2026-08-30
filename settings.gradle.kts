@@ -147,6 +147,7 @@ include(
   ":data:bookinfo:hardcover",
   ":data:bookinfo:impl",
   ":data:bookinfo:test",
+  ":data:bookinfo:ui",
 )
 include(
   ":data:crashreporting:api",

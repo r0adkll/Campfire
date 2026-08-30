@@ -48,6 +48,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.thenIf
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.LocalLibrary
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -83,6 +85,8 @@ import campfire.features.settings.ui.generated.resources.setting_downloads_subti
 import campfire.features.settings.ui.generated.resources.setting_downloads_title
 import campfire.features.settings.ui.generated.resources.setting_playback_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_title
+import campfire.features.settings.ui.generated.resources.setting_providers_subtitle
+import campfire.features.settings.ui.generated.resources.setting_providers_title
 import campfire.features.settings.ui.generated.resources.setting_sleep_subtitle
 import campfire.features.settings.ui.generated.resources.setting_sleep_title
 import campfire.features.settings.ui.generated.resources.settings_title
@@ -158,6 +162,7 @@ private fun TwoPaneLayout(
       isTwoPane = true,
       pane = forcedPane,
       onPaneClick = onPaneClick,
+      onConnectedProvidersClick = { state.eventSink(SettingsUiEvent.ConnectedProvidersClick) },
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
       showDeveloperPane = state.developerSettings.developerModeEnabled,
       showAndroidAutoPane = state.isAndroidAutoPaneVisible,
@@ -215,6 +220,7 @@ private fun OnePaneLayout(
   SettingsRootPane(
     pane = pane,
     onPaneClick = onPaneClick,
+    onConnectedProvidersClick = { state.eventSink(SettingsUiEvent.ConnectedProvidersClick) },
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
     showDeveloperPane = state.developerSettings.developerModeEnabled,
     showAndroidAutoPane = state.isAndroidAutoPaneVisible,
@@ -248,6 +254,7 @@ private fun OnlyPaneLayout(
 private fun SettingsRootPane(
   pane: SettingsPane?,
   onPaneClick: (SettingsPane) -> Unit,
+  onConnectedProvidersClick: () -> Unit,
   onBackClick: () -> Unit,
   showDeveloperPane: Boolean,
   showAndroidAutoPane: Boolean,
@@ -321,6 +328,21 @@ private fun SettingsRootPane(
         onClick = {
           onPaneClick(SettingsPane.Appearance)
         },
+        shape = SettingsPaneDefaults.middleShape(),
+      )
+
+      // Connected book info providers (standalone screen)
+      SettingPaneListItem(
+        selected = false,
+        icon = {
+          Icon(
+            CampfireIcons.Rounded.LocalLibrary,
+            contentDescription = null,
+          )
+        },
+        title = { Text(stringResource(Res.string.setting_providers_title)) },
+        subtitle = { Text(stringResource(Res.string.setting_providers_subtitle)) },
+        onClick = onConnectedProvidersClick,
         shape = SettingsPaneDefaults.bottomShape(),
       )
 

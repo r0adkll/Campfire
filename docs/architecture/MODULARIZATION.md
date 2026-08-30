@@ -427,6 +427,10 @@ graph LR
   :features:sessions:ui --> :features:sessions:api
   :features:sessions:ui --> :features:user:api
   :features:sessions:ui --> :features:libraries:api
+  :features:sessions:ui --> :features:libraries:test
+  :features:sessions:ui --> :features:sessions:test
+  :features:sessions:ui --> :features:settings:test
+  :features:sessions:ui --> :features:user:test
   :features:sessions:ui --> :
   :app:desktop --> :
   :app:ios --> :
@@ -530,5 +534,6 @@ graph LR
   :features:home:ui --> :features:home:api
   :features:home:ui --> :features:libraries:api
   :features:home:ui --> :features:user:api
+  :features:home:ui --> :features:user:test
   :features:home:ui --> :
 ```

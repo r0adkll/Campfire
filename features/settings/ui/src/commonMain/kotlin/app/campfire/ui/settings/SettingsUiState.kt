@@ -168,6 +168,7 @@ enum class SettingsPane {
 sealed interface SettingsUiEvent : CircuitUiEvent {
   data object Back : SettingsUiEvent
   data class SettingsPaneClick(val pane: SettingsPane) : SettingsUiEvent
+  data object ConnectedProvidersClick : SettingsUiEvent
 
   // Account Pane Events
   sealed interface AccountSettingEvent : SettingsUiEvent {

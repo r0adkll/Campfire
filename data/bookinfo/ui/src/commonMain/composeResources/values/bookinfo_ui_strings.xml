@@ -1,0 +1,22 @@
+<resources>
+  <string name="connected_providers_title">Social</string>
+  <string name="connected_providers_description">Connect services like Hardcover to see community ratings and reviews for your books.</string>
+  <string name="action_back">Back</string>
+
+  <string name="capability_ratings">Ratings</string>
+  <string name="capability_reviews">Reviews</string>
+  <string name="capability_series">Series</string>
+  <string name="capability_metadata">Metadata</string>
+
+  <string name="provider_linked_as">Connected as %1$s</string>
+  <string name="provider_linked">Connected</string>
+  <string name="provider_link_invalid">Your token was rejected. Paste a new one to reconnect.</string>
+  <string name="provider_token_hint">Paste your API token</string>
+  <string name="provider_get_token">Get a token</string>
+  <string name="provider_connect">Connect</string>
+  <string name="provider_disconnect">Disconnect</string>
+  <string name="provider_link_error">Couldn\'t verify that token. Check it and try again.</string>
+
+  <string name="provider_clear_cache">Clear cached data</string>
+  <string name="provider_clear_cache_subtitle">Removes saved ratings and reviews. They'll be fetched fresh the next time you view a book.</string>
+</resources>

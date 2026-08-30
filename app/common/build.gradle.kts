@@ -28,6 +28,7 @@ kotlin {
         api(projects.data.analytics.impl)
         api(projects.data.bookinfo.impl)
         api(projects.data.bookinfo.hardcover)
+        api(projects.data.bookinfo.ui)
         api(projects.data.crashreporting.impl)
 
         // Infra Modules
