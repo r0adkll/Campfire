@@ -9,6 +9,7 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
+        implementation(projects.data.bookinfo.api)
         implementation(projects.features.series.api)
         implementation(projects.features.filters.api)
         implementation(projects.features.user.api)
@@ -21,6 +22,18 @@ kotlin {
         implementation(libs.androidx.paging.compose)
         // Need encodeUrlParameter() ext function
         implementation(libs.ktor.http)
+      }
+    }
+
+    commonTest {
+      dependencies {
+        implementation(projects.common.test)
+        implementation(projects.data.analytics.test)
+        implementation(projects.data.bookinfo.test)
+        implementation(projects.features.series.test)
+        implementation(projects.infra.audioplayer.test)
+        implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.ui)
       }
     }
   }

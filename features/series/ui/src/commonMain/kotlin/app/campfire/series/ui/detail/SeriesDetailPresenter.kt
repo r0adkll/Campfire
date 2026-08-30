@@ -10,14 +10,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
+import app.campfire.bookinfo.api.SeriesEntry
+import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
-import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
@@ -38,6 +43,7 @@ class SeriesDetailPresenter(
   @Assisted private val screen: SeriesDetailScreen,
   @Assisted private val navigator: Navigator,
   private val repository: SeriesRepository,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesDetailUiState> {
@@ -48,12 +54,17 @@ class SeriesDetailPresenter(
   override fun present(): SeriesDetailUiState {
     val seriesContentState by remember {
       repository.observeSeriesLibraryItems(seriesId = screen.seriesId)
-        .map { LoadState.Loaded(it) as LoadState<List<LibraryItem>> }
-        .catch { emit(LoadState.Error as LoadState<List<LibraryItem>>) }
+        .flatMapLatest { items ->
+          bookInfoRegistry.observeSeriesEntries(screen.seriesName, items)
+        }
+        .catch { emit(LoadState.Error as LoadState<SeriesInfoState>) }
     }.collectAsState(LoadState.Loading)
 
     LaunchedEffect(seriesContentState) {
       val groupedBooks = seriesContentState.dataOrNull
+        ?.entries
+        ?.filterIsInstance<SeriesEntry.Owned>()
+        ?.map { it.item }
         ?.groupBy { item -> item.id }
         ?: emptyMap()
 
@@ -72,8 +83,10 @@ class SeriesDetailPresenter(
     val offlineDownloads by remember {
       snapshotFlow { seriesContentState.dataOrNull }
         .filterNotNull()
-        .flatMapLatest { items ->
-          offlineDownloadManager.observeForItems(items)
+        .flatMapLatest { info ->
+          offlineDownloadManager.observeForItems(
+            info.entries.filterIsInstance<SeriesEntry.Owned>().map { it.item },
+          )
         }
     }.collectAsState(emptyMap())
 
@@ -91,6 +104,11 @@ class SeriesDetailPresenter(
               sharedTransitionKey = event.libraryItem.id + screen.seriesName,
             ),
           )
+        }
+
+        is SeriesDetailUiEvent.ProviderEntryClick -> {
+          analytics.send(ActionEvent("series_provider_entry", Click))
+          event.entry.providerUrl?.let { navigator.goTo(UrlScreen(it)) }
         }
       }
     }

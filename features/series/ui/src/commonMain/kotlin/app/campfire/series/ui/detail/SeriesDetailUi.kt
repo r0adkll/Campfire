@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -20,14 +22,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
+import app.campfire.bookinfo.api.ProviderSeriesEntry
+import app.campfire.bookinfo.api.SeriesEntry
+import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -43,9 +50,11 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.series.ui.detail.composables.ProviderEntryCard
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.action_back
 import campfire.features.series.ui.generated.resources.error_series_detail_message
+import campfire.features.series.ui.generated.resources.series_source_attribution
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
@@ -102,9 +111,10 @@ fun SeriesDetail(
 
       is LoadState.Loaded -> LoadedState(
         seriesName = screen.seriesName,
-        items = state.seriesContentState.data,
+        info = state.seriesContentState.data,
         offlineStatus = { state.offlineStates[it].asWidgetStatus() },
         onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
+        onProviderEntryClick = { state.eventSink(SeriesDetailUiEvent.ProviderEntryClick(it)) },
         contentPadding = paddingValues,
       )
     }
@@ -114,13 +124,15 @@ fun SeriesDetail(
 @Composable
 private fun LoadedState(
   seriesName: String,
-  items: List<LibraryItem>,
+  info: SeriesInfoState,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
+  onProviderEntryClick: (ProviderSeriesEntry) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   gridState: LazyGridState = rememberLazyGridState(),
 ) {
+  val entries = info.entries
   LazyVerticalGrid(
     columns = GridCells.Fixed(2),
     state = gridState,
@@ -130,16 +142,44 @@ private fun LoadedState(
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
     itemsIndexed(
-      items = items,
-      key = { _, item -> item.id },
-    ) { index, item ->
-      LibraryItemCard(
-        item = item,
-        sharedTransitionKey = item.id + seriesName,
-        sharedTransitionZIndex = (items.size - index) + 1f,
-        offlineStatus = offlineStatus(item.id),
-        onClick = { onLibraryItemClick(item) },
-      )
+      items = entries,
+      key = { _, entry -> entry.key },
+    ) { index, entry ->
+      when (entry) {
+        is SeriesEntry.Owned -> LibraryItemCard(
+          item = entry.item,
+          sharedTransitionKey = entry.item.id + seriesName,
+          sharedTransitionZIndex = (entries.size - index) + 1f,
+          offlineStatus = offlineStatus(entry.item.id),
+          onClick = { onLibraryItemClick(entry.item) },
+        )
+
+        is SeriesEntry.Missing -> ProviderEntryCard(
+          entry = entry.entry,
+          isUpcoming = false,
+          onClick = { onProviderEntryClick(entry.entry) },
+        )
+
+        is SeriesEntry.Upcoming -> ProviderEntryCard(
+          entry = entry.entry,
+          isUpcoming = true,
+          onClick = { onProviderEntryClick(entry.entry) },
+        )
+      }
+    }
+
+    info.providerName?.let { providerName ->
+      item(key = "series_source_attribution", span = { GridItemSpan(maxLineSpan) }) {
+        Text(
+          text = stringResource(Res.string.series_source_attribution, providerName),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          textAlign = TextAlign.Center,
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        )
+      }
     }
   }
 }

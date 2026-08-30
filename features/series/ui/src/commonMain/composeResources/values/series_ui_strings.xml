@@ -9,4 +9,9 @@
   </plurals>
 
   <string name="action_back">Back</string>
+
+  <string name="series_entry_missing">Not in your library</string>
+  <string name="series_entry_upcoming">Not yet released</string>
+  <string name="series_entry_upcoming_year">Expected %1$s</string>
+  <string name="series_source_attribution">Series details from %1$s</string>
 </resources>
