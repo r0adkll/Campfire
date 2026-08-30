@@ -143,6 +143,10 @@ include(
   ":data:analytics:test",
 )
 include(
+  ":data:bookinfo:api",
+  ":data:bookinfo:test",
+)
+include(
   ":data:crashreporting:api",
   ":data:crashreporting:impl",
   ":data:crashreporting:firebase",
