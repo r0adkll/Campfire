@@ -30,6 +30,19 @@ interface BookInfoRegistry {
   ): Flow<LoadState<out CommunityInfoState?>>
 
   /**
+   * The full series listing for [seriesName], merging the user's [ownedItems]
+   * with the best available provider's canonical entries — released books the
+   * user doesn't own become [SeriesEntry.Missing] and announced-but-unreleased
+   * ones [SeriesEntry.Upcoming]. Degrades to owned-only entries when no
+   * series-capable provider is available, so callers render the same shape
+   * either way.
+   */
+  fun observeSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): Flow<LoadState<out SeriesInfoState>>
+
+  /**
    * Drops all locally cached provider data (for every provider and user).
    * Fresh data is fetched on the next read.
    */

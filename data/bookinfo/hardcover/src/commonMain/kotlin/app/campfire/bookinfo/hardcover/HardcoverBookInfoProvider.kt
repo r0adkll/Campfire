@@ -13,6 +13,8 @@ import app.campfire.bookinfo.api.LinkedAccount
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
+import app.campfire.bookinfo.api.ProviderSeries
+import app.campfire.bookinfo.api.SeriesMatch
 import app.campfire.bookinfo.hardcover.auth.HardcoverTokenStorage
 import app.campfire.bookinfo.hardcover.graphql.BOOK_REVIEWS_QUERY
 import app.campfire.bookinfo.hardcover.graphql.BooksData
@@ -22,18 +24,28 @@ import app.campfire.bookinfo.hardcover.graphql.HardcoverGraphQlException
 import app.campfire.bookinfo.hardcover.graphql.HardcoverResult
 import app.campfire.bookinfo.hardcover.graphql.ME_QUERY
 import app.campfire.bookinfo.hardcover.graphql.MeData
+import app.campfire.bookinfo.hardcover.graphql.SeriesData
 import app.campfire.bookinfo.hardcover.graphql.UserBooksData
 import app.campfire.bookinfo.hardcover.graphql.bookByIdentifiersQuery
+import app.campfire.bookinfo.hardcover.graphql.canonicalizeSeries
+import app.campfire.bookinfo.hardcover.graphql.normalizedIdentifier
 import app.campfire.bookinfo.hardcover.graphql.parseCoverUrl
 import app.campfire.bookinfo.hardcover.graphql.parseRatingsDistribution
 import app.campfire.bookinfo.hardcover.graphql.parseUsername
+import app.campfire.bookinfo.hardcover.graphql.pickSeriesCandidate
+import app.campfire.bookinfo.hardcover.graphql.seriesByMembersQuery
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import me.tatarka.inject.annotations.Inject
@@ -53,10 +65,11 @@ class HardcoverBookInfoProvider(
   override val displayName: String = "Hardcover"
   override val linkHelpUrl: String = "https://hardcover.app/account/api"
 
-  // Series capabilities stay false until the series contract lands in the api.
   override val capabilities: ProviderCapabilities = ProviderCapabilities(
     hasReviewText = true,
     hasAggregateRating = true,
+    hasSeriesOrdering = true,
+    hasUpcomingReleases = true,
     hasSupplementalMetadata = true,
     requiresAccountLink = true,
   )
@@ -127,6 +140,36 @@ class HardcoverBookInfoProvider(
       )
       else -> result.toBookInfoError()
     }
+  }
+
+  override suspend fun getSeries(match: SeriesMatch): BookInfoResult<ProviderSeries> {
+    val isbns = match.memberMatches.mapNotNull { it.isbn?.normalizedIdentifier() }.distinct()
+    val asins = match.memberMatches.mapNotNull { it.asin?.normalizedIdentifier() }.distinct()
+    if (isbns.isEmpty() && asins.isEmpty()) return BookInfoResult.NotFound
+
+    val document = seriesByMembersQuery(hasIsbns = isbns.isNotEmpty(), hasAsins = asins.isNotEmpty())
+    val variables = buildJsonObject {
+      if (isbns.isNotEmpty()) put("isbns", JsonArray(isbns.map { JsonPrimitive(it) }))
+      if (asins.isNotEmpty()) put("asins", JsonArray(asins.map { JsonPrimitive(it) }))
+    }
+
+    return when (val result = graphQl.execute(document, variables, SeriesData.serializer())) {
+      is HardcoverResult.Success -> {
+        val candidate = pickSeriesCandidate(result.data.series, match)
+          ?: return BookInfoResult.NotFound
+        BookInfoResult.Success(
+          canonicalizeSeries(candidate, nowIsoDate = todayIsoDate()),
+        )
+      }
+      else -> result.toBookInfoError()
+    }
+  }
+
+  private fun todayIsoDate(): String {
+    return Clock.System.now()
+      .toLocalDateTime(TimeZone.currentSystemDefault())
+      .date
+      .toString()
   }
 
   override suspend fun verifyAndLink(token: String): Result<LinkedAccount> {
