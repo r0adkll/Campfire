@@ -5,6 +5,7 @@ package app.campfire.libraries.ui.detail
 
 import app.campfire.bookinfo.api.BookCommunityInfo
 import app.campfire.bookinfo.api.BookReview
+import app.campfire.bookinfo.api.CommunityContent
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.common.screens.ConnectedProvidersScreen
@@ -16,7 +17,6 @@ import app.campfire.libraries.ui.detail.composables.slots.CommunitySlot
 import app.campfire.libraries.ui.detail.composables.slots.ContentSlot
 import app.cash.turbine.ReceiveTurbine
 import assertk.Assert
-import assertk.all
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
@@ -27,34 +27,62 @@ import kotlinx.coroutines.test.runTest
 
 class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
 
-  private val communityInfo = CommunityInfoState(
+  private val communityInfo = BookCommunityInfo(
+    providerBookId = "386446",
+    providerUrl = "https://hardcover.app/books/the-way-of-kings",
+    rating = 4.63,
+    ratingsCount = 4109,
+    ratingsDistribution = null,
+    reviewsCount = 422,
+    releaseDate = "2010-08-31",
+    coverUrl = null,
+  )
+
+  private fun communityState(
+    content: CommunityContent = CommunityContent.Available(communityInfo, emptyList()),
+  ) = CommunityInfoState(
     providerId = ProviderId.Hardcover,
     providerName = "Hardcover",
-    providerUrl = "https://hardcover.app/books/the-way-of-kings",
-    info = BookCommunityInfo(
-      providerBookId = "386446",
-      providerUrl = "https://hardcover.app/books/the-way-of-kings",
-      rating = 4.63,
-      ratingsCount = 4109,
-      ratingsDistribution = null,
-      reviewsCount = 422,
-      releaseDate = "2010-08-31",
-      coverUrl = null,
-    ),
-    reviews = emptyList(),
+    content = content,
   )
 
   @Test
-  fun present_CommunityInfo_GeneratesRatingSlot() = runTest {
+  fun present_CommunityInfo_GeneratesCommunitySlot() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
-    bookInfoRegistry.communityInfoFlow.emit(LoadState.Loaded(communityInfo))
+    bookInfoRegistry.communityInfoFlow.emit(communityState())
 
     presenter.test {
       assertThat(awaitItemWithSlot<CommunitySlot>())
         .loadedSlots
-        .all {
-          containsInstance<CommunitySlot>()
-        }
+        .containsInstance<CommunitySlot>()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_LoadingContent_StillGeneratesCommunitySlot() = runTest {
+    // The section renders through the fetch — its loading phase lives inside
+    // the slot instead of removing it, so source switches never blink.
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    bookInfoRegistry.communityInfoFlow.emit(communityState(content = CommunityContent.Loading))
+
+    presenter.test {
+      assertThat(awaitItemWithSlot<CommunitySlot>())
+        .loadedSlots
+        .containsInstance<CommunitySlot>()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_UnavailableContent_StillGeneratesCommunitySlot() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+    bookInfoRegistry.communityInfoFlow.emit(communityState(content = CommunityContent.Unavailable))
+
+    presenter.test {
+      assertThat(awaitItemWithSlot<CommunitySlot>())
+        .loadedSlots
+        .containsInstance<CommunitySlot>()
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -63,8 +91,9 @@ class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
   fun present_CommunityInfoWithReviews_GeneratesCommunitySlot() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
     bookInfoRegistry.communityInfoFlow.emit(
-      LoadState.Loaded(
-        communityInfo.copy(
+      communityState(
+        content = CommunityContent.Available(
+          info = communityInfo,
           reviews = listOf(
             BookReview(author = "reader", rating = 5.0, text = "Loved it", hasSpoilers = false),
           ),
@@ -81,16 +110,14 @@ class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
-  fun present_NoCommunityInfo_GeneratesNoSlots() = runTest {
+  fun present_NoServableProvider_GeneratesNoSlot() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
-    bookInfoRegistry.communityInfoFlow.emit(LoadState.Loaded(null))
+    bookInfoRegistry.communityInfoFlow.emit(null)
 
     presenter.test {
       assertThat(awaitLoadedItem())
         .loadedSlots
-        .all {
-          doesNotContainInstance<CommunitySlot>()
-        }
+        .doesNotContainInstance<CommunitySlot>()
       cancelAndIgnoreRemainingEvents()
     }
   }
@@ -98,7 +125,7 @@ class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_OpenProviderPage_NavigatesToUrl() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
-    bookInfoRegistry.communityInfoFlow.emit(LoadState.Loaded(communityInfo))
+    bookInfoRegistry.communityInfoFlow.emit(communityState())
 
     presenter.test {
       val state = awaitItemWithSlot<CommunitySlot>()
@@ -115,7 +142,7 @@ class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_SelectCommunitySource_ResubscribesWithPreferredProvider() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
-    bookInfoRegistry.communityInfoFlow.emit(LoadState.Loaded(communityInfo))
+    bookInfoRegistry.communityInfoFlow.emit(communityState())
 
     presenter.test {
       val state = awaitItemWithSlot<CommunitySlot>()
@@ -135,9 +162,7 @@ class BookPresenterCommunityInfoTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_RelinkProvider_NavigatesToConnectedProviders() = runTest {
     libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
-    bookInfoRegistry.communityInfoFlow.emit(
-      LoadState.Loaded(communityInfo.copy(needsRelink = true)),
-    )
+    bookInfoRegistry.communityInfoFlow.emit(communityState().copy(needsRelink = true))
 
     presenter.test {
       val state = awaitItemWithSlot<CommunitySlot>()

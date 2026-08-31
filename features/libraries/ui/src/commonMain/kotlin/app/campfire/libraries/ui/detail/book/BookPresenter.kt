@@ -4,6 +4,7 @@
 package app.campfire.libraries.ui.detail.book
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -163,13 +164,18 @@ class BookPresenter(
     // Session-local community source override; null lets the registry pick.
     var communitySource by remember { mutableStateOf<ProviderId?>(null) }
 
-    // Keyed on the match identifiers so the flow rebuilds when the expanded
-    // metadata (carrying ISBN/ASIN) loads in after the initial minified item.
+    // Held in plain state (not re-collected from an initial value) so the
+    // section keeps its last content while a source switch or expanded-metadata
+    // reload re-subscribes — the state carries its own loading phase. Keyed on
+    // the match identifiers so the flow rebuilds when the expanded metadata
+    // (carrying ISBN/ASIN) loads in after the initial minified item.
     val bookMatch = libraryItem.bestMatch()
-    val communityInfoState by remember(bookMatch, communitySource) {
+    var communityInfoState by remember { mutableStateOf<CommunityInfoState?>(null) }
+    LaunchedEffect(bookMatch, communitySource) {
       bookInfoRegistry.observeCommunityInfo(libraryItem, communitySource)
-        .catch { emit(LoadState.Loaded(null)) }
-    }.collectAsState(LoadState.Loading)
+        .catch { emit(null) }
+        .collect { communityInfoState = it }
+    }
 
     val itemValidation by remember {
       flow { emit(validator.validate(libraryItem)) }
@@ -414,7 +420,7 @@ private fun buildSlots(
   mediaProgressState: LoadState<out MediaProgress?>,
   offlineDownloadState: OfflineDownload?,
   seriesContentState: LoadState<out List<SeriesWithBooks>>,
-  communityInfoState: LoadState<out CommunityInfoState?>,
+  communityInfoState: CommunityInfoState?,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
   hasSession: Boolean,
@@ -505,11 +511,11 @@ private fun buildSlots(
       )
     }
 
-    communityInfoState.onLoaded { communityInfo ->
-      if (communityInfo != null && communityInfo.info.rating != null) {
-        this += SpacerSlot.medium("community_spacer")
-        this += CommunitySlot(communityInfo)
-      }
+    // Present whenever any provider can serve — the slot renders its own
+    // loading and empty phases so the section never blinks between them.
+    communityInfoState?.let { communityInfo ->
+      this += SpacerSlot.medium("community_spacer")
+      this += CommunitySlot(communityInfo)
     }
 
     seriesContentState.onLoaded { seriesWithBooks ->

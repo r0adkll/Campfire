@@ -5,6 +5,8 @@ package app.campfire.bookinfo
 
 import app.campfire.bookinfo.api.BookCommunityInfo
 import app.campfire.bookinfo.api.BookInfoResult
+import app.campfire.bookinfo.api.CommunityContent
+import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.CommunitySource
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
@@ -14,7 +16,6 @@ import app.campfire.bookinfo.store.BookInfoStore
 import app.campfire.bookinfo.test.FakeBookInfoProvider
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.session.UserSession
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -23,11 +24,12 @@ import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import assertk.assertions.isNotNull
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -50,28 +52,29 @@ class DefaultBookInfoRegistryTest {
   )
 
   private fun TestScope.registry(
-    provider: FakeBookInfoProvider,
+    vararg providers: FakeBookInfoProvider,
     settings: DefaultBookInfoProviderSettings = DefaultBookInfoProviderSettings(MapSettings(), session),
   ): DefaultBookInfoRegistry {
     val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
     BookInfoDatabase.Schema.synchronous().create(driver)
-    val store = BookInfoStore(
-      providers = setOf(provider),
-      db = BookInfoDatabase(driver),
-      dispatcherProvider = TestDispatcherProvider(StandardTestDispatcher(testScheduler)),
-    )
+    val db = BookInfoDatabase(driver)
+    val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+    val providerSet = providers.toSet<app.campfire.bookinfo.api.BookInfoProvider>()
     return DefaultBookInfoRegistry(
-      providers = setOf(provider),
+      providers = providerSet,
       settings = settings,
-      store = store,
+      store = BookInfoStore(providerSet, db, dispatchers),
       userSession = session,
     )
   }
 
+  private suspend fun Flow<CommunityInfoState?>.awaitAvailable(): CommunityInfoState {
+    return first { it?.content is CommunityContent.Available }!!
+  }
+
   @Test
   fun `providers are reported with enablement and link state`() = runTest {
-    val provider = FakeBookInfoProvider()
-    val registry = registry(provider)
+    val registry = registry(FakeBookInfoProvider())
 
     val statuses = registry.observeProviders().first()
 
@@ -86,14 +89,27 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    val loaded = (state as LoadState.Loaded).data
-    assertThat(loaded).isNotNull()
-    assertThat(loaded!!.providerId).isEqualTo(ProviderId.Hardcover)
-    assertThat(loaded.providerName).isEqualTo("Fake Provider")
-    assertThat(loaded.info.rating).isEqualTo(4.63)
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
+    assertThat(state.providerName).isEqualTo("Fake Provider")
+    assertThat((state.content as CommunityContent.Available).info.rating).isEqualTo(4.63)
     assertThat(provider.bookInfoRequests.size).isEqualTo(1)
+  }
+
+  @Test
+  fun `an uncached fetch reports its loading phase with provider context`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val registry = registry(provider)
+
+    // The first emission already names the serving provider and sources, so a
+    // section rendered from it never disappears while the fetch runs.
+    val first = registry.observeCommunityInfo(item).first()!!
+
+    assertThat(first.content).isInstanceOf(CommunityContent.Loading::class)
+    assertThat(first.providerName).isEqualTo("Fake Provider")
+    assertThat(first.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Hardcover))
   }
 
   @Test
@@ -102,8 +118,8 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    registry.observeCommunityInfo(item).awaitAvailable()
+    registry.observeCommunityInfo(item).awaitAvailable()
 
     assertThat(provider.bookInfoRequests.size).isEqualTo(1)
   }
@@ -114,9 +130,7 @@ class DefaultBookInfoRegistryTest {
     provider.linkState.value = ProviderLinkState.NotLinked
     val registry = registry(provider)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
-
-    assertThat((state as LoadState.Loaded).data).isNull()
+    assertThat(registry.observeCommunityInfo(item).first()).isNull()
   }
 
   @Test
@@ -125,11 +139,9 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
     settings.setEnabled(ProviderId.Hardcover, false)
-    val registry = registry(provider, settings)
+    val registry = registry(provider, settings = settings)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
-
-    assertThat((state as LoadState.Loaded).data).isNull()
+    assertThat(registry.observeCommunityInfo(item).first()).isNull()
     assertThat(provider.bookInfoRequests.size).isEqualTo(0)
   }
 
@@ -139,14 +151,12 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    registry.observeCommunityInfo(item).awaitAvailable()
     provider.linkState.value = ProviderLinkState.Invalid
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    val loaded = (state as LoadState.Loaded).data
-    assertThat(loaded).isNotNull()
-    assertThat(loaded!!.needsRelink).isTrue()
+    assertThat(state.needsRelink).isTrue()
     assertThat(provider.bookInfoRequests.size).isEqualTo(1)
   }
 
@@ -156,10 +166,9 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    val loaded = (state as LoadState.Loaded).data
-    assertThat(loaded!!.availableSources)
+    assertThat(state.availableSources)
       .isEqualTo(listOf(CommunitySource(ProviderId.Hardcover, "Fake Provider")))
   }
 
@@ -171,9 +180,9 @@ class DefaultBookInfoRegistryTest {
 
     val state = registry
       .observeCommunityInfo(item, preferredProvider = ProviderId.Hardcover)
-      .first { it is LoadState.Loaded<*> }
+      .awaitAvailable()
 
-    assertThat((state as LoadState.Loaded).data!!.providerId).isEqualTo(ProviderId.Hardcover)
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
   }
 
   @Test
@@ -184,9 +193,9 @@ class DefaultBookInfoRegistryTest {
 
     val state = registry
       .observeCommunityInfo(item, preferredProvider = ProviderId.OpenLibrary)
-      .first { it is LoadState.Loaded<*> }
+      .awaitAvailable()
 
-    assertThat((state as LoadState.Loaded).data!!.providerId).isEqualTo(ProviderId.Hardcover)
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
   }
 
   @Test
@@ -203,11 +212,11 @@ class DefaultBookInfoRegistryTest {
       media = media(metadata = mediaMetadata(ISBN = "9780765393043", ASIN = "B002RI9Z9E")),
     )
 
-    registry.observeCommunityInfo(asinOnly).first { it is LoadState.Loaded<*> }
+    registry.observeCommunityInfo(asinOnly).awaitAvailable()
     // The store serves the stale row first, then refetches with the new
     // identifiers — wait for the refetch to land.
     registry.observeCommunityInfo(withIsbn).first {
-      it is LoadState.Loaded<*> && provider.bookInfoRequests.size == 2
+      it?.content is CommunityContent.Available && provider.bookInfoRequests.size == 2
     }
 
     assertThat(provider.bookInfoRequests.size).isEqualTo(2)
@@ -221,24 +230,12 @@ class DefaultBookInfoRegistryTest {
     isbnOnly.canServeResult = false
     val asinCapable = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "ASIN Capable")
     asinCapable.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val registry = registry(isbnOnly, asinCapable)
 
-    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
-    BookInfoDatabase.Schema.synchronous().create(driver)
-    val db = BookInfoDatabase(driver)
-    val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
-    val providers = setOf(isbnOnly, asinCapable)
-    val registry = DefaultBookInfoRegistry(
-      providers = providers,
-      settings = DefaultBookInfoProviderSettings(MapSettings(), session),
-      store = BookInfoStore(providers, db, dispatchers),
-      userSession = session,
-    )
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
-
-    val loaded = (state as LoadState.Loaded).data
-    assertThat(loaded!!.providerId).isEqualTo(ProviderId.Audible)
-    assertThat(loaded.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Audible))
+    assertThat(state.providerId).isEqualTo(ProviderId.Audible)
+    assertThat(state.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Audible))
     assertThat(isbnOnly.bookInfoRequests.size).isEqualTo(0)
   }
 
@@ -252,25 +249,12 @@ class DefaultBookInfoRegistryTest {
     keyless.bookInfoResult = BookInfoResult.Success(communityInfo)
     val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
     hardcover.linkState.value = ProviderLinkState.NotLinked
+    val registry = registry(hardcover, keyless)
 
-    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
-    BookInfoDatabase.Schema.synchronous().create(driver)
-    val db = BookInfoDatabase(driver)
-    val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
-    val providers = setOf(hardcover, keyless)
-    val registry = DefaultBookInfoRegistry(
-      providers = providers,
-      settings = DefaultBookInfoProviderSettings(MapSettings(), session),
-      store = BookInfoStore(providers, db, dispatchers),
-      userSession = session,
-    )
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    val state = registry.observeCommunityInfo(item)
-      .first { it is LoadState.Loaded<*> && (it as LoadState.Loaded).data != null }
-
-    val loaded = (state as LoadState.Loaded).data!!
-    assertThat(loaded.providerId).isEqualTo(ProviderId.OpenLibrary)
-    assertThat(loaded.reviewsLinkProviderName).isEqualTo("Hardcover")
+    assertThat(state.providerId).isEqualTo(ProviderId.OpenLibrary)
+    assertThat(state.reviewsLinkProviderName).isEqualTo("Hardcover")
   }
 
   @Test
@@ -279,9 +263,9 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
 
-    assertThat((state as LoadState.Loaded).data!!.reviewsLinkProviderName).isNull()
+    assertThat(state.reviewsLinkProviderName).isNull()
   }
 
   @Test
@@ -290,23 +274,25 @@ class DefaultBookInfoRegistryTest {
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)
     val registry = registry(provider)
 
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    registry.observeCommunityInfo(item).awaitAvailable()
     registry.clearCache()
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    registry.observeCommunityInfo(item).awaitAvailable()
 
     assertThat(provider.bookInfoRequests.size).isEqualTo(2)
   }
 
   @Test
-  fun `a provider miss is cached as no info`() = runTest {
+  fun `a provider miss keeps the section with empty content`() = runTest {
     val provider = FakeBookInfoProvider()
     provider.bookInfoResult = BookInfoResult.NotFound
     val registry = registry(provider)
 
-    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
-    registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+    val state = registry.observeCommunityInfo(item)
+      .first { it?.content is CommunityContent.Unavailable }!!
+    registry.observeCommunityInfo(item).first { it?.content is CommunityContent.Unavailable }
 
-    assertThat((state as LoadState.Loaded).data).isNull()
+    // The miss keeps the provider context (pill, sources) and is cached.
+    assertThat(state.providerName).isEqualTo("Fake Provider")
     assertThat(provider.bookInfoRequests.size).isEqualTo(1)
   }
 }

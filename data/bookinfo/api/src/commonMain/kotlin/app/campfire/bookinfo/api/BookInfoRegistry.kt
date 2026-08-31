@@ -3,7 +3,6 @@
 
 package app.campfire.bookinfo.api
 
-import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import kotlinx.coroutines.flow.Flow
 
@@ -20,14 +19,18 @@ interface BookInfoRegistry {
    * Community rating and reviews for [item]. By default the best available
    * provider is chosen automatically; pass [preferredProvider] to pin a
    * specific source (falls back to the automatic pick when the pinned provider
-   * is disabled, unlinked, or not installed). Emits `Loaded(null)` when no
-   * enabled provider can serve the item (no match identifiers, provider not
-   * linked, or nothing found).
+   * is disabled, unlinked, or not installed).
+   *
+   * Emits null only when nothing could ever serve the item — no identifiers,
+   * or no enabled provider can match it. Otherwise the emitted state always
+   * carries the serving provider and switchable sources, with the fetch phase
+   * expressed in [CommunityInfoState.content] — so a section rendered from
+   * this state stays put across loads and source switches.
    */
   fun observeCommunityInfo(
     item: LibraryItem,
     preferredProvider: ProviderId? = null,
-  ): Flow<LoadState<out CommunityInfoState?>>
+  ): Flow<CommunityInfoState?>
 
   /**
    * Drops all locally cached provider data (for every provider and user).
@@ -43,12 +46,13 @@ data class ProviderStatus(
 )
 
 /**
- * Presentation-ready community info. [providerName] and [providerUrl] must be
- * shown alongside any aggregate rating — attribution is a terms-of-service
- * requirement for some providers (e.g. Hardcover).
+ * Presentation-ready community info from one serving provider. The provider
+ * identity doubles as the required attribution for aggregate data (a
+ * terms-of-service requirement for some providers, e.g. Hardcover) and must
+ * render wherever [CommunityContent.Available] data does.
  *
- * @param availableSources every provider currently able to serve community
- * info, for source-switcher UI; always contains the serving provider.
+ * @param availableSources every provider currently able to serve the item,
+ * for source-switcher UI; always contains the serving provider.
  * @param reviewsLinkProviderName when the serving provider has no review text
  * but linking another provider (e.g. Hardcover) would add reviews, the name of
  * that provider — for a "connect for reviews" affordance.
@@ -56,13 +60,24 @@ data class ProviderStatus(
 data class CommunityInfoState(
   val providerId: ProviderId,
   val providerName: String,
-  val providerUrl: String?,
-  val info: BookCommunityInfo,
-  val reviews: List<BookReview>,
-  val needsRelink: Boolean = false,
   val availableSources: List<CommunitySource> = emptyList(),
+  val needsRelink: Boolean = false,
   val reviewsLinkProviderName: String? = null,
+  val content: CommunityContent = CommunityContent.Loading,
 )
+
+sealed interface CommunityContent {
+  /** The serving provider is being fetched with nothing cached yet. */
+  data object Loading : CommunityContent
+
+  /** The serving provider has nothing for this book. */
+  data object Unavailable : CommunityContent
+
+  data class Available(
+    val info: BookCommunityInfo,
+    val reviews: List<BookReview>,
+  ) : CommunityContent
+}
 
 data class CommunitySource(
   val id: ProviderId,

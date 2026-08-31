@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -42,10 +43,12 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.BookReview
+import app.campfire.bookinfo.api.CommunityContent
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.extensions.roundToSingleDecimal
@@ -58,12 +61,11 @@ import app.campfire.libraries.ui.detail.composables.ReviewerAvatar
 import app.campfire.libraries.ui.detail.composables.ReviewerBadge
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.community_connect_for_reviews
-import campfire.features.libraries.ui.generated.resources.community_rating_attribution
+import campfire.features.libraries.ui.generated.resources.community_empty_source
 import campfire.features.libraries.ui.generated.resources.community_rating_count
 import campfire.features.libraries.ui.generated.resources.community_relink_provider
 import campfire.features.libraries.ui.generated.resources.community_review_show_spoiler
 import campfire.features.libraries.ui.generated.resources.community_review_spoiler_warning
-import campfire.features.libraries.ui.generated.resources.community_reviews_title
 import campfire.features.libraries.ui.generated.resources.community_title
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.ui.material.RichText
@@ -82,12 +84,13 @@ class CommunitySlot(
 
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
-    val rating = state.info.rating ?: return
     var expandedReview by remember { mutableStateOf<BookReview?>(null) }
 
     Column(
       modifier = modifier,
     ) {
+      // The header (and its source pill) renders in every phase so the section
+      // stays put while a source switch or first fetch resolves.
       Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -104,59 +107,24 @@ class CommunitySlot(
         SourcePill(state = state, eventSink = eventSink)
       }
 
-      Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-          .fillMaxWidth()
-          .thenIf(state.providerUrl != null) {
-            clickable {
-              eventSink(LibraryItemUiEvent.OpenProviderPage(state.providerUrl!!))
-            }
-          },
-      ) {
-        Spacer(Modifier.width(16.dp))
-
-        Text(
-          text = rating.roundToSingleDecimal(),
-          style = MaterialTheme.typography.headlineLarge,
-          color = MaterialTheme.colorScheme.onSurface,
-        )
-
-        Spacer(Modifier.width(16.dp))
-
-        Column(
-          modifier = Modifier
-            .padding(vertical = 12.dp),
-        ) {
-          StarRow(rating = rating)
-
-          Spacer(Modifier.height(2.dp))
-
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            providerBrandIcon(state.providerId.key)?.let { brandIcon ->
-              Image(
-                imageVector = brandIcon,
-                contentDescription = state.providerName,
-                modifier = Modifier.size(16.dp),
-              )
-              Spacer(Modifier.width(4.dp))
-            }
-            Text(
-              text = buildString {
-                append(stringResource(Res.string.community_rating_attribution, state.providerName))
-                state.info.ratingsCount?.let { count ->
-                  append(" · ")
-                  append(stringResource(Res.string.community_rating_count, count.toString()))
-                }
-              },
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
+      when (val content = state.content) {
+        CommunityContent.Loading -> PhaseBox {
+          CircularProgressIndicator(modifier = Modifier.size(28.dp))
         }
-        Spacer(Modifier.width(16.dp))
+
+        CommunityContent.Unavailable -> PhaseBox {
+          Text(
+            text = stringResource(Res.string.community_empty_source, state.providerName),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+          )
+        }
+
+        is CommunityContent.Available -> RatingContent(
+          content = content,
+          onOpenProvider = { url -> eventSink(LibraryItemUiEvent.OpenProviderPage(url)) },
+        )
       }
 
       if (state.needsRelink) {
@@ -168,18 +136,14 @@ class CommunitySlot(
         }
       }
 
-      if (state.reviews.isNotEmpty()) {
-        MetadataHeader(
-          title = stringResource(Res.string.community_reviews_title),
-          textStyle = MaterialTheme.typography.titleMedium,
-          textColor = MaterialTheme.colorScheme.onSurface,
-          modifier = Modifier.padding(horizontal = 16.dp),
-        )
+      val reviews = (state.content as? CommunityContent.Available)?.reviews.orEmpty()
+      if (reviews.isNotEmpty()) {
+        Spacer(Modifier.height(8.dp))
         LazyRow(
           contentPadding = PaddingValues(horizontal = 16.dp),
           horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-          items(state.reviews) { review ->
+          items(reviews) { review ->
             ReviewCard(
               review = review,
               providerKey = state.providerId.key,
@@ -190,12 +154,14 @@ class CommunitySlot(
       }
 
       // Serving source has no review text, but linking another provider adds it.
-      state.reviewsLinkProviderName?.takeIf { state.reviews.isEmpty() }?.let { linkName ->
-        TextButton(
-          onClick = { eventSink(LibraryItemUiEvent.RelinkProvider) },
-          modifier = Modifier.padding(horizontal = 8.dp),
-        ) {
-          Text(stringResource(Res.string.community_connect_for_reviews, linkName))
+      if (state.content !is CommunityContent.Loading && reviews.isEmpty()) {
+        state.reviewsLinkProviderName?.let { linkName ->
+          TextButton(
+            onClick = { eventSink(LibraryItemUiEvent.RelinkProvider) },
+            modifier = Modifier.padding(horizontal = 8.dp),
+          ) {
+            Text(stringResource(Res.string.community_connect_for_reviews, linkName))
+          }
         }
       }
     }
@@ -211,6 +177,73 @@ class CommunitySlot(
         onDismiss = { expandedReview = null },
       )
     }
+  }
+}
+
+/**
+ * Fixed-height container for the loading and empty phases, sized to the rating
+ * row so switching phases doesn't shift the page.
+ */
+@Composable
+private fun PhaseBox(
+  modifier: Modifier = Modifier,
+  content: @Composable () -> Unit,
+) {
+  Box(
+    contentAlignment = Alignment.Center,
+    modifier = modifier
+      .fillMaxWidth()
+      .heightIn(min = 68.dp)
+      .padding(horizontal = 16.dp, vertical = 12.dp),
+  ) {
+    content()
+  }
+}
+
+@Composable
+private fun RatingContent(
+  content: CommunityContent.Available,
+  onOpenProvider: (String) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val rating = content.info.rating ?: return
+  Row(
+    verticalAlignment = Alignment.CenterVertically,
+    modifier = modifier
+      .fillMaxWidth()
+      .thenIf(content.info.providerUrl != null) {
+        clickable {
+          onOpenProvider(content.info.providerUrl!!)
+        }
+      },
+  ) {
+    Spacer(Modifier.width(16.dp))
+
+    Text(
+      text = rating.roundToSingleDecimal(),
+      style = MaterialTheme.typography.headlineLarge,
+      color = MaterialTheme.colorScheme.onSurface,
+    )
+
+    Spacer(Modifier.width(16.dp))
+
+    Column(
+      modifier = Modifier
+        .padding(vertical = 12.dp),
+    ) {
+      StarRow(rating = rating)
+
+      Spacer(Modifier.height(2.dp))
+
+      content.info.ratingsCount?.let { count ->
+        Text(
+          text = stringResource(Res.string.community_rating_count, count.toString()),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+    Spacer(Modifier.width(16.dp))
   }
 }
 
