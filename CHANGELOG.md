@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
 - Community ratings and reviews from Hardcover on the book detail page, with attribution and a tap-through to the book on Hardcover
 - Book Info page in Settings to connect sources like Hardcover (paste an API token), toggle them, and clear cached data
+- Open Library as a built-in ratings source — books with an ISBN show community ratings even without a Hardcover account
 
 ### Changed
 

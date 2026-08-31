@@ -26,6 +26,13 @@ interface BookInfoProvider {
 
   fun observeLinkState(): Flow<ProviderLinkState>
 
+  /**
+   * Whether this provider can even attempt [match] — e.g. a catalog keyed
+   * solely by ISBN can't serve an ASIN-only item. The registry skips providers
+   * that can't serve a match so another source gets the chance.
+   */
+  fun canServe(match: BookMatch): Boolean = true
+
   suspend fun getBookInfo(match: BookMatch): BookInfoResult<BookCommunityInfo>
 
   suspend fun getReviews(match: BookMatch, limit: Int = 10): BookInfoResult<List<BookReview>>

@@ -213,6 +213,35 @@ class DefaultBookInfoRegistryTest {
   }
 
   @Test
+  fun `a provider that cannot serve the match is skipped for one that can`() = runTest {
+    // Mimics an ASIN-only audiobook: the first-priority provider is ISBN-keyed
+    // and declares itself unservable, so the lower-priority one serves.
+    val isbnOnly = FakeBookInfoProvider(id = ProviderId.OpenLibrary, displayName = "ISBN Only")
+    isbnOnly.canServeResult = false
+    val asinCapable = FakeBookInfoProvider(id = ProviderId.Audnexus, displayName = "ASIN Capable")
+    asinCapable.bookInfoResult = BookInfoResult.Success(communityInfo)
+
+    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+    BookInfoDatabase.Schema.synchronous().create(driver)
+    val db = BookInfoDatabase(driver)
+    val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+    val providers = setOf(isbnOnly, asinCapable)
+    val registry = DefaultBookInfoRegistry(
+      providers = providers,
+      settings = DefaultBookInfoProviderSettings(MapSettings(), session),
+      store = BookInfoStore(providers, db, dispatchers),
+      userSession = session,
+    )
+
+    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+
+    val loaded = (state as LoadState.Loaded).data
+    assertThat(loaded!!.providerId).isEqualTo(ProviderId.Audnexus)
+    assertThat(loaded.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Audnexus))
+    assertThat(isbnOnly.bookInfoRequests.size).isEqualTo(0)
+  }
+
+  @Test
   fun `clearing the cache forces a refetch`() = runTest {
     val provider = FakeBookInfoProvider()
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)

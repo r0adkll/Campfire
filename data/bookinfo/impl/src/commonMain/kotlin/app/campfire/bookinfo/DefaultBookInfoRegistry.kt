@@ -65,7 +65,7 @@ class DefaultBookInfoRegistry(
     val match = item.bestMatch() ?: return flowOf(LoadState.Loaded(null))
 
     return observeProviders()
-      .map { statuses -> statuses.filter { it.canServeBookInfo } }
+      .map { statuses -> statuses.filter { it.canServeBookInfo && it.provider.canServe(match) } }
       .distinctUntilChanged { old, new ->
         old.map { it.provider.id to it.linkState } == new.map { it.provider.id to it.linkState }
       }

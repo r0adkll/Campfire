@@ -146,6 +146,7 @@ include(
   ":data:bookinfo:api",
   ":data:bookinfo:hardcover",
   ":data:bookinfo:impl",
+  ":data:bookinfo:openlibrary",
   ":data:bookinfo:test",
   ":data:bookinfo:ui",
 )
