@@ -12,12 +12,16 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
 /**
- * Finds candidate series by member books rather than by name — Audiobookshelf
- * series names don't reliably match Hardcover's, but the user's books do.
- * GraphQL requires every declared variable to be used, so declarations and
- * predicates are built together.
+ * Step 1 of series resolution: look up the books the user owns and read the
+ * series Hardcover puts them in.
+ *
+ * This walks Hardcover's own book→series edges rather than reverse-searching
+ * the catalog for series containing those books. A reverse search ranks parent
+ * universes above the series you actually want (The Cosmere has more books than
+ * The Stormlight Archive, and contains every Sanderson book you own), so it
+ * reliably picks the wrong one.
  */
-internal fun seriesByMembersQuery(hasIsbns: Boolean, hasAsins: Boolean): String {
+internal fun seriesCandidatesQuery(hasIsbns: Boolean, hasAsins: Boolean): String {
   require(hasIsbns || hasAsins) { "At least one identifier list is required" }
   val variables = buildList {
     if (hasIsbns) add("${'$'}isbns: [String!]!")
@@ -33,16 +37,34 @@ internal fun seriesByMembersQuery(hasIsbns: Boolean, hasAsins: Boolean): String 
     }
   }.joinToString(", ")
   return """
-  query SeriesByMembers($variables) {
-    series(
-      where: {book_series: {book: {editions: {_or: [$predicates]}}}}
-      order_by: {books_count: desc}
-      limit: 5
-    ) {
+  query SeriesCandidates($variables) {
+    books(where: {editions: {_or: [$predicates]}}, limit: 10) {
+      id
+      book_series {
+        featured
+        position
+        series {
+          id
+          name
+          books_count
+          primary_books_count
+          is_completed
+        }
+      }
+    }
+  }
+  """.trimIndent()
+}
+
+/** Step 2: the chosen series' books, in reading order. */
+internal val SERIES_BOOKS_QUERY = """
+  query SeriesBooks(${'$'}seriesId: Int!) {
+    series(where: {id: {_eq: ${'$'}seriesId}}, limit: 1) {
       id
       name
       is_completed
       books_count
+      primary_books_count
       book_series(order_by: {position: asc}) {
         position
         compilation
@@ -62,8 +84,34 @@ internal fun seriesByMembersQuery(hasIsbns: Boolean, hasAsins: Boolean): String 
       }
     }
   }
-  """.trimIndent()
-}
+""".trimIndent()
+
+@Serializable
+internal data class SeriesCandidatesData(
+  val books: List<HardcoverCandidateBook> = emptyList(),
+)
+
+@Serializable
+internal data class HardcoverCandidateBook(
+  val id: Long,
+  @SerialName("book_series") val bookSeries: List<HardcoverCandidateSeriesRow> = emptyList(),
+)
+
+@Serializable
+internal data class HardcoverCandidateSeriesRow(
+  val featured: Boolean? = null,
+  val position: Double? = null,
+  val series: HardcoverSeriesSummary? = null,
+)
+
+@Serializable
+internal data class HardcoverSeriesSummary(
+  val id: Long,
+  val name: String? = null,
+  @SerialName("books_count") val booksCount: Int? = null,
+  @SerialName("primary_books_count") val primaryBooksCount: Int? = null,
+  @SerialName("is_completed") val isCompleted: Boolean? = null,
+)
 
 @Serializable
 internal data class SeriesData(
@@ -76,6 +124,7 @@ internal data class HardcoverSeries(
   val name: String? = null,
   @SerialName("is_completed") val isCompleted: Boolean? = null,
   @SerialName("books_count") val booksCount: Int? = null,
+  @SerialName("primary_books_count") val primaryBooksCount: Int? = null,
   @SerialName("book_series") val bookSeries: List<HardcoverBookSeries> = emptyList(),
 )
 
@@ -105,47 +154,58 @@ internal data class HardcoverEdition(
 )
 
 /**
- * Picks the series the user's books actually belong to: exact normalized name
- * match first (a book can sit in several series, e.g. a saga and its parent
- * universe), then the candidate overlapping the most member identifiers.
+ * Chooses which of the candidate series the user's shelf actually represents.
+ *
+ * A book commonly belongs to several series at once — a saga and the wider
+ * universe it sits in — so preference order is:
+ *
+ * 1. the series whose name matches the Audiobookshelf series name
+ * 2. the series shared by the most of the user's books
+ * 3. the series Hardcover marks as `featured` on those books (its primary one)
+ * 4. the most specific series, i.e. the fewest main books
  */
-internal fun pickSeriesCandidate(
-  candidates: List<HardcoverSeries>,
+internal fun pickSeriesId(
+  data: SeriesCandidatesData,
   match: SeriesMatch,
-): HardcoverSeries? {
-  if (candidates.isEmpty()) return null
+): HardcoverSeriesSummary? {
+  val rows = data.books.flatMap { book ->
+    book.bookSeries.mapNotNull { row -> row.series?.let { it to (row.featured == true) } }
+  }
+  if (rows.isEmpty()) return null
+
   val targetName = match.seriesName.normalizedTitle()
-  candidates.firstOrNull { it.name?.normalizedTitle() == targetName }?.let { return it }
+  rows.firstOrNull { (series, _) -> series.name?.normalizedTitle() == targetName }
+    ?.let { return it.first }
 
-  val memberIds = buildSet {
-    match.memberMatches.forEach { member ->
-      member.isbn?.normalizedIdentifier()?.let(::add)
-      member.asin?.normalizedIdentifier()?.let(::add)
-    }
-  }
-  return candidates.maxByOrNull { candidate -> candidate.memberOverlap(memberIds) }
-}
-
-private fun HardcoverSeries.memberOverlap(memberIds: Set<String>): Int {
-  return bookSeries.count { row ->
-    row.book?.editions.orEmpty().any { edition ->
-      edition.isbn13?.normalizedIdentifier() in memberIds ||
-        edition.isbn10?.normalizedIdentifier() in memberIds ||
-        edition.asin?.normalizedIdentifier() in memberIds
-    }
-  }
+  val grouped = rows.groupBy { it.first.id }
+  return grouped.values
+    .maxWithOrNull(
+      compareBy(
+        { group -> group.size },
+        { group -> group.count { it.second } },
+        { group -> -(group.first().first.primaryBooksCount ?: group.first().first.booksCount ?: 0) },
+      ),
+    )
+    ?.first()
+    ?.first
 }
 
 /**
- * Reduces Hardcover's raw series rows — which mix translations, box sets, and
- * split editions at overlapping positions — to one canonical entry per
- * position:
+ * Reduces a series' raw rows to its main books in reading order.
+ *
+ * Hardcover lists everything under a series: translations and box sets at the
+ * same position as the canonical edition, split audio editions at fractional
+ * positions, and companion novellas. `primary_books_count` is documented as
+ * "main series books (excluding companions)", and those main books are exactly
+ * the whole-numbered positions — so:
  *
  * 1. compilations (box sets) are dropped
- * 2. duplicate positions keep the most-shelved row (translations lose to the
- *    canonical edition on `users_count`)
- * 3. fractional positions that just re-title their base book (split parts,
- *    dramatized adaptations) are dropped; genuine companion novellas survive
+ * 2. fractional positions are dropped as companions/split editions
+ * 3. duplicates at one position keep the most-shelved row, so translations lose
+ *    to the canonical edition
+ *
+ * Companions the user actually owns are unaffected: the merge keeps owned books
+ * the provider listing doesn't mention.
  */
 internal fun canonicalizeSeries(
   series: HardcoverSeries,
@@ -153,25 +213,18 @@ internal fun canonicalizeSeries(
 ): ProviderSeries {
   data class Row(val position: Double, val book: HardcoverSeriesBook)
 
-  val rows = series.bookSeries.mapNotNull { bookSeries ->
+  val mainRows = series.bookSeries.mapNotNull { bookSeries ->
     val position = bookSeries.position ?: return@mapNotNull null
     if (bookSeries.compilation == true) return@mapNotNull null
+    if (position != floor(position)) return@mapNotNull null
     val book = bookSeries.book ?: return@mapNotNull null
     if (book.title.isNullOrBlank()) return@mapNotNull null
     Row(position, book)
   }
 
-  val byPosition = rows
+  val entries = mainRows
     .groupBy { it.position }
-    .mapValues { (_, group) -> group.maxBy { it.book.usersCount ?: 0 } }
-
-  val entries = byPosition.values
-    .filter { row ->
-      val isWholePosition = row.position == floor(row.position)
-      if (isWholePosition) return@filter true
-      val baseTitle = byPosition[floor(row.position)]?.book?.title?.normalizedTitle()
-      baseTitle == null || !row.book.title!!.normalizedTitle().startsWith(baseTitle)
-    }
+    .map { (_, group) -> group.maxBy { it.book.usersCount ?: 0 } }
     .map { row ->
       val book = row.book
       ProviderSeriesEntry(

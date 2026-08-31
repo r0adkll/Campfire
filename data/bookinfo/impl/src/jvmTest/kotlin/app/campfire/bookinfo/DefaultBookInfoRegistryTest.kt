@@ -259,6 +259,25 @@ class DefaultBookInfoRegistryTest {
   }
 
   @Test
+  fun `owned books are emitted before the provider responds`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ISBN = "9780765393043")),
+    )
+    val registry = registry(provider)
+
+    // The very first loaded emission must already carry the user's own book —
+    // provider entries decorate the list, they never gate it.
+    val first = registry
+      .observeSeriesEntries("The Stormlight Archive", listOf(owned))
+      .first { it is LoadState.Loaded<*> }
+
+    val loaded = (first as LoadState.Loaded).data
+    assertThat(loaded.entries.map { it::class.simpleName }).isEqualTo(listOf("Owned"))
+    assertThat(loaded.providerId).isNull()
+  }
+
+  @Test
   fun `series degrades to owned entries when the provider has no listing`() = runTest {
     val provider = FakeBookInfoProvider()
     provider.seriesResult = BookInfoResult.NotFound

@@ -6,12 +6,16 @@ package app.campfire.bookinfo.hardcover
 import app.campfire.bookinfo.api.BookMatch
 import app.campfire.bookinfo.api.SeriesMatch
 import app.campfire.bookinfo.hardcover.graphql.HardcoverBookSeries
+import app.campfire.bookinfo.hardcover.graphql.HardcoverCandidateBook
+import app.campfire.bookinfo.hardcover.graphql.HardcoverCandidateSeriesRow
 import app.campfire.bookinfo.hardcover.graphql.HardcoverEdition
 import app.campfire.bookinfo.hardcover.graphql.HardcoverSeries
 import app.campfire.bookinfo.hardcover.graphql.HardcoverSeriesBook
+import app.campfire.bookinfo.hardcover.graphql.HardcoverSeriesSummary
+import app.campfire.bookinfo.hardcover.graphql.SeriesCandidatesData
 import app.campfire.bookinfo.hardcover.graphql.canonicalizeSeries
 import app.campfire.bookinfo.hardcover.graphql.isReleasedBy
-import app.campfire.bookinfo.hardcover.graphql.pickSeriesCandidate
+import app.campfire.bookinfo.hardcover.graphql.pickSeriesId
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -21,12 +25,29 @@ import assertk.assertions.isTrue
 import kotlin.test.Test
 
 /**
- * Fixtures mirror the real shape of Hardcover's Stormlight Archive listing
- * (see docs/research/book-metadata-providers.md): translations and box sets
- * share positions with the canonical edition, split audio editions sit at
- * fractional positions, and unreleased books carry placeholder future years.
+ * Fixtures mirror the real shape of Hardcover's Stormlight Archive data
+ * (verified live — see docs/research/book-metadata-providers.md): every book
+ * belongs to both the saga (997, primary_books_count 10) and the wider Cosmere
+ * (5497, primary_books_count 34), and the raw series listing mixes
+ * translations, box sets, split audio editions, and companion novellas.
  */
 private const val TODAY = "2026-08-31"
+
+private val STORMLIGHT = HardcoverSeriesSummary(
+  id = 997,
+  name = "The Stormlight Archive",
+  booksCount = 27,
+  primaryBooksCount = 10,
+  isCompleted = false,
+)
+
+private val COSMERE = HardcoverSeriesSummary(
+  id = 5497,
+  name = "The Cosmere",
+  booksCount = 37,
+  primaryBooksCount = 34,
+  isCompleted = null,
+)
 
 private var nextId = 1L
 
@@ -50,16 +71,106 @@ private fun book(
 private fun row(position: Double, book: HardcoverSeriesBook, compilation: Boolean = false) =
   HardcoverBookSeries(position = position, compilation = compilation, book = book)
 
+/** An owned book that Hardcover puts in both the saga and the universe. */
+private fun candidateBook(
+  stormlightPosition: Double,
+  cosmerePosition: Double,
+) = HardcoverCandidateBook(
+  id = nextId++,
+  bookSeries = listOf(
+    HardcoverCandidateSeriesRow(featured = true, position = stormlightPosition, series = STORMLIGHT),
+    HardcoverCandidateSeriesRow(featured = false, position = cosmerePosition, series = COSMERE),
+  ),
+)
+
+private fun match(name: String) = SeriesMatch(
+  seriesName = name,
+  memberMatches = listOf(BookMatch.Identifiers(isbn = "9780765393043", asin = null)),
+)
+
 class CanonicalizeSeriesTest {
+
+  @Test
+  fun `the series matching the library name wins over the wider universe`() {
+    val data = SeriesCandidatesData(
+      books = listOf(candidateBook(1.0, 7.0), candidateBook(3.0, 21.0)),
+    )
+
+    val picked = pickSeriesId(data, match("The Stormlight Archive"))
+
+    assertThat(picked).isNotNull()
+    assertThat(picked!!.id).isEqualTo(997L)
+  }
+
+  @Test
+  fun `an unrecognized library name still avoids the parent universe`() {
+    // Both series are shared by every book, so the featured flag breaks the tie
+    // rather than the book count — which is what previously picked The Cosmere.
+    val data = SeriesCandidatesData(
+      books = listOf(candidateBook(1.0, 7.0), candidateBook(3.0, 21.0)),
+    )
+
+    val picked = pickSeriesId(data, match("Stormlight (audio editions)"))
+
+    assertThat(picked!!.id).isEqualTo(997L)
+  }
+
+  @Test
+  fun `the series shared by the most books wins`() {
+    val shared = HardcoverSeriesSummary(id = 42, name = "Shared", primaryBooksCount = 5)
+    val onlyOne = HardcoverSeriesSummary(id = 43, name = "Fringe", primaryBooksCount = 2)
+    val data = SeriesCandidatesData(
+      books = listOf(
+        HardcoverCandidateBook(1, listOf(HardcoverCandidateSeriesRow(false, 1.0, shared))),
+        HardcoverCandidateBook(
+          2,
+          listOf(
+            HardcoverCandidateSeriesRow(false, 2.0, shared),
+            HardcoverCandidateSeriesRow(false, 1.0, onlyOne),
+          ),
+        ),
+      ),
+    )
+
+    val picked = pickSeriesId(data, match("Unknown Name"))
+
+    assertThat(picked!!.id).isEqualTo(42L)
+  }
+
+  @Test
+  fun `no candidates yields no series`() {
+    assertThat(pickSeriesId(SeriesCandidatesData(), match("Any"))).isNull()
+  }
+
+  @Test
+  fun `only main books are kept`() {
+    val series = HardcoverSeries(
+      id = 997,
+      name = "The Stormlight Archive",
+      primaryBooksCount = 10,
+      bookSeries = listOf(
+        row(0.1, book("The Way of Kings Prime", usersCount = 203)),
+        row(1.0, book("The Way of Kings", usersCount = 9505)),
+        row(1.1, book("The Way of Kings, Part 1", usersCount = 437)),
+        row(1.2, book("The Way of Kings, Part 2", usersCount = 67)),
+        row(2.0, book("Words of Radiance", usersCount = 5971)),
+        row(2.5, book("Edgedancer", usersCount = 2000)),
+      ),
+    )
+
+    val result = canonicalizeSeries(series, TODAY)
+
+    assertThat(result.entries.map { it.title })
+      .isEqualTo(listOf("The Way of Kings", "Words of Radiance"))
+  }
 
   @Test
   fun `box set compilations are dropped`() {
     val series = HardcoverSeries(
       id = 997,
-      name = "The Stormlight Archive",
       bookSeries = listOf(
         row(1.0, book("The Way of Kings", usersCount = 9505)),
-        row(1.0, book("The Stormlight Archive, Books 1-4"), compilation = true),
+        row(2.0, book("The Stormlight Archive, Books 1-4"), compilation = true),
       ),
     )
 
@@ -85,26 +196,7 @@ class CanonicalizeSeriesTest {
   }
 
   @Test
-  fun `split part editions are dropped but companion novellas survive`() {
-    val series = HardcoverSeries(
-      id = 997,
-      bookSeries = listOf(
-        row(1.0, book("The Way of Kings", usersCount = 9505)),
-        row(1.1, book("The Way of Kings, Part 1", usersCount = 437)),
-        row(1.2, book("The Way of Kings, Part 2", usersCount = 67)),
-        row(2.0, book("Words of Radiance", usersCount = 5971)),
-        row(2.5, book("Edgedancer", usersCount = 2000)),
-      ),
-    )
-
-    val result = canonicalizeSeries(series, TODAY)
-
-    assertThat(result.entries.map { it.title })
-      .isEqualTo(listOf("The Way of Kings", "Words of Radiance", "Edgedancer"))
-  }
-
-  @Test
-  fun `unreleased books are flagged and kept in order`() {
+  fun `unreleased main books are flagged and kept in order`() {
     val series = HardcoverSeries(
       id = 997,
       isCompleted = false,
@@ -117,10 +209,10 @@ class CanonicalizeSeriesTest {
 
     val result = canonicalizeSeries(series, TODAY)
 
+    // Horneater sits at 4.5 — a companion, not a main entry.
     assertThat(result.entries.map { it.title to it.isReleased }).isEqualTo(
       listOf(
         "Rhythm of War" to true,
-        "Horneater" to false,
         "Untitled Stormlight Archive #6" to false,
       ),
     )
@@ -161,60 +253,31 @@ class CanonicalizeSeriesTest {
   }
 
   @Test
+  fun `main book count lines up with hardcover's own primary count`() {
+    // Positions 1..10 are the main entries; everything else is noise.
+    val series = HardcoverSeries(
+      id = 997,
+      primaryBooksCount = 10,
+      bookSeries = buildList {
+        add(row(0.1, book("The Way of Kings Prime")))
+        (1..10).forEach { add(row(it.toDouble(), book("Main Book $it"))) }
+        add(row(2.5, book("Edgedancer")))
+        add(row(3.5, book("Dawnshard")))
+        add(row(4.5, book("Horneater")))
+        add(row(5.0, book("Box Set"), compilation = true))
+      },
+    )
+
+    val result = canonicalizeSeries(series, TODAY)
+
+    assertThat(result.entries.size).isEqualTo(series.primaryBooksCount)
+  }
+
+  @Test
   fun `release dates are compared against today`() {
     assertThat(isReleasedBy("2010-08-31", TODAY)).isTrue()
     assertThat(isReleasedBy("2027-01-01", TODAY)).isFalse()
     assertThat(isReleasedBy(null, TODAY)).isFalse()
     assertThat(isReleasedBy("2026-08-31T00:00:00Z", TODAY)).isTrue()
-  }
-
-  @Test
-  fun `candidate selection prefers an exact name match`() {
-    val match = SeriesMatch(
-      seriesName = "The Stormlight Archive",
-      memberMatches = listOf(BookMatch.Identifiers(isbn = "9780765393043", asin = null)),
-    )
-    val cosmere = HardcoverSeries(id = 5497, name = "The Cosmere")
-    val stormlight = HardcoverSeries(id = 997, name = "Stormlight Archive")
-
-    val picked = pickSeriesCandidate(listOf(cosmere, stormlight), match)
-
-    assertThat(picked).isNotNull()
-    assertThat(picked!!.id).isEqualTo(997L)
-  }
-
-  @Test
-  fun `candidate selection falls back to member overlap`() {
-    val match = SeriesMatch(
-      seriesName = "Completely Different Name",
-      memberMatches = listOf(
-        BookMatch.Identifiers(isbn = "978-0-7653-9304-3", asin = null),
-        BookMatch.Identifiers(isbn = "9780765326379", asin = null),
-      ),
-    )
-    val unrelated = HardcoverSeries(
-      id = 1,
-      name = "Unrelated",
-      bookSeries = listOf(row(1.0, book("Other", isbn13 = "9999999999999"))),
-    )
-    val stormlight = HardcoverSeries(
-      id = 997,
-      name = "Stormlight",
-      bookSeries = listOf(
-        row(1.0, book("The Way of Kings", isbn13 = "9780765393043")),
-        row(2.0, book("Words of Radiance", isbn13 = "9780765326379")),
-      ),
-    )
-
-    val picked = pickSeriesCandidate(listOf(unrelated, stormlight), match)
-
-    assertThat(picked!!.id).isEqualTo(997L)
-  }
-
-  @Test
-  fun `no candidates yields no series`() {
-    val match = SeriesMatch("Any", listOf(BookMatch.Identifiers(isbn = "1", asin = null)))
-
-    assertThat(pickSeriesCandidate(emptyList(), match)).isNull()
   }
 }

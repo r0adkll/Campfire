@@ -128,13 +128,14 @@ class DefaultBookInfoRegistry(
     ownedItems: List<LibraryItem>,
     ownedOnly: SeriesInfoState,
   ): Flow<LoadState<out SeriesInfoState>> = flow {
+    // The user's own books are already local. Provider entries decorate that
+    // list, so they must never gate it behind a network round-trip — show the
+    // owned books immediately and merge provider entries in when they arrive.
+    emit(LoadState.Loaded(ownedOnly))
+
     val cached = seriesStore.cached(key)
     val invalidLink = status.linkState is ProviderLinkState.Invalid
-
-    if (invalidLink && cached == null) {
-      emit(LoadState.Loaded(ownedOnly))
-      return@flow
-    }
+    if (invalidLink && cached == null) return@flow
 
     val refresh = !invalidLink &&
       (
@@ -145,27 +146,20 @@ class DefaultBookInfoRegistry(
           )
         )
 
-    var emittedData = false
     seriesStore.stream(key, refresh = refresh).collect { response ->
-      when (response) {
-        is StoreReadResponse.Loading -> if (!emittedData) emit(LoadState.Loading)
-        is StoreReadResponse.Data -> {
-          emittedData = true
-          val series = response.value.series
-          emit(
-            LoadState.Loaded(
-              SeriesInfoState(
-                providerId = series?.let { status.provider.id },
-                providerName = series?.let { status.provider.displayName },
-                isCompleted = series?.isCompleted,
-                entries = mergeSeriesEntries(ownedItems, series, status.provider.id),
-              ),
+      // Loading and Error keep the owned-only list on screen.
+      if (response is StoreReadResponse.Data) {
+        val series = response.value.series
+        emit(
+          LoadState.Loaded(
+            SeriesInfoState(
+              providerId = series?.let { status.provider.id },
+              providerName = series?.let { status.provider.displayName },
+              isCompleted = series?.isCompleted,
+              entries = mergeSeriesEntries(ownedItems, series, status.provider.id),
             ),
-          )
-        }
-        // Provider-sourced entries are additive; on failure show what's owned.
-        is StoreReadResponse.Error -> if (!emittedData) emit(LoadState.Loaded(ownedOnly))
-        else -> Unit
+          ),
+        )
       }
     }
   }

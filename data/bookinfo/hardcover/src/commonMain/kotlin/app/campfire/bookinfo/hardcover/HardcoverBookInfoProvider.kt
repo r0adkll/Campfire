@@ -24,6 +24,8 @@ import app.campfire.bookinfo.hardcover.graphql.HardcoverGraphQlException
 import app.campfire.bookinfo.hardcover.graphql.HardcoverResult
 import app.campfire.bookinfo.hardcover.graphql.ME_QUERY
 import app.campfire.bookinfo.hardcover.graphql.MeData
+import app.campfire.bookinfo.hardcover.graphql.SERIES_BOOKS_QUERY
+import app.campfire.bookinfo.hardcover.graphql.SeriesCandidatesData
 import app.campfire.bookinfo.hardcover.graphql.SeriesData
 import app.campfire.bookinfo.hardcover.graphql.UserBooksData
 import app.campfire.bookinfo.hardcover.graphql.bookByIdentifiersQuery
@@ -32,8 +34,8 @@ import app.campfire.bookinfo.hardcover.graphql.normalizedIdentifier
 import app.campfire.bookinfo.hardcover.graphql.parseCoverUrl
 import app.campfire.bookinfo.hardcover.graphql.parseRatingsDistribution
 import app.campfire.bookinfo.hardcover.graphql.parseUsername
-import app.campfire.bookinfo.hardcover.graphql.pickSeriesCandidate
-import app.campfire.bookinfo.hardcover.graphql.seriesByMembersQuery
+import app.campfire.bookinfo.hardcover.graphql.pickSeriesId
+import app.campfire.bookinfo.hardcover.graphql.seriesCandidatesQuery
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
@@ -142,24 +144,42 @@ class HardcoverBookInfoProvider(
     }
   }
 
+  /**
+   * Resolves a series in two steps: read the series off the books the user owns
+   * (Hardcover's own book→series edges), then fetch that one series' books.
+   * Two small queries beat one reverse-search — see [seriesCandidatesQuery].
+   */
   override suspend fun getSeries(match: SeriesMatch): BookInfoResult<ProviderSeries> {
     val isbns = match.memberMatches.mapNotNull { it.isbn?.normalizedIdentifier() }.distinct()
     val asins = match.memberMatches.mapNotNull { it.asin?.normalizedIdentifier() }.distinct()
     if (isbns.isEmpty() && asins.isEmpty()) return BookInfoResult.NotFound
 
-    val document = seriesByMembersQuery(hasIsbns = isbns.isNotEmpty(), hasAsins = asins.isNotEmpty())
-    val variables = buildJsonObject {
+    val candidatesDocument = seriesCandidatesQuery(
+      hasIsbns = isbns.isNotEmpty(),
+      hasAsins = asins.isNotEmpty(),
+    )
+    val candidatesVariables = buildJsonObject {
       if (isbns.isNotEmpty()) put("isbns", JsonArray(isbns.map { JsonPrimitive(it) }))
       if (asins.isNotEmpty()) put("asins", JsonArray(asins.map { JsonPrimitive(it) }))
     }
 
-    return when (val result = graphQl.execute(document, variables, SeriesData.serializer())) {
+    val candidates = when (
+      val result =
+        graphQl.execute(candidatesDocument, candidatesVariables, SeriesCandidatesData.serializer())
+    ) {
+      is HardcoverResult.Success -> result.data
+      else -> return result.toBookInfoError()
+    }
+
+    val picked = pickSeriesId(candidates, match) ?: return BookInfoResult.NotFound
+
+    val booksVariables = buildJsonObject { put("seriesId", picked.id) }
+    return when (
+      val result = graphQl.execute(SERIES_BOOKS_QUERY, booksVariables, SeriesData.serializer())
+    ) {
       is HardcoverResult.Success -> {
-        val candidate = pickSeriesCandidate(result.data.series, match)
-          ?: return BookInfoResult.NotFound
-        BookInfoResult.Success(
-          canonicalizeSeries(candidate, nowIsoDate = todayIsoDate()),
-        )
+        val series = result.data.series.firstOrNull() ?: return BookInfoResult.NotFound
+        BookInfoResult.Success(canonicalizeSeries(series, nowIsoDate = todayIsoDate()))
       }
       else -> result.toBookInfoError()
     }
