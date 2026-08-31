@@ -42,6 +42,7 @@ class AudibleBookInfoProvider(
   override val displayName: String = "Audible"
 
   override val capabilities: ProviderCapabilities = ProviderCapabilities(
+    hasReviewText = true,
     hasAggregateRating = true,
     hasSupplementalMetadata = true,
   )
@@ -82,12 +83,54 @@ class AudibleBookInfoProvider(
   }
 
   override suspend fun getReviews(match: BookMatch, limit: Int): BookInfoResult<List<BookReview>> {
-    return BookInfoResult.Success(emptyList())
+    val asin = (match as? BookMatch.Identifiers)?.asin.normalizedAsin()
+      ?: return BookInfoResult.NotFound
+
+    return when (val result = catalog.reviews(asin, limit)) {
+      is BookInfoResult.Success -> BookInfoResult.Success(
+        result.data.mapNotNull { review ->
+          // Bodies arrive entity-escaped; one decode pass yields the HTML the
+          // review cards already render (real <br/> tags and so on). Audible
+          // has no spoiler flag.
+          val text = review.body?.decodeHtmlEntities()?.takeUnless { it.isBlank() }
+            ?: return@mapNotNull null
+          BookReview(
+            author = review.authorName?.decodeHtmlEntities()?.takeUnless { it.isBlank() },
+            rating = review.ratings?.overallRating?.takeIf { it > 0.0 },
+            text = text,
+            hasSpoilers = false,
+            title = review.title?.decodeHtmlEntities()?.takeUnless { it.isBlank() },
+          )
+        },
+      )
+      is BookInfoResult.Failure -> result
+      else -> BookInfoResult.Success(emptyList())
+    }
   }
 }
 
 internal fun String?.normalizedAsin(): String? {
   return this?.filter { it.isLetterOrDigit() }?.uppercase()?.takeUnless { it.isEmpty() }
+}
+
+/**
+ * Undoes one level of HTML entity escaping. Audible delivers review text
+ * double-encoded: `&lt;br/&gt;` decodes to a real `<br/>` tag for the HTML
+ * renderer. `&amp;` is decoded last so it can't create new entities.
+ */
+internal fun String.decodeHtmlEntities(): String {
+  return replace("&lt;", "<")
+    .replace("&gt;", ">")
+    .replace("&quot;", "\"")
+    .replace("&apos;", "'")
+    .replace("&#39;", "'")
+    .replace(Regex("&#(\\d+);")) { match ->
+      match.groupValues[1].toIntOrNull()?.toChar()?.toString() ?: match.value
+    }
+    .replace(Regex("&#x([0-9a-fA-F]+);")) { match ->
+      match.groupValues[1].toIntOrNull(16)?.toChar()?.toString() ?: match.value
+    }
+    .replace("&amp;", "&")
 }
 
 internal fun audibleProductUrl(asin: String): String = "https://www.audible.com/pd/$asin"

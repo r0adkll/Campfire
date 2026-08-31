@@ -103,6 +103,53 @@ class AudibleBookInfoProviderTest {
   }
 
   @Test
+  fun `reviews are decoded and mapped`() = runTest {
+    val reviewsResponse = """
+    {
+      "customer_reviews": [
+        {
+          "title": "This book is a blast",
+          "author_name": "Jim &quot;The Impatient&quot;",
+          "body": "Great listen.&lt;br/&gt;Loved Dick Hill &amp; the story.",
+          "ratings": {"overall_rating": 5, "performance_rating": 5, "story_rating": 4}
+        },
+        {"title": "Empty", "author_name": "Quiet", "body": "  ", "ratings": {"overall_rating": 3}}
+      ]
+    }
+    """
+    val client = HttpClient(
+      MockEngine { request ->
+        requests += request.url.toString()
+        respond(reviewsResponse)
+      },
+    )
+
+    val result = AudibleBookInfoProvider(client)
+      .getReviews(BookMatch.Identifiers(isbn = null, asin = "b002v0qk4c"), limit = 5)
+
+    val reviews = (result as BookInfoResult.Success).data
+    // The blank-bodied review is dropped.
+    assertThat(reviews.size).isEqualTo(1)
+    val review = reviews.single()
+    assertThat(review.title).isEqualTo("This book is a blast")
+    assertThat(review.author).isEqualTo("Jim \"The Impatient\"")
+    assertThat(review.text).isEqualTo("Great listen.<br/>Loved Dick Hill & the story.")
+    assertThat(review.rating).isEqualTo(5.0)
+    assertThat(review.hasSpoilers).isFalse()
+    assertThat(
+      requests.single().endsWith("/reviews?num_results=5&sort_by=MostHelpful"),
+    ).isTrue()
+  }
+
+  @Test
+  fun `entity decoding is single pass`() {
+    // Double-escaped input decodes one level only: &amp;lt; becomes the
+    // literal text "&lt;", never a tag.
+    assertThat("5 &amp;lt; 10 &#8212; &#x27;quoted&#x27;".decodeHtmlEntities())
+      .isEqualTo("5 &lt; 10 — 'quoted'")
+  }
+
+  @Test
   fun `an unrated book is a miss`() = runTest {
     val result = provider(response = UNRATED_RESPONSE)
       .getBookInfo(BookMatch.Identifiers(isbn = null, asin = "B002V0QK4C"))

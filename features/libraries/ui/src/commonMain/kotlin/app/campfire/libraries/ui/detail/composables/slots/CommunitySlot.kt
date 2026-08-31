@@ -322,14 +322,25 @@ private fun ReviewCard(
       ) {
         ReviewHeader(review = review, providerKey = providerKey)
         Spacer(Modifier.height(8.dp))
-        // minLines == maxLines keeps every card in the row the same height
-        // regardless of how long the review is.
+        // Every card measures five text lines tall regardless of review
+        // length; a titled review trades one body line for its headline.
+        review.title?.let { title ->
+          Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = if (obscured) Modifier.blur(12.dp) else Modifier,
+          )
+        }
+        val bodyLines = if (review.title != null) 4 else 5
         RichText(
           state = rememberHtmlRichTextState(review.text),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
-          minLines = 5,
-          maxLines = 5,
+          minLines = bodyLines,
+          maxLines = bodyLines,
           overflow = TextOverflow.Ellipsis,
           modifier = if (obscured) Modifier.blur(12.dp) else Modifier,
         )

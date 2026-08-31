@@ -134,6 +134,16 @@ internal fun ReviewBottomSheet(
 
       Spacer(Modifier.height(16.dp))
 
+      review.title?.let { title ->
+        Text(
+          text = title,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.SemiBold,
+          color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(8.dp))
+      }
+
       Box(
         modifier = Modifier.weight(1f, fill = false),
       ) {

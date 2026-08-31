@@ -58,6 +58,16 @@ internal class AudibleCatalog(
     return BookInfoResult.Success(all)
   }
 
+  suspend fun reviews(
+    asin: String,
+    limit: Int,
+  ): BookInfoResult<List<AudibleReview>> {
+    return fetch(
+      url = "$BASE_URL/catalog/products/$asin/reviews?num_results=$limit&sort_by=MostHelpful",
+      deserializer = AudibleReviewsEnvelope.serializer(),
+    ).mapNotNull { it.customerReviews }
+  }
+
   private suspend fun <T> fetch(
     url: String,
     deserializer: DeserializationStrategy<T>,
@@ -148,6 +158,24 @@ internal data class AudibleRatingDistribution(
   @SerialName("num_three_star_ratings") val numThreeStarRatings: Int? = null,
   @SerialName("num_four_star_ratings") val numFourStarRatings: Int? = null,
   @SerialName("num_five_star_ratings") val numFiveStarRatings: Int? = null,
+)
+
+@Serializable
+internal data class AudibleReviewsEnvelope(
+  @SerialName("customer_reviews") val customerReviews: List<AudibleReview> = emptyList(),
+)
+
+@Serializable
+internal data class AudibleReview(
+  val title: String? = null,
+  @SerialName("author_name") val authorName: String? = null,
+  val body: String? = null,
+  val ratings: AudibleReviewRatings? = null,
+)
+
+@Serializable
+internal data class AudibleReviewRatings(
+  @SerialName("overall_rating") val overallRating: Double? = null,
 )
 
 @Serializable

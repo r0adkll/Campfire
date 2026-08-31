@@ -29,6 +29,7 @@ data class BookCommunityInfo(
  * A single written community review.
  *
  * @param author the reviewer's display name (or username when no name is set)
+ * @param title the reviewer's own headline for the review, when the provider has one
  * @param avatarUrl the reviewer's profile image, when the provider exposes one
  * @param badge provider-issued profile badge text (e.g. Hardcover's "Supporter" flair)
  */
@@ -40,4 +41,5 @@ data class BookReview(
   val hasSpoilers: Boolean,
   val avatarUrl: String? = null,
   val badge: String? = null,
+  val title: String? = null,
 )
