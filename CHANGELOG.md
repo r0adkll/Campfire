@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The five quick playback speed options can now be customized in Settings → Playback, with sliders from 0.5x to 3x and tap-to-type exact values
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
 - Community ratings and reviews from Hardcover on the book detail page, with attribution and a tap-through to the book on Hardcover
-- Social page in Settings to connect book info providers like Hardcover (paste an API token), toggle sources, and clear cached data
+- Book Info page in Settings to connect sources like Hardcover (paste an API token), toggle them, and clear cached data
 
 ### Changed
 
