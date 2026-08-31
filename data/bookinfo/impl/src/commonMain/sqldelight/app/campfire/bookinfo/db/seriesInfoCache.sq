@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS seriesInfoCache (
+  userId TEXT NOT NULL,
+  providerId TEXT NOT NULL,
+  seriesName TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  fetchedAt INTEGER NOT NULL,
+  PRIMARY KEY (userId, providerId, seriesName)
+);
+
+select:
+SELECT * FROM seriesInfoCache
+WHERE userId = :userId AND providerId = :providerId AND seriesName = :seriesName;
+
+upsert:
+INSERT OR REPLACE INTO seriesInfoCache(userId, providerId, seriesName, payload, fetchedAt)
+VALUES (:userId, :providerId, :seriesName, :payload, :fetchedAt);
+
+delete:
+DELETE FROM seriesInfoCache
+WHERE userId = :userId AND providerId = :providerId AND seriesName = :seriesName;
+
+deleteAll:
+DELETE FROM seriesInfoCache;

@@ -11,11 +11,15 @@ import app.campfire.bookinfo.api.CommunitySource
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
+import app.campfire.bookinfo.api.ProviderSeries
+import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.db.BookInfoDatabase
 import app.campfire.bookinfo.store.BookInfoStore
+import app.campfire.bookinfo.store.SeriesInfoStore
 import app.campfire.bookinfo.test.FakeBookInfoProvider
 import app.campfire.common.test.coroutines.TestDispatcherProvider
 import app.campfire.common.test.user
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.session.UserSession
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -64,6 +68,7 @@ class DefaultBookInfoRegistryTest {
       providers = providerSet,
       settings = settings,
       store = BookInfoStore(providerSet, db, dispatchers),
+      seriesStore = SeriesInfoStore(providerSet, db, dispatchers),
       userSession = session,
     )
   }
@@ -266,6 +271,96 @@ class DefaultBookInfoRegistryTest {
     val state = registry.observeCommunityInfo(item).awaitAvailable()
 
     assertThat(state.reviewsLinkProviderName).isNull()
+  }
+
+  @Test
+  fun `owned books are emitted before the series provider responds`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    // The very first loaded emission must already carry the user's own book —
+    // provider entries decorate the list, they never gate it.
+    val first = registry
+      .observeSeriesEntries("The Stormlight Archive", listOf(owned))
+      .first { it is LoadState.Loaded<*> }
+
+    val loaded = (first as LoadState.Loaded).data
+    assertThat(loaded.entries.map { it::class.simpleName }).isEqualTo(listOf("Owned"))
+    assertThat(loaded.providerId).isNull()
+  }
+
+  @Test
+  fun `series entries merge owned books with provider entries`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    provider.seriesResult = BookInfoResult.Success(
+      ProviderSeries(
+        providerSeriesId = "B005NB27MK",
+        name = "The Stormlight Archive",
+        isCompleted = null,
+        entries = listOf(
+          ProviderSeriesEntry(
+            providerBookId = "B003P2WO5E",
+            position = 1.0,
+            title = "The Way of Kings",
+            releaseDate = "2010-08-31",
+            isReleased = true,
+            providerUrl = null,
+            coverUrl = null,
+            asins = listOf("B003P2WO5E"),
+          ),
+          ProviderSeriesEntry(
+            providerBookId = "B00BWWSVPU",
+            position = 2.0,
+            title = "Words of Radiance",
+            releaseDate = "2014-03-04",
+            isReleased = true,
+            providerUrl = null,
+            coverUrl = null,
+          ),
+          ProviderSeriesEntry(
+            providerBookId = "B0UPCOMING",
+            position = 6.0,
+            title = "Untitled #6",
+            releaseDate = "2031-01-01",
+            isReleased = false,
+            providerUrl = null,
+            coverUrl = null,
+          ),
+        ),
+      ),
+    )
+    val registry = registry(provider)
+
+    val state = registry
+      .observeSeriesEntries("The Stormlight Archive", listOf(owned))
+      .first { it is LoadState.Loaded<*> && (it as LoadState.Loaded).data.providerId != null }
+
+    val loaded = (state as LoadState.Loaded).data
+    assertThat(loaded.providerName).isEqualTo("Fake Provider")
+    assertThat(loaded.entries.map { it::class.simpleName })
+      .isEqualTo(listOf("Owned", "Missing", "Upcoming"))
+  }
+
+  @Test
+  fun `series without identifiable members never calls the provider`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "Untracked", ISBN = null, ASIN = null)),
+    )
+    val registry = registry(provider)
+
+    val state = registry
+      .observeSeriesEntries("Mystery Series", listOf(owned))
+      .first { it is LoadState.Loaded<*> }
+
+    assertThat((state as LoadState.Loaded).data.entries.size).isEqualTo(1)
+    assertThat(provider.seriesRequests.size).isEqualTo(0)
   }
 
   @Test

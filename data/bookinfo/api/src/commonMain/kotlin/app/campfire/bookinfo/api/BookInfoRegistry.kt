@@ -3,6 +3,7 @@
 
 package app.campfire.bookinfo.api
 
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import kotlinx.coroutines.flow.Flow
 
@@ -31,6 +32,19 @@ interface BookInfoRegistry {
     item: LibraryItem,
     preferredProvider: ProviderId? = null,
   ): Flow<CommunityInfoState?>
+
+  /**
+   * The full series listing for [seriesName], merging the user's [ownedItems]
+   * with the best available provider's canonical entries — released books the
+   * user doesn't own become [SeriesEntry.Missing] and announced-but-unreleased
+   * ones [SeriesEntry.Upcoming]. The owned books are always emitted
+   * immediately; provider entries merge in when they arrive, and when no
+   * series-capable provider is available the listing simply stays owned-only.
+   */
+  fun observeSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): Flow<LoadState<out SeriesInfoState>>
 
   /**
    * Drops all locally cached provider data (for every provider and user).

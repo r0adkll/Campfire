@@ -11,13 +11,18 @@ import app.campfire.bookinfo.api.BookReview
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
+import app.campfire.bookinfo.api.ProviderSeries
+import app.campfire.bookinfo.api.SeriesMatch
 import app.campfire.bookinfo.audible.di.AudibleClient
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import io.ktor.client.HttpClient
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import me.tatarka.inject.annotations.Inject
 
 /**
@@ -44,6 +49,8 @@ class AudibleBookInfoProvider(
   override val capabilities: ProviderCapabilities = ProviderCapabilities(
     hasReviewText = true,
     hasAggregateRating = true,
+    hasSeriesOrdering = true,
+    hasUpcomingReleases = true,
     hasSupplementalMetadata = true,
   )
 
@@ -106,6 +113,86 @@ class AudibleBookInfoProvider(
       is BookInfoResult.Failure -> result
       else -> BookInfoResult.Success(emptyList())
     }
+  }
+
+  /**
+   * Resolves a series through Audible's own edges — no name matching, no
+   * candidate guessing: an owned book's ASIN carries its series ASIN, the
+   * series parent enumerates every child with its sequence, and one batch
+   * lookup hydrates them. Pre-orders appear with future release dates, which
+   * is what makes upcoming-book detection possible here.
+   */
+  override suspend fun getSeries(match: SeriesMatch): BookInfoResult<ProviderSeries> {
+    val memberAsins = match.memberMatches
+      .mapNotNull { it.asin.normalizedAsin() }
+      .distinct()
+    if (memberAsins.isEmpty()) return BookInfoResult.NotFound
+
+    // Read the series membership off an owned book; try a few in case the
+    // first ASIN is region-foreign or missing from the catalog.
+    var membership: AudibleSeriesMembership? = null
+    for (asin in memberAsins.take(MAX_MEMBERSHIP_LOOKUPS)) {
+      val product = when (
+        val result = catalog.product(asin, AudibleCatalog.SERIES_MEMBERSHIP_RESPONSE_GROUPS)
+      ) {
+        is BookInfoResult.Success -> result.data
+        is BookInfoResult.Failure -> return result
+        else -> continue
+      }
+      membership = pickMembership(product.series, match) ?: continue
+      break
+    }
+    val seriesAsin = membership?.asin ?: return BookInfoResult.NotFound
+
+    val parent = when (
+      val result = catalog.product(seriesAsin, AudibleCatalog.SERIES_CHILDREN_RESPONSE_GROUPS)
+    ) {
+      is BookInfoResult.Success -> result.data
+      is BookInfoResult.Failure -> return result
+      else -> return BookInfoResult.NotFound
+    }
+    val children = parent.relationships.filter {
+      it.relationshipType == "series" && it.relationshipToProduct == "child" && !it.asin.isNullOrBlank()
+    }
+    if (children.isEmpty()) return BookInfoResult.NotFound
+
+    val products = when (
+      val result = catalog.products(
+        asins = children.map { it.asin!! },
+        responseGroups = AudibleCatalog.BOOK_RESPONSE_GROUPS,
+      )
+    ) {
+      is BookInfoResult.Success -> result.data
+      is BookInfoResult.Failure -> return result
+      else -> return BookInfoResult.NotFound
+    }
+
+    val entries = buildSeriesEntries(
+      sequencesByAsin = children.associate { it.asin!! to it.sequence },
+      products = products,
+      nowIsoDate = todayIsoDate(),
+    )
+    if (entries.isEmpty()) return BookInfoResult.NotFound
+
+    return BookInfoResult.Success(
+      ProviderSeries(
+        providerSeriesId = seriesAsin,
+        name = membership.title ?: match.seriesName,
+        isCompleted = null,
+        entries = entries,
+      ),
+    )
+  }
+
+  private fun todayIsoDate(): String {
+    return Clock.System.now()
+      .toLocalDateTime(TimeZone.currentSystemDefault())
+      .date
+      .toString()
+  }
+
+  companion object {
+    private const val MAX_MEMBERSHIP_LOOKUPS = 3
   }
 }
 

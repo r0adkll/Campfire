@@ -36,4 +36,11 @@ interface BookInfoProvider {
   suspend fun getBookInfo(match: BookMatch): BookInfoResult<BookCommunityInfo>
 
   suspend fun getReviews(match: BookMatch, limit: Int = 10): BookInfoResult<List<BookReview>>
+
+  /**
+   * The provider's canonical listing for a series, including unreleased
+   * entries. Only providers with [ProviderCapabilities.hasSeriesOrdering]
+   * implement this; the default reports no data.
+   */
+  suspend fun getSeries(match: SeriesMatch): BookInfoResult<ProviderSeries> = BookInfoResult.NotFound
 }

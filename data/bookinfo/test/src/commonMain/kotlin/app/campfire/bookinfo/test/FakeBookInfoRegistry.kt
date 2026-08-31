@@ -7,6 +7,8 @@ import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderStatus
+import app.campfire.bookinfo.api.SeriesInfoState
+import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -24,6 +26,16 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   ): Flow<CommunityInfoState?> {
     communityInfoRequests += item to preferredProvider
     return communityInfoFlow
+  }
+
+  val seriesEntriesFlow = MutableSharedFlow<LoadState<out SeriesInfoState>>(replay = 1)
+  val seriesEntriesRequests = mutableListOf<Pair<String, List<LibraryItem>>>()
+  override fun observeSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): Flow<LoadState<out SeriesInfoState>> {
+    seriesEntriesRequests += seriesName to ownedItems
+    return seriesEntriesFlow
   }
 
   var clearCacheCount = 0

@@ -11,6 +11,8 @@ import app.campfire.bookinfo.api.BookReview
 import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
+import app.campfire.bookinfo.api.ProviderSeries
+import app.campfire.bookinfo.api.SeriesMatch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -45,5 +47,12 @@ class FakeBookInfoProvider(
   override suspend fun getReviews(match: BookMatch, limit: Int): BookInfoResult<List<BookReview>> {
     reviewsRequests += match
     return reviewsResult
+  }
+
+  var seriesResult: BookInfoResult<ProviderSeries> = BookInfoResult.NotFound
+  val seriesRequests = mutableListOf<SeriesMatch>()
+  override suspend fun getSeries(match: SeriesMatch): BookInfoResult<ProviderSeries> {
+    seriesRequests += match
+    return seriesResult
   }
 }
