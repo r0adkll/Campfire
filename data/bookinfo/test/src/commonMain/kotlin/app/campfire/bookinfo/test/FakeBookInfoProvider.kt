@@ -30,6 +30,9 @@ class FakeBookInfoProvider(
   val linkState = MutableStateFlow<ProviderLinkState>(ProviderLinkState.Linked(accountName = null))
   override fun observeLinkState(): Flow<ProviderLinkState> = linkState
 
+  var canServeResult: Boolean = true
+  override fun canServe(match: BookMatch): Boolean = canServeResult
+
   var bookInfoResult: BookInfoResult<BookCommunityInfo> = BookInfoResult.NotFound
   val bookInfoRequests = mutableListOf<BookMatch>()
   override suspend fun getBookInfo(match: BookMatch): BookInfoResult<BookCommunityInfo> {
