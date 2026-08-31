@@ -15,7 +15,7 @@
   <string name="provider_get_token">Get a token</string>
   <string name="provider_connect">Connect</string>
   <string name="provider_disconnect">Disconnect</string>
-  <string name="provider_link_error">Couldn\'t verify that token. Check it and try again.</string>
+  <string name="provider_link_error">Couldn't verify that token. Check it and try again.</string>
 
   <string name="provider_clear_cache">Clear cached data</string>
   <string name="provider_clear_cache_subtitle">Removes saved ratings and reviews. They'll be fetched fresh the next time you view a book.</string>

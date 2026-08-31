@@ -16,7 +16,7 @@
   <string name="label_authenticating_loading_message">Logging in…</string>
   <string name="label_login_error_network">A network error has occurred. Please try again.</string>
   <string name="label_login_error_auth">The provided username and password combination is incorrect.</string>
-  <string name="label_login_error_no_libraries">Your account doesn\'t have access to any libraries on this server. Ask your server admin to grant library access, then try again.</string>
+  <string name="label_login_error_no_libraries">Your account doesn't have access to any libraries on this server. Ask your server admin to grant library access, then try again.</string>
   <string name="label_login_error_unexpected_response">The server returned an unexpected response. Please try again, and check that Campfire and your server are up to date.</string>
   <string name="label_login_error_oauth">Something went wrong with the OpenID provider.</string>
   <string name="label_login_error_oauth_invalid_redirect_uri">The server rejected the mobile redirect URI. Please configure "campfireaudiobooks://oauth" as an allowed Mobile Redirect URI in your Audiobookshelf OpenID settings.</string>

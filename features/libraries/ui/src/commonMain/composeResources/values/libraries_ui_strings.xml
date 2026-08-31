@@ -130,7 +130,7 @@
   <string name="dialog_delete_podcast_action_confirm">Delete</string>
   <string name="dialog_delete_podcast_action_confirm_hard">Delete &amp; remove files</string>
   <string name="dialog_delete_podcast_action_cancel">Cancel</string>
-  <string name="error_delete_podcast">Couldn\'t delete podcast. Try again.</string>
+  <string name="error_delete_podcast">Couldn't delete podcast. Try again.</string>
 
   <string name="podcast_downloads_banner_one">%1$d episode downloading on server</string>
   <string name="podcast_downloads_banner_other">%1$d episodes downloading on server</string>
