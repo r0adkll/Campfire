@@ -6,6 +6,7 @@ package app.campfire.bookinfo
 import app.campfire.bookinfo.api.BookCommunityInfo
 import app.campfire.bookinfo.api.BookInfoResult
 import app.campfire.bookinfo.api.CommunitySource
+import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.db.BookInfoDatabase
@@ -218,7 +219,7 @@ class DefaultBookInfoRegistryTest {
     // and declares itself unservable, so the lower-priority one serves.
     val isbnOnly = FakeBookInfoProvider(id = ProviderId.OpenLibrary, displayName = "ISBN Only")
     isbnOnly.canServeResult = false
-    val asinCapable = FakeBookInfoProvider(id = ProviderId.Audnexus, displayName = "ASIN Capable")
+    val asinCapable = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "ASIN Capable")
     asinCapable.bookInfoResult = BookInfoResult.Success(communityInfo)
 
     val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
@@ -236,9 +237,51 @@ class DefaultBookInfoRegistryTest {
     val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
 
     val loaded = (state as LoadState.Loaded).data
-    assertThat(loaded!!.providerId).isEqualTo(ProviderId.Audnexus)
-    assertThat(loaded.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Audnexus))
+    assertThat(loaded!!.providerId).isEqualTo(ProviderId.Audible)
+    assertThat(loaded.availableSources.map { it.id }).isEqualTo(listOf(ProviderId.Audible))
     assertThat(isbnOnly.bookInfoRequests.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `a linkable review source is advertised when the serving provider lacks reviews`() = runTest {
+    val keyless = FakeBookInfoProvider(
+      id = ProviderId.OpenLibrary,
+      displayName = "Open Library",
+      capabilities = ProviderCapabilities(hasAggregateRating = true),
+    )
+    keyless.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
+    hardcover.linkState.value = ProviderLinkState.NotLinked
+
+    val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+    BookInfoDatabase.Schema.synchronous().create(driver)
+    val db = BookInfoDatabase(driver)
+    val dispatchers = TestDispatcherProvider(StandardTestDispatcher(testScheduler))
+    val providers = setOf(hardcover, keyless)
+    val registry = DefaultBookInfoRegistry(
+      providers = providers,
+      settings = DefaultBookInfoProviderSettings(MapSettings(), session),
+      store = BookInfoStore(providers, db, dispatchers),
+      userSession = session,
+    )
+
+    val state = registry.observeCommunityInfo(item)
+      .first { it is LoadState.Loaded<*> && (it as LoadState.Loaded).data != null }
+
+    val loaded = (state as LoadState.Loaded).data!!
+    assertThat(loaded.providerId).isEqualTo(ProviderId.OpenLibrary)
+    assertThat(loaded.reviewsLinkProviderName).isEqualTo("Hardcover")
+  }
+
+  @Test
+  fun `no review link is advertised when the serving provider has review text`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val registry = registry(provider)
+
+    val state = registry.observeCommunityInfo(item).first { it is LoadState.Loaded<*> }
+
+    assertThat((state as LoadState.Loaded).data!!.reviewsLinkProviderName).isNull()
   }
 
   @Test

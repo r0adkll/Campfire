@@ -57,6 +57,7 @@ import app.campfire.libraries.ui.detail.composables.ReviewBottomSheet
 import app.campfire.libraries.ui.detail.composables.ReviewerAvatar
 import app.campfire.libraries.ui.detail.composables.ReviewerBadge
 import campfire.features.libraries.ui.generated.resources.Res
+import campfire.features.libraries.ui.generated.resources.community_connect_for_reviews
 import campfire.features.libraries.ui.generated.resources.community_rating_attribution
 import campfire.features.libraries.ui.generated.resources.community_rating_count
 import campfire.features.libraries.ui.generated.resources.community_relink_provider
@@ -185,6 +186,16 @@ class CommunitySlot(
               onClick = { expandedReview = review },
             )
           }
+        }
+      }
+
+      // Serving source has no review text, but linking another provider adds it.
+      state.reviewsLinkProviderName?.takeIf { state.reviews.isEmpty() }?.let { linkName ->
+        TextButton(
+          onClick = { eventSink(LibraryItemUiEvent.RelinkProvider) },
+          modifier = Modifier.padding(horizontal = 8.dp),
+        ) {
+          Text(stringResource(Res.string.community_connect_for_reviews, linkName))
         }
       }
     }

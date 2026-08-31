@@ -49,6 +49,9 @@ data class ProviderStatus(
  *
  * @param availableSources every provider currently able to serve community
  * info, for source-switcher UI; always contains the serving provider.
+ * @param reviewsLinkProviderName when the serving provider has no review text
+ * but linking another provider (e.g. Hardcover) would add reviews, the name of
+ * that provider — for a "connect for reviews" affordance.
  */
 data class CommunityInfoState(
   val providerId: ProviderId,
@@ -58,6 +61,7 @@ data class CommunityInfoState(
   val reviews: List<BookReview>,
   val needsRelink: Boolean = false,
   val availableSources: List<CommunitySource> = emptyList(),
+  val reviewsLinkProviderName: String? = null,
 )
 
 data class CommunitySource(

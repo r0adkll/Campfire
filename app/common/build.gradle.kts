@@ -27,6 +27,7 @@ kotlin {
         api(projects.data.account.ui)
         api(projects.data.analytics.impl)
         api(projects.data.bookinfo.impl)
+        api(projects.data.bookinfo.audible)
         api(projects.data.bookinfo.hardcover)
         api(projects.data.bookinfo.openlibrary)
         api(projects.data.bookinfo.ui)

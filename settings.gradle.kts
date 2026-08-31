@@ -144,6 +144,7 @@ include(
 )
 include(
   ":data:bookinfo:api",
+  ":data:bookinfo:audible",
   ":data:bookinfo:hardcover",
   ":data:bookinfo:impl",
   ":data:bookinfo:openlibrary",

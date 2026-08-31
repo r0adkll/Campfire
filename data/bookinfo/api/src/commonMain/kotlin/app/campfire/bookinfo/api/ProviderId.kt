@@ -9,6 +9,6 @@ package app.campfire.bookinfo.api
  */
 enum class ProviderId(val key: String) {
   Hardcover("hardcover"),
+  Audible("audible"),
   OpenLibrary("openlibrary"),
-  Audnexus("audnexus"),
 }
