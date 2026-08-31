@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Community ratings and reviews from Hardcover on the book detail page, with attribution and a tap-through to the book on Hardcover
 - Social page in Settings to connect book info providers like Hardcover (paste an API token), toggle sources, and clear cached data
 - Open Library as a built-in ratings source — books with an ISBN show community ratings even without a Hardcover account
+- Audnexus as a built-in ratings source for audiobooks with an ASIN, showing the Audible rating without any account
+- A "Connect Hardcover to see reviews" shortcut on the Community section when ratings come from a source without written reviews
 
 ### Changed
 

@@ -146,5 +146,6 @@
   <string name="community_review_spoiler_warning">Contains spoilers</string>
   <string name="community_review_show_spoiler">Show review</string>
   <string name="community_relink_provider">Reconnect %1$s to refresh</string>
+  <string name="community_connect_for_reviews">Connect %1$s to see reviews</string>
   <string name="community_open_on_provider">Open on %1$s</string>
 </resources>
