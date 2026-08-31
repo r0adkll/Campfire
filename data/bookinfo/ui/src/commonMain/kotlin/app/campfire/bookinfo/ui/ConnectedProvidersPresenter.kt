@@ -40,6 +40,10 @@ class ConnectedProvidersPresenter(
       bookInfoRegistry.observeProviders()
     }.collectAsState(emptyList())
 
+    val preferredProvider by remember {
+      settings.observePreferredProvider()
+    }.collectAsState(settings.preferredProvider())
+
     var verifyingId by remember { mutableStateOf<ProviderId?>(null) }
     var failedId by remember { mutableStateOf<ProviderId?>(null) }
     var clearingCache by remember { mutableStateOf(false) }
@@ -61,10 +65,15 @@ class ConnectedProvidersPresenter(
 
     return ConnectedProvidersUiState(
       providers = rows,
+      preferredProvider = preferredProvider,
       isClearingCache = clearingCache,
     ) { event ->
       when (event) {
         ConnectedProvidersUiEvent.Back -> navigator.pop()
+
+        is ConnectedProvidersUiEvent.SetPreferredProvider -> {
+          settings.setPreferredProvider(event.id)
+        }
 
         ConnectedProvidersUiEvent.ClearCache -> {
           if (!clearingCache) {

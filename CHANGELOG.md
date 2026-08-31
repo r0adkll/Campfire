@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Open Library as a built-in ratings source — books with an ISBN show community ratings even without a Hardcover account
 - Audible as a built-in source for audiobooks with an ASIN, showing the Audible rating, star distribution, and written reviews without any account
 - A "Connect Hardcover to see reviews" shortcut on the Community section when ratings come from a source without written reviews
+- A Preferred source setting on the Book Info page — choose which ratings source wins by default, or leave it on Automatic
 
 ### Changed
 

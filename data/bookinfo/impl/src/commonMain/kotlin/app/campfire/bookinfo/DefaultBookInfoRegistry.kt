@@ -70,26 +70,30 @@ class DefaultBookInfoRegistry(
     val userId = userSession.userId ?: return flowOf(null)
     val match = item.bestMatch() ?: return flowOf(null)
 
-    return observeProviders()
-      .map { statuses ->
-        val usable = statuses.filter { it.canServeBookInfo && it.provider.canServe(match) }
-        // An enabled-but-unlinked review-capable provider is worth advertising
-        // when whoever ends up serving has no review text of its own.
-        val reviewsVia = statuses.firstOrNull {
-          it.enabled &&
-            it.provider.capabilities.hasReviewText &&
-            it.linkState is ProviderLinkState.NotLinked
-        }?.provider?.displayName
-        usable to reviewsVia
+    return combine(observeProviders(), settings.observePreferredProvider()) { statuses, stored ->
+      val usable = statuses.filter { it.canServeBookInfo && it.provider.canServe(match) }
+      // An enabled-but-unlinked review-capable provider is worth advertising
+      // when whoever ends up serving has no review text of its own.
+      val reviewsVia = statuses.firstOrNull {
+        it.enabled &&
+          it.provider.capabilities.hasReviewText &&
+          it.linkState is ProviderLinkState.NotLinked
+      }?.provider?.displayName
+      // The caller's per-book choice wins over the persisted preference, which
+      // wins over the default order.
+      val status = usable.firstOrNull { it.provider.id == preferredProvider }
+        ?: usable.firstOrNull { it.provider.id == stored }
+        ?: usable.firstOrNull()
+      Selection(status, usable, reviewsVia)
+    }
+      .distinctUntilChanged { old, new ->
+        old.status?.provider?.id == new.status?.provider?.id &&
+          old.status?.linkState == new.status?.linkState &&
+          old.usable.map { it.provider.id to it.linkState } ==
+          new.usable.map { it.provider.id to it.linkState } &&
+          old.reviewsVia == new.reviewsVia
       }
-      .distinctUntilChanged { (oldUsable, oldVia), (newUsable, newVia) ->
-        oldUsable.map { it.provider.id to it.linkState } ==
-          newUsable.map { it.provider.id to it.linkState } &&
-          oldVia == newVia
-      }
-      .flatMapLatest { (usable, reviewsVia) ->
-        val status = usable.firstOrNull { it.provider.id == preferredProvider }
-          ?: usable.firstOrNull()
+      .flatMapLatest { (status, usable, reviewsVia) ->
         if (status == null) {
           flowOf(null)
         } else {
@@ -103,6 +107,12 @@ class DefaultBookInfoRegistry(
         }
       }
   }
+
+  private data class Selection(
+    val status: ProviderStatus?,
+    val usable: List<ProviderStatus>,
+    val reviewsVia: String?,
+  )
 
   override fun observeSeriesEntries(
     seriesName: String,
@@ -118,8 +128,10 @@ class DefaultBookInfoRegistry(
     val userId = userSession.userId ?: return flowOf(LoadState.Loaded(ownedOnly))
     val match = seriesMatch(seriesName, ownedItems) ?: return flowOf(LoadState.Loaded(ownedOnly))
 
-    return observeProviders()
-      .map { statuses -> statuses.firstOrNull { it.canServeSeries } }
+    return combine(observeProviders(), settings.observePreferredProvider()) { statuses, stored ->
+      val usable = statuses.filter { it.canServeSeries }
+      usable.firstOrNull { it.provider.id == stored } ?: usable.firstOrNull()
+    }
       .distinctUntilChanged { old, new ->
         old?.provider?.id == new?.provider?.id && old?.linkState == new?.linkState
       }

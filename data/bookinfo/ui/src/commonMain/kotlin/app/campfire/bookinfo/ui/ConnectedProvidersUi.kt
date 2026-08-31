@@ -5,8 +5,11 @@ package app.campfire.bookinfo.ui
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,21 +21,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.OutlinedButton
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -40,24 +48,32 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.ProviderCapabilities
+import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.providerBrandColor
 import app.campfire.common.compose.icons.providerBrandIcon
+import app.campfire.common.compose.icons.providerBrandIconPadding
+import app.campfire.common.compose.icons.providerBrandIconTint
 import app.campfire.common.compose.icons.providerBrandSecondaryColor
 import app.campfire.common.compose.icons.providerOnBrandColor
+import app.campfire.common.compose.icons.rounded.AutoMode
 import app.campfire.common.compose.icons.rounded.Disconnected
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -81,6 +97,9 @@ import campfire.data.bookinfo.ui.generated.resources.provider_link_error
 import campfire.data.bookinfo.ui.generated.resources.provider_link_invalid
 import campfire.data.bookinfo.ui.generated.resources.provider_linked
 import campfire.data.bookinfo.ui.generated.resources.provider_linked_as
+import campfire.data.bookinfo.ui.generated.resources.provider_preferred_automatic
+import campfire.data.bookinfo.ui.generated.resources.provider_preferred_subtitle
+import campfire.data.bookinfo.ui.generated.resources.provider_preferred_title
 import campfire.data.bookinfo.ui.generated.resources.provider_token_hint
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
@@ -136,14 +155,25 @@ fun ConnectedProvidersUi(
             .padding(horizontal = 16.dp),
         )
       }
-      item("clear_cache") {
-        ClearCacheRow(
-          isClearing = state.isClearingCache,
-          onClick = { state.eventSink(ConnectedProvidersUiEvent.ClearCache) },
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        )
+      item("preferred_provider") {
+        Column {
+          PreferredProviderRow(
+            providers = state.providers,
+            preferredProvider = state.preferredProvider,
+            onSelect = { state.eventSink(ConnectedProvidersUiEvent.SetPreferredProvider(it)) },
+            modifier = Modifier
+              .fillMaxWidth(),
+          )
+
+          Spacer(Modifier.height(4.dp))
+
+          ClearCacheRow(
+            isClearing = state.isClearingCache,
+            onClick = { state.eventSink(ConnectedProvidersUiEvent.ClearCache) },
+            modifier = Modifier
+              .fillMaxWidth(),
+          )
+        }
       }
     }
   }
@@ -207,7 +237,12 @@ private fun ProviderCard(
           Image(
             imageVector = brandIcon,
             contentDescription = null,
-            modifier = Modifier.size(40.dp),
+            modifier = Modifier
+              .size(40.dp)
+              .padding(providerBrandIconPadding(provider.id.key)),
+            colorFilter = providerBrandIconTint(provider.id.key)?.let { tint ->
+              ColorFilter.tint(tint)
+            },
           )
           Spacer(Modifier.width(12.dp))
         }
@@ -403,4 +438,135 @@ private fun ProviderCapabilities.summary(): String {
     if (hasSupplementalMetadata) add(stringResource(Res.string.capability_metadata))
   }
   return labels.joinToString(" · ")
+}
+
+@Composable
+private fun PreferredProviderRow(
+  providers: List<ProviderRowState>,
+  preferredProvider: ProviderId?,
+  onSelect: (ProviderId?) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  val automaticLabel = stringResource(Res.string.provider_preferred_automatic)
+  val selectedLabel = providers.firstOrNull { it.id == preferredProvider }?.name ?: automaticLabel
+
+  ListItem(
+    headlineContent = {
+      Text(stringResource(Res.string.provider_preferred_title))
+    },
+    supportingContent = {
+      Text(stringResource(Res.string.provider_preferred_subtitle))
+    },
+    trailingContent = {
+      Box {
+        PreferredOptionChip(
+          icon = {
+            PreferredOptionIcon(
+              preferredProvider,
+              modifier = Modifier.size(16.dp),
+            )
+          },
+          text = { Text(selectedLabel) },
+          onClick = { expanded = true },
+        )
+
+        DropdownMenu(
+          expanded = expanded,
+          onDismissRequest = { expanded = false },
+        ) {
+          DropdownMenuItem(
+            leadingIcon = { PreferredOptionIcon(null) },
+            text = { Text(automaticLabel) },
+            onClick = {
+              onSelect(null)
+              expanded = false
+            },
+          )
+          providers.forEach { provider ->
+            DropdownMenuItem(
+              leadingIcon = { PreferredOptionIcon(provider.id) },
+              text = { Text(provider.name) },
+              onClick = {
+                onSelect(provider.id)
+                expanded = false
+              },
+            )
+          }
+        }
+      }
+    },
+    colors = ListItemDefaults.colors(
+      containerColor = Color.Transparent,
+    ),
+    modifier = modifier.clickable { expanded = true },
+  )
+}
+
+@Composable
+private fun PreferredOptionIcon(
+  id: ProviderId?,
+  modifier: Modifier = Modifier,
+) {
+  if (id == null) {
+    Icon(
+      imageVector = CampfireIcons.Rounded.AutoMode,
+      contentDescription = null,
+      modifier = modifier.size(20.dp),
+    )
+  } else {
+    providerBrandIcon(id.key)?.let { brandIcon ->
+      Icon(
+        imageVector = brandIcon,
+        contentDescription = null,
+        modifier = modifier
+          .size(20.dp),
+      )
+    }
+  }
+}
+
+// Mirrors the OptionChip used by the app's dropdown-valued settings (e.g.
+// Appearance > Theme mode) so this sub-settings screen reads as one of them.
+@Composable
+private fun PreferredOptionChip(
+  icon: @Composable () -> Unit,
+  text: @Composable () -> Unit,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  Row(
+    modifier = modifier
+      .background(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(8.dp),
+      )
+      .border(
+        width = 1.dp,
+        color = MaterialTheme.colorScheme.primary,
+        shape = RoundedCornerShape(8.dp),
+      )
+      .clip(RoundedCornerShape(8.dp))
+      .clickable(onClick = onClick)
+      .padding(
+        horizontal = 12.dp,
+        vertical = 8.dp,
+      ),
+    verticalAlignment = Alignment.CenterVertically,
+  ) {
+    CompositionLocalProvider(
+      LocalContentColor provides MaterialTheme.colorScheme.primary,
+    ) {
+      icon()
+      Spacer(Modifier.width(8.dp))
+      ProvideTextStyle(MaterialTheme.typography.titleSmall) {
+        text()
+      }
+      Spacer(Modifier.width(4.dp))
+      Icon(
+        Icons.Rounded.ArrowDropDown,
+        contentDescription = null,
+      )
+    }
+  }
 }

@@ -53,6 +53,13 @@ private class FakeProviderSettings : BookInfoProviderSettings {
     this.enabled.value = this.enabled.value + (id to enabled)
   }
   override fun observeEnabled(id: ProviderId): Flow<Boolean> = enabled.map { it[id] ?: true }
+
+  val preferred = MutableStateFlow<ProviderId?>(null)
+  override fun preferredProvider(): ProviderId? = preferred.value
+  override fun setPreferredProvider(id: ProviderId?) {
+    preferred.value = id
+  }
+  override fun observePreferredProvider(): Flow<ProviderId?> = preferred
 }
 
 class ConnectedProvidersPresenterTest {
@@ -88,6 +95,26 @@ class ConnectedProvidersPresenterTest {
       assertThat(row.linkState).isEqualTo(ProviderLinkState.Linked("reader"))
       cancelAndIgnoreRemainingEvents()
     }
+  }
+
+  @Test
+  fun present_SetPreferredProvider_UpdatesSettingsAndState() = runTest {
+    emitProvider()
+
+    presenter.test {
+      skipItems(1)
+      val state = awaitItem()
+
+      state.eventSink(ConnectedProvidersUiEvent.SetPreferredProvider(ProviderId.Hardcover))
+      val updated = awaitItemMatching { it.preferredProvider == ProviderId.Hardcover }
+      assertThat(updated.preferredProvider).isEqualTo(ProviderId.Hardcover)
+
+      updated.eventSink(ConnectedProvidersUiEvent.SetPreferredProvider(null))
+      awaitItemMatching { it.preferredProvider == null }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(settings.preferredProvider()).isEqualTo(null)
   }
 
   @Test

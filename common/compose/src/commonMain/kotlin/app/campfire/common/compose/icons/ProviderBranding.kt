@@ -3,8 +3,13 @@
 
 package app.campfire.common.compose.icons
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.rounded.LocalLibrary
 
 /**
  * Branding for book info providers, keyed by the provider's stable string key
@@ -14,11 +19,26 @@ import androidx.compose.ui.graphics.vector.ImageVector
  */
 private const val HARDCOVER = "hardcover"
 private const val AUDIBLE = "audible"
+private const val OPEN_LIBRARY = "openlibrary"
 
 fun providerBrandIcon(providerKey: String): ImageVector? = when (providerKey) {
   HARDCOVER -> CampfireIcons.Hardcover
   AUDIBLE -> CampfireIcons.Audible
+  OPEN_LIBRARY -> CampfireIcons.Rounded.LocalLibrary
   else -> null
+}
+
+@Composable
+fun providerBrandIconTint(providerKey: String): Color? = when (providerKey) {
+  AUDIBLE -> Color.Black
+  OPEN_LIBRARY -> MaterialTheme.colorScheme.onSurface
+  else -> null
+}
+
+fun providerBrandIconPadding(providerKey: String): Dp = when (providerKey) {
+  AUDIBLE -> 4.dp
+  OPEN_LIBRARY -> 4.dp
+  else -> 0.dp
 }
 
 /**

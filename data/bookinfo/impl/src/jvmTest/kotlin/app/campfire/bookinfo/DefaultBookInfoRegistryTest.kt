@@ -228,6 +228,87 @@ class DefaultBookInfoRegistryTest {
   }
 
   @Test
+  fun `the persisted preferred provider wins over the default order`() = runTest {
+    val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
+    hardcover.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val audible = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "Audible")
+    audible.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
+    settings.setPreferredProvider(ProviderId.Audible)
+    val registry = registry(hardcover, audible, settings = settings)
+
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
+
+    assertThat(state.providerId).isEqualTo(ProviderId.Audible)
+    // Both stay switchable in the pill.
+    assertThat(state.availableSources.map { it.id })
+      .isEqualTo(listOf(ProviderId.Hardcover, ProviderId.Audible))
+  }
+
+  @Test
+  fun `a per book choice overrides the persisted preference`() = runTest {
+    val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
+    hardcover.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val audible = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "Audible")
+    audible.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
+    settings.setPreferredProvider(ProviderId.Audible)
+    val registry = registry(hardcover, audible, settings = settings)
+
+    val state = registry
+      .observeCommunityInfo(item, preferredProvider = ProviderId.Hardcover)
+      .awaitAvailable()
+
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
+  }
+
+  @Test
+  fun `an unusable persisted preference falls back to the default order`() = runTest {
+    val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
+    hardcover.bookInfoResult = BookInfoResult.Success(communityInfo)
+    val audible = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "Audible")
+    audible.canServeResult = false
+    val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
+    settings.setPreferredProvider(ProviderId.Audible)
+    val registry = registry(hardcover, audible, settings = settings)
+
+    val state = registry.observeCommunityInfo(item).awaitAvailable()
+
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
+  }
+
+  @Test
+  fun `preferred provider setting round trips and clears`() = runTest {
+    val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
+
+    assertThat(settings.preferredProvider()).isNull()
+    settings.setPreferredProvider(ProviderId.OpenLibrary)
+    assertThat(settings.preferredProvider()).isEqualTo(ProviderId.OpenLibrary)
+    assertThat(settings.observePreferredProvider().first()).isEqualTo(ProviderId.OpenLibrary)
+    settings.setPreferredProvider(null)
+    assertThat(settings.preferredProvider()).isNull()
+  }
+
+  @Test
+  fun `series selection respects the persisted preference`() = runTest {
+    val hardcover = FakeBookInfoProvider(id = ProviderId.Hardcover, displayName = "Hardcover")
+    val audible = FakeBookInfoProvider(id = ProviderId.Audible, displayName = "Audible")
+    audible.seriesResult = BookInfoResult.NotFound
+    val settings = DefaultBookInfoProviderSettings(MapSettings(), session)
+    settings.setPreferredProvider(ProviderId.Audible)
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(hardcover, audible, settings = settings)
+
+    registry.observeSeriesEntries("The Stormlight Archive", listOf(owned))
+      .first { audible.seriesRequests.isNotEmpty() || hardcover.seriesRequests.isNotEmpty() }
+
+    assertThat(audible.seriesRequests.size).isEqualTo(1)
+    assertThat(hardcover.seriesRequests.size).isEqualTo(0)
+  }
+
+  @Test
   fun `a provider that cannot serve the match is skipped for one that can`() = runTest {
     // Mimics an ASIN-only audiobook: the first-priority provider is ISBN-keyed
     // and declares itself unservable, so the lower-priority one serves.

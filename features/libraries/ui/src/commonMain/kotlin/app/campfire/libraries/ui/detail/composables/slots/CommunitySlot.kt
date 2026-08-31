@@ -298,6 +298,7 @@ private fun SourcePill(
     DropdownMenu(
       expanded = expanded,
       onDismissRequest = { expanded = false },
+      shape = MaterialTheme.shapes.medium,
     ) {
       state.availableSources.forEach { source ->
         DropdownMenuItem(

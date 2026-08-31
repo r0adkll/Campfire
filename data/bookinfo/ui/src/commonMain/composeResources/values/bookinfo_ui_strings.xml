@@ -17,6 +17,10 @@
   <string name="provider_disconnect">Disconnect</string>
   <string name="provider_link_error">Couldn't verify that token. Check it and try again.</string>
 
+  <string name="provider_preferred_title">Preferred source</string>
+  <string name="provider_preferred_subtitle">Which source wins when several have this book</string>
+  <string name="provider_preferred_automatic">Automatic</string>
+
   <string name="provider_clear_cache">Clear cached data</string>
   <string name="provider_clear_cache_subtitle">Removes saved ratings and reviews. They'll be fetched fresh the next time you view a book.</string>
 </resources>
