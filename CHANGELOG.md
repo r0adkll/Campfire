@@ -14,12 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Per-book playback speed — a toggle in the playback speed sheet saves a speed for just that book instead of changing the global speed
 - The five quick playback speed options can now be customized in Settings → Playback, with sliders from 0.5x to 3x and tap-to-type exact values
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
-- Community ratings and reviews from Hardcover on the book detail page, with attribution and a tap-through to the book on Hardcover
-- Book Info page in Settings to connect sources like Hardcover (paste an API token), toggle them, and clear cached data
-- Open Library as a built-in ratings source — books with an ISBN show community ratings even without a Hardcover account
-- Audible as a built-in source for audiobooks with an ASIN, showing the Audible rating, star distribution, and written reviews without any account
-- A "Connect Hardcover to see reviews" shortcut on the Community section when ratings come from a source without written reviews
-- A Preferred source setting on the Book Info page — choose which ratings source wins by default, or leave it on Automatic
+- Ratings & Reviews on the book detail page — community ratings and written reviews from Audible and Open Library out of the box, or from a linked Hardcover account, with a per-book source switcher
+- Book Info page in Settings to link Hardcover, choose a preferred source, and manage where ratings and reviews come from
 
 ### Changed
 
