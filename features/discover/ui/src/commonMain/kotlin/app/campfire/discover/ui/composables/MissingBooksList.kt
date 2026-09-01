@@ -33,7 +33,7 @@ import campfire.features.discover.ui.generated.resources.discover_book_position
 import campfire.features.discover.ui.generated.resources.discover_missing_count
 import org.jetbrains.compose.resources.stringResource
 
-private val MissingCardWidth = 180.dp
+private val MissingCardWidth = 150.dp
 
 /**
  * Missing books as home-style shelves: a clickable series header over a

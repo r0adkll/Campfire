@@ -11,6 +11,7 @@ import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.time.FatherTime
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.home.ui.libraryItem
 import app.campfire.home.ui.media
@@ -21,20 +22,37 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Instant
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+
+private class FakeFatherTime(var nowMillis: Long = 0L) : FatherTime {
+  override fun now(): LocalDateTime =
+    Instant.fromEpochMilliseconds(nowMillis).toLocalDateTime(TimeZone.UTC)
+
+  override fun today(): LocalDate = now().date
+  override fun nowInEpochMillis(): Long = nowMillis
+}
 
 class DefaultDiscoverScanTrackerTest {
 
   private val seriesRepository = FakeSeriesRepository()
   private val registry = FakeBookInfoRegistry()
+  private val fatherTime = FakeFatherTime()
 
   private fun TestScope.tracker() = DefaultDiscoverScanTracker(
     seriesRepository = seriesRepository,
     bookInfoRegistry = registry,
+    fatherTime = fatherTime,
     coroutineScopeHolder = CoroutineScopeHolder { backgroundScope },
   )
 
@@ -200,6 +218,42 @@ class DefaultDiscoverScanTrackerTest {
     assertThat(registry.fetchSeriesRequests.size).isEqualTo(1)
     gate.send(Unit)
     tracker.awaitCompleted()
+  }
+
+  @Test
+  fun `opening with fresh results keeps them instead of rescanning`() = runTest {
+    seriesRepository.allSeriesFlow.emit(
+      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+    )
+    val tracker = tracker()
+
+    tracker.startScanIfStale()
+    val completed = tracker.awaitCompleted()
+
+    fatherTime.nowMillis += 30.minutes.inWholeMilliseconds
+    tracker.startScanIfStale()
+    runCurrent()
+
+    assertThat(registry.fetchSeriesRequests.size).isEqualTo(1)
+    assertThat(tracker.state.value).isEqualTo(completed)
+  }
+
+  @Test
+  fun `opening after the freshness window rescans`() = runTest {
+    seriesRepository.allSeriesFlow.emit(
+      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+    )
+    val tracker = tracker()
+
+    tracker.startScanIfStale()
+    tracker.awaitCompleted()
+
+    fatherTime.nowMillis += 2.hours.inWholeMilliseconds
+    tracker.startScanIfStale()
+    tracker.state.first { it is DiscoverScanState.Running }
+    tracker.awaitCompleted()
+
+    assertThat(registry.fetchSeriesRequests.size).isEqualTo(2)
   }
 
   @Test

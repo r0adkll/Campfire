@@ -22,6 +22,14 @@ interface DiscoverScanTracker {
   /** Starts a scan; a no-op while one is already running. */
   fun startScan()
 
+  /**
+   * Starts a scan only when there's nothing fresh to show — the tracker is
+   * [DiscoverScanState.Idle], or the last completed scan has outlived its
+   * freshness window. Fresh results are kept as-is; use [startScan]
+   * (pull-to-refresh) to force one.
+   */
+  fun startScanIfStale()
+
   /** Stops a running scan, freezing partial results into [DiscoverScanState.Completed]. */
   fun cancelScan()
 }

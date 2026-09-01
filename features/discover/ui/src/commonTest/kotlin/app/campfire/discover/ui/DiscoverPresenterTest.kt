@@ -28,6 +28,11 @@ private class FakeDiscoverScanTracker : DiscoverScanTracker {
     startScanCount++
   }
 
+  var startScanIfStaleCount = 0
+  override fun startScanIfStale() {
+    startScanIfStaleCount++
+  }
+
   var cancelScanCount = 0
   override fun cancelScan() {
     cancelScanCount++
@@ -41,41 +46,25 @@ class DiscoverPresenterTest {
   private val presenter = DiscoverPresenter(navigator, tracker)
 
   @Test
-  fun present_OpeningTheScreen_StartsAScanFromIdle() = runTest {
+  fun present_OpeningTheScreen_ScansOnlyIfStale() = runTest {
     presenter.test {
       awaitItem()
 
-      assertThat(tracker.startScanCount).isEqualTo(1)
-      cancelAndIgnoreRemainingEvents()
-    }
-  }
-
-  @Test
-  fun present_OpeningWithExistingResults_DoesNotRescan() = runTest {
-    tracker.stateFlow.value = DiscoverScanState.Completed(
-      results = DiscoverScanResults(providerName = "Audible"),
-      scannedAt = Instant.fromEpochMilliseconds(0),
-      skippedCount = 0,
-      failedCount = 0,
-    )
-
-    presenter.test {
-      awaitItem()
-
+      // The freshness policy lives in the tracker — opening never forces a scan.
+      assertThat(tracker.startScanIfStaleCount).isEqualTo(1)
       assertThat(tracker.startScanCount).isEqualTo(0)
       cancelAndIgnoreRemainingEvents()
     }
   }
 
   @Test
-  fun present_RefreshEvent_StartsTheTracker() = runTest {
+  fun present_RefreshEvent_ForcesAScan() = runTest {
     presenter.test {
       val state = awaitItem()
 
       state.eventSink(DiscoverUiEvent.Refresh)
 
-      // Once from opening the screen, once from the pull.
-      assertThat(tracker.startScanCount).isEqualTo(2)
+      assertThat(tracker.startScanCount).isEqualTo(1)
       cancelAndIgnoreRemainingEvents()
     }
   }

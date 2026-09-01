@@ -12,13 +12,15 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.Series
+import app.campfire.core.time.FatherTime
 import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
 import app.campfire.discover.api.DiscoveredBook
 import app.campfire.series.api.SeriesRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlin.time.Clock
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Instant
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,12 +41,20 @@ import me.tatarka.inject.annotations.Inject
  */
 private const val SCAN_CONCURRENCY = 2
 
+/**
+ * How long a completed scan counts as fresh for [startScanIfStale] — matched
+ * to the registry's series miss TTL, since a sooner rescan couldn't surface
+ * anything new anyway.
+ */
+private val SCAN_FRESHNESS_TTL = 1.hours
+
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultDiscoverScanTracker(
   private val seriesRepository: SeriesRepository,
   private val bookInfoRegistry: BookInfoRegistry,
+  private val fatherTime: FatherTime,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,
 ) : DiscoverScanTracker {
 
@@ -56,6 +66,14 @@ class DefaultDiscoverScanTracker(
   override fun startScan() {
     if (scanJob?.isActive == true) return
     scanJob = coroutineScopeHolder.get().launch { scan() }
+  }
+
+  override fun startScanIfStale() {
+    val completed = _state.value as? DiscoverScanState.Completed
+    val isFresh = completed != null &&
+      fatherTime.nowInEpochMillis() - completed.scannedAt.toEpochMilliseconds() <
+      SCAN_FRESHNESS_TTL.inWholeMilliseconds
+    if (!isFresh) startScan()
   }
 
   override fun cancelScan() {
@@ -94,7 +112,7 @@ class DefaultDiscoverScanTracker(
       // whatever it found so partial results stay usable.
       _state.value = DiscoverScanState.Completed(
         results = outcomes.accumulate(),
-        scannedAt = Clock.System.now(),
+        scannedAt = Instant.fromEpochMilliseconds(fatherTime.nowInEpochMillis()),
         skippedCount = outcomes.count { it == Outcome.Skipped },
         failedCount = outcomes.count { it == Outcome.Failed },
       )

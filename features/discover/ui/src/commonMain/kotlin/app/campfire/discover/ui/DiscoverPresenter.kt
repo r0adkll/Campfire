@@ -12,7 +12,6 @@ import androidx.compose.runtime.setValue
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.di.UserScope
-import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
 import app.campfire.discover.api.screen.DiscoverScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -34,12 +33,11 @@ class DiscoverPresenter(
     val scanState by tracker.state.collectAsState()
     var selectedTab by rememberRetained { mutableStateOf(DiscoverTab.Missing) }
 
-    // Opening the screen kicks off the first scan; completed results stick
-    // around in the user scope, so coming back only rescans via pull-to-refresh.
+    // Opening the screen scans only when there's nothing fresh to show — the
+    // tracker holds a freshness window, so recent results render as-is and a
+    // pull-to-refresh forces the rescan.
     LaunchedEffect(Unit) {
-      if (tracker.state.value is DiscoverScanState.Idle) {
-        tracker.startScan()
-      }
+      tracker.startScanIfStale()
     }
 
     return DiscoverUiState(
