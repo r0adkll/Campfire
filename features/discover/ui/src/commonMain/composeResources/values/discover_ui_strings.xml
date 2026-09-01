@@ -6,7 +6,7 @@
   <string name="discover_tab_upcoming">Upcoming</string>
 
   <string name="discover_cancel_scan">Cancel</string>
-  <string name="discover_rescan_action">Rescan</string>
+  <string name="discover_scan_action">Scan</string>
   <string name="discover_scan_progress">%1$d of %2$d series</string>
 
   <string name="discover_empty_missing">No missing books found — your series are complete.</string>

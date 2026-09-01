@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -47,7 +47,7 @@ import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_missing
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_failed_series
-import campfire.features.discover.ui.generated.resources.discover_rescan_action
+import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_skipped_series
 import campfire.features.discover.ui.generated.resources.discover_source_attribution
@@ -95,8 +95,8 @@ fun DiscoverUi(
     floatingActionButton = {
       if (state.scanState is DiscoverScanState.Completed) {
         SmallExtendedFloatingActionButton(
-          text = { Text(stringResource(Res.string.discover_rescan_action)) },
-          icon = { Icon(Icons.Rounded.Refresh, contentDescription = null) },
+          text = { Text(stringResource(Res.string.discover_scan_action)) },
+          icon = { Icon(Icons.Rounded.Radar, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           onClick = { state.eventSink(DiscoverUiEvent.Refresh) },
         )
