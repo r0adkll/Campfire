@@ -243,6 +243,11 @@ include(
   ":features:podcasts:ui",
 )
 include(
+  ":features:discover:api",
+  ":features:discover:impl",
+  ":features:discover:ui",
+)
+include(
   ":ui:appbar",
   ":ui:navigation:api",
   ":ui:navigation:impl",

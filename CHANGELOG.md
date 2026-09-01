@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
 - Ratings & Reviews on the book detail page — community ratings and written reviews from Audible and Open Library out of the box, or from a linked Hardcover account, with a per-book source switcher
 - Book Info page in Settings to link Hardcover, choose a preferred source, and manage where ratings and reviews come from
+- Discover page in the sidebar that scans your series against Audible to show released books you're missing and a timeline of upcoming releases
 
 ### Changed
 

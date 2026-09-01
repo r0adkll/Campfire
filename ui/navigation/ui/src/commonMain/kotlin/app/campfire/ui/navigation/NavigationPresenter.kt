@@ -5,9 +5,11 @@ package app.campfire.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudDownload
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.QueryStats
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.Explore
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
@@ -25,6 +27,7 @@ import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.next
 import app.campfire.core.model.MediaType
+import app.campfire.discover.api.screen.DiscoverScreen
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.settings.api.CampfireSettings
@@ -33,6 +36,8 @@ import app.campfire.ui.navigation.drawer.DrawerUiState
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_collections_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_collections_label
+import campfire.ui.navigation.ui.generated.resources.nav_discover_content_description
+import campfire.ui.navigation.ui.generated.resources.nav_discover_label
 import campfire.ui.navigation.ui.generated.resources.nav_downloads_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_downloads_label
 import campfire.ui.navigation.ui.generated.resources.nav_settings_content_description
@@ -104,6 +109,16 @@ class NavigationPresenter(
             contentDescription = stringResource(Res.string.nav_collections_content_description),
             iconImageVector = Icons.Outlined.Collections,
             selectedImageVector = Icons.Filled.Collections,
+          ),
+        )
+
+        add(
+          HomeNavigationItem(
+            screen = DiscoverScreen,
+            label = stringResource(Res.string.nav_discover_label),
+            contentDescription = stringResource(Res.string.nav_discover_content_description),
+            iconImageVector = Icons.Outlined.Explore,
+            selectedImageVector = Icons.Filled.Explore,
           ),
         )
       }

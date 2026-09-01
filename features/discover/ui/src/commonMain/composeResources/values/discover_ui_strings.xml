@@ -1,0 +1,27 @@
+<resources>
+  <string name="discover_title">Discover</string>
+  <string name="action_back">Back</string>
+
+  <string name="discover_tab_missing">Missing</string>
+  <string name="discover_tab_upcoming">Upcoming</string>
+
+  <string name="discover_idle_explainer">Scan the series in your library to find released books you don't own yet and see what's coming next. Each series is checked against Audible, so a first scan of a large library can take a few minutes.</string>
+  <string name="discover_scan_action">Scan library</string>
+  <string name="discover_rescan_action">Rescan library</string>
+  <string name="discover_cancel_scan">Cancel</string>
+  <string name="discover_scan_progress">%1$d of %2$d series</string>
+
+  <string name="discover_empty_missing">No missing books found — your series are complete.</string>
+  <string name="discover_empty_upcoming">No upcoming releases found in your series.</string>
+
+  <string name="discover_missing_count">%1$d missing</string>
+  <string name="discover_book_position">Book %1$s</string>
+  <string name="discover_tba_group">To be announced</string>
+
+  <string name="discover_source_attribution">Series details from %1$s</string>
+  <string name="discover_skipped_series">%1$d series couldn't be checked</string>
+  <string name="discover_failed_series">%1$d series failed to load</string>
+
+  <string name="cd_book_cover">%1$s cover</string>
+  <string name="cd_open_series">Open series %1$s</string>
+</resources>
