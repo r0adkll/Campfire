@@ -64,12 +64,13 @@ internal fun buildSeriesEntries(
 
   return (numbered + unnumbered).map { (position, product, title) ->
     val asin = product.asin!!
+    val releaseDate = realReleaseDate(product.releaseDate, nowIsoDate)
     ProviderSeriesEntry(
       providerBookId = asin,
       position = position,
       title = title,
-      releaseDate = product.releaseDate,
-      isReleased = isReleasedBy(product.releaseDate, nowIsoDate),
+      releaseDate = releaseDate,
+      isReleased = isReleasedBy(releaseDate, nowIsoDate),
       providerUrl = audibleProductUrl(asin),
       coverUrl = product.coverUrl(),
       isbns = emptyList(),
@@ -77,6 +78,21 @@ internal fun buildSeriesEntries(
     )
   }
 }
+
+/**
+ * Audible marks announced-but-unscheduled titles with far-future placeholder
+ * dates (e.g. 2200-01-01). Real pre-orders are announced at most a couple of
+ * years out, so anything implausibly far ahead is treated as undated — the
+ * entry stays an unreleased announcement, it just carries no date.
+ */
+internal fun realReleaseDate(releaseDate: String?, nowIsoDate: String): String? {
+  val date = releaseDate?.take(10)?.takeUnless { it.isBlank() } ?: return null
+  val year = date.take(4).toIntOrNull() ?: return null
+  val nowYear = nowIsoDate.take(4).toIntOrNull() ?: return date
+  return date.takeUnless { year > nowYear + PLACEHOLDER_YEARS_AHEAD }
+}
+
+private const val PLACEHOLDER_YEARS_AHEAD = 5
 
 private fun AudibleProduct.numRatings(): Int {
   return rating?.overallDistribution?.numRatings ?: 0

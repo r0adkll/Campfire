@@ -237,6 +237,29 @@ class AudibleSeriesTest {
   }
 
   @Test
+  fun `placeholder release dates become undated announcements`() {
+    val entries = buildSeriesEntries(
+      sequencesByAsin = mapOf("A1" to "1", "A2" to "2", "A3" to "3"),
+      products = listOf(
+        AudibleProduct(asin = "A1", title = "Released", releaseDate = "2014-03-04"),
+        AudibleProduct(asin = "A2", title = "Real Preorder", releaseDate = "2027-11-05"),
+        AudibleProduct(asin = "A3", title = "Announced", releaseDate = "2200-01-01"),
+      ),
+      nowIsoDate = "2026-08-31",
+    )
+
+    assertThat(entries.map { it.title to it.releaseDate }).isEqualTo(
+      listOf(
+        "Released" to "2014-03-04",
+        "Real Preorder" to "2027-11-05",
+        "Announced" to null,
+      ),
+    )
+    // Losing the placeholder date must not make the book look released.
+    assertThat(entries.last().isReleased).isFalse()
+  }
+
+  @Test
   fun `unavailable products are dropped so links resolve`() {
     val entries = buildSeriesEntries(
       sequencesByAsin = mapOf("A1" to "1", "A2" to "2", "A3" to "3", "A4" to ""),
