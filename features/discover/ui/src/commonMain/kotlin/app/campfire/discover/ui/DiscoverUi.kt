@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -21,18 +23,16 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.CampfireMediumTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -47,6 +47,7 @@ import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_missing
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_failed_series
+import campfire.features.discover.ui.generated.resources.discover_rescan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_skipped_series
 import campfire.features.discover.ui.generated.resources.discover_source_attribution
@@ -56,6 +57,7 @@ import campfire.features.discover.ui.generated.resources.discover_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(DiscoverScreen::class, UserScope::class)
 @Composable
 fun DiscoverUi(
@@ -90,6 +92,16 @@ fun DiscoverUi(
         scrollBehavior = scrollBehavior,
       )
     },
+    floatingActionButton = {
+      if (state.scanState is DiscoverScanState.Completed) {
+        SmallExtendedFloatingActionButton(
+          text = { Text(stringResource(Res.string.discover_rescan_action)) },
+          icon = { Icon(Icons.Rounded.Refresh, contentDescription = null) },
+          containerColor = MaterialTheme.colorScheme.secondaryContainer,
+          onClick = { state.eventSink(DiscoverUiEvent.Refresh) },
+        )
+      }
+    },
     contentWindowInsets = CampfireWindowInsets,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
@@ -114,22 +126,7 @@ fun DiscoverUi(
         )
       }
 
-      val ptrState = rememberPullToRefreshState()
-      PullToRefreshBox(
-        state = ptrState,
-        // The scan's own header carries the determinate progress, so the pull
-        // indicator only tracks the gesture itself.
-        isRefreshing = false,
-        onRefresh = { state.eventSink(DiscoverUiEvent.Refresh) },
-        indicator = {
-          CampfireLoadingIndicator(
-            state = ptrState,
-            isRefreshing = false,
-            modifier = Modifier.align(Alignment.TopCenter),
-          )
-        },
-        modifier = Modifier.weight(1f),
-      ) {
+      Box(modifier = Modifier.weight(1f)) {
         when (state.selectedTab) {
           DiscoverTab.Missing -> MissingBooksList(
             books = results?.missing.orEmpty(),
