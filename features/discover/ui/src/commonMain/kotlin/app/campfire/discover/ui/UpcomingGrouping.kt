@@ -39,7 +39,7 @@ fun groupUpcomingByMonth(books: List<DiscoveredBook>): List<UpcomingGroup> {
       UpcomingGroup(
         key = key,
         books = entries
-          .sortedWith(compareBy({ it.first }, { it.second.entry.position }))
+          .sortedWith(compareBy({ it.first }, { it.second.entry.position ?: Double.MAX_VALUE }))
           .map { it.second },
       )
     }

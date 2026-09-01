@@ -74,7 +74,9 @@ internal fun MissingBooksList(
             MissingBookCard(
               book = book,
               supportingText = listOfNotNull(
-                stringResource(Res.string.discover_book_position, formatPosition(book.entry.position)),
+                book.entry.position?.let {
+                  stringResource(Res.string.discover_book_position, formatPosition(it))
+                },
                 parseReleaseDate(book.entry.releaseDate)?.year?.toString(),
               ).joinToString(" · "),
               onClick = book.entry.providerUrl?.let { url -> { onBookClick(url) } },

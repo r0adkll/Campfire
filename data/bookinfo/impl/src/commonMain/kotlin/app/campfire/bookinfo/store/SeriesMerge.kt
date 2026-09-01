@@ -31,7 +31,8 @@ internal fun mergeSeriesEntries(
   }
 
   val remaining = ownedItems.toMutableList()
-  val positioned = mutableListOf<Pair<Double, SeriesEntry>>()
+  // Unnumbered provider entries (null position) sort after everything numbered.
+  val positioned = mutableListOf<Pair<Double?, SeriesEntry>>()
 
   for (entry in series.entries) {
     val ownedIndex = remaining.indexOfFirst { it.matches(entry.isbns, entry.asins, entry.title) }
@@ -51,7 +52,7 @@ internal fun mergeSeriesEntries(
   }
 
   return positioned
-    .sortedBy { it.first }
+    .sortedWith(compareBy(nullsLast()) { it.first })
     .map { it.second }
 }
 

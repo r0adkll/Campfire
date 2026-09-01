@@ -22,14 +22,16 @@ data class ProviderSeries(
  * One canonical book in a provider's series listing.
  *
  * @param position reading-order position; fractional positions are companion
- * works (e.g. 0.5 novellas)
+ * works (e.g. 0.5 novellas). Null when the provider lists the book without a
+ * number — common for newly announced titles — which sorts after the numbered
+ * entries.
  * @param isReleased false for announced/placeholder entries with future or
  * unknown release dates
  */
 @Serializable
 data class ProviderSeriesEntry(
   val providerBookId: String,
-  val position: Double,
+  val position: Double? = null,
   val title: String,
   val releaseDate: String?,
   val isReleased: Boolean,

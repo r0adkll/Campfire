@@ -135,12 +135,23 @@ internal data class AudibleProduct(
   val title: String? = null,
   @SerialName("release_date") val releaseDate: String? = null,
   @SerialName("content_delivery_type") val contentDeliveryType: String? = null,
+  @SerialName("is_listenable") val isListenable: Boolean? = null,
+  @SerialName("is_purchasability_suppressed") val isPurchasabilitySuppressed: Boolean? = null,
   val rating: AudibleRating? = null,
   @SerialName("product_images") val productImages: Map<String, String> = emptyMap(),
   val series: List<AudibleSeriesMembership> = emptyList(),
   val relationships: List<AudibleRelationship> = emptyList(),
 ) {
   fun coverUrl(): String? = productImages.values.firstOrNull()
+
+  /**
+   * Whether the product is actually live in the marketplace. The catalog API
+   * returns metadata for delisted/region-unavailable ASINs whose store pages
+   * 404 — those report is_listenable false or purchasability suppressed.
+   * Genuine pre-orders report listenable and not suppressed (verified live),
+   * and both flags are lenient on absence.
+   */
+  fun isAvailable(): Boolean = isListenable != false && isPurchasabilitySuppressed != true
 }
 
 @Serializable
