@@ -66,3 +66,8 @@ internal fun MissingBookCard(
     }
   }
 }
+
+/** "1", "1.5" — reading-order position without a trailing ".0". */
+internal fun formatPosition(position: Double): String {
+  return if (position % 1.0 == 0.0) position.toInt().toString() else position.toString()
+}

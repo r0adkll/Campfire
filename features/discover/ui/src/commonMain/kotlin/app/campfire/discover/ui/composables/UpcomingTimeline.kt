@@ -3,6 +3,7 @@
 
 package app.campfire.discover.ui.composables
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,6 +37,7 @@ internal fun UpcomingTimeline(
 
   LazyColumn(
     modifier = modifier.fillMaxSize(),
+    verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(bottom = 24.dp),
   ) {
     groups.forEach { group ->
@@ -46,10 +48,11 @@ internal fun UpcomingTimeline(
         item(key = "${group.key}:${book.seriesId}:${book.entry.providerBookId}") {
           val releaseDay = parseReleaseDate(book.entry.releaseDate)
             ?.let { "${it.month.name.capitalized()} ${it.day}" }
-          DiscoveredBookRow(
+          UpcomingBookListItem(
             book = book,
-            supportingText = listOfNotNull(book.seriesName, releaseDay).joinToString(" · "),
-            onBookClick = onBookClick,
+            releaseDateLabel = releaseDay,
+            onClick = book.entry.providerUrl?.let { url -> { onBookClick(url) } },
+            modifier = Modifier.padding(horizontal = 16.dp),
           )
         }
       }
@@ -69,6 +72,6 @@ private fun MonthHeader(
     style = MaterialTheme.typography.titleMedium,
     modifier = modifier
       .fillMaxWidth()
-      .padding(horizontal = 16.dp, vertical = 12.dp),
+      .padding(horizontal = 16.dp, vertical = 8.dp),
   )
 }
