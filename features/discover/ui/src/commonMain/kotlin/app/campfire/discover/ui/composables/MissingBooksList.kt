@@ -6,7 +6,6 @@ package app.campfire.discover.ui.composables
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -91,18 +90,20 @@ private fun SeriesHeaderRow(
       style = MaterialTheme.typography.titleMedium,
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
-      modifier = Modifier.weight(1f, fill = false),
+      modifier = Modifier.weight(1f),
     )
-    Spacer(Modifier.weight(1f))
     Text(
       text = stringResource(Res.string.discover_missing_count, missingCount),
       style = MaterialTheme.typography.labelMedium,
       color = MaterialTheme.colorScheme.onSurfaceVariant,
+      maxLines = 1,
+      modifier = Modifier.padding(start = 16.dp),
     )
     Icon(
       Icons.Rounded.ChevronRight,
       contentDescription = stringResource(Res.string.cd_open_series, seriesName),
       tint = MaterialTheme.colorScheme.onSurfaceVariant,
+      modifier = Modifier.padding(start = 4.dp),
     )
   }
 }
