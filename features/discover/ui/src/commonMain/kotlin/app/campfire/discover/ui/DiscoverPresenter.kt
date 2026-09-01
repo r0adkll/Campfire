@@ -31,7 +31,7 @@ class DiscoverPresenter(
   @Composable
   override fun present(): DiscoverUiState {
     val scanState by tracker.state.collectAsState()
-    var selectedTab by rememberRetained { mutableStateOf(DiscoverTab.Missing) }
+    var selectedTab by rememberRetained { mutableStateOf(DiscoverTab.Upcoming) }
 
     // Opening the screen scans only when there's nothing fresh to show — the
     // tracker holds a freshness window, so recent results render as-is and a

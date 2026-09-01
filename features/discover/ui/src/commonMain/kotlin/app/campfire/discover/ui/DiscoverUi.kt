@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
@@ -65,7 +66,19 @@ fun DiscoverUi(
   Scaffold(
     topBar = {
       CampfireMediumTopAppBar(
-        title = { Text(stringResource(Res.string.discover_title)) },
+        title = {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+          ) {
+            Text(stringResource(Res.string.discover_title))
+            Spacer(Modifier.weight(1f))
+            DiscoverTabBar(
+              selectedTab = state.selectedTab,
+              onSelect = { tab -> state.eventSink(DiscoverUiEvent.SelectTab(tab)) },
+            )
+            Spacer(Modifier.width(16.dp))
+          }
+        },
         navigationIcon = {
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {
@@ -99,27 +112,6 @@ fun DiscoverUi(
           total = scan.total,
           onCancel = { state.eventSink(DiscoverUiEvent.CancelScan) },
         )
-      }
-
-      SingleChoiceSegmentedButtonRow(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 16.dp, vertical = 8.dp),
-      ) {
-        DiscoverTab.entries.forEachIndexed { index, tab ->
-          SegmentedButton(
-            selected = state.selectedTab == tab,
-            onClick = { state.eventSink(DiscoverUiEvent.SelectTab(tab)) },
-            shape = SegmentedButtonDefaults.itemShape(index, DiscoverTab.entries.size),
-          ) {
-            Text(
-              when (tab) {
-                DiscoverTab.Missing -> stringResource(Res.string.discover_tab_missing)
-                DiscoverTab.Upcoming -> stringResource(Res.string.discover_tab_upcoming)
-              },
-            )
-          }
-        }
       }
 
       val ptrState = rememberPullToRefreshState()
@@ -171,6 +163,32 @@ fun DiscoverUi(
 
       if (completed != null) {
         CompletedFooter(completed)
+      }
+    }
+  }
+}
+
+@Composable
+private fun DiscoverTabBar(
+  selectedTab: DiscoverTab,
+  onSelect: (DiscoverTab) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  SingleChoiceSegmentedButtonRow(
+    modifier = modifier,
+  ) {
+    DiscoverTab.entries.forEachIndexed { index, tab ->
+      SegmentedButton(
+        selected = selectedTab == tab,
+        onClick = { onSelect(tab) },
+        shape = SegmentedButtonDefaults.itemShape(index, DiscoverTab.entries.size),
+      ) {
+        Text(
+          when (tab) {
+            DiscoverTab.Upcoming -> stringResource(Res.string.discover_tab_upcoming)
+            DiscoverTab.Missing -> stringResource(Res.string.discover_tab_missing)
+          },
+        )
       }
     }
   }

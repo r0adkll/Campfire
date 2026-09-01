@@ -103,11 +103,11 @@ class DiscoverPresenterTest {
   fun present_TabSelection_Updates() = runTest {
     presenter.test {
       val state = awaitItem()
-      assertThat(state.selectedTab).isEqualTo(DiscoverTab.Missing)
+      assertThat(state.selectedTab).isEqualTo(DiscoverTab.Upcoming)
 
-      state.eventSink(DiscoverUiEvent.SelectTab(DiscoverTab.Upcoming))
+      state.eventSink(DiscoverUiEvent.SelectTab(DiscoverTab.Missing))
 
-      assertThat(awaitItem().selectedTab).isEqualTo(DiscoverTab.Upcoming)
+      assertThat(awaitItem().selectedTab).isEqualTo(DiscoverTab.Missing)
       cancelAndIgnoreRemainingEvents()
     }
   }

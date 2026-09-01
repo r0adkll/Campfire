@@ -17,8 +17,8 @@ data class DiscoverUiState(
 ) : CircuitUiState
 
 enum class DiscoverTab {
-  Missing,
   Upcoming,
+  Missing,
 }
 
 sealed interface DiscoverUiEvent : CircuitUiEvent {
