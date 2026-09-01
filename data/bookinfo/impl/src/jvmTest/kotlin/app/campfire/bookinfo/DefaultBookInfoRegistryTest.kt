@@ -13,6 +13,7 @@ import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.api.ProviderSeries
 import app.campfire.bookinfo.api.ProviderSeriesEntry
+import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.db.BookInfoDatabase
 import app.campfire.bookinfo.store.BookInfoStore
 import app.campfire.bookinfo.store.SeriesInfoStore
@@ -53,6 +54,43 @@ class DefaultBookInfoRegistryTest {
     reviewsCount = 422,
     releaseDate = "2010-08-31",
     coverUrl = null,
+  )
+
+  private val stormlightSeries = ProviderSeries(
+    providerSeriesId = "B005NB27MK",
+    name = "The Stormlight Archive",
+    isCompleted = null,
+    entries = listOf(
+      ProviderSeriesEntry(
+        providerBookId = "B003P2WO5E",
+        position = 1.0,
+        title = "The Way of Kings",
+        releaseDate = "2010-08-31",
+        isReleased = true,
+        providerUrl = null,
+        coverUrl = null,
+        asins = listOf("B003P2WO5E"),
+      ),
+      ProviderSeriesEntry(
+        providerBookId = "B00BWWSVPU",
+        position = 2.0,
+        title = "Words of Radiance",
+        releaseDate = "2014-03-04",
+        isReleased = true,
+        providerUrl = null,
+        coverUrl = null,
+        asins = listOf("B00BWWSVPU"),
+      ),
+      ProviderSeriesEntry(
+        providerBookId = "B0UPCOMING",
+        position = 6.0,
+        title = "Untitled #6",
+        releaseDate = "2031-01-01",
+        isReleased = false,
+        providerUrl = null,
+        coverUrl = null,
+      ),
+    ),
   )
 
   private fun TestScope.registry(
@@ -379,43 +417,7 @@ class DefaultBookInfoRegistryTest {
     val owned = libraryItem(
       media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
     )
-    provider.seriesResult = BookInfoResult.Success(
-      ProviderSeries(
-        providerSeriesId = "B005NB27MK",
-        name = "The Stormlight Archive",
-        isCompleted = null,
-        entries = listOf(
-          ProviderSeriesEntry(
-            providerBookId = "B003P2WO5E",
-            position = 1.0,
-            title = "The Way of Kings",
-            releaseDate = "2010-08-31",
-            isReleased = true,
-            providerUrl = null,
-            coverUrl = null,
-            asins = listOf("B003P2WO5E"),
-          ),
-          ProviderSeriesEntry(
-            providerBookId = "B00BWWSVPU",
-            position = 2.0,
-            title = "Words of Radiance",
-            releaseDate = "2014-03-04",
-            isReleased = true,
-            providerUrl = null,
-            coverUrl = null,
-          ),
-          ProviderSeriesEntry(
-            providerBookId = "B0UPCOMING",
-            position = 6.0,
-            title = "Untitled #6",
-            releaseDate = "2031-01-01",
-            isReleased = false,
-            providerUrl = null,
-            coverUrl = null,
-          ),
-        ),
-      ),
-    )
+    provider.seriesResult = BookInfoResult.Success(stormlightSeries)
     val registry = registry(provider)
 
     val state = registry
@@ -442,6 +444,115 @@ class DefaultBookInfoRegistryTest {
 
     assertThat((state as LoadState.Loaded).data.entries.size).isEqualTo(1)
     assertThat(provider.seriesRequests.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `fetching series entries returns a definitive listing and caches it`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    provider.seriesResult = BookInfoResult.Success(stormlightSeries)
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+    val again = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    val state = (result as SeriesFetchResult.Success).state
+    assertThat(state.providerId).isEqualTo(ProviderId.Hardcover)
+    assertThat(state.entries.map { it::class.simpleName })
+      .isEqualTo(listOf("Owned", "Missing", "Upcoming"))
+    // The second read serves the fresh cache without refetching.
+    assertThat(again).isInstanceOf(SeriesFetchResult.Success::class)
+    assertThat(provider.seriesRequests.size).isEqualTo(1)
+  }
+
+  @Test
+  fun `fetching series entries serves a cached miss without refetching`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+    val again = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    // A miss is still a definitive answer: the provider has no listing.
+    assertThat((result as SeriesFetchResult.Success).state.providerId).isNull()
+    assertThat((again as SeriesFetchResult.Success).state.providerId).isNull()
+    assertThat(provider.seriesRequests.size).isEqualTo(1)
+  }
+
+  @Test
+  fun `fetching series entries is unavailable without identifiable members`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "Untracked", ISBN = null, ASIN = null)),
+    )
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("Mystery Series", listOf(owned))
+
+    assertThat(result).isEqualTo(SeriesFetchResult.Unavailable)
+    assertThat(provider.seriesRequests.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `fetching series entries is unavailable without a series capable provider`() = runTest {
+    val provider = FakeBookInfoProvider(
+      capabilities = ProviderCapabilities(hasAggregateRating = true),
+    )
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    assertThat(result).isEqualTo(SeriesFetchResult.Unavailable)
+    assertThat(provider.seriesRequests.size).isEqualTo(0)
+  }
+
+  @Test
+  fun `fetching series entries reports fetch failures`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.seriesResult = BookInfoResult.Failure(Exception("boom"))
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    assertThat(result).isEqualTo(SeriesFetchResult.Error)
+  }
+
+  @Test
+  fun `fetching series entries refetches when member identifiers change`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.seriesResult = BookInfoResult.Success(stormlightSeries)
+    val wayOfKings = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val wordsOfRadiance = libraryItem(
+      id = "item-2",
+      media = media(metadata = mediaMetadata(title = "Words of Radiance", ASIN = "B00BWWSVPU")),
+    )
+    val registry = registry(provider)
+
+    registry.fetchSeriesEntries("The Stormlight Archive", listOf(wayOfKings))
+    // Adding a book changes the match key, which invalidates the fresh row and
+    // must return the refetched listing, not the stale cached one.
+    val result = registry.fetchSeriesEntries(
+      "The Stormlight Archive",
+      listOf(wayOfKings, wordsOfRadiance),
+    )
+
+    assertThat(provider.seriesRequests.size).isEqualTo(2)
+    val state = (result as SeriesFetchResult.Success).state
+    assertThat(state.entries.map { it::class.simpleName })
+      .isEqualTo(listOf("Owned", "Owned", "Upcoming"))
   }
 
   @Test

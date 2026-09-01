@@ -47,10 +47,38 @@ interface BookInfoRegistry {
   ): Flow<LoadState<out SeriesInfoState>>
 
   /**
+   * One-shot, definitive series listing for a bulk scan: serves from the cache
+   * when fresh and refreshes otherwise. Unlike [observeSeriesEntries] the
+   * result distinguishes "the provider has no listing for this series" from
+   * "the provider couldn't be asked".
+   */
+  suspend fun fetchSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): SeriesFetchResult
+
+  /**
    * Drops all locally cached provider data (for every provider and user).
    * Fresh data is fetched on the next read.
    */
   suspend fun clearCache()
+}
+
+sealed interface SeriesFetchResult {
+  /**
+   * A definitive answer; a null [SeriesInfoState.providerId] means the
+   * provider was asked and has no listing for the series.
+   */
+  data class Success(val state: SeriesInfoState) : SeriesFetchResult
+
+  /**
+   * The series can't be looked up at all — no series-capable provider, no
+   * user session, or no identifier-bearing owned members.
+   */
+  data object Unavailable : SeriesFetchResult
+
+  /** The fetch failed (network, rate limit) with nothing cached to serve. */
+  data object Error : SeriesFetchResult
 }
 
 data class ProviderStatus(

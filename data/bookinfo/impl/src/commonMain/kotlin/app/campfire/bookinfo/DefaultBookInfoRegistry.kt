@@ -11,7 +11,9 @@ import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.CommunitySource
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
+import app.campfire.bookinfo.api.ProviderSeries
 import app.campfire.bookinfo.api.ProviderStatus
+import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.bookinfo.api.bestMatch
 import app.campfire.bookinfo.api.seriesMatch
@@ -32,12 +34,15 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadResponse
+import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @SingleIn(UserScope::class)
@@ -190,6 +195,63 @@ class DefaultBookInfoRegistry(
       }
     }
   }
+
+  override suspend fun fetchSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): SeriesFetchResult {
+    val userId = userSession.userId ?: return SeriesFetchResult.Unavailable
+    val match = seriesMatch(seriesName, ownedItems) ?: return SeriesFetchResult.Unavailable
+
+    val status = combine(observeProviders(), settings.observePreferredProvider()) { statuses, stored ->
+      val usable = statuses.filter { it.canServeSeries }
+      usable.firstOrNull { it.provider.id == stored } ?: usable.firstOrNull()
+    }.first() ?: return SeriesFetchResult.Unavailable
+
+    val key = SeriesInfoStore.Key(userId, status.provider.id, match)
+    val cached = seriesStore.cached(key)
+    val invalidLink = status.linkState is ProviderLinkState.Invalid
+    val refresh = !invalidLink &&
+      (
+        cached == null ||
+          cached.isStale(
+            nowMillis = Clock.System.now().toEpochMilliseconds(),
+            currentMatchKey = key.match.cacheKey,
+          )
+        )
+
+    if (!refresh) {
+      // A rejected token means fetches would just 401; serve the cache or fail.
+      return when (cached) {
+        null -> SeriesFetchResult.Error
+        else -> SeriesFetchResult.Success(status.toSeriesState(cached.series, ownedItems))
+      }
+    }
+
+    // With refresh the store re-emits any stale cached row (SourceOfTruth
+    // origin) before the fetcher lands — only a fetcher-origin Data is the
+    // definitive answer here.
+    return seriesStore.stream(key, refresh = true)
+      .mapNotNull { response ->
+        when {
+          response is StoreReadResponse.Data && response.origin is StoreReadResponseOrigin.Fetcher ->
+            SeriesFetchResult.Success(status.toSeriesState(response.value.series, ownedItems))
+          response is StoreReadResponse.Error -> SeriesFetchResult.Error
+          else -> null
+        }
+      }
+      .first()
+  }
+
+  private fun ProviderStatus.toSeriesState(
+    series: ProviderSeries?,
+    ownedItems: List<LibraryItem>,
+  ): SeriesInfoState = SeriesInfoState(
+    providerId = series?.let { provider.id },
+    providerName = series?.let { provider.displayName },
+    isCompleted = series?.isCompleted,
+    entries = mergeSeriesEntries(ownedItems, series, provider.id),
+  )
 
   override suspend fun clearCache() {
     store.clearAll()
