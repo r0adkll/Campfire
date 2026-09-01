@@ -199,6 +199,7 @@ class DefaultBookInfoRegistry(
   override suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean,
   ): SeriesFetchResult {
     val userId = userSession.userId ?: return SeriesFetchResult.Unavailable
     val match = seriesMatch(seriesName, ownedItems) ?: return SeriesFetchResult.Unavailable
@@ -211,16 +212,17 @@ class DefaultBookInfoRegistry(
     val key = SeriesInfoStore.Key(userId, status.provider.id, match)
     val cached = seriesStore.cached(key)
     val invalidLink = status.linkState is ProviderLinkState.Invalid
-    val refresh = !invalidLink &&
+    val fetch = !invalidLink &&
       (
-        cached == null ||
+        refresh ||
+          cached == null ||
           cached.isStale(
             nowMillis = Clock.System.now().toEpochMilliseconds(),
             currentMatchKey = key.match.cacheKey,
           )
         )
 
-    if (!refresh) {
+    if (!fetch) {
       // A rejected token means fetches would just 401; serve the cache or fail.
       return when (cached) {
         null -> SeriesFetchResult.Error

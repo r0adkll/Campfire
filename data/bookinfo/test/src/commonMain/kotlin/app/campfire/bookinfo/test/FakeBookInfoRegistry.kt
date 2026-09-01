@@ -39,8 +39,14 @@ class FakeBookInfoRegistry : BookInfoRegistry {
     return seriesEntriesFlow
   }
 
+  data class FetchSeriesRequest(
+    val seriesName: String,
+    val ownedItems: List<LibraryItem>,
+    val refresh: Boolean,
+  )
+
   val fetchSeriesResults = mutableMapOf<String, SeriesFetchResult>()
-  val fetchSeriesRequests = mutableListOf<Pair<String, List<LibraryItem>>>()
+  val fetchSeriesRequests = mutableListOf<FetchSeriesRequest>()
 
   /** Optional suspension point so tests can hold fetches mid-flight. */
   var fetchSeriesGate: (suspend () -> Unit)? = null
@@ -48,8 +54,9 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   override suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean,
   ): SeriesFetchResult {
-    fetchSeriesRequests += seriesName to ownedItems
+    fetchSeriesRequests += FetchSeriesRequest(seriesName, ownedItems, refresh)
     fetchSeriesGate?.invoke()
     return fetchSeriesResults[seriesName] ?: SeriesFetchResult.Unavailable
   }

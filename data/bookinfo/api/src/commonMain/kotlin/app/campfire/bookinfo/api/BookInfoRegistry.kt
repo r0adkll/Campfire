@@ -51,10 +51,16 @@ interface BookInfoRegistry {
    * when fresh and refreshes otherwise. Unlike [observeSeriesEntries] the
    * result distinguishes "the provider has no listing for this series" from
    * "the provider couldn't be asked".
+   *
+   * Pass [refresh] to bypass the cache TTL and refetch from the provider — the
+   * per-series equivalent of clearing the series cache, except a failed fetch
+   * keeps the cached row for later reads. A provider link that's known-invalid
+   * still serves the cache (a refetch would only 401).
    */
   suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean = false,
   ): SeriesFetchResult
 
   /**

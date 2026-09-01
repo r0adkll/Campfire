@@ -64,8 +64,9 @@ class DefaultDiscoverScanTracker(
   private var scanJob: Job? = null
 
   override fun startScan() {
-    if (scanJob?.isActive == true) return
-    scanJob = coroutineScopeHolder.get().launch { scan() }
+    // An explicit scan is the user asking for current data: bypass the series
+    // cache and refetch every listing from the provider.
+    launchScan(refresh = true)
   }
 
   override fun startScanIfStale() {
@@ -73,14 +74,19 @@ class DefaultDiscoverScanTracker(
     val isFresh = completed != null &&
       fatherTime.nowInEpochMillis() - completed.scannedAt.toEpochMilliseconds() <
       SCAN_FRESHNESS_TTL.inWholeMilliseconds
-    if (!isFresh) startScan()
+    if (!isFresh) launchScan(refresh = false)
   }
 
   override fun cancelScan() {
     scanJob?.cancel()
   }
 
-  private suspend fun scan() {
+  private fun launchScan(refresh: Boolean) {
+    if (scanJob?.isActive == true) return
+    scanJob = coroutineScopeHolder.get().launch { scan(refresh) }
+  }
+
+  private suspend fun scan(refresh: Boolean) {
     // The first non-empty emission is the local database; the scan works off
     // that snapshot — series added mid-scan are picked up by the next rescan.
     val allSeries = seriesRepository.observeAllSeries().first()
@@ -94,7 +100,7 @@ class DefaultDiscoverScanTracker(
         allSeries.forEachIndexed { index, series ->
           launch {
             semaphore.withPermit {
-              val outcome = scanSeries(series)
+              val outcome = scanSeries(series, refresh)
               mutex.withLock {
                 outcomes[index] = outcome
                 _state.value = DiscoverScanState.Running(
@@ -119,12 +125,12 @@ class DefaultDiscoverScanTracker(
     }
   }
 
-  private suspend fun scanSeries(series: Series): Outcome {
+  private suspend fun scanSeries(series: Series, refresh: Boolean): Outcome {
     val owned = series.books.orEmpty()
     // Pre-check identifiability so unscannable series don't cost a fetch.
     if (seriesMatch(series.name, owned) == null) return Outcome.Skipped
 
-    return when (val result = bookInfoRegistry.fetchSeriesEntries(series.name, owned)) {
+    return when (val result = bookInfoRegistry.fetchSeriesEntries(series.name, owned, refresh)) {
       is SeriesFetchResult.Success -> Outcome.Books(
         providerName = result.state.providerName,
         missing = result.state.entries

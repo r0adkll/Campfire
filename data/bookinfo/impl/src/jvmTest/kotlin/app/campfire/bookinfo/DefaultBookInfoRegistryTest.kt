@@ -485,6 +485,22 @@ class DefaultBookInfoRegistryTest {
   }
 
   @Test
+  fun `an explicit refresh bypasses a fresh cache`() = runTest {
+    val provider = FakeBookInfoProvider()
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    provider.seriesResult = BookInfoResult.Success(stormlightSeries)
+    val registry = registry(provider)
+
+    registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned), refresh = true)
+
+    assertThat(provider.seriesRequests.size).isEqualTo(2)
+    assertThat((result as SeriesFetchResult.Success).state.providerId).isEqualTo(ProviderId.Hardcover)
+  }
+
+  @Test
   fun `fetching series entries is unavailable without identifiable members`() = runTest {
     val provider = FakeBookInfoProvider()
     val owned = libraryItem(

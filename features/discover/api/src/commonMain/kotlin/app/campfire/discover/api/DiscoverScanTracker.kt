@@ -19,7 +19,12 @@ import kotlinx.coroutines.flow.StateFlow
 interface DiscoverScanTracker {
   val state: StateFlow<DiscoverScanState>
 
-  /** Starts a scan; a no-op while one is already running. */
+  /**
+   * Starts a scan that bypasses cached series listings and refetches every
+   * series from the provider — an explicit scan means the user wants current
+   * data, so it behaves like clearing the series cache (ratings and reviews
+   * are untouched). A no-op while a scan is already running.
+   */
   fun startScan()
 
   /**

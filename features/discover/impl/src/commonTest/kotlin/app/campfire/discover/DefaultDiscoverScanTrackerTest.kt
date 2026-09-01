@@ -221,6 +221,22 @@ class DefaultDiscoverScanTrackerTest {
   }
 
   @Test
+  fun `an explicit scan refreshes while an open scan serves the cache`() = runTest {
+    seriesRepository.allSeriesFlow.emit(
+      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+    )
+    val tracker = tracker()
+
+    tracker.startScanIfStale()
+    tracker.awaitCompleted()
+    tracker.startScan()
+    tracker.state.first { it is DiscoverScanState.Running }
+    tracker.awaitCompleted()
+
+    assertThat(registry.fetchSeriesRequests.map { it.refresh }).isEqualTo(listOf(false, true))
+  }
+
+  @Test
   fun `opening with fresh results keeps them instead of rescanning`() = runTest {
     seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
