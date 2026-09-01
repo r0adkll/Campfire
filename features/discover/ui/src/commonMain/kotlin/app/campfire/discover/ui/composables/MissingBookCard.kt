@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
+import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.discover.api.DiscoveredBook
 import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.cd_book_cover
@@ -41,6 +42,7 @@ internal fun MissingBookCard(
     CoverImage(
       imageUrl = book.entry.coverUrl,
       contentDescription = stringResource(Res.string.cd_book_cover, book.entry.title),
+      placeholder = placeholderBookPainter(),
       shape = MaterialTheme.shapes.largeIncreased,
       modifier = Modifier
         .fillMaxWidth()

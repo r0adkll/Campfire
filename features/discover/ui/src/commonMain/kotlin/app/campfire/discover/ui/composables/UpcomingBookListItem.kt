@@ -24,8 +24,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
-import app.campfire.common.compose.widgets.ItemImage
+import app.campfire.common.compose.widgets.placeholderBookPainter
 import app.campfire.discover.api.DiscoveredBook
 import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.cd_book_cover
@@ -64,13 +65,13 @@ internal fun UpcomingBookListItem(
           .clip(shape)
           .size(ThumbnailSize),
       ) {
-        ItemImage(
-          imageUrl = book.entry.coverUrl.orEmpty(),
+        CoverImage(
+          imageUrl = book.entry.coverUrl,
           contentDescription = stringResource(Res.string.cd_book_cover, book.entry.title),
+          placeholder = placeholderBookPainter(),
+          size = ThumbnailSize,
+          shape = shape,
           contentScale = ContentScale.Crop,
-          modifier = Modifier
-            .clip(shape)
-            .size(ThumbnailSize),
         )
       }
 
