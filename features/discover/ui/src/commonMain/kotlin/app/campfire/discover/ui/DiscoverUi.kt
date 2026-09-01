@@ -3,20 +3,15 @@
 
 package app.campfire.discover.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -28,18 +23,19 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.CampfireMediumTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
-import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.screen.DiscoverScreen
 import app.campfire.discover.ui.composables.MissingBooksList
@@ -50,9 +46,6 @@ import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_missing
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_failed_series
-import campfire.features.discover.ui.generated.resources.discover_idle_explainer
-import campfire.features.discover.ui.generated.resources.discover_rescan_action
-import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_skipped_series
 import campfire.features.discover.ui.generated.resources.discover_source_attribution
@@ -81,77 +74,104 @@ fun DiscoverUi(
             }
           }
         },
-        actions = {
-          if (state.scanState is DiscoverScanState.Completed) {
-            val rescanLabel = stringResource(Res.string.discover_rescan_action)
-            IconButtonTooltip(text = rescanLabel) {
-              IconButton(onClick = { state.eventSink(DiscoverUiEvent.Scan) }) {
-                Icon(Icons.Rounded.Refresh, contentDescription = rescanLabel)
-              }
-            }
-          }
-        },
         scrollBehavior = scrollBehavior,
       )
     },
     contentWindowInsets = CampfireWindowInsets,
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
-    when (val scan = state.scanState) {
-      DiscoverScanState.Idle -> IdleContent(
-        paddingValues = paddingValues,
-        onScan = { state.eventSink(DiscoverUiEvent.Scan) },
-      )
+    val scan = state.scanState
+    val completed = scan as? DiscoverScanState.Completed
+    val results = when (scan) {
+      DiscoverScanState.Idle -> null
+      is DiscoverScanState.Running -> scan.results
+      is DiscoverScanState.Completed -> scan.results
+    }
 
-      is DiscoverScanState.Running -> ScanContent(
-        results = scan.results,
-        selectedTab = state.selectedTab,
-        eventSink = state.eventSink,
-        paddingValues = paddingValues,
-        header = {
-          ScanProgressHeader(
-            done = scan.done,
-            total = scan.total,
-            onCancel = { state.eventSink(DiscoverUiEvent.CancelScan) },
+    Column(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(paddingValues),
+    ) {
+      if (scan is DiscoverScanState.Running) {
+        ScanProgressHeader(
+          done = scan.done,
+          total = scan.total,
+          onCancel = { state.eventSink(DiscoverUiEvent.CancelScan) },
+        )
+      }
+
+      SingleChoiceSegmentedButtonRow(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 16.dp, vertical = 8.dp),
+      ) {
+        DiscoverTab.entries.forEachIndexed { index, tab ->
+          SegmentedButton(
+            selected = state.selectedTab == tab,
+            onClick = { state.eventSink(DiscoverUiEvent.SelectTab(tab)) },
+            shape = SegmentedButtonDefaults.itemShape(index, DiscoverTab.entries.size),
+          ) {
+            Text(
+              when (tab) {
+                DiscoverTab.Missing -> stringResource(Res.string.discover_tab_missing)
+                DiscoverTab.Upcoming -> stringResource(Res.string.discover_tab_upcoming)
+              },
+            )
+          }
+        }
+      }
+
+      val ptrState = rememberPullToRefreshState()
+      PullToRefreshBox(
+        state = ptrState,
+        // The scan's own header carries the determinate progress, so the pull
+        // indicator only tracks the gesture itself.
+        isRefreshing = false,
+        onRefresh = { state.eventSink(DiscoverUiEvent.Refresh) },
+        indicator = {
+          CampfireLoadingIndicator(
+            state = ptrState,
+            isRefreshing = false,
+            modifier = Modifier.align(Alignment.TopCenter),
           )
         },
-        completed = null,
-      )
+        modifier = Modifier.weight(1f),
+      ) {
+        when (state.selectedTab) {
+          DiscoverTab.Missing -> MissingBooksList(
+            books = results?.missing.orEmpty(),
+            onSeriesClick = { id, name -> state.eventSink(DiscoverUiEvent.SeriesClick(id, name)) },
+            onBookClick = { url -> state.eventSink(DiscoverUiEvent.BookClick(url)) },
+          )
 
-      is DiscoverScanState.Completed -> ScanContent(
-        results = scan.results,
-        selectedTab = state.selectedTab,
-        eventSink = state.eventSink,
-        paddingValues = paddingValues,
-        header = null,
-        completed = scan,
-      )
-    }
-  }
-}
+          DiscoverTab.Upcoming -> UpcomingTimeline(
+            books = results?.upcoming.orEmpty(),
+            onBookClick = { url -> state.eventSink(DiscoverUiEvent.BookClick(url)) },
+          )
+        }
 
-@Composable
-private fun IdleContent(
-  paddingValues: PaddingValues,
-  onScan: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier = modifier
-      .fillMaxSize()
-      .padding(paddingValues)
-      .padding(horizontal = 32.dp),
-    verticalArrangement = Arrangement.Center,
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    Text(
-      text = stringResource(Res.string.discover_idle_explainer),
-      style = MaterialTheme.typography.bodyLarge,
-      textAlign = TextAlign.Center,
-    )
-    Spacer(Modifier.height(24.dp))
-    Button(onClick = onScan) {
-      Text(stringResource(Res.string.discover_scan_action))
+        val emptyMessage = when (state.selectedTab) {
+          DiscoverTab.Missing -> stringResource(Res.string.discover_empty_missing)
+            .takeIf { completed != null && completed.results.missing.isEmpty() }
+          DiscoverTab.Upcoming -> stringResource(Res.string.discover_empty_upcoming)
+            .takeIf { completed != null && completed.results.upcoming.isEmpty() }
+        }
+        if (emptyMessage != null) {
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .padding(horizontal = 32.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            EmptyState(emptyMessage)
+          }
+        }
+      }
+
+      if (completed != null) {
+        CompletedFooter(completed)
+      }
     }
   }
 }
@@ -183,88 +203,6 @@ private fun ScanProgressHeader(
         Text(stringResource(Res.string.discover_cancel_scan))
       }
     }
-  }
-}
-
-@Composable
-private fun ScanContent(
-  results: DiscoverScanResults,
-  selectedTab: DiscoverTab,
-  eventSink: (DiscoverUiEvent) -> Unit,
-  paddingValues: PaddingValues,
-  header: (@Composable () -> Unit)?,
-  completed: DiscoverScanState.Completed?,
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier = modifier
-      .fillMaxSize()
-      .padding(paddingValues),
-  ) {
-    header?.invoke()
-
-    SingleChoiceSegmentedButtonRow(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp, vertical = 8.dp),
-    ) {
-      DiscoverTab.entries.forEachIndexed { index, tab ->
-        SegmentedButton(
-          selected = selectedTab == tab,
-          onClick = { eventSink(DiscoverUiEvent.SelectTab(tab)) },
-          shape = SegmentedButtonDefaults.itemShape(index, DiscoverTab.entries.size),
-        ) {
-          Text(
-            when (tab) {
-              DiscoverTab.Missing -> stringResource(Res.string.discover_tab_missing)
-              DiscoverTab.Upcoming -> stringResource(Res.string.discover_tab_upcoming)
-            },
-          )
-        }
-      }
-    }
-
-    Box(modifier = Modifier.weight(1f)) {
-      when (selectedTab) {
-        DiscoverTab.Missing -> if (results.missing.isEmpty() && completed != null) {
-          CenteredEmptyState(stringResource(Res.string.discover_empty_missing))
-        } else {
-          MissingBooksList(
-            books = results.missing,
-            onSeriesClick = { id, name -> eventSink(DiscoverUiEvent.SeriesClick(id, name)) },
-            onBookClick = { url -> eventSink(DiscoverUiEvent.BookClick(url)) },
-          )
-        }
-
-        DiscoverTab.Upcoming -> if (results.upcoming.isEmpty() && completed != null) {
-          CenteredEmptyState(stringResource(Res.string.discover_empty_upcoming))
-        } else {
-          UpcomingTimeline(
-            books = results.upcoming,
-            onBookClick = { url -> eventSink(DiscoverUiEvent.BookClick(url)) },
-          )
-        }
-      }
-    }
-
-    if (completed != null) {
-      CompletedFooter(completed)
-    }
-  }
-}
-
-@Composable
-private fun CenteredEmptyState(
-  message: String,
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier
-      .fillMaxSize()
-      .padding(horizontal = 32.dp),
-    contentAlignment = Alignment.Center,
-  ) {
-    EmptyState(message)
   }
 }
 

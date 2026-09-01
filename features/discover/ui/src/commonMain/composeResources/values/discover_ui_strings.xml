@@ -5,9 +5,6 @@
   <string name="discover_tab_missing">Missing</string>
   <string name="discover_tab_upcoming">Upcoming</string>
 
-  <string name="discover_idle_explainer">Scan the series in your library to find released books you don't own yet and see what's coming next. Each series is checked against Audible, so a first scan of a large library can take a few minutes.</string>
-  <string name="discover_scan_action">Scan library</string>
-  <string name="discover_rescan_action">Rescan library</string>
   <string name="discover_cancel_scan">Cancel</string>
   <string name="discover_scan_progress">%1$d of %2$d series</string>
 

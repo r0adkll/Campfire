@@ -41,14 +41,41 @@ class DiscoverPresenterTest {
   private val presenter = DiscoverPresenter(navigator, tracker)
 
   @Test
-  fun present_ScanEvent_StartsTheTracker() = runTest {
+  fun present_OpeningTheScreen_StartsAScanFromIdle() = runTest {
     presenter.test {
-      val state = awaitItem()
-      assertThat(state.scanState).isEqualTo(DiscoverScanState.Idle)
-
-      state.eventSink(DiscoverUiEvent.Scan)
+      awaitItem()
 
       assertThat(tracker.startScanCount).isEqualTo(1)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_OpeningWithExistingResults_DoesNotRescan() = runTest {
+    tracker.stateFlow.value = DiscoverScanState.Completed(
+      results = DiscoverScanResults(providerName = "Audible"),
+      scannedAt = Instant.fromEpochMilliseconds(0),
+      skippedCount = 0,
+      failedCount = 0,
+    )
+
+    presenter.test {
+      awaitItem()
+
+      assertThat(tracker.startScanCount).isEqualTo(0)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_RefreshEvent_StartsTheTracker() = runTest {
+    presenter.test {
+      val state = awaitItem()
+
+      state.eventSink(DiscoverUiEvent.Refresh)
+
+      // Once from opening the screen, once from the pull.
+      assertThat(tracker.startScanCount).isEqualTo(2)
       cancelAndIgnoreRemainingEvents()
     }
   }

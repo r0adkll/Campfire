@@ -4,6 +4,7 @@
 package app.campfire.discover.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,6 +12,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.di.UserScope
+import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
 import app.campfire.discover.api.screen.DiscoverScreen
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -32,13 +34,21 @@ class DiscoverPresenter(
     val scanState by tracker.state.collectAsState()
     var selectedTab by rememberRetained { mutableStateOf(DiscoverTab.Missing) }
 
+    // Opening the screen kicks off the first scan; completed results stick
+    // around in the user scope, so coming back only rescans via pull-to-refresh.
+    LaunchedEffect(Unit) {
+      if (tracker.state.value is DiscoverScanState.Idle) {
+        tracker.startScan()
+      }
+    }
+
     return DiscoverUiState(
       scanState = scanState,
       selectedTab = selectedTab,
     ) { event ->
       when (event) {
         DiscoverUiEvent.Back -> navigator.pop()
-        DiscoverUiEvent.Scan -> tracker.startScan()
+        DiscoverUiEvent.Refresh -> tracker.startScan()
         DiscoverUiEvent.CancelScan -> tracker.cancelScan()
         is DiscoverUiEvent.SelectTab -> selectedTab = event.tab
         is DiscoverUiEvent.SeriesClick -> navigator.goTo(

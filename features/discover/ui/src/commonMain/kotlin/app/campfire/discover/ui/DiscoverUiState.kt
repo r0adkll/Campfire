@@ -23,7 +23,7 @@ enum class DiscoverTab {
 
 sealed interface DiscoverUiEvent : CircuitUiEvent {
   data object Back : DiscoverUiEvent
-  data object Scan : DiscoverUiEvent
+  data object Refresh : DiscoverUiEvent
   data object CancelScan : DiscoverUiEvent
   data class SelectTab(val tab: DiscoverTab) : DiscoverUiEvent
   data class SeriesClick(val seriesId: SeriesId, val seriesName: String) : DiscoverUiEvent
