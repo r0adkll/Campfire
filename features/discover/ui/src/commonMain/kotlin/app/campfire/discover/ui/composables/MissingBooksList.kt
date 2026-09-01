@@ -4,12 +4,16 @@
 package app.campfire.discover.ui.composables
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.Icon
@@ -29,9 +33,12 @@ import campfire.features.discover.ui.generated.resources.discover_book_position
 import campfire.features.discover.ui.generated.resources.discover_missing_count
 import org.jetbrains.compose.resources.stringResource
 
+private val MissingCardWidth = 180.dp
+
 /**
- * Missing books grouped under a clickable header per series. Keys are
- * series-scoped — a cross-listed book can appear under two series.
+ * Missing books as home-style shelves: a clickable series header over a
+ * horizontal row of cards. Keys are series-scoped — a cross-listed book can
+ * appear under two series.
  */
 @Composable
 internal fun MissingBooksList(
@@ -55,16 +62,25 @@ internal fun MissingBooksList(
           onClick = { onSeriesClick(seriesId, seriesName) },
         )
       }
-      seriesBooks.forEach { book ->
-        item(key = "$seriesId:${book.entry.providerBookId}") {
-          DiscoveredBookRow(
-            book = book,
-            supportingText = listOfNotNull(
-              stringResource(Res.string.discover_book_position, formatPosition(book.entry.position)),
-              parseReleaseDate(book.entry.releaseDate)?.year?.toString(),
-            ).joinToString(" · "),
-            onBookClick = onBookClick,
-          )
+      item(key = "shelf:$seriesId") {
+        LazyRow(
+          horizontalArrangement = Arrangement.spacedBy(8.dp),
+          contentPadding = PaddingValues(horizontal = 16.dp),
+        ) {
+          items(
+            items = seriesBooks,
+            key = { "$seriesId:${it.entry.providerBookId}" },
+          ) { book ->
+            MissingBookCard(
+              book = book,
+              supportingText = listOfNotNull(
+                stringResource(Res.string.discover_book_position, formatPosition(book.entry.position)),
+                parseReleaseDate(book.entry.releaseDate)?.year?.toString(),
+              ).joinToString(" · "),
+              onClick = book.entry.providerUrl?.let { url -> { onBookClick(url) } },
+              modifier = Modifier.width(MissingCardWidth),
+            )
+          }
         }
       }
     }
