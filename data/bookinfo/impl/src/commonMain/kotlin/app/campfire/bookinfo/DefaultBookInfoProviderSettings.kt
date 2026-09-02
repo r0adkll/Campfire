@@ -55,6 +55,22 @@ class DefaultBookInfoProviderSettings(
     return settings.getStringOrNullFlow(preferredKey()).map { it.toProviderId() }
   }
 
+  override fun isSeriesMissingBooksEnabled(): Boolean {
+    return settings.getBoolean(seriesMissingKey(), defaultValue = true)
+  }
+
+  override fun setSeriesMissingBooksEnabled(enabled: Boolean) {
+    settings.putBoolean(seriesMissingKey(), enabled)
+  }
+
+  override fun observeSeriesMissingBooksEnabled(): Flow<Boolean> {
+    return settings.getBooleanFlow(seriesMissingKey(), defaultValue = true)
+  }
+
+  private fun seriesMissingKey(): String {
+    return "bookinfo_series_missing_${userSession.userId.orEmpty()}"
+  }
+
   private fun String?.toProviderId(): ProviderId? {
     return this?.let { stored -> ProviderId.entries.firstOrNull { it.key == stored } }
   }

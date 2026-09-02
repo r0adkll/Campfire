@@ -101,6 +101,8 @@ import campfire.data.bookinfo.ui.generated.resources.provider_preferred_automati
 import campfire.data.bookinfo.ui.generated.resources.provider_preferred_subtitle
 import campfire.data.bookinfo.ui.generated.resources.provider_preferred_title
 import campfire.data.bookinfo.ui.generated.resources.provider_token_hint
+import campfire.data.bookinfo.ui.generated.resources.series_missing_toggle_subtitle
+import campfire.data.bookinfo.ui.generated.resources.series_missing_toggle_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
@@ -167,6 +169,15 @@ fun ConnectedProvidersUi(
 
           Spacer(Modifier.height(4.dp))
 
+          SeriesMissingBooksRow(
+            enabled = state.seriesMissingBooksEnabled,
+            onToggle = { state.eventSink(ConnectedProvidersUiEvent.ToggleSeriesMissingBooks(it)) },
+            modifier = Modifier
+              .fillMaxWidth(),
+          )
+
+          Spacer(Modifier.height(4.dp))
+
           ClearCacheRow(
             isClearing = state.isClearingCache,
             onClick = { state.eventSink(ConnectedProvidersUiEvent.ClearCache) },
@@ -177,6 +188,32 @@ fun ConnectedProvidersUi(
       }
     }
   }
+}
+
+@Composable
+private fun SeriesMissingBooksRow(
+  enabled: Boolean,
+  onToggle: (Boolean) -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  ListItem(
+    headlineContent = {
+      Text(stringResource(Res.string.series_missing_toggle_title))
+    },
+    supportingContent = {
+      Text(stringResource(Res.string.series_missing_toggle_subtitle))
+    },
+    trailingContent = {
+      Switch(
+        checked = enabled,
+        onCheckedChange = onToggle,
+      )
+    },
+    colors = ListItemDefaults.colors(
+      containerColor = Color.Transparent,
+    ),
+    modifier = modifier.clickable { onToggle(!enabled) },
+  )
 }
 
 @Composable

@@ -44,6 +44,10 @@ class ConnectedProvidersPresenter(
       settings.observePreferredProvider()
     }.collectAsState(settings.preferredProvider())
 
+    val seriesMissingBooksEnabled by remember {
+      settings.observeSeriesMissingBooksEnabled()
+    }.collectAsState(settings.isSeriesMissingBooksEnabled())
+
     var verifyingId by remember { mutableStateOf<ProviderId?>(null) }
     var failedId by remember { mutableStateOf<ProviderId?>(null) }
     var clearingCache by remember { mutableStateOf(false) }
@@ -66,6 +70,7 @@ class ConnectedProvidersPresenter(
     return ConnectedProvidersUiState(
       providers = rows,
       preferredProvider = preferredProvider,
+      seriesMissingBooksEnabled = seriesMissingBooksEnabled,
       isClearingCache = clearingCache,
     ) { event ->
       when (event) {
@@ -73,6 +78,10 @@ class ConnectedProvidersPresenter(
 
         is ConnectedProvidersUiEvent.SetPreferredProvider -> {
           settings.setPreferredProvider(event.id)
+        }
+
+        is ConnectedProvidersUiEvent.ToggleSeriesMissingBooks -> {
+          settings.setSeriesMissingBooksEnabled(event.enabled)
         }
 
         ConnectedProvidersUiEvent.ClearCache -> {

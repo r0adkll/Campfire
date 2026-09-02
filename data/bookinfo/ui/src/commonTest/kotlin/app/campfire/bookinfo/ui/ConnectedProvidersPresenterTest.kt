@@ -5,12 +5,12 @@ package app.campfire.bookinfo.ui
 
 import app.campfire.bookinfo.api.AccountLinkable
 import app.campfire.bookinfo.api.BookInfoProvider
-import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.LinkedAccount
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.api.ProviderStatus
 import app.campfire.bookinfo.test.FakeBookInfoProvider
+import app.campfire.bookinfo.test.FakeBookInfoProviderSettings
 import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.UrlScreen
@@ -21,9 +21,6 @@ import assertk.assertions.isTrue
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.Test
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 
 private class FakeLinkableProvider(
@@ -46,27 +43,11 @@ private class FakeLinkableProvider(
   }
 }
 
-private class FakeProviderSettings : BookInfoProviderSettings {
-  val enabled = MutableStateFlow(mapOf<ProviderId, Boolean>())
-  override fun isEnabled(id: ProviderId): Boolean = enabled.value[id] ?: true
-  override fun setEnabled(id: ProviderId, enabled: Boolean) {
-    this.enabled.value = this.enabled.value + (id to enabled)
-  }
-  override fun observeEnabled(id: ProviderId): Flow<Boolean> = enabled.map { it[id] ?: true }
-
-  val preferred = MutableStateFlow<ProviderId?>(null)
-  override fun preferredProvider(): ProviderId? = preferred.value
-  override fun setPreferredProvider(id: ProviderId?) {
-    preferred.value = id
-  }
-  override fun observePreferredProvider(): Flow<ProviderId?> = preferred
-}
-
 class ConnectedProvidersPresenterTest {
 
   private val navigator = FakeNavigator(ConnectedProvidersScreen)
   private val registry = FakeBookInfoRegistry()
-  private val settings = FakeProviderSettings()
+  private val settings = FakeBookInfoProviderSettings()
   private val provider = FakeLinkableProvider()
 
   private val presenter = ConnectedProvidersPresenter(
@@ -115,6 +96,22 @@ class ConnectedProvidersPresenterTest {
     }
 
     assertThat(settings.preferredProvider()).isEqualTo(null)
+  }
+
+  @Test
+  fun present_ToggleSeriesMissingBooks_UpdatesSettingsAndState() = runTest {
+    emitProvider()
+
+    presenter.test {
+      skipItems(1)
+      val state = awaitItem()
+
+      state.eventSink(ConnectedProvidersUiEvent.ToggleSeriesMissingBooks(false))
+      awaitItemMatching { !it.seriesMissingBooksEnabled }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(settings.isSeriesMissingBooksEnabled()).isFalse()
   }
 
   @Test

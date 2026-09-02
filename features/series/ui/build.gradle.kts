@@ -24,5 +24,14 @@ kotlin {
         implementation(libs.ktor.http)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(projects.data.analytics.test)
+        implementation(projects.data.bookinfo.test)
+        implementation(projects.features.series.test)
+        implementation(projects.infra.audioplayer.test)
+      }
+    }
   }
 }

@@ -13,6 +13,7 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.SeriesEntry
 import app.campfire.common.screens.SeriesDetailScreen
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
@@ -44,6 +46,7 @@ class SeriesDetailPresenter(
   private val repository: SeriesRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val bookInfoRegistry: BookInfoRegistry,
+  private val bookInfoSettings: BookInfoProviderSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesDetailUiState> {
 
@@ -84,22 +87,28 @@ class SeriesDetailPresenter(
 
     // Checks the provider automatically — served from the registry's series
     // cache, so this is usually a local read. The section only exists once a
-    // provider answers with books the user doesn't own.
+    // provider answers with books the user doesn't own, and the whole lookup
+    // is skipped (not just hidden) when the user turns the feature off.
     val missingSection by remember {
-      snapshotFlow { seriesContentState.dataOrNull }
-        .filterNotNull()
+      bookInfoSettings.observeSeriesMissingBooksEnabled()
         .distinctUntilChanged()
-        .flatMapLatest { items ->
-          bookInfoRegistry.observeSeriesEntries(screen.seriesName, items)
+        .flatMapLatest { showMissing ->
+          if (!showMissing) return@flatMapLatest flowOf(null)
+          snapshotFlow { seriesContentState.dataOrNull }
+            .filterNotNull()
+            .distinctUntilChanged()
+            .flatMapLatest { items ->
+              bookInfoRegistry.observeSeriesEntries(screen.seriesName, items)
+            }
+            .map { loadState ->
+              val state = loadState.dataOrNull ?: return@map null
+              // A null provider means owned-only data — the provider hasn't answered.
+              if (state.providerId == null) return@map null
+              val missing = state.entries.filterIsInstance<SeriesEntry.Missing>()
+              if (missing.isEmpty()) null else MissingSection(missing)
+            }
+            .catch { emit(null) }
         }
-        .map { loadState ->
-          val state = loadState.dataOrNull ?: return@map null
-          // A null provider means owned-only data — the provider hasn't answered.
-          if (state.providerId == null) return@map null
-          val missing = state.entries.filterIsInstance<SeriesEntry.Missing>()
-          if (missing.isEmpty()) null else MissingSection(missing)
-        }
-        .catch { emit(null) }
     }.collectAsState(null)
 
     return SeriesDetailUiState(

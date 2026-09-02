@@ -23,4 +23,13 @@ interface BookInfoProviderSettings {
   fun preferredProvider(): ProviderId?
   fun setPreferredProvider(id: ProviderId?)
   fun observePreferredProvider(): Flow<ProviderId?>
+
+  /**
+   * Whether series detail pages show (and load) the missing-books section.
+   * Defaults to enabled; turning it off skips the provider lookup entirely
+   * without disabling the provider for ratings, reviews, or the Upcoming scan.
+   */
+  fun isSeriesMissingBooksEnabled(): Boolean
+  fun setSeriesMissingBooksEnabled(enabled: Boolean)
+  fun observeSeriesMissingBooksEnabled(): Flow<Boolean>
 }

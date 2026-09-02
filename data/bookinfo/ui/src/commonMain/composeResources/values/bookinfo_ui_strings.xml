@@ -21,6 +21,9 @@
   <string name="provider_preferred_subtitle">Which source wins when several have this book</string>
   <string name="provider_preferred_automatic">Automatic</string>
 
+  <string name="series_missing_toggle_title">Missing books in series</string>
+  <string name="series_missing_toggle_subtitle">Show released books you don't own on series pages</string>
+
   <string name="provider_clear_cache">Clear cached data</string>
   <string name="provider_clear_cache_subtitle">Removes saved ratings and reviews. They'll be fetched fresh the next time you view a book.</string>
 </resources>

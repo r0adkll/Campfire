@@ -15,6 +15,8 @@ data class ConnectedProvidersUiState(
   val providers: List<ProviderRowState>,
   /** The user's preferred source; null means the automatic default order. */
   val preferredProvider: ProviderId? = null,
+  /** Whether series detail pages show the missing-books section. */
+  val seriesMissingBooksEnabled: Boolean = true,
   val isClearingCache: Boolean = false,
   val eventSink: (ConnectedProvidersUiEvent) -> Unit,
 ) : CircuitUiState
@@ -37,6 +39,7 @@ sealed interface ConnectedProvidersUiEvent : CircuitUiEvent {
   data object ClearCache : ConnectedProvidersUiEvent
   data class ToggleEnabled(val id: ProviderId, val enabled: Boolean) : ConnectedProvidersUiEvent
   data class SetPreferredProvider(val id: ProviderId?) : ConnectedProvidersUiEvent
+  data class ToggleSeriesMissingBooks(val enabled: Boolean) : ConnectedProvidersUiEvent
   data class Link(val id: ProviderId, val token: String) : ConnectedProvidersUiEvent
   data class Unlink(val id: ProviderId) : ConnectedProvidersUiEvent
   data class OpenLinkHelp(val url: String) : ConnectedProvidersUiEvent
