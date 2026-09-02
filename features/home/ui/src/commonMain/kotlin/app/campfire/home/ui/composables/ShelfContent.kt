@@ -147,6 +147,7 @@ private fun LoadedShelfContent(
           // recent episodes across shelves stays distinct.
           is ShelfEntity.EpisodeShelfEntry ->
             entity.libraryItem.id + "_" + entity.recentEpisode.id
+          is ShelfEntity.UpcomingBookShelfEntry -> entity.id
         }
       },
     ) { entity ->
@@ -204,6 +205,14 @@ private fun LoadedShelfContent(
             .semantics {
               contentDescription = "HomeEpisodeShelfEntry"
             },
+        )
+
+        is ShelfEntity.UpcomingBookShelfEntry -> UpcomingBookCard(
+          entry = entity,
+          onClick = entity.providerUrl?.let { { onItemClick(entity) } },
+          modifier = Modifier
+            .width(LibraryCardWidth)
+            .animateItem(),
         )
       }
     }

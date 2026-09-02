@@ -3,7 +3,6 @@
   <string name="shelf_content_error_message">Unable to load content for "%1$s"</string>
 
   <string name="upcoming_shelf_title">Upcoming releases</string>
-  <string name="cd_open_upcoming">Open upcoming releases</string>
   <string name="upcoming_shelf_tba">TBA</string>
   <string name="cd_book_cover">%1$s cover</string>
 </resources>
