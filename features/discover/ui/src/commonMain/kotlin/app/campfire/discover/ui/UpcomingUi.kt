@@ -3,16 +3,28 @@
 
 package app.campfire.discover.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Radar
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,6 +39,9 @@ import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSiz
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -39,6 +54,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -54,6 +70,7 @@ import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
+import campfire.features.discover.ui.generated.resources.discover_scanning_title
 import campfire.features.discover.ui.generated.resources.upcoming_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Instant
@@ -67,6 +84,7 @@ fun UpcomingUi(
   modifier: Modifier = Modifier,
 ) {
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+  val listState = rememberLazyListState()
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -79,20 +97,39 @@ fun UpcomingUi(
             }
           }
         },
+        windowInsets = WindowInsets(),
+        contentPadding = WindowInsets.statusBars.asPaddingValues(),
         scrollBehavior = scrollBehavior,
       )
     },
     floatingActionButton = {
-      if (state.scanState is DiscoverScanState.Completed) {
+      val expanded by remember {
+        derivedStateOf {
+          listState.firstVisibleItemIndex == 0 &&
+            listState.firstVisibleItemScrollOffset < 50
+        }
+      }
+
+      val bottomMargin = withDensity {
+        CampfireWindowInsets.getBottom(this) + 16.dp.roundToPx()
+      }
+      AnimatedVisibility(
+        visible = state.scanState is DiscoverScanState.Completed,
+        enter = slideInVertically { it + bottomMargin },
+        exit = slideOutVertically { it + bottomMargin },
+      ) {
         SmallExtendedFloatingActionButton(
+          expanded = expanded,
           text = { Text(stringResource(Res.string.discover_scan_action)) },
           icon = { Icon(Icons.Rounded.Radar, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           onClick = { state.eventSink(UpcomingUiEvent.Refresh) },
+          modifier = Modifier
+            .navigationBarsPadding(),
         )
       }
     },
-    contentWindowInsets = CampfireWindowInsets,
+    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.systemBars),
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
     val scan = state.scanState
@@ -105,9 +142,10 @@ fun UpcomingUi(
 
     Column(
       modifier = Modifier
-        .fillMaxSize()
-        .padding(paddingValues),
+        .fillMaxSize(),
     ) {
+      Spacer(Modifier.height(paddingValues.calculateTopPadding()))
+
       if (scan is DiscoverScanState.Running) {
         ScanProgressHeader(
           done = scan.done,
@@ -118,6 +156,7 @@ fun UpcomingUi(
 
       Box(modifier = Modifier.weight(1f)) {
         UpcomingTimeline(
+          listState = listState,
           books = results?.upcoming.orEmpty(),
           onBookClick = { url -> state.eventSink(UpcomingUiEvent.BookClick(url)) },
         )
@@ -133,10 +172,13 @@ fun UpcomingUi(
           }
         }
       }
+
+      Spacer(Modifier.height(paddingValues.calculateBottomPadding()))
     }
   }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ScanProgressHeader(
   done: Int,
@@ -149,9 +191,16 @@ private fun ScanProgressHeader(
       .fillMaxWidth()
       .padding(horizontal = 16.dp),
   ) {
+    Text(
+      text = stringResource(Res.string.discover_scanning_title),
+      style = MaterialTheme.typography.titleSmall,
+    )
+    Spacer(Modifier.height(4.dp))
     LinearProgressIndicator(
       progress = { if (total == 0) 0f else done.toFloat() / total },
-      modifier = Modifier.fillMaxWidth(),
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(6.dp),
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
       Text(
@@ -160,8 +209,16 @@ private fun ScanProgressHeader(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
       )
       Spacer(Modifier.weight(1f))
-      TextButton(onClick = onCancel) {
-        Text(stringResource(Res.string.discover_cancel_scan))
+      val buttonSize = ButtonDefaults.ExtraSmallContainerHeight
+      TextButton(
+        onClick = onCancel,
+        shapes = ButtonDefaults.shapes(),
+        contentPadding = ButtonDefaults.contentPaddingFor(buttonSize),
+      ) {
+        Text(
+          text = stringResource(Res.string.discover_cancel_scan),
+          style = ButtonDefaults.textStyleFor(buttonSize),
+        )
       }
     }
   }

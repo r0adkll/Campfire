@@ -12,6 +12,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.ProviderSeriesEntry
@@ -39,6 +41,7 @@ internal fun MissingSeriesBookCard(
     onClick = onClick,
     modifier = modifier,
   ) {
+    val scrim = MaterialTheme.colorScheme.surface.copy(alpha = 0.4f)
     CoverImage(
       imageUrl = entry.coverUrl,
       contentDescription = stringResource(Res.string.cd_book_cover, entry.title),
@@ -47,6 +50,11 @@ internal fun MissingSeriesBookCard(
       modifier = Modifier
         .fillMaxWidth()
         .aspectRatio(1f),
+      sharedElementModifier = Modifier
+        .drawWithContent {
+          drawContent()
+          drawRoundRect(scrim, cornerRadius = CornerRadius(20.dp.toPx()))
+        },
     )
     Column(
       modifier = Modifier.padding(vertical = 16.dp),

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,10 +34,12 @@ internal fun UpcomingTimeline(
   books: List<DiscoveredBook>,
   onBookClick: (String) -> Unit,
   modifier: Modifier = Modifier,
+  listState: LazyListState = rememberLazyListState(),
 ) {
   val groups = groupUpcomingByMonth(books)
 
   LazyColumn(
+    state = listState,
     modifier = modifier.fillMaxSize(),
     verticalArrangement = Arrangement.spacedBy(8.dp),
     contentPadding = PaddingValues(bottom = 24.dp),
