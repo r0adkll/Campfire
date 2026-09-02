@@ -19,6 +19,7 @@ fun ShelfListItem(
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
+  onViewAllUpcomingClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Column(
@@ -30,6 +31,7 @@ fun ShelfListItem(
       offlineStatus = offlineStatus,
       progressStatus = progressStatus,
       onItemClick = onItemClick,
+      onViewAllUpcomingClick = onViewAllUpcomingClick,
     )
   }
 }

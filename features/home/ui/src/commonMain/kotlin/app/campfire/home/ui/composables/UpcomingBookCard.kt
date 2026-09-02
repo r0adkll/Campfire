@@ -3,14 +3,22 @@
 
 package app.campfire.home.ui.composables
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -22,6 +30,8 @@ import app.campfire.core.model.ShelfEntity
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.cd_book_cover
 import campfire.features.home.ui.generated.resources.upcoming_shelf_tba
+import campfire.features.home.ui.generated.resources.upcoming_view_all
+import campfire.features.home.ui.generated.resources.upcoming_view_all_count
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.stringResource
 
@@ -63,6 +73,64 @@ internal fun UpcomingBookCard(
       Text(
         text = entry.releaseDate.asShelfDateLabel()
           ?: stringResource(Res.string.upcoming_shelf_tba),
+        style = MaterialTheme.typography.bodySmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(horizontal = 16.dp),
+      )
+    }
+  }
+}
+
+/**
+ * The trailing card of the upcoming shelf: same silhouette as the book cards,
+ * with a forward affordance opening the full Upcoming screen. [total] is the
+ * complete cached count, including the undated announcements the shelf hides.
+ */
+@Composable
+internal fun UpcomingViewAllCard(
+  total: Int,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  ElevatedContentCard(
+    onClick = onClick,
+    modifier = modifier,
+  ) {
+    Box(
+      modifier = Modifier
+        .fillMaxWidth()
+        .aspectRatio(1f),
+      contentAlignment = Alignment.Center,
+    ) {
+      Box(
+        modifier = Modifier
+          .size(56.dp)
+          .background(
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            shape = CircleShape,
+          ),
+        contentAlignment = Alignment.Center,
+      ) {
+        Icon(
+          Icons.AutoMirrored.Rounded.ArrowForward,
+          contentDescription = null,
+          tint = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+      }
+    }
+    Column(
+      modifier = Modifier.padding(vertical = 16.dp),
+    ) {
+      Text(
+        text = stringResource(Res.string.upcoming_view_all),
+        style = MaterialTheme.typography.titleSmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(horizontal = 16.dp),
+      )
+      Text(
+        text = stringResource(Res.string.upcoming_view_all_count, total),
         style = MaterialTheme.typography.bodySmall,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,

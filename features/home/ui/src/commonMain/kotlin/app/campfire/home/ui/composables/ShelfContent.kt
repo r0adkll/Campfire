@@ -40,6 +40,7 @@ import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Series
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.home.api.model.ShelfIds
 import app.campfire.home.ui.UiShelf
 import campfire.features.home.ui.generated.resources.Res
 import campfire.features.home.ui.generated.resources.shelf_content_error_message
@@ -54,6 +55,7 @@ fun ShelfContent(
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
+  onViewAllUpcomingClick: () -> Unit,
   modifier: Modifier = Modifier,
   state: LazyListState = rememberLazyListState(),
 ) {
@@ -67,6 +69,7 @@ fun ShelfContent(
       offlineStatus = offlineStatus,
       progressStatus = progressStatus,
       onItemClick = onItemClick,
+      onViewAllUpcomingClick = onViewAllUpcomingClick,
       modifier = modifier,
       state = state,
     )
@@ -125,6 +128,7 @@ private fun LoadedShelfContent(
   shelf: UiShelf<*>,
   entities: List<ShelfEntity>,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
+  onViewAllUpcomingClick: () -> Unit,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (Any) -> Unit,
   modifier: Modifier = Modifier,
@@ -210,6 +214,18 @@ private fun LoadedShelfContent(
         is ShelfEntity.UpcomingBookShelfEntry -> UpcomingBookCard(
           entry = entity,
           onClick = entity.providerUrl?.let { { onItemClick(entity) } },
+          modifier = Modifier
+            .width(LibraryCardWidth)
+            .animateItem(),
+        )
+      }
+    }
+
+    if (shelf.id == ShelfIds.UpcomingReleases) {
+      item(key = "view-all-upcoming") {
+        UpcomingViewAllCard(
+          total = shelf.total,
+          onClick = onViewAllUpcomingClick,
           modifier = Modifier
             .width(LibraryCardWidth)
             .animateItem(),

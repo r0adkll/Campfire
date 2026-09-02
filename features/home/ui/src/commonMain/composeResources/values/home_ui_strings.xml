@@ -4,5 +4,7 @@
 
   <string name="upcoming_shelf_title">Upcoming releases</string>
   <string name="upcoming_shelf_tba">TBA</string>
+  <string name="upcoming_view_all">View all</string>
+  <string name="upcoming_view_all_count">%1$d upcoming</string>
   <string name="cd_book_cover">%1$s cover</string>
 </resources>

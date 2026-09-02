@@ -23,6 +23,7 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.ShelfEntity
+import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
@@ -160,29 +161,33 @@ class HomePresenter(
           navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
         }
         is HomeUiEvent.OpenUpcomingBook -> navigator.goTo(UrlScreen(event.url))
+        HomeUiEvent.OpenUpcomingScreen -> navigator.goTo(UpcomingScreen)
       }
     }
   }
 }
 
 /**
- * Weaves the cached upcoming shelf into the server's feed — after
- * Recently Added when present (between it and Recent Series in the default
- * feed order), at the end otherwise. Nothing is inserted with nothing cached.
- * The label stays empty here; the UI resolves it from resources by shelf id.
+ * Weaves the cached upcoming shelf into the server's feed — after the
+ * server's Discover shelf when present, at the end otherwise. Only dated
+ * releases make the shelf (undated announcements live on the Upcoming screen,
+ * which [UiShelf.total] still counts in full for the view-all card); nothing
+ * is inserted when none qualify. The label stays empty here; the UI resolves
+ * it from resources by shelf id.
  */
 private fun insertUpcomingShelf(
   shelves: List<UiShelf<ShelfEntity>>,
   upcoming: List<UpcomingRelease>,
 ): List<UiShelf<ShelfEntity>> {
-  if (upcoming.isEmpty()) return shelves
+  val dated = upcoming.filter { it.entry.releaseDate != null }
+  if (dated.isEmpty()) return shelves
 
   val upcomingShelf = UiShelf<ShelfEntity>(
     id = ShelfIds.UpcomingReleases,
     label = "",
     total = upcoming.size,
     entities = LoadState.Loaded(
-      upcoming.map { release ->
+      dated.map { release ->
         ShelfEntity.UpcomingBookShelfEntry(
           id = "${release.providerId.key}:${release.entry.providerBookId}",
           title = release.entry.title,
@@ -195,7 +200,9 @@ private fun insertUpcomingShelf(
     ),
   )
 
-  val anchor = shelves.indexOfFirst { it.id == ShelfIds.RecentlyAdded }
+  val anchor = shelves.indexOfFirst {
+    it.id.startsWith(ShelfIds.Discover)
+  }
   return if (anchor >= 0) {
     shelves.toMutableList().apply { add(anchor + 1, upcomingShelf) }
   } else {

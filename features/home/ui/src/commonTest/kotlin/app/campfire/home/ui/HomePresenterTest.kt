@@ -30,6 +30,7 @@ import assertk.Assert
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
 import assertk.assertions.index
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
@@ -130,10 +131,10 @@ class HomePresenterTest {
   }
 
   @Test
-  fun present_CachedUpcoming_InsertsShelfAfterRecentlyAdded() = runTest {
+  fun present_CachedUpcoming_InsertsShelfAfterDiscover() = runTest {
     val shelves = listOf(
-      shelf(ShelfIds.RecentlyAdded, "Recently Added", 2),
-      shelf(ShelfIds.RecentSeries, "Recent Series", 2),
+      shelf(ShelfIds.Discover, "Discover", 2),
+      shelf(ShelfIds.NewestAuthors, "Newest Authors", 2),
     )
     val repository = FakeHomeRepository(
       homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
@@ -169,7 +170,7 @@ class HomePresenterTest {
       awaitItem() // loading
 
       assertThat(awaitItem()).homeFeed.isSuccess().all {
-        index(0).prop(UiShelf<*>::id).isEqualTo(ShelfIds.RecentlyAdded)
+        index(0).prop(UiShelf<*>::id).isEqualTo(ShelfIds.Discover)
         index(1).isShelf(
           id = ShelfIds.UpcomingReleases,
           label = "",
@@ -189,7 +190,51 @@ class HomePresenterTest {
               )
           },
         )
-        index(2).prop(UiShelf<*>::id).isEqualTo(ShelfIds.RecentSeries)
+        index(2).prop(UiShelf<*>::id).isEqualTo(ShelfIds.NewestAuthors)
+      }
+    }
+  }
+
+  @Test
+  fun present_UndatedUpcomingOnly_InsertsNoShelf() = runTest {
+    val shelves = listOf(shelf(ShelfIds.Discover, "Discover", 2))
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val registry = FakeBookInfoRegistry()
+    registry.cachedUpcomingFlow.value = listOf(
+      UpcomingRelease(
+        seriesName = "The Stormlight Archive",
+        entry = ProviderSeriesEntry(
+          providerBookId = "B0TBA",
+          position = null,
+          title = "Untitled Announcement",
+          releaseDate = null,
+          isReleased = false,
+          providerUrl = null,
+          coverUrl = null,
+        ),
+        providerId = ProviderId.Audible,
+      ),
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = registry,
+      analytics = analytics,
+    )
+
+    presenter.test {
+      awaitItem() // loading
+
+      // Undated announcements stay on the Upcoming screen — no home shelf.
+      assertThat(awaitItem()).homeFeed.isSuccess().all {
+        index(0).prop(UiShelf<*>::id).isEqualTo(ShelfIds.Discover)
+        hasSize(1)
       }
     }
   }
