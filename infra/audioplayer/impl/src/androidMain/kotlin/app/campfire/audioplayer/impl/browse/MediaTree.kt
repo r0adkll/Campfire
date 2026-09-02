@@ -205,7 +205,7 @@ class MediaTree(
 
     return homeFeed
       .flatMap { (shelf, items) ->
-        items.map { item ->
+        items.mapNotNull { item ->
           when (item) {
             is LibraryItem -> item.asBrowsableMediaItem(titleHint = shelf.label)
             is Series -> item.asBrowsableMediaItem(titleHint = shelf.label)
@@ -215,6 +215,9 @@ class MediaTree(
               titleHint = shelf.label,
               episode = item.recentEpisode,
             )
+
+            // Upcoming books can't be actioned in Android Auto, so ignore them
+            is ShelfEntity.UpcomingBookShelfEntry -> null
           }
         }
       }
