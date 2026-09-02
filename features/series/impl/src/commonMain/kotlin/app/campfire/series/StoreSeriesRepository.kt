@@ -46,7 +46,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -180,38 +180,31 @@ class StoreSeriesRepository(
       .build(),
   ).build()
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  override suspend fun cachedAllSeries(): List<Series> {
-    val key = allSeriesKey() ?: return emptyList()
-    // cached(refresh = false) only reaches the fetcher when the source of
-    // truth has nothing at all — the pure-read guarantee holds once anything
-    // is cached.
-    return seriesStore.stream(StoreReadRequest.cached(key, refresh = false))
-      .debugLogging("Series")
-      .firstOrNull { it is StoreReadResponse.Data || it is StoreReadResponse.Error }
-      ?.dataOrNull()
-      ?.sortedBy { it.name }
-      .orEmpty()
-  }
+  override fun observeAllSeries(refresh: Boolean): Flow<List<Series>> {
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        val key = SeriesStore.Key(user.id, user.selectedLibraryId)
+        seriesStore.stream(StoreReadRequest.cached(key, refresh = refresh))
+          .debugLogging("Series")
+          .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
+          .mapNotNull { response ->
+            response.dataOrNull()?.let { series ->
+              // While a refresh is in flight an empty local listing just means
+              // the network hasn't landed yet — hold for it. Without a refresh
+              // the empty listing is the answer.
+              val isEmptyNotAllowedForOrigin = refresh &&
+                (
+                  response.origin is StoreReadResponseOrigin.SourceOfTruth ||
+                    response.origin is StoreReadResponseOrigin.Fetcher
+                  )
+              if (series.isEmpty() && isEmptyNotAllowedForOrigin) {
+                return@mapNotNull null
+              }
 
-  override suspend fun refreshAllSeries(): List<Series> {
-    val key = allSeriesKey() ?: return emptyList()
-    // The stale cached row re-emits (SourceOfTruth origin) before the fetcher
-    // lands, so only a fetcher-origin emission counts as the refreshed answer.
-    val refreshed = seriesStore.stream(StoreReadRequest.cached(key, refresh = true))
-      .debugLogging("Series")
-      .firstOrNull {
-        (it is StoreReadResponse.Data && it.origin is StoreReadResponseOrigin.Fetcher) ||
-          it is StoreReadResponse.Error
+              series.sortedBy { it.name }
+            }
+          }
       }
-      ?.dataOrNull()
-      ?.sortedBy { it.name }
-    return refreshed ?: cachedAllSeries()
-  }
-
-  private suspend fun allSeriesKey(): SeriesStore.Key? {
-    val user = userRepository.observeCurrentUser().firstOrNull() ?: return null
-    return SeriesStore.Key(user.id, user.selectedLibraryId)
   }
 
   override fun createSeriesPager(

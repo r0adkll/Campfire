@@ -15,20 +15,13 @@ import kotlinx.coroutines.flow.Flow
 interface SeriesRepository {
 
   /**
-   * The locally cached series listing (with owned books hydrated) — a pure
-   * database read that never fetches or writes, so bulk consumers like the
-   * upcoming scan can snapshot it without invalidating the series list pager.
-   * Empty when nothing has been cached yet.
+   * The full series listing (with owned books hydrated). With [refresh] the
+   * listing is also refetched from the server — note the resulting cache
+   * rewrite invalidates the series list screen's pagination, so bulk
+   * consumers like the upcoming scan should pass false to read the local
+   * cache without side effects (an empty listing is then a valid emission).
    */
-  suspend fun cachedAllSeries(): List<Series>
-
-  /**
-   * Fetches the full series listing from the server and returns it, falling
-   * back to the cached listing when the fetch fails. Refreshing rewrites the
-   * local series cache, which resets the series list screen's pagination —
-   * reserve it for explicit user-initiated refreshes.
-   */
-  suspend fun refreshAllSeries(): List<Series>
+  fun observeAllSeries(refresh: Boolean = true): Flow<List<Series>>
 
   fun createSeriesPager(
     user: User,

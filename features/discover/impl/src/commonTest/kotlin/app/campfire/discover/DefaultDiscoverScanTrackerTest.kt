@@ -86,7 +86,7 @@ class DefaultDiscoverScanTrackerTest {
   @Test
   fun `a scan collects only the unreleased provider entries`() = runTest {
     val owned = ownedItem("The Way of Kings", "B003P2WO5E")
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "The Stormlight Archive", books = listOf(owned))),
     )
     registry.fetchSeriesResults["The Stormlight Archive"] = successWith(
@@ -113,7 +113,7 @@ class DefaultDiscoverScanTrackerTest {
     val untracked = libraryItem(
       media = media(metadata = mediaMetadata(title = "Untracked", ISBN = null, ASIN = null)),
     )
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Mystery Series", books = listOf(untracked))),
     )
     val tracker = tracker()
@@ -127,7 +127,7 @@ class DefaultDiscoverScanTrackerTest {
 
   @Test
   fun `failed fetches are counted while successful ones still report`() = runTest {
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(
         series(id = "s1", name = "Broken Series", books = listOf(ownedItem("Book A", "B000000001"))),
         series(id = "s2", name = "Good Series", books = listOf(ownedItem("Book B", "B000000002"))),
@@ -150,7 +150,7 @@ class DefaultDiscoverScanTrackerTest {
   fun `progress streams in while the scan runs`() = runTest {
     val gate = Channel<Unit>()
     registry.fetchSeriesGate = { gate.receive() }
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(
         series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
         series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
@@ -179,7 +179,7 @@ class DefaultDiscoverScanTrackerTest {
   fun `cancelling freezes partial results into a completed state`() = runTest {
     val gate = Channel<Unit>()
     registry.fetchSeriesGate = { gate.receive() }
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(
         series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
         series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
@@ -204,7 +204,7 @@ class DefaultDiscoverScanTrackerTest {
   fun `starting a scan while one runs is a no-op`() = runTest {
     val gate = Channel<Unit>()
     registry.fetchSeriesGate = { gate.receive() }
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
     )
     val tracker = tracker()
@@ -222,7 +222,7 @@ class DefaultDiscoverScanTrackerTest {
 
   @Test
   fun `an explicit scan refreshes while an open scan serves the cache`() = runTest {
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
     )
     val tracker = tracker()
@@ -236,13 +236,12 @@ class DefaultDiscoverScanTrackerTest {
     assertThat(registry.fetchSeriesRequests.map { it.refresh }).isEqualTo(listOf(false, true))
     // The stale scan reads the local snapshot; only the explicit scan
     // refreshes the series listing itself.
-    assertThat(seriesRepository.cachedCalls).isEqualTo(1)
-    assertThat(seriesRepository.refreshCalls).isEqualTo(1)
+    assertThat(seriesRepository.observeAllSeriesRequests).isEqualTo(listOf(false, true))
   }
 
   @Test
   fun `opening with fresh results keeps them instead of rescanning`() = runTest {
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
     )
     val tracker = tracker()
@@ -260,7 +259,7 @@ class DefaultDiscoverScanTrackerTest {
 
   @Test
   fun `opening after the freshness window rescans`() = runTest {
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
     )
     val tracker = tracker()
@@ -278,7 +277,7 @@ class DefaultDiscoverScanTrackerTest {
 
   @Test
   fun `a rescan runs the whole scan again`() = runTest {
-    seriesRepository.setCached(
+    seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
     )
     val tracker = tracker()

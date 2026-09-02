@@ -26,6 +26,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -86,14 +87,11 @@ class DefaultDiscoverScanTracker(
   }
 
   private suspend fun scan(refresh: Boolean) {
-    // Stale scans work off the local snapshot so they never rewrite the series
+    // Stale scans read the local snapshot so they never rewrite the series
     // cache (which would reset the series list screen's pagination); an
-    // explicit scan pulls a fresh listing first so new series are picked up.
-    val allSeries = if (refresh) {
-      seriesRepository.refreshAllSeries()
-    } else {
-      seriesRepository.cachedAllSeries()
-    }
+    // explicit scan also kicks off a listing refresh so new series land for
+    // this or the next pass.
+    val allSeries = seriesRepository.observeAllSeries(refresh = refresh).first()
     val outcomes = arrayOfNulls<Outcome>(allSeries.size)
     val mutex = Mutex()
     _state.value = DiscoverScanState.Running(0, allSeries.size, DiscoverScanResults())
