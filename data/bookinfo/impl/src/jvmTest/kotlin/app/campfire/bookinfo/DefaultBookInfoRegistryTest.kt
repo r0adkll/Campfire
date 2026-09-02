@@ -34,6 +34,7 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -542,6 +543,20 @@ class DefaultBookInfoRegistryTest {
     val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
 
     assertThat(result).isEqualTo(SeriesFetchResult.Error)
+  }
+
+  @Test
+  fun `fetching series entries reports rate limiting distinctly from failures`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.seriesResult = BookInfoResult.RateLimited(retryAfter = 30.seconds)
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    val result = registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    assertThat(result).isEqualTo(SeriesFetchResult.RateLimited(30.seconds))
   }
 
   @Test

@@ -3,7 +3,7 @@
 
 package app.campfire.discover.ui
 
-import app.campfire.discover.api.DiscoveredBook
+import app.campfire.bookinfo.api.UpcomingRelease
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.Month
 
@@ -12,7 +12,7 @@ data class MonthKey(val year: Int, val month: Month)
 
 data class UpcomingGroup(
   val key: MonthKey?,
-  val books: List<DiscoveredBook>,
+  val books: List<UpcomingRelease>,
 )
 
 /**
@@ -20,9 +20,9 @@ data class UpcomingGroup(
  * books whose dates can't be parsed (or are absent) collected into a final
  * TBA group.
  */
-fun groupUpcomingByMonth(books: List<DiscoveredBook>): List<UpcomingGroup> {
-  val dated = mutableMapOf<MonthKey, MutableList<Pair<LocalDate, DiscoveredBook>>>()
-  val tba = mutableListOf<DiscoveredBook>()
+fun groupUpcomingByMonth(books: List<UpcomingRelease>): List<UpcomingGroup> {
+  val dated = mutableMapOf<MonthKey, MutableList<Pair<LocalDate, UpcomingRelease>>>()
+  val tba = mutableListOf<UpcomingRelease>()
 
   for (book in books) {
     val date = parseReleaseDate(book.entry.releaseDate)

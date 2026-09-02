@@ -20,6 +20,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.common.test)
+        implementation(projects.data.bookinfo.test)
         implementation(libs.bundles.test.ui)
         implementation(libs.bundles.test.common)
       }

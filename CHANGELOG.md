@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Upcoming-release scans now run in the background on Android with a progress notification, and scan results survive app restarts on all platforms
+
 ### Deprecated
 
 ### Removed

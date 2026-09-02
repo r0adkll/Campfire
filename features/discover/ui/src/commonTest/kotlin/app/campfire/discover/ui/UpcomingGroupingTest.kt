@@ -5,7 +5,7 @@ package app.campfire.discover.ui
 
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderSeriesEntry
-import app.campfire.discover.api.DiscoveredBook
+import app.campfire.bookinfo.api.UpcomingRelease
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
@@ -15,8 +15,7 @@ import kotlinx.datetime.Month
 
 class UpcomingGroupingTest {
 
-  private fun book(title: String, releaseDate: String?, position: Double = 1.0) = DiscoveredBook(
-    seriesId = "s1",
+  private fun book(title: String, releaseDate: String?, position: Double = 1.0) = UpcomingRelease(
     seriesName = "The Stormlight Archive",
     entry = ProviderSeriesEntry(
       providerBookId = "id-$title",

@@ -10,6 +10,9 @@ object DeepLinkKeys {
 
   const val LibraryItemId = "library_item_id"
 
+  /** Boolean extra set by the scan notifications to open the Upcoming screen. */
+  const val Upcoming = "campfire_upcoming"
+
   /**
    * Keys for the debug-only automation deep links. All keys are prefixed `campfire_` because
    * `adb shell am start` parses some bare names (e.g. `username`) as its own options. ([DeepLink.Setup], [DeepLink.Navigate],
@@ -40,6 +43,14 @@ sealed interface DeepLink {
 
   data class ItemDetail(
     val libraryItemId: LibraryItemId,
+  ) : DeepLink
+
+  /**
+   * Open the Upcoming screen — the tap-through target of the scan
+   * notifications. [nonce] makes repeat taps distinct so each one is handled.
+   */
+  data class Upcoming(
+    val nonce: Long = 0L,
   ) : DeepLink
 
   /**

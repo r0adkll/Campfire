@@ -18,6 +18,7 @@ import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.bookinfo.api.bestMatch
 import app.campfire.bookinfo.api.seriesMatch
+import app.campfire.bookinfo.store.BookInfoRateLimitedException
 import app.campfire.bookinfo.store.BookInfoStore
 import app.campfire.bookinfo.store.CachedBookInfo
 import app.campfire.bookinfo.store.SeriesInfoStore
@@ -239,6 +240,8 @@ class DefaultBookInfoRegistry(
         when {
           response is StoreReadResponse.Data && response.origin is StoreReadResponseOrigin.Fetcher ->
             SeriesFetchResult.Success(status.toSeriesState(response.value.series, ownedItems))
+          response is StoreReadResponse.Error.Exception && response.error is BookInfoRateLimitedException ->
+            SeriesFetchResult.RateLimited((response.error as BookInfoRateLimitedException).retryAfter)
           response is StoreReadResponse.Error -> SeriesFetchResult.Error
           else -> null
         }

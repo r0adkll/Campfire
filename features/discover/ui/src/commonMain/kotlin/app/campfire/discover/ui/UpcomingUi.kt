@@ -49,19 +49,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderSeriesEntry
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.permission.PermissionState
+import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
-import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
-import app.campfire.discover.api.DiscoveredBook
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.discover.ui.composables.UpcomingTimeline
 import campfire.features.discover.ui.generated.resources.Res
@@ -70,10 +71,13 @@ import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
+import campfire.features.discover.ui.generated.resources.discover_scan_rate_limited
 import campfire.features.discover.ui.generated.resources.discover_scanning_title
 import campfire.features.discover.ui.generated.resources.upcoming_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Instant
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -118,12 +122,23 @@ fun UpcomingUi(
         enter = slideInVertically { it + bottomMargin },
         exit = slideOutVertically { it + bottomMargin },
       ) {
+        // On Android the scan shows a progress notification, so ask for the
+        // permission before the first explicit scan; the scan itself runs
+        // whether or not it's granted.
+        val permissionState = rememberPostNotificationPermissionState {
+          state.eventSink(UpcomingUiEvent.Refresh)
+        }
         SmallExtendedFloatingActionButton(
           expanded = expanded,
           text = { Text(stringResource(Res.string.discover_scan_action)) },
           icon = { Icon(Icons.Rounded.Radar, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
-          onClick = { state.eventSink(UpcomingUiEvent.Refresh) },
+          onClick = {
+            when (permissionState) {
+              is PermissionState.Granted -> state.eventSink(UpcomingUiEvent.Refresh)
+              else -> permissionState.launchPermissionRequest()
+            }
+          },
           modifier = Modifier
             .navigationBarsPadding(),
         )
@@ -134,11 +149,6 @@ fun UpcomingUi(
   ) { paddingValues ->
     val scan = state.scanState
     val completed = scan as? DiscoverScanState.Completed
-    val results = when (scan) {
-      DiscoverScanState.Idle -> null
-      is DiscoverScanState.Running -> scan.results
-      is DiscoverScanState.Completed -> scan.results
-    }
 
     Column(
       modifier = Modifier
@@ -154,14 +164,25 @@ fun UpcomingUi(
         )
       }
 
+      if (completed?.rateLimited == true) {
+        Text(
+          text = stringResource(Res.string.discover_scan_rate_limited),
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+      }
+
       Box(modifier = Modifier.weight(1f)) {
         UpcomingTimeline(
           listState = listState,
-          books = results?.upcoming.orEmpty(),
+          books = state.upcoming,
           onBookClick = { url -> state.eventSink(UpcomingUiEvent.BookClick(url)) },
         )
 
-        if (completed != null && completed.results.upcoming.isEmpty()) {
+        if (completed != null && state.upcoming.isEmpty()) {
           Box(
             modifier = Modifier
               .fillMaxSize()
@@ -252,11 +273,8 @@ private fun UpcomingUiPreview_Idle() = PreviewWrapper {
 private fun UpcomingUiPreview_Scanning() = PreviewWrapper {
   UpcomingUi(
     state = previewState(
-      DiscoverScanState.Running(
-        done = 12,
-        total = 87,
-        results = previewResults(),
-      ),
+      DiscoverScanState.Running(done = 12, total = 87),
+      upcoming = previewUpcoming(),
     ),
   )
 }
@@ -265,63 +283,65 @@ private fun UpcomingUiPreview_Scanning() = PreviewWrapper {
 @Composable
 private fun UpcomingUiPreview_Completed() = PreviewWrapper {
   UpcomingUi(
-    state = previewState(previewCompleted()),
+    state = previewState(previewCompleted(), upcoming = previewUpcoming()),
+  )
+}
+
+@Preview
+@Composable
+private fun UpcomingUiPreview_RateLimited() = PreviewWrapper {
+  UpcomingUi(
+    state = previewState(
+      previewCompleted(rateLimited = true),
+      upcoming = previewUpcoming(),
+    ),
   )
 }
 
 @Preview
 @Composable
 private fun UpcomingUiPreview_Empty() = PreviewWrapper {
-  UpcomingUi(
-    state = previewState(
-      DiscoverScanState.Completed(
-        results = DiscoverScanResults(providerName = "Audible"),
-        scannedAt = Instant.fromEpochMilliseconds(0),
-        skippedCount = 0,
-        failedCount = 0,
-      ),
-    ),
-  )
+  UpcomingUi(state = previewState(previewCompleted()))
 }
 
 private fun previewState(
   scanState: DiscoverScanState,
+  upcoming: List<UpcomingRelease> = emptyList(),
 ) = UpcomingUiState(
   scanState = scanState,
+  upcoming = upcoming.toImmutableList(),
   eventSink = {},
 )
 
 private fun previewCompleted(
   skippedCount: Int = 0,
   failedCount: Int = 0,
+  rateLimited: Boolean = false,
 ) = DiscoverScanState.Completed(
-  results = previewResults(),
   scannedAt = Instant.fromEpochMilliseconds(0),
   skippedCount = skippedCount,
   failedCount = failedCount,
+  rateLimited = rateLimited,
 )
 
-private fun previewResults() = DiscoverScanResults(
-  providerName = "Audible",
-  upcoming = listOf(
-    previewBook(
-      "Wind and Truth",
-      "The Stormlight Archive",
-      position = 5.0,
-      releaseDate = "2026-12-06",
-    ),
-    previewBook(
-      "Isles of the Emberdark",
-      "The Cosmere",
-      position = null,
-      releaseDate = "2026-11-04",
-    ),
-    previewBook(
-      "Untitled Stormlight 6",
-      "The Stormlight Archive",
-      position = 6.0,
-      releaseDate = null, // exercises the "To be announced" bucket
-    ),
+private fun previewUpcoming() = persistentListOf(
+  previewBook(
+    "Wind and Truth",
+    "The Stormlight Archive",
+    position = 5.0,
+    releaseDate = "2026-12-06",
+  ),
+  previewBook(
+    "Isles of the Emberdark",
+    "The Cosmere",
+    position = null,
+    releaseDate = "2026-11-04",
+  ),
+  previewBook(
+    "Untitled Stormlight 6",
+    "The Stormlight Archive",
+    position = 6.0,
+    releaseDate = null, // exercises the "To be announced" bucket
   ),
 )
 
@@ -330,8 +350,7 @@ private fun previewBook(
   seriesName: String,
   position: Double?,
   releaseDate: String?,
-) = DiscoveredBook(
-  seriesId = "series_$seriesName",
+) = UpcomingRelease(
   seriesName = seriesName,
   entry = ProviderSeriesEntry(
     providerBookId = "asin_$title",

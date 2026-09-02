@@ -3,8 +3,11 @@
 
 package app.campfire.discover.ui
 
+import app.campfire.bookinfo.api.ProviderId
+import app.campfire.bookinfo.api.ProviderSeriesEntry
+import app.campfire.bookinfo.api.UpcomingRelease
+import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.screens.UrlScreen
-import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
 import app.campfire.discover.api.screen.UpcomingScreen
@@ -42,7 +45,8 @@ class UpcomingPresenterTest {
 
   private val navigator = FakeNavigator(UpcomingScreen)
   private val tracker = FakeDiscoverScanTracker()
-  private val presenter = UpcomingPresenter(navigator, tracker)
+  private val registry = FakeBookInfoRegistry()
+  private val presenter = UpcomingPresenter(navigator, tracker, registry)
 
   @Test
   fun present_OpeningTheScreen_ScansOnlyIfStale() = runTest {
@@ -86,7 +90,6 @@ class UpcomingPresenterTest {
       awaitItem()
 
       val completed = DiscoverScanState.Completed(
-        results = DiscoverScanResults(providerName = "Audible"),
         scannedAt = Instant.fromEpochMilliseconds(0),
         skippedCount = 1,
         failedCount = 0,
@@ -94,6 +97,31 @@ class UpcomingPresenterTest {
       tracker.stateFlow.value = completed
 
       assertThat(awaitItem().scanState).isEqualTo(completed)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun present_CachedUpcoming_FlowsThrough() = runTest {
+    presenter.test {
+      awaitItem()
+
+      val release = UpcomingRelease(
+        seriesName = "The Stormlight Archive",
+        entry = ProviderSeriesEntry(
+          providerBookId = "B0UPCOMING",
+          position = 6.0,
+          title = "Untitled #6",
+          releaseDate = "2031-01-01",
+          isReleased = false,
+          providerUrl = null,
+          coverUrl = null,
+        ),
+        providerId = ProviderId.Audible,
+      )
+      registry.cachedUpcomingFlow.value = listOf(release)
+
+      assertThat(awaitItem().upcoming).isEqualTo(listOf(release))
       cancelAndIgnoreRemainingEvents()
     }
   }

@@ -133,7 +133,7 @@ class SeriesInfoStore(
 
       is BookInfoResult.NotLinked -> FetcherResult.Error.Exception(BookInfoNotLinkedException())
       is BookInfoResult.TokenInvalid -> FetcherResult.Error.Exception(BookInfoTokenInvalidException())
-      is BookInfoResult.RateLimited -> FetcherResult.Error.Exception(BookInfoRateLimitedException())
+      is BookInfoResult.RateLimited -> FetcherResult.Error.Exception(BookInfoRateLimitedException(result.retryAfter))
       is BookInfoResult.Failure -> FetcherResult.Error.Exception(result.cause)
     }
   }

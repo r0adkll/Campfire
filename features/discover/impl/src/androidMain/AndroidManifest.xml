@@ -1,0 +1,15 @@
+<manifest
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <application>
+
+    <!-- The scan worker promotes itself to a dataSync foreground service; WorkManager's
+         service declaration carries no type of its own, so merge it in here. -->
+    <service
+      android:name="androidx.work.impl.foreground.SystemForegroundService"
+      android:foregroundServiceType="dataSync"
+      tools:node="merge" />
+
+  </application>
+</manifest>

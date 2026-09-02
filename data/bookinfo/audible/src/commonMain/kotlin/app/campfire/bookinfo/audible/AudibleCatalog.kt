@@ -7,9 +7,11 @@ import app.campfire.bookinfo.api.BookInfoResult
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -21,6 +23,7 @@ import kotlinx.serialization.json.Json
  */
 internal class AudibleCatalog(
   private val client: HttpClient,
+  private val throttle: RequestThrottle = RequestThrottle(),
 ) {
 
   private val json = Json {
@@ -73,7 +76,7 @@ internal class AudibleCatalog(
     deserializer: DeserializationStrategy<T>,
   ): BookInfoResult<T> {
     val response = try {
-      client.get(url)
+      throttle.withThrottle { client.get(url) }
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {
@@ -84,6 +87,9 @@ internal class AudibleCatalog(
       response.status == HttpStatusCode.NotFound -> BookInfoResult.NotFound
       // Audible reports an unparseable/unknown ASIN as a 400.
       response.status == HttpStatusCode.BadRequest -> BookInfoResult.NotFound
+      response.status == HttpStatusCode.TooManyRequests -> BookInfoResult.RateLimited(
+        retryAfter = response.headers[HttpHeaders.RetryAfter]?.toLongOrNull()?.seconds,
+      )
       !response.status.isSuccess() ->
         BookInfoResult.Failure(AudibleHttpException(response.status.value))
       else -> try {

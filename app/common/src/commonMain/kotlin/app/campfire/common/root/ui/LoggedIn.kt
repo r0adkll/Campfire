@@ -63,6 +63,7 @@ import app.campfire.common.screens.LoginScreen
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.requiredUserId
+import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchResultNavEvent
@@ -277,6 +278,15 @@ private fun LoggedInUi(
   }
 
   var playbackBarExpanded by rememberRetainedSaveable { mutableStateOf(false) }
+
+  // Scan notification tap-through: bring the Upcoming screen to the top of
+  // whichever pane the root stack lives in (guarded so repeat taps don't pile
+  // up copies).
+  LaunchedEffect(deepLink) {
+    if (deepLink is DeepLink.Upcoming && backstack.topRecord?.screen !is UpcomingScreen) {
+      homeNavigator.goTo(UpcomingScreen)
+    }
+  }
 
   // Debug-only automation deep links: navigate to a named screen / open the full player
   LaunchedEffect(deepLink) {
