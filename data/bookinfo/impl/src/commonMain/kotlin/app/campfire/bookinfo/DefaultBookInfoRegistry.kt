@@ -15,6 +15,7 @@ import app.campfire.bookinfo.api.ProviderSeries
 import app.campfire.bookinfo.api.ProviderStatus
 import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.bookinfo.api.bestMatch
 import app.campfire.bookinfo.api.seriesMatch
 import app.campfire.bookinfo.store.BookInfoStore
@@ -254,6 +255,29 @@ class DefaultBookInfoRegistry(
     isCompleted = series?.isCompleted,
     entries = mergeSeriesEntries(ownedItems, series, provider.id),
   )
+
+  override fun observeCachedUpcoming(): Flow<List<UpcomingRelease>> {
+    val userId = userSession.userId ?: return flowOf(emptyList())
+    return seriesStore.observeAllCached(userId).map { rows ->
+      rows
+        .flatMap { row ->
+          val providerId = ProviderId.entries.firstOrNull { it.key == row.providerKey }
+            ?: return@flatMap emptyList()
+          val series = row.info.series ?: return@flatMap emptyList()
+          series.entries
+            .filter { !it.isReleased }
+            .map { UpcomingRelease(row.seriesName, it, providerId) }
+        }
+        .distinctBy { it.providerId to it.entry.providerBookId }
+        .sortedWith(
+          compareBy(
+            { it.entry.releaseDate == null },
+            { it.entry.releaseDate },
+            { it.entry.title },
+          ),
+        )
+    }
+  }
 
   override suspend fun clearCache() {
     store.clearAll()

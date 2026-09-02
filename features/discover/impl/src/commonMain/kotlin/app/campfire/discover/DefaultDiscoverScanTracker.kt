@@ -133,9 +133,6 @@ class DefaultDiscoverScanTracker(
     return when (val result = bookInfoRegistry.fetchSeriesEntries(series.name, owned, refresh)) {
       is SeriesFetchResult.Success -> Outcome.Books(
         providerName = result.state.providerName,
-        missing = result.state.entries
-          .filterIsInstance<SeriesEntry.Missing>()
-          .map { DiscoveredBook(series.id, series.name, it.entry, it.providerId) },
         upcoming = result.state.entries
           .filterIsInstance<SeriesEntry.Upcoming>()
           .map { DiscoveredBook(series.id, series.name, it.entry, it.providerId) },
@@ -151,7 +148,6 @@ class DefaultDiscoverScanTracker(
     val books = filterIsInstance<Outcome.Books>()
     return DiscoverScanResults(
       providerName = books.firstNotNullOfOrNull { it.providerName },
-      missing = books.flatMap { it.missing },
       upcoming = books.flatMap { it.upcoming },
     )
   }
@@ -159,7 +155,6 @@ class DefaultDiscoverScanTracker(
   private sealed interface Outcome {
     data class Books(
       val providerName: String?,
-      val missing: List<DiscoveredBook>,
       val upcoming: List<DiscoveredBook>,
     ) : Outcome
 

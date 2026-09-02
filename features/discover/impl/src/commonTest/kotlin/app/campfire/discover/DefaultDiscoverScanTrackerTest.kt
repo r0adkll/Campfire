@@ -84,7 +84,7 @@ class DefaultDiscoverScanTrackerTest {
   }
 
   @Test
-  fun `a scan partitions provider entries into missing and upcoming books`() = runTest {
+  fun `a scan collects only the unreleased provider entries`() = runTest {
     val owned = ownedItem("The Way of Kings", "B003P2WO5E")
     seriesRepository.allSeriesFlow.emit(
       listOf(series(id = "s1", name = "The Stormlight Archive", books = listOf(owned))),
@@ -100,10 +100,10 @@ class DefaultDiscoverScanTrackerTest {
 
     val state = tracker.awaitCompleted()
     assertThat(state.results.providerName).isEqualTo("Audible")
-    assertThat(state.results.missing.map { it.entry.title }).isEqualTo(listOf("Words of Radiance"))
-    assertThat(state.results.missing.single().seriesId).isEqualTo("s1")
-    assertThat(state.results.missing.single().seriesName).isEqualTo("The Stormlight Archive")
+    // Owned and missing entries are the series page's concern — only upcoming collects.
     assertThat(state.results.upcoming.map { it.entry.title }).isEqualTo(listOf("Untitled #6"))
+    assertThat(state.results.upcoming.single().seriesId).isEqualTo("s1")
+    assertThat(state.results.upcoming.single().seriesName).isEqualTo("The Stormlight Archive")
     assertThat(state.skippedCount).isEqualTo(0)
     assertThat(state.failedCount).isEqualTo(0)
   }
@@ -135,7 +135,7 @@ class DefaultDiscoverScanTrackerTest {
     )
     registry.fetchSeriesResults["Broken Series"] = SeriesFetchResult.Error
     registry.fetchSeriesResults["Good Series"] = successWith(
-      SeriesEntry.Missing(providerEntry("B000000003", "Book C", released = true), ProviderId.Audible),
+      SeriesEntry.Upcoming(providerEntry("B000000003", "Book C", released = false), ProviderId.Audible),
     )
     val tracker = tracker()
 
@@ -143,7 +143,7 @@ class DefaultDiscoverScanTrackerTest {
 
     val state = tracker.awaitCompleted()
     assertThat(state.failedCount).isEqualTo(1)
-    assertThat(state.results.missing.map { it.entry.title }).isEqualTo(listOf("Book C"))
+    assertThat(state.results.upcoming.map { it.entry.title }).isEqualTo(listOf("Book C"))
   }
 
   @Test
@@ -157,7 +157,7 @@ class DefaultDiscoverScanTrackerTest {
       ),
     )
     registry.fetchSeriesResults["Series One"] = successWith(
-      SeriesEntry.Missing(providerEntry("B000000003", "Book C", released = true), ProviderId.Audible),
+      SeriesEntry.Upcoming(providerEntry("B000000003", "Book C", released = false), ProviderId.Audible),
     )
     registry.fetchSeriesResults["Series Two"] = successWith()
     val tracker = tracker()
@@ -169,10 +169,10 @@ class DefaultDiscoverScanTrackerTest {
     gate.send(Unit)
     val partial = tracker.state
       .first { it is DiscoverScanState.Running && it.done == 1 } as DiscoverScanState.Running
-    assertThat(partial.results.missing.map { it.entry.title }).isEqualTo(listOf("Book C"))
+    assertThat(partial.results.upcoming.map { it.entry.title }).isEqualTo(listOf("Book C"))
 
     gate.send(Unit)
-    assertThat(tracker.awaitCompleted().results.missing.size).isEqualTo(1)
+    assertThat(tracker.awaitCompleted().results.upcoming.size).isEqualTo(1)
   }
 
   @Test
@@ -186,7 +186,7 @@ class DefaultDiscoverScanTrackerTest {
       ),
     )
     registry.fetchSeriesResults["Series One"] = successWith(
-      SeriesEntry.Missing(providerEntry("B000000003", "Book C", released = true), ProviderId.Audible),
+      SeriesEntry.Upcoming(providerEntry("B000000003", "Book C", released = false), ProviderId.Audible),
     )
     val tracker = tracker()
 
@@ -197,7 +197,7 @@ class DefaultDiscoverScanTrackerTest {
     tracker.cancelScan()
 
     val state = tracker.awaitCompleted()
-    assertThat(state.results.missing.map { it.entry.title }).isEqualTo(listOf("Book C"))
+    assertThat(state.results.upcoming.map { it.entry.title }).isEqualTo(listOf("Book C"))
   }
 
   @Test

@@ -13,7 +13,10 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
+import app.campfire.bookinfo.api.SeriesEntry
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
@@ -26,6 +29,7 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -39,6 +43,7 @@ class SeriesDetailPresenter(
   @Assisted private val navigator: Navigator,
   private val repository: SeriesRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesDetailUiState> {
 
@@ -77,12 +82,33 @@ class SeriesDetailPresenter(
         }
     }.collectAsState(emptyMap())
 
+    // Checks the provider automatically — served from the registry's series
+    // cache, so this is usually a local read. The section only exists once a
+    // provider answers with books the user doesn't own.
+    val missingSection by remember {
+      snapshotFlow { seriesContentState.dataOrNull }
+        .filterNotNull()
+        .distinctUntilChanged()
+        .flatMapLatest { items ->
+          bookInfoRegistry.observeSeriesEntries(screen.seriesName, items)
+        }
+        .map { loadState ->
+          val state = loadState.dataOrNull ?: return@map null
+          val providerName = state.providerName ?: return@map null
+          val missing = state.entries.filterIsInstance<SeriesEntry.Missing>()
+          if (missing.isEmpty()) null else MissingSection(providerName, missing)
+        }
+        .catch { emit(null) }
+    }.collectAsState(null)
+
     return SeriesDetailUiState(
       seriesContentState = seriesContentState,
       offlineStates = offlineDownloads,
+      missingSection = missingSection,
     ) { event ->
       when (event) {
         SeriesDetailUiEvent.Back -> navigator.pop()
+        is SeriesDetailUiEvent.MissingBookClick -> navigator.goTo(UrlScreen(event.url))
         is SeriesDetailUiEvent.LibraryItemClick -> {
           analytics.send(ContentSelected(ContentType.LibraryItem))
           navigator.goTo(

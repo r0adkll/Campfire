@@ -13,13 +13,16 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.ShelfEntity
+import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
@@ -29,6 +32,7 @@ import app.campfire.user.api.MediaProgressRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
@@ -50,6 +54,7 @@ class HomePresenter(
   private val homeRepository: HomeRepository,
   private val mediaProgressRepository: MediaProgressRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val analytics: Analytics,
 ) : NonPausablePresenter<HomeUiState> {
 
@@ -127,10 +132,16 @@ class HomePresenter(
         }
     }.collectAsState(persistentMapOf())
 
+    val upcomingReleases by remember {
+      bookInfoRegistry.observeCachedUpcoming()
+        .map { it.toPersistentList() }
+    }.collectAsState(persistentListOf())
+
     return HomeUiState(
       homeFeed = feed,
       offlineStates = offlineDownloads,
       progressStates = userMediaProgress,
+      upcomingReleases = upcomingReleases,
     ) { event ->
       when (event) {
         is HomeUiEvent.OpenLibraryItem -> {
@@ -149,6 +160,8 @@ class HomePresenter(
           analytics.send(ContentSelected(ContentType.Series))
           navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
         }
+        is HomeUiEvent.OpenUpcomingBook -> navigator.goTo(UrlScreen(event.url))
+        HomeUiEvent.OpenUpcomingScreen -> navigator.goTo(UpcomingScreen)
       }
     }
   }

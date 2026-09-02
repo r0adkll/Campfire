@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.tracing.TraceEffect
 import app.campfire.common.compose.widgets.EmptyState
@@ -36,6 +37,7 @@ import app.campfire.core.model.ShelfEntity
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.ui.composables.ShelfListItem
+import app.campfire.home.ui.composables.UpcomingShelf
 import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.user.api.MediaProgressKey
@@ -91,6 +93,9 @@ fun HomeScreen(
       } else {
         LoadedState(
           shelves = state.homeFeed.data,
+          upcomingReleases = state.upcomingReleases,
+          onUpcomingHeaderClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
+          onUpcomingBookClick = { url -> state.eventSink(HomeUiEvent.OpenUpcomingBook(url)) },
           offlineStatus = { libraryItemId ->
             state.offlineStates[libraryItemId].asWidgetStatus()
           },
@@ -126,6 +131,9 @@ fun HomeScreen(
 @Composable
 private fun LoadedState(
   shelves: List<UiShelf<ShelfEntity>>,
+  upcomingReleases: List<UpcomingRelease>,
+  onUpcomingHeaderClick: () -> Unit,
+  onUpcomingBookClick: (String) -> Unit,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (UiShelf<*>, Any) -> Unit,
@@ -146,6 +154,17 @@ private fun LoadedState(
         offlineStatus = offlineStatus,
         progressStatus = progressStatus,
       )
+    }
+
+    // Locally sourced from the series cache — rendered after the server's shelves.
+    if (upcomingReleases.isNotEmpty()) {
+      item(key = "upcoming-shelf") {
+        UpcomingShelf(
+          releases = upcomingReleases,
+          onHeaderClick = onUpcomingHeaderClick,
+          onBookClick = onUpcomingBookClick,
+        )
+      }
     }
   }
 }

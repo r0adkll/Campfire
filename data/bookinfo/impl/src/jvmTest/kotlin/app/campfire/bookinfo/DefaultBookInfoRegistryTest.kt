@@ -572,6 +572,27 @@ class DefaultBookInfoRegistryTest {
   }
 
   @Test
+  fun `cached upcoming reads unreleased entries across scanned series`() = runTest {
+    val provider = FakeBookInfoProvider()
+    provider.seriesResult = BookInfoResult.Success(stormlightSeries)
+    val owned = libraryItem(
+      media = media(metadata = mediaMetadata(title = "The Way of Kings", ASIN = "B003P2WO5E")),
+    )
+    val registry = registry(provider)
+
+    assertThat(registry.observeCachedUpcoming().first()).isEqualTo(emptyList())
+
+    registry.fetchSeriesEntries("The Stormlight Archive", listOf(owned))
+
+    val upcoming = registry.observeCachedUpcoming().first { it.isNotEmpty() }
+    assertThat(upcoming.map { it.entry.title }).isEqualTo(listOf("Untitled #6"))
+    assertThat(upcoming.single().seriesName).isEqualTo("The Stormlight Archive")
+    assertThat(upcoming.single().providerId).isEqualTo(ProviderId.Hardcover)
+    // Reading the cache back never touches the provider.
+    assertThat(provider.seriesRequests.size).isEqualTo(1)
+  }
+
+  @Test
   fun `clearing the cache forces a refetch`() = runTest {
     val provider = FakeBookInfoProvider()
     provider.bookInfoResult = BookInfoResult.Success(communityInfo)

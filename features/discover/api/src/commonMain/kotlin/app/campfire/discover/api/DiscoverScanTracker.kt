@@ -7,14 +7,14 @@ import kotlin.time.Instant
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * Runs and observes the library-wide series scan behind the Discover screen.
+ * Runs and observes the library-wide series scan behind the Upcoming screen.
  *
  * A scan walks every series in the user's library, asks the book info registry
- * for the provider's canonical listing, and accumulates the books the user
- * doesn't own. The scan is user-initiated only, runs in the user scope so it
- * survives navigation, and its results live in memory — closing the app resets
- * to [DiscoverScanState.Idle]. Rescans are cheap while provider rows are fresh
- * (the registry serves them from its cache).
+ * for the provider's canonical listing, and accumulates the announced books
+ * that haven't released. It runs in the user scope so it survives navigation,
+ * and its results live in memory — closing the app resets to
+ * [DiscoverScanState.Idle], while everything fetched persists in the registry's
+ * series cache (feeding the home screen's cached upcoming shelf).
  */
 interface DiscoverScanTracker {
   val state: StateFlow<DiscoverScanState>
@@ -43,7 +43,6 @@ interface DiscoverScanTracker {
 data class DiscoverScanResults(
   /** Display name of the provider serving series data, once one has answered. */
   val providerName: String? = null,
-  val missing: List<DiscoveredBook> = emptyList(),
   val upcoming: List<DiscoveredBook> = emptyList(),
 )
 

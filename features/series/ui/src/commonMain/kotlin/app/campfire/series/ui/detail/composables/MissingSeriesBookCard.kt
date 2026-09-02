@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.discover.ui.composables
+package app.campfire.series.ui.detail.composables
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,24 +14,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
 import app.campfire.common.compose.widgets.placeholderBookPainter
-import app.campfire.discover.api.DiscoveredBook
-import campfire.features.discover.ui.generated.resources.Res
-import campfire.features.discover.ui.generated.resources.cd_book_cover
+import campfire.features.series.ui.generated.resources.Res
+import campfire.features.series.ui.generated.resources.cd_book_cover
+import campfire.features.series.ui.generated.resources.missing_book_position
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * A provider-listed book styled like the home screen's [app.campfire.common.compose.widgets.LibraryItemCard]
- * — square cover on top, title and supporting line below. Cards without a
- * provider URL render inert.
+ * A provider-listed book the user doesn't own, rendered as a grid cell in the
+ * series listing under the missing header. Cards without a provider URL are
+ * inert.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-internal fun MissingBookCard(
-  book: DiscoveredBook,
-  supportingText: String,
+internal fun MissingSeriesBookCard(
+  entry: ProviderSeriesEntry,
   onClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
@@ -40,8 +40,8 @@ internal fun MissingBookCard(
     modifier = modifier,
   ) {
     CoverImage(
-      imageUrl = book.entry.coverUrl,
-      contentDescription = stringResource(Res.string.cd_book_cover, book.entry.title),
+      imageUrl = entry.coverUrl,
+      contentDescription = stringResource(Res.string.cd_book_cover, entry.title),
       placeholder = placeholderBookPainter(),
       shape = MaterialTheme.shapes.largeIncreased,
       modifier = Modifier
@@ -52,14 +52,17 @@ internal fun MissingBookCard(
       modifier = Modifier.padding(vertical = 16.dp),
     ) {
       Text(
-        text = book.entry.title,
+        text = entry.title,
         style = MaterialTheme.typography.titleSmall,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.padding(horizontal = 16.dp),
       )
       Text(
-        text = supportingText,
+        text = listOfNotNull(
+          entry.position?.let { stringResource(Res.string.missing_book_position, formatPosition(it)) },
+          entry.releaseDate?.take(4),
+        ).joinToString(" · "),
         style = MaterialTheme.typography.bodySmall,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
@@ -70,6 +73,6 @@ internal fun MissingBookCard(
 }
 
 /** "1", "1.5" — reading-order position without a trailing ".0". */
-internal fun formatPosition(position: Double): String {
+private fun formatPosition(position: Double): String {
   return if (position % 1.0 == 0.0) position.toInt().toString() else position.toString()
 }

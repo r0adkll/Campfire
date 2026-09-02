@@ -8,7 +8,7 @@ import app.campfire.common.screens.Presentation
 import app.campfire.core.parcelize.Parcelize
 
 @Parcelize
-data object DiscoverScreen : BaseScreen(name = "Discover") {
+data object UpcomingScreen : BaseScreen(name = "Upcoming") {
   override val presentation: Presentation
     get() = Presentation(hideBottomNav = true)
 }

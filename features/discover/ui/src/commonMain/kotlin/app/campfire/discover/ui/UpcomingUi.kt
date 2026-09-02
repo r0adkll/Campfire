@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Radar
@@ -20,9 +19,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,54 +46,38 @@ import app.campfire.core.di.UserScope
 import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoveredBook
-import app.campfire.discover.api.screen.DiscoverScreen
-import app.campfire.discover.ui.composables.MissingBooksList
+import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.discover.ui.composables.UpcomingTimeline
 import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.action_back
 import campfire.features.discover.ui.generated.resources.discover_cancel_scan
-import campfire.features.discover.ui.generated.resources.discover_empty_missing
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_failed_series
 import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_skipped_series
 import campfire.features.discover.ui.generated.resources.discover_source_attribution
-import campfire.features.discover.ui.generated.resources.discover_tab_missing
-import campfire.features.discover.ui.generated.resources.discover_tab_upcoming
-import campfire.features.discover.ui.generated.resources.discover_title
+import campfire.features.discover.ui.generated.resources.upcoming_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Instant
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@CircuitInject(DiscoverScreen::class, UserScope::class)
+@CircuitInject(UpcomingScreen::class, UserScope::class)
 @Composable
-fun DiscoverUi(
-  state: DiscoverUiState,
+fun UpcomingUi(
+  state: UpcomingUiState,
   modifier: Modifier = Modifier,
 ) {
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
   Scaffold(
     topBar = {
       CampfireMediumTopAppBar(
-        title = {
-          Row(
-            verticalAlignment = Alignment.CenterVertically,
-          ) {
-            Text(stringResource(Res.string.discover_title))
-            Spacer(Modifier.weight(1f))
-            DiscoverTabBar(
-              selectedTab = state.selectedTab,
-              onSelect = { tab -> state.eventSink(DiscoverUiEvent.SelectTab(tab)) },
-            )
-            Spacer(Modifier.width(16.dp))
-          }
-        },
+        title = { Text(stringResource(Res.string.upcoming_title)) },
         navigationIcon = {
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {
-            IconButton(onClick = { state.eventSink(DiscoverUiEvent.Back) }) {
+            IconButton(onClick = { state.eventSink(UpcomingUiEvent.Back) }) {
               Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
@@ -111,7 +91,7 @@ fun DiscoverUi(
           text = { Text(stringResource(Res.string.discover_scan_action)) },
           icon = { Icon(Icons.Rounded.Radar, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
-          onClick = { state.eventSink(DiscoverUiEvent.Refresh) },
+          onClick = { state.eventSink(UpcomingUiEvent.Refresh) },
         )
       }
     },
@@ -135,70 +115,30 @@ fun DiscoverUi(
         ScanProgressHeader(
           done = scan.done,
           total = scan.total,
-          onCancel = { state.eventSink(DiscoverUiEvent.CancelScan) },
+          onCancel = { state.eventSink(UpcomingUiEvent.CancelScan) },
         )
       }
 
       Box(modifier = Modifier.weight(1f)) {
-        when (state.selectedTab) {
-          DiscoverTab.Missing -> MissingBooksList(
-            books = results?.missing.orEmpty(),
-            onSeriesClick = { id, name -> state.eventSink(DiscoverUiEvent.SeriesClick(id, name)) },
-            onBookClick = { url -> state.eventSink(DiscoverUiEvent.BookClick(url)) },
-          )
+        UpcomingTimeline(
+          books = results?.upcoming.orEmpty(),
+          onBookClick = { url -> state.eventSink(UpcomingUiEvent.BookClick(url)) },
+        )
 
-          DiscoverTab.Upcoming -> UpcomingTimeline(
-            books = results?.upcoming.orEmpty(),
-            onBookClick = { url -> state.eventSink(DiscoverUiEvent.BookClick(url)) },
-          )
-        }
-
-        val emptyMessage = when (state.selectedTab) {
-          DiscoverTab.Missing -> stringResource(Res.string.discover_empty_missing)
-            .takeIf { completed != null && completed.results.missing.isEmpty() }
-          DiscoverTab.Upcoming -> stringResource(Res.string.discover_empty_upcoming)
-            .takeIf { completed != null && completed.results.upcoming.isEmpty() }
-        }
-        if (emptyMessage != null) {
+        if (completed != null && completed.results.upcoming.isEmpty()) {
           Box(
             modifier = Modifier
               .fillMaxSize()
               .padding(horizontal = 32.dp),
             contentAlignment = Alignment.Center,
           ) {
-            EmptyState(emptyMessage)
+            EmptyState(stringResource(Res.string.discover_empty_upcoming))
           }
         }
       }
 
       if (completed != null) {
         CompletedFooter(completed)
-      }
-    }
-  }
-}
-
-@Composable
-private fun DiscoverTabBar(
-  selectedTab: DiscoverTab,
-  onSelect: (DiscoverTab) -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  SingleChoiceSegmentedButtonRow(
-    modifier = modifier,
-  ) {
-    DiscoverTab.entries.forEachIndexed { index, tab ->
-      SegmentedButton(
-        selected = selectedTab == tab,
-        onClick = { onSelect(tab) },
-        shape = SegmentedButtonDefaults.itemShape(index, DiscoverTab.entries.size),
-      ) {
-        Text(
-          when (tab) {
-            DiscoverTab.Upcoming -> stringResource(Res.string.discover_tab_upcoming)
-            DiscoverTab.Missing -> stringResource(Res.string.discover_tab_missing)
-          },
-        )
       }
     }
   }
@@ -288,14 +228,14 @@ private fun PreviewWrapper(
 
 @Preview
 @Composable
-private fun DiscoverUiPreview_Idle() = PreviewWrapper {
-  DiscoverUi(state = previewState(DiscoverScanState.Idle))
+private fun UpcomingUiPreview_Idle() = PreviewWrapper {
+  UpcomingUi(state = previewState(DiscoverScanState.Idle))
 }
 
 @Preview
 @Composable
-private fun DiscoverUiPreview_Scanning() = PreviewWrapper {
-  DiscoverUi(
+private fun UpcomingUiPreview_Scanning() = PreviewWrapper {
+  UpcomingUi(
     state = previewState(
       DiscoverScanState.Running(
         done = 12,
@@ -308,24 +248,16 @@ private fun DiscoverUiPreview_Scanning() = PreviewWrapper {
 
 @Preview
 @Composable
-private fun DiscoverUiPreview_Upcoming() = PreviewWrapper {
-  DiscoverUi(
+private fun UpcomingUiPreview_Completed() = PreviewWrapper {
+  UpcomingUi(
     state = previewState(previewCompleted(skippedCount = 3, failedCount = 1)),
   )
 }
 
 @Preview
 @Composable
-private fun DiscoverUiPreview_Missing() = PreviewWrapper {
-  DiscoverUi(
-    state = previewState(previewCompleted(), selectedTab = DiscoverTab.Missing),
-  )
-}
-
-@Preview
-@Composable
-private fun DiscoverUiPreview_EmptyUpcoming() = PreviewWrapper {
-  DiscoverUi(
+private fun UpcomingUiPreview_Empty() = PreviewWrapper {
+  UpcomingUi(
     state = previewState(
       DiscoverScanState.Completed(
         results = DiscoverScanResults(providerName = "Audible"),
@@ -339,10 +271,8 @@ private fun DiscoverUiPreview_EmptyUpcoming() = PreviewWrapper {
 
 private fun previewState(
   scanState: DiscoverScanState,
-  selectedTab: DiscoverTab = DiscoverTab.Upcoming,
-) = DiscoverUiState(
+) = UpcomingUiState(
   scanState = scanState,
-  selectedTab = selectedTab,
   eventSink = {},
 )
 
@@ -358,25 +288,24 @@ private fun previewCompleted(
 
 private fun previewResults() = DiscoverScanResults(
   providerName = "Audible",
-  missing = listOf(
-    previewBook("Words of Radiance", "The Stormlight Archive", position = 2.0, releaseDate = "2014-03-04"),
-    previewBook("Oathbringer", "The Stormlight Archive", position = 3.0, releaseDate = "2017-11-14"),
-    previewBook("Warheart", "Sword of Truth", position = 15.0, releaseDate = "2015-11-17"),
-  ),
   upcoming = listOf(
     previewBook(
       "Wind and Truth",
       "The Stormlight Archive",
       position = 5.0,
       releaseDate = "2026-12-06",
-      released = false,
+    ),
+    previewBook(
+      "Isles of the Emberdark",
+      "The Cosmere",
+      position = null,
+      releaseDate = "2026-11-04",
     ),
     previewBook(
       "Untitled Stormlight 6",
       "The Stormlight Archive",
       position = 6.0,
       releaseDate = null, // exercises the "To be announced" bucket
-      released = false,
     ),
   ),
 )
@@ -386,7 +315,6 @@ private fun previewBook(
   seriesName: String,
   position: Double?,
   releaseDate: String?,
-  released: Boolean = true,
 ) = DiscoveredBook(
   seriesId = "series_$seriesName",
   seriesName = seriesName,
@@ -395,7 +323,7 @@ private fun previewBook(
     position = position,
     title = title,
     releaseDate = releaseDate,
-    isReleased = released,
+    isReleased = false,
     providerUrl = "https://www.audible.com/pd/asin_$title",
     coverUrl = null, // exercises the book placeholder
   ),

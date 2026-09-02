@@ -14,6 +14,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.UserId
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
@@ -91,6 +92,25 @@ class SeriesInfoStore(
       .select(key.userId, key.providerId.key, key.match.seriesName)
       .awaitAsOneOrNull()
       ?.let { decode(it.payload) }
+  }
+
+  data class CachedRow(
+    val providerKey: String,
+    val seriesName: String,
+    val info: CachedSeriesInfo,
+  )
+
+  /** Every cached series row for [userId], live-updating as scans land. */
+  fun observeAllCached(userId: UserId): Flow<List<CachedRow>> {
+    return db.seriesInfoCacheQueries
+      .selectAllForUser(userId)
+      .asFlow()
+      .mapToList(dispatcherProvider.io)
+      .map { rows ->
+        rows.mapNotNull { row ->
+          decode(row.payload)?.let { CachedRow(row.providerId, row.seriesName, it) }
+        }
+      }
   }
 
   private suspend fun fetch(key: Key): FetcherResult<CachedSeriesInfo> {

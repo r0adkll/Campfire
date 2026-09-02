@@ -64,11 +64,27 @@ interface BookInfoRegistry {
   ): SeriesFetchResult
 
   /**
+   * Every announced-but-unreleased book across the user's locally cached
+   * series listings, sorted by release date (undated announcements last).
+   * Purely a cache read — nothing is fetched — so it reflects whatever the
+   * last scans stored and updates live as new listings land. Emits an empty
+   * list when nothing is cached.
+   */
+  fun observeCachedUpcoming(): Flow<List<UpcomingRelease>>
+
+  /**
    * Drops all locally cached provider data (for every provider and user).
    * Fresh data is fetched on the next read.
    */
   suspend fun clearCache()
 }
+
+/** An unreleased series entry read back from the local series cache. */
+data class UpcomingRelease(
+  val seriesName: String,
+  val entry: ProviderSeriesEntry,
+  val providerId: ProviderId,
+)
 
 sealed interface SeriesFetchResult {
   /**

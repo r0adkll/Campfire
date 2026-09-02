@@ -16,7 +16,11 @@ kotlin {
         api(projects.ui.appbar)
         api(projects.ui.navigation.api)
 
+        implementation(projects.data.bookinfo.api)
+        implementation(projects.features.discover.api)
+
         implementation(libs.compose.components.resources)
+        implementation(libs.kotlinx.datetime)
       }
     }
 

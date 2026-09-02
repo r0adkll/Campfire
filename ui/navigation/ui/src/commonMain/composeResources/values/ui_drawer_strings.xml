@@ -18,8 +18,8 @@
   <string name="nav_series_content_description">The series content for the current user/library</string>
   <string name="nav_collections_label">Collections</string>
   <string name="nav_collections_content_description">The collections content for the current user</string>
-  <string name="nav_discover_label">Discover</string>
-  <string name="nav_discover_content_description">Missing and upcoming books for your series</string>
+  <string name="nav_upcoming_label">Upcoming</string>
+  <string name="nav_upcoming_content_description">Upcoming releases for your series</string>
   <string name="nav_playlists_label">Playlists</string>
   <string name="nav_playlists_content_description">The playlists content for the current user</string>
   <string name="nav_authors_label">Authors</string>

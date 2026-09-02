@@ -9,10 +9,12 @@ import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderStatus
 import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeBookInfoRegistry : BookInfoRegistry {
 
@@ -60,6 +62,9 @@ class FakeBookInfoRegistry : BookInfoRegistry {
     fetchSeriesGate?.invoke()
     return fetchSeriesResults[seriesName] ?: SeriesFetchResult.Unavailable
   }
+
+  val cachedUpcomingFlow = MutableStateFlow<List<UpcomingRelease>>(emptyList())
+  override fun observeCachedUpcoming(): Flow<List<UpcomingRelease>> = cachedUpcomingFlow
 
   var clearCacheCount = 0
   override suspend fun clearCache() {

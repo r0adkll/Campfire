@@ -5,6 +5,7 @@ package app.campfire.home.ui
 
 import androidx.compose.runtime.Stable
 import app.campfire.audioplayer.offline.OfflineDownload
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Author
 import app.campfire.core.model.LibraryItem
@@ -26,6 +27,7 @@ data class HomeUiState(
   val homeFeed: FeedResponse<out PersistentList<UiShelf<ShelfEntity>>>,
   val offlineStates: ImmutableMap<LibraryItemId, OfflineDownload>,
   val progressStates: ImmutableMap<MediaProgressKey, MediaProgress>,
+  val upcomingReleases: PersistentList<UpcomingRelease>,
   val eventSink: (HomeUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -59,4 +61,6 @@ sealed interface HomeUiEvent : CircuitUiEvent {
 
   data class OpenSeries(val series: Series) : HomeUiEvent
   data class OpenAuthor(val author: Author) : HomeUiEvent
+  data class OpenUpcomingBook(val url: String) : HomeUiEvent
+  data object OpenUpcomingScreen : HomeUiEvent
 }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -43,9 +45,12 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.action_back
 import campfire.features.series.ui.generated.resources.error_series_detail_message
+import campfire.features.series.ui.generated.resources.missing_section_attribution
+import campfire.features.series.ui.generated.resources.missing_section_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
@@ -103,8 +108,10 @@ fun SeriesDetail(
       is LoadState.Loaded -> LoadedState(
         seriesName = screen.seriesName,
         items = state.seriesContentState.data,
+        missingSection = state.missingSection,
         offlineStatus = { state.offlineStates[it].asWidgetStatus() },
         onLibraryItemClick = { state.eventSink(SeriesDetailUiEvent.LibraryItemClick(it)) },
+        onMissingBookClick = { url -> state.eventSink(SeriesDetailUiEvent.MissingBookClick(url)) },
         contentPadding = paddingValues,
       )
     }
@@ -115,8 +122,10 @@ fun SeriesDetail(
 private fun LoadedState(
   seriesName: String,
   items: List<LibraryItem>,
+  missingSection: MissingSection?,
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   onLibraryItemClick: (LibraryItem) -> Unit,
+  onMissingBookClick: (String) -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   gridState: LazyGridState = rememberLazyGridState(),
@@ -140,6 +149,32 @@ private fun LoadedState(
         offlineStatus = offlineStatus(item.id),
         onClick = { onLibraryItemClick(item) },
       )
+    }
+
+    if (missingSection != null) {
+      item(span = { GridItemSpan(maxLineSpan) }, key = "missing-header") {
+        Text(
+          text = stringResource(Res.string.missing_section_title),
+          style = MaterialTheme.typography.titleMedium,
+          modifier = Modifier.padding(top = 16.dp, bottom = 4.dp),
+        )
+      }
+      items(
+        items = missingSection.books,
+        key = { it.key },
+      ) { missing ->
+        MissingSeriesBookCard(
+          entry = missing.entry,
+          onClick = missing.entry.providerUrl?.let { url -> { onMissingBookClick(url) } },
+        )
+      }
+      item(span = { GridItemSpan(maxLineSpan) }, key = "missing-attribution") {
+        Text(
+          text = stringResource(Res.string.missing_section_attribution, missingSection.providerName),
+          style = MaterialTheme.typography.labelSmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
     }
   }
 }

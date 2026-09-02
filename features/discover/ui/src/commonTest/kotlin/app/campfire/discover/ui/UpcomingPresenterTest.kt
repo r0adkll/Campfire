@@ -3,12 +3,11 @@
 
 package app.campfire.discover.ui
 
-import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.discover.api.DiscoverScanResults
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
-import app.campfire.discover.api.screen.DiscoverScreen
+import app.campfire.discover.api.screen.UpcomingScreen
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.slack.circuit.test.FakeNavigator
@@ -39,11 +38,11 @@ private class FakeDiscoverScanTracker : DiscoverScanTracker {
   }
 }
 
-class DiscoverPresenterTest {
+class UpcomingPresenterTest {
 
-  private val navigator = FakeNavigator(DiscoverScreen)
+  private val navigator = FakeNavigator(UpcomingScreen)
   private val tracker = FakeDiscoverScanTracker()
-  private val presenter = DiscoverPresenter(navigator, tracker)
+  private val presenter = UpcomingPresenter(navigator, tracker)
 
   @Test
   fun present_OpeningTheScreen_ScansOnlyIfStale() = runTest {
@@ -62,7 +61,7 @@ class DiscoverPresenterTest {
     presenter.test {
       val state = awaitItem()
 
-      state.eventSink(DiscoverUiEvent.Refresh)
+      state.eventSink(UpcomingUiEvent.Refresh)
 
       assertThat(tracker.startScanCount).isEqualTo(1)
       cancelAndIgnoreRemainingEvents()
@@ -74,7 +73,7 @@ class DiscoverPresenterTest {
     presenter.test {
       val state = awaitItem()
 
-      state.eventSink(DiscoverUiEvent.CancelScan)
+      state.eventSink(UpcomingUiEvent.CancelScan)
 
       assertThat(tracker.cancelScanCount).isEqualTo(1)
       cancelAndIgnoreRemainingEvents()
@@ -100,37 +99,11 @@ class DiscoverPresenterTest {
   }
 
   @Test
-  fun present_TabSelection_Updates() = runTest {
-    presenter.test {
-      val state = awaitItem()
-      assertThat(state.selectedTab).isEqualTo(DiscoverTab.Upcoming)
-
-      state.eventSink(DiscoverUiEvent.SelectTab(DiscoverTab.Missing))
-
-      assertThat(awaitItem().selectedTab).isEqualTo(DiscoverTab.Missing)
-      cancelAndIgnoreRemainingEvents()
-    }
-  }
-
-  @Test
-  fun present_SeriesClick_NavigatesToSeriesDetail() = runTest {
-    presenter.test {
-      val state = awaitItem()
-
-      state.eventSink(DiscoverUiEvent.SeriesClick("s1", "The Stormlight Archive"))
-
-      assertThat(navigator.awaitNextScreen())
-        .isEqualTo(SeriesDetailScreen("s1", "The Stormlight Archive"))
-      cancelAndIgnoreRemainingEvents()
-    }
-  }
-
-  @Test
   fun present_BookClick_OpensProviderUrl() = runTest {
     presenter.test {
       val state = awaitItem()
 
-      state.eventSink(DiscoverUiEvent.BookClick("https://audible.com/pd/B00BWWSVPU"))
+      state.eventSink(UpcomingUiEvent.BookClick("https://audible.com/pd/B00BWWSVPU"))
 
       assertThat(navigator.awaitNextScreen())
         .isEqualTo(UrlScreen("https://audible.com/pd/B00BWWSVPU"))
@@ -143,7 +116,7 @@ class DiscoverPresenterTest {
     presenter.test {
       val state = awaitItem()
 
-      state.eventSink(DiscoverUiEvent.Back)
+      state.eventSink(UpcomingUiEvent.Back)
 
       navigator.awaitPop()
       cancelAndIgnoreRemainingEvents()
