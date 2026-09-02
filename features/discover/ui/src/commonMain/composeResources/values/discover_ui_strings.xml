@@ -9,9 +9,5 @@
   <string name="discover_empty_upcoming">No upcoming releases found in your series.</string>
   <string name="discover_tba_group">To be announced</string>
 
-  <string name="discover_source_attribution">Series details from %1$s</string>
-  <string name="discover_skipped_series">%1$d series couldn't be checked</string>
-  <string name="discover_failed_series">%1$d series failed to load</string>
-
   <string name="cd_book_cover">%1$s cover</string>
 </resources>

@@ -39,7 +39,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
-import app.campfire.common.compose.widgets.CampfireMediumTopAppBar
+import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
@@ -52,11 +52,8 @@ import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.action_back
 import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
-import campfire.features.discover.ui.generated.resources.discover_failed_series
 import campfire.features.discover.ui.generated.resources.discover_scan_action
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
-import campfire.features.discover.ui.generated.resources.discover_skipped_series
-import campfire.features.discover.ui.generated.resources.discover_source_attribution
 import campfire.features.discover.ui.generated.resources.upcoming_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Instant
@@ -72,7 +69,7 @@ fun UpcomingUi(
   val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
   Scaffold(
     topBar = {
-      CampfireMediumTopAppBar(
+      CampfireTopAppBar(
         title = { Text(stringResource(Res.string.upcoming_title)) },
         navigationIcon = {
           val backLabel = stringResource(Res.string.action_back)
@@ -136,10 +133,6 @@ fun UpcomingUi(
           }
         }
       }
-
-      if (completed != null) {
-        CompletedFooter(completed)
-      }
     }
   }
 }
@@ -170,41 +163,6 @@ private fun ScanProgressHeader(
       TextButton(onClick = onCancel) {
         Text(stringResource(Res.string.discover_cancel_scan))
       }
-    }
-  }
-}
-
-@Composable
-private fun CompletedFooter(
-  completed: DiscoverScanState.Completed,
-  modifier: Modifier = Modifier,
-) {
-  Column(
-    modifier = modifier
-      .fillMaxWidth()
-      .padding(horizontal = 16.dp, vertical = 8.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-  ) {
-    completed.results.providerName?.let { providerName ->
-      Text(
-        text = stringResource(Res.string.discover_source_attribution, providerName),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    if (completed.skippedCount > 0) {
-      Text(
-        text = stringResource(Res.string.discover_skipped_series, completed.skippedCount),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-      )
-    }
-    if (completed.failedCount > 0) {
-      Text(
-        text = stringResource(Res.string.discover_failed_series, completed.failedCount),
-        style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.error,
-      )
     }
   }
 }
@@ -250,7 +208,7 @@ private fun UpcomingUiPreview_Scanning() = PreviewWrapper {
 @Composable
 private fun UpcomingUiPreview_Completed() = PreviewWrapper {
   UpcomingUi(
-    state = previewState(previewCompleted(skippedCount = 3, failedCount = 1)),
+    state = previewState(previewCompleted()),
   )
 }
 
