@@ -16,9 +16,23 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 class FakeSeriesRepository : SeriesRepository {
 
-  val allSeriesFlow = MutableSharedFlow<List<Series>>(replay = 1)
-  override fun observeAllSeries(): Flow<List<Series>> {
-    return allSeriesFlow
+  var cachedSeries: List<Series> = emptyList()
+
+  fun setCached(series: List<Series>) {
+    cachedSeries = series
+  }
+
+  var cachedCalls = 0
+  override suspend fun cachedAllSeries(): List<Series> {
+    cachedCalls++
+    return cachedSeries
+  }
+
+  var refreshedSeries: List<Series>? = null
+  var refreshCalls = 0
+  override suspend fun refreshAllSeries(): List<Series> {
+    refreshCalls++
+    return refreshedSeries ?: cachedSeries
   }
 
   val seriesLibraryItemsFlow = MutableSharedFlow<List<LibraryItem>>(replay = 1)
