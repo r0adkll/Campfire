@@ -94,9 +94,10 @@ class SeriesDetailPresenter(
         }
         .map { loadState ->
           val state = loadState.dataOrNull ?: return@map null
-          val providerName = state.providerName ?: return@map null
+          // A null provider means owned-only data — the provider hasn't answered.
+          if (state.providerId == null) return@map null
           val missing = state.entries.filterIsInstance<SeriesEntry.Missing>()
-          if (missing.isEmpty()) null else MissingSection(providerName, missing)
+          if (missing.isEmpty()) null else MissingSection(missing)
         }
         .catch { emit(null) }
     }.collectAsState(null)

@@ -19,9 +19,8 @@ data class SeriesDetailUiState(
   val eventSink: (SeriesDetailUiEvent) -> Unit,
 ) : CircuitUiState
 
-/** Released series books the user doesn't own, with the serving provider for attribution. */
+/** Released series books the user doesn't own. */
 data class MissingSection(
-  val providerName: String,
   val books: List<SeriesEntry.Missing>,
 )
 

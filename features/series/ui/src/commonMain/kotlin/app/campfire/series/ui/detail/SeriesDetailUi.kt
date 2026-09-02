@@ -53,7 +53,6 @@ import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.action_back
 import campfire.features.series.ui.generated.resources.error_series_detail_message
-import campfire.features.series.ui.generated.resources.missing_section_attribution
 import campfire.features.series.ui.generated.resources.missing_section_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
@@ -176,13 +175,6 @@ private fun LoadedState(
         MissingSeriesBookCard(
           entry = missing.entry,
           onClick = missing.entry.providerUrl?.let { url -> { onMissingBookClick(url) } },
-        )
-      }
-      item(span = { GridItemSpan(maxLineSpan) }, key = "missing-attribution") {
-        Text(
-          text = stringResource(Res.string.missing_section_attribution, missingSection.providerName),
-          style = MaterialTheme.typography.labelSmall,
-          color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
       }
     }
