@@ -7,6 +7,7 @@ import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderStatus
+import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
@@ -36,6 +37,21 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   ): Flow<LoadState<out SeriesInfoState>> {
     seriesEntriesRequests += seriesName to ownedItems
     return seriesEntriesFlow
+  }
+
+  val fetchSeriesResults = mutableMapOf<String, SeriesFetchResult>()
+  val fetchSeriesRequests = mutableListOf<Pair<String, List<LibraryItem>>>()
+
+  /** Optional suspension point so tests can hold fetches mid-flight. */
+  var fetchSeriesGate: (suspend () -> Unit)? = null
+
+  override suspend fun fetchSeriesEntries(
+    seriesName: String,
+    ownedItems: List<LibraryItem>,
+  ): SeriesFetchResult {
+    fetchSeriesRequests += seriesName to ownedItems
+    fetchSeriesGate?.invoke()
+    return fetchSeriesResults[seriesName] ?: SeriesFetchResult.Unavailable
   }
 
   var clearCacheCount = 0
