@@ -36,5 +36,6 @@
   <string name="stats_library">Library</string>
 
   <string name="action_back">Back</string>
+  <string name="action_refresh">Refresh</string>
   <string name="action_toggle_dark_mode">Toggle dark mode</string>
 </resources>

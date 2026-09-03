@@ -23,6 +23,7 @@ import org.jetbrains.compose.resources.StringResource
 data class StatsUiState(
   val libraryStats: LoadState<out List<StatsUiModel>>,
   val listeningStats: LoadState<out List<StatsUiModel>>,
+  val isRefreshing: Boolean,
   val eventSink: (StatsUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -138,4 +139,5 @@ sealed interface StatsUiEvent : CircuitUiEvent {
   data class ItemClick(val itemId: LibraryItemId) : StatsUiEvent
   data class AuthorClick(val authorId: AuthorId, val authorName: String) : StatsUiEvent
   data class SessionClick(val session: PlaybackSession) : StatsUiEvent
+  data object Refresh : StatsUiEvent
 }

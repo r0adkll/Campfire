@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -42,6 +43,7 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -79,6 +81,7 @@ import app.campfire.stats.ui.composables.WeeklyListeningCard
 import app.campfire.stats.ui.composables.showFinishedThisYearBottomSheet
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.action_back
+import campfire.features.stats.ui.generated.resources.action_refresh
 import campfire.features.stats.ui.generated.resources.stats_library
 import campfire.features.stats.ui.generated.resources.stats_user
 import campfire.features.stats.ui.generated.resources.user_stats_error_message
@@ -124,7 +127,6 @@ fun StatsUi(
                 isUser = isUserStats,
                 onChange = { isUserStats = it },
               )
-              Spacer(Modifier.width(16.dp))
             }
           },
           navigationIcon = {
@@ -136,6 +138,12 @@ fun StatsUi(
                 Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
+          },
+          actions = {
+            RefreshAction(
+              isRefreshing = state.isRefreshing,
+              onClick = { state.eventSink(StatsUiEvent.Refresh) },
+            )
           },
         )
       } else {
@@ -157,6 +165,12 @@ fun StatsUi(
                 Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
+          },
+          actions = {
+            RefreshAction(
+              isRefreshing = state.isRefreshing,
+              onClick = { state.eventSink(StatsUiEvent.Refresh) },
+            )
           },
         )
       }
@@ -199,6 +213,33 @@ fun StatsUi(
           )
         },
       )
+    }
+  }
+}
+
+@Composable
+private fun RefreshAction(
+  isRefreshing: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val refreshLabel = stringResource(Res.string.action_refresh)
+  IconButtonTooltip(
+    text = refreshLabel,
+    modifier = modifier,
+  ) {
+    IconButton(
+      onClick = onClick,
+      enabled = !isRefreshing,
+    ) {
+      if (isRefreshing) {
+        CircularProgressIndicator(
+          strokeWidth = 2.dp,
+          modifier = Modifier.size(24.dp),
+        )
+      } else {
+        Icon(CampfireIcons.Rounded.Refresh, contentDescription = refreshLabel)
+      }
     }
   }
 }
