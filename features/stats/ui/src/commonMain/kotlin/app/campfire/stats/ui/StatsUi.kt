@@ -133,12 +133,6 @@ fun StatsUi(
               verticalAlignment = Alignment.CenterVertically,
             ) {
               Text(stringResource(Res.string.user_stats_title))
-//              Spacer(Modifier.weight(1f))
-//              StatsChoiceBar(
-//                isUser = isUserStats,
-//                onChange = { isUserStats = it },
-//              )
-//              Spacer(Modifier.width(16.dp))
             }
           },
           navigationIcon = {
