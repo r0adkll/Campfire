@@ -6,6 +6,7 @@
   <string name="discover_scan_action">Scan</string>
   <string name="discover_scanning_title">Scanning</string>
   <string name="discover_scan_progress">%1$d of %2$d series</string>
+  <string name="discover_scan_rate_limited">Scan paused — Audible is rate limiting; it will finish automatically</string>
 
   <string name="discover_empty_upcoming">No upcoming releases found in your series.</string>
   <string name="discover_tba_group">To be announced</string>

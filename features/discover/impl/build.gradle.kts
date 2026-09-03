@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-import app.campfire.convention.addKspDependencyForCommon
+import app.campfire.convention.addKspDependencyForAllTargets
 
 plugins {
   id("app.campfire.android.library")
@@ -19,6 +19,16 @@ kotlin {
         implementation(projects.core)
         implementation(projects.features.series.api)
         implementation(projects.data.bookinfo.api)
+
+        implementation(libs.multiplatformsettings.core)
+        implementation(libs.multiplatformsettings.coroutines)
+      }
+    }
+
+    androidMain {
+      dependencies {
+        implementation(libs.androidx.core.ktx)
+        implementation(libs.androidx.work.runtime)
       }
     }
 
@@ -28,9 +38,10 @@ kotlin {
         implementation(projects.features.series.test)
         implementation(projects.data.bookinfo.test)
         implementation(libs.bundles.test.common)
+        implementation(libs.multiplatformsettings.test)
       }
     }
   }
 }
 
-addKspDependencyForCommon(libs.kimchi.compiler)
+addKspDependencyForAllTargets(libs.kimchi.compiler)

@@ -5,6 +5,7 @@ package app.campfire.bookinfo.api
 
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -99,7 +100,14 @@ sealed interface SeriesFetchResult {
    */
   data object Unavailable : SeriesFetchResult
 
-  /** The fetch failed (network, rate limit) with nothing cached to serve. */
+  /**
+   * The provider's rate limit was hit; retry no sooner than [retryAfter].
+   * Distinct from [Error] so bulk scans can pause and resume instead of
+   * recording thousands of spurious failures.
+   */
+  data class RateLimited(val retryAfter: Duration?) : SeriesFetchResult
+
+  /** The fetch failed (network, server error) with nothing cached to serve. */
   data object Error : SeriesFetchResult
 }
 

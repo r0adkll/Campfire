@@ -1,0 +1,10 @@
+<resources>
+  <string name="scan_notification_channel_name">Series scans</string>
+  <string name="scan_notification_title">Scanning your series</string>
+  <string name="scan_notification_progress">%1$d of %2$d series</string>
+  <string name="scan_notification_cancel">Cancel</string>
+  <plurals name="scan_notification_completed">
+    <item quantity="one">Found %1$d upcoming release</item>
+    <item quantity="other">Found %1$d upcoming releases</item>
+  </plurals>
+</resources>

@@ -17,6 +17,7 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import kotlin.time.Clock
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -31,7 +32,9 @@ import org.mobilenativefoundation.store.store5.StoreReadResponse
 
 class BookInfoNotLinkedException : Exception("Provider is not linked")
 class BookInfoTokenInvalidException : Exception("Provider token was rejected")
-class BookInfoRateLimitedException : Exception("Provider rate limit reached")
+class BookInfoRateLimitedException(
+  val retryAfter: Duration? = null,
+) : Exception("Provider rate limit reached")
 
 /**
  * Store5 pipeline for [CachedBookInfo]: fetches from the keyed provider and
@@ -134,7 +137,7 @@ class BookInfoStore(
 
       is BookInfoResult.NotLinked -> FetcherResult.Error.Exception(BookInfoNotLinkedException())
       is BookInfoResult.TokenInvalid -> FetcherResult.Error.Exception(BookInfoTokenInvalidException())
-      is BookInfoResult.RateLimited -> FetcherResult.Error.Exception(BookInfoRateLimitedException())
+      is BookInfoResult.RateLimited -> FetcherResult.Error.Exception(BookInfoRateLimitedException(result.retryAfter))
       is BookInfoResult.Failure -> FetcherResult.Error.Exception(result.cause)
     }
   }

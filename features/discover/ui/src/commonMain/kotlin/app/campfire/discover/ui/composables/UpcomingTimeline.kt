@@ -16,8 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.core.extensions.capitalized
-import app.campfire.discover.api.DiscoveredBook
 import app.campfire.discover.ui.MonthKey
 import app.campfire.discover.ui.groupUpcomingByMonth
 import app.campfire.discover.ui.parseReleaseDate
@@ -31,7 +31,7 @@ import org.jetbrains.compose.resources.stringResource
  */
 @Composable
 internal fun UpcomingTimeline(
-  books: List<DiscoveredBook>,
+  books: List<UpcomingRelease>,
   onBookClick: (String) -> Unit,
   modifier: Modifier = Modifier,
   listState: LazyListState = rememberLazyListState(),
@@ -49,7 +49,7 @@ internal fun UpcomingTimeline(
         MonthHeader(key = group.key)
       }
       group.books.forEach { book ->
-        item(key = "${group.key}:${book.seriesId}:${book.entry.providerBookId}") {
+        item(key = "${group.key}:${book.seriesName}:${book.entry.providerBookId}") {
           val releaseDay = parseReleaseDate(book.entry.releaseDate)
             ?.let { "${it.month.name.capitalized()} ${it.day}" }
           UpcomingBookListItem(

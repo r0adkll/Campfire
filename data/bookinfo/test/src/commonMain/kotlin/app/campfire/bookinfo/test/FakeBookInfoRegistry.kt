@@ -48,6 +48,10 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   )
 
   val fetchSeriesResults = mutableMapOf<String, SeriesFetchResult>()
+
+  /** Per-series one-shot results consumed before [fetchSeriesResults], for call-order scripting. */
+  val fetchSeriesResultQueue = mutableMapOf<String, ArrayDeque<SeriesFetchResult>>()
+
   val fetchSeriesRequests = mutableListOf<FetchSeriesRequest>()
 
   /** Optional suspension point so tests can hold fetches mid-flight. */
@@ -60,7 +64,9 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   ): SeriesFetchResult {
     fetchSeriesRequests += FetchSeriesRequest(seriesName, ownedItems, refresh)
     fetchSeriesGate?.invoke()
-    return fetchSeriesResults[seriesName] ?: SeriesFetchResult.Unavailable
+    return fetchSeriesResultQueue[seriesName]?.removeFirstOrNull()
+      ?: fetchSeriesResults[seriesName]
+      ?: SeriesFetchResult.Unavailable
   }
 
   val cachedUpcomingFlow = MutableStateFlow<List<UpcomingRelease>>(emptyList())

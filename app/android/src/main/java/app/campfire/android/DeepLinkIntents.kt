@@ -13,7 +13,8 @@ import app.campfire.core.navigation.DeepLinkKeys
 /**
  * Translate an [Intent]'s extras into a [DeepLink].
  *
- * `library_item_id` is always honored (widgets / notifications use it). The automation actions
+ * `library_item_id` and `campfire_upcoming` are always honored (widgets / notifications use
+ * them). The automation actions
  * (`campfire_action=setup|navigate|play|expand_player`) are only honored when [allowAutomation]
  * is true, which callers must tie to `BuildConfig.DEBUG` — they can sign the app into an
  * arbitrary server and must never be reachable from a release build.
@@ -23,9 +24,9 @@ internal fun Intent.toDeepLink(allowAutomation: Boolean, nonce: Long): DeepLink 
 
   val action = extras.getString(DeepLinkKeys.Action)
   if (action == null || !allowAutomation) {
-    return extras.getString(DeepLinkKeys.LibraryItemId)
-      ?.let { DeepLink.ItemDetail(it) }
-      ?: DeepLink.None
+    extras.getString(DeepLinkKeys.LibraryItemId)?.let { return DeepLink.ItemDetail(it) }
+    if (extras.getBoolean(DeepLinkKeys.Upcoming, false)) return DeepLink.Upcoming(nonce)
+    return DeepLink.None
   }
 
   fun required(key: String): String =

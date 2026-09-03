@@ -9,12 +9,14 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Runs and observes the library-wide series scan behind the Upcoming screen.
  *
- * A scan walks every series in the user's library, asks the book info registry
- * for the provider's canonical listing, and accumulates the announced books
- * that haven't released. It runs in the user scope so it survives navigation,
- * and its results live in memory — closing the app resets to
- * [DiscoverScanState.Idle], while everything fetched persists in the registry's
- * series cache (feeding the home screen's cached upcoming shelf).
+ * A scan walks every series in the user's library and asks the book info
+ * registry for the provider's canonical listing. Everything fetched persists
+ * in the registry's series cache — the Upcoming screen and the home screen's
+ * upcoming shelf both read `BookInfoRegistry.observeCachedUpcoming`, so
+ * results stream in live during a scan and survive restarts. The tracker only
+ * carries progress and completion metadata; on Android scans run as background
+ * work that outlives the app process, elsewhere they run in-process on the
+ * user scope.
  */
 interface DiscoverScanTracker {
   val state: StateFlow<DiscoverScanState>
@@ -35,16 +37,9 @@ interface DiscoverScanTracker {
    */
   fun startScanIfStale()
 
-  /** Stops a running scan, freezing partial results into [DiscoverScanState.Completed]. */
+  /** Stops a running scan; everything already cached stays visible. */
   fun cancelScan()
 }
-
-/** Accumulated scan output; streams in while running and freezes on completion. */
-data class DiscoverScanResults(
-  /** Display name of the provider serving series data, once one has answered. */
-  val providerName: String? = null,
-  val upcoming: List<DiscoveredBook> = emptyList(),
-)
 
 sealed interface DiscoverScanState {
   data object Idle : DiscoverScanState
@@ -52,15 +47,19 @@ sealed interface DiscoverScanState {
   data class Running(
     val done: Int,
     val total: Int,
-    val results: DiscoverScanResults,
   ) : DiscoverScanState
 
   data class Completed(
-    val results: DiscoverScanResults,
     val scannedAt: Instant,
     /** Series that couldn't be looked up at all (no usable identifiers or provider). */
     val skippedCount: Int,
-    /** Series whose provider fetch failed (network, rate limit). */
+    /** Series whose provider fetch failed (network, server error). */
     val failedCount: Int,
+    /**
+     * The scan stopped early because the provider rate limited it. On Android
+     * the work retries itself and clears this on a full pass; elsewhere the
+     * next scan picks up from the cache checkpoint.
+     */
+    val rateLimited: Boolean = false,
   ) : DiscoverScanState
 }

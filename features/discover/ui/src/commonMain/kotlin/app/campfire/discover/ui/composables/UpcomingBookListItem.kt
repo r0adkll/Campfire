@@ -24,10 +24,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
 import app.campfire.common.compose.widgets.placeholderBookPainter
-import app.campfire.discover.api.DiscoveredBook
 import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.cd_book_cover
 import org.jetbrains.compose.resources.stringResource
@@ -41,7 +41,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun UpcomingBookListItem(
-  book: DiscoveredBook,
+  book: UpcomingRelease,
   releaseDateLabel: String?,
   onClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
