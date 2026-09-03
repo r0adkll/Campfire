@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Listening progress and finished indicators missing from book cards on series, author, collection, and search screens
 - Android Auto and the media notification now show the book title with the chapter instead of only the chapter and author
 - Recent listening bar chart on the Statistics page scaling its bars against all-time listening highs instead of just the days shown
 - Playback timing and progress showing blank after reopening the app until playback started

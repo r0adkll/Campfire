@@ -81,9 +81,12 @@ SELECT * FROM libraryItem
 WHERE libraryItem.libraryId = ?;
 
 selectForSeries:
-SELECT libraryItem.*,media.* FROM libraryItem
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
 LEFT JOIN seriesBookJoin ON seriesBookJoin.libraryItemId = libraryItem.id
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+  AND mediaProgress.episodeId = ''
+  AND mediaProgress.userId = :userId
 WHERE seriesBookJoin.seriesId = :seriesId
 ORDER BY media.metadata_series_sequence ASC;
 
@@ -119,16 +122,22 @@ WHERE shelfJoin.shelfId = ?
 ORDER BY shelfJoin.shelfOrder ASC;
 
 selectForCollection:
-SELECT libraryItem.*,media.* FROM libraryItem
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
 INNER JOIN collectionsBookJoin ON collectionsBookJoin.libraryItemId = libraryItem.id
 INNER JOIN media ON media.libraryItemId = libraryItem.id
-WHERE collectionsBookJoin.collectionsId = ?
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+  AND mediaProgress.episodeId = ''
+  AND mediaProgress.userId = :userId
+WHERE collectionsBookJoin.collectionsId = :collectionId
 ORDER BY collectionsBookJoin.itemOrder ASC;
 
 selectForAuthorName:
-SELECT libraryItem.*,media.* FROM libraryItem
+SELECT libraryItem.*,media.*,mediaProgress.* FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id
-WHERE media.metadata_authorName = ?;
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+  AND mediaProgress.episodeId = ''
+  AND mediaProgress.userId = :userId
+WHERE media.metadata_authorName = :authorName;
 
 deleteForLibrary:
 DELETE FROM libraryItem
