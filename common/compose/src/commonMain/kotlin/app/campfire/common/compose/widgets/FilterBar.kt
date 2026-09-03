@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.FilterAlt
 import app.campfire.common.compose.icons.rounded.FilterAltOff
-import app.campfire.common.compose.icons.rounded.Grid3x3
-import app.campfire.common.compose.icons.rounded.Grid4x4
+import app.campfire.common.compose.icons.rounded.Grid3X3
+import app.campfire.common.compose.icons.rounded.Grid4X4
 import app.campfire.common.compose.icons.rounded.Lists
 import app.campfire.common.compose.icons.rounded.SortAlphaAsc
 import app.campfire.common.compose.icons.rounded.SortAlphaDesc
@@ -82,8 +82,8 @@ fun FilterBar(
         Icon(
           when (itemDisplayState) {
             ItemDisplayState.List -> CampfireIcons.Rounded.Lists
-            ItemDisplayState.Grid -> CampfireIcons.Rounded.Grid3x3
-            ItemDisplayState.GridDense -> CampfireIcons.Rounded.Grid4x4
+            ItemDisplayState.Grid -> CampfireIcons.Rounded.Grid3X3
+            ItemDisplayState.GridDense -> CampfireIcons.Rounded.Grid4X4
           },
           contentDescription = null,
         )

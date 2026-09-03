@@ -39,6 +39,7 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.outline.Library
 import app.campfire.common.compose.icons.rounded.AccountCircle
 import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.DeveloperMode
@@ -335,7 +336,7 @@ private fun SettingsRootPane(
         selected = false,
         icon = {
           Icon(
-            CampfireIcons.Rounded.LocalLibrary,
+            CampfireIcons.Outline.Library,
             contentDescription = null,
           )
         },

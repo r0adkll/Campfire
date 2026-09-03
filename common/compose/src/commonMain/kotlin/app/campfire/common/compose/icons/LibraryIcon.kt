@@ -60,5 +60,5 @@ fun Library.Icon.asComposeIcon(): ImageVector = when (this) {
   Power -> CampfireIcons.Rounded.Power
   Star -> CampfireIcons.Rounded.Star
   Heart -> CampfireIcons.Rounded.Favorite
-  None -> Icons.Filled.Library
+  None -> CampfireIcons.Filled.Library
 }
