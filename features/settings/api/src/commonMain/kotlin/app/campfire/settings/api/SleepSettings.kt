@@ -7,6 +7,7 @@ import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.LocalTime
 
@@ -39,6 +40,12 @@ interface SleepSettings {
   var autoRewindAmount: Duration
   fun observeAutoRewindAmount(): StateFlow<Duration>
 
+  /**
+   * How long the volume fades out before a sleep timer pauses playback. [Duration.ZERO] pauses immediately.
+   */
+  var fadeOutDuration: Duration
+  fun observeFadeOutDuration(): StateFlow<Duration>
+
   sealed class AutoSleepTimer {
     data class Epoch(val millis: Long) : AutoSleepTimer()
     data object EndOfChapter : AutoSleepTimer()
@@ -63,5 +70,10 @@ interface SleepSettings {
         return entries.find { it.storageKey == key } ?: Medium
       }
     }
+  }
+
+  companion object {
+    val DefaultFadeOutDuration: Duration get() = 5.seconds
+    val FadeOutDurationRange: ClosedRange<Duration> get() = Duration.ZERO..60.seconds
   }
 }

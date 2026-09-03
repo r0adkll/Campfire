@@ -110,6 +110,10 @@
   <string name="setting_playback_sync_subtitle">Show available playback updates from the server when there is a newer position available</string>
   <string name="setting_playback_auto_sync_title">Enable automatic synchronization</string>
   <string name="setting_playback_auto_sync_subtitle">When resuming playback if there is a new position from the server, continue using that timestamp. Otherwise, resume with the locally tracked progress.</string>
+  <string name="header_sleep_fade_out">Fade out</string>
+  <string name="setting_sleep_fade_out_duration_title">Fade out duration</string>
+  <string name="setting_sleep_fade_out_duration_subtitle">How long the volume fades before the sleep timer pauses playback</string>
+  <string name="setting_sleep_fade_out_off">Off</string>
   <string name="header_shake_to_reset">Reset</string>
   <string name="setting_playback_sleep_shake_to_reset_title">Shake-to-reset</string>
   <string name="setting_playback_sleep_shake_to_reset_subtitle">Enable shaking to reset the current or previous timer</string>

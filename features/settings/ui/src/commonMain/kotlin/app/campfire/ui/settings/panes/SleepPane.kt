@@ -37,6 +37,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.DropdownSetting
+import app.campfire.ui.settings.composables.DurationSliderSetting
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.LocalTimeSetting
 import app.campfire.ui.settings.composables.SwitchSetting
@@ -45,6 +46,7 @@ import app.campfire.ui.settings.composables.TimeJumps
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.header_auto_sleep
 import campfire.features.settings.ui.generated.resources.header_shake_to_reset
+import campfire.features.settings.ui.generated.resources.header_sleep_fade_out
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_auto_rewind_amount_title
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_auto_rewind_subtitle
 import campfire.features.settings.ui.generated.resources.setting_auto_sleep_auto_rewind_title
@@ -56,6 +58,9 @@ import campfire.features.settings.ui.generated.resources.setting_auto_sleep_titl
 import campfire.features.settings.ui.generated.resources.setting_playback_shake_sensitivity_title
 import campfire.features.settings.ui.generated.resources.setting_playback_sleep_shake_to_reset_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_sleep_shake_to_reset_title
+import campfire.features.settings.ui.generated.resources.setting_sleep_fade_out_duration_subtitle
+import campfire.features.settings.ui.generated.resources.setting_sleep_fade_out_duration_title
+import campfire.features.settings.ui.generated.resources.setting_sleep_fade_out_off
 import campfire.features.settings.ui.generated.resources.setting_sleep_title
 import campfire.features.settings.ui.generated.resources.shake_sensitivity_high
 import campfire.features.settings.ui.generated.resources.shake_sensitivity_low
@@ -84,6 +89,21 @@ internal fun SleepPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    Header(
+      title = { Text(stringResource(Res.string.header_sleep_fade_out)) },
+    )
+
+    val fadeOutOff = stringResource(Res.string.setting_sleep_fade_out_off)
+    DurationSliderSetting(
+      title = stringResource(Res.string.setting_sleep_fade_out_duration_title),
+      subtitle = stringResource(Res.string.setting_sleep_fade_out_duration_subtitle),
+      value = state.sleepSettings.fadeOutDuration,
+      valueRange = SleepSettings.FadeOutDurationRange,
+      stepSeconds = 1,
+      valueLabel = { if (it == Duration.ZERO) fadeOutOff else it.toString() },
+      onValueChange = { state.eventSink(SleepSettingEvent.FadeOutDuration(it)) },
+    )
+
     if (currentPlatform != Platform.DESKTOP && state.isShakingAvailable) {
       Header(
         title = { Text(stringResource(Res.string.header_shake_to_reset)) },

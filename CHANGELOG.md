@@ -20,11 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Series pages now show released books missing from your library, checked automatically against Audible
 - Listening activity heatmap on the Statistics page showing daily listening over the past year
 - Activity section on the Statistics page with listening streaks, finished book and podcast episode counts, and daily listening averages — tap the this-year counts to see everything finished this year
+- Sleep timer fade-out duration can now be customized in Settings → Sleep, from off up to a minute
 
 ### Changed
 
 - Automatic rewind ranges are now 0s-2m and ignore pauses now increased to 30s max
 - Statistics now load instantly from a short-lived cache, with a refresh button in the top bar to fetch the latest numbers
+- Sleep timer fade-out now follows a logarithmic volume curve so it sounds like a steady fade instead of a sudden drop at the end
 
 ### Deprecated
 

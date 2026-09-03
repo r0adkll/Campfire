@@ -163,8 +163,8 @@ class CoroutineSleepTimerManager(
       player.pause()
       onPauseComplete()
     } else {
-      // Pause playback and clear the timer
-      player.fadeToPause().invokeOnCompletion {
+      // Fade playback out over the configured duration, then pause and clear the timer
+      player.fadeToPause(duration = sleepSettings.fadeOutDuration).invokeOnCompletion {
         onPauseComplete()
       }
     }

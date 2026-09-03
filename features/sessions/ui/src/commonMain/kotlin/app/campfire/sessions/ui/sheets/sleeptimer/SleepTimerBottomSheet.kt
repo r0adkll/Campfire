@@ -672,6 +672,14 @@ fun TimerBottomSheetV2Preview() {
             override fun observeAutoRewindAmount(): StateFlow<Duration> {
               TODO("Not yet implemented")
             }
+
+            override var fadeOutDuration: Duration
+              get() = TODO("Not yet implemented")
+              set(value) {}
+
+            override fun observeFadeOutDuration(): StateFlow<Duration> {
+              TODO("Not yet implemented")
+            }
           }
           override val sessionsRepository: SessionsRepository
             get() = object : SessionsRepository {

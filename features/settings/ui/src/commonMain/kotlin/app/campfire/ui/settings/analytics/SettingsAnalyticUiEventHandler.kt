@@ -42,6 +42,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimer
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerEnabled
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerEnd
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimerStart
+import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.FadeOutDuration
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivity
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import me.tatarka.inject.annotations.Inject
@@ -130,6 +131,7 @@ class SettingsAnalyticUiEventHandler(
 
       is AutoSleepRewindEnabled -> send("auto_sleep_rewind", Updated, event.enabled)
       is AutoSleepRewindAmount -> send("auto_sleep_rewind_amount", Updated, event.amount.inWholeMilliseconds)
+      is FadeOutDuration -> send("sleep_fade_out_duration", Updated, event.duration.inWholeMilliseconds)
     }
 
     is SettingsUiEvent.AboutSettingEvent -> when (event) {
