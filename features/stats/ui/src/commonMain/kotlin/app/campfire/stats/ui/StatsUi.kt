@@ -128,7 +128,6 @@ fun StatsUi(
                 isUser = isUserStats,
                 onChange = { isUserStats = it },
               )
-              Spacer(Modifier.width(16.dp))
             }
           },
           navigationIcon = {
