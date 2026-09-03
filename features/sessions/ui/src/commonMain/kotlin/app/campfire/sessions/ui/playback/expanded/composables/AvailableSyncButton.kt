@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.extensions.timeAgo
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowForward
 import app.campfire.common.compose.theme.CampfireTheme
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
@@ -109,7 +109,7 @@ internal fun AvailableSyncButton(
         }
 
         Icon(
-          Icons.AutoMirrored.Rounded.ArrowForward,
+          CampfireIcons.Rounded.ArrowForward,
           contentDescription = null,
           modifier = Modifier
             .size(20.dp),

@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.rounded.History
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -25,6 +22,8 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.Description
 import app.campfire.common.compose.icons.rounded.Equalizer
+import app.campfire.common.compose.icons.rounded.History
+import app.campfire.common.compose.icons.rounded.List
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_bookmarks
@@ -137,7 +136,7 @@ private fun ActionContent(
       IconButton(
         onClick = onBookmarksClick,
       ) {
-        Icon(Icons.Rounded.Bookmarks, contentDescription = bookmarksLabel)
+        Icon(CampfireIcons.Rounded.Bookmarks, contentDescription = bookmarksLabel)
       }
     }
   }
@@ -182,7 +181,7 @@ private fun ActionContent(
         IconButton(
           onClick = onChapterListClick,
         ) {
-          Icon(Icons.AutoMirrored.Rounded.List, contentDescription = chaptersLabel)
+          Icon(CampfireIcons.Rounded.List, contentDescription = chaptersLabel)
         }
       }
     }
@@ -214,7 +213,7 @@ private fun ActionContent(
         IconButton(
           onClick = onHistoryClick,
         ) {
-          Icon(Icons.Rounded.History, contentDescription = historyLabel)
+          Icon(CampfireIcons.Rounded.History, contentDescription = historyLabel)
         }
       }
     }

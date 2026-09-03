@@ -3,14 +3,14 @@
 
 package app.campfire.common.compose.icons.outline
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
 
-val Icons.Outlined.Download: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
+val CampfireIcons.Outline.Download: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
   ImageVector.Builder(
     name = "Download",
     defaultWidth = 24.dp,

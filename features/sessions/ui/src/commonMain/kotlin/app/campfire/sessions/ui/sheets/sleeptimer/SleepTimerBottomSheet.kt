@@ -19,10 +19,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.rounded.Timer
-import androidx.compose.material.icons.rounded.TimerOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
@@ -75,6 +71,8 @@ import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.BookRibbon
 import app.campfire.common.compose.icons.rounded.BookRibbon
+import app.campfire.common.compose.icons.rounded.Timer
+import app.campfire.common.compose.icons.rounded.TimerOff
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
@@ -337,9 +335,9 @@ private fun TimerTypeSelector(
     ) {
       Icon(
         if (isEpochTimeSelection) {
-          Icons.Rounded.Timer
+          CampfireIcons.Rounded.Timer
         } else {
-          Icons.Outlined.Timer
+          CampfireIcons.Rounded.Timer
         },
         contentDescription = "Timer by time",
         modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
@@ -522,7 +520,7 @@ private fun SetTimerButton(
       .fillMaxWidth(),
   ) {
     Icon(
-      Icons.Rounded.Timer,
+      CampfireIcons.Rounded.Timer,
       contentDescription = null,
       modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
     )
@@ -553,7 +551,7 @@ private fun ClearTimerButton(
       .fillMaxWidth(),
   ) {
     Icon(
-      Icons.Rounded.TimerOff,
+      CampfireIcons.Rounded.TimerOff,
       contentDescription = null,
       modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
     )

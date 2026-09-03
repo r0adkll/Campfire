@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +41,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -135,7 +135,7 @@ fun StatsUi(
               IconButton(
                 onClick = { state.eventSink(StatsUiEvent.Back) },
               ) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
           },
@@ -162,7 +162,7 @@ fun StatsUi(
               IconButton(
                 onClick = { state.eventSink(StatsUiEvent.Back) },
               ) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
           },
@@ -238,7 +238,7 @@ private fun RefreshAction(
           modifier = Modifier.size(24.dp),
         )
       } else {
-        Icon(Icons.Rounded.Refresh, contentDescription = refreshLabel)
+        Icon(CampfireIcons.Rounded.Refresh, contentDescription = refreshLabel)
       }
     }
   }

@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DoneOutline
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -62,6 +60,7 @@ import app.campfire.common.compose.icons.rounded.AreaChart
 import app.campfire.common.compose.icons.rounded.AreaChartFilled
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.CrashFilled
+import app.campfire.common.compose.icons.rounded.DoneOutline
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_finish_analytics_consent
@@ -151,7 +150,7 @@ private fun AnalyticConsentContent(
         .align(Alignment.BottomCenter)
         .padding(bottom = 16.dp),
       icon = {
-        Icon(Icons.Rounded.DoneOutline, contentDescription = null)
+        Icon(CampfireIcons.Rounded.DoneOutline, contentDescription = null)
       },
       text = {
         Text(stringResource(Res.string.action_finish_analytics_consent))

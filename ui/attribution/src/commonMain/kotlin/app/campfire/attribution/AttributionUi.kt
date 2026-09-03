@@ -5,8 +5,6 @@ package app.campfire.attribution
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -16,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -50,7 +50,7 @@ fun Attribution(
             IconButton(
               onClick = { state.eventSink(AttributionUiEvent.Back) },
             ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },

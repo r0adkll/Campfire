@@ -34,7 +34,6 @@ kotlin {
 
         api(libs.compose.foundation)
         api(libs.compose.material)
-        api(libs.compose.material.icons.extended)
         api(libs.compose.animation)
         api(libs.compose.components.resources)
         api(libs.compose.ui.tooling.preview)

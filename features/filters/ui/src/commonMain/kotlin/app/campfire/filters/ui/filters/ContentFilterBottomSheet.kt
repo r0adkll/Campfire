@@ -19,10 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.ArrowRight
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -49,6 +45,10 @@ import androidx.compose.ui.unit.dp
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.ArrowRight
+import app.campfire.common.compose.icons.rounded.Check
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.core.di.UserScope
@@ -314,7 +314,7 @@ private fun FilterGroupListItem(
       }
     },
     trailingIcon = {
-      Icon(Icons.AutoMirrored.Rounded.ArrowRight, contentDescription = null)
+      Icon(CampfireIcons.Rounded.ArrowRight, contentDescription = null)
     },
     onClick = onClick,
     modifier = modifier,
@@ -339,7 +339,7 @@ private fun <T : Any> FilterGroupOptionList(
           IconButton(
             onClick = onBackClick,
           ) {
-            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+            Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
           }
         }
       },
@@ -383,7 +383,7 @@ private fun <T : Any> FilterOptionListItem(
       MenuDefaults.itemColors()
     },
     trailingIcon = if (selected) {
-      { Icon(Icons.Rounded.Check, contentDescription = null) }
+      { Icon(CampfireIcons.Rounded.Check, contentDescription = null) }
     } else {
       null
     },

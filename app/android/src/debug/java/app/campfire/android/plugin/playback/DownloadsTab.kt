@@ -5,9 +5,6 @@ package app.campfire.android.plugin.playback
 
 import android.content.Context
 import androidx.annotation.OptIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +27,9 @@ import app.campfire.android.plugin.common.SegmentedSection
 import app.campfire.android.plugin.playback.icons.DeleteForever
 import app.campfire.android.plugin.playback.icons.Pause
 import app.campfire.android.plugin.playback.icons.PlayArrow
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.Refresh
 import com.livewire.ui.actions.clickAction
 import com.livewire.ui.graphics.RoundedCornerShape
 import com.livewire.ui.layout.Alignment
@@ -200,11 +200,11 @@ private fun DownloadCard(
         }
         if (download.state == Download.STATE_FAILED) {
           IconButton(action = onRetry) {
-            Icon(Icons.Rounded.Refresh)
+            Icon(CampfireIcons.Rounded.Refresh)
           }
         }
         IconButton(action = onRemove) {
-          Icon(Icons.Rounded.Delete)
+          Icon(CampfireIcons.Rounded.Delete)
         }
       }
 

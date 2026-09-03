@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -38,8 +36,10 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.rounded.MarkFinished
+import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.EpisodeListItem
 import app.campfire.common.compose.widgets.EpisodeListItemDefaults
@@ -235,7 +235,7 @@ private fun LatestEpisodesList(
                   shape = IconButtonDefaults.extraSmallSquareShape,
                 ) {
                   Icon(
-                    Icons.AutoMirrored.Rounded.PlaylistAdd,
+                    CampfireIcons.Rounded.PlaylistAdd,
                     contentDescription = addToPlaylistLabel,
                     modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                   )
@@ -268,9 +268,9 @@ private fun LatestEpisodesList(
                 ) {
                   Icon(
                     if (isFinished) {
-                      Icons.Filled.MarkFinished
+                      CampfireIcons.Filled.MarkFinished
                     } else {
-                      Icons.Rounded.MarkFinished
+                      CampfireIcons.Rounded.MarkFinished
                     },
                     contentDescription = finishedLabel,
                     modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),

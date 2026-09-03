@@ -18,15 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoStories
-import androidx.compose.material.icons.rounded.AvTimer
-import androidx.compose.material.icons.rounded.EmojiEvents
-import androidx.compose.material.icons.rounded.Event
-import androidx.compose.material.icons.rounded.EventAvailable
-import androidx.compose.material.icons.rounded.LocalFireDepartment
-import androidx.compose.material.icons.rounded.Podcasts
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +32,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoStories
+import app.campfire.common.compose.icons.rounded.AvTimer
 import app.campfire.common.compose.icons.rounded.ChevronRight
+import app.campfire.common.compose.icons.rounded.EmojiEvents
+import app.campfire.common.compose.icons.rounded.Event
+import app.campfire.common.compose.icons.rounded.EventAvailable
+import app.campfire.common.compose.icons.rounded.LocalFireDepartment
+import app.campfire.common.compose.icons.rounded.Podcasts
+import app.campfire.common.compose.icons.rounded.Star
 import app.campfire.core.model.MediaType
 import app.campfire.stats.ui.StatsUiModel.Activity
 import campfire.features.stats.ui.generated.resources.Res
@@ -67,7 +66,7 @@ internal fun ActivityStatsGrid(
   val tiles = buildList {
     add(
       TileSpec(
-        icon = Icons.Rounded.LocalFireDepartment,
+        icon = CampfireIcons.Rounded.LocalFireDepartment,
         accent = StreakAccent,
         value = pluralStringResource(Res.plurals.activity_streak_days, model.currentStreak, model.currentStreak),
         label = stringResource(Res.string.activity_current_streak),
@@ -75,7 +74,7 @@ internal fun ActivityStatsGrid(
     )
     add(
       TileSpec(
-        icon = Icons.Rounded.EmojiEvents,
+        icon = CampfireIcons.Rounded.EmojiEvents,
         accent = BestStreakAccent,
         value = pluralStringResource(Res.plurals.activity_streak_days, model.bestStreak, model.bestStreak),
         label = stringResource(Res.string.activity_best_streak),
@@ -83,7 +82,7 @@ internal fun ActivityStatsGrid(
     )
     add(
       TileSpec(
-        icon = Icons.Rounded.AvTimer,
+        icon = CampfireIcons.Rounded.AvTimer,
         accent = DailyAverageAccent,
         value = model.dailyAverage.thresholdReadoutFormat(),
         label = stringResource(Res.string.activity_daily_average),
@@ -91,7 +90,7 @@ internal fun ActivityStatsGrid(
     )
     add(
       TileSpec(
-        icon = Icons.Rounded.Star,
+        icon = CampfireIcons.Rounded.Star,
         accent = BestDayAccent,
         value = model.bestDay.thresholdReadoutFormat(),
         label = stringResource(Res.string.activity_best_day),
@@ -99,7 +98,7 @@ internal fun ActivityStatsGrid(
     )
     add(
       TileSpec(
-        icon = Icons.Rounded.AutoStories,
+        icon = CampfireIcons.Rounded.AutoStories,
         accent = BooksAccent,
         value = model.booksFinished.toString(),
         label = stringResource(Res.string.activity_books_finished),
@@ -107,7 +106,7 @@ internal fun ActivityStatsGrid(
     )
     add(
       TileSpec(
-        icon = Icons.Rounded.Event,
+        icon = CampfireIcons.Rounded.Event,
         accent = BooksThisYearAccent,
         value = model.booksFinishedThisYear.toString(),
         label = stringResource(Res.string.activity_books_finished_year),
@@ -117,7 +116,7 @@ internal fun ActivityStatsGrid(
     if (model.hasPodcastActivity) {
       add(
         TileSpec(
-          icon = Icons.Rounded.Podcasts,
+          icon = CampfireIcons.Rounded.Podcasts,
           accent = EpisodesAccent,
           value = model.episodesFinished.toString(),
           label = stringResource(Res.string.activity_episodes_finished),
@@ -125,7 +124,7 @@ internal fun ActivityStatsGrid(
       )
       add(
         TileSpec(
-          icon = Icons.Rounded.EventAvailable,
+          icon = CampfireIcons.Rounded.EventAvailable,
           accent = EpisodesThisYearAccent,
           value = model.episodesFinishedThisYear.toString(),
           label = stringResource(Res.string.activity_episodes_finished_year),

@@ -3,12 +3,6 @@
 
 package app.campfire.ui.settings.panes
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Login
-import androidx.compose.material.icons.outlined.LogoDev
-import androidx.compose.material.icons.rounded.Code
-import androidx.compose.material.icons.rounded.Copyright
-import androidx.compose.material.icons.rounded.LogoDev
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,8 +15,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AreaChart
+import app.campfire.common.compose.icons.rounded.Code
+import app.campfire.common.compose.icons.rounded.Copyright
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.Github
+import app.campfire.common.compose.icons.rounded.Login
 import app.campfire.common.compose.icons.rounded.LogoDev
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.common.compose.icons.rounded.ShieldPerson
@@ -85,7 +82,7 @@ internal fun AboutPane(
     )
 
     ActionSetting(
-      leadingContent = { Icon(Icons.Rounded.ShieldPerson, contentDescription = null) },
+      leadingContent = { Icon(CampfireIcons.Rounded.ShieldPerson, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_developer_title)) },
       supportingContent = { Text(stringResource(Res.string.about_developer_subtitle)) },
       onClick = { sendEvent(DeveloperClick) },
@@ -123,19 +120,19 @@ internal fun AboutPane(
     )
 
     ActionSetting(
-      leadingContent = { Icon(Icons.Rounded.Policy, contentDescription = null) },
+      leadingContent = { Icon(CampfireIcons.Rounded.Policy, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_privacy_policy_title)) },
       onClick = { sendEvent(PrivacyPolicyClick) },
     )
 
     ActionSetting(
-      leadingContent = { Icon(Icons.Rounded.Copyright, contentDescription = null) },
+      leadingContent = { Icon(CampfireIcons.Rounded.Copyright, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_tos_title)) },
       onClick = { sendEvent(TermsOfServiceClick) },
     )
 
     ActionSetting(
-      leadingContent = { Icon(Icons.Rounded.Code, contentDescription = null) },
+      leadingContent = { Icon(CampfireIcons.Rounded.Code, contentDescription = null) },
       headlineContent = { Text(stringResource(Res.string.about_attributions_title)) },
       onClick = { sendEvent(AttributionsClick) },
     )
@@ -179,7 +176,7 @@ internal fun AboutPane(
 
     if (state.aboutSettings.showAppUpdateSignIn) {
       ActionSetting(
-        leadingContent = { Icon(Icons.AutoMirrored.Rounded.Login, contentDescription = null) },
+        leadingContent = { Icon(CampfireIcons.Rounded.Login, contentDescription = null) },
         headlineContent = { Text(stringResource(Res.string.about_app_update_sign_in_title)) },
         supportingContent = { Text(stringResource(Res.string.about_app_update_sign_in_subtitle)) },
         onClick = { sendEvent(AppUpdateSignInClick) },

@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -29,6 +27,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Close
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.action_clear_search
 import org.jetbrains.compose.resources.stringResource
@@ -102,7 +102,7 @@ fun SearchBar(
                 onQueryCleared()
               },
             ) {
-              Icon(Icons.Rounded.Close, contentDescription = clearSearchLabel)
+              Icon(CampfireIcons.Rounded.Close, contentDescription = clearSearchLabel)
             }
           }
         }

@@ -18,15 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
-import androidx.compose.material.icons.rounded.FastForward
-import androidx.compose.material.icons.rounded.FastRewind
-import androidx.compose.material.icons.rounded.HistoryEdu
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -54,7 +45,15 @@ import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.extensions.relativeDayLabel
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowForward
 import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.FastForward
+import app.campfire.common.compose.icons.rounded.FastRewind
+import app.campfire.common.compose.icons.rounded.HistoryEdu
+import app.campfire.common.compose.icons.rounded.Pause
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.SkipNext
+import app.campfire.common.compose.icons.rounded.SkipPrevious
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.UserScope
@@ -178,7 +177,7 @@ private fun PlaybackHistoryBottomSheet(
         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
         Icon(
-          Icons.Rounded.HistoryEdu,
+          CampfireIcons.Rounded.HistoryEdu,
           contentDescription = null,
           modifier = Modifier.size(40.dp),
         )
@@ -280,13 +279,13 @@ private fun PlaybackHistoryItem(
 
 @Composable
 private fun PlaybackActionType.icon(): ImageVector = when (this) {
-  PlaybackActionType.Play -> Icons.Rounded.PlayArrow
-  PlaybackActionType.Pause -> Icons.Rounded.Pause
-  PlaybackActionType.Seek -> Icons.AutoMirrored.Rounded.ArrowForward
-  PlaybackActionType.SkipNext -> Icons.Rounded.SkipNext
-  PlaybackActionType.SkipPrevious -> Icons.Rounded.SkipPrevious
-  PlaybackActionType.SeekForward -> Icons.Rounded.FastForward
-  PlaybackActionType.SeekBackward -> Icons.Rounded.FastRewind
+  PlaybackActionType.Play -> CampfireIcons.Rounded.PlayArrow
+  PlaybackActionType.Pause -> CampfireIcons.Rounded.Pause
+  PlaybackActionType.Seek -> CampfireIcons.Rounded.ArrowForward
+  PlaybackActionType.SkipNext -> CampfireIcons.Rounded.SkipNext
+  PlaybackActionType.SkipPrevious -> CampfireIcons.Rounded.SkipPrevious
+  PlaybackActionType.SeekForward -> CampfireIcons.Rounded.FastForward
+  PlaybackActionType.SeekBackward -> CampfireIcons.Rounded.FastRewind
   PlaybackActionType.Sync -> CampfireIcons.Rounded.Sync
 }
 

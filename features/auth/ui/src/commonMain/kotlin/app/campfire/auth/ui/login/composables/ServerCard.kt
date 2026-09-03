@@ -24,13 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Cancel
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.Password
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.Visibility
-import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -82,9 +75,15 @@ import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.AssignmentGlobe
+import app.campfire.common.compose.icons.rounded.Cancel
 import app.campfire.common.compose.icons.rounded.Connected
 import app.campfire.common.compose.icons.rounded.Disconnected
+import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
+import app.campfire.common.compose.icons.rounded.Password
+import app.campfire.common.compose.icons.rounded.Person
 import app.campfire.common.compose.icons.rounded.Settings
+import app.campfire.common.compose.icons.rounded.Visibility
+import app.campfire.common.compose.icons.rounded.VisibilityOff
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.model.NetworkSettings
@@ -235,7 +234,7 @@ internal fun ServerCard(
                 serverUrlFocus.requestFocus()
               },
             ) {
-              Icon(Icons.Rounded.Cancel, contentDescription = clearLabel)
+              Icon(CampfireIcons.Rounded.Cancel, contentDescription = clearLabel)
             }
           }
         }
@@ -321,7 +320,7 @@ internal fun ServerCard(
             value = username,
             onValueChange = onUsernameChange,
             label = { Text(stringResource(Res.string.label_username)) },
-            leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+            leadingIcon = { Icon(CampfireIcons.Rounded.Person, contentDescription = null) },
             keyboardOptions = KeyboardOptions(
               keyboardType = KeyboardType.Email,
               imeAction = ImeAction.Next,
@@ -346,7 +345,7 @@ internal fun ServerCard(
             value = password,
             onValueChange = onPasswordChange,
             label = { Text(stringResource(Res.string.label_password)) },
-            leadingIcon = { Icon(Icons.Rounded.Password, contentDescription = null) },
+            leadingIcon = { Icon(CampfireIcons.Rounded.Password, contentDescription = null) },
             trailingIcon = {
               val showPasswordLabel = stringResource(
                 if (showPassword) Res.string.action_hide_password else Res.string.action_show_password,
@@ -356,7 +355,7 @@ internal fun ServerCard(
                   onClick = { showPassword = !showPassword },
                 ) {
                   Icon(
-                    if (showPassword) Icons.Rounded.Visibility else Icons.Rounded.VisibilityOff,
+                    if (showPassword) CampfireIcons.Rounded.Visibility else CampfireIcons.Rounded.VisibilityOff,
                     contentDescription = showPasswordLabel,
                   )
                 }
@@ -447,7 +446,7 @@ private fun ServerNameAndIcon(
           .clip(CircleShape),
       ) {
         Icon(
-          Icons.Rounded.KeyboardArrowDown,
+          CampfireIcons.Rounded.KeyboardArrowDown,
           contentDescription = null,
         )
       }

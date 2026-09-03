@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SliderDefaults
@@ -34,6 +32,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.core.extensions.fluentIf
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
@@ -132,7 +132,7 @@ internal fun PlaybackSeekBar(
         visible = isAccelerated,
       ) {
         Icon(
-          Icons.Rounded.KeyboardDoubleArrowRight,
+          CampfireIcons.Rounded.KeyboardDoubleArrowRight,
           contentDescription = null,
           modifier = Modifier.size(16.dp),
           tint = MaterialTheme.colorScheme.secondary,

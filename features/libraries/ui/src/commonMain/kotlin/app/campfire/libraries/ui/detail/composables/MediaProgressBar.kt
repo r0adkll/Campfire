@@ -11,9 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
@@ -32,6 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Check
+import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.util.withDensity
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asSeconds
@@ -93,7 +93,7 @@ internal fun MediaProgressBar(
     ) {
       if (progress.isFinished) {
         Icon(
-          Icons.Rounded.Check,
+          CampfireIcons.Rounded.Check,
           contentDescription = null,
           tint = Color.Green,
           modifier = Modifier
@@ -127,7 +127,7 @@ internal fun MediaProgressBar(
           visible = isAccelerated,
         ) {
           Icon(
-            Icons.Rounded.KeyboardDoubleArrowRight,
+            CampfireIcons.Rounded.KeyboardDoubleArrowRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.size(16.dp)

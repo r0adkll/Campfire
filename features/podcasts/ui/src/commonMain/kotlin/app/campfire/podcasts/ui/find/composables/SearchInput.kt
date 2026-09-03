@@ -6,9 +6,6 @@ package app.campfire.podcasts.ui.find.composables
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -21,6 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.podcasts.ui.generated.resources.Res
 import campfire.features.podcasts.ui.generated.resources.find_episodes_back
@@ -54,7 +54,7 @@ internal fun SearchInput(
           IconButtonTooltip(text = backLabel) {
             IconButton(onClick = onBackClick) {
               Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
+                CampfireIcons.Rounded.ArrowBack,
                 contentDescription = backLabel,
               )
             }
@@ -65,7 +65,7 @@ internal fun SearchInput(
             IconButtonTooltip(text = clearLabel) {
               IconButton(onClick = { textFieldState.clearText() }) {
                 Icon(
-                  Icons.Rounded.Close,
+                  CampfireIcons.Rounded.Close,
                   contentDescription = clearLabel,
                 )
               }

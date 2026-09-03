@@ -31,10 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,6 +70,9 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
+import app.campfire.common.compose.icons.rounded.Pause
+import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -276,7 +275,7 @@ private fun CollapsedPlaybackBarContent(
               availableSync == null,
           ) {
             Icon(
-              Icons.Rounded.KeyboardDoubleArrowRight,
+              CampfireIcons.Rounded.KeyboardDoubleArrowRight,
               contentDescription = null,
               modifier = Modifier.size(16.dp),
               tint = MaterialTheme.colorScheme.secondary,
@@ -342,9 +341,9 @@ private fun CollapsedPlaybackBarContent(
             ) {
               Icon(
                 if (isPlaying) {
-                  Icons.Rounded.Pause
+                  CampfireIcons.Rounded.Pause
                 } else {
-                  Icons.Rounded.PlayArrow
+                  CampfireIcons.Rounded.PlayArrow
                 },
                 contentDescription = playPauseLabel,
               )

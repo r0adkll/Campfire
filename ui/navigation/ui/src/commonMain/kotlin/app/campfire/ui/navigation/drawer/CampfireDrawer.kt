@@ -27,11 +27,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Brightness6
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.FilledTonalIconButton
@@ -51,6 +46,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Brightness6
+import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.LightMode
+import app.campfire.common.compose.icons.rounded.Palette
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.navigationType
@@ -203,9 +203,9 @@ fun CampfireDrawer(
           ) { mode ->
             Icon(
               when (mode) {
-                LIGHT -> Icons.Rounded.LightMode
-                DARK -> Icons.Rounded.DarkMode
-                SYSTEM -> Icons.Rounded.Brightness6
+                LIGHT -> CampfireIcons.Rounded.LightMode
+                DARK -> CampfireIcons.Rounded.DarkMode
+                SYSTEM -> CampfireIcons.Rounded.Brightness6
               },
               contentDescription = changeThemeModeLabel,
             )
@@ -241,7 +241,7 @@ fun CampfireDrawer(
               ),
             ),
         ) {
-          Icon(Icons.Rounded.Palette, contentDescription = changeThemeLabel)
+          Icon(CampfireIcons.Rounded.Palette, contentDescription = changeThemeLabel)
         }
       }
     }

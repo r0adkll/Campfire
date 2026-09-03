@@ -16,10 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.SdStorage
-import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -40,6 +36,10 @@ import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.linkifyTimestamps
 import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.extensions.toRichTextHtml
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Schedule
+import app.campfire.common.compose.icons.rounded.SdStorage
+import app.campfire.common.compose.icons.rounded.Today
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.permission.PermissionState
@@ -170,7 +170,7 @@ private fun PodcastEpisodeBottomSheet(
       state.episode.publishedAtMillis?.let { publishedAt ->
         MetadataChip {
           Metadata(
-            icon = Icons.Outlined.Today,
+            icon = CampfireIcons.Rounded.Today,
             label = publishedAt.asDate().asRelativeDayLabel(ReadoutStyle.Short),
           )
         }
@@ -178,14 +178,14 @@ private fun PodcastEpisodeBottomSheet(
 
       MetadataChip {
         Metadata(
-          icon = Icons.Outlined.Schedule,
+          icon = CampfireIcons.Rounded.Schedule,
           label = state.episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
         )
       }
 
       MetadataChip {
         Metadata(
-          icon = Icons.Outlined.SdStorage,
+          icon = CampfireIcons.Rounded.SdStorage,
           label = state.episode.sizeInBytes.asReadableBytes(),
         )
       }

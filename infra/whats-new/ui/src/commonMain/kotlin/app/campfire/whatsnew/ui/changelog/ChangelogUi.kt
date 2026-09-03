@@ -16,9 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -36,6 +33,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.ArrowDropUp
 import app.campfire.common.compose.widgets.CampfireLargeTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -77,7 +77,7 @@ fun Changelog(
             IconButton(
               onClick = { state.eventSink(ChangelogUiEvent.Back) },
             ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },
@@ -174,7 +174,7 @@ private fun VersionRow(
       )
 
       Icon(
-        Icons.Rounded.ArrowDropUp,
+        CampfireIcons.Rounded.ArrowDropUp,
         contentDescription = null,
         modifier = Modifier.rotate(arrowRotation),
       )

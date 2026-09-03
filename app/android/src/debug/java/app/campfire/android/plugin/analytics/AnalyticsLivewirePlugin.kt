@@ -3,8 +3,6 @@
 
 package app.campfire.android.plugin.analytics
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,6 +17,7 @@ import app.campfire.android.plugin.common.SectionHeader
 import app.campfire.android.plugin.common.SegmentedSection
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Analytics
+import app.campfire.common.compose.icons.rounded.Delete
 import com.livewire.ui.Plugin
 import com.livewire.ui.PluginInfo
 import com.livewire.ui.actions.ClickAction
@@ -132,7 +131,7 @@ class AnalyticsLivewirePlugin : Plugin {
               pressedShape = CircleShape,
             ),
           ) {
-            Icon(imageVector = Icons.Rounded.Delete)
+            Icon(imageVector = CampfireIcons.Rounded.Delete)
             Text("Clear")
           }
         }

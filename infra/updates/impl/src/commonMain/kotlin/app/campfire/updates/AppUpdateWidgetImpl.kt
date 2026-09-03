@@ -21,10 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Login
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,6 +44,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.icons.rounded.Login
+import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.AppScope
@@ -125,7 +125,7 @@ class AppUpdateWidgetImpl(
         is WidgetMode.UpdateAvailable -> AppUpdateWidgetCard(
           title = "Update available",
           subtitle = m.update.versionName,
-          icon = Icons.Rounded.NewReleases,
+          icon = CampfireIcons.Rounded.NewReleases,
           onClick = {
             scope.launch {
               overlayHost.showAppUpdateSheet(m.update)
@@ -143,7 +143,7 @@ class AppUpdateWidgetImpl(
         WidgetMode.SignIn, null -> AppUpdateWidgetCard(
           title = "App updates",
           subtitle = "Sign in to enable",
-          icon = Icons.AutoMirrored.Rounded.Login,
+          icon = CampfireIcons.Rounded.Login,
           onClick = {
             scope.launch {
               appUpdateSource.signIn()
@@ -323,7 +323,7 @@ private fun AppUpdateWidgetCard(
             onClick = onDismiss,
           ) {
             Icon(
-              Icons.Rounded.Close,
+              CampfireIcons.Rounded.Close,
               contentDescription = dismissLabel,
             )
           }

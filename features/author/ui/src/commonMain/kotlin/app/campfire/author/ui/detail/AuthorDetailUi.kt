@@ -19,8 +19,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -36,6 +34,8 @@ import app.campfire.author.ui.detail.composables.AuthorDetailHeader
 import app.campfire.author.ui.detail.composables.AuthorHeader
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.AuthorSharedTransitionKey
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
@@ -80,7 +80,7 @@ fun AuthorDetail(
             IconButton(
               onClick = { state.eventSink(AuthorDetailUiEvent.Back) },
             ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },

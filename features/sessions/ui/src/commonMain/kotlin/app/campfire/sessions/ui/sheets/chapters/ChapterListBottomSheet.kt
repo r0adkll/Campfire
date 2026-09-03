@@ -10,8 +10,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -44,6 +42,7 @@ import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.BookRibbon
+import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
@@ -148,7 +147,7 @@ private fun ChapterListBottomSheet(
         onCheckedChange = { component.settings.showTimeInBook = it },
         thumbContent = {
           Icon(
-            if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else Icons.Rounded.Timer,
+            if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else CampfireIcons.Rounded.Timer,
             contentDescription = null,
             modifier = Modifier.size(SwitchDefaults.IconSize),
           )

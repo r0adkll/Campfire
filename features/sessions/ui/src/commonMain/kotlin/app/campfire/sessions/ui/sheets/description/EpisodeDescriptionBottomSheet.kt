@@ -17,10 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.SdStorage
-import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -47,6 +43,10 @@ import app.campfire.common.compose.extensions.asRelativeDayLabel
 import app.campfire.common.compose.extensions.linkifyTimestamps
 import app.campfire.common.compose.extensions.readoutAtMost
 import app.campfire.common.compose.extensions.rememberHtmlRichTextState
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Schedule
+import app.campfire.common.compose.icons.rounded.SdStorage
+import app.campfire.common.compose.icons.rounded.Today
 import app.campfire.common.compose.widgets.WithTimestampUriHandler
 import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.core.extensions.asDate
@@ -113,7 +113,7 @@ private fun EpisodeDescriptionBottomSheet(
       episode.publishedAtMillis?.let { publishedAt ->
         DescriptionMetadataChip {
           Metadata(
-            icon = Icons.Outlined.Today,
+            icon = CampfireIcons.Rounded.Today,
             label = publishedAt.asDate().asRelativeDayLabel(ReadoutStyle.Short),
           )
         }
@@ -121,14 +121,14 @@ private fun EpisodeDescriptionBottomSheet(
 
       DescriptionMetadataChip {
         Metadata(
-          icon = Icons.Outlined.Schedule,
+          icon = CampfireIcons.Rounded.Schedule,
           label = episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
         )
       }
 
       DescriptionMetadataChip {
         Metadata(
-          icon = Icons.Outlined.SdStorage,
+          icon = CampfireIcons.Rounded.SdStorage,
           label = episode.sizeInBytes.asReadableBytes(),
         )
       }

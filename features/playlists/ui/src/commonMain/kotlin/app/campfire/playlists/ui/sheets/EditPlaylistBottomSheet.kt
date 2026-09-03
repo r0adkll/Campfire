@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAddCheck
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,6 +39,9 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Created
 import app.campfire.analytics.events.Updated
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.PlaylistAddCheck
+import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
@@ -239,8 +239,8 @@ private fun EditPlaylistBottomSheet(
         CircularProgressIndicator(modifier = Modifier.size(24.dp))
       } else {
         val icon = when (model) {
-          EditPlaylistModel.New -> Icons.AutoMirrored.Rounded.PlaylistAddCheck
-          is EditPlaylistModel.Existing -> Icons.Rounded.Save
+          EditPlaylistModel.New -> CampfireIcons.Rounded.PlaylistAddCheck
+          is EditPlaylistModel.Existing -> CampfireIcons.Rounded.Save
         }
         Icon(icon, contentDescription = null)
       }

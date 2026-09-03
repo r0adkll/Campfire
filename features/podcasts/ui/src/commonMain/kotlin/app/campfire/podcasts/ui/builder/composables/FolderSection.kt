@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -33,6 +31,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Folder
 import app.campfire.libraries.api.LibraryFolder
 import app.campfire.podcasts.ui.builder.FoldersState
 import campfire.features.podcasts.ui.generated.resources.Res
@@ -118,7 +118,7 @@ private fun FolderPickerRow(
       modifier = modifier.fillMaxWidth(),
     ) {
       ListItem(
-        leadingContent = { Icon(Icons.Rounded.Folder, contentDescription = null) },
+        leadingContent = { Icon(CampfireIcons.Rounded.Folder, contentDescription = null) },
         headlineContent = { Text(stringResource(Res.string.add_podcast_builder_folder_label)) },
         supportingContent = {
           PathText(folders.first())
@@ -137,7 +137,7 @@ private fun FolderPickerRow(
       modifier = modifier.fillMaxWidth(),
     ) {
       ListItem(
-        leadingContent = { Icon(Icons.Rounded.Folder, contentDescription = null) },
+        leadingContent = { Icon(CampfireIcons.Rounded.Folder, contentDescription = null) },
         headlineContent = { Text(stringResource(Res.string.add_podcast_builder_folder_label)) },
         supportingContent = {
           folders.find { it.id == selectedId }?.let { folder ->

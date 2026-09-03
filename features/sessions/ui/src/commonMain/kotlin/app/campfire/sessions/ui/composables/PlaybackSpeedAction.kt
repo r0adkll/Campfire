@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -20,6 +18,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Speed
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.readableHundredths
 import campfire.features.sessions.ui.generated.resources.Res
@@ -41,7 +41,7 @@ fun PlaybackSpeedAction(
       IconButton(
         onClick = onClick,
       ) {
-        Icon(Icons.Rounded.Speed, contentDescription = label)
+        Icon(CampfireIcons.Rounded.Speed, contentDescription = label)
       }
     }
   } else {

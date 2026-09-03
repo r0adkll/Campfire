@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +25,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.MetadataHeader
@@ -91,7 +91,7 @@ class EpisodeHeaderSlot(
                   onClick = { eventSink(LibraryItemUiEvent.FindEpisodes) },
                 ) {
                   Icon(
-                    Icons.Rounded.Search,
+                    CampfireIcons.Rounded.Search,
                     contentDescription = findEpisodesLabel,
                   )
                 }

@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +49,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.FatCheck
 import app.campfire.common.compose.icons.rounded.MotionPlay
+import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.extensions.asDate
 import app.campfire.core.model.MediaProgress
@@ -259,9 +258,9 @@ private fun EpisodeActionBar(
       Icon(
         when {
           isCurrentSession -> CampfireIcons.Rounded.MotionPlay
-          mediaProgress != null && !mediaProgress.isFinished -> Icons.Outlined.Autoplay
+          mediaProgress != null && !mediaProgress.isFinished -> CampfireIcons.Outline.Autoplay
           isFinished -> CampfireIcons.Rounded.FatCheck
-          else -> Icons.Rounded.PlayArrow
+          else -> CampfireIcons.Rounded.PlayArrow
         },
         contentDescription = "Play episode",
         modifier = Modifier.size(ButtonDefaults.iconSizeFor(playButtonSize)),

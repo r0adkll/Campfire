@@ -21,9 +21,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
@@ -59,6 +56,9 @@ import app.campfire.collections.ui.detail.composables.CollectionDetailTopAppBar
 import app.campfire.collections.ui.detail.composables.EditingTopAppBar
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.Edit
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
@@ -142,7 +142,7 @@ fun CollectionDetail(
                   },
                 ) {
                   Icon(
-                    Icons.Rounded.Delete,
+                    CampfireIcons.Rounded.Delete,
                     contentDescription = deleteSelectedLabel,
                     tint = MaterialTheme.colorScheme.error,
                   )
@@ -186,7 +186,7 @@ fun CollectionDetail(
             }
           },
           text = { Text(stringResource(Res.string.action_edit_collection)) },
-          icon = { Icon(Icons.Rounded.Edit, contentDescription = null) },
+          icon = { Icon(CampfireIcons.Rounded.Edit, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           expanded = isExpanded,
         )

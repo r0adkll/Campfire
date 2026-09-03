@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.OpenInNew
-import androidx.compose.material.icons.rounded.DragIndicator
-import androidx.compose.material.icons.rounded.PushPin
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
@@ -44,6 +39,11 @@ import androidx.compose.ui.text.style.TextIndent
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.DragIndicator
+import app.campfire.common.compose.icons.rounded.OpenInNew
+import app.campfire.common.compose.icons.rounded.PushPin
+import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.ui.settings.SettingsUiEvent.AndroidAutoSettingEvent
@@ -93,7 +93,7 @@ internal fun AndroidAutoPane(
 
     ActionSetting(
       headlineContent = { Text(stringResource(Res.string.android_auto_open_settings)) },
-      leadingContent = { Icon(Icons.AutoMirrored.Rounded.OpenInNew, contentDescription = null) },
+      leadingContent = { Icon(CampfireIcons.Rounded.OpenInNew, contentDescription = null) },
       onClick = { state.eventSink(AndroidAutoSettingEvent.OpenAndroidAutoSettings) },
     )
 
@@ -202,9 +202,9 @@ private fun CategoryRow(
         val description = stringResource(Res.string.android_auto_drag_handle_description)
         Icon(
           imageVector = if (config.category.pinned) {
-            Icons.Rounded.PushPin
+            CampfireIcons.Rounded.PushPin
           } else {
-            Icons.Rounded.DragIndicator
+            CampfireIcons.Rounded.DragIndicator
           },
           contentDescription = description,
           modifier = dragHandleModifier.semantics { contentDescription = description },
@@ -270,7 +270,7 @@ private fun UnavailableWarningCard(
       verticalAlignment = Alignment.CenterVertically,
     ) {
       Icon(
-        Icons.Rounded.Warning,
+        CampfireIcons.Rounded.Warning,
         contentDescription = null,
         modifier = Modifier.size(24.dp),
       )

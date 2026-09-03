@@ -100,7 +100,6 @@ kotlin {
 //        api(compose.material3)
         api(libs.compose.material3.expressive)
         api(libs.compose.material3.adaptive.navigation.suite)
-        api(libs.compose.material.icons.extended)
         api(libs.compose.components.resources)
         api(libs.compose.ui)
 

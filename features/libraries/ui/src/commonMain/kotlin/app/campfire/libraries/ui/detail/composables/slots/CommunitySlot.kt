@@ -20,10 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,7 +49,11 @@ import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.extensions.roundToSingleDecimal
 import app.campfire.common.compose.extensions.thenIf
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.providerBrandIcon
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
+import app.campfire.common.compose.icons.rounded.Check
+import app.campfire.common.compose.icons.rounded.Star
 import app.campfire.common.compose.widgets.MetadataHeader
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import app.campfire.libraries.ui.detail.composables.ReviewBottomSheet
@@ -287,7 +287,7 @@ private fun SourcePill(
         )
         if (canSwitch) {
           Icon(
-            imageVector = Icons.Rounded.ArrowDropDown,
+            imageVector = CampfireIcons.Rounded.ArrowDropDown,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
           )
@@ -315,7 +315,7 @@ private fun SourcePill(
           trailingIcon = if (source.id == state.providerId) {
             {
               Icon(
-                imageVector = Icons.Rounded.Check,
+                imageVector = CampfireIcons.Rounded.Check,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
               )
@@ -437,7 +437,7 @@ private fun ReviewHeader(
     Spacer(Modifier.width(8.dp))
     review.rating?.let { rating ->
       Icon(
-        imageVector = Icons.Rounded.Star,
+        imageVector = CampfireIcons.Rounded.Star,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.primary,
         modifier = Modifier.size(18.dp),
@@ -465,14 +465,14 @@ private fun StarRow(
         modifier = Modifier.size(18.dp),
       ) {
         Icon(
-          imageVector = Icons.Rounded.Star,
+          imageVector = CampfireIcons.Rounded.Star,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.25f),
           modifier = Modifier.matchParentSize(),
         )
         if (fill > 0f) {
           Icon(
-            imageVector = Icons.Rounded.Star,
+            imageVector = CampfireIcons.Rounded.Star,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier

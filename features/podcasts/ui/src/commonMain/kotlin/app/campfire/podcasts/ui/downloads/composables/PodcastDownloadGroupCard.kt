@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Cancel
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -25,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Cancel
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.podcasts.api.RemoteEpisodeDownload
@@ -71,7 +71,7 @@ internal fun PodcastDownloadGroupCard(
         IconButtonTooltip(text = stringResource(Res.string.download_queue_clear_action)) {
           IconButton(onClick = onClearQueueClick) {
             Icon(
-              imageVector = Icons.Outlined.Cancel,
+              imageVector = CampfireIcons.Rounded.Cancel,
               contentDescription = stringResource(Res.string.download_queue_clear_action),
             )
           }

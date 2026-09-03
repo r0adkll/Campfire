@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -33,6 +31,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.MediaProgress
@@ -188,7 +188,7 @@ fun LibraryItemListItem(
           horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
           Icon(
-            Icons.Outlined.Schedule,
+            CampfireIcons.Rounded.Schedule,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
           )
