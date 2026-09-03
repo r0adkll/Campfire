@@ -119,6 +119,29 @@ class VolumeFadeControllerTest {
   }
 
   @Test
+  fun fade_cancelledMidwayRestoresVolumeWithoutPausing() = runTest {
+    val player = FakeVolumePlayer(volume = 0.7f)
+
+    val job = VolumeFadeController.fade(
+      scope = this,
+      duration = 2.seconds,
+      tickRate = 10,
+      getVolume = { player.volume },
+      setVolume = { player.volume = it },
+      onPause = { player.pauseCount++ },
+      now = { testScheduler.currentTime },
+    )
+    advanceTimeBy(1_001)
+    assertThat(player.volume).isLessThan(0.2f)
+
+    job.cancel()
+    advanceTimeBy(1)
+
+    assertThat(player.volume).isEqualTo(0.7f)
+    assertThat(player.pauseCount).isEqualTo(0)
+  }
+
+  @Test
   fun fade_neverOutlivesTheDurationWhenTicksAreDelayed() = runTest {
     val player = FakeVolumePlayer(volume = 1f)
 

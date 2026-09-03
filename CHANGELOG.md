@@ -40,6 +40,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - End-of-chapter sleep timer not stopping at chapter boundaries while casting
 - Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
 - App widgets breaking due to large image size
+- Sleep timer now pauses while playback is paused and picks back up on resume, instead of running out in the background
+- Resuming playback during the sleep timer fade-out no longer leaves the volume low or pauses again moments later
+- Auto rewind after an auto sleep timer expires was never applied for timed (non end-of-chapter) timers
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
 - Audiobooks not playing on Chromecast
 

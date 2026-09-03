@@ -38,7 +38,8 @@ object VolumeFadeController {
    * restore the original volume. A zero [duration] pauses immediately.
    *
    * The curve is driven by elapsed wall time rather than a fixed per-tick decrement so a slow or
-   * delayed tick never stretches the fade past [duration].
+   * delayed tick never stretches the fade past [duration]. Cancelling the returned job restores
+   * the original volume without pausing, so a listener who resumes mid-fade keeps listening.
    */
   fun fade(
     scope: CoroutineScope,
@@ -55,18 +56,20 @@ object VolumeFadeController {
       val totalMillis = duration.inWholeMilliseconds
 
       val start = now()
-      while (isActive && getVolume() > 0f) {
-        val elapsed = now() - start
-        if (elapsed >= totalMillis) break
-        setVolume(startVolume * gainAt(elapsed.toFloat() / totalMillis))
-        delay(delayStep)
+      try {
+        while (isActive && getVolume() > 0f) {
+          val elapsed = now() - start
+          if (elapsed >= totalMillis) break
+          setVolume(startVolume * gainAt(elapsed.toFloat() / totalMillis))
+          delay(delayStep)
+        }
+
+        setVolume(0f)
+        onPause()
+      } finally {
+        // Reset the volume to where it started, whether the fade finished or was interrupted
+        setVolume(startVolume)
       }
-
-      setVolume(0f)
-      onPause()
-
-      // Reset the volume to where it started
-      setVolume(startVolume)
     }
   }
 }

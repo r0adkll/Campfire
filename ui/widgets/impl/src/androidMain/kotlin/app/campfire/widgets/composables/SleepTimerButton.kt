@@ -43,16 +43,16 @@ internal fun SleepTimerButton(
   contentColor: ColorProvider = GlanceTheme.colors.onSecondaryContainer,
 ) {
   if (runningTimer != null && runningTimer.timer is PlaybackTimer.Epoch) {
-    val timer = runningTimer.timer as PlaybackTimer.Epoch
-    val elapsed = kotlin.time.Clock.System.now().toEpochMilliseconds() - runningTimer.startedAt
-    val remainingMs = timer.epochMillis - elapsed
+    val remainingMs = runningTimer.remainingMillis(kotlin.time.Clock.System.now().toEpochMilliseconds()) ?: 0L
+    val isPaused = runningTimer.isPaused
 
     val context = LocalContext.current
     val color = contentColor.getColor(context).toArgb()
-    val remoteViews = remember(remainingMs, color) {
+    val remoteViews = remember(remainingMs, isPaused, color) {
       RemoteViews(context.packageName, R.layout.widget_sleep_timer_button).apply {
         setChronometerCountDown(R.id.chronometer, true)
-        setChronometer(R.id.chronometer, SystemClock.elapsedRealtime() + remainingMs, null, true)
+        // A paused countdown shows the frozen remaining time instead of ticking
+        setChronometer(R.id.chronometer, SystemClock.elapsedRealtime() + remainingMs, null, !isPaused)
         setTextColor(R.id.chronometer, color)
         setInt(R.id.icon, "setColorFilter", color)
       }

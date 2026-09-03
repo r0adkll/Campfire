@@ -51,8 +51,17 @@ class CoroutineSleepTimerManager(
 
   private var playbackTimer: PlaybackTimer? = null
   private var lastPlaybackTimer: PlaybackTimer? = null
-  private var playbackTimerJob: Job? = null
+  private var countdownJob: Job? = null
+  private var playbackStateJob: Job? = null
+  private var fadeJob: Job? = null
   private var shakeDetectorJob: Job? = null
+
+  /**
+   * Time left on the running [PlaybackTimer.Epoch] timer. Exact while the countdown is paused;
+   * while it runs, the portion elapsed since [countdownResumedAt] still has to be subtracted.
+   */
+  private var remainingMillis = 0L
+  private var countdownResumedAt: Long? = null
 
   override fun onSessionStart() {
     if (sleepSettings.autoSleepTimerEnabled && playbackTimer == null) {
@@ -87,9 +96,10 @@ class CoroutineSleepTimerManager(
   override fun setTimer(timer: PlaybackTimer) {
     ibark { "setTimer($timer)" }
     clearTimerInternal()
+    // A timer set (or reset via shake) mid-fade supersedes the fade, so keep listening
+    cancelFade()
     playbackTimer = timer
     lastPlaybackTimer = timer
-    runningTimer.value = RunningTimer(timer, fatherTime.nowInEpochMillis(), sleepSettings.shakeToResetEnabled)
     startTimer(timer)
 
     if (sleepSettings.shakeToResetEnabled && !shakeDetector.isRunning) {
@@ -131,25 +141,40 @@ class CoroutineSleepTimerManager(
   override fun clearTimer() {
     ibark { "clearTimer(current=$playbackTimer)" }
     clearTimerInternal()
+    cancelFade()
     stopShakeDetector()
   }
 
   private fun clearTimerInternal() {
     dbark { "clearTimerInternal()" }
-    playbackTimerJob?.cancel()
-    playbackTimerJob = null
+    countdownJob?.cancel()
+    countdownJob = null
+    playbackStateJob?.cancel()
+    playbackStateJob = null
+    countdownResumedAt = null
+    remainingMillis = 0L
     playbackTimer = null
     runningTimer.value = null
   }
 
+  private fun cancelFade() {
+    fadeJob?.let {
+      dbark { "Cancelling in-progress fade" }
+      it.cancel()
+    }
+    fadeJob = null
+  }
+
   private fun endTimer() {
-    ibark { "endTimer($playbackTimer)" }
+    val endedTimer = playbackTimer ?: return
+    ibark { "endTimer($endedTimer)" }
 
     // If the autoRewind and timer are enabled and the playbackTimer that just finished
-    // then rewind by the configured amount
+    // then rewind by the configured amount. Captured now because the timer is cleared below,
+    // long before a fade finishes.
     val onPauseComplete: () -> Unit = {
       if (
-        playbackTimer?.isAutoSleepTimer == true &&
+        endedTimer.isAutoSleepTimer &&
         sleepSettings.autoRewindEnabled &&
         sleepSettings.autoSleepTimerEnabled
       ) {
@@ -159,17 +184,23 @@ class CoroutineSleepTimerManager(
       }
     }
 
-    if (playbackTimer is PlaybackTimer.EndOfChapter) {
+    // Clear before pausing so the countdown's own playback-state observer doesn't react to the pause
+    clearTimerInternal()
+
+    if (endedTimer is PlaybackTimer.EndOfChapter) {
       player.pause()
       onPauseComplete()
     } else {
-      // Fade playback out over the configured duration, then pause and clear the timer
-      player.fadeToPause(duration = sleepSettings.fadeOutDuration).invokeOnCompletion {
-        onPauseComplete()
+      // Fade playback out over the configured duration, then pause
+      cancelFade()
+      val fade = player.fadeToPause(duration = sleepSettings.fadeOutDuration)
+      fadeJob = fade
+      fade.invokeOnCompletion { cause ->
+        // Only a fade that ran to completion actually put the listener to sleep
+        if (cause == null) onPauseComplete()
       }
+      cancelFadeIfPlaybackResumes(fade)
     }
-
-    clearTimerInternal()
 
     // If we hit the end of the sleep timer delay for an amount of time,
     // then stop the shake detector allowing a brief period of time where the user
@@ -206,17 +237,88 @@ class CoroutineSleepTimerManager(
     return false
   }
 
-  private fun startTimer(timer: PlaybackTimer) {
-    if (timer is PlaybackTimer.Epoch) {
-      playbackTimerJob = applicationScope.async(dispatcherProvider.computation) {
-        dbark { "--> Starting Epoch Timer" }
-        delay(timer.epochMillis)
-        dbark { "<-- Epoch Timer Ended" }
-        withContext(dispatcherProvider.main) {
-          endTimer()
+  /**
+   * A listener who pauses and then presses play while the fade is still running wants to keep
+   * listening: cancel the fade so the volume comes back instead of it pausing again moments later.
+   * Only a Paused -> Playing transition counts, so buffering hiccups mid-fade are ignored.
+   */
+  private fun cancelFadeIfPlaybackResumes(fade: Job) {
+    val watcher = applicationScope.launch(dispatcherProvider.main) {
+      var previous = player.state.value
+      player.state.collect { state ->
+        if (previous == AudioPlayer.State.Paused && state == AudioPlayer.State.Playing) {
+          ibark { "Playback resumed mid-fade, cancelling the fade" }
+          fade.cancel()
         }
+        previous = state
       }
     }
+    fade.invokeOnCompletion {
+      watcher.cancel()
+      if (fadeJob === fade) fadeJob = null
+    }
+  }
+
+  private fun startTimer(timer: PlaybackTimer) {
+    if (timer !is PlaybackTimer.Epoch) {
+      runningTimer.value = RunningTimer(timer, fatherTime.nowInEpochMillis(), sleepSettings.shakeToResetEnabled)
+      return
+    }
+
+    remainingMillis = timer.epochMillis
+    countdownResumedAt = null
+
+    // The countdown only counts listening time: it runs while audio is playing, freezes when playback
+    // pauses (or is still preparing) and picks back up on resume.
+    playbackStateJob = applicationScope.launch(dispatcherProvider.main) {
+      player.state.collect { state ->
+        if (state == AudioPlayer.State.Playing) resumeCountdown(timer) else pauseCountdown(timer)
+      }
+    }
+  }
+
+  private fun resumeCountdown(timer: PlaybackTimer.Epoch) {
+    if (countdownResumedAt != null) return
+    val now = fatherTime.nowInEpochMillis()
+    countdownResumedAt = now
+    publishRunningTimer(timer, reference = now, pausedAt = null)
+
+    val remaining = remainingMillis
+    countdownJob?.cancel()
+    countdownJob = applicationScope.async(dispatcherProvider.computation) {
+      dbark { "--> Starting Epoch Timer (${remaining}ms remaining)" }
+      delay(remaining)
+      dbark { "<-- Epoch Timer Ended" }
+      withContext(dispatcherProvider.main) {
+        endTimer()
+      }
+    }
+  }
+
+  private fun pauseCountdown(timer: PlaybackTimer.Epoch) {
+    val now = fatherTime.nowInEpochMillis()
+    val resumedAt = countdownResumedAt
+    if (resumedAt != null) {
+      dbark { "Playback paused, freezing sleep timer" }
+      remainingMillis = (remainingMillis - (now - resumedAt)).coerceAtLeast(0L)
+      countdownResumedAt = null
+      countdownJob?.cancel()
+      countdownJob = null
+    }
+    publishRunningTimer(timer, reference = now, pausedAt = now)
+  }
+
+  /**
+   * Consumers derive time left as `epochMillis - (reference - startedAt)`, so [RunningTimer.startedAt]
+   * is back-dated by whatever has already elapsed rather than being the instant the timer was set.
+   */
+  private fun publishRunningTimer(timer: PlaybackTimer.Epoch, reference: Long, pausedAt: Long?) {
+    runningTimer.value = RunningTimer(
+      timer = timer,
+      startedAt = reference - (timer.epochMillis - remainingMillis),
+      isShakeToRestartEnabled = sleepSettings.shakeToResetEnabled,
+      pausedAt = pausedAt,
+    )
   }
 
   companion object : Cork {

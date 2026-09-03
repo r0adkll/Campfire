@@ -11,6 +11,7 @@ import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.model.Session
 import kotlin.time.Duration
+import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -46,9 +47,12 @@ class FakeAudioPlayer : AudioPlayer {
     invocations += Invocation.Pause
   }
 
+  /** Every job handed out by [fadeToPause]; complete or cancel one to simulate the fade ending. */
+  val fadeJobs = mutableListOf<CompletableJob>()
+
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
     invocations += Invocation.FadeToPause(duration, tickRate)
-    return Job()
+    return Job().also { fadeJobs += it }
   }
 
   override fun playPause() {
