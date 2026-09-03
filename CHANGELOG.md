@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Upcoming page in the sidebar with a release timeline of announced books from your series, scanned against Audible, plus an Upcoming releases shelf on the home screen
 - Series pages now show released books missing from your library, checked automatically against Audible
 - Listening activity heatmap on the Statistics page showing daily listening over the past year
+- Activity section on the Statistics page with listening streaks, finished book and podcast episode counts, and daily listening averages — tap the this-year counts to see everything finished this year
 
 ### Changed
 

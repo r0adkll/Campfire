@@ -88,7 +88,7 @@ internal fun TotalStatsCard(
               withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                 append("${totals.totalDays} days")
               }
-              append(" total")
+              append(" active")
             },
           )
         }

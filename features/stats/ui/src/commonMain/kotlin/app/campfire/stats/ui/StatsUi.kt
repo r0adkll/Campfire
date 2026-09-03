@@ -31,6 +31,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -55,12 +57,15 @@ import app.campfire.core.model.AuthorWithCount
 import app.campfire.core.model.ItemListenedTo
 import app.campfire.core.model.LargestItem
 import app.campfire.core.model.LongestItem
+import app.campfire.core.model.MediaType
 import app.campfire.core.model.PlaybackSession
 import app.campfire.stats.ui.StatsUiModel.ItemsListenedTo
 import app.campfire.stats.ui.StatsUiModel.ListeningHeatmap
 import app.campfire.stats.ui.StatsUiModel.RecentSession
 import app.campfire.stats.ui.StatsUiModel.UserTotals
 import app.campfire.stats.ui.StatsUiModel.WeeklyListening
+import app.campfire.stats.ui.composables.ActivityStatsGrid
+import app.campfire.stats.ui.composables.FinishedThisYearResult
 import app.campfire.stats.ui.composables.ItemsListenedToRow
 import app.campfire.stats.ui.composables.LargestItemBarChart
 import app.campfire.stats.ui.composables.LibraryTotalStatsCard
@@ -71,6 +76,7 @@ import app.campfire.stats.ui.composables.StatsHeader
 import app.campfire.stats.ui.composables.TopAuthorsBarChart
 import app.campfire.stats.ui.composables.TotalStatsCard
 import app.campfire.stats.ui.composables.WeeklyListeningCard
+import app.campfire.stats.ui.composables.showFinishedThisYearBottomSheet
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.action_back
 import campfire.features.stats.ui.generated.resources.stats_library
@@ -78,6 +84,11 @@ import campfire.features.stats.ui.generated.resources.stats_user
 import campfire.features.stats.ui.generated.resources.user_stats_error_message
 import campfire.features.stats.ui.generated.resources.user_stats_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.overlay.LocalOverlayHost
+import kotlin.time.Clock
+import kotlinx.coroutines.launch
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(StatisticsScreen::class, UserScope::class)
@@ -278,6 +289,12 @@ private fun StatsContent(
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+  val overlayHost = LocalOverlayHost.current
+  val scope = rememberCoroutineScope()
+  val currentYear = remember {
+    Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.year
+  }
+
   when (models) {
     LoadState.Loading -> LoadingState(modifier.padding(contentPadding).fillMaxSize())
     LoadState.Error -> EmptyState(
@@ -289,6 +306,17 @@ private fun StatsContent(
       stats = models.data,
       onItemClick = { item ->
         onEvent(StatsUiEvent.ItemClick(item.id))
+      },
+      onFinishedThisYearClick = { mediaType ->
+        scope.launch {
+          val result = overlayHost.showFinishedThisYearBottomSheet(
+            mediaType = mediaType,
+            year = currentYear,
+          )
+          if (result is FinishedThisYearResult.Selected) {
+            onEvent(StatsUiEvent.ItemClick(result.libraryItemId))
+          }
+        }
       },
       onSessionClick = { session ->
         onEvent(StatsUiEvent.SessionClick(session))
@@ -312,6 +340,7 @@ private fun StatsContent(
 private fun LoadedContent(
   stats: List<StatsUiModel>,
   onItemClick: (ItemListenedTo) -> Unit,
+  onFinishedThisYearClick: (MediaType) -> Unit,
   onSessionClick: (PlaybackSession) -> Unit,
   onLargestItemClick: (LargestItem) -> Unit,
   onLongestItemClick: (LongestItem) -> Unit,
@@ -331,6 +360,10 @@ private fun LoadedContent(
       when (model) {
         is StatsUiModel.Header -> StatsHeader(model)
         is UserTotals -> TotalStatsCard(model)
+        is StatsUiModel.Activity -> ActivityStatsGrid(
+          model = model,
+          onFinishedThisYearClick = onFinishedThisYearClick,
+        )
         is ItemsListenedTo -> ItemsListenedToRow(
           itemsListenedTo = model,
           onItemClick = onItemClick,

@@ -58,6 +58,22 @@ sealed class StatsUiModel(val id: Any) {
   ) : StatsUiModel("LibraryTotals")
 
   /*
+   * The UI block for displaying a grid of computed listening activity
+   * statistics such as streaks, finished counts, and averages
+   */
+  data class Activity(
+    val currentStreak: Int,
+    val bestStreak: Int,
+    val dailyAverage: Duration,
+    val bestDay: Duration,
+    val booksFinished: Int,
+    val booksFinishedThisYear: Int,
+    val hasPodcastActivity: Boolean,
+    val episodesFinished: Int,
+    val episodesFinishedThisYear: Int,
+  ) : StatsUiModel("Activity")
+
+  /*
    * The UI block for displaying the list/grid of items
    * the user has listened to and their total listening time
    */
