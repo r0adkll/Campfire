@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Upcoming-release scans now run in the background on Android with a progress notification, and scan results survive app restarts on all platforms
+- Automatic rewind ranges are now 0s-2m and ignore pauses now increased to 30s max
 
 ### Deprecated
 
@@ -35,7 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
 - App widgets breaking due to large image size
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
-- Selecting a cast device could hang audio playback until the app was restarted
 - Audiobooks not playing on Chromecast
 
 ### Other Notes & Contributions

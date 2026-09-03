@@ -38,16 +38,16 @@ data class ResumeRewindConfig(
     val Default = ResumeRewindConfig(
       minPauseThreshold = 5.seconds,
       minRewind = 5.seconds,
-      maxRewind = 2.minutes,
+      maxRewind = 1.minutes,
     )
   }
 }
 
 /** The allowed range for [ResumeRewindConfig.minPauseThreshold]. */
-val MinPauseThresholdRange: ClosedRange<Duration> = Duration.ZERO..10.seconds
+val MinPauseThresholdRange: ClosedRange<Duration> = Duration.ZERO..30.seconds
 
 /** The allowed range for the rewind amount (both ends of the [ResumeRewindConfig] range slider). */
-val ResumeRewindRange: ClosedRange<Duration> = Duration.ZERO..5.minutes
+val ResumeRewindRange: ClosedRange<Duration> = Duration.ZERO..2.minutes
 
 /**
  * The fixed pause-duration checkpoints, above the configurable [ResumeRewindConfig.minPauseThreshold], across
