@@ -291,7 +291,7 @@ private val Color.containerColor: Color
   get() = this.copy(alpha = 0.16f)
 
 private val TileSpacing = 4.dp
-private val LargeTileRadius = 20.dp
+private val LargeTileRadius = 12.dp
 private val SmallTileRadius = 4.dp
 
 // Mid-tone accents that read against both light and dark card surfaces
