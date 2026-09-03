@@ -11,6 +11,8 @@ Issues and specs for this repo live as GitHub issues. Use the `gh` CLI for all o
 - **Apply / remove labels**: `gh issue edit <number> --add-label "..."` / `--remove-label "..."`
 - **Close**: `gh issue close <number> --comment "..."`
 
+- **Edit a PR**: `gh pr edit` fails in this repo (it queries the deprecated projectCards GraphQL field). Update title/body via `gh api -X PATCH repos/{owner}/{repo}/pulls/<n> -F body=@file.md`; add/remove PR labels via `gh issue edit <n> --add-label ...` (issues and PRs share one number space and the issues API handles PR labels).
+
 Infer the repo from `git remote -v` — `gh` does this automatically when run inside a clone.
 
 ## Pull requests as a triage surface
