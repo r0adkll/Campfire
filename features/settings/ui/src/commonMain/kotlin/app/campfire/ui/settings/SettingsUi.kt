@@ -46,7 +46,6 @@ import app.campfire.common.compose.icons.rounded.DeveloperMode
 import app.campfire.common.compose.icons.rounded.DirectionsCar
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.Info
-import app.campfire.common.compose.icons.rounded.LocalLibrary
 import app.campfire.common.compose.icons.rounded.NotificationsPaused
 import app.campfire.common.compose.icons.rounded.Palette
 import app.campfire.common.compose.icons.rounded.VolumeUp
