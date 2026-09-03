@@ -4,6 +4,9 @@
 
   <string name="user_stats_recent_sessions_header">Recent sessions</string>
   <string name="weekly_listening_card_title">Weekly listening</string>
+  <string name="listening_heatmap_card_title">Yearly listening</string>
+  <string name="heatmap_legend_less">Less</string>
+  <string name="heatmap_legend_more">More</string>
 
   <string name="card_library_totals_title">Summary</string>
   <string name="card_largest_items_title">Largest items</string>

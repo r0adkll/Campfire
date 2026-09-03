@@ -57,12 +57,14 @@ import app.campfire.core.model.LargestItem
 import app.campfire.core.model.LongestItem
 import app.campfire.core.model.PlaybackSession
 import app.campfire.stats.ui.StatsUiModel.ItemsListenedTo
+import app.campfire.stats.ui.StatsUiModel.ListeningHeatmap
 import app.campfire.stats.ui.StatsUiModel.RecentSession
 import app.campfire.stats.ui.StatsUiModel.UserTotals
 import app.campfire.stats.ui.StatsUiModel.WeeklyListening
 import app.campfire.stats.ui.composables.ItemsListenedToRow
 import app.campfire.stats.ui.composables.LargestItemBarChart
 import app.campfire.stats.ui.composables.LibraryTotalStatsCard
+import app.campfire.stats.ui.composables.ListeningHeatmapCard
 import app.campfire.stats.ui.composables.LongestItemBarChart
 import app.campfire.stats.ui.composables.RecentSessionListItem
 import app.campfire.stats.ui.composables.StatsHeader
@@ -335,6 +337,7 @@ private fun LoadedContent(
         )
 
         is WeeklyListening -> WeeklyListeningCard(model)
+        is ListeningHeatmap -> ListeningHeatmapCard(model)
         is RecentSession -> RecentSessionListItem(
           model = model,
           onClick = { onSessionClick(model.session) },

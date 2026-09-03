@@ -127,11 +127,11 @@ private fun ListeningBarChart(
   }
 
   val xAxis = remember(today, windowedDays) {
-    val max = windowedDays.values.max() // Bug!
+    val max = windowedDays.values.maxOrNull() ?: Duration.ZERO
     (barCount - 1 downTo 0).map { offset ->
       val day = today - DatePeriod(days = offset)
       val duration = days[day] ?: Duration.ZERO
-      (duration / max).toFloat()
+      if (max == Duration.ZERO) 0f else (duration / max).toFloat()
     }
   }
 

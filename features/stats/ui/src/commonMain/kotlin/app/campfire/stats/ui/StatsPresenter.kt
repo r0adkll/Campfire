@@ -125,6 +125,13 @@ class StatsPresenter(
         ),
       )
 
+      // Listening heatmap
+      add(
+        StatsUiModel.ListeningHeatmap(
+          days = stats.days.toImmutableMap(),
+        ),
+      )
+
       // Recent Sessions
       if (stats.recentSessions.isNotEmpty()) {
         add(StatsUiModel.Header(Res.string.user_stats_recent_sessions_header))

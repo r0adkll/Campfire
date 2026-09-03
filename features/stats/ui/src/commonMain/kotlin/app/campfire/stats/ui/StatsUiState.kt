@@ -77,6 +77,14 @@ sealed class StatsUiModel(val id: Any) {
   ) : StatsUiModel("WeeklyListening")
 
   /*
+   * The UI block for displaying a GitHub-style heatmap grid of the
+   * days the user has listened to content
+   */
+  data class ListeningHeatmap(
+    val days: ImmutableMap<LocalDate, Duration>,
+  ) : StatsUiModel("ListeningHeatmap")
+
+  /*
    * The UI block for displaying the list of recent listening sessions
    * for the current user
    */

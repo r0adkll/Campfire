@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Book Info page in Settings to link Hardcover, choose a preferred source, and manage where ratings and reviews come from
 - Upcoming page in the sidebar with a release timeline of announced books from your series, scanned against Audible, plus an Upcoming releases shelf on the home screen
 - Series pages now show released books missing from your library, checked automatically against Audible
+- Listening activity heatmap on the Statistics page showing daily listening over the past year
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Android Auto and the media notification now show the book title with the chapter instead of only the chapter and author
+- Recent listening bar chart on the Statistics page scaling its bars against all-time listening highs instead of just the days shown
 - Playback timing and progress showing blank after reopening the app until playback started
 - End-of-chapter sleep timer not stopping at chapter boundaries while casting
 - Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
