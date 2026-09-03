@@ -207,7 +207,7 @@ jobs:
           ruby-version: '3.4.10'
           bundler-cache: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         if: steps.creds.outputs.present == 'true'
         with:
           name: android-play-build-outputs
