@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Android Auto and the media notification now show the book title with the chapter instead of only the chapter and author
 - Playback timing and progress showing blank after reopening the app until playback started
 - End-of-chapter sleep timer not stopping at chapter boundaries while casting
 - Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)

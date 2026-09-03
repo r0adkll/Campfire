@@ -48,7 +48,11 @@ fun MediaItem.asPlatformMediaItem(context: Context): PlatformMediaItem {
         setMediaMetadata(
           MediaMetadata.Builder()
             .setTitle(metadata.title)
-            .setArtist(metadata.artist)
+            // Android Auto and the system media notification only render title + artist,
+            // so surface the book/podcast name in the artist slot (instead of the author)
+            // and keep the real author in albumArtist for hosts that show album metadata.
+            .setArtist(metadata.albumTitle ?: metadata.artist)
+            .setAlbumArtist(metadata.artist)
             .setMediaType(MEDIA_TYPE_AUDIO_BOOK_CHAPTER)
             .setDescription(metadata.description)
             .setSubtitle(metadata.subtitle)
