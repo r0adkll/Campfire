@@ -11,4 +11,12 @@ interface StatsRepository {
 
   fun getLibraryStats(): Flow<LibraryStats>
   fun getUserStats(): Flow<ListeningStats>
+
+  /**
+   * Force-refetch both the user listening stats and the current library's stats from
+   * the server, updating any active [getUserStats]/[getLibraryStats] collectors with
+   * the fresh data. Returns a failure instead of throwing so callers can keep showing
+   * the cached data when the server is unreachable.
+   */
+  suspend fun refresh(): Result<Unit>
 }

@@ -36,6 +36,14 @@ import app.campfire.network.models.User
 
 class FakeAudioBookShelfApi : AudioBookShelfApi {
 
+  var listeningStatsResult: suspend () -> Result<ListeningStats> = {
+    Result.failure(NotImplementedError("Set listeningStatsResult on the fake"))
+  }
+
+  var libraryStatsResult: suspend (libraryId: String) -> Result<LibraryStats> = {
+    Result.failure(NotImplementedError("Set libraryStatsResult on the fake"))
+  }
+
   override suspend fun getCurrentUser(): Result<User> {
     TODO("Not yet implemented")
   }
@@ -64,7 +72,7 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun getLibraryStats(libraryId: String): Result<LibraryStats> {
-    TODO("Not yet implemented")
+    return libraryStatsResult(libraryId)
   }
 
   override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {
@@ -330,7 +338,7 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun getListeningStats(): Result<ListeningStats> {
-    TODO("Not yet implemented")
+    return listeningStatsResult()
   }
 
   override suspend fun getFilterData(libraryId: String): Result<FilterData> {

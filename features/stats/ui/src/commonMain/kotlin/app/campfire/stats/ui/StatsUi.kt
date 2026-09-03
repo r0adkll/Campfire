@@ -13,11 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -79,6 +82,7 @@ import app.campfire.stats.ui.composables.WeeklyListeningCard
 import app.campfire.stats.ui.composables.showFinishedThisYearBottomSheet
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.action_back
+import campfire.features.stats.ui.generated.resources.action_refresh
 import campfire.features.stats.ui.generated.resources.stats_library
 import campfire.features.stats.ui.generated.resources.stats_user
 import campfire.features.stats.ui.generated.resources.user_stats_error_message
@@ -137,6 +141,12 @@ fun StatsUi(
               }
             }
           },
+          actions = {
+            RefreshAction(
+              isRefreshing = state.isRefreshing,
+              onClick = { state.eventSink(StatsUiEvent.Refresh) },
+            )
+          },
         )
       } else {
         CampfireTopAppBar(
@@ -157,6 +167,12 @@ fun StatsUi(
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
+          },
+          actions = {
+            RefreshAction(
+              isRefreshing = state.isRefreshing,
+              onClick = { state.eventSink(StatsUiEvent.Refresh) },
+            )
           },
         )
       }
@@ -199,6 +215,33 @@ fun StatsUi(
           )
         },
       )
+    }
+  }
+}
+
+@Composable
+private fun RefreshAction(
+  isRefreshing: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val refreshLabel = stringResource(Res.string.action_refresh)
+  IconButtonTooltip(
+    text = refreshLabel,
+    modifier = modifier,
+  ) {
+    IconButton(
+      onClick = onClick,
+      enabled = !isRefreshing,
+    ) {
+      if (isRefreshing) {
+        CircularProgressIndicator(
+          strokeWidth = 2.dp,
+          modifier = Modifier.size(24.dp),
+        )
+      } else {
+        Icon(Icons.Rounded.Refresh, contentDescription = refreshLabel)
+      }
     }
   }
 }
