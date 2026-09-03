@@ -13,7 +13,9 @@ kotlin {
 
         implementation(projects.features.libraries.api)
         implementation(projects.features.stats.api)
+        implementation(projects.features.user.api)
 
+        implementation(libs.circuitx.overlays)
         implementation(libs.compose.components.resources)
       }
     }

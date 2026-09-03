@@ -35,6 +35,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -87,7 +88,7 @@ internal fun TotalStatsCard(
               withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                 append("${totals.totalDays} days")
               }
-              append(" total")
+              append(" active")
             },
           )
         }
@@ -118,12 +119,19 @@ private fun ListeningBarChart(
   // If there aren't any days then short-circuit as there won't be anything to render anyway
   if (days.isEmpty()) return
 
-  val xAxis = remember(today, days) {
-    val max = days.values.max()
+  val windowedDays = remember(days, barCount) {
+    val oldestDay = today.minus(barCount, DateTimeUnit.DAY)
+    days.filter {
+      it.key >= oldestDay
+    }
+  }
+
+  val xAxis = remember(today, windowedDays) {
+    val max = windowedDays.values.maxOrNull() ?: Duration.ZERO
     (barCount - 1 downTo 0).map { offset ->
       val day = today - DatePeriod(days = offset)
       val duration = days[day] ?: Duration.ZERO
-      (duration / max).toFloat()
+      if (max == Duration.ZERO) 0f else (duration / max).toFloat()
     }
   }
 

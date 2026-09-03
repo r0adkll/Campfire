@@ -4,6 +4,26 @@
 
   <string name="user_stats_recent_sessions_header">Recent sessions</string>
   <string name="weekly_listening_card_title">Weekly listening</string>
+  <string name="listening_heatmap_card_title">Yearly listening</string>
+  <string name="heatmap_legend_less">Less</string>
+  <string name="heatmap_legend_more">More</string>
+
+  <string name="user_stats_activity_header">Activity</string>
+  <string name="activity_current_streak">Day streak</string>
+  <string name="activity_best_streak">Best streak</string>
+  <string name="activity_daily_average">Daily average</string>
+  <string name="activity_best_day">Best day</string>
+  <string name="activity_books_finished">Books finished</string>
+  <string name="activity_books_finished_year">Books this year</string>
+  <string name="activity_episodes_finished">Episodes finished</string>
+  <string name="activity_episodes_finished_year">Episodes this year</string>
+  <string name="finished_books_sheet_title">Books finished in %1$d</string>
+  <string name="finished_episodes_sheet_title">Episodes finished in %1$d</string>
+  <string name="finished_sheet_empty">Nothing finished this year yet</string>
+  <plurals name="activity_streak_days">
+    <item quantity="one">%1$d day</item>
+    <item quantity="other">%1$d days</item>
+  </plurals>
 
   <string name="card_library_totals_title">Summary</string>
   <string name="card_largest_items_title">Largest items</string>
