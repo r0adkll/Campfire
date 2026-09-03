@@ -47,4 +47,6 @@ The Circuit screen/presenter/UI pattern, DI scopes, and module layout live in `C
 ## Verify
 
 - `./scripts/ktlint --format` (auto-fixes import ordering), then
-- `./gradlew :common:compose:compileKotlinJvm` for icon-only changes, or the touched feature module's JVM compile task for UI changes. iOS link tasks can hang — compile tasks only.
+- `./gradlew :common:compose:compileKotlinJvm` for icon-only changes, or the touched feature module's JVM compile task for UI changes (`:app:desktop:compileKotlin` compiles everything — the desktop module is pure JVM, so there is no `compileKotlinJvm` there). iOS link tasks can hang — compile tasks only.
+- Read gradle's own exit code (`./gradlew <task> > log 2>&1; echo $status`) — piping the build into `tail` reports the pipe's exit code and masks a failed or nonexistent task.
+- Valkyrie PascalCases SVG filenames segment-wise (`Grid3x3.svg` → property `Grid3X3`) — copy the property name from the generated file, not from the filename.
