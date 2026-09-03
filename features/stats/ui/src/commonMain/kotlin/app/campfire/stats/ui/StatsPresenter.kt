@@ -6,7 +6,10 @@ package app.campfire.stats.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.coroutines.DispatcherProvider
@@ -34,6 +37,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -74,15 +78,33 @@ class StatsPresenter(
       }.catch<LoadState<out List<StatsUiModel>>> { emit(LoadState.Error) }
     }.collectAsState(LoadState.Loading)
 
+    val scope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+
     return StatsUiState(
       libraryStats = libraryStats,
       listeningStats = listeningStats,
+      isRefreshing = isRefreshing,
     ) { event ->
       when (event) {
         StatsUiEvent.Back -> navigator.pop()
         is StatsUiEvent.ItemClick -> navigator.goTo(LibraryItemScreen(event.itemId))
         is StatsUiEvent.AuthorClick -> navigator.goTo(AuthorDetailScreen(event.authorId, event.authorName))
         is StatsUiEvent.SessionClick -> navigator.goTo(LibraryItemScreen(event.session.libraryItemId))
+        StatsUiEvent.Refresh -> {
+          if (!isRefreshing) {
+            scope.launch {
+              isRefreshing = true
+              try {
+                // Failures keep showing the cached stats; active collectors
+                // receive the fresh data on success
+                statsRepository.refresh()
+              } finally {
+                isRefreshing = false
+              }
+            }
+          }
+        }
       }
     }
   }
