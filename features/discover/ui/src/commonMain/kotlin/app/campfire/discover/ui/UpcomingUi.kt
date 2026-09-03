@@ -21,9 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Radar
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -52,6 +49,9 @@ import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Radar
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.permission.PermissionState
@@ -97,7 +97,7 @@ fun UpcomingUi(
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {
             IconButton(onClick = { state.eventSink(UpcomingUiEvent.Back) }) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },
@@ -131,7 +131,7 @@ fun UpcomingUi(
         SmallExtendedFloatingActionButton(
           expanded = expanded,
           text = { Text(stringResource(Res.string.discover_scan_action)) },
-          icon = { Icon(Icons.Rounded.Radar, contentDescription = null) },
+          icon = { Icon(CampfireIcons.Rounded.Radar, contentDescription = null) },
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           onClick = {
             when (permissionState) {

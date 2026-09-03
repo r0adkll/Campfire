@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -35,6 +33,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.AutoMode
 import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.icons.rounded.Sensors
@@ -152,7 +151,7 @@ private fun StreamingMethodChip(
       )
       Spacer(Modifier.width(4.dp))
       Icon(
-        Icons.Rounded.ArrowDropDown,
+        CampfireIcons.Rounded.ArrowDropDown,
         contentDescription = null,
       )
     }

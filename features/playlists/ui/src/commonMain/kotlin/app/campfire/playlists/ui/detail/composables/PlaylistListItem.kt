@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DragIndicator
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -33,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.DragIndicator
 import app.campfire.common.compose.icons.rounded.MotionPlay
+import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemListItem
@@ -100,7 +99,7 @@ internal fun PlaylistListItem(
       androidx.compose.animation.AnimatedVisibility(
         visible = isReordering,
       ) {
-        Icon(Icons.Rounded.DragIndicator, contentDescription = "Drag handle")
+        Icon(CampfireIcons.Rounded.DragIndicator, contentDescription = "Drag handle")
       }
     }
 
@@ -136,7 +135,7 @@ internal fun PlaylistListItem(
             ) { playing ->
               Icon(
                 if (!playing) {
-                  Icons.Rounded.PlayArrow
+                  CampfireIcons.Rounded.PlayArrow
                 } else {
                   CampfireIcons.Rounded.MotionPlay
                 },

@@ -3,22 +3,22 @@
 
 package app.campfire.ui.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.QueryStats
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.CloudDownload
-import androidx.compose.material.icons.outlined.Event
-import androidx.compose.material.icons.rounded.QueryStats
-import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.filled.CloudDownload
 import app.campfire.common.compose.icons.filled.Collections
+import app.campfire.common.compose.icons.filled.Event
+import app.campfire.common.compose.icons.filled.QueryStats
+import app.campfire.common.compose.icons.filled.Settings
 import app.campfire.common.compose.icons.outline.Collections
+import app.campfire.common.compose.icons.rounded.CloudDownload
+import app.campfire.common.compose.icons.rounded.Event
+import app.campfire.common.compose.icons.rounded.QueryStats
+import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.layout.NavigationType
 import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.screens.CollectionsScreen
@@ -107,8 +107,8 @@ class NavigationPresenter(
             screen = CollectionsScreen,
             label = stringResource(Res.string.nav_collections_label),
             contentDescription = stringResource(Res.string.nav_collections_content_description),
-            iconImageVector = Icons.Outlined.Collections,
-            selectedImageVector = Icons.Filled.Collections,
+            iconImageVector = CampfireIcons.Outline.Collections,
+            selectedImageVector = CampfireIcons.Filled.Collections,
           ),
         )
 
@@ -117,8 +117,8 @@ class NavigationPresenter(
             screen = UpcomingScreen,
             label = stringResource(Res.string.nav_upcoming_label),
             contentDescription = stringResource(Res.string.nav_upcoming_content_description),
-            iconImageVector = Icons.Outlined.Event,
-            selectedImageVector = Icons.Filled.Event,
+            iconImageVector = CampfireIcons.Rounded.Event,
+            selectedImageVector = CampfireIcons.Filled.Event,
           ),
         )
       }
@@ -128,8 +128,8 @@ class NavigationPresenter(
           screen = StatisticsScreen,
           label = stringResource(Res.string.nav_statistics_label),
           contentDescription = stringResource(Res.string.nav_statistics_content_description),
-          iconImageVector = Icons.Rounded.QueryStats,
-          selectedImageVector = Icons.Filled.QueryStats,
+          iconImageVector = CampfireIcons.Rounded.QueryStats,
+          selectedImageVector = CampfireIcons.Filled.QueryStats,
         ),
       )
 
@@ -138,8 +138,8 @@ class NavigationPresenter(
           screen = SettingsScreen(SettingsScreen.Page.Downloads),
           label = stringResource(Res.string.nav_downloads_label),
           contentDescription = stringResource(Res.string.nav_downloads_content_description),
-          iconImageVector = Icons.Outlined.CloudDownload,
-          selectedImageVector = Icons.Filled.CloudDownload,
+          iconImageVector = CampfireIcons.Rounded.CloudDownload,
+          selectedImageVector = CampfireIcons.Filled.CloudDownload,
         ),
       )
 
@@ -148,8 +148,8 @@ class NavigationPresenter(
           screen = SettingsScreen(),
           label = stringResource(Res.string.nav_settings_label),
           contentDescription = stringResource(Res.string.nav_settings_content_description),
-          iconImageVector = Icons.Rounded.Settings,
-          selectedImageVector = Icons.Filled.Settings,
+          iconImageVector = CampfireIcons.Rounded.Settings,
+          selectedImageVector = CampfireIcons.Filled.Settings,
         ),
       )
     }

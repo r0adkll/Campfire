@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
@@ -54,6 +52,8 @@ import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.analytics.Impression
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Error
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.widgets.AlertDialogContent
 import app.campfire.common.compose.widgets.AlertDialogFlowRow
@@ -348,7 +348,7 @@ class AddToCollectionDialogImpl(
       verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
       Icon(
-        Icons.Rounded.Error,
+        CampfireIcons.Rounded.Error,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.error,
       )

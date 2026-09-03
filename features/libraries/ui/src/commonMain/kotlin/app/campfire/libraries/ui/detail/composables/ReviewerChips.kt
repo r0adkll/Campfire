@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,7 +20,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.providerBrandColor
+import app.campfire.common.compose.icons.rounded.Person
 import coil3.compose.rememberAsyncImagePainter
 
 /**
@@ -62,7 +62,7 @@ internal fun ReviewerAvatar(
         )
       } else {
         Icon(
-          imageVector = Icons.Rounded.Person,
+          imageVector = CampfireIcons.Rounded.Person,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
           modifier = Modifier.size(size * 0.6f),

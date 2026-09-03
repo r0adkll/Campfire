@@ -4,14 +4,6 @@
 package app.campfire.android.plugin.playback
 
 import android.os.Bundle
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Album
-import androidx.compose.material.icons.rounded.Forward30
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Replay10
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +15,14 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import app.campfire.android.plugin.common.SectionButton
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Album
+import app.campfire.common.compose.icons.rounded.Forward30
+import app.campfire.common.compose.icons.rounded.Pause
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.Replay10
+import app.campfire.common.compose.icons.rounded.SkipNext
+import app.campfire.common.compose.icons.rounded.SkipPrevious
 import com.livewire.ui.graphics.CircleShape
 import com.livewire.ui.graphics.CornerSize
 import com.livewire.ui.graphics.RoundedCornerShape
@@ -86,7 +86,7 @@ internal fun MockPlayer(
           .clip(RoundedCornerShape(16.dp)),
       )
       ArtworkState.Missing -> Icon(
-        imageVector = Icons.Rounded.Album,
+        imageVector = CampfireIcons.Rounded.Album,
         modifier = LivewireModifier.size(180.dp),
         tint = Color.Gray,
       )
@@ -146,7 +146,7 @@ internal fun MockPlayer(
           pressedShape = CircleShape,
         ),
       ) {
-        Icon(Icons.Rounded.Replay10)
+        Icon(CampfireIcons.Rounded.Replay10)
       }
       IconButton(
         action = mainAction { controller.seekToPrevious() },
@@ -157,7 +157,7 @@ internal fun MockPlayer(
           pressedShape = CircleShape,
         ),
       ) {
-        Icon(Icons.Rounded.SkipPrevious)
+        Icon(CampfireIcons.Rounded.SkipPrevious)
       }
       IconButton(
         action = mainAction { if (controller.playWhenReady) controller.pause() else controller.play() },
@@ -170,7 +170,7 @@ internal fun MockPlayer(
         modifier = LivewireModifier,
 
       ) {
-        Icon(if (snapshot.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow)
+        Icon(if (snapshot.isPlaying) CampfireIcons.Rounded.Pause else CampfireIcons.Rounded.PlayArrow)
       }
       IconButton(
         action = mainAction { controller.seekToNext() },
@@ -181,7 +181,7 @@ internal fun MockPlayer(
           pressedShape = CircleShape,
         ),
       ) {
-        Icon(Icons.Rounded.SkipNext)
+        Icon(CampfireIcons.Rounded.SkipNext)
       }
       IconButton(
         action = mainAction { controller.seekForward() },
@@ -197,7 +197,7 @@ internal fun MockPlayer(
           pressedShape = CircleShape,
         ),
       ) {
-        Icon(Icons.Rounded.Forward30)
+        Icon(CampfireIcons.Rounded.Forward30)
       }
     }
 

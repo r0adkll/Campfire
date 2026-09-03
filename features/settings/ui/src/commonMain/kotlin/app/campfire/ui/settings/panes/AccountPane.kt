@@ -3,14 +3,13 @@
 
 package app.campfire.ui.settings.panes
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Dns
+import app.campfire.common.compose.icons.rounded.Logout
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.ui.settings.SettingsUiEvent
@@ -55,7 +54,7 @@ internal fun AccountPane(
         onValueChange = { state.eventSink(SettingsUiEvent.AccountSettingEvent.ChangeName(it)) },
         supportingContent = { Text(stringResource(Res.string.setting_account_name_subtitle)) },
         dialogIcon = {
-          Icon(Icons.Rounded.Dns, contentDescription = null)
+          Icon(CampfireIcons.Rounded.Dns, contentDescription = null)
         },
         dialogTitle = { Text(stringResource(Res.string.setting_account_dialog_title)) },
         dialogInputLabel = { Text(stringResource(Res.string.setting_account_dialog_label)) },
@@ -92,7 +91,7 @@ internal fun AccountPane(
 
     ActionSetting(
       headlineContent = { Text(stringResource(Res.string.setting_account_logout)) },
-      trailingContent = { Icon(Icons.AutoMirrored.Rounded.Logout, contentDescription = null) },
+      trailingContent = { Icon(CampfireIcons.Rounded.Logout, contentDescription = null) },
       onClick = {
         state.eventSink(SettingsUiEvent.AccountSettingEvent.Logout)
       },

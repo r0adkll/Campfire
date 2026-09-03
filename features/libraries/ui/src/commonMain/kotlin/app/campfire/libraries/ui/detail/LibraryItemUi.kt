@@ -21,11 +21,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.LibraryAdd
-import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -62,6 +57,11 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.collections.api.ui.AddToCollectionDialog
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.DeleteForever
+import app.campfire.common.compose.icons.rounded.LibraryAdd
+import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.LocalSnackBarHost
@@ -188,7 +188,7 @@ fun LibraryItemContent(
               },
             ) {
               Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
+                CampfireIcons.Rounded.ArrowBack,
                 contentDescription = backLabel,
               )
             }
@@ -219,7 +219,7 @@ fun LibraryItemContent(
                 },
               ) {
                 Icon(
-                  Icons.Rounded.LibraryAdd,
+                  CampfireIcons.Rounded.LibraryAdd,
                   contentDescription = addToCollectionLabel,
                 )
               }
@@ -231,7 +231,7 @@ fun LibraryItemContent(
             IconButtonTooltip(text = moreActionsLabel) {
               IconButton(onClick = { showOverflowMenu = true }) {
                 Icon(
-                  Icons.Rounded.MoreVert,
+                  CampfireIcons.Rounded.MoreVert,
                   contentDescription = moreActionsLabel,
                 )
               }
@@ -250,7 +250,7 @@ fun LibraryItemContent(
                 },
                 leadingIcon = {
                   Icon(
-                    Icons.Rounded.DeleteForever,
+                    CampfireIcons.Rounded.DeleteForever,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.error,
                   )

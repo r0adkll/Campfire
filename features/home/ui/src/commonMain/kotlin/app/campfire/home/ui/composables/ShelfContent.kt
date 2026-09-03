@@ -16,8 +16,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Error
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.LibraryItemCard
@@ -114,7 +114,7 @@ private fun ErrorShelfContent(
       horizontalAlignment = Alignment.CenterHorizontally,
       modifier = Modifier.padding(horizontal = 32.dp),
     ) {
-      Icon(Icons.Rounded.ErrorOutline, contentDescription = null)
+      Icon(CampfireIcons.Rounded.Error, contentDescription = null)
       Text(
         text = stringResource(Res.string.shelf_content_error_message, shelf.label),
         style = MaterialTheme.typography.bodyMedium,

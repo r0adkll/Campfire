@@ -21,11 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,6 +50,11 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
+import app.campfire.common.compose.icons.rounded.AutoAwesome
+import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -95,7 +95,7 @@ fun AiThemeBuilder(
           val backLabel = stringResource(Res.string.action_back)
           IconButtonTooltip(text = backLabel) {
             IconButton(onClick = { state.eventSink(AiThemeBuilderUiEvent.Back) }) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },
@@ -231,7 +231,7 @@ private fun PromptSection(
           Spacer(Modifier.size(8.dp))
           Text("Generating…")
         } else {
-          Icon(Icons.Rounded.AutoAwesome, contentDescription = null)
+          Icon(CampfireIcons.Rounded.AutoAwesome, contentDescription = null)
           Spacer(Modifier.size(8.dp))
           Text("Generate theme")
         }
@@ -293,7 +293,7 @@ private fun SaveSection(
           .fillMaxWidth(),
       ) {
         Icon(
-          Icons.Rounded.Save,
+          CampfireIcons.Rounded.Save,
           contentDescription = "Save new theme",
           modifier = Modifier
             .size(ButtonDefaults.iconSizeFor(saveButtonSize)),
@@ -315,7 +315,7 @@ private fun SaveSection(
           .fillMaxWidth(),
       ) {
         Icon(
-          Icons.Rounded.AutoAwesome,
+          CampfireIcons.Rounded.AutoAwesome,
           contentDescription = "Generate again",
           modifier = Modifier
             .size(ButtonDefaults.iconSizeFor(saveButtonSize)),
@@ -363,7 +363,7 @@ private fun StyleDropdown(
           )
         }
         Icon(
-          Icons.Rounded.ArrowDropDown,
+          CampfireIcons.Rounded.ArrowDropDown,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )

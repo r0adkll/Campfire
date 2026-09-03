@@ -4,8 +4,6 @@
 package app.campfire.ui.navigation.rail
 
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
@@ -16,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.core.reflect.instanceOf
@@ -72,7 +72,7 @@ fun CampfireNavigationRail(
     NavigationRailItem(
       icon = {
         Icon(
-          imageVector = Icons.Outlined.Settings,
+          imageVector = CampfireIcons.Rounded.Settings,
           contentDescription = stringResource(Res.string.settings_content_description),
         )
       },

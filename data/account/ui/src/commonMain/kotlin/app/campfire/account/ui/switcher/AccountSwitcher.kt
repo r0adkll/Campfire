@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -57,6 +54,8 @@ import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
+import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -304,7 +303,7 @@ private fun AccountSwitcher(
         IconButton(
           onClick = onRetryConnection,
         ) {
-          Icon(Icons.Rounded.Refresh, contentDescription = null)
+          Icon(CampfireIcons.Rounded.Refresh, contentDescription = null)
         }
       }
     }
@@ -340,7 +339,7 @@ private fun LibraryPicker(
         trailingContent = {
           val iconRotation by animateFloatAsState(if (expanded) 180f else 0f)
           Icon(
-            Icons.Rounded.ArrowDropDown,
+            CampfireIcons.Rounded.ArrowDropDown,
             contentDescription = null,
             modifier = Modifier.rotate(iconRotation),
           )

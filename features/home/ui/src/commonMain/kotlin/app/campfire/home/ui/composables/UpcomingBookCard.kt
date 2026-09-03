@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowForward
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
 import app.campfire.common.compose.widgets.placeholderBookPainter
@@ -113,7 +113,7 @@ internal fun UpcomingViewAllCard(
         contentAlignment = Alignment.Center,
       ) {
         Icon(
-          Icons.AutoMirrored.Rounded.ArrowForward,
+          CampfireIcons.Rounded.ArrowForward,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSecondaryContainer,
         )

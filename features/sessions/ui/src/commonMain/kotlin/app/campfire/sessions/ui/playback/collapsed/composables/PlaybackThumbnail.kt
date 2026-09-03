@@ -15,9 +15,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DeleteSweep
-import androidx.compose.material.icons.rounded.Snooze
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -30,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CloudSync
+import app.campfire.common.compose.icons.rounded.DeleteSweep
+import app.campfire.common.compose.icons.rounded.Snooze
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.sessions.ui.composables.Thumbnail
 import app.campfire.sessions.ui.playback.AvailableSync
@@ -65,7 +64,7 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
       visible = availableSync == null &&
         runningTimer != null &&
         dragState.actionState != Dispose,
-      imageVector = Icons.Rounded.Snooze,
+      imageVector = CampfireIcons.Rounded.Snooze,
       containerColor = NeutralIconScrim,
       contentColor = Color.White,
     )
@@ -73,7 +72,7 @@ internal fun SharedTransitionScope.PlaybackThumbnail(
     // Delete/Dispose Icon
     AnimatedVisibleIcon(
       visible = dragState.actionState == Dispose,
-      imageVector = Icons.Rounded.DeleteSweep,
+      imageVector = CampfireIcons.Rounded.DeleteSweep,
       containerColor = ErrorIconScrim,
       contentColor = MaterialTheme.colorScheme.onError,
     )

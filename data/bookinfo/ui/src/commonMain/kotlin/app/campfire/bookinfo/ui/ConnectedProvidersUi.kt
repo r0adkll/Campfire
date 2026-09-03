@@ -22,9 +22,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -73,6 +70,8 @@ import app.campfire.common.compose.icons.providerBrandIconPadding
 import app.campfire.common.compose.icons.providerBrandIconTint
 import app.campfire.common.compose.icons.providerBrandSecondaryColor
 import app.campfire.common.compose.icons.providerOnBrandColor
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.AutoMode
 import app.campfire.common.compose.icons.rounded.Disconnected
 import app.campfire.common.compose.theme.LocalUseDarkColors
@@ -123,7 +122,7 @@ fun ConnectedProvidersUi(
             IconButton(
               onClick = { state.eventSink(ConnectedProvidersUiEvent.Back) },
             ) {
-              Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
             }
           }
         },
@@ -601,7 +600,7 @@ private fun PreferredOptionChip(
       }
       Spacer(Modifier.width(4.dp))
       Icon(
-        Icons.Rounded.ArrowDropDown,
+        CampfireIcons.Rounded.ArrowDropDown,
         contentDescription = null,
       )
     }

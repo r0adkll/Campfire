@@ -29,11 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Circle
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.CloudDone
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -62,7 +57,11 @@ import androidx.compose.ui.zIndex
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.extensions.thenIfNotNull
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.CheckCircle
+import app.campfire.common.compose.icons.rounded.Circle
+import app.campfire.common.compose.icons.rounded.CloudDone
 import app.campfire.common.compose.icons.rounded.FatCheck
+import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.util.rememberThemeDispatcherListener
 import app.campfire.core.model.LibraryItem
@@ -551,7 +550,7 @@ private fun LibraryItemCardEditingScrim(
         ),
     ) {
       Icon(
-        if (selected) Icons.Rounded.CheckCircle else Icons.Outlined.Circle,
+        if (selected) CampfireIcons.Rounded.CheckCircle else CampfireIcons.Rounded.Circle,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.secondary,
         modifier = Modifier
@@ -652,7 +651,7 @@ fun OfflineStatusIndicator(
 
     OfflineStatus.Available -> {
       Icon(
-        Icons.Rounded.CloudDone,
+        CampfireIcons.Rounded.CloudDone,
         contentDescription = null,
         tint = tint,
         modifier = modifier
@@ -662,7 +661,7 @@ fun OfflineStatusIndicator(
 
     OfflineStatus.Failed -> {
       Icon(
-        Icons.Rounded.Warning,
+        CampfireIcons.Rounded.Warning,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.error,
         modifier = modifier

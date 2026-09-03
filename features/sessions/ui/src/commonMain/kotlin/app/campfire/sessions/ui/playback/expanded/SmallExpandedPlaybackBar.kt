@@ -31,8 +31,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -67,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -267,7 +267,7 @@ internal fun SmallExpandedPlaybackBar(
             IconButton(
               onClick = onClose,
             ) {
-              Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
+              Icon(CampfireIcons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
             }
           }
         },

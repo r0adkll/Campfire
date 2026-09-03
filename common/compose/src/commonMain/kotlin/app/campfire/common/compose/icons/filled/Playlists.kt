@@ -3,14 +3,14 @@
 
 package app.campfire.common.compose.icons.filled
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
 
-val Icons.Filled.Playlists: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
+val CampfireIcons.Filled.Playlists: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
   ImageVector.Builder(
     name = "Playlists",
     defaultWidth = 24.dp,

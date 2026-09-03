@@ -8,10 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -24,6 +20,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.LightMode
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
@@ -57,7 +57,7 @@ internal fun PreviewScaffold(
                 IconButton(
                   onClick = {},
                 ) {
-                  Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                  Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
                 }
               }
             },
@@ -68,7 +68,7 @@ internal fun PreviewScaffold(
                   onClick = { _useDarkColors = !_useDarkColors },
                 ) {
                   Icon(
-                    if (_useDarkColors) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+                    if (_useDarkColors) CampfireIcons.Rounded.LightMode else CampfireIcons.Rounded.DarkMode,
                     contentDescription = toggleDarkLabel,
                   )
                 }

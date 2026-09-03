@@ -16,10 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -42,6 +38,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Add
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.model.NetworkSettings
@@ -194,7 +194,7 @@ private fun NetworkSettingsBottomSheet(
           },
         ) {
           Icon(
-            Icons.Rounded.Add,
+            CampfireIcons.Rounded.Add,
             contentDescription = addHeaderLabel,
           )
         }
@@ -223,7 +223,7 @@ private fun NetworkSettingsBottomSheet(
         .align(Alignment.End),
     ) {
       Icon(
-        Icons.Rounded.Save,
+        CampfireIcons.Rounded.Save,
         contentDescription = "Save Settings",
         modifier = Modifier.size(ButtonDefaults.iconSizeFor(acceptButtonSize)),
       )
@@ -282,7 +282,7 @@ private fun HeaderValue(
         onClick = onDeleteClick,
       ) {
         Icon(
-          Icons.Rounded.Delete,
+          CampfireIcons.Rounded.Delete,
           contentDescription = deleteHeaderLabel,
           tint = MaterialTheme.colorScheme.error,
         )

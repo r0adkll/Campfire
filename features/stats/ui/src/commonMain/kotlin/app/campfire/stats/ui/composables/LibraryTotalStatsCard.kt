@@ -5,8 +5,6 @@ package app.campfire.stats.ui.composables
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Analytics
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +19,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.ReadoutStyle
 import app.campfire.common.compose.extensions.readoutAtMost
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Analytics
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.stats.ui.StatsUiModel
 import campfire.features.stats.ui.generated.resources.Res
@@ -47,7 +47,7 @@ internal fun LibraryTotalStatsCard(
     CardHeader(
       icon = {
         Icon(
-          Icons.Outlined.Analytics,
+          CampfireIcons.Rounded.Analytics,
           contentDescription = null,
         )
       },

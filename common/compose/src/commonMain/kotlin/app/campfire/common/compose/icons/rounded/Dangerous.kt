@@ -1,0 +1,88 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
+package app.campfire.common.compose.icons.rounded
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+
+val CampfireIcons.Rounded.Dangerous: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
+  ImageVector.Builder(
+    name = "Dangerous",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 960f,
+    viewportHeight = 960f,
+  ).apply {
+    path(fill = SolidColor(Color.Black)) {
+      moveTo(363f, 840f)
+      quadToRelative(-16f, 0f, -30.5f, -6f)
+      reflectiveQuadTo(307f, 817f)
+      lineTo(143f, 653f)
+      quadToRelative(-11f, -11f, -17f, -25.5f)
+      reflectiveQuadToRelative(-6f, -30.5f)
+      verticalLineToRelative(-234f)
+      quadToRelative(0f, -16f, 6f, -30.5f)
+      reflectiveQuadToRelative(17f, -25.5f)
+      lineToRelative(164f, -164f)
+      quadToRelative(11f, -11f, 25.5f, -17f)
+      reflectiveQuadToRelative(30.5f, -6f)
+      horizontalLineToRelative(234f)
+      quadToRelative(16f, 0f, 30.5f, 6f)
+      reflectiveQuadToRelative(25.5f, 17f)
+      lineToRelative(164f, 164f)
+      quadToRelative(11f, 11f, 17f, 25.5f)
+      reflectiveQuadToRelative(6f, 30.5f)
+      verticalLineToRelative(234f)
+      quadToRelative(0f, 16f, -6f, 30.5f)
+      reflectiveQuadTo(817f, 653f)
+      lineTo(653f, 817f)
+      quadToRelative(-11f, 11f, -25.5f, 17f)
+      reflectiveQuadToRelative(-30.5f, 6f)
+      lineTo(363f, 840f)
+      close()
+      moveTo(364f, 760f)
+      horizontalLineToRelative(232f)
+      lineToRelative(164f, -164f)
+      verticalLineToRelative(-232f)
+      lineTo(596f, 200f)
+      lineTo(364f, 200f)
+      lineTo(200f, 364f)
+      verticalLineToRelative(232f)
+      lineToRelative(164f, 164f)
+      close()
+      moveTo(480f, 536f)
+      lineTo(566f, 622f)
+      quadToRelative(11f, 11f, 28f, 11f)
+      reflectiveQuadToRelative(28f, -11f)
+      quadToRelative(11f, -11f, 11f, -28f)
+      reflectiveQuadToRelative(-11f, -28f)
+      lineToRelative(-86f, -86f)
+      lineToRelative(86f, -86f)
+      quadToRelative(11f, -11f, 11f, -28f)
+      reflectiveQuadToRelative(-11f, -28f)
+      quadToRelative(-11f, -11f, -28f, -11f)
+      reflectiveQuadToRelative(-28f, 11f)
+      lineToRelative(-86f, 86f)
+      lineToRelative(-86f, -86f)
+      quadToRelative(-11f, -11f, -28f, -11f)
+      reflectiveQuadToRelative(-28f, 11f)
+      quadToRelative(-11f, 11f, -11f, 28f)
+      reflectiveQuadToRelative(11f, 28f)
+      lineToRelative(86f, 86f)
+      lineToRelative(-86f, 86f)
+      quadToRelative(-11f, 11f, -11f, 28f)
+      reflectiveQuadToRelative(11f, 28f)
+      quadToRelative(11f, 11f, 28f, 11f)
+      reflectiveQuadToRelative(28f, -11f)
+      lineToRelative(86f, -86f)
+      close()
+      moveTo(480f, 480f)
+      close()
+    }
+  }.build()
+}

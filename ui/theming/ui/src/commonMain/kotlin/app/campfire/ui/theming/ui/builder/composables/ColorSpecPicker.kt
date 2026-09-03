@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoAwesome
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -54,7 +54,7 @@ internal fun ColorSpecPicker(
       ) {
         if (specVersion == SpecVersion.SPEC_2025) {
           Icon(
-            Icons.Rounded.AutoAwesome,
+            CampfireIcons.Rounded.AutoAwesome,
             contentDescription = null,
             modifier = Modifier.size(ToggleButtonDefaults.IconSize),
           )

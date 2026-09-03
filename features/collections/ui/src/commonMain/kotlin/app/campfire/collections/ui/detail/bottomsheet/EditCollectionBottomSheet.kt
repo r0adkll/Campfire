@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +42,8 @@ import app.campfire.analytics.events.Updated
 import app.campfire.collections.api.CollectionsRepository
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Collection
@@ -204,7 +204,7 @@ private fun EditCollectionBottomSheet(
       if (isCreating) {
         CircularProgressIndicator(modifier = Modifier.size(24.dp))
       } else {
-        Icon(Icons.Rounded.Save, contentDescription = null)
+        Icon(CampfireIcons.Rounded.Save, contentDescription = null)
       }
       Spacer(Modifier.width(ButtonDefaults.IconSpacing))
       if (isCreating) {

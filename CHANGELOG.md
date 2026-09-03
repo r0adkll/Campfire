@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Automatic rewind ranges are now 0s-2m and ignore pauses now increased to 30s max
+- Refreshed icons throughout the app with the updated Material Symbols style
 
 ### Deprecated
 

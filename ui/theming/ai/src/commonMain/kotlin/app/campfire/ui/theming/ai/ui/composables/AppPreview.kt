@@ -16,16 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.LibraryBooks
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.Home
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -42,6 +32,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.filled.Headphones
+import app.campfire.common.compose.icons.rounded.Add
+import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.Home
+import app.campfire.common.compose.icons.rounded.LibraryBooks
+import app.campfire.common.compose.icons.rounded.LightMode
+import app.campfire.common.compose.icons.rounded.Person
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.Search
 
 /**
  * Dummy mock-up of the Campfire app surface used to preview a generated theme. Renders a
@@ -123,7 +123,7 @@ private fun PreviewTopBar(
         contentAlignment = Alignment.Center,
       ) {
         Icon(
-          Icons.Filled.Headphones,
+          CampfireIcons.Filled.Headphones,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.primary,
         )
@@ -145,7 +145,7 @@ private fun PreviewTopBar(
         onCheckedChange = onDarkModeChange,
         thumbContent = {
           Icon(
-            if (!isDarkMode) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+            if (!isDarkMode) CampfireIcons.Rounded.LightMode else CampfireIcons.Rounded.DarkMode,
             contentDescription = null,
             modifier = Modifier.size(SwitchDefaults.IconSize),
             tint = if (!isDarkMode) {
@@ -188,7 +188,7 @@ private fun PreviewItemCard(
       ) {
         Box(contentAlignment = Alignment.Center) {
           Icon(
-            Icons.AutoMirrored.Rounded.LibraryBooks,
+            CampfireIcons.Rounded.LibraryBooks,
             contentDescription = null,
           )
         }
@@ -228,7 +228,7 @@ private fun PreviewItemCard(
         contentColor = MaterialTheme.colorScheme.onPrimary,
       ) {
         Box(contentAlignment = Alignment.Center) {
-          Icon(Icons.Rounded.PlayArrow, contentDescription = null)
+          Icon(CampfireIcons.Rounded.PlayArrow, contentDescription = null)
         }
       }
     }
@@ -252,7 +252,7 @@ private fun PreviewActionRow() {
         Text("Secondary")
       },
       icon = {
-        Icon(Icons.Rounded.Add, contentDescription = null)
+        Icon(CampfireIcons.Rounded.Add, contentDescription = null)
       },
       containerColor = MaterialTheme.colorScheme.secondaryContainer,
       contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -300,10 +300,10 @@ private fun PreviewBottomBar() {
       horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      PreviewBottomItem(Icons.Rounded.Home, "Home", selected = true)
-      PreviewBottomItem(Icons.AutoMirrored.Rounded.LibraryBooks, "Library", selected = false)
-      PreviewBottomItem(Icons.Rounded.Search, "Search", selected = false)
-      PreviewBottomItem(Icons.Rounded.Person, "Profile", selected = false)
+      PreviewBottomItem(CampfireIcons.Rounded.Home, "Home", selected = true)
+      PreviewBottomItem(CampfireIcons.Rounded.LibraryBooks, "Library", selected = false)
+      PreviewBottomItem(CampfireIcons.Rounded.Search, "Search", selected = false)
+      PreviewBottomItem(CampfireIcons.Rounded.Person, "Profile", selected = false)
     }
   }
 }

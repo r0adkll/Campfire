@@ -1,0 +1,58 @@
+// Copyright 2026, Drew Heavner and the Campfire project contributors
+// SPDX-License-Identifier: GPL-3.0-only
+
+package app.campfire.common.compose.icons.rounded
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.path
+import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+
+val CampfireIcons.Rounded.FastRewind: ImageVector by lazy(LazyThreadSafetyMode.NONE) {
+  ImageVector.Builder(
+    name = "FastRewind",
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 960f,
+    viewportHeight = 960f,
+  ).apply {
+    path(fill = SolidColor(Color.Black)) {
+      moveTo(798f, 679f)
+      lineTo(550f, 513f)
+      quadToRelative(-9f, -6f, -13.5f, -14.5f)
+      reflectiveQuadTo(532f, 480f)
+      quadToRelative(0f, -10f, 4.5f, -18.5f)
+      reflectiveQuadTo(550f, 447f)
+      lineToRelative(248f, -166f)
+      quadToRelative(5f, -4f, 11f, -5f)
+      reflectiveQuadToRelative(11f, -1f)
+      quadToRelative(16f, 0f, 28f, 11f)
+      reflectiveQuadToRelative(12f, 29f)
+      verticalLineToRelative(330f)
+      quadToRelative(0f, 18f, -12f, 29f)
+      reflectiveQuadToRelative(-28f, 11f)
+      quadToRelative(-5f, 0f, -11f, -1f)
+      reflectiveQuadToRelative(-11f, -5f)
+      close()
+      moveTo(398f, 679f)
+      lineTo(150f, 513f)
+      quadToRelative(-9f, -6f, -13.5f, -14.5f)
+      reflectiveQuadTo(132f, 480f)
+      quadToRelative(0f, -10f, 4.5f, -18.5f)
+      reflectiveQuadTo(150f, 447f)
+      lineToRelative(248f, -166f)
+      quadToRelative(5f, -4f, 11f, -5f)
+      reflectiveQuadToRelative(11f, -1f)
+      quadToRelative(16f, 0f, 28f, 11f)
+      reflectiveQuadToRelative(12f, 29f)
+      verticalLineToRelative(330f)
+      quadToRelative(0f, 18f, -12f, 29f)
+      reflectiveQuadToRelative(-28f, 11f)
+      quadToRelative(-5f, 0f, -11f, -1f)
+      reflectiveQuadToRelative(-11f, -5f)
+      close()
+    }
+  }.build()
+}

@@ -12,14 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Dangerous
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.Downloading
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalIconButton
@@ -50,7 +42,14 @@ import app.campfire.audioplayer.offline.OfflineDownload.State.None
 import app.campfire.audioplayer.offline.OfflineDownload.State.Queued
 import app.campfire.audioplayer.offline.OfflineDownload.State.Stopped
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.icons.rounded.Dangerous
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.Download
+import app.campfire.common.compose.icons.rounded.DownloadDone
+import app.campfire.common.compose.icons.rounded.Downloading
+import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -180,7 +179,7 @@ private fun ConfirmDeleteListItem(
         onClick = onDismissRequest,
       ) {
         Icon(
-          Icons.Rounded.Clear,
+          CampfireIcons.Rounded.Close,
           contentDescription = dismissLabel,
           modifier = Modifier.size(ButtonDefaults.IconSize),
         )
@@ -197,13 +196,13 @@ private fun ConfirmDeleteListItem(
         when (download.state) {
           Queued,
           Downloading,
-          -> Icons.Rounded.Dangerous
+          -> CampfireIcons.Rounded.Dangerous
 
           Stopped,
           Completed,
           Failed,
           None,
-          -> Icons.Rounded.DeleteForever
+          -> CampfireIcons.Rounded.DeleteForever
         },
         contentDescription = null,
         modifier = Modifier.size(ButtonDefaults.IconSize),
@@ -289,13 +288,13 @@ private fun ItemDownloadListItem(
             when (download.state) {
               Queued,
               Downloading,
-              -> Icons.Rounded.Dangerous
+              -> CampfireIcons.Rounded.Dangerous
 
               Stopped,
               Completed,
               Failed,
               None,
-              -> Icons.Rounded.Delete
+              -> CampfireIcons.Rounded.Delete
             },
             contentDescription = deleteOrStopLabel,
           )
@@ -368,10 +367,10 @@ private fun ItemDownloadImage(
 
             Queued,
             Downloading,
-            -> Icons.Rounded.Downloading
+            -> CampfireIcons.Rounded.Downloading
 
-            Failed -> Icons.Rounded.WarningAmber
-            Completed -> Icons.Rounded.DownloadDone
+            Failed -> CampfireIcons.Rounded.Warning
+            Completed -> CampfireIcons.Rounded.DownloadDone
           },
           contentDescription = null,
           tint = when (download.state) {

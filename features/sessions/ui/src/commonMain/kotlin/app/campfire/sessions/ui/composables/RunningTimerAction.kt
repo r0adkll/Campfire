@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -23,7 +21,9 @@ import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.animated.AnimatedTimerPainter
+import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
@@ -55,7 +55,7 @@ fun RunningTimerAction(
           )
         } else {
           Icon(
-            Icons.Outlined.Timer,
+            CampfireIcons.Rounded.Timer,
             contentDescription = label,
           )
         }

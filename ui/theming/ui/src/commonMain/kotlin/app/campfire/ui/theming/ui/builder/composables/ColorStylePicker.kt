@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -18,6 +16,8 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.AutoAwesome
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 
@@ -63,7 +63,7 @@ internal fun ColorStylePicker(
         ) {
           if (version == SpecVersion.SPEC_2025) {
             Icon(
-              Icons.Rounded.AutoAwesome,
+              CampfireIcons.Rounded.AutoAwesome,
               contentDescription = null,
               modifier = Modifier.size(ToggleButtonDefaults.IconSize),
             )

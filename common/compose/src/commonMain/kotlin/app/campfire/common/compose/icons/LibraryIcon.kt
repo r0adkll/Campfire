@@ -3,27 +3,25 @@
 
 package app.campfire.common.compose.icons
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Book
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Headphones
-import androidx.compose.material.icons.rounded.HeadsetMic
-import androidx.compose.material.icons.rounded.Mic
-import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material.icons.rounded.PhotoAlbum
-import androidx.compose.material.icons.rounded.Podcasts
-import androidx.compose.material.icons.rounded.Power
-import androidx.compose.material.icons.rounded.Radio
-import androidx.compose.material.icons.rounded.Rocket
-import androidx.compose.material.icons.rounded.RssFeed
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.campfire.common.compose.icons.filled.Library
 import app.campfire.common.compose.icons.rounded.Book
 import app.campfire.common.compose.icons.rounded.BookShelf
 import app.campfire.common.compose.icons.rounded.Database
+import app.campfire.common.compose.icons.rounded.Favorite
+import app.campfire.common.compose.icons.rounded.Headphones
+import app.campfire.common.compose.icons.rounded.HeadsetMic
+import app.campfire.common.compose.icons.rounded.Mic
+import app.campfire.common.compose.icons.rounded.MusicNote
 import app.campfire.common.compose.icons.rounded.Newstand
+import app.campfire.common.compose.icons.rounded.PhotoAlbum
+import app.campfire.common.compose.icons.rounded.Podcasts
+import app.campfire.common.compose.icons.rounded.Power
+import app.campfire.common.compose.icons.rounded.Radio
+import app.campfire.common.compose.icons.rounded.Rocket
+import app.campfire.common.compose.icons.rounded.RssFeed
 import app.campfire.common.compose.icons.rounded.Shelves
+import app.campfire.common.compose.icons.rounded.Star
 import app.campfire.core.model.Library
 import app.campfire.core.model.Library.Icon.AudioBookShelf
 import app.campfire.core.model.Library.Icon.Book1
@@ -50,17 +48,17 @@ fun Library.Icon.asComposeIcon(): ImageVector = when (this) {
   Books1 -> CampfireIcons.Rounded.Newstand
   Books2 -> CampfireIcons.Rounded.Shelves
   Book1 -> CampfireIcons.Rounded.Book
-  Microphone1 -> Icons.Rounded.Mic
-  Microphone3 -> Icons.Rounded.HeadsetMic
-  Radio -> Icons.Rounded.Radio
-  Podcast -> Icons.Rounded.Podcasts
-  Rss -> Icons.Rounded.RssFeed
-  Headphones -> Icons.Rounded.Headphones
-  Music -> Icons.Rounded.MusicNote
-  FilePicture -> Icons.Rounded.PhotoAlbum
-  Rocket -> Icons.Rounded.Rocket
-  Power -> Icons.Rounded.Power
-  Star -> Icons.Rounded.Star
-  Heart -> Icons.Rounded.Favorite
+  Microphone1 -> CampfireIcons.Rounded.Mic
+  Microphone3 -> CampfireIcons.Rounded.HeadsetMic
+  Radio -> CampfireIcons.Rounded.Radio
+  Podcast -> CampfireIcons.Rounded.Podcasts
+  Rss -> CampfireIcons.Rounded.RssFeed
+  Headphones -> CampfireIcons.Rounded.Headphones
+  Music -> CampfireIcons.Rounded.MusicNote
+  FilePicture -> CampfireIcons.Rounded.PhotoAlbum
+  Rocket -> CampfireIcons.Rounded.Rocket
+  Power -> CampfireIcons.Rounded.Power
+  Star -> CampfireIcons.Rounded.Star
+  Heart -> CampfireIcons.Rounded.Favorite
   None -> Icons.Filled.Library
 }

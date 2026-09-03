@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.CalendarMonth
 import app.campfire.stats.ui.StatsUiModel.ListeningHeatmap
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.heatmap_legend_less
@@ -70,7 +70,7 @@ internal fun ListeningHeatmapCard(
     CardHeader(
       icon = {
         Icon(
-          Icons.Rounded.CalendarMonth,
+          CampfireIcons.Rounded.CalendarMonth,
           contentDescription = null,
         )
       },
