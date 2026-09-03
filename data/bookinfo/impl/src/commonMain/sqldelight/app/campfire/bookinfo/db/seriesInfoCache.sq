@@ -21,3 +21,7 @@ WHERE userId = :userId AND providerId = :providerId AND seriesName = :seriesName
 
 deleteAll:
 DELETE FROM seriesInfoCache;
+
+selectAllForUser:
+SELECT * FROM seriesInfoCache
+WHERE userId = :userId;

@@ -34,4 +34,10 @@ object ShelfIds {
   const val RecentSeries = "recent-series"
   const val Discover = "discover"
   const val NewestAuthors = "newest-authors"
+
+  /**
+   * Client-side synthetic shelf of cached upcoming releases — never returned
+   * by the server; the label resolves from resources at the UI layer.
+   */
+  const val UpcomingReleases = "upcoming-releases"
 }

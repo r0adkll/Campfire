@@ -14,6 +14,7 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.infra.updates.api)
         implementation(projects.infra.whatsNew.api)
+        implementation(projects.features.discover.api)
         implementation(projects.features.libraries.api)
         implementation(projects.features.playlists.api)
         implementation(projects.features.podcasts.api)

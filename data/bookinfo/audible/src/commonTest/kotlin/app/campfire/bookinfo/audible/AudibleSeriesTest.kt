@@ -9,6 +9,7 @@ import app.campfire.bookinfo.api.SeriesMatch
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -137,10 +138,11 @@ class AudibleSeriesTest {
         "The Way of Kings" to true,
         "Words of Radiance" to true,
         "Untitled Stormlight 6" to false,
+        "Edgedancer" to true,
       ),
     )
-    // The unnumbered companion is skipped; the merge keeps owned companions.
-    assertThat(entries.none { it.title == "Edgedancer" }).isTrue()
+    // The unnumbered companion is kept without a position, after the numbered books.
+    assertThat(entries.last().position).isNull()
     // The duplicate sequence keeps the most-rated edition, not the adaptation.
     assertThat(entries.first().providerBookId).isEqualTo("B0OWNED111")
     assertThat(entries.first().asins).isEqualTo(listOf("B0OWNED111"))
@@ -191,19 +193,85 @@ class AudibleSeriesTest {
   @Test
   fun `sequences parse defensively`() {
     val entries = buildSeriesEntries(
-      sequencesByAsin = mapOf("A1" to "1", "A2" to "1-3", "A3" to null, "A4" to "2.5"),
+      sequencesByAsin = mapOf("A1" to "1", "A2" to "1-3", "A3" to null, "A4" to "2.5", "A5" to ""),
       products = listOf(
         AudibleProduct(asin = "A1", title = "One"),
         AudibleProduct(asin = "A2", title = "Bundle"),
         AudibleProduct(asin = "A3", title = "Unnumbered"),
         AudibleProduct(asin = "A4", title = "Novella"),
+        AudibleProduct(asin = "A5", title = "Announced"),
       ),
       nowIsoDate = "2026-08-31",
     )
 
-    assertThat(entries.map { it.title }).isEqualTo(listOf("One", "Novella"))
-    assertThat(entries.map { it.position }).isEqualTo(listOf(1.0, 2.5))
+    // Range sequences (bundles) are skipped; blank/missing sequences are real
+    // unnumbered books and follow the numbered entries.
+    assertThat(entries.map { it.title }).isEqualTo(listOf("One", "Novella", "Unnumbered", "Announced"))
+    assertThat(entries.map { it.position }).isEqualTo(listOf(1.0, 2.5, null, null))
     // Products without a release date are treated as unreleased announcements.
     assertThat(entries.first().isReleased).isFalse()
+  }
+
+  @Test
+  fun `unnumbered duplicates keep the most rated recording`() {
+    val entries = buildSeriesEntries(
+      sequencesByAsin = mapOf("A1" to "", "A2" to ""),
+      products = listOf(
+        AudibleProduct(
+          asin = "A1",
+          title = "The First Confessor",
+          releaseDate = "2015-07-21",
+          rating = AudibleRating(overallDistribution = AudibleRatingDistribution(numRatings = 9000)),
+        ),
+        AudibleProduct(
+          asin = "A2",
+          title = "The First Confessor",
+          releaseDate = "2025-04-15",
+          rating = AudibleRating(overallDistribution = AudibleRatingDistribution(numRatings = 40)),
+        ),
+      ),
+      nowIsoDate = "2026-08-31",
+    )
+
+    assertThat(entries.map { it.providerBookId }).isEqualTo(listOf("A1"))
+  }
+
+  @Test
+  fun `placeholder release dates become undated announcements`() {
+    val entries = buildSeriesEntries(
+      sequencesByAsin = mapOf("A1" to "1", "A2" to "2", "A3" to "3"),
+      products = listOf(
+        AudibleProduct(asin = "A1", title = "Released", releaseDate = "2014-03-04"),
+        AudibleProduct(asin = "A2", title = "Real Preorder", releaseDate = "2027-11-05"),
+        AudibleProduct(asin = "A3", title = "Announced", releaseDate = "2200-01-01"),
+      ),
+      nowIsoDate = "2026-08-31",
+    )
+
+    assertThat(entries.map { it.title to it.releaseDate }).isEqualTo(
+      listOf(
+        "Released" to "2014-03-04",
+        "Real Preorder" to "2027-11-05",
+        "Announced" to null,
+      ),
+    )
+    // Losing the placeholder date must not make the book look released.
+    assertThat(entries.last().isReleased).isFalse()
+  }
+
+  @Test
+  fun `unavailable products are dropped so links resolve`() {
+    val entries = buildSeriesEntries(
+      sequencesByAsin = mapOf("A1" to "1", "A2" to "2", "A3" to "3", "A4" to ""),
+      products = listOf(
+        AudibleProduct(asin = "A1", title = "Live"),
+        AudibleProduct(asin = "A2", title = "Delisted", isListenable = false),
+        AudibleProduct(asin = "A3", title = "Suppressed", isPurchasabilitySuppressed = true),
+        AudibleProduct(asin = "A4", title = "Announced Preorder", isListenable = true),
+      ),
+      nowIsoDate = "2026-08-31",
+    )
+
+    assertThat(entries.map { it.title }).isEqualTo(listOf("Live", "Announced Preorder"))
   }
 }

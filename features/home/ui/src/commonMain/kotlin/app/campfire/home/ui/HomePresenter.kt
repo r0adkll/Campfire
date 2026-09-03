@@ -13,16 +13,21 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.UrlScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.ShelfEntity
+import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.map
+import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
@@ -50,6 +55,7 @@ class HomePresenter(
   private val homeRepository: HomeRepository,
   private val mediaProgressRepository: MediaProgressRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val analytics: Analytics,
 ) : NonPausablePresenter<HomeUiState> {
 
@@ -88,18 +94,23 @@ class HomePresenter(
         }
     }.collectAsState(persistentMapOf())
 
+    val upcomingReleases by remember {
+      bookInfoRegistry.observeCachedUpcoming()
+    }.collectAsState(emptyList())
+
     // Now combine both the shelves and entities into the final set of UiShelf to render
-    // in the UI.
+    // in the UI, weaving the locally sourced upcoming shelf into the server's feed.
     val feed by remember {
       derivedStateOf {
         domainFeed.map { shelves ->
-          shelves.map { shelf ->
+          val uiShelves = shelves.map { shelf ->
             UiShelf(
               shelf,
               shelfEntities[shelf.id]
                 ?: LoadState.Loading as LoadState<List<ShelfEntity>>,
             )
-          }.toPersistentList()
+          }
+          insertUpcomingShelf(uiShelves, upcomingReleases).toPersistentList()
         }
       }
     }
@@ -149,7 +160,52 @@ class HomePresenter(
           analytics.send(ContentSelected(ContentType.Series))
           navigator.goTo(SeriesDetailScreen(event.series.id, event.series.name))
         }
+        is HomeUiEvent.OpenUpcomingBook -> navigator.goTo(UrlScreen(event.url))
+        HomeUiEvent.OpenUpcomingScreen -> navigator.goTo(UpcomingScreen)
       }
     }
+  }
+}
+
+/**
+ * Weaves the cached upcoming shelf into the server's feed — after the
+ * server's Discover shelf when present, at the end otherwise. Only dated
+ * releases make the shelf (undated announcements live on the Upcoming screen,
+ * which [UiShelf.total] still counts in full for the view-all card); nothing
+ * is inserted when none qualify. The label stays empty here; the UI resolves
+ * it from resources by shelf id.
+ */
+private fun insertUpcomingShelf(
+  shelves: List<UiShelf<ShelfEntity>>,
+  upcoming: List<UpcomingRelease>,
+): List<UiShelf<ShelfEntity>> {
+  val dated = upcoming.filter { it.entry.releaseDate != null }
+  if (dated.isEmpty()) return shelves
+
+  val upcomingShelf = UiShelf<ShelfEntity>(
+    id = ShelfIds.UpcomingReleases,
+    label = "",
+    total = upcoming.size,
+    entities = LoadState.Loaded(
+      dated.map { release ->
+        ShelfEntity.UpcomingBookShelfEntry(
+          id = "${release.providerId.key}:${release.entry.providerBookId}",
+          title = release.entry.title,
+          seriesName = release.seriesName,
+          releaseDate = release.entry.releaseDate,
+          coverUrl = release.entry.coverUrl,
+          providerUrl = release.entry.providerUrl,
+        )
+      },
+    ),
+  )
+
+  val anchor = shelves.indexOfFirst {
+    it.id.startsWith(ShelfIds.Discover)
+  }
+  return if (anchor >= 0) {
+    shelves.toMutableList().apply { add(anchor + 1, upcomingShelf) }
+  } else {
+    shelves + upcomingShelf
   }
 }

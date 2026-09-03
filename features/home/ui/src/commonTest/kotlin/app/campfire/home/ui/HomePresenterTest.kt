@@ -7,6 +7,10 @@ import app.campfire.analytics.events.AnalyticEvent
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
+import app.campfire.bookinfo.api.ProviderId
+import app.campfire.bookinfo.api.ProviderSeriesEntry
+import app.campfire.bookinfo.api.UpcomingRelease
+import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesDetailScreen
@@ -14,9 +18,11 @@ import app.campfire.common.test.mediaProgress
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
+import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
 import app.campfire.home.api.FeedResponse
 import app.campfire.home.api.model.Shelf
+import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.test.FakeMediaProgressRepository
@@ -24,6 +30,7 @@ import assertk.Assert
 import assertk.all
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.hasSize
 import assertk.assertions.index
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
@@ -59,6 +66,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
 
@@ -88,6 +96,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
 
@@ -122,6 +131,115 @@ class HomePresenterTest {
   }
 
   @Test
+  fun present_CachedUpcoming_InsertsShelfAfterDiscover() = runTest {
+    val shelves = listOf(
+      shelf(ShelfIds.Discover, "Discover", 2),
+      shelf(ShelfIds.NewestAuthors, "Newest Authors", 2),
+    )
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val registry = FakeBookInfoRegistry()
+    registry.cachedUpcomingFlow.value = listOf(
+      UpcomingRelease(
+        seriesName = "The Stormlight Archive",
+        entry = ProviderSeriesEntry(
+          providerBookId = "B0UPCOMING",
+          position = 6.0,
+          title = "Untitled Stormlight 6",
+          releaseDate = "2031-12-01",
+          isReleased = false,
+          providerUrl = "https://www.audible.com/pd/B0UPCOMING",
+          coverUrl = null,
+        ),
+        providerId = ProviderId.Audible,
+      ),
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = registry,
+      analytics = analytics,
+    )
+
+    presenter.test {
+      awaitItem() // loading
+
+      assertThat(awaitItem()).homeFeed.isSuccess().all {
+        index(0).prop(UiShelf<*>::id).isEqualTo(ShelfIds.Discover)
+        index(1).isShelf(
+          id = ShelfIds.UpcomingReleases,
+          label = "",
+          total = 1,
+          entities = {
+            isInstanceOf<LoadState.Loaded<List<ShelfEntity>>>()
+              .prop(LoadState.Loaded<List<ShelfEntity>>::data)
+              .containsExactly(
+                ShelfEntity.UpcomingBookShelfEntry(
+                  id = "audible:B0UPCOMING",
+                  title = "Untitled Stormlight 6",
+                  seriesName = "The Stormlight Archive",
+                  releaseDate = "2031-12-01",
+                  coverUrl = null,
+                  providerUrl = "https://www.audible.com/pd/B0UPCOMING",
+                ),
+              )
+          },
+        )
+        index(2).prop(UiShelf<*>::id).isEqualTo(ShelfIds.NewestAuthors)
+      }
+    }
+  }
+
+  @Test
+  fun present_UndatedUpcomingOnly_InsertsNoShelf() = runTest {
+    val shelves = listOf(shelf(ShelfIds.Discover, "Discover", 2))
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val registry = FakeBookInfoRegistry()
+    registry.cachedUpcomingFlow.value = listOf(
+      UpcomingRelease(
+        seriesName = "The Stormlight Archive",
+        entry = ProviderSeriesEntry(
+          providerBookId = "B0TBA",
+          position = null,
+          title = "Untitled Announcement",
+          releaseDate = null,
+          isReleased = false,
+          providerUrl = null,
+          coverUrl = null,
+        ),
+        providerId = ProviderId.Audible,
+      ),
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = registry,
+      analytics = analytics,
+    )
+
+    presenter.test {
+      awaitItem() // loading
+
+      // Undated announcements stay on the Upcoming screen — no home shelf.
+      assertThat(awaitItem()).homeFeed.isSuccess().all {
+        index(0).prop(UiShelf<*>::id).isEqualTo(ShelfIds.Discover)
+        hasSize(1)
+      }
+    }
+  }
+
+  @Test
   fun present_ShelvesWithEntitiesState() = runTest {
     val shelves = listOf(
       shelf("one", "Shelf 1", 5),
@@ -145,6 +263,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
 
@@ -218,6 +337,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
 
@@ -265,6 +385,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
 
@@ -296,6 +417,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
     val libraryItemId = "test_library_item"
@@ -324,6 +446,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
     val authorId = "test_authorId"
@@ -352,6 +475,7 @@ class HomePresenterTest {
       homeRepository = repository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
       analytics = analytics,
     )
     val seriesId = "test_seriesId"

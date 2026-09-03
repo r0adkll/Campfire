@@ -15,6 +15,7 @@ import app.campfire.bookinfo.api.ProviderSeries
 import app.campfire.bookinfo.api.ProviderStatus
 import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.bookinfo.api.bestMatch
 import app.campfire.bookinfo.api.seriesMatch
 import app.campfire.bookinfo.store.BookInfoStore
@@ -199,6 +200,7 @@ class DefaultBookInfoRegistry(
   override suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean,
   ): SeriesFetchResult {
     val userId = userSession.userId ?: return SeriesFetchResult.Unavailable
     val match = seriesMatch(seriesName, ownedItems) ?: return SeriesFetchResult.Unavailable
@@ -211,16 +213,17 @@ class DefaultBookInfoRegistry(
     val key = SeriesInfoStore.Key(userId, status.provider.id, match)
     val cached = seriesStore.cached(key)
     val invalidLink = status.linkState is ProviderLinkState.Invalid
-    val refresh = !invalidLink &&
+    val fetch = !invalidLink &&
       (
-        cached == null ||
+        refresh ||
+          cached == null ||
           cached.isStale(
             nowMillis = Clock.System.now().toEpochMilliseconds(),
             currentMatchKey = key.match.cacheKey,
           )
         )
 
-    if (!refresh) {
+    if (!fetch) {
       // A rejected token means fetches would just 401; serve the cache or fail.
       return when (cached) {
         null -> SeriesFetchResult.Error
@@ -252,6 +255,29 @@ class DefaultBookInfoRegistry(
     isCompleted = series?.isCompleted,
     entries = mergeSeriesEntries(ownedItems, series, provider.id),
   )
+
+  override fun observeCachedUpcoming(): Flow<List<UpcomingRelease>> {
+    val userId = userSession.userId ?: return flowOf(emptyList())
+    return seriesStore.observeAllCached(userId).map { rows ->
+      rows
+        .flatMap { row ->
+          val providerId = ProviderId.entries.firstOrNull { it.key == row.providerKey }
+            ?: return@flatMap emptyList()
+          val series = row.info.series ?: return@flatMap emptyList()
+          series.entries
+            .filter { !it.isReleased }
+            .map { UpcomingRelease(row.seriesName, it, providerId) }
+        }
+        .distinctBy { it.providerId to it.entry.providerBookId }
+        .sortedWith(
+          compareBy(
+            { it.entry.releaseDate == null },
+            { it.entry.releaseDate },
+            { it.entry.title },
+          ),
+        )
+    }
+  }
 
   override suspend fun clearCache() {
     store.clearAll()

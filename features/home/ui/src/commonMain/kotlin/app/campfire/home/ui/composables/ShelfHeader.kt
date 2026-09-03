@@ -12,7 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.home.api.model.ShelfIds
 import app.campfire.home.ui.UiShelf
+import campfire.features.home.ui.generated.resources.Res
+import campfire.features.home.ui.generated.resources.upcoming_shelf_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ShelfHeader(
@@ -26,7 +30,13 @@ fun ShelfHeader(
     contentAlignment = Alignment.Center,
   ) {
     Text(
-      text = shelf.label,
+      // The synthetic upcoming shelf is built outside composition, so its
+      // label resolves here instead of from the server feed.
+      text = if (shelf.id == ShelfIds.UpcomingReleases) {
+        stringResource(Res.string.upcoming_shelf_title)
+      } else {
+        shelf.label
+      },
       style = MaterialTheme.typography.labelLarge,
     )
   }

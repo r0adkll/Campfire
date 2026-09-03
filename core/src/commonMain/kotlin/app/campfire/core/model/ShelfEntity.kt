@@ -22,4 +22,19 @@ sealed interface ShelfEntity {
 
     val transitionKey: String get() = libraryItem.id + recentEpisode.id
   }
+
+  /**
+   * Entry shape for the locally sourced upcoming-releases shelf: an
+   * announced-but-unreleased series book read from the book info cache rather
+   * than the server's personalized feed. [providerUrl] opens the provider's
+   * store page; null renders the card inert.
+   */
+  data class UpcomingBookShelfEntry(
+    val id: String,
+    val title: String,
+    val seriesName: String,
+    val releaseDate: String?,
+    val coverUrl: String?,
+    val providerUrl: String?,
+  ) : ShelfEntity
 }

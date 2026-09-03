@@ -38,7 +38,7 @@ private fun owned(
 
 private fun providerEntry(
   title: String,
-  position: Double,
+  position: Double?,
   isReleased: Boolean = true,
   isbns: List<String> = emptyList(),
   asins: List<String> = emptyList(),
@@ -128,6 +128,23 @@ class SeriesMergeTest {
 
     assertThat(entries.map { it.title() })
       .isEqualTo(listOf("The Way of Kings", "Words of Radiance", "Edgedancer"))
+  }
+
+  @Test
+  fun `unnumbered provider entries sort after everything numbered`() {
+    val entries = mergeSeriesEntries(
+      ownedItems = listOf(owned("Words of Radiance", isbn = "9780765326379")),
+      series = series(
+        providerEntry("Newly Announced", null, isReleased = false),
+        providerEntry("Words of Radiance", 2.0, isbns = listOf("9780765326379")),
+        providerEntry("The Way of Kings", 1.0),
+      ),
+      providerId = ProviderId.Audible,
+    )
+
+    assertThat(entries.map { it.title() })
+      .isEqualTo(listOf("The Way of Kings", "Words of Radiance", "Newly Announced"))
+    assertThat(entries.last()).isInstanceOf<SeriesEntry.Upcoming>()
   }
 
   @Test

@@ -180,21 +180,23 @@ class StoreSeriesRepository(
       .build(),
   ).build()
 
-  @OptIn(ExperimentalCoroutinesApi::class)
-  override fun observeAllSeries(): Flow<List<Series>> {
+  override fun observeAllSeries(refresh: Boolean): Flow<List<Series>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         val key = SeriesStore.Key(user.id, user.selectedLibraryId)
-        seriesStore.stream(StoreReadRequest.cached(key, refresh = true))
+        seriesStore.stream(StoreReadRequest.cached(key, refresh = refresh))
           .debugLogging("Series")
           .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
           .mapNotNull { response ->
             response.dataOrNull()?.let { series ->
-              // If the response is empty, but was from the SoT, then lets just return null and wait
-              // for the network request.
-              val isEmptyNotAllowedForOrigin =
-                response.origin is StoreReadResponseOrigin.SourceOfTruth ||
-                  response.origin is StoreReadResponseOrigin.Fetcher
+              // While a refresh is in flight an empty local listing just means
+              // the network hasn't landed yet — hold for it. Without a refresh
+              // the empty listing is the answer.
+              val isEmptyNotAllowedForOrigin = refresh &&
+                (
+                  response.origin is StoreReadResponseOrigin.SourceOfTruth ||
+                    response.origin is StoreReadResponseOrigin.Fetcher
+                  )
               if (series.isEmpty() && isEmptyNotAllowedForOrigin) {
                 return@mapNotNull null
               }

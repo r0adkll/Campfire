@@ -98,6 +98,7 @@ fun HomeScreen(
             state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
           },
           contentPadding = paddingValues,
+          onViewAllUpcomingClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
           onItemClick = { shelf, item ->
             when (item) {
               is LibraryItem -> state.eventSink(
@@ -106,6 +107,10 @@ fun HomeScreen(
 
               is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
               is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+
+              is ShelfEntity.UpcomingBookShelfEntry -> item.providerUrl?.let { url ->
+                state.eventSink(HomeUiEvent.OpenUpcomingBook(url))
+              }
 
               is ShelfEntity.EpisodeShelfEntry -> state.eventSink(
                 HomeUiEvent.OpenLibraryItemWithEpisode(
@@ -129,6 +134,7 @@ private fun LoadedState(
   offlineStatus: (LibraryItemId) -> OfflineStatus,
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (UiShelf<*>, Any) -> Unit,
+  onViewAllUpcomingClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -143,6 +149,7 @@ private fun LoadedState(
       ShelfListItem(
         shelf = shelf,
         onItemClick = { onItemClick(shelf, it) },
+        onViewAllUpcomingClick = onViewAllUpcomingClick,
         offlineStatus = offlineStatus,
         progressStatus = progressStatus,
       )

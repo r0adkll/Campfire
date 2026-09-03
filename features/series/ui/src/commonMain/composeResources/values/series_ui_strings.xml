@@ -9,4 +9,8 @@
   </plurals>
 
   <string name="action_back">Back</string>
+
+  <string name="missing_section_title">Missing from your library</string>
+  <string name="missing_book_position">Book %1$s</string>
+  <string name="cd_book_cover">%1$s cover</string>
 </resources>

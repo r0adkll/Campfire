@@ -14,7 +14,14 @@ import kotlinx.coroutines.flow.Flow
 
 interface SeriesRepository {
 
-  fun observeAllSeries(): Flow<List<Series>>
+  /**
+   * The full series listing (with owned books hydrated). With [refresh] the
+   * listing is also refetched from the server — note the resulting cache
+   * rewrite invalidates the series list screen's pagination, so bulk
+   * consumers like the upcoming scan should pass false to read the local
+   * cache without side effects (an empty listing is then a valid emission).
+   */
+  fun observeAllSeries(refresh: Boolean = true): Flow<List<Series>>
 
   fun createSeriesPager(
     user: User,

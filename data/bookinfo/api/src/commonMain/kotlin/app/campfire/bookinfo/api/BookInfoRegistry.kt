@@ -51,11 +51,26 @@ interface BookInfoRegistry {
    * when fresh and refreshes otherwise. Unlike [observeSeriesEntries] the
    * result distinguishes "the provider has no listing for this series" from
    * "the provider couldn't be asked".
+   *
+   * Pass [refresh] to bypass the cache TTL and refetch from the provider — the
+   * per-series equivalent of clearing the series cache, except a failed fetch
+   * keeps the cached row for later reads. A provider link that's known-invalid
+   * still serves the cache (a refetch would only 401).
    */
   suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean = false,
   ): SeriesFetchResult
+
+  /**
+   * Every announced-but-unreleased book across the user's locally cached
+   * series listings, sorted by release date (undated announcements last).
+   * Purely a cache read — nothing is fetched — so it reflects whatever the
+   * last scans stored and updates live as new listings land. Emits an empty
+   * list when nothing is cached.
+   */
+  fun observeCachedUpcoming(): Flow<List<UpcomingRelease>>
 
   /**
    * Drops all locally cached provider data (for every provider and user).
@@ -63,6 +78,13 @@ interface BookInfoRegistry {
    */
   suspend fun clearCache()
 }
+
+/** An unreleased series entry read back from the local series cache. */
+data class UpcomingRelease(
+  val seriesName: String,
+  val entry: ProviderSeriesEntry,
+  val providerId: ProviderId,
+)
 
 sealed interface SeriesFetchResult {
   /**

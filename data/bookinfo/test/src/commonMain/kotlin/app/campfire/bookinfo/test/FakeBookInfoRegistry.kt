@@ -9,10 +9,12 @@ import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderStatus
 import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.SeriesInfoState
+import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeBookInfoRegistry : BookInfoRegistry {
 
@@ -39,8 +41,14 @@ class FakeBookInfoRegistry : BookInfoRegistry {
     return seriesEntriesFlow
   }
 
+  data class FetchSeriesRequest(
+    val seriesName: String,
+    val ownedItems: List<LibraryItem>,
+    val refresh: Boolean,
+  )
+
   val fetchSeriesResults = mutableMapOf<String, SeriesFetchResult>()
-  val fetchSeriesRequests = mutableListOf<Pair<String, List<LibraryItem>>>()
+  val fetchSeriesRequests = mutableListOf<FetchSeriesRequest>()
 
   /** Optional suspension point so tests can hold fetches mid-flight. */
   var fetchSeriesGate: (suspend () -> Unit)? = null
@@ -48,11 +56,15 @@ class FakeBookInfoRegistry : BookInfoRegistry {
   override suspend fun fetchSeriesEntries(
     seriesName: String,
     ownedItems: List<LibraryItem>,
+    refresh: Boolean,
   ): SeriesFetchResult {
-    fetchSeriesRequests += seriesName to ownedItems
+    fetchSeriesRequests += FetchSeriesRequest(seriesName, ownedItems, refresh)
     fetchSeriesGate?.invoke()
     return fetchSeriesResults[seriesName] ?: SeriesFetchResult.Unavailable
   }
+
+  val cachedUpcomingFlow = MutableStateFlow<List<UpcomingRelease>>(emptyList())
+  override fun observeCachedUpcoming(): Flow<List<UpcomingRelease>> = cachedUpcomingFlow
 
   var clearCacheCount = 0
   override suspend fun clearCache() {

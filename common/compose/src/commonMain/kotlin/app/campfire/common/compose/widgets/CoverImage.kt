@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Author
 import campfire.common.compose.generated.resources.Res
+import campfire.common.compose.generated.resources.placeholder_book
 import campfire.common.compose.generated.resources.placeholder_person
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
@@ -43,6 +44,14 @@ import org.jetbrains.compose.resources.painterResource
 val CoverImageSize = 256.dp
 val CoverImageCornerRadius = 32.dp
 val CoverImageShape = RoundedCornerShape(CoverImageCornerRadius)
+
+/**
+ * The standard book cover placeholder for covers that are missing or fail to
+ * load — the generated resource class is internal to this module, so consumers
+ * reach the drawable through this accessor.
+ */
+@Composable
+fun placeholderBookPainter(): Painter = painterResource(Res.drawable.placeholder_book)
 
 @Composable
 fun CoverImage(

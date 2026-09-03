@@ -121,6 +121,7 @@ graph LR
     :features:sessions["sessions"]
     :features:series["series"]
     :features:collections["collections"]
+    :features:discover["discover"]
     :features:stats["stats"]
     :features:user["user"]
     :features:home["home"]
@@ -139,6 +140,7 @@ graph LR
     :features:filters["filters"]
     :features:playlists["playlists"]
     :features:podcasts["podcasts"]
+    :features:discover["discover"]
     :features:auth["auth"]
     :features:search["search"]
     :features:podcasts["podcasts"]
@@ -188,6 +190,15 @@ graph LR
       :features:user:impl["impl"]
       :features:user:test["test"]
       :features:user:test["test"]
+    end
+    subgraph :discover
+      :features:discover:ui["ui"]
+      :features:discover:api["api"]
+      :features:discover:impl["impl"]
+      :features:discover:api["api"]
+      :features:discover:api["api"]
+      :features:discover:api["api"]
+      :features:discover:impl["impl"]
     end
     subgraph :podcasts
       :features:podcasts:impl["impl"]
@@ -315,6 +326,8 @@ graph LR
   :features:sessions:impl --> :features:libraries:api
   :features:sessions:impl --> :features:user:api
   :features:sessions:impl --> :
+  :features:discover:ui --> :features:discover:api
+  :features:discover:ui --> :
   :features:user:impl --> :features:user:api
   :features:user:impl --> :features:settings:api
   :features:user:impl --> :features:user:test
@@ -394,6 +407,10 @@ graph LR
   :features:sessions:test --> :
   :features:settings:api --> :
   :features:collections --> :
+  :features:discover:impl --> :features:discover:api
+  :features:discover:impl --> :features:series:api
+  :features:discover:impl --> :features:series:test
+  :features:discover:impl --> :
   :features:series:test --> :features:series:api
   :features:series:test --> :
   :app:baselineprofile --> :
@@ -413,6 +430,7 @@ graph LR
   :features:filters:ui --> :features:filters:api
   :features:filters:ui --> :features:filters:test
   :features:filters:ui --> :
+  :features:discover --> :
   :features:stats --> :
   :features:playlists:impl --> :features:playlists:api
   :features:playlists:impl --> :features:user:api
@@ -432,6 +450,7 @@ graph LR
   :features:sessions:ui --> :features:settings:test
   :features:sessions:ui --> :features:user:test
   :features:sessions:ui --> :
+  :features:discover:api --> :
   :app:desktop --> :
   :app:ios --> :
   :features:settings:impl --> :features:settings:api
@@ -504,6 +523,9 @@ graph LR
   : --> :features:podcasts
   : --> :features:podcasts:api
   : --> :features:podcasts:impl
+  : --> :features:discover
+  : --> :features:discover:api
+  : --> :features:discover:impl
   : --> :scripts
   : --> :scripts:app
   : --> :thirdparty
