@@ -18,10 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
@@ -58,6 +54,8 @@ import app.campfire.auth.ui.login.settings.NetworkSettingsResult
 import app.campfire.auth.ui.login.settings.showNetworkSettingsBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Add
+import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.IdBadge
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -131,7 +129,7 @@ private fun LoginContent(
                   IconButton(
                     onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
                   ) {
-                    Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                    Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
                   }
                 }
               }
@@ -234,7 +232,7 @@ internal fun LoginUiContent(
       ) {
         if (!state.isAuthenticating) {
           Icon(
-            Icons.Rounded.Add,
+            CampfireIcons.Rounded.Add,
             contentDescription = null,
           )
           Spacer(Modifier.size(ButtonDefaults.IconSpacing))

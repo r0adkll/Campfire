@@ -11,11 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FilterAlt
-import androidx.compose.material.icons.rounded.FilterAltOff
-import androidx.compose.material.icons.rounded.Grid3x3
-import androidx.compose.material.icons.rounded.Grid4x4
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -29,6 +24,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.FilterAlt
+import app.campfire.common.compose.icons.rounded.FilterAltOff
+import app.campfire.common.compose.icons.rounded.Grid3X3
+import app.campfire.common.compose.icons.rounded.Grid4X4
 import app.campfire.common.compose.icons.rounded.Lists
 import app.campfire.common.compose.icons.rounded.SortAlphaAsc
 import app.campfire.common.compose.icons.rounded.SortAlphaDesc
@@ -81,9 +81,9 @@ fun FilterBar(
       ) {
         Icon(
           when (itemDisplayState) {
-            ItemDisplayState.List -> Icons.Rounded.Lists
-            ItemDisplayState.Grid -> Icons.Rounded.Grid3x3
-            ItemDisplayState.GridDense -> Icons.Rounded.Grid4x4
+            ItemDisplayState.List -> CampfireIcons.Rounded.Lists
+            ItemDisplayState.Grid -> CampfireIcons.Rounded.Grid3X3
+            ItemDisplayState.GridDense -> CampfireIcons.Rounded.Grid4X4
           },
           contentDescription = null,
         )
@@ -118,7 +118,7 @@ fun FilterBar(
             onClick = onFilterClick,
           ) {
             Icon(
-              if (isFiltered) Icons.Rounded.FilterAlt else Icons.Rounded.FilterAltOff,
+              if (isFiltered) CampfireIcons.Rounded.FilterAlt else CampfireIcons.Rounded.FilterAltOff,
               contentDescription = filterLabel,
               tint = if (isFiltered) MaterialTheme.colorScheme.primary else LocalContentColor.current,
             )
@@ -160,16 +160,16 @@ enum class SortIcon(
   private val desc: ImageVector,
 ) {
   Normal(
-    Icons.Rounded.SortAsc,
-    Icons.Rounded.SortDesc,
+    CampfireIcons.Rounded.SortAsc,
+    CampfireIcons.Rounded.SortDesc,
   ),
   Numeric(
-    Icons.Rounded.SortNumericDesc,
-    Icons.Rounded.SortNumericAsc,
+    CampfireIcons.Rounded.SortNumericDesc,
+    CampfireIcons.Rounded.SortNumericAsc,
   ),
   Alphabetical(
-    Icons.Rounded.SortAlphaAsc,
-    Icons.Rounded.SortAlphaDesc,
+    CampfireIcons.Rounded.SortAlphaAsc,
+    CampfireIcons.Rounded.SortAlphaDesc,
   ),
   ;
 

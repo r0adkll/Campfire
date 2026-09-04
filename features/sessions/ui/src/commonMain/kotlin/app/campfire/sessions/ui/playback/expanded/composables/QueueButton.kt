@@ -6,8 +6,6 @@ package app.campfire.sessions.ui.playback.expanded.composables
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -17,6 +15,8 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.QueueMusic
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_queue
 import org.jetbrains.compose.resources.stringResource
@@ -42,7 +42,7 @@ internal fun QueueButton(
       .heightIn(buttonSize),
   ) {
     Icon(
-      Icons.AutoMirrored.Rounded.QueueMusic,
+      CampfireIcons.Rounded.QueueMusic,
       contentDescription = null,
       modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
     )

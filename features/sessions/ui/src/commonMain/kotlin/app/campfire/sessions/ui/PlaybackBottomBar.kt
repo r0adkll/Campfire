@@ -29,14 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.List
-import androidx.compose.material.icons.outlined.Timer
-import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -77,6 +69,13 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.icons.rounded.Equalizer
+import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
+import app.campfire.common.compose.icons.rounded.List
+import app.campfire.common.compose.icons.rounded.Pause
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.SkipNext
+import app.campfire.common.compose.icons.rounded.SkipPrevious
+import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
@@ -419,7 +418,7 @@ private fun PlaybackActions(
         onClick = onSkipPreviousClick,
       ) {
         Icon(
-          Icons.Rounded.SkipPrevious,
+          CampfireIcons.Rounded.SkipPrevious,
           modifier = Modifier.size(actionSize),
           contentDescription = skipPreviousLabel,
         )
@@ -463,11 +462,11 @@ private fun PlaybackActions(
         if (state != AudioPlayer.State.Buffering) {
           Icon(
             if (isInteracting) {
-              Icons.Rounded.EditAudio
+              CampfireIcons.Rounded.EditAudio
             } else if (state == AudioPlayer.State.Playing) {
-              Icons.Rounded.Pause
+              CampfireIcons.Rounded.Pause
             } else {
-              Icons.Rounded.PlayArrow
+              CampfireIcons.Rounded.PlayArrow
             },
             modifier = Modifier
               .size(actionSize)
@@ -500,7 +499,7 @@ private fun PlaybackActions(
         onClick = onSkipNextClick,
       ) {
         Icon(
-          Icons.Rounded.SkipNext,
+          CampfireIcons.Rounded.SkipNext,
           modifier = Modifier.size(actionSize),
           contentDescription = skipNextLabel,
         )
@@ -594,7 +593,7 @@ private fun PlaybackSeekBar(
       visible = isAccelerated,
     ) {
       Icon(
-        Icons.Rounded.KeyboardDoubleArrowRight,
+        CampfireIcons.Rounded.KeyboardDoubleArrowRight,
         contentDescription = null,
         modifier = Modifier.size(16.dp),
         tint = MaterialTheme.colorScheme.secondary,
@@ -643,7 +642,7 @@ private fun ActionRow(
       IconButton(
         onClick = onBookmarkAddClick,
       ) {
-        Icon(Icons.Rounded.Bookmarks, contentDescription = bookmarkLabel)
+        Icon(CampfireIcons.Rounded.Bookmarks, contentDescription = bookmarkLabel)
       }
     }
 
@@ -670,7 +669,7 @@ private fun ActionRow(
           IconButton(
             onClick = onTimerClick,
           ) {
-            Icon(Icons.Outlined.Timer, contentDescription = timerLabel)
+            Icon(CampfireIcons.Rounded.Timer, contentDescription = timerLabel)
           }
         }
       } else {
@@ -693,7 +692,7 @@ private fun ActionRow(
               modifier = Modifier.size(40.dp),
               contentAlignment = Alignment.Center,
             ) {
-              Icon(Icons.Outlined.Timer, contentDescription = null)
+              Icon(CampfireIcons.Rounded.Timer, contentDescription = null)
             }
             RunningTimerText(
               runningTimer = timer,
@@ -727,7 +726,7 @@ private fun ActionRow(
       IconButton(
         onClick = onChapterListClick,
       ) {
-        Icon(Icons.AutoMirrored.Rounded.List, contentDescription = chaptersLabel)
+        Icon(CampfireIcons.Rounded.List, contentDescription = chaptersLabel)
       }
     }
   }

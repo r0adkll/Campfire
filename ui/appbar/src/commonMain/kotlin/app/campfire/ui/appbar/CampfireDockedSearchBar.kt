@@ -17,9 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExpandedDockedSearchBar
 import androidx.compose.material3.Icon
@@ -34,6 +31,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.search.api.ui.SearchComponent
 import campfire.ui.appbar.generated.resources.Res
@@ -79,7 +79,7 @@ private fun CampfireDockedSearchBar(
         // Do nothing
       },
       leadingIcon = {
-        Icon(Icons.Rounded.Search, contentDescription = null)
+        Icon(CampfireIcons.Rounded.Search, contentDescription = null)
       },
       trailingIcon = {
         AnimatedVisibility(
@@ -96,7 +96,7 @@ private fun CampfireDockedSearchBar(
                 scope.launch { searchBarState.animateToCollapsed() }
               },
             ) {
-              Icon(Icons.Rounded.Clear, contentDescription = clearLabel)
+              Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
             }
           }
         }

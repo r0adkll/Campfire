@@ -19,12 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.LightMode
-import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -58,6 +52,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.LightMode
+import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.LocalUseDarkColors
@@ -107,7 +107,7 @@ fun ThemeBuilder(
               IconButton(
                 onClick = { state.eventSink(ThemeBuilderUiEvent.Back) },
               ) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
           },
@@ -122,7 +122,7 @@ fun ThemeBuilder(
                   },
                 ) {
                   Icon(
-                    Icons.Rounded.Delete,
+                    CampfireIcons.Rounded.Delete,
                     contentDescription = deleteLabel,
                     tint = MaterialTheme.colorScheme.error,
                   )
@@ -160,7 +160,7 @@ fun ThemeBuilder(
               onCheckedChange = { isDarkMode = it },
               thumbContent = {
                 Icon(
-                  if (!isDarkMode) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+                  if (!isDarkMode) CampfireIcons.Rounded.LightMode else CampfireIcons.Rounded.DarkMode,
                   contentDescription = null,
                   modifier = Modifier.size(SwitchDefaults.IconSize),
                   tint = if (!isDarkMode) {
@@ -191,7 +191,7 @@ fun ThemeBuilder(
           SmallExtendedFloatingActionButton(
             expanded = expanded,
             text = { Text("Save") },
-            icon = { Icon(Icons.Rounded.Save, contentDescription = "Save theme") },
+            icon = { Icon(CampfireIcons.Rounded.Save, contentDescription = "Save theme") },
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             onClick = {

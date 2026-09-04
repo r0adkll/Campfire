@@ -6,8 +6,6 @@ package app.campfire.common.compose.widgets
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -24,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.alpha
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Check
 import campfire.common.compose.generated.resources.Res
 import campfire.common.compose.generated.resources.action_open_menu
 import org.jetbrains.compose.resources.stringResource
@@ -72,7 +72,7 @@ fun <T> DropdownIconButton(
           trailingIcon = if (isSelected) {
             {
               Icon(
-                Icons.Rounded.Check,
+                CampfireIcons.Rounded.Check,
                 contentDescription = null,
               )
             }

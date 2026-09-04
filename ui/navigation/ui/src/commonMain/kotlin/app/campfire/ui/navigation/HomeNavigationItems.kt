@@ -3,8 +3,8 @@
 
 package app.campfire.ui.navigation
 
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.Author
 import app.campfire.common.compose.icons.filled.Home
 import app.campfire.common.compose.icons.filled.Library
@@ -51,36 +51,36 @@ internal fun buildBookLibraryNavigationItems(): List<HomeNavigationItem> {
       screen = HomeScreen,
       label = stringResource(Res.string.nav_home_label),
       contentDescription = stringResource(Res.string.nav_home_content_description),
-      iconImageVector = Icons.Outlined.Home,
-      selectedImageVector = Icons.Filled.Home,
+      iconImageVector = CampfireIcons.Outline.Home,
+      selectedImageVector = CampfireIcons.Filled.Home,
     ),
     HomeNavigationItem(
       screen = LibraryScreen(),
       label = stringResource(Res.string.nav_library_label),
       contentDescription = stringResource(Res.string.nav_library_content_description),
-      iconImageVector = Icons.Outlined.Library,
-      selectedImageVector = Icons.Filled.Library,
+      iconImageVector = CampfireIcons.Outline.Library,
+      selectedImageVector = CampfireIcons.Filled.Library,
     ),
     HomeNavigationItem(
       screen = SeriesScreen,
       label = stringResource(Res.string.nav_series_label),
       contentDescription = stringResource(Res.string.nav_series_content_description),
-      iconImageVector = Icons.Outlined.Series,
-      selectedImageVector = Icons.Filled.Series,
+      iconImageVector = CampfireIcons.Outline.Series,
+      selectedImageVector = CampfireIcons.Filled.Series,
     ),
     HomeNavigationItem(
       screen = AuthorsScreen,
       label = stringResource(Res.string.nav_authors_label),
       contentDescription = stringResource(Res.string.nav_authors_content_description),
-      iconImageVector = Icons.Outlined.Author,
-      selectedImageVector = Icons.Filled.Author,
+      iconImageVector = CampfireIcons.Outline.Author,
+      selectedImageVector = CampfireIcons.Filled.Author,
     ),
     HomeNavigationItem(
       screen = PlaylistsScreen,
       label = stringResource(Res.string.nav_playlists_label),
       contentDescription = stringResource(Res.string.nav_playlists_content_description),
-      iconImageVector = Icons.Outlined.Playlists,
-      selectedImageVector = Icons.Filled.Playlists,
+      iconImageVector = CampfireIcons.Outline.Playlists,
+      selectedImageVector = CampfireIcons.Filled.Playlists,
     ),
   )
 }
@@ -94,37 +94,37 @@ internal fun buildPodcastLibraryNavigationItems(
       screen = HomeScreen,
       label = stringResource(Res.string.nav_home_label),
       contentDescription = stringResource(Res.string.nav_home_content_description),
-      iconImageVector = Icons.Outlined.Home,
-      selectedImageVector = Icons.Filled.Home,
+      iconImageVector = CampfireIcons.Outline.Home,
+      selectedImageVector = CampfireIcons.Filled.Home,
     ),
     HomeNavigationItem(
       screen = LatestEpisodesScreen,
       label = stringResource(Res.string.nav_latest_label),
       contentDescription = stringResource(Res.string.nav_latest_content_description),
-      iconImageVector = Icons.Outlined.FormatListBulleted,
-      selectedImageVector = Icons.Outlined.FormatListBulleted,
+      iconImageVector = CampfireIcons.Outline.FormatListBulleted,
+      selectedImageVector = CampfireIcons.Outline.FormatListBulleted,
     ),
     HomeNavigationItem(
       screen = LibraryScreen(),
       label = stringResource(Res.string.nav_shows_label),
       contentDescription = stringResource(Res.string.nav_shows_content_description),
-      iconImageVector = Icons.Outlined.Podcasts,
-      selectedImageVector = Icons.Outlined.Podcasts,
+      iconImageVector = CampfireIcons.Outline.Podcasts,
+      selectedImageVector = CampfireIcons.Outline.Podcasts,
     ),
     HomeNavigationItem(
       screen = PodcastDownloadQueueScreen,
       label = stringResource(Res.string.nav_queue_label),
       contentDescription = stringResource(Res.string.nav_queue_content_description),
-      iconImageVector = Icons.Outlined.Download,
-      selectedImageVector = Icons.Outlined.Download,
+      iconImageVector = CampfireIcons.Outline.Download,
+      selectedImageVector = CampfireIcons.Outline.Download,
       badgeCount = downloadQueueCount,
     ),
     HomeNavigationItem(
       screen = PlaylistsScreen,
       label = stringResource(Res.string.nav_playlists_label),
       contentDescription = stringResource(Res.string.nav_playlists_content_description),
-      iconImageVector = Icons.Outlined.Playlists,
-      selectedImageVector = Icons.Filled.Playlists,
+      iconImageVector = CampfireIcons.Outline.Playlists,
+      selectedImageVector = CampfireIcons.Filled.Playlists,
     ),
   )
 }

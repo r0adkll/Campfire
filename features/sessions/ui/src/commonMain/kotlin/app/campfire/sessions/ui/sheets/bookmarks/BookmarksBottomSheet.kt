@@ -23,13 +23,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.BookmarkAdd
-import androidx.compose.material.icons.rounded.DeleteForever
-import androidx.compose.material.icons.rounded.DeleteOutline
-import androidx.compose.material.icons.rounded.Forward5
-import androidx.compose.material.icons.rounded.Replay
-import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,8 +64,15 @@ import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmark
+import app.campfire.common.compose.icons.rounded.BookmarkAdd
 import app.campfire.common.compose.icons.rounded.BookmarkStar
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.DeleteForever
+import app.campfire.common.compose.icons.rounded.Forward5
+import app.campfire.common.compose.icons.rounded.Replay
+import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.widgets.FilledTonalIconButton
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.SizedIcon
@@ -328,7 +328,7 @@ private fun BookmarkListItem(
         },
         icon = {
           SizedIcon(
-            Icons.Rounded.DeleteForever,
+            CampfireIcons.Rounded.DeleteForever,
             contentDescription = null,
           )
         },
@@ -350,7 +350,7 @@ private fun BookmarkListItemContent(
     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     leadingContent = {
       Icon(
-        Icons.Rounded.Bookmark,
+        CampfireIcons.Rounded.Bookmark,
         contentDescription = null,
       )
     },
@@ -360,7 +360,7 @@ private fun BookmarkListItemContent(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Icon(
-          Icons.Rounded.Schedule,
+          CampfireIcons.Rounded.Schedule,
           contentDescription = null,
           modifier = Modifier.size(18.dp),
         )
@@ -375,7 +375,7 @@ private fun BookmarkListItemContent(
           onClick = onDeleteClick,
         ) {
           Icon(
-            Icons.Rounded.DeleteOutline,
+            CampfireIcons.Rounded.Delete,
             contentDescription = deleteLabel,
             tint = MaterialTheme.colorScheme.error,
           )
@@ -397,7 +397,7 @@ private fun CreateNewListItem(
     contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
   ) {
     Icon(
-      Icons.Rounded.BookmarkAdd,
+      CampfireIcons.Rounded.BookmarkAdd,
       contentDescription = null,
       modifier = Modifier.size(ButtonDefaults.IconSize),
     )
@@ -430,7 +430,7 @@ private fun CreateNewDialog(
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
           Icon(
-            Icons.Rounded.BookmarkStar,
+            CampfireIcons.Rounded.BookmarkStar,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary,
           )
@@ -466,7 +466,7 @@ private fun CreateNewDialog(
                 ),
               ) {
                 Icon(
-                  Icons.Rounded.Replay,
+                  CampfireIcons.Rounded.Replay,
                   contentDescription = rewindLabel,
                 )
               }
@@ -490,7 +490,7 @@ private fun CreateNewDialog(
                 ),
               ) {
                 Icon(
-                  Icons.Rounded.Forward5,
+                  CampfireIcons.Rounded.Forward5,
                   contentDescription = forwardLabel,
                 )
               }

@@ -17,10 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material3.AppBarWithSearch
 import androidx.compose.material3.ExpandedFullScreenSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,6 +42,10 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Close
+import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
@@ -131,14 +131,14 @@ private fun CampfireSearchAppBar(
                     onClick = { scope.launch { searchBarState.animateToCollapsed() } },
                   ) {
                     Icon(
-                      Icons.AutoMirrored.Default.ArrowBack,
+                      CampfireIcons.Rounded.ArrowBack,
                       contentDescription = backLabel,
                     )
                   }
                 }
               }
               SearchBarValue.Collapsed -> {
-                Icon(Icons.Default.Search, contentDescription = null)
+                Icon(CampfireIcons.Rounded.Search, contentDescription = null)
               }
             }
           }
@@ -155,7 +155,7 @@ private fun CampfireSearchAppBar(
                   scope.launch { searchBarState.animateToCollapsed() }
                 },
               ) {
-                Icon(Icons.Rounded.Clear, contentDescription = clearLabel)
+                Icon(CampfireIcons.Rounded.Close, contentDescription = clearLabel)
               }
             }
           }

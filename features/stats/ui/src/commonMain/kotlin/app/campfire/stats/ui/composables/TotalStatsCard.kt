@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CalendarClock
 import app.campfire.stats.ui.StatsUiModel
 import kotlin.time.Clock
@@ -62,7 +62,7 @@ internal fun TotalStatsCard(
         ),
     ) {
       Icon(
-        Icons.Rounded.CalendarClock,
+        CampfireIcons.Rounded.CalendarClock,
         contentDescription = null,
         modifier = Modifier.padding(16.dp),
         tint = MaterialTheme.colorScheme.primary,

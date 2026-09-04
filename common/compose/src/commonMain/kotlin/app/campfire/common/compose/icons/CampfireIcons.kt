@@ -9,4 +9,6 @@ object CampfireIcons {
   object Theme
 
   object Filled
+
+  object Outline
 }

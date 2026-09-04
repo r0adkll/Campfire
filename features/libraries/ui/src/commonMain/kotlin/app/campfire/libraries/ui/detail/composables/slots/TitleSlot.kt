@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Schedule
-import androidx.compose.material.icons.outlined.Sensors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,6 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Schedule
+import app.campfire.common.compose.icons.rounded.Sensors
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.core.model.LibraryItem
@@ -98,7 +98,7 @@ class TitleSlot(
         verticalAlignment = Alignment.CenterVertically,
       ) {
         Icon(
-          Icons.Outlined.Schedule,
+          CampfireIcons.Rounded.Schedule,
           contentDescription = null,
           modifier = Modifier.size(18.dp),
         )
@@ -111,7 +111,7 @@ class TitleSlot(
         if (showHlsBadge) {
           Spacer(Modifier.width(12.dp))
           Icon(
-            Icons.Outlined.Sensors,
+            CampfireIcons.Rounded.Sensors,
             contentDescription = null,
             modifier = Modifier.size(18.dp),
           )

@@ -20,9 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -50,7 +47,9 @@ import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
 import app.campfire.common.compose.analytics.Impression
 import app.campfire.common.compose.di.rememberComponent
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.PersonAdd
+import app.campfire.common.compose.icons.rounded.Logout
 import app.campfire.common.compose.widgets.CampsiteIcon
 import app.campfire.common.compose.widgets.LoadingState
 import app.campfire.core.coroutines.LoadState
@@ -313,7 +312,7 @@ private fun AccountListItem(
         contentPadding = ButtonDefaults.contentPaddingFor(size),
       ) {
         Icon(
-          Icons.AutoMirrored.Rounded.Logout,
+          CampfireIcons.Rounded.Logout,
           contentDescription = null,
           modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
         )
@@ -341,7 +340,7 @@ private fun AddAccountListItem(
     contentPadding = ButtonDefaults.TextButtonWithIconContentPadding,
   ) {
     Icon(
-      Icons.Filled.PersonAdd,
+      CampfireIcons.Filled.PersonAdd,
       contentDescription = null,
       modifier = Modifier.size(ButtonDefaults.IconSize),
     )
@@ -362,7 +361,7 @@ private fun LogoutConfirmationDialog(
     onDismissRequest = onDismiss,
     icon = {
       Icon(
-        Icons.AutoMirrored.Rounded.Logout,
+        CampfireIcons.Rounded.Logout,
         contentDescription = null,
       )
     },

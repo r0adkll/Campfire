@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBarDefaults
@@ -27,6 +25,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.settings.ui.generated.resources.Res
@@ -68,7 +68,7 @@ internal fun SettingPaneLayout(
               onClick = onBackClick,
             ) {
               Icon(
-                Icons.AutoMirrored.Rounded.ArrowBack,
+                CampfireIcons.Rounded.ArrowBack,
                 contentDescription = backLabel,
               )
             }

@@ -16,6 +16,7 @@ import app.campfire.data.CollectionsBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.coroutines.asFlow
@@ -53,7 +54,7 @@ class CollectionsSourceOfTruthFactory(
     require(operation is CollectionsStore.Operation.All || operation is CollectionsStore.Operation.Single)
     return when (operation) {
       is CollectionsStore.Operation.All -> readAll(operation.userId, operation.libraryId)
-      is CollectionsStore.Operation.Single -> readSingle(operation.collectionId)
+      is CollectionsStore.Operation.Single -> readSingle(operation.userId, operation.collectionId)
     }
   }
 
@@ -64,7 +65,11 @@ class CollectionsSourceOfTruthFactory(
       .mapLatest { collections ->
         collections.associateWith { c ->
           db.libraryItemsQueries
-            .selectForCollection(c.id)
+            .selectForCollection(
+              userId = userId,
+              collectionId = c.id,
+              mapper = ::mapToLibraryItemWithProgress,
+            )
             .awaitAsList()
         }
       }
@@ -76,14 +81,18 @@ class CollectionsSourceOfTruthFactory(
       .map { CollectionsStore.Output.Collection(it) }
   }
 
-  private fun readSingle(collectionId: CollectionId): Flow<CollectionsStore.Output.Single> {
+  private fun readSingle(userId: UserId, collectionId: CollectionId): Flow<CollectionsStore.Output.Single> {
     return db.collectionsQueries.selectById(collectionId)
       .asFlow()
       .mapToOneOrNull(dispatcherProvider.databaseRead)
       .mapNotNull { collection ->
         collection?.let { c ->
           val libraryItems = db.libraryItemsQueries
-            .selectForCollection(c.id)
+            .selectForCollection(
+              userId = userId,
+              collectionId = c.id,
+              mapper = ::mapToLibraryItemWithProgress,
+            )
             .awaitAsList()
             .map { it.asDomainModel(urlHydrator) }
 

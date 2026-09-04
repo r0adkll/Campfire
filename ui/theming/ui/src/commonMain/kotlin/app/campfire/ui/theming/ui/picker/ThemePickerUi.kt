@@ -30,11 +30,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Surface
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.FormatPaint
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -57,6 +52,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.AutoAwesome
+import app.campfire.common.compose.icons.rounded.Edit
+import app.campfire.common.compose.icons.rounded.FormatPaint
 import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
@@ -105,7 +104,7 @@ fun ThemePicker(
               IconButton(
                 onClick = { state.eventSink(ThemePickerUiEvent.Back) },
               ) {
-                Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
               }
             }
           },
@@ -313,7 +312,7 @@ private fun ThemeOption(
           IconButtonTooltip(text = editLabel) {
             IconButton(onClick = onEditClick) {
               Icon(
-                if (theme is AppTheme.Fixed.Ai) Icons.Rounded.AutoAwesome else Icons.Rounded.Edit,
+                if (theme is AppTheme.Fixed.Ai) CampfireIcons.Rounded.AutoAwesome else CampfireIcons.Rounded.Edit,
                 contentDescription = editLabel,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
               )
@@ -349,7 +348,7 @@ private fun AnimatedPalettePreview(
       ) + fadeOut(),
     ) {
       Icon(
-        Icons.Rounded.FormatPaint,
+        CampfireIcons.Rounded.FormatPaint,
         contentDescription = null,
         tint = MaterialTheme.colorScheme.surface,
       )

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Automatic rewind ranges are now 0s-2m and ignore pauses now increased to 30s max
+- Refreshed icons throughout the app with the updated Material Symbols style
 - Statistics now load instantly from a short-lived cache, with a refresh button in the top bar to fetch the latest numbers
 - Sleep timer fade-out now follows a logarithmic volume curve so it sounds like a steady fade instead of a sudden drop at the end
 
@@ -34,15 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Listening progress and finished indicators missing from book cards on series, author, collection, and search screens
 - Android Auto and the media notification now show the book title with the chapter instead of only the chapter and author
 - Recent listening bar chart on the Statistics page scaling its bars against all-time listening highs instead of just the days shown
 - Playback timing and progress showing blank after reopening the app until playback started
 - End-of-chapter sleep timer not stopping at chapter boundaries while casting
 - Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
 - App widgets breaking due to large image size
-- Sleep timer now pauses while playback is paused and picks back up on resume, instead of running out in the background
-- Resuming playback during the sleep timer fade-out no longer leaves the volume low or pauses again moments later
-- Auto rewind after an auto sleep timer expires was never applied for timed (non end-of-chapter) timers
+- Sleep timer countdown scrim on the playing screen's cover art not covering the whole cover
 - Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
 - Audiobooks not playing on Chromecast
 

@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.KeyboardArrowRight
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.libraries.ui.detail.LibraryItemUiEvent
 import campfire.features.libraries.ui.generated.resources.Res
@@ -66,7 +66,7 @@ class DownloadingEpisodesSlot(
           modifier = Modifier.weight(1f),
         )
         Icon(
-          imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+          imageVector = CampfireIcons.Rounded.KeyboardArrowRight,
           contentDescription = null,
           tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )

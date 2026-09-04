@@ -3,9 +3,6 @@
 
 package app.campfire.android.plugin.playback
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Folder
-import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +17,9 @@ import androidx.media3.session.MediaBrowser
 import app.campfire.android.plugin.common.LoadingIndicator
 import app.campfire.android.plugin.common.SectionHeader
 import app.campfire.android.plugin.playback.icons.KeyboardArrowUp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Folder
+import app.campfire.common.compose.icons.rounded.PlayArrow
 import com.livewire.ui.actions.clickAction
 import com.livewire.ui.graphics.CircleShape
 import com.livewire.ui.graphics.RoundedCornerShape
@@ -201,7 +201,7 @@ private fun BrowseItemRow(
         )
       } else {
         Icon(
-          imageVector = if (browsable) Icons.Rounded.Folder else Icons.Rounded.PlayArrow,
+          imageVector = if (browsable) CampfireIcons.Rounded.Folder else CampfireIcons.Rounded.PlayArrow,
           modifier = LivewireModifier.size(24.dp),
           tint = Color.Gray,
         )

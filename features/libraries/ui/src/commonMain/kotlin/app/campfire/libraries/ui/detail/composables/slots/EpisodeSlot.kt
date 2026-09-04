@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.rounded.DownloadDone
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,7 +27,9 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
 import app.campfire.common.compose.icons.rounded.Download
+import app.campfire.common.compose.icons.rounded.DownloadDone
 import app.campfire.common.compose.icons.rounded.MarkFinished
+import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.permission.PermissionState
 import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
 import app.campfire.common.compose.widgets.EpisodeListItem
@@ -174,7 +173,7 @@ class EpisodeSlot(
               shape = IconButtonDefaults.extraSmallSquareShape,
             ) {
               Icon(
-                Icons.AutoMirrored.Rounded.PlaylistAdd,
+                CampfireIcons.Rounded.PlaylistAdd,
                 contentDescription = addToPlaylistLabel,
                 modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
               )
@@ -207,9 +206,9 @@ class EpisodeSlot(
             ) {
               Icon(
                 if (isFinished) {
-                  Icons.Filled.MarkFinished
+                  CampfireIcons.Filled.MarkFinished
                 } else {
-                  Icons.Rounded.MarkFinished
+                  CampfireIcons.Rounded.MarkFinished
                 },
                 contentDescription = finishedLabel,
                 modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
@@ -312,7 +311,7 @@ private fun DownloadEpisodeAction(
         }
         OfflineDownload.State.Completed -> {
           Icon(
-            Icons.Rounded.DownloadDone,
+            CampfireIcons.Rounded.DownloadDone,
             contentDescription = label,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(iconSize),

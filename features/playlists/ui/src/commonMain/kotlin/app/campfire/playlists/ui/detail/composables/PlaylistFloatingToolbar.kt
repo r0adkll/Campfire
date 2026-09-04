@@ -3,11 +3,6 @@
 
 package app.campfire.playlists.ui.detail.composables
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.PlaylistPlay
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.FloatingToolbarHorizontalFabPosition
@@ -23,6 +18,10 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.Download
+import app.campfire.common.compose.icons.rounded.Edit
+import app.campfire.common.compose.icons.rounded.PlaylistPlay
 import app.campfire.common.compose.icons.rounded.SwapCalls
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.playlists.ui.generated.resources.Res
@@ -55,7 +54,7 @@ internal fun PlaylistFloatingToolbar(
           containerColor = MaterialTheme.colorScheme.secondaryContainer,
           contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ) {
-          Icon(Icons.AutoMirrored.Rounded.PlaylistPlay, contentDescription = playAllLabel)
+          Icon(CampfireIcons.Rounded.PlaylistPlay, contentDescription = playAllLabel)
         }
       }
     },
@@ -63,13 +62,13 @@ internal fun PlaylistFloatingToolbar(
     modifier = modifier,
   ) {
     ToolbarButton(
-      Icons.Rounded.Download,
+      CampfireIcons.Rounded.Download,
       onClick = onDownloadClick,
       expanded = expanded,
       contentDescription = stringResource(Res.string.action_download_playlist),
     )
     ToolbarButton(
-      Icons.Rounded.Edit,
+      CampfireIcons.Rounded.Edit,
       onClick = onEditClick,
       expanded = expanded,
       contentDescription = stringResource(Res.string.action_edit_playlist),
@@ -82,7 +81,7 @@ internal fun PlaylistFloatingToolbar(
       contentDescription = stringResource(Res.string.action_reorder_playlist),
     )
     ToolbarButton(
-      Icons.Rounded.Delete,
+      CampfireIcons.Rounded.Delete,
       onClick = onDeleteClick,
       expanded = expanded,
       contentDescription = stringResource(Res.string.action_delete_playlist),

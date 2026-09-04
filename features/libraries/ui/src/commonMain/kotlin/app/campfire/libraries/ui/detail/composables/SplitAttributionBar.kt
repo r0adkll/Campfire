@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -35,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Person
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 
 private const val PLACEHOLDER_NAME = "--"
@@ -182,7 +182,7 @@ private fun PopupNameBox(
     ) {
       names.forEach { name ->
         DropdownMenuItem(
-          leadingIcon = { Icon(Icons.Rounded.Person, contentDescription = null) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.Person, contentDescription = null) },
           text = { Text(name) },
           onClick = {
             onNameClick(name)

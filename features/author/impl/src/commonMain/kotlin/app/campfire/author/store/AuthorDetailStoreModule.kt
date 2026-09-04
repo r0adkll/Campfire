@@ -11,10 +11,12 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
 import app.campfire.core.model.AuthorId
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.requiredUserId
 import app.campfire.core.session.serverUrl
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.network.AudioBookShelfApi
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -57,7 +59,11 @@ interface AuthorDetailStoreModule {
               .mapToOne(dispatcherProvider.databaseRead)
               .flatMapLatest { author ->
                 db.libraryItemsQueries
-                  .selectForAuthorName(author.name)
+                  .selectForAuthorName(
+                    userId = userSession.requiredUserId,
+                    authorName = author.name,
+                    mapper = ::mapToLibraryItemWithProgress,
+                  )
                   .asFlow()
                   .mapToList(dispatcherProvider.databaseRead)
                   .map { libraryItems ->

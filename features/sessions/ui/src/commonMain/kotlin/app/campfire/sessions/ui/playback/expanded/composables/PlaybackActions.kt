@@ -17,11 +17,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -36,7 +31,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.EditAudio
+import app.campfire.common.compose.icons.rounded.Pause
+import app.campfire.common.compose.icons.rounded.PlayArrow
+import app.campfire.common.compose.icons.rounded.SkipNext
+import app.campfire.common.compose.icons.rounded.SkipPrevious
 import app.campfire.sessions.ui.composables.ForwardIcon
 import app.campfire.sessions.ui.composables.RewindIcon
 import campfire.features.sessions.ui.generated.resources.Res
@@ -147,9 +147,9 @@ internal fun PlaybackActions(
           } else {
             Icon(
               when (state) {
-                PlayButtonState.Interacting -> Icons.Rounded.EditAudio
-                PlayButtonState.Playing -> Icons.Rounded.Pause
-                else -> Icons.Rounded.PlayArrow
+                PlayButtonState.Interacting -> CampfireIcons.Rounded.EditAudio
+                PlayButtonState.Playing -> CampfireIcons.Rounded.Pause
+                else -> CampfireIcons.Rounded.PlayArrow
               },
               modifier = Modifier.size(playButtonIconSize),
               contentDescription = stringResource(Res.string.action_play_pause),
@@ -190,7 +190,7 @@ internal fun PlaybackActions(
           .heightIn(buttonSize),
       ) {
         Icon(
-          Icons.Rounded.SkipPrevious,
+          CampfireIcons.Rounded.SkipPrevious,
           modifier = Modifier.size(ButtonDefaults.LargeIconSize),
           contentDescription = stringResource(Res.string.action_skip_previous),
         )
@@ -204,7 +204,7 @@ internal fun PlaybackActions(
           .heightIn(buttonSize),
       ) {
         Icon(
-          Icons.Rounded.SkipNext,
+          CampfireIcons.Rounded.SkipNext,
           modifier = Modifier.size(ButtonDefaults.LargeIconSize),
           contentDescription = stringResource(Res.string.action_skip_next),
         )

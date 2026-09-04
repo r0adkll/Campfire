@@ -19,16 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.DeveloperMode
-import androidx.compose.material.icons.rounded.DirectionsCar
-import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.NotificationsPaused
-import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,7 +39,16 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.thenIf
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.LocalLibrary
+import app.campfire.common.compose.icons.outline.Library
+import app.campfire.common.compose.icons.rounded.AccountCircle
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.DeveloperMode
+import app.campfire.common.compose.icons.rounded.DirectionsCar
+import app.campfire.common.compose.icons.rounded.Download
+import app.campfire.common.compose.icons.rounded.Info
+import app.campfire.common.compose.icons.rounded.NotificationsPaused
+import app.campfire.common.compose.icons.rounded.Palette
+import app.campfire.common.compose.icons.rounded.VolumeUp
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -275,7 +274,7 @@ private fun SettingsRootPane(
                   onClick = onBackClick,
                 ) {
                   Icon(
-                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    CampfireIcons.Rounded.ArrowBack,
                     contentDescription = backLabel,
                   )
                 }
@@ -302,7 +301,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.Account && isTwoPane,
         icon = {
           Icon(
-            Icons.Rounded.AccountCircle,
+            CampfireIcons.Rounded.AccountCircle,
             contentDescription = null,
           )
         },
@@ -319,7 +318,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.Appearance && isTwoPane,
         icon = {
           Icon(
-            Icons.Rounded.Palette,
+            CampfireIcons.Rounded.Palette,
             contentDescription = null,
           )
         },
@@ -336,7 +335,7 @@ private fun SettingsRootPane(
         selected = false,
         icon = {
           Icon(
-            CampfireIcons.Rounded.LocalLibrary,
+            CampfireIcons.Outline.Library,
             contentDescription = null,
           )
         },
@@ -353,7 +352,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.Downloads && isTwoPane,
         icon = {
           Icon(
-            Icons.Rounded.Download,
+            CampfireIcons.Rounded.Download,
             contentDescription = null,
           )
         },
@@ -370,7 +369,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.Playback && isTwoPane,
         icon = {
           Icon(
-            Icons.AutoMirrored.Rounded.VolumeUp,
+            CampfireIcons.Rounded.VolumeUp,
             contentDescription = null,
           )
         },
@@ -386,7 +385,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.Sleep && isTwoPane,
         icon = {
           Icon(
-            Icons.Rounded.NotificationsPaused,
+            CampfireIcons.Rounded.NotificationsPaused,
             contentDescription = null,
           )
         },
@@ -408,7 +407,7 @@ private fun SettingsRootPane(
           selected = pane == SettingsPane.AndroidAuto && isTwoPane,
           icon = {
             Icon(
-              Icons.Rounded.DirectionsCar,
+              CampfireIcons.Rounded.DirectionsCar,
               contentDescription = null,
             )
           },
@@ -428,7 +427,7 @@ private fun SettingsRootPane(
         selected = pane == SettingsPane.About && isTwoPane,
         icon = {
           Icon(
-            Icons.Rounded.Info,
+            CampfireIcons.Rounded.Info,
             contentDescription = null,
           )
         },
@@ -450,7 +449,7 @@ private fun SettingsRootPane(
           selected = pane == SettingsPane.Developer && isTwoPane,
           icon = {
             Icon(
-              Icons.Rounded.DeveloperMode,
+              CampfireIcons.Rounded.DeveloperMode,
               contentDescription = null,
             )
           },

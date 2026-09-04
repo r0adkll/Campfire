@@ -22,16 +22,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Backspace
-import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
-import androidx.compose.material.icons.outlined.StopCircle
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DownloadDone
-import androidx.compose.material.icons.rounded.Downloading
-import androidx.compose.material.icons.rounded.Replay
-import androidx.compose.material.icons.rounded.Stop
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,8 +56,17 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.isNullOrNone
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.filled.MarkFinished
+import app.campfire.common.compose.icons.rounded.Backspace
+import app.campfire.common.compose.icons.rounded.Delete
+import app.campfire.common.compose.icons.rounded.DownloadDone
+import app.campfire.common.compose.icons.rounded.Downloading
 import app.campfire.common.compose.icons.rounded.MarkFinished
+import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.icons.rounded.QueuePlayNext
+import app.campfire.common.compose.icons.rounded.Replay
+import app.campfire.common.compose.icons.rounded.Stop
+import app.campfire.common.compose.icons.rounded.StopCircle
+import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
@@ -234,7 +233,7 @@ private fun OfflineStatus(
                 ),
               ) {
                 Icon(
-                  Icons.Rounded.Stop,
+                  CampfireIcons.Rounded.Stop,
                   contentDescription = stopLabel,
                   modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                 )
@@ -256,7 +255,7 @@ private fun OfflineStatus(
                     modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
                   ) {
                     Icon(
-                      Icons.Rounded.Replay,
+                      CampfireIcons.Rounded.Replay,
                       contentDescription = retryLabel,
                       modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                     )
@@ -277,7 +276,7 @@ private fun OfflineStatus(
                     modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
                   ) {
                     Icon(
-                      Icons.Rounded.Delete,
+                      CampfireIcons.Rounded.Delete,
                       contentDescription = deleteDownloadLabel,
                       modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
                     )
@@ -300,7 +299,7 @@ private fun OfflineStatus(
                   contentPadding = ButtonDefaults.contentPaddingFor(size),
                 ) {
                   Icon(
-                    Icons.Rounded.Delete,
+                    CampfireIcons.Rounded.Delete,
                     contentDescription = stringResource(Res.string.action_stop_downloading),
                     modifier = Modifier.size(ButtonDefaults.iconSizeFor(size)),
                   )
@@ -351,12 +350,12 @@ internal fun OfflineTitleBar(
   ) {
     Icon(
       when (state) {
-        OfflineDownload.State.None -> Icons.Rounded.Downloading
-        OfflineDownload.State.Queued -> Icons.Rounded.Downloading
-        OfflineDownload.State.Downloading -> Icons.Rounded.Downloading
-        OfflineDownload.State.Stopped -> Icons.Outlined.StopCircle
-        OfflineDownload.State.Completed -> Icons.Rounded.DownloadDone
-        OfflineDownload.State.Failed -> Icons.Rounded.WarningAmber
+        OfflineDownload.State.None -> CampfireIcons.Rounded.Downloading
+        OfflineDownload.State.Queued -> CampfireIcons.Rounded.Downloading
+        OfflineDownload.State.Downloading -> CampfireIcons.Rounded.Downloading
+        OfflineDownload.State.Stopped -> CampfireIcons.Rounded.StopCircle
+        OfflineDownload.State.Completed -> CampfireIcons.Rounded.DownloadDone
+        OfflineDownload.State.Failed -> CampfireIcons.Rounded.Warning
       },
       contentDescription = null,
       modifier = Modifier
@@ -498,7 +497,7 @@ private fun ProgressModifierButtons(
           .testTag("button_discard_progress"),
       ) {
         Icon(
-          Icons.AutoMirrored.Rounded.Backspace,
+          CampfireIcons.Rounded.Backspace,
           contentDescription = null,
           modifier = Modifier.size(iconSize),
         )
@@ -530,7 +529,7 @@ private fun ProgressModifierButtons(
           .testTag("button_mark_finished"),
       ) {
         Icon(
-          Icons.Rounded.MarkFinished,
+          CampfireIcons.Rounded.MarkFinished,
           contentDescription = null,
           modifier = Modifier.size(iconSize),
         )
@@ -555,7 +554,7 @@ private fun ProgressModifierButtons(
           .testTag("button_mark_not_finished"),
       ) {
         Icon(
-          Icons.Filled.MarkFinished,
+          CampfireIcons.Filled.MarkFinished,
           contentDescription = null,
           modifier = Modifier.size(iconSize),
         )
@@ -612,7 +611,7 @@ private fun AddToButtons(
         .testTag("button_add_to_playlist"),
     ) {
       Icon(
-        Icons.AutoMirrored.Rounded.PlaylistAdd,
+        CampfireIcons.Rounded.PlaylistAdd,
         contentDescription = null,
         modifier = Modifier.size(iconSize),
       )

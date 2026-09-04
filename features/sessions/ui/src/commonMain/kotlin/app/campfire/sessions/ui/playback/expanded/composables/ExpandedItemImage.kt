@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -71,16 +69,18 @@ internal fun SharedTransitionScope.ExpandedItemImage(
         ),
     )
 
+    // Callers size the cover through the slot (size == Dp.Unspecified), so the scrim has to match
+    // the parent rather than request [size] itself, and it clips to the same [shape] as the cover.
     AnimatedVisibility(
       visible = runningTimer != null,
       enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-      modifier = Modifier.size(size),
+      modifier = Modifier.matchParentSize(),
     ) {
       Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
-          .size(size)
-          .background(Color.Black.copy(0.3f), RoundedCornerShape(32.dp)),
+          .fillMaxSize()
+          .background(Color.Black.copy(0.3f), shape),
       ) {
         if (runningTimer?.isShakeToRestartEnabled == true) {
           Icon(

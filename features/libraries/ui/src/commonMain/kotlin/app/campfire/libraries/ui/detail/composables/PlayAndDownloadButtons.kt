@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
@@ -45,6 +43,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.outline.Autoplay
 import app.campfire.common.compose.icons.rounded.Download
 import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
+import app.campfire.common.compose.icons.rounded.MenuBook
 import app.campfire.common.compose.icons.rounded.MotionPlay
 import app.campfire.common.compose.icons.rounded.PlayArrow
 import app.campfire.common.compose.icons.rounded.Sensors
@@ -112,9 +111,9 @@ internal fun PlayAndDownloadButtons(
     ) {
       Icon(
         when {
-          isEbookOnly -> Icons.AutoMirrored.Rounded.MenuBook
+          isEbookOnly -> CampfireIcons.Rounded.MenuBook
           isCurrentSession -> CampfireIcons.Rounded.MotionPlay
-          hasProgress -> Icons.Outlined.Autoplay
+          hasProgress -> CampfireIcons.Outline.Autoplay
           willStreamHls -> CampfireIcons.Rounded.Sensors
           else -> CampfireIcons.Rounded.PlayArrow
         },

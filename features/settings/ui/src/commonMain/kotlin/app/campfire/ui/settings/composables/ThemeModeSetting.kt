@@ -13,11 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material.icons.rounded.Brightness6
-import androidx.compose.material.icons.rounded.DarkMode
-import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -34,6 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowDropDown
+import app.campfire.common.compose.icons.rounded.Brightness6
+import app.campfire.common.compose.icons.rounded.DarkMode
+import app.campfire.common.compose.icons.rounded.LightMode
 import app.campfire.core.extensions.capitalized
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeMode.DARK
@@ -71,9 +71,9 @@ internal fun ThemeModeSetting(
               leadingIcon = {
                 Icon(
                   when (t) {
-                    LIGHT -> Icons.Rounded.LightMode
-                    DARK -> Icons.Rounded.DarkMode
-                    SYSTEM -> Icons.Rounded.Brightness6
+                    LIGHT -> CampfireIcons.Rounded.LightMode
+                    DARK -> CampfireIcons.Rounded.DarkMode
+                    SYSTEM -> CampfireIcons.Rounded.Brightness6
                   },
                   contentDescription = null,
                 )
@@ -121,9 +121,9 @@ private fun ThemeModeChip(
     ) {
       Icon(
         when (themeMode) {
-          LIGHT -> Icons.Rounded.LightMode
-          DARK -> Icons.Rounded.DarkMode
-          SYSTEM -> Icons.Rounded.Brightness6
+          LIGHT -> CampfireIcons.Rounded.LightMode
+          DARK -> CampfireIcons.Rounded.DarkMode
+          SYSTEM -> CampfireIcons.Rounded.Brightness6
         },
         contentDescription = null,
         modifier = Modifier.size(18.dp),
@@ -135,7 +135,7 @@ private fun ThemeModeChip(
       )
       Spacer(Modifier.width(4.dp))
       Icon(
-        Icons.Rounded.ArrowDropDown,
+        CampfireIcons.Rounded.ArrowDropDown,
         contentDescription = null,
       )
     }

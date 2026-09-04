@@ -3,9 +3,6 @@
 
 package app.campfire.collections.ui.detail.composables
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +10,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.ArrowBack
+import app.campfire.common.compose.icons.rounded.Delete
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import campfire.features.collections.ui.generated.resources.Res
@@ -39,7 +39,7 @@ fun CollectionDetailTopAppBar(
         IconButton(
           onClick = onBack,
         ) {
-          Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = backLabel)
+          Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
         }
       }
     },
@@ -51,7 +51,7 @@ fun CollectionDetailTopAppBar(
             onClick = onDelete,
           ) {
             Icon(
-              Icons.Rounded.Delete,
+              CampfireIcons.Rounded.Delete,
               contentDescription = deleteLabel,
               tint = MaterialTheme.colorScheme.error,
             )

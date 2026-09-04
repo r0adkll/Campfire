@@ -17,11 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.TrendingDown
-import androidx.compose.material.icons.automirrored.rounded.TrendingFlat
-import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.Hearing
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +38,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import app.campfire.common.compose.extensions.largestDurationUnit
 import app.campfire.common.compose.extensions.thresholdReadoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Hearing
+import app.campfire.common.compose.icons.rounded.TrendingDown
+import app.campfire.common.compose.icons.rounded.TrendingFlat
+import app.campfire.common.compose.icons.rounded.TrendingUp
 import app.campfire.core.extensions.toString
 import app.campfire.stats.ui.StatsUiModel.WeeklyListening
 import campfire.features.stats.ui.generated.resources.Res
@@ -75,7 +75,7 @@ internal fun WeeklyListeningCard(
     CardHeader(
       icon = {
         Icon(
-          Icons.Rounded.Hearing,
+          CampfireIcons.Rounded.Hearing,
           contentDescription = null,
         )
       },
@@ -142,9 +142,9 @@ private fun TotalTime(
       }
       Icon(
         when {
-          weekOverWeekChange > 0 -> Icons.AutoMirrored.Rounded.TrendingUp
-          weekOverWeekChange < 0 -> Icons.AutoMirrored.Rounded.TrendingDown
-          else -> Icons.AutoMirrored.Rounded.TrendingFlat
+          weekOverWeekChange > 0 -> CampfireIcons.Rounded.TrendingUp
+          weekOverWeekChange < 0 -> CampfireIcons.Rounded.TrendingDown
+          else -> CampfireIcons.Rounded.TrendingFlat
         },
         contentDescription = null,
         tint = color,

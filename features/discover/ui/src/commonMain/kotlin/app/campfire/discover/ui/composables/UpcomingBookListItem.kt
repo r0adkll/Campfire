@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -25,6 +23,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.UpcomingRelease
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Event
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
 import app.campfire.common.compose.widgets.placeholderBookPainter
@@ -102,7 +102,7 @@ internal fun UpcomingBookListItem(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
           ) {
             Icon(
-              Icons.Outlined.Event,
+              CampfireIcons.Rounded.Event,
               contentDescription = null,
               modifier = Modifier.size(16.dp),
             )

@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -24,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Warning
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 
@@ -77,7 +77,7 @@ internal fun ImageError(
       LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer,
     ) {
       Icon(
-        Icons.Rounded.WarningAmber,
+        CampfireIcons.Rounded.Warning,
         contentDescription = errorMessage,
         modifier = Modifier.size(32.dp),
       )

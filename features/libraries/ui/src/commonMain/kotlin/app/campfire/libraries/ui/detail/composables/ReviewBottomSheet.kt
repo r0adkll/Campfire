@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +36,8 @@ import app.campfire.bookinfo.api.BookReview
 import app.campfire.bookinfo.api.CommunityInfoState
 import app.campfire.common.compose.extensions.rememberHtmlRichTextState
 import app.campfire.common.compose.extensions.roundToSingleDecimal
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Star
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.community_review_by_author
 import campfire.features.libraries.ui.generated.resources.community_review_sheet_title
@@ -117,7 +117,7 @@ internal fun ReviewBottomSheet(
         }
         review.rating?.let { rating ->
           Icon(
-            imageVector = Icons.Rounded.Star,
+            imageVector = CampfireIcons.Rounded.Star,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.size(16.dp),

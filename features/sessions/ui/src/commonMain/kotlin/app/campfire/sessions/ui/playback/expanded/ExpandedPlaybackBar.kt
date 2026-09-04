@@ -35,9 +35,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
-import androidx.compose.material.icons.rounded.KeyboardDoubleArrowRight
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -75,6 +72,9 @@ import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
+import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -285,7 +285,7 @@ internal fun ExpandedPlaybackBar(
             IconButton(
               onClick = onClose,
             ) {
-              Icon(Icons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
+              Icon(CampfireIcons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
             }
           }
         },
@@ -679,7 +679,7 @@ internal fun ColumnScope.BookTimeProgressIndicator(
         visible = isAccelerated,
       ) {
         Icon(
-          Icons.Rounded.KeyboardDoubleArrowRight,
+          CampfireIcons.Rounded.KeyboardDoubleArrowRight,
           contentDescription = null,
           modifier = Modifier.size(16.dp),
           tint = MaterialTheme.colorScheme.secondary,

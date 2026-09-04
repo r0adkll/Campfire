@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.ZeroCornerSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -29,6 +27,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.BookRibbon
+import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.icons.rounded.Warning
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.MetadataHeader
@@ -103,7 +102,7 @@ class ChapterHeaderSlot(
               ),
               thumbContent = {
                 Icon(
-                  if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else Icons.Rounded.Timer,
+                  if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else CampfireIcons.Rounded.Timer,
                   contentDescription = null,
                   modifier = Modifier.size(SwitchDefaults.IconSize),
                 )
