@@ -32,8 +32,6 @@ import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
@@ -49,6 +47,7 @@ import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.bookinfo.api.UpcomingRelease
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.Radar
@@ -247,14 +246,13 @@ private fun ScanProgressHeader(
 
 // region — Previews —
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 private fun PreviewWrapper(
   content: @Composable () -> Unit,
 ) {
   CampfireTheme {
     CompositionLocalProvider(
-      LocalWindowSizeClass provides calculateWindowSizeClass(),
+      LocalWindowSizeClass provides currentWindowSizeClass(),
       LocalContentLayout provides ContentLayout.Root,
     ) {
       content()

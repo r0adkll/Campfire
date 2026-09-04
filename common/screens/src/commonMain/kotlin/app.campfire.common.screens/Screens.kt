@@ -9,7 +9,7 @@ import app.campfire.core.model.SeriesId
 import app.campfire.core.model.Server
 import app.campfire.core.model.UserId
 import app.campfire.core.parcelize.Parcelize
-import com.slack.circuit.runtime.screen.Screen
+import com.slack.circuit.runtime.screen.ParcelableScreen
 import com.slack.circuit.runtime.screen.StaticScreen
 
 //region App Screens
@@ -28,7 +28,7 @@ data object DebugScreen : BaseScreen(name = "Debug")
 @Parcelize
 data class EmptyScreen(
   val message: String,
-) : StaticScreen
+) : StaticScreen, ParcelableScreen
 
 @Parcelize
 data object WelcomeScreen : BaseScreen(name = "Welcome") {
@@ -166,7 +166,7 @@ abstract class DetailScreen(name: String) : BaseScreen(name) {
  * The Root screen class that all other screen definitions will use as the underlying screen
  * data type
  */
-abstract class BaseScreen(val name: String) : Screen {
+abstract class BaseScreen(val name: String) : ParcelableScreen {
   open val presentation: Presentation = Presentation()
 }
 

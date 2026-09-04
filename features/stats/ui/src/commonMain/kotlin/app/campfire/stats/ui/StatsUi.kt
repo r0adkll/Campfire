@@ -25,7 +25,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -47,6 +46,7 @@ import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.layout.isWidthAtLeastExtraLarge
 import app.campfire.common.compose.widgets.CampfireMediumTopAppBar
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
@@ -107,7 +107,7 @@ fun StatsUi(
     windowSizeClass.isSupportingPaneEnabled &&
       supportingContentState == SupportingContentState.Closed
     ) ||
-    windowSizeClass.widthSizeClass >= WindowWidthSizeClass.ExtraLarge
+    windowSizeClass.isWidthAtLeastExtraLarge
 
   var isUserStats by rememberSaveable { mutableStateOf(true) }
 

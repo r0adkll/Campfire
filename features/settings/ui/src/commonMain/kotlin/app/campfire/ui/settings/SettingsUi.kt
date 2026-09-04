@@ -25,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -52,6 +51,7 @@ import app.campfire.common.compose.icons.rounded.VolumeUp
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.layout.isWidthAtLeastExtraLarge
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.screens.SettingsScreen
@@ -105,7 +105,7 @@ fun SettingsUi(
     windowSizeClass.isSupportingPaneEnabled &&
       supportingContentState == SupportingContentState.Closed
     ) ||
-    windowSizeClass.widthSizeClass >= WindowWidthSizeClass.ExtraLarge
+    windowSizeClass.isWidthAtLeastExtraLarge
 
   var currentSettingsPane by rememberSaveable {
     mutableStateOf(

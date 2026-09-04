@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +23,7 @@ import app.campfire.auth.ui.shared.AuthSharedTransitionKey
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey.ElementType.Card
 import app.campfire.auth.ui.welcome.composables.AddCampsiteCard
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.layout.isWidthAtLeastMedium
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.screens.WelcomeScreen
@@ -46,7 +46,7 @@ fun Welcome(
     colorScheme = { colorScheme(state.loginUiState.theme) },
     useDarkColors = LocalUseDarkColors.current,
   ) {
-    if (windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Medium) {
+    if (windowSizeClass.isWidthAtLeastMedium) {
       TwoPaneLayout(modifier) {
         val urlFieldState = rememberServerUrlFieldState(state.loginUiState.serverUrl)
         LoginUiContent(

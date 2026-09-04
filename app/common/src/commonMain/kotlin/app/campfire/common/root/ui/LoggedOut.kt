@@ -33,6 +33,7 @@ import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.NavigableCircuitContent
 import com.slack.circuit.foundation.rememberCircuitNavigator
+import com.slack.circuit.foundation.rememberDefaultCircuitSaver
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
@@ -49,7 +50,7 @@ internal fun LoggedOutWindow(
   modifier: Modifier = Modifier,
 ) {
   val backStack = key(userComponent.currentUserSession) {
-    rememberSaveableBackStack(userComponent.rootScreen())
+    rememberSaveableBackStack(userComponent.rootScreen(), circuitSaver = rememberDefaultCircuitSaver())
   }
 
   val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }

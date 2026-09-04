@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +45,7 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
+import app.campfire.common.compose.layout.isWidthAtLeastExtraLarge
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
@@ -86,6 +86,7 @@ import com.slack.circuit.backstack.rememberSaveableBackStack
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.foundation.NavigableCircuitContent
 import com.slack.circuit.foundation.rememberCircuitNavigator
+import com.slack.circuit.foundation.rememberDefaultCircuitSaver
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
@@ -111,7 +112,7 @@ internal fun LoggedInWindow(
   modifier: Modifier = Modifier,
 ) {
   val backStack = key(userComponent.currentUserSession) {
-    rememberSaveableBackStack(userComponent.rootScreen())
+    rememberSaveableBackStack(userComponent.rootScreen(), circuitSaver = rememberDefaultCircuitSaver())
   }
 
   val baseNavigator = key(userComponent.currentUserSession) { rememberCircuitNavigator(backStack) { onRootPop() } }
@@ -202,7 +203,7 @@ private fun LoggedInUi(
 
   LaunchedEffect(windowSizeClass) {
     bark {
-      "WindowSizeClass[${windowSizeClass.widthSizeClass}, ${windowSizeClass.heightSizeClass}]"
+      "$windowSizeClass"
     }
   }
 
@@ -428,7 +429,7 @@ private fun LoggedInUi(
       }
     },
     playbackBarContent = {
-      if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.ExtraLarge) {
+      if (!windowSizeClass.isWidthAtLeastExtraLarge) {
         val bottomSystemInset = withDensity {
           WindowInsets.navigationBars.asPaddingValues()
             .calculateBottomPadding().toPx()

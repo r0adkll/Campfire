@@ -166,7 +166,13 @@ class AutomationDeepLinksTest {
     val started = mutableListOf<String>()
     val stopped = mutableListOf<String>()
 
-    override fun startSession(itemId: String, playImmediately: Boolean, chapterId: Int?, episodeId: PodcastEpisodeId?) {
+    override fun startSession(
+      itemId: String,
+      playImmediately: Boolean,
+      chapterId: Int?,
+      episodeId: PodcastEpisodeId?,
+      methodOverride: PlayMethod?,
+    ) {
       started += itemId
     }
 

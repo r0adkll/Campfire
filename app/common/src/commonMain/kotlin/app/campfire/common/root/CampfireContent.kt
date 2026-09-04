@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +17,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.root.automation.AutomationDeepLinks
 import app.campfire.common.root.ui.LoggedInWindow
 import app.campfire.common.root.ui.LoggedOutWindow
@@ -40,7 +39,6 @@ typealias CampfireContentWithInsets = @Composable (
   modifier: Modifier,
 ) -> Unit
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Inject
 @Composable
 fun CampfireContentWithInsets(
@@ -64,7 +62,7 @@ fun CampfireContentWithInsets(
   }
 
   CompositionLocalProvider(
-    LocalWindowSizeClass provides calculateWindowSizeClass(),
+    LocalWindowSizeClass provides currentWindowSizeClass(),
     LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
     LocalUriHandler provides appUriHandler,
   ) {
