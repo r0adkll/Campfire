@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Other Notes & Contributions
+
+## [1.1.0]
+
+### Added
+
 - Playback settings for how often listening progress syncs to the server, with separate intervals for Wi-Fi and mobile data
 - HLS streaming on Android, with a Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
 - Playback speed improvements: a per-book speed that doesn't change the global speed, and customizable quick speed options (0.5x to 3x) in Settings → Playback
@@ -23,10 +37,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic rewind can now be set anywhere from 0s to 2m, and the ignore-pauses window now goes up to 30s
 - Refreshed icons throughout the app with the updated Material Symbols style
 - Statistics load instantly from a short-lived cache, with a refresh button in the top bar for the latest numbers
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -505,6 +515,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial Alpha Release.
 
+[1.1.0]: https://github.com/r0adkll/Campfire/compare/1.0.5...1.1.0
 [1.0.5]: https://github.com/r0adkll/Campfire/compare/1.0.4...1.0.5
 [1.0.4]: https://github.com/r0adkll/Campfire/compare/1.0.3...1.0.4
 [1.0.3]: https://github.com/r0adkll/Campfire/compare/1.0.2...1.0.3
