@@ -8,7 +8,6 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import java.io.File
 import me.tatarka.inject.annotations.Provides
 
@@ -24,14 +23,12 @@ actual interface SqlDelightDatabasePlatformComponent {
     val userDir = File(userRoot)
     val appDir = File(userDir, ".config/Campfire").apply { mkdirs() }
     val databaseFile = File(appDir, "campfire.db")
+    val schema = CampfireDatabase.Schema.synchronous()
 
-//    bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
-
-    val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
-//    DestructiveMigrationSchema.perform(driver)
-    CampfireDatabase.Schema
-      .synchronous()
-      .create(driver)
-    return driver
+    return desktopSqliteDriver(databaseFile, schema) {
+      // Older desktop builds re-ran `create` on every launch and never stamped a version, so
+      // the shape of such a file is unknown. It is only a cache of server data, so rebuild it.
+      rebuild(schema)
+    }
   }
 }

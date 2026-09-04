@@ -56,6 +56,7 @@ kotlin {
 
     jvmMain {
       dependencies {
+        implementation(projects.data.db.core)
         implementation(libs.sqldelight.sqlite)
       }
     }
