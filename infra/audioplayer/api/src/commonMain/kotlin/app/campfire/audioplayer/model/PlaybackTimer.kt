@@ -20,4 +20,23 @@ data class RunningTimer(
   val timer: PlaybackTimer,
   val startedAt: Long,
   val isShakeToRestartEnabled: Boolean,
-)
+  /**
+   * When non-null the countdown is frozen at this instant because playback is paused. It resumes,
+   * with [startedAt] shifted forward by the time spent paused, once playback continues.
+   */
+  val pausedAt: Long? = null,
+) {
+
+  val isPaused: Boolean
+    get() = pausedAt != null
+
+  /**
+   * Milliseconds left on an [PlaybackTimer.Epoch] timer as of [now], or null for timers without a
+   * countdown. Frozen while [isPaused].
+   */
+  fun remainingMillis(now: Long): Long? {
+    val epoch = timer as? PlaybackTimer.Epoch ?: return null
+    val reference = pausedAt ?: now
+    return (epoch.epochMillis - (reference - startedAt)).coerceAtLeast(0L)
+  }
+}

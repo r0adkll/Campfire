@@ -103,6 +103,7 @@ data class PlaybackSettingsInfo(
 data class SleepSettingsInfo(
   val shakeToReset: Boolean,
   val shakeSensitivity: ShakeSensitivity,
+  val fadeOutDuration: Duration,
   val autoSleepSetting: AutoSleepSetting? = null,
 ) {
 
@@ -228,6 +229,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class AutoSleepTimer(val timer: PlaybackTimer) : SleepSettingEvent
     data class AutoSleepRewindEnabled(val enabled: Boolean) : SleepSettingEvent
     data class AutoSleepRewindAmount(val amount: Duration) : SleepSettingEvent
+    data class FadeOutDuration(val duration: Duration) : SleepSettingEvent
   }
 
   sealed interface AboutSettingEvent : SettingsUiEvent {

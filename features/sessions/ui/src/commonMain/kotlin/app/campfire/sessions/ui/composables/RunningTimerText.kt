@@ -44,11 +44,12 @@ internal fun RunningTimerText(
 ) {
   var timeLeft by remember { mutableStateOf("") }
   LaunchedEffect(runningTimer) {
-    val timer = (runningTimer.timer as? PlaybackTimer.Epoch) ?: return@LaunchedEffect
     while (isActive) {
-      val elapsed = Clock.System.now().toEpochMilliseconds() - runningTimer.startedAt
-      val remaining = (timer.epochMillis - elapsed).milliseconds
-      timeLeft = remaining.clockFormat()
+      val remaining = runningTimer.remainingMillis(Clock.System.now().toEpochMilliseconds())
+        ?: return@LaunchedEffect
+      timeLeft = remaining.milliseconds.clockFormat()
+      // A paused countdown is frozen, so there is nothing to tick until a new RunningTimer arrives
+      if (runningTimer.isPaused) return@LaunchedEffect
       delay(1000L)
     }
   }
