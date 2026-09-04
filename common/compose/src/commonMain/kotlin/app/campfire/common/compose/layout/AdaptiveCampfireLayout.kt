@@ -25,8 +25,6 @@ import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.rememberDrawerState
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -37,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalUserSession
@@ -79,7 +78,7 @@ fun AdaptiveCampfireLayout(
   }
   val supportingContentState =
     if (
-      (showSupportingContent || windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge) &&
+      (showSupportingContent || windowSizeClass.isWidthAtLeastExtraLarge) &&
       isSupportingPaneEnabled &&
       isLoggedIn
     ) {
@@ -142,7 +141,7 @@ fun AdaptiveCampfireLayout(
                   Box {
                     content()
 
-                    if (windowSizeClass.widthSizeClass != WindowWidthSizeClass.ExtraLarge) {
+                    if (!windowSizeClass.isWidthAtLeastExtraLarge) {
                       playbackBarContent()
                     }
                   }
@@ -158,7 +157,7 @@ fun AdaptiveCampfireLayout(
               }
 
               if (isSupportingPaneEnabled && isLoggedIn) {
-                val supportingContentShape = if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge) {
+                val supportingContentShape = if (windowSizeClass.isWidthAtLeastExtraLarge) {
                   RoundedCornerShape(
                     topStart = SupportingContentCornerRadius,
                   )
@@ -197,7 +196,7 @@ fun AdaptiveCampfireLayout(
         }
       }
 
-      if (windowSizeClass.widthSizeClass == WindowWidthSizeClass.ExtraLarge && isLoggedIn) {
+      if (windowSizeClass.isWidthAtLeastExtraLarge && isLoggedIn) {
         Box(modifier = Modifier.fillMaxWidth()) {
           playbackBarContent()
         }
@@ -248,8 +247,8 @@ val SupportingContentWidthLarge = 400.dp
 val SupportingContentWidthExtraLarge = 500.dp
 
 val WindowSizeClass.SupportingContentWidth: Dp
-  get() = when (widthSizeClass) {
-    WindowWidthSizeClass.ExtraLarge -> SupportingContentWidthExtraLarge
-    WindowWidthSizeClass.Large -> SupportingContentWidthLarge
+  get() = when {
+    isWidthAtLeastExtraLarge -> SupportingContentWidthExtraLarge
+    isWidthAtLeastLarge -> SupportingContentWidthLarge
     else -> SupportingContentWidthExpanded
   }

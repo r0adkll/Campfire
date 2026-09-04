@@ -3,7 +3,7 @@
 
 package app.campfire.common.navigator
 
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.screens.DetailScreen
 import app.campfire.common.screens.EmptyScreen

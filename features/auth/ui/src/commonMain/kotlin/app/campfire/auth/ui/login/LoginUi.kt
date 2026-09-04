@@ -29,8 +29,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -53,6 +51,7 @@ import app.campfire.auth.ui.login.composables.rememberServerUrlFieldState
 import app.campfire.auth.ui.login.settings.NetworkSettingsResult
 import app.campfire.auth.ui.login.settings.showNetworkSettingsBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Add
 import app.campfire.common.compose.icons.rounded.ArrowBack
@@ -338,7 +337,7 @@ private fun OpenIdAuthButton(
   }
 }
 
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun LoginUiPreview(
   state: LoginUiState,
@@ -347,7 +346,7 @@ private fun LoginUiPreview(
   PreviewSharedElementTransitionLayout {
     CampfireTheme {
       CompositionLocalProvider(
-        LocalWindowSizeClass provides calculateWindowSizeClass(),
+        LocalWindowSizeClass provides currentWindowSizeClass(),
         LocalOverlayHost provides rememberOverlayHost(),
         LocalContentLayout provides ContentLayout.Root,
       ) {

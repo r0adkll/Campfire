@@ -30,7 +30,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +60,7 @@ import app.campfire.common.compose.icons.rounded.AreaChartFilled
 import app.campfire.common.compose.icons.rounded.Crash
 import app.campfire.common.compose.icons.rounded.CrashFilled
 import app.campfire.common.compose.icons.rounded.DoneOutline
+import app.campfire.common.compose.layout.isWidthAtLeastLarge
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_finish_analytics_consent
@@ -79,7 +79,7 @@ fun AnalyticConsent(
       .systemBarsPadding(),
   ) {
     val windowSizeClass = LocalWindowSizeClass.current
-    if (windowSizeClass.widthSizeClass >= WindowWidthSizeClass.Large) {
+    if (windowSizeClass.isWidthAtLeastLarge) {
       TwoPaneLayout {
         AnalyticConsentContent(
           state = state,

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 
 /**
  * A custom wrapper around [LazyVerticalGrid] that takes into account the
- * [androidx.compose.material3.windowsizeclass.WindowSizeClass] and current [SupportingContentState] to
+ * [androidx.window.core.layout.WindowSizeClass] and current [SupportingContentState] to
  * dynamically set the grid size for its content.
  * @see LazyVerticalGrid
  */
