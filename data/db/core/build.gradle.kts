@@ -57,6 +57,12 @@ kotlin {
         implementation(libs.sqldelight.sqlite)
       }
     }
+
+    jvmTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
   }
 }
 

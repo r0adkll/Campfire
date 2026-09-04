@@ -5,10 +5,12 @@ package app.campfire.ui.theming.db
 
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.db.desktopSqliteDriver
+import app.campfire.db.hasColumn
+import app.campfire.db.setUserVersion
 import app.campfire.themes.CampfireThemeDatabase
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import java.io.File
 import me.tatarka.inject.annotations.Provides
 
@@ -25,14 +27,17 @@ actual interface SqlDelightDatabasePlatformComponent {
     val userDir = File(userRoot)
     val appDir = File(userDir, ".config/Campfire").apply { mkdirs() }
     val databaseFile = File(appDir, "campfire_themes.db")
+    val schema = CampfireThemeDatabase.Schema.synchronous()
 
-//    bark { "Creating SqlDriver for Database: ${databaseFile.absolutePath}" }
-
-    val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
-//    DestructiveMigrationSchema.perform(driver)
-    CampfireThemeDatabase.Schema
-      .synchronous()
-      .create(driver)
-    return driver
+    return desktopSqliteDriver(databaseFile, schema) {
+      // Older desktop builds never stamped a version. This database holds user-made themes, so
+      // keep it: every table is `CREATE TABLE IF NOT EXISTS`, and the only migration so far
+      // (1.sqm) added columns to customAppTheme, so apply it when those columns are missing.
+      schema.create(this).value
+      if (!hasColumn(table = "customAppTheme", column = "isAi")) {
+        schema.migrate(this, 0, schema.version).value
+      }
+      setUserVersion(schema.version)
+    }
   }
 }
