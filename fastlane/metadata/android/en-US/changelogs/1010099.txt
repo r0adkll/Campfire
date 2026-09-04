@@ -1,0 +1,13 @@
+New:
+- Sound equalizer with presets and per-book profiles
+- Ratings & reviews from Audible, Open Library, or Hardcover
+- Upcoming releases and missing series books, via Audible
+- Per-book playback speed and custom quick speeds
+- HLS streaming option for large audiobooks (Android)
+- Statistics heatmap and streaks
+- Adjustable progress sync intervals and sleep timer fade
+Fixed:
+- Chromecast playback and discovery
+- Missing progress on book cards
+- Book title in Android Auto
+- Home widgets

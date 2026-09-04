@@ -9,25 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Playback settings for how often listening progress syncs to the server, separately for Wi-Fi and mobile data
-- Optional HLS streaming on Android with a new Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
-- Per-book playback speed — a toggle in the playback speed sheet saves a speed for just that book instead of changing the global speed
-- The five quick playback speed options can now be customized in Settings → Playback, with sliders from 0.5x to 3x and tap-to-type exact values
+- Playback settings for how often listening progress syncs to the server, with separate intervals for Wi-Fi and mobile data
+- HLS streaming on Android, with a Streaming method setting (Auto, Direct play, or Prefer HLS) for smoother seeking in large single-file audiobooks
+- Playback speed improvements: a per-book speed that doesn't change the global speed, and customizable quick speed options (0.5x to 3x) in Settings → Playback
 - Sound equalizer on the playing screen (Android and desktop) with presets, 10-band adjustment, loudness and bass boost, and per-book profiles
-- Ratings & Reviews on the book detail page — community ratings and written reviews from Audible and Open Library out of the box, or from a linked Hardcover account, with a per-book source switcher
-- Book Info page in Settings to link Hardcover, choose a preferred source, and manage where ratings and reviews come from
-- Upcoming page in the sidebar with a release timeline of announced books from your series, scanned against Audible, plus an Upcoming releases shelf on the home screen
-- Series pages now show released books missing from your library, checked automatically against Audible
-- Listening activity heatmap on the Statistics page showing daily listening over the past year
-- Activity section on the Statistics page with listening streaks, finished book and podcast episode counts, and daily listening averages — tap the this-year counts to see everything finished this year
-- Sleep timer fade-out duration can now be customized in Settings → Sleep, from off up to a minute
+- Ratings & Reviews on the book detail page from Audible and Open Library, or from a linked Hardcover account, with a source switcher per book and a Book Info page in Settings to manage sources
+- Upcoming page and home shelf with a release timeline of announced books from your series, and series pages now show released books missing from your library, both checked against Audible
+- Statistics page: a daily listening heatmap for the past year, plus an Activity section with listening streaks, finished counts, and daily averages
+- Sleep timer fade-out duration can be set in Settings → Sleep (off to one minute), and the fade now follows a smoother logarithmic curve
 
 ### Changed
 
-- Automatic rewind ranges are now 0s-2m and ignore pauses now increased to 30s max
+- Automatic rewind can now be set anywhere from 0s to 2m, and the ignore-pauses window now goes up to 30s
 - Refreshed icons throughout the app with the updated Material Symbols style
-- Statistics now load instantly from a short-lived cache, with a refresh button in the top bar to fetch the latest numbers
-- Sleep timer fade-out now follows a logarithmic volume curve so it sounds like a steady fade instead of a sudden drop at the end
+- Statistics load instantly from a short-lived cache, with a refresh button in the top bar for the latest numbers
 
 ### Deprecated
 
@@ -35,20 +30,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Chromecast: audiobooks now play, devices appear reliably (including after rotating the screen), the end-of-chapter sleep timer stops at chapter boundaries, and playback no longer stops after about an hour on Audiobookshelf 2.22.0 or newer
 - Listening progress and finished indicators missing from book cards on series, author, collection, and search screens
 - Android Auto and the media notification now show the book title with the chapter instead of only the chapter and author
-- Recent listening bar chart on the Statistics page scaling its bars against all-time listening highs instead of just the days shown
+- Recent listening bar chart on the Statistics page scaling against all-time highs instead of the days shown
 - Playback timing and progress showing blank after reopening the app until playback started
-- End-of-chapter sleep timer not stopping at chapter boundaries while casting
-- Cast playback stopping after about an hour (fixed on servers running Audiobookshelf 2.22.0 or newer)
 - App widgets breaking due to large image size
-- Sleep timer countdown scrim on the playing screen's cover art not covering the whole cover
-- Cast devices not appearing reliably, including the cast button vanishing after rotating the screen
-- Audiobooks not playing on Chromecast
+- Sleep timer countdown scrim not covering the whole cover art on the playing screen
 
 ### Other Notes & Contributions
 
-- The cast device list now offers to request local network access on Android 17+ when it may be needed to find devices
+- The cast device list offers to request local network access on Android 17+ when it may be needed to find devices
 
 ## [1.0.5]
 
