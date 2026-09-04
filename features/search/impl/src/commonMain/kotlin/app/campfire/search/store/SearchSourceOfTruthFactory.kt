@@ -17,7 +17,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.dao.LibraryItemDao
-import app.campfire.data.mapping.model.mapToLibraryItem
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.network.models.SearchResult as NetworkSearchResult
 import app.campfire.search.api.SearchResult
 import app.campfire.search.mapping.asDomainModel
@@ -53,9 +53,9 @@ class SearchSourceOfTruthFactory(
       .asFlow()
       .mapToOneOrNull(dispatcherProvider.databaseRead)
       .mapNotNull { searchResult ->
-        searchResult?.key?.let {
+        searchResult?.let {
           val (result, duration) = measureTimedValue {
-            hydrateSearchResult(it)
+            hydrateSearchResult(query)
           }
           SearchStore.vbark { "Search Result for ${query.text} took $duration" }
           result
@@ -64,9 +64,15 @@ class SearchSourceOfTruthFactory(
   }
 
   private suspend fun hydrateSearchResult(
-    searchKey: String,
+    query: Query,
   ): SearchResult = withContext(dispatcherProvider.databaseRead) {
-    val books = db.searchQueries.searchBooks(searchKey, ::mapToLibraryItem)
+    val searchKey = query.databaseKey
+    val books = db.searchQueries
+      .searchBooks(
+        userId = query.userId,
+        searchKey = searchKey,
+        mapper = ::mapToLibraryItemWithProgress,
+      )
       .awaitAsList()
       .map { libraryItemDao.hydrateItem(it) }
 
@@ -80,7 +86,12 @@ class SearchSourceOfTruthFactory(
     val series = db.searchQueries.searchSeries(searchKey)
       .awaitAsList()
       .map { series ->
-        val seriesBooks = db.libraryItemsQueries.selectForSeries(series.id, ::mapToLibraryItem)
+        val seriesBooks = db.libraryItemsQueries
+          .selectForSeries(
+            userId = query.userId,
+            seriesId = series.id,
+            mapper = ::mapToLibraryItemWithProgress,
+          )
           .awaitAsList()
           .map { libraryItemDao.hydrateItem(it) }
 

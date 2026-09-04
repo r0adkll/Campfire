@@ -27,6 +27,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
@@ -125,11 +126,15 @@ class StoreSeriesRepository(
     sourceOfTruth = SourceOfTruth.of(
       reader = { s: SeriesItems ->
         db.libraryItemsQueries
-          .selectForSeries(s.seriesId)
+          .selectForSeries(
+            userId = s.userId,
+            seriesId = s.seriesId,
+            mapper = ::mapToLibraryItemWithProgress,
+          )
           .asFlow()
           .mapToList(dispatcherProvider.databaseRead)
-          .map { selectForSeries ->
-            selectForSeries.map { it.asDomainModel(urlHydrator) }
+          .map { items ->
+            items.map { it.asDomainModel(urlHydrator) }
           }
           .map {
             // Store REALLY doesn't like empty lists as a state from the database

@@ -12,6 +12,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.model.Series
 import app.campfire.core.model.User
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.db.paging.QueryPagingSource
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import me.tatarka.inject.annotations.Inject
@@ -55,7 +56,11 @@ class SeriesPagerFactory(
         },
         mapper = { dbSeries ->
           val books = db.libraryItemsQueries
-            .selectForSeries(dbSeries.id)
+            .selectForSeries(
+              userId = user.id,
+              seriesId = dbSeries.id,
+              mapper = ::mapToLibraryItemWithProgress,
+            )
             .awaitAsList()
             .map { it.asDomainModel(urlHydrator) }
             .sortedBy { it.media.metadata.seriesSequence?.sequence }

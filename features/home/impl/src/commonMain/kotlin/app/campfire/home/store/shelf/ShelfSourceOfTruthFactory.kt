@@ -102,7 +102,11 @@ class ShelfSourceOfTruthFactory(
       .mapLatest { series ->
         val seriesWithBooks = series.associateWith { s ->
           db.libraryItemsQueries
-            .selectForSeries(s.id)
+            .selectForSeries(
+              userId = userSession.requiredUserId,
+              seriesId = s.id,
+              mapper = ::mapToLibraryItemWithProgress,
+            )
             .awaitAsList()
         }
 

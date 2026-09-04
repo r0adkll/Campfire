@@ -92,10 +92,13 @@ DELETE FROM search
 WHERE userId = ?;
 
 searchBooks:
-SELECT libraryItem.*, media.* FROM search_books
+SELECT libraryItem.*, media.*, mediaProgress.* FROM search_books
 INNER JOIN libraryItem ON libraryItem.id = search_books.libraryItemId
 INNER JOIN media ON media.libraryItemId = libraryItem.id
-WHERE search_books.searchKey = ?;
+LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
+  AND mediaProgress.episodeId = ''
+  AND mediaProgress.userId = :userId
+WHERE search_books.searchKey = :searchKey;
 
 searchAuthors:
 SELECT * FROM search_authors

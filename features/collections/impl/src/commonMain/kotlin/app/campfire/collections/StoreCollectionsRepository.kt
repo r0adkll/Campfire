@@ -15,6 +15,7 @@ import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
@@ -90,13 +91,19 @@ class StoreCollectionsRepository(
   }
 
   override fun observeCollectionItems(collectionId: CollectionId): Flow<List<LibraryItem>> {
-    return db.libraryItemsQueries
-      .selectForCollection(collectionId)
-      .asFlow()
-      .mapToList(dispatcherProvider.databaseRead)
-      .mapLatest { selectForCollection ->
-        selectForCollection
-          .map { it.asDomainModel(urlHydrator) }
+    return userRepository.observeCurrentUser()
+      .flatMapLatest { user ->
+        db.libraryItemsQueries
+          .selectForCollection(
+            userId = user.id,
+            collectionId = collectionId,
+            mapper = ::mapToLibraryItemWithProgress,
+          )
+          .asFlow()
+          .mapToList(dispatcherProvider.databaseRead)
+          .mapLatest { items ->
+            items.map { it.asDomainModel(urlHydrator) }
+          }
       }
   }
 

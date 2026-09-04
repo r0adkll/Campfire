@@ -12,6 +12,7 @@ import app.campfire.core.util.runIfNotNull
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
+import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.network.models.Series as NetworkSeries
 import app.campfire.series.store.SeriesStore.Key
 import app.cash.sqldelight.async.coroutines.awaitAsList
@@ -38,7 +39,11 @@ internal class SeriesSourceOfTruthFactory(
         .mapLatest { series ->
           series.map { dbSeries ->
             val books = db.libraryItemsQueries
-              .selectForSeries(dbSeries.id)
+              .selectForSeries(
+                userId = key.userId,
+                seriesId = dbSeries.id,
+                mapper = ::mapToLibraryItemWithProgress,
+              )
               .awaitAsList()
               .map { it.asDomainModel(urlHydrator) }
               .sortedBy { it.media.metadata.seriesSequence?.sequence }
