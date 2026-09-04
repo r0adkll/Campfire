@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Item detail showing a stray download button while the item is playing or already downloading, and a mismatched play button shape while a download is in progress
+
 ### Other Notes & Contributions
 
 ## [1.1.0]
