@@ -21,7 +21,9 @@ data class EqualizerConfig(
  *   across two instances.
  * - `anequalizer` places one peaking filter per Campfire band at the band's own frequency, per
  *   channel, so the bands the user sees are the bands applied (no mapping onto fixed ISO bands).
- *   The loudness/preamp gain is a plain `volume` stage.
+ *   Each filter is as wide as the band it owns — edges at the geometric midpoints to its
+ *   neighbours — so adjacent bands neither overlap (gains would stack: +6 dB everywhere measured
+ *   as +13 dB) nor leave gaps. The loudness/preamp gain is a plain `volume` stage.
  * - `aformat` at the tail pins the output back to what the audio line was opened with.
  */
 object FilterChain {
@@ -50,14 +52,32 @@ object FilterChain {
   }
 
   private fun equalizerStage(equalizer: EqualizerConfig, channels: Int): String {
-    val bands = EqualizerBands.centerFrequenciesHz.zip(equalizer.bandGainsDb)
+    val frequencies = EqualizerBands.centerFrequenciesHz
     val params = (0 until channels).flatMap { channel ->
-      bands.map { (frequencyHz, gainDb) ->
-        // Peaking filters roughly an octave wide; t=0 selects the Butterworth response
-        "c$channel f=$frequencyHz w=${format(frequencyHz * BAND_WIDTH_RATIO)} g=${format(gainDb)} t=0"
+      frequencies.indices.map { index ->
+        val gainDb = equalizer.bandGainsDb.getOrElse(index) { 0f }
+        // t=0 selects the Butterworth response
+        "c$channel f=${frequencies[index]} w=${bandWidthHz(index)} g=${format(gainDb)} t=0"
       }
     }
     return "anequalizer='${params.joinToString("|")}'"
+  }
+
+  /** Width of band [index] in Hz: from the geometric midpoint below to the one above. */
+  internal fun bandWidthHz(index: Int): Int {
+    val frequencies = EqualizerBands.centerFrequenciesHz
+    val center = frequencies[index].toDouble()
+    val lower = if (index == 0) {
+      center / sqrt(frequencies[1] / center)
+    } else {
+      sqrt(frequencies[index - 1] * center)
+    }
+    val upper = if (index == frequencies.lastIndex) {
+      minOf(NYQUIST_CEILING_HZ, center * sqrt(center / frequencies[index - 1]))
+    } else {
+      sqrt(center * frequencies[index + 1])
+    }
+    return (upper - lower).toInt()
   }
 
   private fun format(value: Float): String = String.format(Locale.ROOT, "%.3f", value).trimEnd('0').trimEnd('.')
@@ -65,5 +85,5 @@ object FilterChain {
   private const val MIN_TEMPO = 0.5f
   private const val MAX_TEMPO = 4f
   private const val SINGLE_STAGE_MAX_TEMPO = 2f
-  private const val BAND_WIDTH_RATIO = 0.7f
+  private const val NYQUIST_CEILING_HZ = 20_000.0
 }

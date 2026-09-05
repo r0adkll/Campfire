@@ -33,11 +33,18 @@ class FilterChainTest {
     val gains = List(10) { 0f }.toMutableList().apply { this[0] = 6f; this[9] = -3.5f }
     val chain = FilterChain.build(1f, EqualizerConfig(enabled = true, preampDb = 2f, bandGainsDb = gains), 44_100, 2)!!
 
-    assertThat(chain).startsWith("anequalizer='c0 f=60 w=42 g=6 t=0|c0 f=170")
-    assertThat(chain).contains("|c1 f=60 w=42 g=6 t=0|")
-    assertThat(chain).contains("c1 f=16000 w=11200 g=-3.5 t=0'")
+    assertThat(chain).startsWith("anequalizer='c0 f=60 w=65 g=6 t=0|c0 f=170")
+    assertThat(chain).contains("|c1 f=60 w=65 g=6 t=0|")
+    assertThat(chain).contains("c1 f=16000 w=2138 g=-3.5 t=0'")
     assertThat(chain).contains(",volume=2dB,aformat=")
     // 10 bands x 2 channels
     assertThat(chain.split("|").size).isEqualTo(20)
+  }
+
+  @Test
+  fun `bands are contiguous, meeting at the geometric midpoints between centres`() {
+    val widths = (0 until 10).map { FilterChain.bandWidthHz(it) }
+    // 60, 170, 310, 600, 1k, 3k, 6k, 12k, 14k, 16k Hz: the closely spaced top bands stay narrow
+    assertThat(widths).isEqualTo(listOf(65, 128, 201, 343, 957, 2510, 4242, 4476, 2005, 2138))
   }
 }
