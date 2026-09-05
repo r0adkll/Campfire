@@ -13,8 +13,12 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /**
@@ -29,6 +33,7 @@ class NowPlayingCoordinator(
   private val holder: AudioPlayerHolder,
   private val settings: PlaybackSettings,
   private val bridge: NowPlayingBridge,
+  private val artworkLoader: ArtworkLoader,
   private val scope: CoroutineScope,
   private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
@@ -45,22 +50,32 @@ class NowPlayingCoordinator(
     }
   }
 
-  private suspend fun observe(player: AudioPlayer) {
+  private suspend fun observe(player: AudioPlayer) = coroutineScope {
     bridge.setCommandHandler(
       PlayerCommands(player),
       skipForward = settings.forwardTimeMs.milliseconds,
       skipBackward = settings.backwardTimeMs.milliseconds,
     )
 
+    // Cover bytes for the artwork URL they were fetched from; published once loaded
+    val artwork = MutableStateFlow<Pair<String, ByteArray>?>(null)
+    launch {
+      player.currentMetadata.map { it.artworkUri }.distinctUntilChanged().collectLatest { url ->
+        val userId = player.preparedSession?.userId
+        if (url == null || userId == null) return@collectLatest
+        if (artwork.value?.first == url) return@collectLatest
+        val bytes = runCatching { artworkLoader.load(url, userId) }.getOrNull() ?: return@collectLatest
+        artwork.value = url to bytes
+      }
+    }
+
     var published: Published? = null
 
     combine(
-      player.state,
-      player.currentMetadata,
-      player.currentDuration,
-      player.playbackSpeed,
-      player.currentTime,
-    ) { state, metadata, duration, speed, time ->
+      combine(player.state, player.currentMetadata, player.currentDuration) { s, m, d -> Triple(s, m, d) },
+      combine(player.playbackSpeed, player.currentTime) { r, t -> r to t },
+      artwork,
+    ) { (state, metadata, duration), (speed, time), cover ->
       val session = player.preparedSession
       val rate = if (state == AudioPlayer.State.Playing) speed.toDouble() else 0.0
       NowPlayingInfo(
@@ -71,6 +86,7 @@ class NowPlayingCoordinator(
         elapsed = time,
         rate = rate,
         defaultRate = speed.toDouble(),
+        artwork = cover?.takeIf { it.first == metadata.artworkUri }?.second,
       ) to state
     }.collect { (info, state) ->
       if (state == AudioPlayer.State.Disabled) {

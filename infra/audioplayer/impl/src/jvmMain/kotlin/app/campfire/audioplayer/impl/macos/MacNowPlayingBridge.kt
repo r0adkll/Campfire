@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.macos
 
 import app.campfire.audioplayer.impl.macos.ObjC.put
+import app.campfire.audioplayer.impl.macos.ObjC.release
 import app.campfire.audioplayer.impl.macos.ObjC.utf8
 import app.campfire.core.logging.Cork
 import com.sun.jna.Callback
@@ -27,6 +28,11 @@ internal class MacNowPlayingBridge : NowPlayingBridge {
 
   private val mediaPlayer: NativeLibrary = NativeLibrary.getInstance(MEDIA_PLAYER_FRAMEWORK)
 
+  init {
+    // NSImage lives in AppKit; make sure the class is resolvable even before a window exists
+    NativeLibrary.getInstance(APP_KIT_FRAMEWORK)
+  }
+
   private val keyTitle = ObjC.global(mediaPlayer, "MPMediaItemPropertyTitle")
   private val keyArtist = ObjC.global(mediaPlayer, "MPMediaItemPropertyArtist")
   private val keyAlbum = ObjC.global(mediaPlayer, "MPMediaItemPropertyAlbumTitle")
@@ -35,6 +41,18 @@ internal class MacNowPlayingBridge : NowPlayingBridge {
   private val keyRate = ObjC.global(mediaPlayer, "MPNowPlayingInfoPropertyPlaybackRate")
   private val keyDefaultRate = ObjC.global(mediaPlayer, "MPNowPlayingInfoPropertyDefaultPlaybackRate")
   private val keyMediaType = ObjC.global(mediaPlayer, "MPNowPlayingInfoPropertyMediaType")
+  private val keyArtwork = ObjC.global(mediaPlayer, "MPMediaItemPropertyArtwork")
+
+  /**
+   * The decoded cover the artwork request handler hands back. The system may call the handler of
+   * an older MPMediaItemArtwork at any time, so every handler resolves to the *current* image and
+   * the previous image is kept alive for one more rotation before it is released.
+   */
+  @Volatile
+  private var currentImage: Pointer? = null
+  private var previousImage: Pointer? = null
+  private var currentArtworkBytes: ByteArray? = null
+  private val artworkRequestBlock = ObjC.ImageRequestBlock { _, _ -> currentImage }
 
   @Volatile
   private var handler: RemoteCommandHandler? = null
@@ -111,8 +129,37 @@ internal class MacNowPlayingBridge : NowPlayingBridge {
       dict.put(keyRate, ObjC.nsNumber(info.rate))
       dict.put(keyDefaultRate, ObjC.nsNumber(info.defaultRate))
       dict.put(keyMediaType, ObjC.nsNumber(MEDIA_TYPE_AUDIO))
+      artworkFor(info.artwork)?.let { artwork ->
+        dict.put(keyArtwork, artwork)
+        artwork.release()
+      }
       ObjC.sendVoid(center, "setNowPlayingInfo:", dict)
     }
+  }
+
+  /** An owned MPMediaItemArtwork for [bytes], decoding a new NSImage only when the bytes change. */
+  private fun artworkFor(bytes: ByteArray?): Pointer? {
+    if (bytes == null) return null
+    if (bytes !== currentArtworkBytes) {
+      val image = ObjC.send(ObjC.cls("NSImage"), "alloc")
+        ?.let { ObjC.send(it, "initWithData:", ObjC.nsData(bytes)) }
+      if (image == null) {
+        wbark { "Cover image could not be decoded (${bytes.size} bytes)" }
+        return null
+      }
+      previousImage?.release()
+      previousImage = currentImage
+      currentImage = image
+      currentArtworkBytes = bytes
+    }
+    val artwork = ObjC.send(ObjC.cls("MPMediaItemArtwork"), "alloc") ?: return null
+    return ObjC.send(
+      artwork,
+      "initWithBoundsSize:requestHandler:",
+      ARTWORK_BOUNDS,
+      ARTWORK_BOUNDS,
+      artworkRequestBlock.pointer,
+    )
   }
 
   override fun setPlaybackState(state: NowPlayingState) = MainQueue.post {
@@ -158,13 +205,18 @@ internal class MacNowPlayingBridge : NowPlayingBridge {
     }
   }
 
+  internal data class ReadBack(val title: String?, val playbackState: Long, val artworkResolves: Boolean)
+
   /** What the system currently holds for us; used by the integration test to prove the round trip. */
-  internal fun readBack(): Pair<String?, Long> = MainQueue.call {
+  internal fun readBack(): ReadBack = MainQueue.call {
     ObjC.autoreleased {
       val center = center()
       val info = ObjC.send(center, "nowPlayingInfo")
       val title = info?.let { ObjC.send(it, "objectForKey:", keyTitle) }?.utf8()
-      title to ObjC.sendLong(center, "playbackState")
+      // Asking the artwork for an image runs our request block through the real block ABI
+      val artworkResolves = info?.let { ObjC.send(it, "objectForKey:", keyArtwork) }
+        ?.let { ObjC.send(it, "imageWithSize:", 300.0, 300.0) } != null
+      ReadBack(title, ObjC.sendLong(center, "playbackState"), artworkResolves)
     }
   }
 
@@ -173,6 +225,10 @@ internal class MacNowPlayingBridge : NowPlayingBridge {
     override val enabled: Boolean = true
 
     private const val MEDIA_PLAYER_FRAMEWORK = "/System/Library/Frameworks/MediaPlayer.framework/MediaPlayer"
+    private const val APP_KIT_FRAMEWORK = "/System/Library/Frameworks/AppKit.framework/AppKit"
+
+    /** Bounds advertised for the artwork; covers are requested at this width from the server. */
+    private const val ARTWORK_BOUNDS = 1200.0
     private const val TARGET_CLASS = "CampfireRemoteCommandTarget"
 
     private const val STATUS_SUCCESS = 0L

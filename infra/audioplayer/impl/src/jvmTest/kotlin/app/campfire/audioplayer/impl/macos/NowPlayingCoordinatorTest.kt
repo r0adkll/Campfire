@@ -63,9 +63,16 @@ class NowPlayingCoordinatorTest {
   private val holder = FakeAudioPlayerHolder()
   private val settings = FakePlaybackSettings()
 
+  private val covers = mutableMapOf<String, ByteArray>()
+  private val coverRequests = mutableListOf<String>()
+  private val artworkLoader = ArtworkLoader { url, _ ->
+    coverRequests += url
+    covers[url]
+  }
+
   private fun TestScope.start(): Job {
     val scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + Job())
-    return NowPlayingCoordinator(holder, settings, bridge, scope, testTimeSource).start()
+    return NowPlayingCoordinator(holder, settings, bridge, artworkLoader, scope, testTimeSource).start()
   }
 
   /** A player mid-way through chapter 1 of a two-track book, playing at 1.25x. */
@@ -194,9 +201,33 @@ class NowPlayingCoordinatorTest {
   }
 
   @Test
+  fun `cover art is fetched once per url and published with the metadata it belongs to`() = runTest {
+    val cover = byteArrayOf(1, 2, 3)
+    covers["https://abs/cover.jpg"] = cover
+    start()
+    val player = playingPlayer()
+    holder.setCurrentPlayer(player)
+    assertThat(bridge.infos.last()?.artwork).isNull()
+
+    player.currentMetadata.value = Metadata(title = "Chapter 1", artworkUri = "https://abs/cover.jpg")
+    assertThat(bridge.infos.last()?.artwork).isEqualTo(cover)
+    assertThat(bridge.infos.last()?.title).isEqualTo("Chapter 1")
+
+    // Same cover for the next chapter: no refetch, artwork carried along
+    player.currentMetadata.value = Metadata(title = "Chapter 2", artworkUri = "https://abs/cover.jpg")
+    assertThat(coverRequests).containsExactly("https://abs/cover.jpg")
+    assertThat(bridge.infos.last()?.artwork).isEqualTo(cover)
+
+    // A different item whose cover can't be fetched publishes without stale artwork
+    player.currentMetadata.value = Metadata(title = "Other", artworkUri = "https://abs/missing.jpg")
+    assertThat(coverRequests.last()).isEqualTo("https://abs/missing.jpg")
+    assertThat(bridge.infos.last()?.artwork).isNull()
+  }
+
+  @Test
   fun `the coordinator stops with its scope`() = runTest {
     val scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + Job())
-    NowPlayingCoordinator(holder, settings, bridge, scope, testTimeSource).start()
+    NowPlayingCoordinator(holder, settings, bridge, artworkLoader, scope, testTimeSource).start()
     scope.cancel()
     holder.setCurrentPlayer(playingPlayer())
     assertThat(bridge.handler).isNull()

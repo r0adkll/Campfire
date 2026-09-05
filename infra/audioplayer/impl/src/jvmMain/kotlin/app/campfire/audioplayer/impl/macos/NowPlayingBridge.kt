@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.macos
 
+import app.campfire.core.model.UserId
 import kotlin.time.Duration
 
 /**
@@ -34,7 +35,14 @@ data class NowPlayingInfo(
   val rate: Double,
   /** The rate playback resumes at. */
   val defaultRate: Double,
+  /** Encoded cover image (any format the platform decodes), or null for no artwork. */
+  val artwork: ByteArray? = null,
 )
+
+/** Fetches cover bytes for [NowPlayingInfo.artwork]; implementations handle authentication. */
+fun interface ArtworkLoader {
+  suspend fun load(url: String, userId: UserId): ByteArray?
+}
 
 enum class NowPlayingState { Playing, Paused, Stopped }
 

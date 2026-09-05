@@ -5,9 +5,15 @@ package app.campfire.audioplayer.impl.macos
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
+import java.awt.Color
 import java.awt.GraphicsEnvironment
 import java.awt.Toolkit
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
@@ -53,21 +59,35 @@ class MacNowPlayingBridgeIntegrationTest {
           elapsed = 42.seconds,
           rate = 1.0,
           defaultRate = 1.0,
+          artwork = pngCover(),
         ),
       )
       bridge.setPlaybackState(NowPlayingState.Playing)
 
-      val (title, state) = bridge.readBack()
+      val (title, state, artworkResolves) = bridge.readBack()
       assertThat(title).isEqualTo("Campfire bridge test")
       assertThat(state).isEqualTo(1L)
+      assertThat(artworkResolves).isTrue()
     } finally {
       bridge.setCommandHandler(null, 0.seconds, 0.seconds)
       bridge.setNowPlaying(null)
       bridge.setPlaybackState(NowPlayingState.Stopped)
     }
 
-    val (title, state) = bridge.readBack()
+    val (title, state, artworkResolves) = bridge.readBack()
     assertThat(title).isNull()
     assertThat(state).isEqualTo(3L)
+    assertThat(artworkResolves).isFalse()
+  }
+
+  /** A small solid PNG, encoded the way a real cover download would arrive: as bytes. */
+  private fun pngCover(): ByteArray {
+    val image = BufferedImage(64, 96, BufferedImage.TYPE_INT_RGB)
+    image.createGraphics().apply {
+      color = Color(0xCC, 0x55, 0x22)
+      fillRect(0, 0, 64, 96)
+      dispose()
+    }
+    return ByteArrayOutputStream().also { ImageIO.write(image, "png", it) }.toByteArray()
   }
 }

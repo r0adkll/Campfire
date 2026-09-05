@@ -4,7 +4,9 @@
 package app.campfire.audioplayer.impl.macos
 
 import com.sun.jna.Callback
+import com.sun.jna.CallbackReference
 import com.sun.jna.Function
+import com.sun.jna.Memory
 import com.sun.jna.NativeLibrary
 import com.sun.jna.Pointer
 
@@ -96,4 +98,56 @@ internal object ObjC {
 
   /** Reads an NSString as a Kotlin string. */
   fun Pointer.utf8(): String? = send(this, "UTF8String")?.getString(0, "UTF-8")
+
+  /** An NSData copy of [bytes]. */
+  fun nsData(bytes: ByteArray): Pointer {
+    val memory = Memory(bytes.size.toLong().coerceAtLeast(1)).apply { write(0, bytes, 0, bytes.size) }
+    return send(cls("NSData"), "dataWithBytes:length:", memory, bytes.size.toLong())
+      ?: error("NSData allocation failed")
+  }
+
+  fun Pointer.release() = sendVoid(this, "release")
+
+  /**
+   * A block with no captured variables: `NSImage *(^)(CGSize)` shaped for MediaPlayer's artwork
+   * request handler. Built as a global block literal so it is never copied or freed by the
+   * runtime; the instance (and its callback) must be kept referenced for as long as the block
+   * may be invoked. CGSize arrives as two doubles, which is how a two-double struct is passed on
+   * both arm64 and x86_64.
+   */
+  class ImageRequestBlock(private val handler: (width: Double, height: Double) -> Pointer?) {
+
+    fun interface Invoke : Callback {
+      fun invoke(block: Pointer?, width: Double, height: Double): Pointer?
+    }
+
+    private val invoke = Invoke { _, width, height -> handler(width, height) }
+    private val signature = Memory(SIGNATURE.length + 1L).apply { setString(0, SIGNATURE, "UTF-8") }
+    private val descriptor = Memory(DESCRIPTOR_SIZE).apply {
+      setLong(0, 0L)
+      setLong(8, LITERAL_SIZE)
+      setPointer(16, signature)
+    }
+    private val literal = Memory(LITERAL_SIZE).apply {
+      setPointer(0, globalBlockIsa)
+      setInt(8, BLOCK_IS_GLOBAL or BLOCK_HAS_SIGNATURE)
+      setInt(12, 0)
+      setPointer(16, CallbackReference.getFunctionPointer(invoke))
+      setPointer(24, descriptor)
+    }
+
+    /** The block object, usable wherever an ObjC API takes a block argument. */
+    val pointer: Pointer get() = literal
+
+    private companion object {
+      const val LITERAL_SIZE = 32L
+      const val DESCRIPTOR_SIZE = 24L
+      const val BLOCK_IS_GLOBAL = 1 shl 28
+      const val BLOCK_HAS_SIGNATURE = 1 shl 30
+      const val SIGNATURE = "@24@?0{CGSize=dd}8"
+      val globalBlockIsa: Pointer = NativeLibrary.getInstance("System").getGlobalVariableAddress(
+        "_NSConcreteGlobalBlock",
+      )
+    }
+  }
 }

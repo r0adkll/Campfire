@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.macos
 
+import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.core.app.AppInitializer
@@ -25,6 +26,7 @@ import me.tatarka.inject.annotations.Inject
 class MacMediaIntegrationInitializer(
   private val holder: AudioPlayerHolder,
   private val settings: PlaybackSettings,
+  private val accountManager: AccountManager,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {
 
@@ -34,7 +36,13 @@ class MacMediaIntegrationInitializer(
     if (!isMacOs()) return
 
     runCatching {
-      NowPlayingCoordinator(holder, settings, MacNowPlayingBridge(), applicationScope).start()
+      NowPlayingCoordinator(
+        holder = holder,
+        settings = settings,
+        bridge = MacNowPlayingBridge(),
+        artworkLoader = HttpArtworkLoader(accountManager),
+        scope = applicationScope,
+      ).start()
     }.onFailure { ebark(it) { "Now Playing integration unavailable" } }
 
     runCatching {
