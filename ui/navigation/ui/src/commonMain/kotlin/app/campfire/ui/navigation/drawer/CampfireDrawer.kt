@@ -84,7 +84,7 @@ interface CampfireDrawerComponent {
 
 @Composable
 fun CampfireDrawer(
-  rootScreen: Screen,
+  currentScreen: Screen,
   drawerState: DrawerState,
   navigator: Navigator,
   accountSwitcher: @Composable () -> Unit,
@@ -97,6 +97,12 @@ fun CampfireDrawer(
   }
   val state = presenter.presentDrawer()
   val windowSizeClass = LocalWindowSizeClass.current
+  val isPermanentDrawer = windowSizeClass.navigationType == NavigationType.Drawer
+
+  // Prefer an exact match so sibling items sharing a screen class (e.g. Settings and
+  // Downloads) don't both light up; fall back to the class for parameterised screens.
+  val selectedScreen = state.navigationItems.firstOrNull { it.screen == currentScreen }?.screen
+    ?: state.navigationItems.firstOrNull { it.screen.instanceOf(currentScreen::class) }?.screen
 
   DrawerSheet(
     modifier = modifier,
@@ -141,11 +147,17 @@ fun CampfireDrawer(
       state.navigationItems.forEach { item ->
         DestinationListItem(
           item = item,
-          rootScreen = rootScreen,
+          selected = item.screen == selectedScreen,
           onClick = {
-            navigator.goTo(item.screen)
-            scope.launch {
-              drawerState.close()
+            if (isPermanentDrawer) {
+              // A permanent drawer is the top-level switcher, like the bottom bar and rail:
+              // swap the root instead of stacking destinations on top of each other.
+              navigator.resetRoot(item.screen)
+            } else {
+              navigator.goTo(item.screen)
+              scope.launch {
+                drawerState.close()
+              }
             }
           },
         )
@@ -251,7 +263,7 @@ fun CampfireDrawer(
 @Composable
 private fun DestinationListItem(
   item: HomeNavigationItem,
-  rootScreen: Screen,
+  selected: Boolean,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -263,7 +275,7 @@ private fun DestinationListItem(
       )
     },
     label = { Text(text = item.label) },
-    selected = item.screen.instanceOf(rootScreen::class),
+    selected = selected,
     onClick = onClick,
     modifier = modifier
       .padding(

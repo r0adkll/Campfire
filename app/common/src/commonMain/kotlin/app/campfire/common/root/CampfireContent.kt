@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import app.campfire.account.api.UserSessionManager
+import app.campfire.common.compose.LocalWindowChromeInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.root.automation.AutomationDeepLinks
@@ -63,6 +64,7 @@ fun CampfireContentWithInsets(
 
   CompositionLocalProvider(
     LocalWindowSizeClass provides currentWindowSizeClass(),
+    LocalWindowChromeInsets provides windowInsets,
     LocalRetainedStateRegistry provides lifecycleRetainedStateRegistry(),
     LocalUriHandler provides appUriHandler,
   ) {
@@ -91,7 +93,6 @@ fun CampfireContentWithInsets(
           userComponent = userComponent,
           onRootPop = onRootPop,
           onOpenUrl = onOpenUrl,
-          windowInsets = windowInsets,
           deepLink = deepLink,
           settings = settings,
           themeManager = themeManager,
