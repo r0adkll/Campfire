@@ -3,9 +3,9 @@
 
 package app.campfire.audioplayer.impl.chapters
 
-import app.campfire.audioplayer.impl.fixtures.chapter
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.fixtures.track
+import app.campfire.audioplayer.test.fixtures.chapter
+import app.campfire.audioplayer.test.fixtures.session
+import app.campfire.audioplayer.test.fixtures.track
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse

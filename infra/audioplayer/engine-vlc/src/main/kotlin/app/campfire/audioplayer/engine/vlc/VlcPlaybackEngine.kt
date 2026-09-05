@@ -1,9 +1,13 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.impl.engine
+package app.campfire.audioplayer.engine.vlc
 
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.impl.engine.EngineState
+import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
+import app.campfire.audioplayer.impl.engine.PlaybackEngineException
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.core.logging.Cork
 import java.util.Locale

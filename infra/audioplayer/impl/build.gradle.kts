@@ -8,6 +8,18 @@ plugins {
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.buildConfig)
+}
+
+// Desktop audio engine: "ffmpeg" (default), "vlc", or "both" for dev builds that carry the two
+// engines and pick at runtime. Set campfire_desktop_audio_engine in ~/.gradle/gradle.properties or
+// pass -Pcampfire_desktop_audio_engine=vlc; :app:desktop reads the same property to decide which
+// engine modules ship, and -Dcampfire.audio.engine at launch still overrides the pick.
+buildConfig {
+  packageName("app.campfire.audioplayer.impl")
+  val desktopAudioEngine = providers.gradleProperty("campfire_desktop_audio_engine").orNull ?: "ffmpeg"
+  buildConfigField("String", "DESKTOP_AUDIO_ENGINE", "\"$desktopAudioEngine\"")
+  useKotlinOutput()
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -90,42 +102,11 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(libs.vlcj)
         implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
-        implementation(libs.bytedeco.ffmpeg)
-        implementation(libs.bytedeco.javacpp)
-        implementation(project.dependencies.variantOf(libs.bytedeco.ffmpeg) { classifier(javacppPlatform) })
-        implementation(project.dependencies.variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })
-      }
-    }
-
-    jvmTest {
-      dependencies {
-        implementation(libs.kotlinx.serialization.json)
       }
     }
   }
 }
 
 addKspDependencyForAllTargets(libs.kimchi.compiler)
-
-/**
- * The JavaCPP classifier for the machine running the build. Desktop distributions are built
- * per platform anyway (Compose has no universal binaries), so only the host's natives ship.
- */
-val javacppPlatform: String
-  get() {
-    val os = System.getProperty("os.name").lowercase()
-    val arch = System.getProperty("os.arch").lowercase()
-    val osName = when {
-      os.contains("mac") -> "macosx"
-      os.contains("win") -> "windows"
-      else -> "linux"
-    }
-    val archName = when {
-      arch == "aarch64" || arch == "arm64" -> "arm64"
-      else -> "x86_64"
-    }
-    return "$osName-$archName"
-  }

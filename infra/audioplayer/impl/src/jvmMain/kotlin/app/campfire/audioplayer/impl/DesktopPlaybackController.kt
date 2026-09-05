@@ -6,15 +6,16 @@ package app.campfire.audioplayer.impl
 import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
+import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
-import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
-import app.campfire.audioplayer.impl.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
@@ -34,6 +35,7 @@ class DesktopPlaybackController(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val accountManager: AccountManager,
+  private val engineProviders: Set<DesktopAudioEngineProvider>,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -62,15 +64,19 @@ class DesktopPlaybackController(
   }
 
   /**
-   * libvlc remains the default while the FFmpeg engine is evaluated; launch with
-   * `-Dcampfire.audio.engine=ffmpeg` to play through FFmpeg instead.
+   * Which bundled engine plays audio. The build bakes the default into
+   * [BuildConfig.DESKTOP_AUDIO_ENGINE] (Gradle property `campfire_desktop_audio_engine`, which
+   * also decides which engine modules ship); `-Dcampfire.audio.engine=<name>` overrides it for a
+   * run. A build carrying a single engine uses that one regardless.
    */
   private fun engineFactory(): PlaybackEngine.Factory {
-    return if (System.getProperty(ENGINE_PROPERTY).equals(ENGINE_FFMPEG, ignoreCase = true)) {
-      PlaybackEngine.Factory { FfmpegPlaybackEngine() }
-    } else {
-      VlcPlaybackEngine.Factory()
+    val requested = System.getProperty(ENGINE_PROPERTY)?.takeIf { it.isNotBlank() } ?: BuildConfig.DESKTOP_AUDIO_ENGINE
+    val selected = DesktopEngineSelection.select(engineProviders, requested)
+    ibark {
+      val bundled = engineProviders.map { it.name }
+      "Desktop audio engine: ${selected?.name ?: "none"} (requested $requested, bundled $bundled)"
     }
+    return selected?.factory ?: DesktopEngineSelection.unavailable(requested, engineProviders)
   }
 
   private fun initializeAudioPlayerIfNeeded() {
@@ -89,8 +95,9 @@ class DesktopPlaybackController(
     }
   }
 
-  private companion object {
+  private companion object : Cork {
+    override val tag: String = "DesktopPlaybackController"
+    override val enabled: Boolean = true
     const val ENGINE_PROPERTY = "campfire.audio.engine"
-    const val ENGINE_FFMPEG = "ffmpeg"
   }
 }

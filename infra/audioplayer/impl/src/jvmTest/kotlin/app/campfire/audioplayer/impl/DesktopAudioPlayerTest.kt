@@ -12,11 +12,11 @@ import app.campfire.audioplayer.impl.engine.FakePlaybackEngine
 import app.campfire.audioplayer.impl.engine.FakePlaybackEngine.Open
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
-import app.campfire.audioplayer.impl.fixtures.chapter
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.fixtures.track
 import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
 import app.campfire.audioplayer.model.profileOrNull
+import app.campfire.audioplayer.test.fixtures.chapter
+import app.campfire.audioplayer.test.fixtures.session
+import app.campfire.audioplayer.test.fixtures.track
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.test.FakeEqualizerSettings

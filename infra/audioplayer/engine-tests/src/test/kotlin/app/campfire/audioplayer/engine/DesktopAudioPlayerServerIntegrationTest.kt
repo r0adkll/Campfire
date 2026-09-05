@@ -1,15 +1,15 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.impl
+package app.campfire.audioplayer.engine
 
 import app.campfire.audioplayer.AudioPlayer.State
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.engine.ffmpeg.FfmpegPlaybackEngine
+import app.campfire.audioplayer.engine.vlc.VlcPlaybackEngine
+import app.campfire.audioplayer.impl.DesktopAudioPlayer
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
-import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
-import app.campfire.audioplayer.impl.engine.ffmpeg.FfmpegPlaybackEngine
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
+import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
