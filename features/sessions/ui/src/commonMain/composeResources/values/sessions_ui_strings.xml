@@ -105,4 +105,9 @@
   <!-- Content Descriptions -->
   <string name="cd_forward_time">Forward %1$s seconds</string>
   <string name="cd_rewind_time">Rewind %1$s seconds</string>
+  <string name="bottom_bar_nothing_playing">Nothing playing</string>
+  <string name="bottom_bar_nothing_playing_hint">Pick something from your library to start listening</string>
+  <string name="bottom_bar_chapter_remaining">%1$s left in chapter</string>
+  <string name="timeline_content_description">Book progress</string>
+  <string name="timeline_time_placeholder">--:--</string>
 </resources>

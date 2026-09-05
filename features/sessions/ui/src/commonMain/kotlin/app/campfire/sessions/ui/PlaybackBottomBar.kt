@@ -4,9 +4,6 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -14,51 +11,38 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -67,26 +51,21 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
-import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.icons.rounded.Equalizer
-import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.icons.rounded.List
-import app.campfire.common.compose.icons.rounded.Pause
-import app.campfire.common.compose.icons.rounded.PlayArrow
-import app.campfire.common.compose.icons.rounded.SkipNext
-import app.campfire.common.compose.icons.rounded.SkipPrevious
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
-import app.campfire.core.extensions.fluentIf
+import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
-import app.campfire.sessions.ui.composables.ForwardIcon
+import app.campfire.sessions.ui.bottombar.BookTimeline
+import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
-import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -98,62 +77,91 @@ import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
+import app.campfire.user.api.BookmarkRepository
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_equalizer
-import campfire.features.sessions.ui.generated.resources.action_forward
-import campfire.features.sessions.ui.generated.resources.action_rewind
-import campfire.features.sessions.ui.generated.resources.action_skip_next
-import campfire.features.sessions.ui.generated.resources.action_skip_previous
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
+import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_remaining
+import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
+import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing_hint
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
+import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.LocalOverlayHost
-import ir.mahozad.multiplatform.wavyslider.WaveDirection
-import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
+@ContributesTo(UserScope::class)
+interface PlaybackBottomBarComponent {
+  val bookmarkRepository: BookmarkRepository
+}
+
+@Composable
+private fun rememberPlaybackBottomBarComponent(): State<PlaybackBottomBarComponent> {
+  return remember {
+    ComponentHolder.subscribe<PlaybackBottomBarComponent>()
+  }.collectAsState(ComponentHolder.component<PlaybackBottomBarComponent>())
+}
+
+/**
+ * The always-visible desktop player, spanning the window's bottom edge. Two rows: a thin
+ * whole-book timeline with chapter and bookmark markers on top, and cover, titles, transport,
+ * and tools beneath. Renders a "nothing playing" state instead of disappearing, so the window
+ * layout stays put between sessions.
+ */
 @Composable
 fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
+  component: State<PlaybackBottomBarComponent> = rememberPlaybackBottomBarComponent(),
 ) {
-  SessionHostLayout { currentSession, audioPlayer, clearSession, startSession ->
-    val currentTime = remember(audioPlayer) {
+  SessionHostLayout { currentSession, audioPlayer, _, startSession ->
+    val currentTime by remember(audioPlayer) {
       audioPlayer?.currentTime ?: emptyFlow()
     }.collectAsState(0.seconds)
 
-    val currentDuration = remember(audioPlayer) {
+    val bookTime by remember(audioPlayer) {
+      audioPlayer?.overallTime ?: emptyFlow()
+    }.collectAsState(0.seconds)
+
+    val currentDuration by remember(audioPlayer) {
       audioPlayer?.currentDuration ?: emptyFlow()
     }.collectAsState(0.seconds)
 
-    val currentMetadata = remember(audioPlayer) {
+    val currentMetadata by remember(audioPlayer) {
       audioPlayer?.currentMetadata ?: emptyFlow()
     }.collectAsState(Metadata())
 
-    val playerState = remember(audioPlayer) {
+    val playerState by remember(audioPlayer) {
       audioPlayer?.state ?: emptyFlow()
     }.collectAsState(AudioPlayer.State.Disabled)
 
-    val playbackSpeed = remember(audioPlayer) {
+    val playbackSpeed by remember(audioPlayer) {
       audioPlayer?.playbackSpeed ?: emptyFlow()
     }.collectAsState(1f)
 
-    val runningTimer = remember(audioPlayer) {
+    val runningTimer by remember(audioPlayer) {
       audioPlayer?.runningTimer ?: emptyFlow()
     }.collectAsState(null)
 
-    val equalizer = remember(audioPlayer) {
+    val equalizer by remember(audioPlayer) {
       audioPlayer?.equalizer ?: emptyFlow()
     }.collectAsState(EqualizerState.Unsupported)
+
+    val comp by component
+    val libraryItemId = currentSession?.libraryItem?.id
+    val bookmarks by remember(comp, libraryItemId) {
+      libraryItemId?.let { comp.bookmarkRepository.observeBookmarks(it) } ?: flowOf(emptyList())
+    }.collectAsState(emptyList())
 
     // Until an audio player is prepared for this session (service cold start, resume
     // priming), derive the same display values from the session row the player would seed
     // from — the handoff to live player state is value-identical
-    val placeholder = when (playerState.value) {
+    val placeholder = when (playerState) {
       AudioPlayer.State.Disabled,
       AudioPlayer.State.Initializing,
       -> currentSession?.placeholderDisplayState()
@@ -161,17 +169,19 @@ fun PlaybackBottomBar(
       else -> null
     }
 
-    PlaybackBottomBar(
+    PlaybackBottomBarContent(
       session = currentSession,
-      state = playerState.value,
-      playbackSpeed = playbackSpeed.value,
-      currentTime = placeholder?.time ?: currentTime.value,
-      currentDuration = placeholder?.duration ?: currentDuration.value,
-      currentMetadata = placeholder?.metadata ?: currentMetadata.value,
-      runningTimer = runningTimer.value,
-      equalizer = equalizer.value,
+      state = playerState,
+      playbackSpeed = playbackSpeed,
+      currentTime = placeholder?.time ?: currentTime,
+      currentDuration = placeholder?.duration ?: currentDuration,
+      bookTime = placeholder?.bookTime ?: bookTime,
+      currentMetadata = placeholder?.metadata ?: currentMetadata,
+      runningTimer = runningTimer,
+      equalizer = equalizer,
+      bookmarks = bookmarks,
       onPlayPauseClick = {
-        if (playerState.value == AudioPlayer.State.Disabled) {
+        if (playerState == AudioPlayer.State.Disabled) {
           startSession()
         } else {
           audioPlayer?.playPause()
@@ -181,38 +191,29 @@ fun PlaybackBottomBar(
       onForwardClick = { audioPlayer?.seekForward() },
       onSkipPreviousClick = { audioPlayer?.skipToPrevious() },
       onSkipNextClick = { audioPlayer?.skipToNext() },
-      onSeek = { progress ->
-        audioPlayer?.seekTo(progress)
-      },
-      onTimerCleared = {
-        audioPlayer?.clearTimer()
-      },
-      onTimerSelected = { timer ->
-        audioPlayer?.setTimer(timer)
-      },
-      onChapterSelected = { chapter ->
-        audioPlayer?.seekTo(chapter.id)
-      },
-      onAudioTrackSelected = { track ->
-        audioPlayer?.seekTo(track.index - 1)
-      },
-      onBookmarkSelected = { bookmark ->
-        audioPlayer?.seekTo(bookmark.time)
-      },
+      onSeekTo = { time -> audioPlayer?.seekTo(time) },
+      onTimerCleared = { audioPlayer?.clearTimer() },
+      onTimerSelected = { timer -> audioPlayer?.setTimer(timer) },
+      onChapterSelected = { chapter -> audioPlayer?.seekTo(chapter.id) },
+      onAudioTrackSelected = { track -> audioPlayer?.seekTo(track.index - 1) },
+      onBookmarkSelected = { bookmark -> audioPlayer?.seekTo(bookmark.time) },
       modifier = modifier,
     )
   }
 }
 
+/** The bar itself, driven by plain values so it can be previewed and rendered in tests. */
 @Composable
-private fun PlaybackBottomBar(
+internal fun PlaybackBottomBarContent(
   state: AudioPlayer.State,
   playbackSpeed: Float,
   currentTime: Duration,
   currentDuration: Duration,
+  bookTime: Duration,
   currentMetadata: Metadata,
   runningTimer: RunningTimer?,
   equalizer: EqualizerState,
+  bookmarks: List<Bookmark>,
 
   session: Session?,
   onPlayPauseClick: () -> Unit,
@@ -220,7 +221,7 @@ private fun PlaybackBottomBar(
   onForwardClick: () -> Unit,
   onSkipNextClick: () -> Unit,
   onSkipPreviousClick: () -> Unit,
-  onSeek: (Float) -> Unit,
+  onSeekTo: (Duration) -> Unit,
   onTimerSelected: (PlaybackTimer) -> Unit,
   onTimerCleared: () -> Unit,
   onChapterSelected: (Chapter) -> Unit,
@@ -230,60 +231,49 @@ private fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
 ) {
   val scope = rememberCoroutineScope()
+  val hasSession = session != null
+  val chapters = session?.libraryItem?.media?.chapters.orEmpty()
+  val hasChapters = chapters.isNotEmpty() && session?.episodeId == null
 
   Surface(
     color = MaterialTheme.colorScheme.secondaryContainer,
     modifier = modifier,
   ) {
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      // Left Grouping of items, mainly the image, title, subtitle, and timer
+    Column {
+      BookTimeline(
+        position = bookTime,
+        duration = session?.duration ?: Duration.ZERO,
+        chapters = if (hasChapters) chapters else emptyList(),
+        bookmarks = bookmarks,
+        playbackSpeed = playbackSpeed,
+        enabled = hasSession && state != AudioPlayer.State.Initializing,
+        onSeek = onSeekTo,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(top = TimelineTopPadding)
+          .padding(horizontal = 8.dp),
+      )
+
       Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.weight(1f),
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(ContentRowHeight)
+          .padding(start = 16.dp, end = 8.dp, top = TimelineBottomPadding, bottom = 8.dp),
       ) {
-        ItemThumbnailImage(
+        NowPlayingInfo(
           session = session,
           currentMetadata = currentMetadata,
-          modifier = Modifier.padding(16.dp),
+          currentTime = currentTime,
+          currentDuration = currentDuration,
+          playbackSpeed = playbackSpeed,
+          hasChapters = hasChapters,
+          modifier = Modifier.weight(1f),
         )
 
-        Column(
-          verticalArrangement = Arrangement.Center,
-        ) {
-          Text(
-            text = currentMetadata.title ?: session?.title ?: "--",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-            fontFamily = PaytoneOneFontFamily,
-            modifier = Modifier,
-          )
-
-          Text(
-            text = session?.libraryItem?.media?.metadata?.title ?: "--",
-            style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.alpha(40f),
-          )
-        }
-      }
-
-      val interactionSource = remember { MutableInteractionSource() }
-      val isPressed by interactionSource.collectIsPressedAsState()
-      val isDragged by interactionSource.collectIsDraggedAsState()
-      val isInteracting = isPressed || isDragged
-
-      Column(
-        modifier = Modifier
-          .weight(3f)
-          .padding(
-            vertical = 8.dp,
-          ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-      ) {
-        PlaybackActions(
+        DesktopPlaybackActions(
           state = state,
-          isInteracting = isInteracting,
+          enabled = hasSession,
           onSkipPreviousClick = onSkipPreviousClick,
           onRewindClick = onRewindClick,
           onPlayPauseClick = onPlayPauseClick,
@@ -291,357 +281,168 @@ private fun PlaybackBottomBar(
           onSkipNextClick = onSkipNextClick,
         )
 
-        PlaybackSeekBar(
-          state = state,
-          currentTime = currentTime,
-          currentDuration = currentDuration,
-          playbackSpeed = playbackSpeed,
-          onSeek = onSeek,
-          modifier = Modifier
-            .padding(horizontal = 24.dp),
-          interactionSource = interactionSource,
+        val overlayHost = LocalOverlayHost.current
+        ActionRow(
+          modifier = Modifier.weight(1f),
+          enabled = hasSession,
+          runningTimer = runningTimer,
+          onBookmarkAddClick = {
+            if (session == null) return@ActionRow
+            scope.launch {
+              when (val result = overlayHost.showBookmarksBottomSheet(session.libraryItem.id)) {
+                is BookmarkResult.Selected -> onBookmarkSelected(result.bookmark)
+                BookmarkResult.None -> Unit
+              }
+            }
+          },
+          speedContent = {
+            PlaybackSpeedAction(
+              playbackSpeed = playbackSpeed,
+              onClick = {
+                if (session == null) return@PlaybackSpeedAction
+                scope.launch {
+                  overlayHost.showPlaybackSpeedBottomSheet(session.libraryItem.id, playbackSpeed)
+                }
+              },
+            )
+          },
+          onTimerClick = {
+            if (session == null) return@ActionRow
+            scope.launch {
+              when (val result = overlayHost.showSleepTimerBottomSheet(runningTimer)) {
+                is TimerResult.Selected -> onTimerSelected(result.timer)
+                TimerResult.Cleared -> onTimerCleared()
+                else -> Unit
+              }
+            }
+          },
+          showEqualizer = equalizer !is EqualizerState.Unsupported,
+          onEqualizerClick = {
+            if (session == null) return@ActionRow
+            scope.launch {
+              overlayHost.showEqualizerBottomSheet(session.libraryItem.id)
+            }
+          },
+          showChapters = session?.episodeId == null,
+          onChapterListClick = {
+            if (session == null) return@ActionRow
+            if (session.libraryItem.media.chapters.isNotEmpty()) {
+              scope.launch {
+                val result = overlayHost.showChapterBottomSheet(
+                  chapters = session.libraryItem.media.chapters,
+                  currentChapter = session.chapter,
+                  playbackSpeed = playbackSpeed,
+                )
+                if (result is ChapterResult.Selected) {
+                  onChapterSelected(result.chapter)
+                }
+              }
+            } else if (session.libraryItem.media.tracks.isNotEmpty()) {
+              scope.launch {
+                val result = overlayHost.showAudioTrackBottomSheet(
+                  audioTracks = session.libraryItem.media.tracks,
+                  currentAudioTrack = session.audioTrack,
+                  playbackSpeed = playbackSpeed,
+                )
+                if (result is AudioTrackResult.Selected) {
+                  onAudioTrackSelected(result.audioTrack)
+                }
+              }
+            }
+          },
         )
       }
-
-      val overlayHost = LocalOverlayHost.current
-      ActionRow(
-        modifier = Modifier.weight(1f),
-        runningTimer = runningTimer,
-        onBookmarkAddClick = {
-          if (session == null) return@ActionRow
-          scope.launch {
-            when (val result = overlayHost.showBookmarksBottomSheet(session.libraryItem.id)) {
-              is BookmarkResult.Selected -> onBookmarkSelected(result.bookmark)
-              BookmarkResult.None -> Unit
-            }
-          }
-        },
-        speedContent = {
-          PlaybackSpeedAction(
-            playbackSpeed = playbackSpeed,
-            onClick = {
-              if (session == null) return@PlaybackSpeedAction
-              scope.launch {
-                overlayHost.showPlaybackSpeedBottomSheet(session.libraryItem.id, playbackSpeed)
-              }
-            },
-          )
-        },
-        onTimerClick = {
-          if (session == null) return@ActionRow
-          scope.launch {
-            when (val result = overlayHost.showSleepTimerBottomSheet(runningTimer)) {
-              is TimerResult.Selected -> onTimerSelected(result.timer)
-              TimerResult.Cleared -> onTimerCleared()
-              else -> Unit
-            }
-          }
-        },
-        showEqualizer = equalizer !is EqualizerState.Unsupported,
-        onEqualizerClick = {
-          if (session == null) return@ActionRow
-          scope.launch {
-            overlayHost.showEqualizerBottomSheet(session.libraryItem.id)
-          }
-        },
-        onChapterListClick = {
-          if (session == null) return@ActionRow
-          if (session.libraryItem.media.chapters.isNotEmpty()) {
-            scope.launch {
-              val result = overlayHost.showChapterBottomSheet(
-                chapters = session.libraryItem.media.chapters,
-                currentChapter = session.chapter,
-                playbackSpeed = playbackSpeed,
-              )
-              if (result is ChapterResult.Selected) {
-                onChapterSelected(result.chapter)
-              }
-            }
-          } else if (session.libraryItem.media.tracks.isNotEmpty()) {
-            scope.launch {
-              val result = overlayHost.showAudioTrackBottomSheet(
-                audioTracks = session.libraryItem.media.tracks,
-                currentAudioTrack = session.audioTrack,
-                playbackSpeed = playbackSpeed,
-              )
-              if (result is AudioTrackResult.Selected) {
-                onAudioTrackSelected(result.audioTrack)
-              }
-            }
-          }
-        },
-      )
     }
   }
 }
 
+/** Cover, current chapter (or track/episode) title, and the book title with chapter time left. */
 @Composable
-private fun ItemThumbnailImage(
+private fun NowPlayingInfo(
   session: Session?,
   currentMetadata: Metadata,
-  modifier: Modifier = Modifier,
-) {
-  val imageSize = 88.dp
-  val mediaUrl = currentMetadata.artworkUri
-    ?: session?.libraryItem?.media?.coverImageUrl
-    ?: ""
-  CoverImage(
-    imageUrl = mediaUrl,
-    contentDescription = session?.libraryItem?.media?.metadata?.title,
-    size = imageSize,
-    shape = RoundedCornerShape(8.dp),
-    modifier = modifier,
-  )
-}
-
-@Composable
-private fun PlaybackActions(
-  state: AudioPlayer.State,
-  isInteracting: Boolean,
-  onSkipPreviousClick: () -> Unit,
-  onRewindClick: () -> Unit,
-  onPlayPauseClick: () -> Unit,
-  onForwardClick: () -> Unit,
-  onSkipNextClick: () -> Unit,
-  modifier: Modifier = Modifier,
-  actionSize: Dp = 32.dp,
-  playPauseSize: Dp = 48.dp,
-) {
-  Row(
-    modifier = modifier.fillMaxWidth(),
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-  ) {
-    val skipPreviousLabel = stringResource(Res.string.action_skip_previous)
-    IconButtonTooltip(text = skipPreviousLabel) {
-      IconButton(
-        onClick = onSkipPreviousClick,
-      ) {
-        Icon(
-          CampfireIcons.Rounded.SkipPrevious,
-          modifier = Modifier.size(actionSize),
-          contentDescription = skipPreviousLabel,
-        )
-      }
-    }
-
-    val rewindLabel = stringResource(Res.string.action_rewind)
-    IconButtonTooltip(text = rewindLabel) {
-      IconButton(
-        onClick = onRewindClick,
-      ) {
-        RewindIcon(
-          modifier = Modifier.size(actionSize),
-        )
-      }
-    }
-
-    val isPlayPauseEnabled = state != AudioPlayer.State.Finished &&
-      state != AudioPlayer.State.Buffering &&
-      !isInteracting
-
-    val elevation by animateDpAsState(
-      targetValue = if (isPlayPauseEnabled) {
-        6.dp
-      } else {
-        1.dp
-      },
-    )
-
-    Surface(
-      shape = CircleShape,
-      modifier = Modifier.size(playPauseSize),
-      shadowElevation = elevation,
-      onClick = onPlayPauseClick,
-      enabled = isPlayPauseEnabled,
-    ) {
-      Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center,
-      ) {
-        if (state != AudioPlayer.State.Buffering) {
-          Icon(
-            if (isInteracting) {
-              CampfireIcons.Rounded.EditAudio
-            } else if (state == AudioPlayer.State.Playing) {
-              CampfireIcons.Rounded.Pause
-            } else {
-              CampfireIcons.Rounded.PlayArrow
-            },
-            modifier = Modifier
-              .size(actionSize)
-              .alpha(if (isPlayPauseEnabled) 1f else 0.5f),
-            contentDescription = null,
-          )
-        } else {
-          CircularProgressIndicator(
-            modifier = Modifier.size(actionSize),
-            strokeWidth = 4.dp,
-          )
-        }
-      }
-    }
-
-    val forwardLabel = stringResource(Res.string.action_forward)
-    IconButtonTooltip(text = forwardLabel) {
-      IconButton(
-        onClick = onForwardClick,
-      ) {
-        ForwardIcon(
-          modifier = Modifier.size(actionSize),
-        )
-      }
-    }
-
-    val skipNextLabel = stringResource(Res.string.action_skip_next)
-    IconButtonTooltip(text = skipNextLabel) {
-      IconButton(
-        onClick = onSkipNextClick,
-      ) {
-        Icon(
-          CampfireIcons.Rounded.SkipNext,
-          modifier = Modifier.size(actionSize),
-          contentDescription = skipNextLabel,
-        )
-      }
-    }
-  }
-}
-
-@Composable
-private fun PlaybackSeekBar(
-  state: AudioPlayer.State,
   currentTime: Duration,
   currentDuration: Duration,
   playbackSpeed: Float,
-  onSeek: (Float) -> Unit,
+  hasChapters: Boolean,
   modifier: Modifier = Modifier,
-  interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) {
-  val isPressed by interactionSource.collectIsPressedAsState()
-  val isDragged by interactionSource.collectIsDraggedAsState()
-  val isInteracting = isPressed || isDragged
-
-  fun calculateProgress(): Float = if (currentDuration.inWholeMilliseconds == 0L) {
-    0f
-  } else {
-    (currentTime / currentDuration).toFloat()
-  }
-
-  var sliderValue by remember { mutableStateOf(calculateProgress()) }
-  val softSliderValue by animateFloatAsState(sliderValue)
-  LaunchedEffect(isInteracting, state, currentTime, currentDuration) {
-    if (!isInteracting) {
-      sliderValue = calculateProgress()
-    }
-  }
-
-  val waveHeight = if (state == AudioPlayer.State.Playing) 16.dp else 0.dp
-  val waveVelocity = if (state == AudioPlayer.State.Playing) 40.dp else 0.dp
-  val waveThickness = if (state == AudioPlayer.State.Playing) 12.dp else 16.dp
-
   Row(
-    modifier = modifier,
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.Center,
+    modifier = modifier,
   ) {
-    val currentTimeLabel = if (isInteracting) {
-      currentDuration.times(sliderValue.toDouble()).readoutFormat()
+    if (session != null) {
+      CoverImage(
+        imageUrl = currentMetadata.artworkUri ?: session.libraryItem.media.coverImageUrl ?: "",
+        contentDescription = session.libraryItem.media.metadata.title,
+        size = CoverSize,
+        shape = RoundedCornerShape(8.dp),
+      )
     } else {
-      currentTime.readoutFormat()
-    }
-
-    Text(
-      text = currentTimeLabel,
-      textAlign = TextAlign.End,
-      style = MaterialTheme.typography.labelSmall,
-      fontFamily = FontFamily.Monospace,
-      modifier = Modifier
-        .width(100.dp),
-    )
-
-    val sliderColors = SliderDefaults.colors(
-      inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainer,
-    )
-    WavySlider(
-      value = softSliderValue,
-      onValueChange = { sliderValue = it },
-      onValueChangeFinished = {
-        onSeek(sliderValue)
-      },
-      interactionSource = interactionSource,
-      colors = sliderColors,
-      waveLength = 50.dp,
-      waveHeight = waveHeight,
-      waveVelocity = waveVelocity to WaveDirection.TAIL,
-      waveThickness = waveThickness,
-      thumb = {
-        SliderDefaults.Thumb(
-          interactionSource = interactionSource,
-          colors = sliderColors,
-          enabled = true,
-          thumbSize = DpSize(4.dp, 36.dp),
-        )
-      },
-      modifier = Modifier
-        .width(640.dp)
-        .padding(horizontal = 24.dp),
-    )
-
-    val isAccelerated = playbackSpeed != 1f
-    AnimatedVisibility(
-      visible = isAccelerated,
-    ) {
-      Icon(
-        CampfireIcons.Rounded.KeyboardDoubleArrowRight,
-        contentDescription = null,
-        modifier = Modifier.size(16.dp),
-        tint = MaterialTheme.colorScheme.secondary,
+      Box(
+        modifier = Modifier
+          .size(CoverSize)
+          .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(8.dp)),
       )
     }
 
-    val currentRemainingDuration = (currentDuration - currentTime).div(playbackSpeed.toDouble())
-    Text(
-      text = currentRemainingDuration.readoutFormat(),
-      textAlign = TextAlign.Start,
-      style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
-        copy(
-          fontWeight = FontWeight.Bold,
-          fontStyle = FontStyle.Italic,
-          color = MaterialTheme.colorScheme.secondary,
-          fontSize = 12.sp,
-        )
-      },
-      fontFamily = FontFamily.Monospace,
-      modifier = Modifier
-        .width(100.dp),
-    )
+    Spacer(Modifier.width(12.dp))
+
+    Column(verticalArrangement = Arrangement.Center) {
+      Text(
+        text = if (session == null) {
+          stringResource(Res.string.bottom_bar_nothing_playing)
+        } else {
+          currentMetadata.title ?: session.title
+        },
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        fontFamily = PaytoneOneFontFamily,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+      )
+
+      val subtitle = when {
+        session == null -> stringResource(Res.string.bottom_bar_nothing_playing_hint)
+        hasChapters && currentDuration > Duration.ZERO -> {
+          val remaining = ((currentDuration - currentTime) / playbackSpeed.toDouble()).coerceAtLeast(Duration.ZERO)
+          "${session.libraryItem.media.metadata.title.orEmpty()} · " +
+            stringResource(Res.string.bottom_bar_chapter_remaining, remaining.readoutFormat().trim())
+        }
+        else -> session.libraryItem.media.metadata.title.orEmpty()
+      }
+      Text(
+        text = subtitle,
+        style = MaterialTheme.typography.labelSmall,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.alpha(0.7f),
+      )
+    }
   }
 }
 
 @Composable
 private fun ActionRow(
+  enabled: Boolean,
   runningTimer: RunningTimer?,
   onBookmarkAddClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   onTimerClick: () -> Unit,
   showEqualizer: Boolean,
   onEqualizerClick: () -> Unit,
+  showChapters: Boolean,
   onChapterListClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Row(
-    modifier = modifier.padding(
-      horizontal = 16.dp,
-    ),
+    modifier = modifier.padding(horizontal = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
   ) {
     val bookmarkLabel = stringResource(Res.string.action_add_bookmark)
     IconButtonTooltip(text = bookmarkLabel) {
-      IconButton(
-        onClick = onBookmarkAddClick,
-      ) {
+      IconButton(onClick = onBookmarkAddClick, enabled = enabled) {
         Icon(CampfireIcons.Rounded.Bookmarks, contentDescription = bookmarkLabel)
       }
     }
@@ -666,9 +467,7 @@ private fun ActionRow(
       if (timer == null) {
         val timerLabel = stringResource(Res.string.action_sleep_timer)
         IconButtonTooltip(text = timerLabel) {
-          IconButton(
-            onClick = onTimerClick,
-          ) {
+          IconButton(onClick = onTimerClick, enabled = enabled) {
             Icon(CampfireIcons.Rounded.Timer, contentDescription = timerLabel)
           }
         }
@@ -677,9 +476,7 @@ private fun ActionRow(
           verticalAlignment = Alignment.CenterVertically,
           modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .clickable {
-              onTimerClick()
-            }
+            .clickable { onTimerClick() }
             .background(
               color = MaterialTheme.colorScheme.primary,
               shape = RoundedCornerShape(50),
@@ -713,21 +510,24 @@ private fun ActionRow(
     if (showEqualizer) {
       val equalizerLabel = stringResource(Res.string.action_equalizer)
       IconButtonTooltip(text = equalizerLabel) {
-        IconButton(
-          onClick = onEqualizerClick,
-        ) {
+        IconButton(onClick = onEqualizerClick, enabled = enabled) {
           Icon(CampfireIcons.Rounded.Equalizer, contentDescription = equalizerLabel)
         }
       }
     }
 
-    val chaptersLabel = stringResource(Res.string.action_chapters)
-    IconButtonTooltip(text = chaptersLabel) {
-      IconButton(
-        onClick = onChapterListClick,
-      ) {
-        Icon(CampfireIcons.Rounded.List, contentDescription = chaptersLabel)
+    if (showChapters) {
+      val chaptersLabel = stringResource(Res.string.action_chapters)
+      IconButtonTooltip(text = chaptersLabel) {
+        IconButton(onClick = onChapterListClick, enabled = enabled) {
+          Icon(CampfireIcons.Rounded.List, contentDescription = chaptersLabel)
+        }
       }
     }
   }
 }
+
+private val CoverSize = 48.dp
+private val ContentRowHeight = 68.dp
+private val TimelineTopPadding = 6.dp
+private val TimelineBottomPadding = 4.dp

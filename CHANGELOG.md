@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
+- Desktop playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click
 
 ### Deprecated
 
