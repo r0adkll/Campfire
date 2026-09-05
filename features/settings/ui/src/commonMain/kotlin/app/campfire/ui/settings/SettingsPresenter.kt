@@ -34,6 +34,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
@@ -117,6 +118,7 @@ class SettingsPresenter(
   private val themeSettings: ThemeSettings,
   private val themeRepository: AppThemeRepository,
   private val playbackSettings: PlaybackSettings,
+  private val hlsPlaybackSupport: HlsPlaybackSupport,
   private val sleepSettings: SleepSettings,
   private val androidAutoSettings: AndroidAutoSettings,
   private val devSettings: DevSettings,
@@ -275,6 +277,7 @@ class SettingsPresenter(
         remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
         syncEnabled = syncEnabled,
         streamingMethod = streamingMethod,
+        hlsAvailable = hlsPlaybackSupport.supportsHls,
         syncIntervalUnmetered = syncIntervalUnmetered,
         syncIntervalMetered = syncIntervalMetered,
         autoSyncEnabled = syncEnabled && autoSyncEnabled,

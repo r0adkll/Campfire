@@ -66,7 +66,8 @@ class VlcPlaybackEngine private constructor(
     player.events().addMediaPlayerEventListener(EventTranslator())
   }
 
-  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean) {
+  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean, headers: Map<String, String>) {
+    // libvlc has no per-request header support; credentials arrive inside the URL
     val options = buildList {
       if (!playWhenReady) add(OPTION_START_PAUSED)
       if (startPosition > Duration.ZERO) {

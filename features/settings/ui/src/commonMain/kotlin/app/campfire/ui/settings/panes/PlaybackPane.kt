@@ -13,8 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import app.campfire.core.Platform
-import app.campfire.core.currentPlatform
 import app.campfire.settings.api.MinPauseThresholdRange
 import app.campfire.settings.api.ResumeRewindRange
 import app.campfire.settings.api.SyncIntervalRange
@@ -291,9 +289,8 @@ internal fun PlaybackPane(
       }
     }
 
-    // HLS delivery is Android-only for now, so the chooser only appears where it can
-    // take effect
-    if (currentPlatform == Platform.ANDROID) {
+    // The chooser only appears where the player can stream HLS
+    if (state.playbackSettings.hlsAvailable) {
       Header(
         title = { Text(stringResource(Res.string.header_streaming)) },
       )

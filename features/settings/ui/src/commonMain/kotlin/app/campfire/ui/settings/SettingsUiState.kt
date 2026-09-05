@@ -88,6 +88,8 @@ data class PlaybackSettingsInfo(
   val syncEnabled: Boolean,
   val autoSyncEnabled: Boolean,
   val streamingMethod: StreamingMethod,
+  /** Whether this platform's player can stream HLS at all; hides the streaming method chooser otherwise. */
+  val hlsAvailable: Boolean,
   val syncIntervalUnmetered: Duration,
   val syncIntervalMetered: Duration,
   val playbackHistoryEnabled: Boolean,

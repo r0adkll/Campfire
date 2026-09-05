@@ -70,7 +70,7 @@ class DesktopPlaybackController(
    * run. A build carrying a single engine uses that one regardless.
    */
   private fun engineFactory(): PlaybackEngine.Factory {
-    val requested = System.getProperty(ENGINE_PROPERTY)?.takeIf { it.isNotBlank() } ?: BuildConfig.DESKTOP_AUDIO_ENGINE
+    val requested = DesktopEngineSelection.requested()
     val selected = DesktopEngineSelection.select(engineProviders, requested)
     ibark {
       val bundled = engineProviders.map { it.name }
@@ -98,6 +98,5 @@ class DesktopPlaybackController(
   private companion object : Cork {
     override val tag: String = "DesktopPlaybackController"
     override val enabled: Boolean = true
-    const val ENGINE_PROPERTY = "campfire.audio.engine"
   }
 }

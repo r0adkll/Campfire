@@ -333,12 +333,25 @@ class DesktopAudioPlayer(
     scope.launch { block() }
   }
 
-  /** Opens [index] at [offset], stamping the freshest access token onto the item's URL. */
+  /**
+   * Opens [index] at [offset] with the freshest access token: as a bearer header when the
+   * engine sends headers (which also reaches HLS segment requests), otherwise stamped onto the
+   * item's URL.
+   */
   private suspend fun openItem(engine: PlaybackEngine, index: Int, offset: Duration, playWhenReady: Boolean) {
     val item = queue[index]
     val userId = preparedSession?.userId
     val token = userId?.let { accessTokenProvider.accessToken(it) }
-    engine.open(item.copy(uri = item.uri.withAccessToken(token)), offset, playWhenReady)
+    if (engine.supportsRequestHeaders) {
+      val headers = if (token.isNullOrEmpty() || !item.uri.startsWith("http", ignoreCase = true)) {
+        emptyMap()
+      } else {
+        mapOf("Authorization" to "Bearer $token")
+      }
+      engine.open(item, offset, playWhenReady, headers)
+    } else {
+      engine.open(item.copy(uri = item.uri.withAccessToken(token)), offset, playWhenReady)
+    }
   }
 
   /**

@@ -79,10 +79,12 @@ class FfmpegPlaybackEngine : PlaybackEngine {
       gain = value.coerceIn(0f, 1f)
     }
 
-  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean) {
+  override val supportsRequestHeaders: Boolean = true
+
+  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean, headers: Map<String, String>) {
     worker?.shutdown()
-    dbark { "open(${item.id}, start=$startPosition, playWhenReady=$playWhenReady)" }
-    worker = Worker(item.uri, startPosition, playWhenReady).also { it.start() }
+    dbark { "open(${item.id}, start=$startPosition, playWhenReady=$playWhenReady, headers=${headers.keys})" }
+    worker = Worker(item.uri, startPosition, playWhenReady, headers).also { it.start() }
   }
 
   override fun play() {
@@ -131,6 +133,7 @@ class FfmpegPlaybackEngine : PlaybackEngine {
     private val url: String,
     private val startPosition: Duration,
     playWhenReady: Boolean,
+    private val headers: Map<String, String>,
   ) : Thread("campfire-ffmpeg-${WORKER_IDS.incrementAndGet()}") {
 
     private val commands = LinkedBlockingQueue<Command>()
@@ -233,6 +236,12 @@ class FfmpegPlaybackEngine : PlaybackEngine {
       avutil.av_dict_set(options, "reconnect_streamed", "1", 0)
       avutil.av_dict_set(options, "reconnect_delay_max", "5", 0)
       avutil.av_dict_set(options, "rw_timeout", NETWORK_TIMEOUT_US, 0)
+      if (headers.isNotEmpty()) {
+        // libavformat's http protocol forwards these to every request, and the hls demuxer
+        // carries them onto its segment requests
+        val lines = headers.entries.joinToString("") { (name, value) -> "$name: $value\r\n" }
+        avutil.av_dict_set(options, "headers", lines, 0)
+      }
       try {
         check(avformat.avformat_open_input(context, url, null, options), "avformat_open_input")
       } finally {

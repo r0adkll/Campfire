@@ -15,4 +15,5 @@ import me.tatarka.inject.annotations.Inject
 class VlcEngineProvider : DesktopAudioEngineProvider {
   override val name: String = DesktopAudioEngineProvider.VLC
   override val factory: PlaybackEngine.Factory = VlcPlaybackEngine.Factory()
+  override val supportsHls: Boolean = false
 }

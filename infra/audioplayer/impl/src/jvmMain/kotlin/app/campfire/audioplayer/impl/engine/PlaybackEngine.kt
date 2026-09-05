@@ -33,10 +33,17 @@ interface PlaybackEngine {
   var volume: Float
 
   /**
-   * Replace whatever is loaded with [item], positioned at [startPosition] within the item. When
-   * [playWhenReady] is false the item is opened but left paused at that position.
+   * Whether [open] honours [headers] on every HTTP request the item makes (playlist and segments
+   * alike). Engines that can't are handed credentials inside the URL instead.
    */
-  fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean)
+  val supportsRequestHeaders: Boolean get() = false
+
+  /**
+   * Replace whatever is loaded with [item], positioned at [startPosition] within the item. When
+   * [playWhenReady] is false the item is opened but left paused at that position. [headers] are
+   * sent with the item's HTTP requests when [supportsRequestHeaders] is true.
+   */
+  fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean, headers: Map<String, String> = emptyMap())
 
   fun play()
 

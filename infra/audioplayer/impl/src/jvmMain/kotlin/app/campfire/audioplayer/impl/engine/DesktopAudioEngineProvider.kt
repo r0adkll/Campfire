@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.engine
 
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.impl.BuildConfig
 
 /**
  * A desktop audio engine offered by an engine module (`:infra:audioplayer:engine-*`). The build
@@ -14,6 +15,12 @@ interface DesktopAudioEngineProvider {
   val name: String
   val factory: PlaybackEngine.Factory
 
+  /**
+   * Whether the engine can play the server's HLS transcodes: every segment request must carry
+   * the user's token, which needs request headers (libvlc can't; FFmpeg can).
+   */
+  val supportsHls: Boolean
+
   companion object {
     const val VLC = "vlc"
     const val FFMPEG = "ffmpeg"
@@ -21,6 +28,13 @@ interface DesktopAudioEngineProvider {
 }
 
 object DesktopEngineSelection {
+  /**
+   * The engine name asked for: `-Dcampfire.audio.engine` for this run, else the value the build
+   * baked from the `campfire_desktop_audio_engine` Gradle property.
+   */
+  fun requested(): String =
+    System.getProperty(ENGINE_PROPERTY)?.takeIf { it.isNotBlank() } ?: BuildConfig.DESKTOP_AUDIO_ENGINE
+
   /**
    * Chooses among the bundled engines: the one named by [requested] when present; otherwise the
    * only engine available (a release build carries exactly one). Null when nothing is bundled
@@ -40,4 +54,6 @@ object DesktopEngineSelection {
         "No desktop audio engine for \"$requested\"; bundled: ${available.map { it.name }}",
       )
     }
+
+  private const val ENGINE_PROPERTY = "campfire.audio.engine"
 }

@@ -15,4 +15,5 @@ import me.tatarka.inject.annotations.Inject
 class FfmpegEngineProvider : DesktopAudioEngineProvider {
   override val name: String = DesktopAudioEngineProvider.FFMPEG
   override val factory: PlaybackEngine.Factory = PlaybackEngine.Factory { FfmpegPlaybackEngine() }
+  override val supportsHls: Boolean = true
 }
