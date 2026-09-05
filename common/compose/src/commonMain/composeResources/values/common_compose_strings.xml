@@ -56,4 +56,6 @@
   <string name="playback_speed_dialog_error">Enter a value between %1$s and %2$s</string>
   <string name="playback_speed_dialog_apply">Apply</string>
   <string name="playback_speed_dialog_cancel">Cancel</string>
+  <string name="action_back">Back</string>
+  <string name="action_close">Close</string>
 </resources>

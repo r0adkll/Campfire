@@ -11,12 +11,11 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.Delete
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import campfire.features.collections.ui.generated.resources.Res
-import campfire.features.collections.ui.generated.resources.action_back
 import campfire.features.collections.ui.generated.resources.action_delete_collection
 import org.jetbrains.compose.resources.stringResource
 
@@ -34,14 +33,7 @@ fun CollectionDetailTopAppBar(
     title = { Text(name) },
     scrollBehavior = scrollBehavior,
     navigationIcon = {
-      val backLabel = stringResource(Res.string.action_back)
-      IconButtonTooltip(text = backLabel) {
-        IconButton(
-          onClick = onBack,
-        ) {
-          Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-        }
-      }
+      NavigationBackButton(onClick = onBack)
     },
     actions = {
       if (canEdit) {

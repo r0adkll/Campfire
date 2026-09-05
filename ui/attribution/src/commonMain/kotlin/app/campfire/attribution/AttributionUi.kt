@@ -5,8 +5,6 @@ package app.campfire.attribution
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -14,17 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingState
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import campfire.ui.attribution.generated.resources.Res
-import campfire.ui.attribution.generated.resources.action_back
 import campfire.ui.attribution.generated.resources.attributions_error_message
 import campfire.ui.attribution.generated.resources.attributions_title
 import com.mikepenz.aboutlibraries.Libs
@@ -45,14 +40,7 @@ fun Attribution(
         scrollBehavior = scrollBehavior,
         title = { Text(stringResource(Res.string.attributions_title)) },
         navigationIcon = {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(
-              onClick = { state.eventSink(AttributionUiEvent.Back) },
-            ) {
-              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-            }
-          }
+          NavigationBackButton(onClick = { state.eventSink(AttributionUiEvent.Back) })
         },
       )
     },

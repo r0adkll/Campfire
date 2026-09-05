@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -24,8 +22,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.extensions.plus
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
@@ -33,10 +29,10 @@ import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.ItemCollectionGridCard
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -44,7 +40,6 @@ import app.campfire.core.model.Collection
 import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import campfire.features.collections.ui.generated.resources.Res
-import campfire.features.collections.ui.generated.resources.action_back
 import campfire.features.collections.ui.generated.resources.collections_title
 import campfire.features.collections.ui.generated.resources.empty_collection_items_message
 import campfire.features.collections.ui.generated.resources.error_collection_items_message
@@ -68,14 +63,7 @@ fun Collections(
         title = { Text(stringResource(Res.string.collections_title)) },
         scrollBehavior = scrollBehavior,
         navigationIcon = {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(
-              onClick = { state.eventSink(CollectionsUiEvent.Back) },
-            ) {
-              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-            }
-          }
+          NavigationBackButton(onClick = { state.eventSink(CollectionsUiEvent.Back) })
         },
       )
     },

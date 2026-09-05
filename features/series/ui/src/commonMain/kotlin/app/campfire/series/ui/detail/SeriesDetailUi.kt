@@ -20,8 +20,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -34,15 +32,13 @@ import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.extensions.plus
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.ErrorListState
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.ItemCollectionSharedTransitionKey
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MaxBookDisplay
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -51,7 +47,6 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
 import campfire.features.series.ui.generated.resources.Res
-import campfire.features.series.ui.generated.resources.action_back
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import campfire.features.series.ui.generated.resources.missing_section_title
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
@@ -76,14 +71,7 @@ fun SeriesDetail(
         contentPadding = WindowInsets.statusBars
           .asPaddingValues(),
         navigationIcon = {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(
-              onClick = { state.eventSink(SeriesDetailUiEvent.Back) },
-            ) {
-              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-            }
-          }
+          NavigationBackButton(onClick = { state.eventSink(SeriesDetailUiEvent.Back) })
         },
       )
     },

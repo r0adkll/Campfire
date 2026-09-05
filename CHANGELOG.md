@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Screens shown in the side detail pane now close with an X instead of showing a back arrow
 - Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
 
 ### Deprecated

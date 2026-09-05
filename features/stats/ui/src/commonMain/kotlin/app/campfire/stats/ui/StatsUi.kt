@@ -41,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.Refresh
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
@@ -52,6 +51,7 @@ import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LoadingState
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -80,7 +80,6 @@ import app.campfire.stats.ui.composables.TotalStatsCard
 import app.campfire.stats.ui.composables.WeeklyListeningCard
 import app.campfire.stats.ui.composables.showFinishedThisYearBottomSheet
 import campfire.features.stats.ui.generated.resources.Res
-import campfire.features.stats.ui.generated.resources.action_back
 import campfire.features.stats.ui.generated.resources.action_refresh
 import campfire.features.stats.ui.generated.resources.stats_library
 import campfire.features.stats.ui.generated.resources.stats_user
@@ -130,14 +129,7 @@ fun StatsUi(
             }
           },
           navigationIcon = {
-            val backLabel = stringResource(Res.string.action_back)
-            IconButtonTooltip(text = backLabel) {
-              IconButton(
-                onClick = { state.eventSink(StatsUiEvent.Back) },
-              ) {
-                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-              }
-            }
+            NavigationBackButton(onClick = { state.eventSink(StatsUiEvent.Back) })
           },
           actions = {
             RefreshAction(
@@ -157,14 +149,7 @@ fun StatsUi(
             }
           },
           navigationIcon = {
-            val backLabel = stringResource(Res.string.action_back)
-            IconButtonTooltip(text = backLabel) {
-              IconButton(
-                onClick = { state.eventSink(StatsUiEvent.Back) },
-              ) {
-                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-              }
-            }
+            NavigationBackButton(onClick = { state.eventSink(StatsUiEvent.Back) })
           },
           actions = {
             RefreshAction(

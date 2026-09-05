@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
@@ -25,13 +23,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireTopAppBarInsets
 import app.campfire.common.compose.CampfireWindowInsets
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.widgets.CampfireTopAppBar
-import app.campfire.common.compose.widgets.IconButtonTooltip
-import campfire.features.settings.ui.generated.resources.Res
-import campfire.features.settings.ui.generated.resources.action_back
-import org.jetbrains.compose.resources.stringResource
+import app.campfire.common.compose.widgets.NavigationBackButton
 
 enum class PaneState {
   Single, Double,
@@ -62,17 +55,7 @@ internal fun SettingPaneLayout(
         ?: WindowInsets(0.dp),
       navigationIcon = {
         if (paneState == PaneState.Single) {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(
-              onClick = onBackClick,
-            ) {
-              Icon(
-                CampfireIcons.Rounded.ArrowBack,
-                contentDescription = backLabel,
-              )
-            }
-          }
+          NavigationBackButton(onClick = onBackClick)
         }
       },
     )
