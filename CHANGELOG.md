@@ -9,7 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Desktop shows how to fix playback when VLC media player isn't installed, instead of failing silently
+
 ### Changed
+
+- Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
 
 ### Deprecated
 
@@ -17,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Desktop app freezing while opening a chapter, bookmark, or track, and while starting playback
+- Desktop resuming up to a second before the saved position
+- Desktop playback of streamed audiobooks failing because track requests were not authenticated
 - Desktop app crashing on launch, and again on every launch after the first
 - Item detail showing a stray download button while the item is playing or already downloading, and a mismatched play button shape while a download is in progress
 

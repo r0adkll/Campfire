@@ -11,6 +11,7 @@
   <string name="chapters_loading_error">Uh-oh! Unable to load the chapters for this item.</string>
   <string name="misaligned_chapters_error_message">This item has misaligned chapter metadata and may not play back as expected</string>
   <string name="playback_error_message">Unable to play this file. The audio format may not be supported on this device.</string>
+  <string name="playback_engine_unavailable_message">Playback requires VLC media player. Install VLC 3 from videolan.org, then try again.</string>
 
   <string name="speed_bottomsheet_title">Playback speed</string>
   <string name="speed_custom_open">Enter custom speed</string>

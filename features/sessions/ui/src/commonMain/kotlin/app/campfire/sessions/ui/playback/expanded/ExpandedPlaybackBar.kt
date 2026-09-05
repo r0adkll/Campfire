@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.window.core.layout.WindowSizeClass
+import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -124,6 +125,7 @@ import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_close
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
+import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
 import campfire.features.sessions.ui.generated.resources.playback_error_message
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
@@ -473,7 +475,13 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
         if (playerState.error != null) {
           Spacer(Modifier.height(4.dp))
           Text(
-            text = stringResource(Res.string.playback_error_message),
+            text = stringResource(
+              if (playerState.error is PlaybackEngineUnavailableException) {
+                Res.string.playback_engine_unavailable_message
+              } else {
+                Res.string.playback_error_message
+              },
+            ),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.error,

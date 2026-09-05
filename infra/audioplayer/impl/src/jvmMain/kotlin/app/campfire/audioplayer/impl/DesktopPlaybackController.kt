@@ -3,8 +3,10 @@
 
 package app.campfire.audioplayer.impl
 
+import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -29,6 +31,7 @@ class DesktopPlaybackController(
   private val equalizerSettings: EqualizerSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
+  private val accountManager: AccountManager,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -58,7 +61,17 @@ class DesktopPlaybackController(
 
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
-      audioPlayerHolder.setCurrentPlayer(VlcAudioPlayer(playbackSettings, equalizerSettings, sleepTimerManagerFactory))
+      // Constructing the player is cheap; the native engine is created lazily on its own thread
+      // the first time a session is prepared.
+      audioPlayerHolder.setCurrentPlayer(
+        DesktopAudioPlayer(
+          settings = playbackSettings,
+          equalizerSettings = equalizerSettings,
+          sleepTimerManagerFactory = sleepTimerManagerFactory,
+          engineFactory = VlcPlaybackEngine.Factory(),
+          accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
+        ),
+      )
     }
   }
 }
