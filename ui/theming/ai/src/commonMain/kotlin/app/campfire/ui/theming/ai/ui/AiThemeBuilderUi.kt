@@ -28,7 +28,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -51,13 +50,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.Save
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
-import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.ai.ui.composables.AppPreview
 import app.campfire.ui.theming.ai.ui.emptystate.ShapeParticleEmptyState
@@ -66,11 +64,8 @@ import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.composables.IconPicker
-import campfire.ui.theming.ai.generated.resources.Res
-import campfire.ui.theming.ai.generated.resources.action_back
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import kotlin.time.Duration.Companion.nanoseconds
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @CircuitInject(AiThemeBuilderScreen::class, UserScope::class)
@@ -92,12 +87,7 @@ fun AiThemeBuilder(
       CampfireTopAppBar(
         title = { Text("AI Theme Builder") },
         navigationIcon = {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(onClick = { state.eventSink(AiThemeBuilderUiEvent.Back) }) {
-              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-            }
-          }
+          NavigationBackButton(onClick = { state.eventSink(AiThemeBuilderUiEvent.Back) })
         },
         scrollBehavior = scrollBehavior,
         containerColor = Color.Transparent,

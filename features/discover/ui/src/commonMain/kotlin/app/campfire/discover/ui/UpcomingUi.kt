@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -49,7 +48,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.Radar
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
@@ -59,13 +57,12 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
-import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.di.UserScope
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.discover.ui.composables.UpcomingTimeline
 import campfire.features.discover.ui.generated.resources.Res
-import campfire.features.discover.ui.generated.resources.action_back
 import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_scan_action
@@ -93,12 +90,7 @@ fun UpcomingUi(
       CampfireTopAppBar(
         title = { Text(stringResource(Res.string.upcoming_title)) },
         navigationIcon = {
-          val backLabel = stringResource(Res.string.action_back)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(onClick = { state.eventSink(UpcomingUiEvent.Back) }) {
-              Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-            }
-          }
+          NavigationBackButton(onClick = { state.eventSink(UpcomingUiEvent.Back) })
         },
         windowInsets = WindowInsets(),
         contentPadding = WindowInsets.statusBars.asPaddingValues(),

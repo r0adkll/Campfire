@@ -25,7 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,21 +53,19 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Add
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.IdBadge
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.compose.widgets.CampfireTopAppBar
-import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.colorScheme
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_add_campsite
-import campfire.features.auth.ui.generated.resources.action_back
 import campfire.features.auth.ui.generated.resources.action_login_openid
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
@@ -123,14 +120,7 @@ private fun LoginContent(
             },
             navigationIcon = {
               if (screen is LoginScreen.Additional) {
-                val backLabel = stringResource(Res.string.action_back)
-                IconButtonTooltip(text = backLabel) {
-                  IconButton(
-                    onClick = { state.eventSink(LoginUiEvent.NavigateBack) },
-                  ) {
-                    Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-                  }
-                }
+                NavigationBackButton(onClick = { state.eventSink(LoginUiEvent.NavigateBack) })
               }
             },
           )

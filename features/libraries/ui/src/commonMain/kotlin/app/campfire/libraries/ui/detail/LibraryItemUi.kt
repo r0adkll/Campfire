@@ -57,7 +57,6 @@ import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.DeleteForever
 import app.campfire.common.compose.icons.rounded.LibraryAdd
 import app.campfire.common.compose.icons.rounded.MoreVert
@@ -71,6 +70,7 @@ import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
@@ -103,7 +103,6 @@ import app.campfire.libraries.ui.detail.composables.slots.TitleSlot
 import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.cd_add_to_collection
-import campfire.features.libraries.ui.generated.resources.cd_back_arrow
 import campfire.features.libraries.ui.generated.resources.cd_more_actions
 import campfire.features.libraries.ui.generated.resources.error_library_item_message
 import campfire.features.libraries.ui.generated.resources.genres_title
@@ -179,19 +178,9 @@ fun LibraryItemContent(
         contentPadding = WindowInsets.statusBars
           .asPaddingValues(),
         navigationIcon = {
-          val backLabel = stringResource(Res.string.cd_back_arrow)
-          IconButtonTooltip(text = backLabel) {
-            IconButton(
-              onClick = {
-                state.eventSink(LibraryItemUiEvent.OnBack)
-              },
-            ) {
-              Icon(
-                CampfireIcons.Rounded.ArrowBack,
-                contentDescription = backLabel,
-              )
-            }
-          }
+          NavigationBackButton(onClick = {
+            state.eventSink(LibraryItemUiEvent.OnBack)
+          })
         },
         actions = {
           AnimatedVisibility(

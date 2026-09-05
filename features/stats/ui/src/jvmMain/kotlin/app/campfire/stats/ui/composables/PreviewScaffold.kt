@@ -21,7 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.DarkMode
 import app.campfire.common.compose.icons.rounded.LightMode
 import app.campfire.common.compose.layout.ContentLayout
@@ -29,8 +28,8 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import campfire.features.stats.ui.generated.resources.Res
-import campfire.features.stats.ui.generated.resources.action_back
 import campfire.features.stats.ui.generated.resources.action_toggle_dark_mode
 import org.jetbrains.compose.resources.stringResource
 
@@ -52,14 +51,7 @@ internal fun PreviewScaffold(
           CampfireTopAppBar(
             title = { Text("User statistics") },
             navigationIcon = {
-              val backLabel = stringResource(Res.string.action_back)
-              IconButtonTooltip(text = backLabel) {
-                IconButton(
-                  onClick = {},
-                ) {
-                  Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-                }
-              }
+              NavigationBackButton(onClick = {})
             },
             actions = {
               val toggleDarkLabel = stringResource(Res.string.action_toggle_dark_mode)

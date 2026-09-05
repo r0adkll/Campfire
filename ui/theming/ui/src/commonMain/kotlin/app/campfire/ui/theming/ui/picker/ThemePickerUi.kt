@@ -52,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.ArrowBack
 import app.campfire.common.compose.icons.rounded.AutoAwesome
 import app.campfire.common.compose.icons.rounded.Edit
 import app.campfire.common.compose.icons.rounded.FormatPaint
@@ -60,6 +59,7 @@ import app.campfire.common.compose.icons.theme.Ai
 import app.campfire.common.compose.icons.theme.Palette
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.NavigationBackButton
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.core.coroutines.onLoading
@@ -69,7 +69,6 @@ import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import campfire.ui.theming.ui.generated.resources.Res
-import campfire.ui.theming.ui.generated.resources.action_back
 import campfire.ui.theming.ui.generated.resources.action_edit_theme
 import campfire.ui.theming.ui.generated.resources.theme_name_dynamic
 import campfire.ui.theming.ui.generated.resources.theme_name_forest
@@ -99,14 +98,7 @@ fun ThemePicker(
             Text("Theme")
           },
           navigationIcon = {
-            val backLabel = stringResource(Res.string.action_back)
-            IconButtonTooltip(text = backLabel) {
-              IconButton(
-                onClick = { state.eventSink(ThemePickerUiEvent.Back) },
-              ) {
-                Icon(CampfireIcons.Rounded.ArrowBack, contentDescription = backLabel)
-              }
-            }
+            NavigationBackButton(onClick = { state.eventSink(ThemePickerUiEvent.Back) })
           },
           scrollBehavior = scrollBehavior,
           containerColor = MaterialTheme.colorScheme.surfaceContainer,
