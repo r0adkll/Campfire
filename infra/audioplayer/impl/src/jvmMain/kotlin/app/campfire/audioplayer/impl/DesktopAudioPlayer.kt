@@ -35,6 +35,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -332,12 +333,25 @@ class DesktopAudioPlayer(
     scope.launch { block() }
   }
 
-  /** Opens [index] at [offset], stamping the freshest access token onto the item's URL. */
+  /**
+   * Opens [index] at [offset] with the freshest access token: as a bearer header when the
+   * engine sends headers (which also reaches HLS segment requests), otherwise stamped onto the
+   * item's URL.
+   */
   private suspend fun openItem(engine: PlaybackEngine, index: Int, offset: Duration, playWhenReady: Boolean) {
     val item = queue[index]
     val userId = preparedSession?.userId
     val token = userId?.let { accessTokenProvider.accessToken(it) }
-    engine.open(item.copy(uri = item.uri.withAccessToken(token)), offset, playWhenReady)
+    if (engine.supportsRequestHeaders) {
+      val headers = if (token.isNullOrEmpty() || !item.uri.startsWith("http", ignoreCase = true)) {
+        emptyMap()
+      } else {
+        mapOf("Authorization" to "Bearer $token")
+      }
+      engine.open(item, offset, playWhenReady, headers)
+    } else {
+      engine.open(item.copy(uri = item.uri.withAccessToken(token)), offset, playWhenReady)
+    }
   }
 
   /**
@@ -352,7 +366,8 @@ class DesktopAudioPlayer(
         engine = created
         created.setRate(playbackSpeed.value)
         created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
-        eventsJob = scope.launch {
+        // Subscribe before returning so an engine that emits synchronously from open() is heard
+        eventsJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
           created.events.collect { onEngineEvent(it) }
         }
       }

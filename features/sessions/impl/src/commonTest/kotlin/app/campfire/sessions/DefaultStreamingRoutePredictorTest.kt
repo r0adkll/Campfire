@@ -3,7 +3,6 @@
 
 package app.campfire.sessions
 
-import app.campfire.core.Platform
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.FileMetadata
 import app.campfire.core.model.LibraryItem
@@ -26,24 +25,24 @@ class DefaultStreamingRoutePredictorTest {
   @Test
   fun `gates pass for a book on Android`() {
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.ANDROID),
+      hlsGatesPass(episodeId = null, hlsSupported = true),
     ).isTrue()
   }
 
   @Test
   fun `gates fail for podcast episodes`() {
     assertThat(
-      hlsGatesPass(episodeId = "episode_id", platform = Platform.ANDROID),
+      hlsGatesPass(episodeId = "episode_id", hlsSupported = true),
     ).isFalse()
   }
 
   @Test
   fun `gates fail off Android`() {
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.IOS),
+      hlsGatesPass(episodeId = null, hlsSupported = false),
     ).isFalse()
     assertThat(
-      hlsGatesPass(episodeId = null, platform = Platform.DESKTOP),
+      hlsGatesPass(episodeId = null, hlsSupported = false),
     ).isFalse()
   }
 
@@ -71,7 +70,7 @@ class DefaultStreamingRoutePredictorTest {
       decide(largeSingleFileItem(), method = StreamingMethod.PREFER_HLS, episodeId = "episode_id"),
     ).isFalse()
     assertThat(
-      decide(largeSingleFileItem(), method = StreamingMethod.PREFER_HLS, platform = Platform.DESKTOP),
+      decide(largeSingleFileItem(), method = StreamingMethod.PREFER_HLS, hlsSupported = false),
     ).isFalse()
   }
 
@@ -131,12 +130,12 @@ class DefaultStreamingRoutePredictorTest {
     item: LibraryItem,
     method: StreamingMethod,
     episodeId: PodcastEpisodeId? = null,
-    platform: Platform = Platform.ANDROID,
+    hlsSupported: Boolean = true,
     largeItemThreshold: Duration = 8.hours,
   ): Boolean = decideHlsRoute(
     libraryItem = item,
     episodeId = episodeId,
-    platform = platform,
+    hlsSupported = hlsSupported,
     method = method,
     largeItemThreshold = largeItemThreshold,
   )

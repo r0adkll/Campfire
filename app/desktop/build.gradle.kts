@@ -16,9 +16,18 @@ kotlin {
   }
 }
 
+val desktopAudioEngine = providers.gradleProperty("campfire_desktop_audio_engine").orNull ?: "ffmpeg"
+
 dependencies {
   implementation(projects.app.common)
   implementation(compose.desktop.currentOs)
+
+  if (desktopAudioEngine == "vlc" || desktopAudioEngine == "both") {
+    implementation(projects.infra.audioplayer.engineVlc)
+  }
+  if (desktopAudioEngine != "vlc") {
+    implementation(projects.infra.audioplayer.engineFfmpeg)
+  }
 
   implementation(libs.kimchi.annotations)
   implementation(libs.kotlininject.runtime)

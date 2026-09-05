@@ -333,6 +333,7 @@ graph LR
   :features:user:impl --> :features:user:test
   :features:user:impl --> :
   :features:settings:ui --> :features:settings:api
+  :features:settings:ui --> :features:sessions:api
   :features:settings:ui --> :features:libraries:api
   :features:settings:ui --> :
   :features:podcasts:impl --> :features:podcasts:api
@@ -350,6 +351,7 @@ graph LR
   :features:filters --> :
   :features:stats:impl --> :features:stats:api
   :features:stats:impl --> :features:user:api
+  :features:stats:impl --> :features:user:test
   :features:stats:impl --> :
   :features:filters:impl --> :features:filters:api
   :features:filters:impl --> :features:user:api
@@ -423,6 +425,7 @@ graph LR
   :features:search:api --> :
   :features:stats:ui --> :features:libraries:api
   :features:stats:ui --> :features:stats:api
+  :features:stats:ui --> :features:user:api
   :features:stats:ui --> :
   :scripts --> :
   :thirdparty:kmp-socketio --> :thirdparty:socketio-kotlin
@@ -538,6 +541,7 @@ graph LR
   :features:series:ui --> :features:series:api
   :features:series:ui --> :features:filters:api
   :features:series:ui --> :features:user:api
+  :features:series:ui --> :features:series:test
   :features:series:ui --> :
   :features:libraries:api --> :
   :features:podcasts --> :
@@ -556,6 +560,7 @@ graph LR
   :features:home:ui --> :features:home:api
   :features:home:ui --> :features:libraries:api
   :features:home:ui --> :features:user:api
+  :features:home:ui --> :features:discover:api
   :features:home:ui --> :features:user:test
   :features:home:ui --> :
 ```

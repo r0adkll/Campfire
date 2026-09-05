@@ -10,7 +10,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 
 class FakePlaybackEngine : PlaybackEngine {
 
-  data class Open(val item: MediaItem, val startPosition: Duration, val playWhenReady: Boolean)
+  data class Open(
+    val item: MediaItem,
+    val startPosition: Duration,
+    val playWhenReady: Boolean,
+    val headers: Map<String, String> = emptyMap(),
+  )
 
   data class EqualizerCall(val enabled: Boolean, val preampDb: Float, val bandGainsDb: List<Float>)
 
@@ -28,13 +33,15 @@ class FakePlaybackEngine : PlaybackEngine {
 
   override var volume: Float = 1f
 
+  override var supportsRequestHeaders: Boolean = false
+
   /** Deliver an event as the native library would; the player must be collecting. */
   fun emit(event: PlaybackEngineEvent) {
     check(_events.tryEmit(event)) { "Event dropped: $event" }
   }
 
-  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean) {
-    opens += Open(item, startPosition, playWhenReady)
+  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean, headers: Map<String, String>) {
+    opens += Open(item, startPosition, playWhenReady, headers)
   }
 
   override fun play() {

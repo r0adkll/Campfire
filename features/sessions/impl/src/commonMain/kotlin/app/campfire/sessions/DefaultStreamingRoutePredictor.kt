@@ -3,12 +3,11 @@
 
 package app.campfire.sessions
 
-import app.campfire.core.Platform
-import app.campfire.core.currentPlatform
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
@@ -25,12 +24,13 @@ import me.tatarka.inject.annotations.Inject
 class DefaultStreamingRoutePredictor(
   private val playbackSettings: PlaybackSettings,
   private val devSettings: DevSettings,
+  private val hlsPlaybackSupport: HlsPlaybackSupport,
 ) : StreamingRoutePredictor {
 
   override fun canStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
     return hlsGatesPass(
       episodeId = episodeId,
-      platform = currentPlatform,
+      hlsSupported = hlsPlaybackSupport.supportsHls,
     )
   }
 
@@ -38,7 +38,7 @@ class DefaultStreamingRoutePredictor(
     return decideHlsRoute(
       libraryItem = libraryItem,
       episodeId = episodeId,
-      platform = currentPlatform,
+      hlsSupported = hlsPlaybackSupport.supportsHls,
       method = playbackSettings.streamingMethod,
       largeItemThreshold = devSettings.hlsLargeItemThreshold,
     )
@@ -52,7 +52,7 @@ class DefaultStreamingRoutePredictor(
       decideHlsRoute(
         libraryItem = libraryItem,
         episodeId = episodeId,
-        platform = currentPlatform,
+        hlsSupported = hlsPlaybackSupport.supportsHls,
         method = method,
         largeItemThreshold = largeItemThreshold,
       )
@@ -63,27 +63,27 @@ class DefaultStreamingRoutePredictor(
 /**
  * The hard gates HLS delivery rides on, independent of the chosen streaming method:
  * podcast episodes stay direct play (small single files gain nothing from segmenting),
- * and HLS is Android-first while the route proves out.
+ * and the player must be able to fetch authenticated HLS segments ([HlsPlaybackSupport]).
  *
- * Pure and platform-parameterized so the decision matrix is unit-testable from any target.
+ * Pure and parameterized so the decision matrix is unit-testable from any target.
  */
 internal fun hlsGatesPass(
   episodeId: PodcastEpisodeId?,
-  platform: Platform,
+  hlsSupported: Boolean,
 ): Boolean {
   if (episodeId != null) return false
-  return platform == Platform.ANDROID
+  return hlsSupported
 }
 
 /** The full HLS-vs-direct decision: [hlsGatesPass] plus the streaming-method policy. */
 internal fun decideHlsRoute(
   libraryItem: LibraryItem,
   episodeId: PodcastEpisodeId?,
-  platform: Platform,
+  hlsSupported: Boolean,
   method: StreamingMethod,
   largeItemThreshold: Duration,
 ): Boolean {
-  if (!hlsGatesPass(episodeId, platform)) return false
+  if (!hlsGatesPass(episodeId, hlsSupported)) return false
 
   return when (method) {
     StreamingMethod.DIRECT_PLAY_ONLY -> false

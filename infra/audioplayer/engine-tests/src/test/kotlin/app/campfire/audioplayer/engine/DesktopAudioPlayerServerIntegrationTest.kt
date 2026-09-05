@@ -1,13 +1,15 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.impl
+package app.campfire.audioplayer.engine
 
 import app.campfire.audioplayer.AudioPlayer.State
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
-import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
+import app.campfire.audioplayer.engine.ffmpeg.FfmpegPlaybackEngine
+import app.campfire.audioplayer.engine.vlc.VlcPlaybackEngine
+import app.campfire.audioplayer.impl.DesktopAudioPlayer
+import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Extras
 import app.campfire.core.logging.Heartwood
@@ -57,15 +59,34 @@ class DesktopAudioPlayerServerIntegrationTest {
   private val http = HttpClient.newHttpClient()
 
   @Test
-  fun `streams a chaptered book from the server with chapter navigation`() {
-    val credentials = credentials() ?: run {
-      println("No campfire_* credentials in ~/.gradle/gradle.properties, skipping")
-      return
-    }
+  fun `libvlc streams a chaptered book from the server with chapter navigation`() {
     try {
       VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS).create().release()
     } catch (e: PlaybackEngineUnavailableException) {
       println("VLC not available, skipping: ${e.message}")
+      return
+    }
+    streamFromServer(engineFactory = VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS))
+  }
+
+  @Test
+  fun `ffmpeg streams a chaptered book from the server with chapter navigation`() {
+    streamFromServer { FfmpegPlaybackEngine().apply { volume = 0f } }
+  }
+
+  /**
+   * Opens a transcode session on the server and streams its HLS playlist through FFmpeg. Every
+   * segment request must carry the bearer header the player hands the engine, so a pass here
+   * proves the whole authenticated HLS path, not just the playlist fetch.
+   */
+  @Test
+  fun `ffmpeg streams an HLS transcode session from the server with chapter navigation`() {
+    streamFromServer(hls = true) { FfmpegPlaybackEngine().apply { volume = 0f } }
+  }
+
+  private fun streamFromServer(hls: Boolean = false, engineFactory: PlaybackEngine.Factory) {
+    val credentials = credentials() ?: run {
+      println("No campfire_* credentials in ~/.gradle/gradle.properties, skipping")
       return
     }
 
@@ -79,14 +100,18 @@ class DesktopAudioPlayerServerIntegrationTest {
 
     val token = login(credentials)
     val book = findChapteredBook(credentials.serverUrl, token)
-    println("Streaming '${book.title}' (${book.tracks.size} tracks, ${book.chapters.size} chapters)")
+    val transcode = if (hls) openTranscodeSession(credentials.serverUrl, token, book.itemId) else null
+    println(
+      "Streaming '${book.title}' (${book.tracks.size} tracks, ${book.chapters.size} chapters)" +
+        (transcode?.let { " over HLS session ${it.sessionId}" } ?: ""),
+    )
 
     val settings = FakePlaybackSettings()
     val player = DesktopAudioPlayer(
       settings = settings,
       equalizerSettings = FakeEqualizerSettings(),
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
-      engineFactory = VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS),
+      engineFactory = engineFactory,
       accessTokenProvider = { token },
     )
 
@@ -95,7 +120,13 @@ class DesktopAudioPlayerServerIntegrationTest {
         // Resume 3s into the second chapter
         val chapter = book.chapters[1]
         val resume = chapter.start.seconds + 3.seconds
-        player.prepare(session(book.chapters, book.tracks, currentTime = resume), playImmediately = true) { }
+        val session = session(
+          chapters = book.chapters,
+          tracks = book.tracks,
+          currentTime = resume,
+          hlsStreamUrl = transcode?.let { credentials.serverUrl + it.playlistPath },
+        )
+        player.prepare(session, playImmediately = true) { }
 
         awaitUntil("playing past the resume point") {
           player.state.value == State.Playing && player.overallTime.value > resume
@@ -129,6 +160,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       }
     } finally {
       player.stop()
+      transcode?.let { closeSession(credentials.serverUrl, token, it.sessionId) }
     }
   }
 
@@ -146,7 +178,14 @@ class DesktopAudioPlayerServerIntegrationTest {
 
   private data class Credentials(val serverUrl: String, val username: String, val password: String)
 
-  private data class Book(val title: String, val chapters: List<Chapter>, val tracks: List<AudioTrack>)
+  private data class Book(
+    val itemId: String,
+    val title: String,
+    val chapters: List<Chapter>,
+    val tracks: List<AudioTrack>,
+  )
+
+  private data class TranscodeSession(val sessionId: String, val playlistPath: String)
 
   private fun credentials(): Credentials? {
     val file = File(System.getProperty("user.home"), ".gradle/gradle.properties")
@@ -199,6 +238,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       val tracks = media["tracks"]?.jsonArray ?: continue
       if (chapters.size < 3 || tracks.isEmpty()) continue
       return Book(
+        itemId = id!!,
         title = media["metadata"]!!.jsonObject["title"]!!.jsonPrimitive.contentOrNull ?: "?",
         chapters = chapters.map { c ->
           val o = c.jsonObject
@@ -227,6 +267,36 @@ class DesktopAudioPlayerServerIntegrationTest {
       )
     }
     error("No chaptered book found in library ${library["name"]?.jsonPrimitive?.contentOrNull}")
+  }
+
+  /** `POST /api/items/{id}/play` with forceTranscode: the server starts ffmpeg and hands back an HLS playlist. */
+  private fun openTranscodeSession(serverUrl: String, token: String, itemId: String): TranscodeSession {
+    val body = """
+      {"deviceInfo":{"clientName":"Campfire engine test","deviceId":"campfire-engine-test"},
+       "mediaPlayer":"ffmpeg","supportedMimeTypes":["audio/mpeg","audio/mp4","audio/flac","audio/ogg"],
+       "forceTranscode":true}
+    """.trimIndent()
+    val request = HttpRequest.newBuilder(URI("$serverUrl/api/items/$itemId/play"))
+      .header("Authorization", "Bearer $token")
+      .header("Content-Type", "application/json")
+      .header("User-Agent", USER_AGENT)
+      .POST(HttpRequest.BodyPublishers.ofString(body))
+      .build()
+    val response = http.send(request, HttpResponse.BodyHandlers.ofString())
+    check(response.statusCode() == 200) { "Opening a transcode session failed: HTTP ${response.statusCode()}" }
+    val play = json.parseToJsonElement(response.body()).jsonObject
+    val playlist = play["audioTracks"]!!.jsonArray.first().jsonObject["contentUrl"]!!.jsonPrimitive.contentOrNull!!
+    check(playlist.endsWith(".m3u8")) { "Server did not return an HLS playlist: $playlist" }
+    return TranscodeSession(sessionId = play["id"]!!.jsonPrimitive.contentOrNull!!, playlistPath = playlist)
+  }
+
+  private fun closeSession(serverUrl: String, token: String, sessionId: String) {
+    val request = HttpRequest.newBuilder(URI("$serverUrl/api/session/$sessionId/close"))
+      .header("Authorization", "Bearer $token")
+      .header("User-Agent", USER_AGENT)
+      .POST(HttpRequest.BodyPublishers.noBody())
+      .build()
+    runCatching { http.send(request, HttpResponse.BodyHandlers.discarding()) }
   }
 
   // endregion

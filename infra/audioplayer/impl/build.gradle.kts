@@ -8,6 +8,18 @@ plugins {
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
+  alias(libs.plugins.buildConfig)
+}
+
+// Desktop audio engine: "ffmpeg" (default), "vlc", or "both" for dev builds that carry the two
+// engines and pick at runtime. Set campfire_desktop_audio_engine in ~/.gradle/gradle.properties or
+// pass -Pcampfire_desktop_audio_engine=vlc; :app:desktop reads the same property to decide which
+// engine modules ship, and -Dcampfire.audio.engine at launch still overrides the pick.
+buildConfig {
+  packageName("app.campfire.audioplayer.impl")
+  val desktopAudioEngine = providers.gradleProperty("campfire_desktop_audio_engine").orNull ?: "ffmpeg"
+  buildConfigField("String", "DESKTOP_AUDIO_ENGINE", "\"$desktopAudioEngine\"")
+  useKotlinOutput()
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -90,15 +102,8 @@ kotlin {
 
     jvmMain {
       dependencies {
-        implementation(libs.vlcj)
         implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
-      }
-    }
-
-    jvmTest {
-      dependencies {
-        implementation(libs.kotlinx.serialization.json)
       }
     }
   }

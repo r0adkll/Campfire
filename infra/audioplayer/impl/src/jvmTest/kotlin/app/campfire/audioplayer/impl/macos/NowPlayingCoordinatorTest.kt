@@ -6,13 +6,13 @@
 package app.campfire.audioplayer.impl.macos
 
 import app.campfire.audioplayer.AudioPlayer.State
-import app.campfire.audioplayer.impl.fixtures.chapter
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.fixtures.track
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayer.Invocation
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
+import app.campfire.audioplayer.test.fixtures.chapter
+import app.campfire.audioplayer.test.fixtures.session
+import app.campfire.audioplayer.test.fixtures.track
 import app.campfire.settings.test.FakePlaybackSettings
 import assertk.assertThat
 import assertk.assertions.containsExactly

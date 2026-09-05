@@ -12,11 +12,11 @@ import app.campfire.audioplayer.impl.engine.FakePlaybackEngine
 import app.campfire.audioplayer.impl.engine.FakePlaybackEngine.Open
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
-import app.campfire.audioplayer.impl.fixtures.chapter
-import app.campfire.audioplayer.impl.fixtures.session
-import app.campfire.audioplayer.impl.fixtures.track
 import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
 import app.campfire.audioplayer.model.profileOrNull
+import app.campfire.audioplayer.test.fixtures.chapter
+import app.campfire.audioplayer.test.fixtures.session
+import app.campfire.audioplayer.test.fixtures.track
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.test.FakeEqualizerSettings
@@ -453,5 +453,25 @@ class DesktopAudioPlayerTest {
     engine.emit(PlaybackEngineEvent.StateChanged(EngineState.Buffering))
     advanceTimeBy(1_000)
     assertThat(player.state.value).isEqualTo(State.Buffering)
+  }
+
+  @Test
+  fun `an engine that sends headers gets the token as a bearer header and an untouched url`() = runTest {
+    accessToken = "abc123"
+    engine.supportsRequestHeaders = true
+    val player = player()
+    val tracks = listOf(
+      track(1, 0f, 1800f).copy(contentUrl = "https://abs.example.com/api/items/i/file/1"),
+      track(2, 1800f, 1800f).copy(contentUrl = "/Users/me/Downloads/book/2.m4b"),
+    )
+    player.prepare(session(tracks = tracks), playImmediately = true) { }
+
+    val streamed = engine.opens.single()
+    assertThat(streamed.item.uri).isEqualTo("https://abs.example.com/api/items/i/file/1")
+    assertThat(streamed.headers).isEqualTo(mapOf("Authorization" to "Bearer abc123"))
+
+    player.seekTo(45.minutes)
+    assertThat(engine.opens.last().item.uri).isEqualTo("/Users/me/Downloads/book/2.m4b")
+    assertThat(engine.opens.last().headers).isEqualTo(emptyMap())
   }
 }

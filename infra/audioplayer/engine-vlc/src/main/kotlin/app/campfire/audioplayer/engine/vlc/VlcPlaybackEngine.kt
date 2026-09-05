@@ -1,9 +1,13 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.impl.engine
+package app.campfire.audioplayer.engine.vlc
 
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.impl.engine.EngineState
+import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
+import app.campfire.audioplayer.impl.engine.PlaybackEngineException
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.core.logging.Cork
 import java.util.Locale
@@ -62,7 +66,8 @@ class VlcPlaybackEngine private constructor(
     player.events().addMediaPlayerEventListener(EventTranslator())
   }
 
-  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean) {
+  override fun open(item: MediaItem, startPosition: Duration, playWhenReady: Boolean, headers: Map<String, String>) {
+    // libvlc has no per-request header support; credentials arrive inside the URL
     val options = buildList {
       if (!playWhenReady) add(OPTION_START_PAUSED)
       if (startPosition > Duration.ZERO) {

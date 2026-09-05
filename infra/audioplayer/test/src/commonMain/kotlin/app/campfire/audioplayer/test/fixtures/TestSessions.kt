@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.audioplayer.impl.fixtures
+package app.campfire.audioplayer.test.fixtures
 
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -16,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.uuid.Uuid
 import kotlinx.datetime.LocalDateTime
 
-internal fun track(index: Int, startOffset: Float, duration: Float) = AudioTrack(
+fun track(index: Int, startOffset: Float, duration: Float) = AudioTrack(
   index = index,
   startOffset = startOffset,
   duration = duration,
@@ -28,7 +28,7 @@ internal fun track(index: Int, startOffset: Float, duration: Float) = AudioTrack
   metaTags = null,
 )
 
-internal fun chapter(id: Int, start: Float, end: Float) = Chapter(
+fun chapter(id: Int, start: Float, end: Float) = Chapter(
   id = id,
   start = start,
   end = end,
@@ -36,7 +36,7 @@ internal fun chapter(id: Int, start: Float, end: Float) = Chapter(
 )
 
 /** A book session over [tracks] with [chapters], resumed at [currentTime]. */
-internal fun session(
+fun session(
   chapters: List<Chapter> = emptyList(),
   tracks: List<AudioTrack> = emptyList(),
   currentTime: Duration = 0.seconds,
