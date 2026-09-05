@@ -6,5 +6,11 @@ package app.campfire.common.compose.layout
 enum class NavigationType {
   BottomNavigation,
   Rail,
+
+  /**
+   * A collapsible wide navigation rail that carries every destination the permanent drawer
+   * would, for desktop windows that are wide enough for labels but not for a permanent drawer.
+   */
+  WideRail,
   Drawer,
 }

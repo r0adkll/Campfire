@@ -74,6 +74,10 @@ interface CampfireSettings {
   var showTimeInBook: Boolean
   fun observeShowTimeInBook(): StateFlow<Boolean>
 
+  /** Whether the desktop wide navigation rail shows labels beside its icons (expanded) or only icons. */
+  var wideNavigationRailExpanded: Boolean
+  fun observeWideNavigationRailExpanded(): StateFlow<Boolean>
+
   var lastSeenVersion: String?
   fun observeLastSeenVersion(): StateFlow<String?>
 

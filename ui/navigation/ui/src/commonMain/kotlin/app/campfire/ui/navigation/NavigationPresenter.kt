@@ -33,6 +33,8 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.navigation.drawer.DrawerUiEvent
 import app.campfire.ui.navigation.drawer.DrawerUiState
+import app.campfire.ui.navigation.rail.WideNavigationRailUiEvent
+import app.campfire.ui.navigation.rail.WideNavigationRailUiState
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.nav_collections_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_collections_label
@@ -62,8 +64,64 @@ class NavigationPresenter(
   private val settings: CampfireSettings,
 ) {
 
+  /**
+   * The primary destinations shown in the bottom navigation bar and the compact navigation rail.
+   */
   @Composable
-  fun present(): List<HomeNavigationItem> {
+  fun present(): List<HomeNavigationItem> = primaryNavigationItems()
+
+  /**
+   * Every destination, primary and secondary, for the collapsible wide navigation rail along with
+   * its persisted expansion.
+   */
+  @Composable
+  fun presentWideRail(): WideNavigationRailUiState {
+    val items = primaryNavigationItems() + secondaryNavigationItems()
+    val expanded by remember {
+      settings.observeWideNavigationRailExpanded()
+    }.collectAsState()
+
+    return WideNavigationRailUiState(
+      navigationItems = items,
+      expanded = expanded,
+    ) { event ->
+      when (event) {
+        WideNavigationRailUiEvent.ToggleExpanded -> {
+          settings.wideNavigationRailExpanded = !expanded
+        }
+      }
+    }
+  }
+
+  @Composable
+  fun presentDrawer(): DrawerUiState {
+    val items = when (LocalWindowSizeClass.current.navigationType) {
+      // The permanent drawer is the only navigation, so it carries every destination
+      NavigationType.Drawer -> primaryNavigationItems() + secondaryNavigationItems()
+      // The wide rail lists every destination itself and has no drawer
+      NavigationType.WideRail -> emptyList()
+      // The bottom bar / compact rail carry the primary destinations
+      NavigationType.Rail, NavigationType.BottomNavigation -> secondaryNavigationItems()
+    }
+
+    val themeMode by remember {
+      settings.observeTheme()
+    }.collectAsState()
+
+    return DrawerUiState(
+      themeMode = themeMode,
+      navigationItems = items,
+    ) { event ->
+      when (event) {
+        DrawerUiEvent.CycleThemeMode -> {
+          settings.themeMode = themeMode.next()
+        }
+      }
+    }
+  }
+
+  @Composable
+  private fun primaryNavigationItems(): List<HomeNavigationItem> {
     val currentLibrary by remember {
       libraryRepository.observeCurrentLibrary()
     }.collectAsState(null)
@@ -80,27 +138,12 @@ class NavigationPresenter(
   }
 
   @Composable
-  fun presentDrawer(): DrawerUiState {
-    val items = buildList {
-      val currentLibrary by remember {
-        libraryRepository.observeCurrentLibrary()
-      }.collectAsState(null)
-      val downloadQueueCount by remember {
-        remoteEpisodeDownloadTracker.state
-      }.collectAsState()
+  private fun secondaryNavigationItems(): List<HomeNavigationItem> {
+    val currentLibrary by remember {
+      libraryRepository.observeCurrentLibrary()
+    }.collectAsState(null)
 
-      val navigationType = LocalWindowSizeClass.current.navigationType
-      if (navigationType == NavigationType.Drawer) {
-        addAll(
-          when (currentLibrary?.mediaType) {
-            MediaType.Podcast -> buildPodcastLibraryNavigationItems(
-              downloadQueueCount = downloadQueueCount.values.sumOf { it.size },
-            )
-            else -> buildBookLibraryNavigationItems()
-          },
-        )
-      }
-
+    return buildList {
       if (currentLibrary?.mediaType != MediaType.Podcast) {
         add(
           HomeNavigationItem(
@@ -152,21 +195,6 @@ class NavigationPresenter(
           selectedImageVector = CampfireIcons.Filled.Settings,
         ),
       )
-    }
-
-    val themeMode by remember {
-      settings.observeTheme()
-    }.collectAsState()
-
-    return DrawerUiState(
-      themeMode = themeMode,
-      navigationItems = items,
-    ) { event ->
-      when (event) {
-        DrawerUiEvent.CycleThemeMode -> {
-          settings.themeMode = themeMode.next()
-        }
-      }
     }
   }
 }

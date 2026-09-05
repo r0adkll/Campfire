@@ -125,6 +125,11 @@ class TestCampfireSettings(
     observeBoolean(::showTimeInBook)
       .stateIn(testScope, SharingStarted.Lazily, showTimeInBook)
 
+  override var wideNavigationRailExpanded: Boolean by boolean()
+  override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> =
+    observeBoolean(::wideNavigationRailExpanded)
+      .stateIn(testScope, SharingStarted.Lazily, wideNavigationRailExpanded)
+
   override var lastSeenVersion: String? by stringOrNull()
   override fun observeLastSeenVersion(): StateFlow<String?> =
     observeStringOrNull(::lastSeenVersion)

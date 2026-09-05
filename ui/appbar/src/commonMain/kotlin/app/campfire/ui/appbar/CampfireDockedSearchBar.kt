@@ -26,7 +26,11 @@ import androidx.compose.material3.SearchBarValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowChromeInsets
@@ -35,7 +39,9 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.icons.rounded.Search
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchComponent
+import app.campfire.search.api.ui.SearchResultNavEvent
 import campfire.ui.appbar.generated.resources.Res
 import campfire.ui.appbar.generated.resources.action_clear_search
 import campfire.ui.appbar.generated.resources.search_placeholder_text
@@ -70,6 +76,17 @@ private fun CampfireDockedSearchBar(
 ) {
   val scope = rememberCoroutineScope()
   val searchBarState = rememberSearchBarState()
+
+  // Picking a result navigates somewhere else, so the docked results should get out of the way.
+  // The query is kept so re-expanding the bar brings the same results back.
+  val searchEventHandler by rememberUpdatedState(LocalSearchEventHandler.current)
+  val collapsingSearchEventHandler = remember {
+    { event: SearchResultNavEvent ->
+      searchEventHandler(event)
+      scope.launch { searchBarState.animateToCollapsed() }
+      Unit
+    }
+  }
 
   val inputField = @Composable {
     SearchBarDefaults.InputField(
@@ -127,6 +144,10 @@ private fun CampfireDockedSearchBar(
     state = searchBarState,
     inputField = inputField,
   ) {
-    resultContent()
+    CompositionLocalProvider(
+      LocalSearchEventHandler provides collapsingSearchEventHandler,
+    ) {
+      resultContent()
+    }
   }
 }
