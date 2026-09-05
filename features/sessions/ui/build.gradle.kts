@@ -36,5 +36,11 @@ kotlin {
         implementation(libs.molecule)
       }
     }
+
+    jvmTest {
+      dependencies {
+        implementation(compose.desktop.currentOs)
+      }
+    }
   }
 }
