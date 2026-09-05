@@ -6,7 +6,6 @@ package app.campfire.account.ui.switcher
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -47,6 +46,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
@@ -56,7 +56,6 @@ import app.campfire.common.compose.icons.asComposeIcon
 import app.campfire.common.compose.icons.rounded.AccountSwitch
 import app.campfire.common.compose.icons.rounded.ArrowDropDown
 import app.campfire.common.compose.icons.rounded.Refresh
-import app.campfire.common.compose.icons.theme.rememberWallVectorPainter
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.ConnectionIndicator
@@ -67,6 +66,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.model.Library
 import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.AppThemeImage
 import campfire.data.account.ui.generated.resources.Res
 import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.libraries_error_message
@@ -151,7 +151,7 @@ private fun AccountSwitcher(
 }
 
 @Composable
-private fun AccountCard(
+internal fun AccountCard(
   modifier: Modifier = Modifier,
   shape: Shape = MaterialTheme.shapes.large,
   content: @Composable ColumnScope.() -> Unit,
@@ -198,51 +198,14 @@ private fun AccountSwitcher(
         ),
       verticalAlignment = Alignment.CenterVertically,
     ) {
-      Box(
-        modifier = Modifier.size(switcherConfig.iconSize),
-      ) {
-        when (appTheme) {
-          AppTheme.Dynamic -> {
-            Image(
-              rememberWallVectorPainter(),
-              contentDescription = null,
-              modifier = Modifier
-                .size(switcherConfig.iconSize),
-            )
-          }
-
-          is AppTheme.Fixed -> {
-            Image(
-              appTheme.icon.icon(),
-              contentDescription = null,
-              modifier = Modifier
-                .size(switcherConfig.iconSize),
-            )
-          }
-        }
-
-        if (socketState !is SocketState.Disabled) {
-          ConnectionIndicator(
-            state = when (socketState) {
-              is SocketState.Authenticated -> ConnectionState.Connected
-              SocketState.Authenticating -> ConnectionState.Connecting
-              SocketState.Connecting -> ConnectionState.Connecting
-              SocketState.Disconnected -> ConnectionState.Disconnected
-              is SocketState.Failed -> ConnectionState.Disconnected
-              SocketState.Disabled -> error("guarded above")
-            },
-            size = switcherConfig.indicatorSize,
-            borderWidth = 3.dp,
-            borderColor = MaterialTheme.colorScheme.primaryContainer,
-            modifier = Modifier
-              .align(Alignment.TopEnd)
-              .padding(
-                top = switcherConfig.indicatorOffset,
-                end = switcherConfig.indicatorOffset,
-              ),
-          )
-        }
-      }
+      AccountIcon(
+        appTheme = appTheme,
+        socketState = socketState,
+        size = switcherConfig.iconSize,
+        indicatorSize = switcherConfig.indicatorSize,
+        indicatorOffset = switcherConfig.indicatorOffset,
+        indicatorBorderColor = MaterialTheme.colorScheme.primaryContainer,
+      )
 
       Spacer(Modifier.width(16.dp))
 
@@ -312,14 +275,60 @@ private fun AccountSwitcher(
   }
 }
 
+/**
+ * The theme icon for the current account with the socket connection dot in its corner.
+ */
 @Composable
-private fun LibraryPicker(
+internal fun AccountIcon(
+  appTheme: AppTheme,
+  socketState: SocketState,
+  size: Dp,
+  indicatorSize: Dp,
+  indicatorOffset: Dp,
+  indicatorBorderColor: Color,
+  modifier: Modifier = Modifier,
+) {
+  Box(
+    modifier = modifier.size(size),
+  ) {
+    AppThemeImage(
+      appTheme = appTheme,
+      modifier = Modifier.size(size),
+    )
+
+    if (socketState !is SocketState.Disabled) {
+      ConnectionIndicator(
+        state = when (socketState) {
+          is SocketState.Authenticated -> ConnectionState.Connected
+          SocketState.Authenticating -> ConnectionState.Connecting
+          SocketState.Connecting -> ConnectionState.Connecting
+          SocketState.Disconnected -> ConnectionState.Disconnected
+          is SocketState.Failed -> ConnectionState.Disconnected
+          SocketState.Disabled -> error("guarded above")
+        },
+        size = indicatorSize,
+        borderWidth = 3.dp,
+        borderColor = indicatorBorderColor,
+        modifier = Modifier
+          .align(Alignment.TopEnd)
+          .padding(
+            top = indicatorOffset,
+            end = indicatorOffset,
+          ),
+      )
+    }
+  }
+}
+
+@Composable
+internal fun LibraryPicker(
   state: LibraryState,
   onLibraryClick: (Library) -> Unit,
   modifier: Modifier = Modifier,
   containerColor: Color = MaterialTheme.colorScheme.primary,
   contentColor: Color = MaterialTheme.colorScheme.contentColorFor(containerColor),
   shape: Shape = MaterialTheme.shapes.large,
+  rowStyle: LibraryRowStyle = DefaultLibraryRowStyle,
 ) {
   var expanded by remember { mutableStateOf(false) }
   Column(
@@ -336,6 +345,7 @@ private fun LibraryPicker(
       LibraryRow(
         library = state.currentLibrary,
         onClick = { expanded = !expanded },
+        rowStyle = rowStyle,
         trailingContent = {
           val iconRotation by animateFloatAsState(if (expanded) 180f else 0f)
           Icon(
@@ -359,6 +369,7 @@ private fun LibraryPicker(
               onLibraryClick(library)
               expanded = false
             },
+            rowStyle = rowStyle,
           )
         }
       }
@@ -401,6 +412,7 @@ private fun LibrariesLoaded(
   libraries: List<Library>,
   onLibraryClick: (Library) -> Unit,
   modifier: Modifier = Modifier,
+  rowStyle: LibraryRowStyle = DefaultLibraryRowStyle,
 ) {
   Column(
     modifier = modifier,
@@ -421,6 +433,7 @@ private fun LibrariesLoaded(
           library = library,
           selected = selected,
           onClick = { onLibraryClick(library) },
+          rowStyle = rowStyle,
           trailingContent = {
             RadioButton(
               selected = selected,
@@ -443,6 +456,7 @@ private fun LibraryRow(
   modifier: Modifier = Modifier,
   selected: Boolean = false,
   onClick: (() -> Unit)? = null,
+  rowStyle: LibraryRowStyle = DefaultLibraryRowStyle,
   trailingContent: @Composable (() -> Unit)? = null,
 ) {
   Row(
@@ -450,17 +464,19 @@ private fun LibraryRow(
       .clickable(enabled = onClick != null) { onClick?.invoke() }
       .fillMaxWidth()
       .padding(
-        horizontal = 24.dp,
-        vertical = 16.dp,
+        horizontal = rowStyle.horizontalPadding,
+        vertical = rowStyle.verticalPadding,
       ),
     verticalAlignment = Alignment.CenterVertically,
   ) {
     Icon(library.icon.asComposeIcon(), contentDescription = null)
-    Spacer(Modifier.width(16.dp))
+    Spacer(Modifier.width(rowStyle.iconSpacing))
     Text(
       text = library.name,
-      style = MaterialTheme.typography.titleMedium,
+      style = rowStyle.textStyle,
       fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
       modifier = Modifier.weight(1f),
     )
 
@@ -470,6 +486,31 @@ private fun LibraryRow(
     }
   }
 }
+
+/** Sizing for the rows of a [LibraryPicker]. */
+data class LibraryRowStyle(
+  val horizontalPadding: Dp,
+  val verticalPadding: Dp,
+  val iconSpacing: Dp,
+  val textStyle: TextStyle,
+)
+
+val DefaultLibraryRowStyle: LibraryRowStyle
+  @Composable get() = LibraryRowStyle(
+    horizontalPadding = 24.dp,
+    verticalPadding = 16.dp,
+    iconSpacing = 16.dp,
+    textStyle = MaterialTheme.typography.titleMedium,
+  )
+
+/** Tighter rows for the account switcher in the wide navigation rail. */
+val CompactLibraryRowStyle: LibraryRowStyle
+  @Composable get() = LibraryRowStyle(
+    horizontalPadding = 16.dp,
+    verticalPadding = 12.dp,
+    iconSpacing = 12.dp,
+    textStyle = MaterialTheme.typography.titleSmall,
+  )
 
 data class SwitcherConfig(
   val iconSize: Dp,

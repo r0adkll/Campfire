@@ -35,6 +35,7 @@ import app.campfire.account.ui.picker.AccountPickerResult
 import app.campfire.account.ui.picker.showAccountPicker
 import app.campfire.account.ui.switcher.AccountSwitcher
 import app.campfire.account.ui.switcher.AccountSwitcherUiEvent
+import app.campfire.account.ui.switcher.RailAccountSwitcher
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
@@ -45,7 +46,7 @@ import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
-import app.campfire.common.compose.layout.isWidthAtLeastExtraLarge
+import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.session.LocalPlaybackSession
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.util.LocalThemeDispatcher
@@ -76,6 +77,7 @@ import app.campfire.ui.navigation.bar.LocalNavigationBarState
 import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
 import app.campfire.ui.navigation.drawer.CampfireDrawer
 import app.campfire.ui.navigation.rail.CampfireNavigationRail
+import app.campfire.ui.navigation.rail.CampfireWideNavigationRail
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.ui.theming.api.colorScheme
@@ -340,6 +342,16 @@ private fun LoggedInUi(
     },
   )
 
+  // Shows the account picker and applies whatever the user chose to the switcher
+  val pickAccount: suspend (eventSink: (AccountSwitcherUiEvent) -> Unit) -> Unit = { eventSink ->
+    when (val result = overlayHost.showAccountPicker()) {
+      AccountPickerResult.AddAccount -> homeNavigator.goTo(LoginScreen.Additional)
+      is AccountPickerResult.SwitchAccount -> eventSink(AccountSwitcherUiEvent.SwitchAccount(result.server))
+      is AccountPickerResult.ReauthenticateAccount -> homeNavigator.goTo(LoginScreen.ReAuthentication(result.server))
+      else -> Unit
+    }
+  }
+
   // Search View wiring
   val navigationBarState = rememberCampfireNavigationBarState()
   AdaptiveCampfireLayout(
@@ -359,24 +371,8 @@ private fun LoggedInUi(
                 launch {
                   drawerState.close()
                 }
-                when (val result = overlayHost.showAccountPicker()) {
-                  AccountPickerResult.AddAccount -> {
-                    homeNavigator.goTo(LoginScreen.Additional)
-                    drawerState.close()
-                  }
-
-                  is AccountPickerResult.SwitchAccount -> {
-                    eventSink(AccountSwitcherUiEvent.SwitchAccount(result.server))
-                    drawerState.close()
-                  }
-
-                  is AccountPickerResult.ReauthenticateAccount -> {
-                    homeNavigator.goTo(LoginScreen.ReAuthentication(result.server))
-                    drawerState.close()
-                  }
-
-                  else -> Unit
-                }
+                pickAccount(eventSink)
+                drawerState.close()
               }
             },
           )
@@ -411,6 +407,25 @@ private fun LoggedInUi(
         modifier = Modifier.fillMaxHeight(),
       )
     },
+    wideRailNavigation = {
+      CampfireWideNavigationRail(
+        selectedNavigation = rootScreen,
+        onNavigationSelected = { homeNavigator.resetRoot(it) },
+        accountContent = {
+          RailAccountSwitcher(
+            expanded = expanded,
+            toggleLabel = toggleLabel,
+            onToggle = onToggle,
+            onSwitchAccount = { eventSink ->
+              coroutineScope.launch {
+                pickAccount(eventSink)
+              }
+            },
+          )
+        },
+        modifier = Modifier.fillMaxHeight(),
+      )
+    },
 
     content = {
       val searchEventHandler: (SearchResultNavEvent) -> Unit = remember(homeNavigator) {
@@ -433,7 +448,7 @@ private fun LoggedInUi(
       }
     },
     playbackBarContent = {
-      if (!windowSizeClass.isWidthAtLeastExtraLarge) {
+      if (!windowSizeClass.usesBottomPlaybackBar) {
         val bottomSystemInset = withDensity {
           WindowInsets.navigationBars.asPaddingValues()
             .calculateBottomPadding().toPx()

@@ -7,6 +7,8 @@ import androidx.window.core.layout.WindowSizeClass
 import androidx.window.core.layout.WindowSizeClass.Companion.HEIGHT_DP_MEDIUM_LOWER_BOUND
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_EXPANDED_LOWER_BOUND
 import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 
 /**
  * Lower bound, in dp, of the Large width size class (desktop and web windows). Mirrors the
@@ -52,11 +54,21 @@ val WindowSizeClass.isLandscapePhone: Boolean
   get() = isWidthAtLeastExpanded && isHeightCompact
 
 /**
- * Return the main navigation type for this size class
+ * Return if the full-width bottom playback bar should be used instead of the floating
+ * playback bar. Desktop windows get it from the Expanded breakpoint up; mobile always uses the
+ * floating bar.
+ */
+val WindowSizeClass.usesBottomPlaybackBar: Boolean
+  get() = currentPlatform == Platform.DESKTOP && isWidthAtLeastExpanded
+
+/**
+ * Return the main navigation type for this size class. Desktop windows between the Expanded and
+ * Extra-Large breakpoints get the collapsible wide rail; mobile keeps the compact rail there.
  */
 val WindowSizeClass.navigationType: NavigationType
   get() = when {
     isWidthAtLeastExtraLarge -> NavigationType.Drawer
+    isWidthAtLeastExpanded && currentPlatform == Platform.DESKTOP -> NavigationType.WideRail
     isWidthAtLeastMedium -> NavigationType.Rail
     // TODO: This is essentially a phone portrait mode, What would be the optimal setup for this
     else -> NavigationType.BottomNavigation

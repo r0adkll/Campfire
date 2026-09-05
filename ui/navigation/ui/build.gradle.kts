@@ -25,5 +25,11 @@ kotlin {
         implementation(libs.reorderable)
       }
     }
+
+    jvmTest {
+      dependencies {
+        implementation(compose.desktop.currentOs)
+      }
+    }
   }
 }

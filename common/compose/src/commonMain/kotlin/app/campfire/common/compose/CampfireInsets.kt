@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
-import app.campfire.common.compose.layout.isWidthAtLeastExtraLarge
+import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.session.LocalPlaybackSession
 
 /**
@@ -29,10 +29,10 @@ val CampfireWindowInsets: WindowInsets
     val session by rememberUpdatedState(LocalPlaybackSession.current)
     val contentLayout = LocalContentLayout.current
 
-    // Inset content if not extra-large screen, the playback session is live, and this content is not in the
-    // supporting pane.
-    val isExtraLargeScreen = windowSizeClass.isWidthAtLeastExtraLarge
-    val playbackBarInsets = if (!isExtraLargeScreen && session != null && contentLayout == ContentLayout.Root) {
+    // Inset content if the playback bar floats over it (rather than docking below it), the playback
+    // session is live, and this content is not in the supporting pane.
+    val floatingPlaybackBar = !windowSizeClass.usesBottomPlaybackBar
+    val playbackBarInsets = if (floatingPlaybackBar && session != null && contentLayout == ContentLayout.Root) {
       WindowInsets(bottom = PlaybackBarInsetSize)
     } else {
       WindowInsets(0.dp)

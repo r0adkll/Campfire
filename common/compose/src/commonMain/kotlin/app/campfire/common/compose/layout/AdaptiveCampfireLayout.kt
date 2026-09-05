@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -45,6 +46,11 @@ import com.slack.circuit.overlay.OverlayHost
 /**
  * Our custom adaptive layout for organizing the root level content and navigation for various
  * screen classes and orientations.
+ *
+ * Navigation follows [WindowSizeClass.navigationType]: a bottom bar, a compact rail, a
+ * collapsible wide rail (desktop only), or a permanent drawer. The playback bar is either floated
+ * over the content or, when [WindowSizeClass.usesBottomPlaybackBar], docked full-width under
+ * everything else.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,6 +62,7 @@ fun AdaptiveCampfireLayout(
   drawerContent: @Composable () -> Unit,
   bottomBarNavigation: @Composable () -> Unit,
   railNavigation: @Composable () -> Unit,
+  wideRailNavigation: @Composable () -> Unit,
 
   content: @Composable () -> Unit,
   playbackBarContent: @Composable BoxScope.() -> Unit,
@@ -72,6 +79,9 @@ fun AdaptiveCampfireLayout(
   val isSupportingPaneEnabled = remember(windowSizeClass) {
     windowSizeClass.isSupportingPaneEnabled
   }
+  val usesBottomPlaybackBar = remember(windowSizeClass) {
+    windowSizeClass.usesBottomPlaybackBar
+  }
   val supportingContentState =
     if (
       (showSupportingContent || windowSizeClass.isWidthAtLeastExtraLarge) &&
@@ -86,129 +96,164 @@ fun AdaptiveCampfireLayout(
   ContentWithOverlays(
     overlayHost = overlayHost,
   ) {
-    // This wraps a ModalNavigationDrawer IF the navigationType is Rail or BottomNav
-    // otherwise, this just pass the content() block through
-    Column(modifier) {
-      DrawerWithContent(
-        navigationType = navigationType,
-        drawerState = drawerState,
-        drawerContent = drawerContent,
-        gesturesEnabled = isLoggedIn && drawerEnabled,
-        modifier = Modifier.weight(1f),
-      ) {
-        // Screens handle their own system-bar and window-chrome insets, so the root scaffold
-        // reserves nothing here. This keeps content edge-to-edge (the supporting pane starts at
-        // the very top) and avoids exposing a blank strip above app bars when content scrolls.
-        Scaffold(
-          contentWindowInsets = WindowInsets(0),
-        ) { paddingValues ->
-          Row(
+    val bottomPlaybackBar: @Composable ColumnScope.() -> Unit = {
+      if (usesBottomPlaybackBar && isLoggedIn) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+          playbackBarContent()
+        }
+      }
+    }
+
+    // Bottom bar and compact rail get a modal drawer, the permanent Drawer sits beside the content,
+    // and the wide rail has no drawer at all (its header carries the account switcher). The docked
+    // playback bar sits under the permanent drawer but inside the modal one, so the scrim covers it.
+    DrawerWithContent(
+      navigationType = navigationType,
+      drawerState = drawerState,
+      drawerContent = drawerContent,
+      gesturesEnabled = isLoggedIn && drawerEnabled,
+      bottomContent = bottomPlaybackBar,
+      modifier = modifier,
+    ) {
+      // Screens handle their own system-bar and window-chrome insets, so the root scaffold
+      // reserves nothing here. This keeps content edge-to-edge (the supporting pane starts at
+      // the very top) and avoids exposing a blank strip above app bars when content scrolls.
+      Scaffold(
+        contentWindowInsets = WindowInsets(0),
+      ) { paddingValues ->
+        Row(
+          modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues),
+        ) {
+          if (isLoggedIn) {
+            when (navigationType) {
+              NavigationType.Rail -> railNavigation()
+              NavigationType.WideRail -> wideRailNavigation()
+              NavigationType.BottomNavigation, NavigationType.Drawer -> Unit
+            }
+          }
+
+          val targetWidth = windowSizeClass.SupportingContentWidth
+          val supportingContentWidth by animateDpAsState(
+            if (supportingContentState == SupportingContentState.Open && isSupportingPaneEnabled) {
+              targetWidth
+            } else {
+              0.dp
+            },
+          )
+
+          Box(
             modifier = Modifier
-              .fillMaxSize()
-              .padding(paddingValues),
+              .weight(1f)
+              .fillMaxHeight(),
           ) {
-            if (navigationType == NavigationType.Rail && isLoggedIn) {
-              railNavigation()
+            Column(
+              modifier = Modifier.padding(end = supportingContentWidth),
+            ) {
+              CompositionLocalProvider(
+                LocalContentLayout provides ContentLayout.Root,
+                LocalSupportingContentState provides supportingContentState,
+              ) {
+                Box {
+                  content()
+
+                  if (!usesBottomPlaybackBar) {
+                    playbackBarContent()
+                  }
+                }
+              }
             }
 
-            val targetWidth = windowSizeClass.SupportingContentWidth
-            val supportingContentWidth by animateDpAsState(
-              if (supportingContentState == SupportingContentState.Open && isSupportingPaneEnabled) {
-                targetWidth
-              } else {
-                0.dp
-              },
-            )
+            if (navigationType == NavigationType.BottomNavigation) {
+              Box(
+                modifier = Modifier.align(Alignment.BottomCenter),
+              ) {
+                bottomBarNavigation()
+              }
+            }
 
-            Box(
-              modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            ) {
-              Column(
-                modifier = Modifier.padding(end = supportingContentWidth),
+            if (isSupportingPaneEnabled && isLoggedIn) {
+              val supportingContentShape = if (usesBottomPlaybackBar) {
+                RoundedCornerShape(
+                  topStart = SupportingContentCornerRadius,
+                )
+              } else {
+                RoundedCornerShape(
+                  topStart = SupportingContentCornerRadius,
+                  bottomStart = SupportingContentCornerRadius,
+                )
+              }
+              Surface(
+                modifier = Modifier
+                  .align(Alignment.CenterEnd)
+                  .width(windowSizeClass.SupportingContentWidth)
+                  .offset {
+                    IntOffset(
+                      (windowSizeClass.SupportingContentWidth - supportingContentWidth).roundToPx(),
+                      0,
+                    )
+                  },
+                shadowElevation = SupportingContentElevation,
+                tonalElevation = 1.dp,
+                shape = supportingContentShape,
               ) {
                 CompositionLocalProvider(
-                  LocalContentLayout provides ContentLayout.Root,
+                  LocalContentLayout provides ContentLayout.Supporting,
                   LocalSupportingContentState provides supportingContentState,
                 ) {
-                  Box {
-                    content()
-
-                    if (!windowSizeClass.isWidthAtLeastExtraLarge) {
-                      playbackBarContent()
-                    }
-                  }
-                }
-              }
-
-              if (navigationType == NavigationType.BottomNavigation) {
-                Box(
-                  modifier = Modifier.align(Alignment.BottomCenter),
-                ) {
-                  bottomBarNavigation()
-                }
-              }
-
-              if (isSupportingPaneEnabled && isLoggedIn) {
-                val supportingContentShape = if (windowSizeClass.isWidthAtLeastExtraLarge) {
-                  RoundedCornerShape(
-                    topStart = SupportingContentCornerRadius,
-                  )
-                } else {
-                  RoundedCornerShape(
-                    topStart = SupportingContentCornerRadius,
-                    bottomStart = SupportingContentCornerRadius,
-                  )
-                }
-                Surface(
-                  modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .width(windowSizeClass.SupportingContentWidth)
-                    .offset {
-                      IntOffset(
-                        (windowSizeClass.SupportingContentWidth - supportingContentWidth).roundToPx(),
-                        0,
-                      )
-                    },
-                  shadowElevation = SupportingContentElevation,
-                  tonalElevation = 1.dp,
-//                  tonalElevation = SupportingContentElevation,
-//                  color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                  shape = supportingContentShape,
-                ) {
-                  CompositionLocalProvider(
-                    LocalContentLayout provides ContentLayout.Supporting,
-                    LocalSupportingContentState provides supportingContentState,
-                  ) {
-                    supportingContent()
-                  }
+                  supportingContent()
                 }
               }
             }
           }
         }
       }
-
-      if (windowSizeClass.isWidthAtLeastExtraLarge && isLoggedIn) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-          playbackBarContent()
-        }
-      }
     }
   }
 }
 
+/**
+ * Wraps [content] in the drawer that matches [navigationType]: a permanent drawer beside the
+ * content (with [bottomContent] docked full-width beneath both), no drawer for the wide rail, or
+ * a modal drawer over a column of the content and [bottomContent].
+ */
 @Composable
 private fun DrawerWithContent(
   navigationType: NavigationType,
+  bottomContent: @Composable ColumnScope.() -> Unit,
   modifier: Modifier = Modifier,
   gesturesEnabled: Boolean = true,
   drawerState: DrawerState = rememberDrawerState(DrawerValue.Closed),
   drawerContent: @Composable () -> Unit,
   content: @Composable () -> Unit,
 ) {
-  if (navigationType == NavigationType.BottomNavigation || navigationType == NavigationType.Rail) {
+  if (navigationType == NavigationType.Drawer) {
+    Column(modifier) {
+      if (gesturesEnabled) {
+        PermanentNavigationDrawer(
+          drawerContent = drawerContent,
+          modifier = Modifier.weight(1f),
+        ) {
+          content()
+        }
+      } else {
+        Box(Modifier.weight(1f)) {
+          content()
+        }
+      }
+
+      bottomContent()
+    }
+  } else if (navigationType == NavigationType.WideRail) {
+    Column(modifier) {
+      Box(Modifier.weight(1f)) {
+        content()
+      }
+
+      bottomContent()
+    }
+  } else {
     CompositionLocalProvider(
       LocalDrawerState provides drawerState,
     ) {
@@ -218,18 +263,15 @@ private fun DrawerWithContent(
         gesturesEnabled = gesturesEnabled,
         modifier = modifier,
       ) {
-        content()
+        Column {
+          Box(Modifier.weight(1f)) {
+            content()
+          }
+
+          bottomContent()
+        }
       }
     }
-  } else if (navigationType == NavigationType.Drawer && gesturesEnabled) {
-    PermanentNavigationDrawer(
-      drawerContent = drawerContent,
-      modifier = modifier,
-    ) {
-      content()
-    }
-  } else {
-    content()
   }
 }
 

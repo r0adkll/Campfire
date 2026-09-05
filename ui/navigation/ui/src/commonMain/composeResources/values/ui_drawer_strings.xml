@@ -38,4 +38,6 @@
 
   <string name="action_change_theme">Change theme</string>
   <string name="action_change_theme_mode">Change theme mode</string>
+  <string name="action_expand_navigation">Expand navigation</string>
+  <string name="action_collapse_navigation">Collapse navigation</string>
 </resources>

@@ -13,12 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop on macOS adds playback controls to the Dock icon's menu
 - Desktop plays through a built-in audio engine, so VLC no longer needs to be installed
 - Desktop can stream large audiobooks over HLS, with the Streaming method setting now available there
+- Desktop windows between tablet and ultra-wide sizes get a collapsible navigation rail listing every destination, with the account and library switcher in its header and its expanded or collapsed state remembered
 
 ### Changed
 
 - Screens shown in the side detail pane now close with an X instead of showing a back arrow
 - Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
 - Desktop playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click
+- Desktop docks the playback bar along the bottom of any tablet-width or wider window instead of only ultra-wide ones
+- Desktop and tablet search results close once you pick one
 
 ### Deprecated
 
