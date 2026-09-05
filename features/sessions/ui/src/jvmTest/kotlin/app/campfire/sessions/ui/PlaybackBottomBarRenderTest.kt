@@ -87,9 +87,9 @@ class PlaybackBottomBarRenderTest {
       val trackStart = (96 + 8 + 8) * 2f
       val trackEnd = (WIDTH - (96 + 8 + 8)) * 2f
       val x = trackStart + (trackEnd - trackStart) * 0.5f
-      scene.sendPointerEvent(PointerEventType.Enter, Offset(x - 40f, 14f * 2f))
-      scene.sendPointerEvent(PointerEventType.Move, Offset(x - 20f, 14f * 2f))
-      scene.sendPointerEvent(PointerEventType.Move, Offset(x, 14f * 2f))
+      scene.sendPointerEvent(PointerEventType.Enter, Offset(x - 40f, 20f * 2f))
+      scene.sendPointerEvent(PointerEventType.Move, Offset(x - 20f, 20f * 2f))
+      scene.sendPointerEvent(PointerEventType.Move, Offset(x, 20f * 2f))
       println("hover sent at x=$x hasInvalidations=${scene.hasInvalidations()}")
     }) {
       Bar(session = book, state = AudioPlayer.State.Paused, bookTime = 40.minutes)
@@ -147,6 +147,6 @@ class PlaybackBottomBarRenderTest {
 
   private companion object {
     const val WIDTH = 1440
-    const val HEIGHT = 100
+    const val HEIGHT = 110
   }
 }

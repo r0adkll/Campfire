@@ -266,6 +266,7 @@ internal fun PlaybackBottomBarContent(
         onSeek = onSeekTo,
         modifier = Modifier
           .fillMaxWidth()
+          .padding(top = TimelineTopPadding)
           .padding(horizontal = 8.dp),
       )
 
@@ -274,7 +275,7 @@ internal fun PlaybackBottomBarContent(
         modifier = Modifier
           .fillMaxWidth()
           .height(ContentRowHeight)
-          .padding(start = 16.dp, end = 8.dp, bottom = 8.dp),
+          .padding(start = 16.dp, end = 8.dp, top = TimelineBottomPadding, bottom = 8.dp),
       ) {
         NowPlayingInfo(
           session = session,
@@ -640,4 +641,6 @@ private fun ActionRow(
 }
 
 private val CoverSize = 48.dp
-private val ContentRowHeight = 64.dp
+private val ContentRowHeight = 68.dp
+private val TimelineTopPadding = 6.dp
+private val TimelineBottomPadding = 4.dp
