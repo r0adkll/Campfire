@@ -4,7 +4,6 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,15 +16,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -46,7 +42,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
@@ -56,13 +51,8 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
-import app.campfire.common.compose.icons.rounded.EditAudio
 import app.campfire.common.compose.icons.rounded.Equalizer
 import app.campfire.common.compose.icons.rounded.List
-import app.campfire.common.compose.icons.rounded.Pause
-import app.campfire.common.compose.icons.rounded.PlayArrow
-import app.campfire.common.compose.icons.rounded.SkipNext
-import app.campfire.common.compose.icons.rounded.SkipPrevious
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
@@ -74,9 +64,8 @@ import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.bottombar.BookTimeline
-import app.campfire.sessions.ui.composables.ForwardIcon
+import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
-import app.campfire.sessions.ui.composables.RewindIcon
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -93,11 +82,6 @@ import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_equalizer
-import campfire.features.sessions.ui.generated.resources.action_forward
-import campfire.features.sessions.ui.generated.resources.action_play_pause
-import campfire.features.sessions.ui.generated.resources.action_rewind
-import campfire.features.sessions.ui.generated.resources.action_skip_next
-import campfire.features.sessions.ui.generated.resources.action_skip_previous
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_remaining
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
@@ -287,7 +271,7 @@ internal fun PlaybackBottomBarContent(
           modifier = Modifier.weight(1f),
         )
 
-        PlaybackActions(
+        DesktopPlaybackActions(
           state = state,
           enabled = hasSession,
           onSkipPreviousClick = onSkipPreviousClick,
@@ -434,103 +418,6 @@ private fun NowPlayingInfo(
         overflow = TextOverflow.Ellipsis,
         modifier = Modifier.alpha(0.7f),
       )
-    }
-  }
-}
-
-@Composable
-private fun PlaybackActions(
-  state: AudioPlayer.State,
-  enabled: Boolean,
-  onSkipPreviousClick: () -> Unit,
-  onRewindClick: () -> Unit,
-  onPlayPauseClick: () -> Unit,
-  onForwardClick: () -> Unit,
-  onSkipNextClick: () -> Unit,
-  modifier: Modifier = Modifier,
-  actionSize: Dp = 26.dp,
-  playPauseSize: Dp = 44.dp,
-) {
-  Row(
-    modifier = modifier,
-    verticalAlignment = Alignment.CenterVertically,
-    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
-  ) {
-    val skipPreviousLabel = stringResource(Res.string.action_skip_previous)
-    IconButtonTooltip(text = skipPreviousLabel) {
-      IconButton(onClick = onSkipPreviousClick, enabled = enabled) {
-        Icon(
-          CampfireIcons.Rounded.SkipPrevious,
-          modifier = Modifier.size(actionSize),
-          contentDescription = skipPreviousLabel,
-        )
-      }
-    }
-
-    val rewindLabel = stringResource(Res.string.action_rewind)
-    IconButtonTooltip(text = rewindLabel) {
-      IconButton(onClick = onRewindClick, enabled = enabled) {
-        RewindIcon(modifier = Modifier.size(actionSize))
-      }
-    }
-
-    val isPlayPauseEnabled = enabled &&
-      state != AudioPlayer.State.Finished &&
-      state != AudioPlayer.State.Buffering
-
-    val elevation by animateDpAsState(targetValue = if (isPlayPauseEnabled) 4.dp else 0.dp)
-
-    val playPauseLabel = stringResource(Res.string.action_play_pause)
-    IconButtonTooltip(text = playPauseLabel) {
-      Surface(
-        shape = CircleShape,
-        modifier = Modifier.size(playPauseSize),
-        shadowElevation = elevation,
-        onClick = onPlayPauseClick,
-        enabled = isPlayPauseEnabled,
-      ) {
-        Box(
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center,
-        ) {
-          if (state != AudioPlayer.State.Buffering) {
-            Icon(
-              when {
-                state == AudioPlayer.State.Playing -> CampfireIcons.Rounded.Pause
-                state == AudioPlayer.State.Finished -> CampfireIcons.Rounded.EditAudio
-                else -> CampfireIcons.Rounded.PlayArrow
-              },
-              modifier = Modifier
-                .size(actionSize)
-                .alpha(if (isPlayPauseEnabled) 1f else 0.5f),
-              contentDescription = playPauseLabel,
-            )
-          } else {
-            CircularProgressIndicator(
-              modifier = Modifier.size(actionSize),
-              strokeWidth = 3.dp,
-            )
-          }
-        }
-      }
-    }
-
-    val forwardLabel = stringResource(Res.string.action_forward)
-    IconButtonTooltip(text = forwardLabel) {
-      IconButton(onClick = onForwardClick, enabled = enabled) {
-        ForwardIcon(modifier = Modifier.size(actionSize))
-      }
-    }
-
-    val skipNextLabel = stringResource(Res.string.action_skip_next)
-    IconButtonTooltip(text = skipNextLabel) {
-      IconButton(onClick = onSkipNextClick, enabled = enabled) {
-        Icon(
-          CampfireIcons.Rounded.SkipNext,
-          modifier = Modifier.size(actionSize),
-          contentDescription = skipNextLabel,
-        )
-      }
     }
   }
 }
