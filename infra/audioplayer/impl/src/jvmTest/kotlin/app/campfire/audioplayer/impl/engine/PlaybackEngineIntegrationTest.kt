@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.engine
 
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.impl.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import assertk.assertThat
 import assertk.assertions.isGreaterThanOrEqualTo
@@ -20,6 +21,7 @@ import kotlin.math.sin
 import kotlin.test.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.channels.Channel
@@ -29,23 +31,70 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 
 /**
- * Drives the real libvlc engine against a generated WAV file to prove the vlcj integration:
- * non-blocking open, event translation, millisecond start offsets, pause/seek, and end-of-item.
+ * Drives each real engine against a generated WAV file to prove the native integration behind
+ * [PlaybackEngine]: non-blocking open, event translation, millisecond start offsets, pause/seek,
+ * end-of-item, and (FFmpeg) tempo and equalizer filtering.
  *
- * Needs VLC 3 installed; when it isn't (CI), the test passes without asserting anything, since
- * the point of the engine abstraction is that everything else stays testable without VLC.
+ * libvlc needs VLC 3 installed; without it that case passes without asserting (CI). FFmpeg ships
+ * its own natives and always runs.
  */
-class VlcPlaybackEngineIntegrationTest {
+class PlaybackEngineIntegrationTest {
+
+  private fun vlc(): PlaybackEngine? = try {
+    VlcPlaybackEngine.Factory(listOf("--aout=dummy")).create()
+  } catch (e: PlaybackEngineUnavailableException) {
+    println("VLC not available, skipping: ${e.message}")
+    null
+  }
 
   @Test
-  fun `plays a local file from a millisecond offset, pauses, seeks, and reports the end`() {
-    val engine = try {
-      VlcPlaybackEngine.Factory(listOf("--aout=dummy")).create()
-    } catch (e: PlaybackEngineUnavailableException) {
-      println("VLC not available, skipping: ${e.message}")
-      return
-    }
+  fun `libvlc plays a local file from a millisecond offset, pauses, seeks, and reports the end`() {
+    val engine = vlc() ?: return
+    exercise(engine)
+  }
 
+  @Test
+  fun `ffmpeg plays a local file from a millisecond offset, pauses, seeks, and reports the end`() {
+    exercise(FfmpegPlaybackEngine())
+  }
+
+  @Test
+  fun `ffmpeg plays through the tempo and equalizer graph, finishing faster at 2x`() {
+    val engine = FfmpegPlaybackEngine()
+    val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    val file = File.createTempFile("campfire-tone", ".wav").also { writeTone(it, seconds = 4.0) }
+    val item = MediaItem(id = "tone", uri = file.absolutePath, mimeType = "audio/wav")
+    val events = Channel<PlaybackEngineEvent>(Channel.UNLIMITED)
+    try {
+      runBlocking(dispatcher) {
+        val collector = engine.events.onEach { events.send(it) }.launchIn(this)
+        engine.volume = 0f
+        engine.setRate(2f)
+        engine.setEqualizer(enabled = true, preampDb = 3f, bandGainsDb = List(10) { if (it < 2) 6f else -2f })
+
+        val started = System.nanoTime()
+        engine.open(item, startPosition = Duration.ZERO, playWhenReady = true)
+        awaitState(events, EngineState.Playing)
+        val position = awaitPosition(events) { it >= 2.seconds }
+        awaitState(events, EngineState.Ended)
+        val elapsed = (System.nanoTime() - started).nanoseconds
+
+        // 4s of audio at 2x plays in ~2s (+ line buffer); positions still count media time
+        assertThat(elapsed).isLessThan(3200.milliseconds)
+        assertThat(position).isGreaterThanOrEqualTo(2.seconds)
+        collector.cancel()
+      }
+    } finally {
+      runBlocking(dispatcher) {
+        engine.stop()
+        engine.release()
+      }
+      dispatcher.close()
+      file.delete()
+    }
+  }
+
+  private fun exercise(engine: PlaybackEngine) {
     val dispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
     val file = File.createTempFile("campfire-tone", ".wav").also { writeTone(it, seconds = 4.0) }
     val item = MediaItem(id = "tone", uri = file.absolutePath, mimeType = "audio/wav")
@@ -54,6 +103,7 @@ class VlcPlaybackEngineIntegrationTest {
     try {
       runBlocking(dispatcher) {
         val collector = engine.events.onEach { events.send(it) }.launchIn(this)
+        engine.volume = 0f
         engine.open(item, startPosition = 1500.milliseconds, playWhenReady = true)
         awaitState(events, EngineState.Playing)
         val firstPosition = awaitPosition(events) { it >= 1.seconds }

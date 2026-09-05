@@ -6,7 +6,9 @@ package app.campfire.audioplayer.impl
 import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
+import app.campfire.audioplayer.impl.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -59,6 +61,18 @@ class DesktopPlaybackController(
     }
   }
 
+  /**
+   * libvlc remains the default while the FFmpeg engine is evaluated; launch with
+   * `-Dcampfire.audio.engine=ffmpeg` to play through FFmpeg instead.
+   */
+  private fun engineFactory(): PlaybackEngine.Factory {
+    return if (System.getProperty(ENGINE_PROPERTY).equals(ENGINE_FFMPEG, ignoreCase = true)) {
+      PlaybackEngine.Factory { FfmpegPlaybackEngine() }
+    } else {
+      VlcPlaybackEngine.Factory()
+    }
+  }
+
   private fun initializeAudioPlayerIfNeeded() {
     if (audioPlayerHolder.currentPlayer.value == null) {
       // Constructing the player is cheap; the native engine is created lazily on its own thread
@@ -68,10 +82,15 @@ class DesktopPlaybackController(
           settings = playbackSettings,
           equalizerSettings = equalizerSettings,
           sleepTimerManagerFactory = sleepTimerManagerFactory,
-          engineFactory = VlcPlaybackEngine.Factory(),
+          engineFactory = engineFactory(),
           accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
         ),
       )
     }
+  }
+
+  private companion object {
+    const val ENGINE_PROPERTY = "campfire.audio.engine"
+    const val ENGINE_FFMPEG = "ffmpeg"
   }
 }

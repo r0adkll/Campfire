@@ -35,6 +35,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -352,7 +353,8 @@ class DesktopAudioPlayer(
         engine = created
         created.setRate(playbackSpeed.value)
         created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
-        eventsJob = scope.launch {
+        // Subscribe before returning so an engine that emits synchronously from open() is heard
+        eventsJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
           created.events.collect { onEngineEvent(it) }
         }
       }

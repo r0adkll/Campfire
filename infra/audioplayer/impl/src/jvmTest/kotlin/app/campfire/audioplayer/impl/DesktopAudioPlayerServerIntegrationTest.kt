@@ -5,7 +5,9 @@ package app.campfire.audioplayer.impl
 
 import app.campfire.audioplayer.AudioPlayer.State
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
+import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.VlcPlaybackEngine
+import app.campfire.audioplayer.impl.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.impl.fixtures.session
 import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
 import app.campfire.core.extensions.seconds
@@ -57,15 +59,24 @@ class DesktopAudioPlayerServerIntegrationTest {
   private val http = HttpClient.newHttpClient()
 
   @Test
-  fun `streams a chaptered book from the server with chapter navigation`() {
-    val credentials = credentials() ?: run {
-      println("No campfire_* credentials in ~/.gradle/gradle.properties, skipping")
-      return
-    }
+  fun `libvlc streams a chaptered book from the server with chapter navigation`() {
     try {
       VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS).create().release()
     } catch (e: PlaybackEngineUnavailableException) {
       println("VLC not available, skipping: ${e.message}")
+      return
+    }
+    streamFromServer(VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS))
+  }
+
+  @Test
+  fun `ffmpeg streams a chaptered book from the server with chapter navigation`() {
+    streamFromServer { FfmpegPlaybackEngine().apply { volume = 0f } }
+  }
+
+  private fun streamFromServer(engineFactory: PlaybackEngine.Factory) {
+    val credentials = credentials() ?: run {
+      println("No campfire_* credentials in ~/.gradle/gradle.properties, skipping")
       return
     }
 
@@ -86,7 +97,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       settings = settings,
       equalizerSettings = FakeEqualizerSettings(),
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
-      engineFactory = VlcPlaybackEngine.Factory(SILENT_LIBVLC_ARGS),
+      engineFactory = engineFactory,
       accessTokenProvider = { token },
     )
 

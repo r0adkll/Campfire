@@ -93,6 +93,10 @@ kotlin {
         implementation(libs.vlcj)
         implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
+        implementation(libs.bytedeco.ffmpeg)
+        implementation(libs.bytedeco.javacpp)
+        implementation(project.dependencies.variantOf(libs.bytedeco.ffmpeg) { classifier(javacppPlatform) })
+        implementation(project.dependencies.variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })
       }
     }
 
@@ -105,3 +109,23 @@ kotlin {
 }
 
 addKspDependencyForAllTargets(libs.kimchi.compiler)
+
+/**
+ * The JavaCPP classifier for the machine running the build. Desktop distributions are built
+ * per platform anyway (Compose has no universal binaries), so only the host's natives ship.
+ */
+val javacppPlatform: String
+  get() {
+    val os = System.getProperty("os.name").lowercase()
+    val arch = System.getProperty("os.arch").lowercase()
+    val osName = when {
+      os.contains("mac") -> "macosx"
+      os.contains("win") -> "windows"
+      else -> "linux"
+    }
+    val archName = when {
+      arch == "aarch64" || arch == "arm64" -> "arm64"
+      else -> "x86_64"
+    }
+    return "$osName-$archName"
+  }

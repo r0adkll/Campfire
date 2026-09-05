@@ -56,6 +56,8 @@ firebase-bom = "34.18.0"
 core = "1.19.0"
 vlcj = "4.12.1"
 jna = "5.19.1"
+bytedeco-ffmpeg = "8.1.2-1.5.14"
+bytedeco-javacpp = "1.5.14"
 work = "2.11.2"
 uiautomator = "2.4.0"
 benchmark-macro-junit4 = "1.4.1"
@@ -279,6 +281,8 @@ play-services-cast-framework = "com.google.android.gms:play-services-cast-framew
 androidx-mediarouter = "androidx.mediarouter:mediarouter:1.8.1"
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 jna = { module = "net.java.dev.jna:jna-jpms", version.ref = "jna" }
+bytedeco-ffmpeg = { module = "org.bytedeco:ffmpeg", version.ref = "bytedeco-ffmpeg" }
+bytedeco-javacpp = { module = "org.bytedeco:javacpp", version.ref = "bytedeco-javacpp" }
 
 # Analytics
 mixpanel-android = { module = "com.mixpanel.android:mixpanel-android", version.ref = "mixpanel" }
