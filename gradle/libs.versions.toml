@@ -55,6 +55,7 @@ material3 = "1.4.0"
 firebase-bom = "34.18.0"
 core = "1.19.0"
 vlcj = "4.12.1"
+jna = "5.16.0"
 work = "2.11.2"
 uiautomator = "2.4.0"
 benchmark-macro-junit4 = "1.4.1"
@@ -277,6 +278,7 @@ play-services-cast-framework = "com.google.android.gms:play-services-cast-framew
 # declared explicitly because :infra:audioplayer:cast uses mediarouter APIs directly.
 androidx-mediarouter = "androidx.mediarouter:mediarouter:1.8.1"
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
+jna = { module = "net.java.dev.jna:jna-jpms", version.ref = "jna" }
 
 # Analytics
 mixpanel-android = { module = "com.mixpanel.android:mixpanel-android", version.ref = "mixpanel" }

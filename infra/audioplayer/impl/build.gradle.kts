@@ -91,6 +91,7 @@ kotlin {
     jvmMain {
       dependencies {
         implementation(libs.vlcj)
+        implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
       }
     }

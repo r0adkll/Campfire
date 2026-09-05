@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Desktop shows how to fix playback when VLC media player isn't installed, instead of failing silently
+- Desktop on macOS shows the current chapter in Now Playing and responds to media keys, AirPods taps, and Control Center controls
+- Desktop on macOS pauses when the Bluetooth or USB headphones being listened on disconnect
+- Desktop on macOS adds playback controls to the Dock icon's menu
 
 ### Changed
 
