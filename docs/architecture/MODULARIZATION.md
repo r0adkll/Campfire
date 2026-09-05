@@ -333,6 +333,7 @@ graph LR
   :features:user:impl --> :features:user:test
   :features:user:impl --> :
   :features:settings:ui --> :features:settings:api
+  :features:settings:ui --> :features:sessions:api
   :features:settings:ui --> :features:libraries:api
   :features:settings:ui --> :
   :features:podcasts:impl --> :features:podcasts:api
