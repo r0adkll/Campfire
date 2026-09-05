@@ -4,7 +4,6 @@
 package app.campfire.audioplayer.impl.macos
 
 import app.campfire.account.api.AccountManager
-import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
@@ -16,8 +15,8 @@ import kotlinx.coroutines.CoroutineScope
 import me.tatarka.inject.annotations.Inject
 
 /**
- * Wires the macOS media integrations on startup: Now Playing + media keys, pause when the
- * output device the user was listening on disappears, and Dock transport controls.
+ * Wires the macOS media integrations on startup: Now Playing + media keys and Dock transport
+ * controls. Output device changes are left alone; playback follows the system default output.
  *
  * Every native piece is optional — a failure to load a framework logs and leaves playback alone.
  */
@@ -44,17 +43,6 @@ class MacMediaIntegrationInitializer(
         scope = applicationScope,
       ).start()
     }.onFailure { ebark(it) { "Now Playing integration unavailable" } }
-
-    runCatching {
-      OutputDeviceMonitor { previous, current ->
-        val player = holder.currentPlayer.value ?: return@OutputDeviceMonitor
-        val playing = player.state.value == AudioPlayer.State.Playing
-        if (OutputDevicePolicy.shouldPause(previous, current, playing)) {
-          ibark { "Output device $previous went away; pausing" }
-          player.pause()
-        }
-      }.start()
-    }.onFailure { ebark(it) { "Output device monitoring unavailable" } }
 
     runCatching { MacDockMenu(holder).install() }
       .onFailure { ebark(it) { "Dock menu unavailable" } }
