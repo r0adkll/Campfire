@@ -104,7 +104,6 @@ internal fun LoggedInWindow(
   userComponent: UserComponent,
   onRootPop: () -> Unit,
   onOpenUrl: (String) -> Unit,
-  windowInsets: WindowInsets,
   deepLink: DeepLink,
   settings: CampfireSettings,
   themeManager: ThemeManager,
@@ -177,7 +176,6 @@ internal fun LoggedInWindow(
           LoggedInUi(
             backstack = backStack,
             navigator = urlNavigator,
-            windowInsets = windowInsets,
             navigationEventListeners = userComponent.navigationEventListeners,
             deepLink = deepLink,
             modifier = modifier,
@@ -194,7 +192,6 @@ private fun LoggedInUi(
   backstack: SaveableBackStack,
   navigator: Navigator,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
-  windowInsets: WindowInsets,
   deepLink: DeepLink,
   modifier: Modifier = Modifier,
 ) {
@@ -214,6 +211,15 @@ private fun LoggedInUi(
   val currentPresentation by remember(backstack) {
     derivedStateOf {
       (backstack.topRecord?.screen as? BaseScreen)?.presentation
+    }
+  }
+
+  // The section the drawer should highlight: the top-most screen that isn't a detail
+  // screen. Drawer destinations are pushed on phones and reset on desktop, so the root
+  // of the back stack alone doesn't describe where the user is.
+  val currentSectionScreen by remember(backstack) {
+    derivedStateOf {
+      backstack.firstOrNull { it.screen !is DetailScreen }?.screen ?: backstack.last().screen
     }
   }
 
@@ -340,12 +346,10 @@ private fun LoggedInUi(
     overlayHost = overlayHost,
     drawerState = drawerState,
     drawerEnabled = !playbackBarExpanded,
-    windowInsets = windowInsets,
-    hideBottomNav = currentPresentation?.hideBottomNav == true || playbackBarExpanded,
 
     drawerContent = {
       CampfireDrawer(
-        rootScreen = rootScreen,
+        currentScreen = currentSectionScreen,
         drawerState = drawerState,
         navigator = homeNavigator,
         accountSwitcher = {

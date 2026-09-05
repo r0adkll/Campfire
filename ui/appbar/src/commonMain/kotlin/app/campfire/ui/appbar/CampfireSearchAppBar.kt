@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
@@ -41,6 +42,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowChromeInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.ArrowBack
@@ -172,6 +174,7 @@ private fun CampfireSearchAppBar(
     scrollBehavior = scrollBehavior,
     windowInsets = WindowInsets(),
     contentPadding = SearchBarDefaults.windowInsets
+      .add(LocalWindowChromeInsets.current)
       .only(WindowInsetsSides.Top)
       .asPaddingValues() + PaddingValues(horizontal = 8.dp),
   )

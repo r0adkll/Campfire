@@ -5,6 +5,7 @@ package app.campfire.common.compose
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.only
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
@@ -23,10 +24,11 @@ val CampfireTopAppBarInsets: WindowInsets
   @Composable get() {
     val windowSizeClass = LocalWindowSizeClass.current
     val contentLayout = LocalContentLayout.current
+    val chromeInsets = LocalWindowChromeInsets.current
 
     return if (windowSizeClass.isSupportingPaneEnabled && contentLayout == ContentLayout.Root) {
-      TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Vertical)
+      TopAppBarDefaults.windowInsets.add(chromeInsets).only(WindowInsetsSides.Vertical)
     } else {
-      TopAppBarDefaults.windowInsets.only(WindowInsetsSides.Vertical)
+      TopAppBarDefaults.windowInsets.add(chromeInsets).only(WindowInsetsSides.Vertical)
     }
   }

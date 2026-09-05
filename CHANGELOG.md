@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Desktop app freezing while opening a chapter, bookmark, or track, and while starting playback
+- Desktop showing a blank strip under the bottom navigation bar in narrow windows
+- Search bar sitting flush against the top of the window on wide desktop layouts
+- Expanded search results on wide layouts spilling past the search bar's edge instead of lining up under it
+- Navigation drawer always highlighting Home instead of the section being viewed
 - Desktop resuming up to a second before the saved position
 - Desktop playback of streamed audiobooks failing because track requests were not authenticated
 - Desktop app crashing on launch, and again on every launch after the first

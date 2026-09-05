@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DrawerState
@@ -39,7 +38,6 @@ import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalUserSession
-import app.campfire.core.extensions.fluentIf
 import app.campfire.core.session.isLoggedIn
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
@@ -65,8 +63,6 @@ fun AdaptiveCampfireLayout(
   showSupportingContent: Boolean,
 
   modifier: Modifier = Modifier,
-  hideBottomNav: Boolean = false,
-  windowInsets: WindowInsets = WindowInsets.systemBars,
 ) {
   val isLoggedIn by rememberUpdatedState(LocalUserSession.current.isLoggedIn)
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
@@ -100,18 +96,16 @@ fun AdaptiveCampfireLayout(
         gesturesEnabled = isLoggedIn && drawerEnabled,
         modifier = Modifier.weight(1f),
       ) {
+        // Screens handle their own system-bar and window-chrome insets, so the root scaffold
+        // reserves nothing here. This keeps content edge-to-edge (the supporting pane starts at
+        // the very top) and avoids exposing a blank strip above app bars when content scrolls.
         Scaffold(
-          contentWindowInsets = windowInsets,
+          contentWindowInsets = WindowInsets(0),
         ) { paddingValues ->
-
           Row(
             modifier = Modifier
               .fillMaxSize()
-              .fluentIf(
-                navigationType == NavigationType.BottomNavigation && !hideBottomNav,
-              ) {
-                padding(paddingValues)
-              },
+              .padding(paddingValues),
           ) {
             if (navigationType == NavigationType.Rail && isLoggedIn) {
               railNavigation()

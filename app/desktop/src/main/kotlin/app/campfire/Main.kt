@@ -114,10 +114,7 @@ fun main() = application {
       component.campfireContent(
         { exitApplication() },
         uriHandler::openUri,
-        WindowInsets(
-          top = 24.dp,
-          bottom = 24.dp,
-        ),
+        WindowInsets(top = 12.dp),
         DeepLink.None,
         Modifier,
       )
