@@ -41,6 +41,12 @@ kotlin {
       }
     }
 
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
+
     val skikoMain by creating {
       dependsOn(commonMain.get())
     }
