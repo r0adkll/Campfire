@@ -7,6 +7,7 @@ import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.MapSettings
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.getBooleanFlow
+import com.russhwolf.settings.coroutines.getFloatFlow
 import com.russhwolf.settings.coroutines.getIntFlow
 import com.russhwolf.settings.coroutines.getLongFlow
 import com.russhwolf.settings.coroutines.getStringFlow
@@ -72,6 +73,15 @@ abstract class TestSettings {
 
   protected fun observeLong(property: KProperty<*>): Flow<Long> {
     return settings.getLongFlow(property.name, 0L)
+  }
+
+  protected fun float() = property(
+    getter = { getFloatOrNull(it) ?: 0f },
+    setter = { key, value -> putFloat(key, value) },
+  )
+
+  protected fun observeFloat(property: KProperty<*>): Flow<Float> {
+    return settings.getFloatFlow(property.name, 0f)
   }
 
   protected inline fun <reified E : Enum<E>> enum() = property(

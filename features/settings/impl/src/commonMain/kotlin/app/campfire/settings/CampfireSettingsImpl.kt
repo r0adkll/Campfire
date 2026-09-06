@@ -124,6 +124,10 @@ class CampfireSettingsImpl(
   override var wideNavigationRailExpanded: Boolean by wideNavigationRailExpandedProperty
   override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> = wideNavigationRailExpandedProperty.observe()
 
+  private val supportingPaneWidthProperty = floatSetting(KEY_SUPPORTING_PANE_WIDTH, 0f)
+  override var supportingPaneWidth: Float by supportingPaneWidthProperty
+  override fun observeSupportingPaneWidth(): StateFlow<Float> = supportingPaneWidthProperty.observe()
+
   private val lastSeenVersionProperty = stringOrNullSetting(KEY_LAST_SEEN_WHATS_NEW)
   override var lastSeenVersion: String? by lastSeenVersionProperty
   override fun observeLastSeenVersion(): StateFlow<String?> = lastSeenVersionProperty.observe()
@@ -165,6 +169,7 @@ internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_WIDGET_PINNING = "pref_show_widget_pinning"
 internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
 internal const val KEY_WIDE_NAVIGATION_RAIL_EXPANDED = "pref_wide_navigation_rail_expanded"
+internal const val KEY_SUPPORTING_PANE_WIDTH = "pref_supporting_pane_width"
 internal const val KEY_LAST_SEEN_WHATS_NEW = "pref_last_seen_whats_new"
 internal const val KEY_SOCKET_ENABLED = "pref_socket_enabled"
 internal const val KEY_APP_UPDATE_SIGN_IN_DISMISSED = "pref_app_update_sign_in_dismissed"

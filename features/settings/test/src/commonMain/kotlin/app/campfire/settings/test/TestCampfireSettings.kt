@@ -130,6 +130,11 @@ class TestCampfireSettings(
     observeBoolean(::wideNavigationRailExpanded)
       .stateIn(testScope, SharingStarted.Lazily, wideNavigationRailExpanded)
 
+  override var supportingPaneWidth: Float by float()
+  override fun observeSupportingPaneWidth(): StateFlow<Float> =
+    observeFloat(::supportingPaneWidth)
+      .stateIn(testScope, SharingStarted.Lazily, supportingPaneWidth)
+
   override var lastSeenVersion: String? by stringOrNull()
   override fun observeLastSeenVersion(): StateFlow<String?> =
     observeStringOrNull(::lastSeenVersion)

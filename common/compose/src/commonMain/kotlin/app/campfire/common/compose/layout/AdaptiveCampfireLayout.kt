@@ -3,9 +3,16 @@
 
 package app.campfire.common.compose.layout
 
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.gestures.DraggableState
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,14 +31,19 @@ import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -39,6 +51,8 @@ import androidx.window.core.layout.WindowSizeClass
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.navigation.LocalDrawerState
 import app.campfire.common.compose.navigation.LocalUserSession
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import app.campfire.core.session.isLoggedIn
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
@@ -51,6 +65,11 @@ import com.slack.circuit.overlay.OverlayHost
  * collapsible wide rail (desktop only), or a permanent drawer. The playback bar is either floated
  * over the content or, when [WindowSizeClass.usesBottomPlaybackBar], docked full-width under
  * everything else.
+ *
+ * On desktop the supporting pane can be resized by dragging the handle on its leading edge.
+ * [supportingContentWidth] is the user's last chosen width (`null` for the size-class default)
+ * and [onSupportingContentWidthChange] is called with the new width once a drag ends; both are
+ * ignored on other platforms, which keep the fixed [SupportingContentWidth].
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,6 +87,8 @@ fun AdaptiveCampfireLayout(
   playbackBarContent: @Composable BoxScope.() -> Unit,
   supportingContent: @Composable () -> Unit,
   showSupportingContent: Boolean,
+  supportingContentWidth: Dp?,
+  onSupportingContentWidthChange: (Dp) -> Unit,
 
   modifier: Modifier = Modifier,
 ) {
@@ -134,22 +155,47 @@ fun AdaptiveCampfireLayout(
             }
           }
 
-          val targetWidth = windowSizeClass.SupportingContentWidth
-          val supportingContentWidth by animateDpAsState(
-            if (supportingContentState == SupportingContentState.Open && isSupportingPaneEnabled) {
-              targetWidth
-            } else {
-              0.dp
-            },
-          )
-
-          Box(
+          BoxWithConstraints(
             modifier = Modifier
               .weight(1f)
               .fillMaxHeight(),
           ) {
+            // Desktop lets the user drag the pane between a fixed minimum and the smaller of a
+            // fixed maximum or a fraction of the content area; everything else keeps the
+            // size-class default. Drags edit a local override that is dropped once the
+            // persisted width catches up.
+            val isSupportingPaneResizable = currentPlatform == Platform.DESKTOP
+            val maxPaneWidth = maxOf(
+              SupportingContentMinWidth,
+              minOf(SupportingContentMaxWidth, maxWidth * SupportingContentMaxWidthFraction),
+            )
+            val basePaneWidth = if (isSupportingPaneResizable) {
+              (supportingContentWidth ?: windowSizeClass.SupportingContentWidth)
+                .coerceIn(SupportingContentMinWidth, maxPaneWidth)
+            } else {
+              windowSizeClass.SupportingContentWidth
+            }
+            var draggedPaneWidth by remember(supportingContentWidth) { mutableStateOf<Dp?>(null) }
+            val paneWidth = draggedPaneWidth ?: basePaneWidth
+
+            val density = LocalDensity.current
+            val resizeState = rememberDraggableState { deltaPx ->
+              // The pane hangs off the trailing edge, so dragging towards the start widens it.
+              val delta = with(density) { deltaPx.toDp() }
+              draggedPaneWidth = (paneWidth - delta).coerceIn(SupportingContentMinWidth, maxPaneWidth)
+            }
+
+            val openFraction by animateFloatAsState(
+              if (supportingContentState == SupportingContentState.Open && isSupportingPaneEnabled) {
+                1f
+              } else {
+                0f
+              },
+            )
+            val visiblePaneWidth = paneWidth * openFraction
+
             Column(
-              modifier = Modifier.padding(end = supportingContentWidth),
+              modifier = Modifier.padding(end = visiblePaneWidth),
             ) {
               CompositionLocalProvider(
                 LocalContentLayout provides ContentLayout.Root,
@@ -184,25 +230,39 @@ fun AdaptiveCampfireLayout(
                   bottomStart = SupportingContentCornerRadius,
                 )
               }
-              Surface(
+              Box(
                 modifier = Modifier
                   .align(Alignment.CenterEnd)
-                  .width(windowSizeClass.SupportingContentWidth)
+                  .width(paneWidth)
+                  .fillMaxHeight()
                   .offset {
-                    IntOffset(
-                      (windowSizeClass.SupportingContentWidth - supportingContentWidth).roundToPx(),
-                      0,
-                    )
+                    IntOffset((paneWidth - visiblePaneWidth).roundToPx(), 0)
                   },
-                shadowElevation = SupportingContentElevation,
-                tonalElevation = 1.dp,
-                shape = supportingContentShape,
               ) {
-                CompositionLocalProvider(
-                  LocalContentLayout provides ContentLayout.Supporting,
-                  LocalSupportingContentState provides supportingContentState,
+                Surface(
+                  modifier = Modifier.fillMaxSize(),
+                  shadowElevation = SupportingContentElevation,
+                  tonalElevation = 1.dp,
+                  shape = supportingContentShape,
                 ) {
-                  supportingContent()
+                  CompositionLocalProvider(
+                    LocalContentLayout provides ContentLayout.Supporting,
+                    LocalSupportingContentState provides supportingContentState,
+                  ) {
+                    supportingContent()
+                  }
+                }
+
+                if (isSupportingPaneResizable) {
+                  SupportingPaneResizeHandle(
+                    state = resizeState,
+                    onDragStopped = {
+                      draggedPaneWidth?.let(onSupportingContentWidthChange)
+                    },
+                    modifier = Modifier
+                      .align(Alignment.CenterStart)
+                      .fillMaxHeight(),
+                  )
                 }
               }
             }
@@ -275,8 +335,49 @@ private fun DrawerWithContent(
   }
 }
 
+/**
+ * The grab area straddling the supporting pane's leading edge. A Material [VerticalDragHandle]
+ * sits in its centre so the affordance is visible; the whole strip is draggable and shows the
+ * horizontal resize cursor.
+ */
+@Composable
+private fun SupportingPaneResizeHandle(
+  state: DraggableState,
+  onDragStopped: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val interactionSource = remember { MutableInteractionSource() }
+  Box(
+    modifier = modifier
+      .width(SupportingPaneResizeHitWidth)
+      .offset(x = -SupportingPaneResizeHitWidth / 2)
+      .hoverable(interactionSource)
+      .pointerHoverIcon(horizontalResizePointerIcon)
+      .draggable(
+        state = state,
+        orientation = Orientation.Horizontal,
+        interactionSource = interactionSource,
+        onDragStopped = { onDragStopped() },
+      ),
+    contentAlignment = Alignment.Center,
+  ) {
+    VerticalDragHandle(interactionSource = interactionSource)
+  }
+}
+
 val SupportingContentElevation = 6.dp
 val SupportingContentCornerRadius = 32.dp
+
+/** Narrowest the desktop supporting pane can be dragged to. */
+val SupportingContentMinWidth = 320.dp
+
+/** Widest the desktop supporting pane can be dragged to, before the window-fraction cap. */
+val SupportingContentMaxWidth = 640.dp
+
+/** The desktop supporting pane never takes more than this share of the content area. */
+const val SupportingContentMaxWidthFraction = 0.5f
+
+private val SupportingPaneResizeHitWidth = 24.dp
 
 val SupportingContentWidthExpanded = 360.dp
 val SupportingContentWidthLarge = 400.dp
