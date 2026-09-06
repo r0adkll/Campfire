@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click
 - Desktop docks the playback bar along the bottom of any tablet-width or wider window instead of only ultra-wide ones
 - Desktop and tablet search results close once you pick one
+- Desktop renders the built-in themes on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
 
 ### Deprecated
 

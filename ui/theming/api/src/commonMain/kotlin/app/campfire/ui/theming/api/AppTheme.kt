@@ -62,7 +62,15 @@ import app.campfire.common.compose.theme.alt.AltOrangeColorPalette
 import app.campfire.common.compose.theme.alt.AltPurpleColorPalette
 import app.campfire.common.compose.theme.alt.AltYellowColorPalette
 import app.campfire.common.compose.theme.colorScheme
+import app.campfire.common.compose.theme.desktop.AltBlueDesktopColorPalette
+import app.campfire.common.compose.theme.desktop.AltGreenDesktopColorPalette
+import app.campfire.common.compose.theme.desktop.AltOrangeDesktopColorPalette
+import app.campfire.common.compose.theme.desktop.AltPurpleDesktopColorPalette
+import app.campfire.common.compose.theme.desktop.AltYellowDesktopColorPalette
+import app.campfire.common.compose.theme.desktop.RedDesktopColorPalette
 import app.campfire.common.compose.theme.tents.RedColorPalette
+import app.campfire.core.Platform
+import app.campfire.core.currentPlatform
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 
@@ -72,13 +80,18 @@ sealed interface AppTheme {
     open val id: String,
     open val icon: Icon,
     open val colorPalette: ColorPalette,
+    /**
+     * Neutral-surface variant applied on desktop, where Material's accent-tinted surfaces
+     * look out of place. User-authored themes keep their palette as-is on every platform.
+     */
+    open val desktopColorPalette: ColorPalette = colorPalette,
   ) : AppTheme {
-    data object Tent : Fixed("Tent", Icon.Tent, RedColorPalette)
-    data object Rucksack : Fixed("Rucksack", Icon.Rucksack, AltYellowColorPalette)
-    data object WaterBottle : Fixed("WaterBottle", Icon.WaterBottle, AltBlueColorPalette)
-    data object Forest : Fixed("Forest", Icon.Forest, AltGreenColorPalette)
-    data object Mountain : Fixed("Mountain", Icon.Mountain, AltPurpleColorPalette)
-    data object LifeFloat : Fixed("LifeFloat", Icon.LifeFloat, AltOrangeColorPalette)
+    data object Tent : Fixed("Tent", Icon.Tent, RedColorPalette, RedDesktopColorPalette)
+    data object Rucksack : Fixed("Rucksack", Icon.Rucksack, AltYellowColorPalette, AltYellowDesktopColorPalette)
+    data object WaterBottle : Fixed("WaterBottle", Icon.WaterBottle, AltBlueColorPalette, AltBlueDesktopColorPalette)
+    data object Forest : Fixed("Forest", Icon.Forest, AltGreenColorPalette, AltGreenDesktopColorPalette)
+    data object Mountain : Fixed("Mountain", Icon.Mountain, AltPurpleColorPalette, AltPurpleDesktopColorPalette)
+    data object LifeFloat : Fixed("LifeFloat", Icon.LifeFloat, AltOrangeColorPalette, AltOrangeDesktopColorPalette)
 
     data class Custom(
       override val id: String,
@@ -155,17 +168,25 @@ sealed interface AppTheme {
   }
 }
 
+/**
+ * The palette to render this theme with on the current platform.
+ */
+val AppTheme.Fixed.platformColorPalette: ColorPalette
+  get() = when (currentPlatform) {
+    Platform.DESKTOP -> desktopColorPalette
+    Platform.ANDROID, Platform.IOS -> colorPalette
+  }
+
 @Composable
 fun colorScheme(
   theme: AppTheme,
   useDarkColors: Boolean = LocalUseDarkColors.current,
 ): ColorScheme = when (theme) {
   is AppTheme.Fixed -> {
-    val palette = theme.colorPalette
-    colorScheme(palette, useDarkColors, false)
+    colorScheme(theme.platformColorPalette, useDarkColors, false)
   }
   is AppTheme.Dynamic -> {
-    val backupPalette = AppTheme.Fixed.Tent.colorPalette
+    val backupPalette = AppTheme.Fixed.Tent.platformColorPalette
     colorScheme(backupPalette, useDarkColors, true)
   }
 }
