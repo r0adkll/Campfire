@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastRoundToInt
@@ -167,6 +168,10 @@ internal fun LoggedInWindow(
         settings.observeLibraryItemMarqueeEnabled()
       }.collectAsState()
 
+      val supportingPaneWidth by remember {
+        settings.observeSupportingPaneWidth()
+      }.collectAsState()
+
       CompositionLocalProvider(
         LocalPlaybackSession provides currentSession,
         LocalThemeDispatcher provides themeManagerDispatcher,
@@ -180,6 +185,8 @@ internal fun LoggedInWindow(
             navigator = urlNavigator,
             navigationEventListeners = userComponent.navigationEventListeners,
             deepLink = deepLink,
+            supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
+            onSupportingPaneWidthChange = { settings.supportingPaneWidth = it.value },
             modifier = modifier,
           )
         }
@@ -195,6 +202,8 @@ private fun LoggedInUi(
   navigator: Navigator,
   navigationEventListeners: ImmutableList<NavigationEventListener>,
   deepLink: DeepLink,
+  supportingPaneWidth: Dp?,
+  onSupportingPaneWidthChange: (Dp) -> Unit,
   modifier: Modifier = Modifier,
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -488,6 +497,8 @@ private fun LoggedInUi(
       }
     },
     showSupportingContent = detailRootScreen !is EmptyScreen,
+    supportingContentWidth = supportingPaneWidth,
+    onSupportingContentWidthChange = onSupportingPaneWidthChange,
     supportingContent = {
       SharedElementTransitionLayout {
         NavigableCircuitContent(

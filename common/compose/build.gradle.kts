@@ -64,6 +64,13 @@ kotlin {
       dependsOn(jvmCommon)
     }
 
+    jvmTest {
+      dependencies {
+        implementation(compose.desktop.currentOs)
+        implementation(projects.common.test)
+      }
+    }
+
     androidMain {
       dependsOn(jvmCommon)
 

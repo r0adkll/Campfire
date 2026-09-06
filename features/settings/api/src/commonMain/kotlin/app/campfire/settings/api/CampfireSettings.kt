@@ -78,6 +78,13 @@ interface CampfireSettings {
   var wideNavigationRailExpanded: Boolean
   fun observeWideNavigationRailExpanded(): StateFlow<Boolean>
 
+  /**
+   * Width in dp the user dragged the desktop supporting (detail) pane to, or `0` when it has
+   * never been resized and the layout's size-class default applies.
+   */
+  var supportingPaneWidth: Float
+  fun observeSupportingPaneWidth(): StateFlow<Float>
+
   var lastSeenVersion: String?
   fun observeLastSeenVersion(): StateFlow<String?>
 
