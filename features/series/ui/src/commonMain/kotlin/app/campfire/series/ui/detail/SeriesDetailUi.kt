@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +38,7 @@ import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.MaxBookDisplay
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -61,7 +61,7 @@ fun SeriesDetail(
   state: SeriesDetailUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   Scaffold(
     topBar = {
       CampfireTopAppBar(

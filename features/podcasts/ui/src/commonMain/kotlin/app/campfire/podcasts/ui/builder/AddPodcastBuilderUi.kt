@@ -17,7 +17,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -25,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.di.UserScope
 import app.campfire.podcasts.api.screen.AddPodcastBuilderScreen
 import app.campfire.podcasts.ui.AddPodcastSharedTransitionKey
@@ -53,7 +53,7 @@ fun AddPodcastBuilderUi(
   state: AddPodcastBuilderUiState,
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   val listState = rememberLazyListState()
 
   Scaffold(

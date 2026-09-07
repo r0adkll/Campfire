@@ -7,6 +7,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.LocalWindowChromeInsets
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.ui.navigation.HomeNavigationItemIcon
 import app.campfire.ui.navigation.NavigationComponent
@@ -110,6 +112,7 @@ fun CampfireWideNavigationRailContent(
         headerScope.accountContent()
       }
     },
+    contentPadding = LocalWindowChromeInsets.current.asPaddingValues(),
   ) {
     // The rail neither scrolls nor wraps, so a long destination list scrolls inside one child
     Column(

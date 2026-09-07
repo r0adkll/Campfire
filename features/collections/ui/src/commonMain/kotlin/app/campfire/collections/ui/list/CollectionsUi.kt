@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -33,6 +32,7 @@ import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.ItemCollectionGridCard
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -54,7 +54,7 @@ fun Collections(
   state: CollectionsUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   val gridState = rememberLazyGridState()
 
   Scaffold(

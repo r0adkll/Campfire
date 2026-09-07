@@ -34,7 +34,6 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -71,6 +70,7 @@ import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.LibraryItemSharedTransitionKey
 import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryId
@@ -142,7 +142,7 @@ fun LibraryItemContent(
   addToCollectionDialog: AddToCollectionDialog,
   modifier: Modifier,
 ) = SharedElementTransitionScope {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
 
   var showAddToCollectionDialog by remember { mutableStateOf(false) }
   var showOverflowMenu by remember { mutableStateOf(false) }

@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.adaptiveEnterAlwaysScrollBehavior
 import app.campfire.core.di.UserScope
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.ui.find.composables.CenteredMessage
@@ -58,7 +59,7 @@ fun FindEpisodesUi(
   state: FindEpisodesUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+  val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
   val focusManager = LocalFocusManager.current
   val listState = rememberLazyListState()
   val isListDragging by listState.interactionSource.collectIsDraggedAsState()
