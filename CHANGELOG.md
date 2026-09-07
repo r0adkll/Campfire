@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop app crashing on launch, and again on every launch after the first
 - Item detail showing a stray download button while the item is playing or already downloading, and a mismatched play button shape while a download is in progress
 - Desktop page headers scrolling out of view and stranding halfway, taking the back button and page actions with them
+- Cover art on the playing screen flickering and reloading while dragging the player up or down
+- Book covers flashing a loading spinner when opening an item from home, a library, or a series
 
 ### Other Notes & Contributions
 

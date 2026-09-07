@@ -100,13 +100,17 @@ fun CoverImage(
         .clip(shape),
     )
 
+    // Coil seeds a request with any smaller rendition already in memory, which [Image] above is
+    // already drawing — covering that with a spinner is what made arriving on an item detail through
+    // a shared-element transition look so abrupt. Only fall back to the loading treatment when there
+    // is genuinely nothing on screen yet.
     val painterState by painter.state.collectAsState()
-    when (painterState) {
-      is AsyncImagePainter.State.Loading -> LoadingCover(
+    val loadingState = painterState as? AsyncImagePainter.State.Loading
+    if (loadingState != null && loadingState.painter == null) {
+      LoadingCover(
         shape = shape,
         size = size,
       )
-      else -> Unit
     }
   }
 }
