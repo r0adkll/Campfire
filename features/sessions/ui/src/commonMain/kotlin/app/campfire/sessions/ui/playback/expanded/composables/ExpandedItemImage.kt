@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isFinite
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.icons.CampfireIcons
@@ -53,7 +55,13 @@ internal fun SharedTransitionScope.ExpandedItemImage(
     // The cover fills a weight/aspectRatio slot, so its layout size is Dp.Unspecified. Request the
     // rendition at the measured slot width instead, otherwise the shared-element transition latches
     // the draw-bounds resolver onto the tiny mini-bar bounds and the full-screen cover renders blurry.
-    val coverRequestSize = if (size != Dp.Unspecified) size else maxWidth
+    //
+    // Dragging the expanded sheet insets it a little more on every frame, which re-measures this slot
+    // continuously; feeding that straight into the request would rebuild it — and the cache key derived
+    // from it — dozens of times per gesture. Latch the widest slot seen so the view sticks to a single
+    // rendition for its lifetime.
+    val widthLatch = remember { SlotWidthLatch() }
+    val coverRequestSize = if (size != Dp.Unspecified) size else widthLatch.widen(maxWidth)
     CoverImage(
       imageUrl = mediaUrl,
       contentDescription = session?.libraryItem?.media?.metadata?.title,
@@ -102,5 +110,23 @@ internal fun SharedTransitionScope.ExpandedItemImage(
         }
       }
     }
+  }
+}
+
+/**
+ * Remembers the widest slot a cover has been measured into.
+ *
+ * Deliberately not snapshot state: [BoxWithConstraints] already re-runs its content whenever the
+ * measured width changes, so a wider slot is picked up by that same pass without an invalidation —
+ * and without the backwards-write recomposition loop a [androidx.compose.runtime.MutableState] would
+ * cause here. Widths only ever grow, so shrinking the slot (a drag, a window resize) reuses the
+ * rendition already in memory instead of fetching a smaller one.
+ */
+private class SlotWidthLatch {
+  private var width: Dp = 0.dp
+
+  fun widen(candidate: Dp): Dp {
+    if (candidate.isFinite && candidate > width) width = candidate
+    return width
   }
 }
