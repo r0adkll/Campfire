@@ -30,7 +30,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.derivedStateOf
@@ -58,6 +57,7 @@ import app.campfire.common.compose.util.withDensity
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.NavigationBackButton
+import app.campfire.common.compose.widgets.adaptiveExitUntilCollapsedScrollBehavior
 import app.campfire.core.di.UserScope
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.screen.UpcomingScreen
@@ -83,7 +83,7 @@ fun UpcomingUi(
   state: UpcomingUiState,
   modifier: Modifier = Modifier,
 ) {
-  val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+  val scrollBehavior = adaptiveExitUntilCollapsedScrollBehavior()
   val listState = rememberLazyListState()
   Scaffold(
     topBar = {

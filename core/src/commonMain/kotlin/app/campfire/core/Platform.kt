@@ -10,3 +10,24 @@ enum class Platform {
 }
 
 expect val currentPlatform: Platform
+
+inline fun <T> forPlatform(
+  android: () -> T,
+  ios: () -> T,
+  desktop: () -> T,
+): T = when (currentPlatform) {
+  Platform.ANDROID -> android()
+  Platform.IOS -> ios()
+  Platform.DESKTOP -> desktop()
+}
+
+inline fun <T> forPlatform(
+  mobile: () -> T,
+  desktop: () -> T,
+): T = when (currentPlatform) {
+  Platform.ANDROID,
+  Platform.IOS,
+  -> mobile()
+
+  Platform.DESKTOP -> desktop()
+}
