@@ -69,7 +69,10 @@ class StoreMediaProgressRepository(
       refresh = refresh,
     )
     return store.stream(request)
-      .debugLogging("MediaProgressStore::observeProgress($libraryItemId, $episodeId)")
+      .debugLogging(
+        tag = "MediaProgressStore::observeProgress($libraryItemId, $episodeId)",
+        enabled = MediaProgressStore.enabled,
+      )
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireSingle() }
@@ -97,7 +100,10 @@ class StoreMediaProgressRepository(
     val userId = userSession.userId ?: return emptyFlow()
     val request = StoreReadRequest.cached(Operation.Query.All(userId), false)
     return store.stream(request)
-      .debugLogging("MediaProgressStore::observeAllProgress")
+      .debugLogging(
+        tag = "MediaProgressStore::observeAllProgress",
+        enabled = MediaProgressStore.enabled,
+      )
       .map { it.dataOrNull() }
       .filterNotNull()
       .map { it.requireCollection() }
