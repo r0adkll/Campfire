@@ -64,12 +64,14 @@ val WindowSizeClass.usesBottomPlaybackBar: Boolean
 /**
  * Return the main navigation type for this size class. Desktop windows between the Expanded and
  * Extra-Large breakpoints get the collapsible wide rail; mobile keeps the compact rail there.
+ * Compact widths (phones in portrait, split-screen panes, narrow desktop windows) get the bottom
+ * navigation bar with the secondary destinations behind a modal drawer, which is the Material 3
+ * adaptive recommendation for that class regardless of platform.
  */
 val WindowSizeClass.navigationType: NavigationType
   get() = when {
     isWidthAtLeastExtraLarge -> NavigationType.Drawer
     isWidthAtLeastExpanded && currentPlatform == Platform.DESKTOP -> NavigationType.WideRail
     isWidthAtLeastMedium -> NavigationType.Rail
-    // TODO: This is essentially a phone portrait mode, What would be the optimal setup for this
     else -> NavigationType.BottomNavigation
   }
