@@ -91,7 +91,7 @@ firebase-appdistribution = "com.google.firebase.appdistribution:5.3.0"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
 emulatorwtf = { id = "wtf.emulator.gradle", version.ref = "emulatorwtf" }
-modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.13.0" }
+modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.15.0" }
 
 [libraries]
 swatchbuckler-compose = { module = "com.r0adkll.swatchbuckler:compose", version.ref = "swatchbuckler" }
