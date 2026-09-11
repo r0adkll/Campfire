@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "default": "desktop-hot",
+  "configurations": [
+    {
+      "id": "desktop-hot",
+      "name": "Desktop (Hot Reload)",
+      "icon": "flame",
+      "command": "./gradlew :app:desktop:hotRun --mainClass app.campfire.MainKt --auto"
+    },
+    {
+      "id": "desktop",
+      "name": "Desktop",
+      "icon": "desktopcomputer",
+      "command": "./gradlew :app:desktop:run"
+    },
+    {
+      "id": "desktop-vlc",
+      "name": "Desktop (VLC engine)",
+      "icon": "speaker.wave.2",
+      "command": "./gradlew :app:desktop:run -Pcampfire_desktop_audio_engine=vlc"
+    },
+    {
+      "id": "desktop-packaged",
+      "name": "Desktop (Packaged)",
+      "icon": "shippingbox",
+      "command": "./gradlew :app:desktop:runDistributable"
+    },
+    {
+      "id": "android-alpha",
+      "name": "Android (Alpha Debug)",
+      "icon": "iphone",
+      "device": "android",
+      "command": "./gradlew :app:android:installAlphaDebug && adb shell am start -n app.campfire.android.alpha/app.campfire.android.MainActivity"
+    },
+    {
+      "id": "android-standard",
+      "name": "Android (Standard Debug)",
+      "icon": "iphone",
+      "device": "android",
+      "command": "./gradlew :app:android:installStandardDebug && adb shell am start -n app.campfire.android/app.campfire.android.MainActivity"
+    },
+    {
+      "id": "android-foss",
+      "name": "Android (FOSS Debug)",
+      "icon": "iphone",
+      "device": "android",
+      "command": "./gradlew :app:android:installFossDebug && adb shell am start -n app.campfire.android/app.campfire.android.MainActivity"
+    },
+    {
+      "id": "android-alpha-release",
+      "name": "Android (Alpha Release)",
+      "icon": "bolt.horizontal",
+      "device": "android",
+      "command": "./gradlew :app:android:installAlphaRelease && adb shell am start -n app.campfire.android.alpha/app.campfire.android.MainActivity"
+    },
+    {
+      "id": "ios",
+      "name": "iOS",
+      "icon": "apple.logo",
+      "device": "ios",
+      "command": "xcodebuild -quiet -project app/ios/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination \"id=$SIMULATOR_UDID\" -derivedDataPath app/ios/build/xcode build && xcrun simctl install \"$SIMULATOR_UDID\" app/ios/build/xcode/Build/Products/Debug-iphonesimulator/iosApp.app && xcrun simctl launch --console-pty --terminate-running-process \"$SIMULATOR_UDID\" com.r0adkll.campfire"
+    },
+    {
+      "id": "sample-server",
+      "name": "Sample ABS Server",
+      "icon": "server.rack",
+      "command": "tools/screenshots/run.py --class phone --server-only"
+    },
+    {
+      "id": "tests",
+      "name": "Tests + Coverage",
+      "icon": "checkmark.circle",
+      "command": "./gradlew test allTests koverXmlReport"
+    },
+    {
+      "id": "ktlint-format",
+      "name": "ktlint Format",
+      "icon": "wand.and.stars",
+      "command": "./scripts/ktlint --format"
+    },
+    {
+      "id": "module-graph",
+      "name": "Module Graph",
+      "icon": "point.3.connected.trianglepath.dotted",
+      "command": "./gradlew createModuleGraph"
+    },
+    {
+      "id": "baseline-profile",
+      "name": "Baseline Profile",
+      "icon": "speedometer",
+      "command": "./gradlew :app:android:generateBaselineProfile -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile"
+    },
+    {
+      "id": "store-screenshots",
+      "name": "Store Screenshots (Phone)",
+      "icon": "camera",
+      "command": "tools/screenshots/run.py --class phone"
+    },
+    {
+      "id": "release",
+      "name": "Release (Guided)",
+      "icon": "paperplane",
+      "command": "scripts/release"
+    },
+    {
+      "id": "reset-desktop-data",
+      "name": "Reset Desktop App Data",
+      "icon": "trash",
+      "command": "scripts/cleanDesktopApp"
+    }
+  ]
+}
