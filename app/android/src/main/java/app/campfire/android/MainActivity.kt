@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
 import app.campfire.android.toast.AndroidToast
@@ -71,8 +70,6 @@ class MainActivity : ComponentActivity() {
         .first()
       component.localNetworkPermission.requestIfNeeded(serverUrl)
     }
-
-    WindowCompat.setDecorFitsSystemWindows(window, false)
 
     // Parse Deeplink
     intent?.let { updateDeepLink(it) }

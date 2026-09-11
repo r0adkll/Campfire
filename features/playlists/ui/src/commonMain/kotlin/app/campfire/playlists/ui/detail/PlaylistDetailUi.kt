@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
@@ -45,6 +44,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.OverlappedNavigationBarInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.permission.PermissionState
 import app.campfire.common.compose.permission.rememberPostNotificationPermissionState
@@ -182,7 +182,7 @@ fun PlaylistDetail(
         animatedVisibilityScope = requireAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation),
         zIndexInOverlay = 0f,
       ),
-    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
+    contentWindowInsets = CampfireWindowInsets.exclude(OverlappedNavigationBarInsets),
   ) { paddingValues ->
     when (state.playlistContentState) {
       LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))

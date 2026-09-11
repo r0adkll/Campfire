@@ -6,14 +6,12 @@ package app.campfire.common.compose
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import app.campfire.common.compose.layout.ContentLayout
-import app.campfire.common.compose.layout.LocalContentLayout
-import app.campfire.common.compose.layout.isSupportingPaneEnabled
 
 /**
  * Window insets for [TopAppBar]s that might be displayed in a context where
@@ -22,13 +20,10 @@ import app.campfire.common.compose.layout.isSupportingPaneEnabled
 @OptIn(ExperimentalMaterial3Api::class)
 val CampfireTopAppBarInsets: WindowInsets
   @Composable get() {
-    val windowSizeClass = LocalWindowSizeClass.current
-    val contentLayout = LocalContentLayout.current
     val chromeInsets = LocalWindowChromeInsets.current
 
-    return if (windowSizeClass.isSupportingPaneEnabled && contentLayout == ContentLayout.Root) {
-      TopAppBarDefaults.windowInsets.add(chromeInsets).only(WindowInsetsSides.Vertical)
-    } else {
-      TopAppBarDefaults.windowInsets.add(chromeInsets).only(WindowInsetsSides.Vertical)
-    }
+    // Union rather than add, so a cutout that overlaps the system bars is only counted once.
+    return TopAppBarDefaults.windowInsets
+      .union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+      .add(chromeInsets)
   }

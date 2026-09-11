@@ -6,12 +6,10 @@ package app.campfire.playlists.ui.list
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -33,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.OverlappedNavigationBarInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.PlaylistAdd
@@ -114,7 +113,7 @@ fun Playlists(
     },
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets
-      .exclude(WindowInsets.navigationBars)
+      .exclude(OverlappedNavigationBarInsets)
       .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
     when (state.playlistContentState) {
