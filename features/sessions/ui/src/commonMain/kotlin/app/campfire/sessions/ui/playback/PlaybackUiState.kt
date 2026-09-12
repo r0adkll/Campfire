@@ -45,6 +45,7 @@ data class PlayerUiState(
   val speed: Float,
   val equalizer: EqualizerState,
   val timer: RunningTimer?,
+  val bookmarks: List<Bookmark>,
   val error: Throwable?,
   val eventSink: (PlayerUiEvent) -> Unit,
 )

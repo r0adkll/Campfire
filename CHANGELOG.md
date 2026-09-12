@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded search results on wide layouts spilling past the search bar's edge instead of lining up under it
 - Navigation drawer always highlighting Home instead of the section being viewed
 - Desktop resuming up to a second before the saved position
+- Desktop resuming from a stale position after listening on another device
 - Desktop playback of streamed audiobooks failing because track requests were not authenticated
 - Desktop app crashing on launch, and again on every launch after the first
 - Item detail showing a stray download button while the item is playing or already downloading, and a mismatched play button shape while a download is in progress

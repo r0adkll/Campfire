@@ -7,6 +7,7 @@ import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
 import app.campfire.audioplayer.test.FakePlaybackController
 import app.campfire.common.test.session
+import app.campfire.core.model.Bookmark
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.libraries.test.FakeLibraryItemValidator
 import app.campfire.sessions.test.FakeSessionQueue
@@ -14,6 +15,7 @@ import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.test.FakePlaybackSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
+import app.campfire.user.test.FakeBookmarkRepository
 import app.campfire.user.test.FakeMediaProgressRepository
 import app.cash.molecule.RecompositionMode
 import app.cash.molecule.moleculeFlow
@@ -24,6 +26,7 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.LocalDateTime
 
 class PlaybackPresenterTest {
 
@@ -31,6 +34,7 @@ class PlaybackPresenterTest {
   private val sessionsRepository = FakeSessionsRepository()
   private val libraryItemValidator = FakeLibraryItemValidator()
   private val mediaProgressRepository = FakeMediaProgressRepository()
+  private val bookmarkRepository = FakeBookmarkRepository()
   private val playbackController = FakePlaybackController()
   private val playbackSettings = FakePlaybackSettings()
   private val audioPlayerHolder = FakeAudioPlayerHolder()
@@ -42,6 +46,7 @@ class PlaybackPresenterTest {
     sessionsRepository = sessionsRepository,
     libraryItemValidator = libraryItemValidator,
     mediaProgressRepository = mediaProgressRepository,
+    bookmarkRepository = bookmarkRepository,
     playbackController = playbackController,
     playbackSettings = playbackSettings,
     audioPlayerHolder = audioPlayerHolder,
@@ -85,6 +90,28 @@ class PlaybackPresenterTest {
       val state = awaitItemMatching { it.playerState.duration > 0.minutes }
       assertThat(state.playerState.time).isEqualTo(30.minutes)
       assertThat(state.playerState.metadata.title).isEqualTo("Chapter 2")
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `player state carries the current item's bookmarks`() = runTest {
+    val item = libraryItem(duration = 10.hours, numOfChapters = 10)
+    val bookmark = Bookmark(
+      userId = "u",
+      libraryItemId = item.id,
+      title = "Great line",
+      time = 22.minutes,
+      createdAt = LocalDateTime(2026, 1, 1, 0, 0),
+    )
+    bookmarkRepository.bookmarksFlow.value = listOf(bookmark)
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = item, currentTime = 90.minutes)
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      presenter.present(expanded = false)
+    }.test {
+      val state = awaitItemMatching { it.playerState.bookmarks.isNotEmpty() }
+      assertThat(state.playerState.bookmarks).isEqualTo(listOf(bookmark))
       cancelAndIgnoreRemainingEvents()
     }
   }
