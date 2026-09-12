@@ -33,6 +33,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -67,6 +68,9 @@ import app.campfire.sessions.ui.bottombar.BookTimeline
 import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerText
+import app.campfire.sessions.ui.playback.PlaybackPresenterFactory
+import app.campfire.sessions.ui.playback.PlaybackUiState
+import app.campfire.sessions.ui.playback.PlayerUiEvent
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -77,7 +81,6 @@ import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
 import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
-import app.campfire.user.api.BookmarkRepository
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
@@ -89,16 +92,14 @@ import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_play
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.LocalOverlayHost
+import com.slack.circuit.retained.rememberRetained
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)
 interface PlaybackBottomBarComponent {
-  val bookmarkRepository: BookmarkRepository
+  val playbackPresenterFactory: PlaybackPresenterFactory
 }
 
 @Composable
@@ -119,87 +120,50 @@ fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
   component: State<PlaybackBottomBarComponent> = rememberPlaybackBottomBarComponent(),
 ) {
-  SessionHostLayout { currentSession, audioPlayer, _, startSession ->
-    val currentTime by remember(audioPlayer) {
-      audioPlayer?.currentTime ?: emptyFlow()
-    }.collectAsState(0.seconds)
-
-    val bookTime by remember(audioPlayer) {
-      audioPlayer?.overallTime ?: emptyFlow()
-    }.collectAsState(0.seconds)
-
-    val currentDuration by remember(audioPlayer) {
-      audioPlayer?.currentDuration ?: emptyFlow()
-    }.collectAsState(0.seconds)
-
-    val currentMetadata by remember(audioPlayer) {
-      audioPlayer?.currentMetadata ?: emptyFlow()
-    }.collectAsState(Metadata())
-
-    val playerState by remember(audioPlayer) {
-      audioPlayer?.state ?: emptyFlow()
-    }.collectAsState(AudioPlayer.State.Disabled)
-
-    val playbackSpeed by remember(audioPlayer) {
-      audioPlayer?.playbackSpeed ?: emptyFlow()
-    }.collectAsState(1f)
-
-    val runningTimer by remember(audioPlayer) {
-      audioPlayer?.runningTimer ?: emptyFlow()
-    }.collectAsState(null)
-
-    val equalizer by remember(audioPlayer) {
-      audioPlayer?.equalizer ?: emptyFlow()
-    }.collectAsState(EqualizerState.Unsupported)
-
-    val comp by component
-    val libraryItemId = currentSession?.libraryItem?.id
-    val bookmarks by remember(comp, libraryItemId) {
-      libraryItemId?.let { comp.bookmarkRepository.observeBookmarks(it) } ?: flowOf(emptyList())
-    }.collectAsState(emptyList())
-
-    // Until an audio player is prepared for this session (service cold start, resume
-    // priming), derive the same display values from the session row the player would seed
-    // from — the handoff to live player state is value-identical
-    val placeholder = when (playerState) {
-      AudioPlayer.State.Disabled,
-      AudioPlayer.State.Initializing,
-      -> currentSession?.placeholderDisplayState()
-
-      else -> null
+  val comp by component
+  key(comp) {
+    val presenter = rememberRetained {
+      comp.playbackPresenterFactory()
     }
 
-    PlaybackBottomBarContent(
-      session = currentSession,
-      state = playerState,
-      playbackSpeed = playbackSpeed,
-      currentTime = placeholder?.time ?: currentTime,
-      currentDuration = placeholder?.duration ?: currentDuration,
-      bookTime = placeholder?.bookTime ?: bookTime,
-      currentMetadata = placeholder?.metadata ?: currentMetadata,
-      runningTimer = runningTimer,
-      equalizer = equalizer,
-      bookmarks = bookmarks,
-      onPlayPauseClick = {
-        if (playerState == AudioPlayer.State.Disabled) {
-          startSession()
-        } else {
-          audioPlayer?.playPause()
-        }
-      },
-      onRewindClick = { audioPlayer?.seekBackward() },
-      onForwardClick = { audioPlayer?.seekForward() },
-      onSkipPreviousClick = { audioPlayer?.skipToPrevious() },
-      onSkipNextClick = { audioPlayer?.skipToNext() },
-      onSeekTo = { time -> audioPlayer?.seekTo(time) },
-      onTimerCleared = { audioPlayer?.clearTimer() },
-      onTimerSelected = { timer -> audioPlayer?.setTimer(timer) },
-      onChapterSelected = { chapter -> audioPlayer?.seekTo(chapter.id) },
-      onAudioTrackSelected = { track -> audioPlayer?.seekTo(track.index - 1) },
-      onBookmarkSelected = { bookmark -> audioPlayer?.seekTo(bookmark.time) },
+    // The desktop bar has no expanded form, so it never re-primes the sync observation
+    PlaybackBottomBar(
+      uiState = presenter.present(expanded = false),
       modifier = modifier,
     )
   }
+}
+
+@Composable
+private fun PlaybackBottomBar(
+  uiState: PlaybackUiState,
+  modifier: Modifier = Modifier,
+) {
+  val playerState = uiState.playerState
+  PlaybackBottomBarContent(
+    session = uiState.session,
+    state = playerState.state,
+    playbackSpeed = playerState.speed,
+    currentTime = playerState.time,
+    currentDuration = playerState.duration,
+    bookTime = playerState.bookTime,
+    currentMetadata = playerState.metadata,
+    runningTimer = playerState.timer,
+    equalizer = playerState.equalizer,
+    bookmarks = playerState.bookmarks,
+    onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
+    onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
+    onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
+    onSkipPreviousClick = { playerState.eventSink(PlayerUiEvent.PreviousClick) },
+    onSkipNextClick = { playerState.eventSink(PlayerUiEvent.NextClick) },
+    onSeekTo = { time -> playerState.eventSink(PlayerUiEvent.Seek.Position(time)) },
+    onTimerCleared = { playerState.eventSink(PlayerUiEvent.ClearTimer) },
+    onTimerSelected = { timer -> playerState.eventSink(PlayerUiEvent.TimerSelected(timer)) },
+    onChapterSelected = { chapter -> playerState.eventSink(PlayerUiEvent.ChapterSelected(chapter)) },
+    onAudioTrackSelected = { track -> playerState.eventSink(PlayerUiEvent.AudioTrackSelected(track)) },
+    onBookmarkSelected = { bookmark -> playerState.eventSink(PlayerUiEvent.BookmarkSelected(bookmark)) },
+    modifier = modifier,
+  )
 }
 
 /** The bar itself, driven by plain values so it can be previewed and rendered in tests. */
