@@ -15,7 +15,14 @@ actual fun ApplyStatusBar(useDarkColors: Boolean) {
   if (!view.isInEditMode) {
     SideEffect {
       val window = (view.context as Activity).window
-      WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !useDarkColors
+      WindowCompat.getInsetsController(window, view).apply {
+        // Both bars follow the in-app theme rather than the system's night mode, which
+        // enableEdgeToEdge() defaults to. They diverge whenever the user picks a theme that
+        // doesn't match the system, and a mismatched navigation bar leaves the gesture handle
+        // invisible against the app's background.
+        isAppearanceLightStatusBars = !useDarkColors
+        isAppearanceLightNavigationBars = !useDarkColors
+      }
     }
   }
 }

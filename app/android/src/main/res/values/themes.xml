@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <style name="Platform.Theme.Campfire" parent="@style/Theme.AppCompat.Light" />
 <!--    parent="android:Theme.Material.Light" />-->
 
@@ -14,14 +14,11 @@
     <item name="android:windowNoTitle">true</item>
   </style>
 
-  <style name="Theme.Campfire.Immerse" parent="Theme.Campfire.NoActionBar">
-    <item name="android:statusBarColor">@android:color/transparent</item>
-
-    <item name="android:navigationBarColor">@color/nav_bar_scrim</item>
-    <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">@bool/use_light_nav_bar</item>
-  </style>
-
-  <style name="Theme.Campfire.Home" parent="Theme.Campfire.Immerse">
-    <item name="android:windowLightStatusBar">@bool/use_light_status_bar</item>
-  </style>
+  <!--
+    System bar colours and light-bar flags are no longer set here: from targetSdk 35 the platform
+    ignores android:statusBarColor / android:navigationBarColor, and enableEdgeToEdge() in
+    MainActivity owns the transparent bars while ApplyStatusBar drives the icon appearance from the
+    in-app theme.
+  -->
+  <style name="Theme.Campfire.Home" parent="Theme.Campfire.NoActionBar" />
 </resources>

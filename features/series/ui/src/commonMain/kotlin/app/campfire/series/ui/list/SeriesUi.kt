@@ -6,10 +6,8 @@ package app.campfire.series.ui.list
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -28,6 +26,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.OverlappedNavigationBarInsets
 import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
@@ -85,7 +84,7 @@ fun Series(
       )
     },
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
-    contentWindowInsets = CampfireWindowInsets.exclude(WindowInsets.navigationBars),
+    contentWindowInsets = CampfireWindowInsets.exclude(OverlappedNavigationBarInsets),
   ) { paddingValues ->
     LoadedState(
       totalCount = state.totalCount,

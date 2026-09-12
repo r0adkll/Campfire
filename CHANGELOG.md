@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop page headers scrolling out of view and stranding halfway, taking the back button and page actions with them
 - Cover art on the playing screen flickering and reloading while dragging the player up or down
 - Book covers flashing a loading spinner when opening an item from home, a library, or a series
+- Content on Android sitting underneath the display cutout, and underneath the navigation bar in landscape
+- Android navigation bar buttons becoming hard to see when the app's theme didn't match the system's light or dark setting
 
 ### Other Notes & Contributions
 
