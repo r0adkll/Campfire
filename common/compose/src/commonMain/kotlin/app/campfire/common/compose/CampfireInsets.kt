@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.runtime.Composable
@@ -17,6 +18,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
+import app.campfire.common.compose.layout.LocalSupportingContentState
+import app.campfire.common.compose.layout.NavigationType
+import app.campfire.common.compose.layout.SupportingContentState
+import app.campfire.common.compose.layout.navigationType
 import app.campfire.common.compose.layout.usesBottomPlaybackBar
 import app.campfire.common.compose.session.LocalPlaybackSession
 
@@ -40,10 +45,44 @@ val CampfireWindowInsets: WindowInsets
       WindowInsets(0.dp)
     }
 
-    // Union rather than add, so a cutout that overlaps the system bars is only counted once.
     return ScaffoldDefaults.contentWindowInsets
-      .union(WindowInsets.displayCutout.only(WindowInsetsSides.Horizontal))
+      .only(WindowInsetsSides.Vertical)
+      .add(HorizontalSafeInsets)
       .add(playbackBarInsets)
+  }
+
+/**
+ * The horizontal safe-area insets the calling content is responsible for.
+ *
+ * Only whatever actually touches a window edge should inset for it. The navigation rail or
+ * permanent drawer owns the leading edge whenever one is shown, the supporting pane owns the
+ * trailing edge whenever it is open, and the root content owns whichever edge neither covers.
+ * Applying the window's full horizontal insets everywhere instead leaves a gap between the root
+ * content and the pane beside it, and pads the pane away from an edge it never touches.
+ */
+internal val HorizontalSafeInsets: WindowInsets
+  @Composable get() {
+    val sides = when (LocalContentLayout.current) {
+      // The pane hangs off the trailing edge, with the root content and rail between it and the
+      // leading one.
+      ContentLayout.Supporting -> WindowInsetsSides.End
+      ContentLayout.Root -> {
+        val navigationOwnsStart =
+          LocalWindowSizeClass.current.navigationType != NavigationType.BottomNavigation
+        val paneOwnsEnd = LocalSupportingContentState.current == SupportingContentState.Open
+        when {
+          navigationOwnsStart && paneOwnsEnd -> return WindowInsets(0.dp)
+          navigationOwnsStart -> WindowInsetsSides.End
+          paneOwnsEnd -> WindowInsetsSides.Start
+          else -> WindowInsetsSides.Horizontal
+        }
+      }
+    }
+
+    // Union rather than add, so a cutout that overlaps the system bars is only counted once.
+    return WindowInsets.systemBars
+      .union(WindowInsets.displayCutout)
+      .only(sides)
   }
 
 /**
