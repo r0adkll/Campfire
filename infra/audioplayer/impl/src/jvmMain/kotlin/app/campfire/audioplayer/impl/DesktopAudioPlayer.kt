@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl
 
+import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.OnFinishedListener
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
@@ -14,6 +15,7 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
+import app.campfire.audioplayer.impl.volume.OutputGain
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -72,6 +74,7 @@ class DesktopAudioPlayer(
   sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
+  private val audioOutputController: AudioOutputController,
   private val engineDispatcher: CoroutineDispatcher = newEngineDispatcher(),
 ) : AudioPlayer {
 
@@ -133,10 +136,37 @@ class DesktopAudioPlayer(
   private var fadeJob: Job? = null
   private var stallJob: Job? = null
 
-  @Volatile
-  private var previousVolumeLevel = 0f
+  /**
+   * The three independent inputs to the engine's gain — see
+   * [OutputGain][app.campfire.audioplayer.impl.volume.OutputGain]. The sleep timer's fade owns
+   * only [fadeMultiplier]; the user owns the other two.
+   */
+  private var volumePosition = audioOutputController.volume.value
+  private var muted = audioOutputController.isMuted.value
+  private var fadeMultiplier = 1f
 
   // endregion
+
+  init {
+    // Collected on the engine dispatcher, so the engine is only ever touched from its own thread.
+    scope.launch {
+      audioOutputController.volume.collect { position ->
+        volumePosition = position
+        applyOutputGain()
+      }
+    }
+    scope.launch {
+      audioOutputController.isMuted.collect { isMuted ->
+        muted = isMuted
+        applyOutputGain()
+      }
+    }
+  }
+
+  /** Recomputes the engine's gain from the user's volume, mute, and any running fade. */
+  private fun applyOutputGain() {
+    engine?.volume = OutputGain.compose(volumePosition, muted, fadeMultiplier)
+  }
 
   override suspend fun prepare(
     session: Session,
@@ -204,14 +234,15 @@ class DesktopAudioPlayer(
   }
 
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    previousVolumeLevel = engine?.volume ?: 1f
     fadeJob?.cancel()
     return VolumeFadeController.fade(
       scope = scope,
       duration = duration,
       tickRate = tickRate,
-      getVolume = { engine?.volume ?: 0f },
-      setVolume = { engine?.volume = it },
+      setFade = { multiplier ->
+        fadeMultiplier = multiplier
+        applyOutputGain()
+      },
       onPause = {
         playWhenReady = false
         engine?.pause()
@@ -223,11 +254,6 @@ class DesktopAudioPlayer(
     val engine = engine ?: return@onEngine
     if (state.value == AudioPlayer.State.Paused) {
       sleepTimerManager.onSessionStart()
-    }
-
-    // Restore the volume a fade left at zero
-    if (engine.volume == 0f) {
-      engine.volume = if (previousVolumeLevel > 0f) previousVolumeLevel else 1f
     }
 
     if (playWhenReady) {
@@ -366,6 +392,8 @@ class DesktopAudioPlayer(
         engine = created
         created.setRate(playbackSpeed.value)
         created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
+        // A new engine starts at unity; the user's volume lives in settings, not in here
+        applyOutputGain()
         // Subscribe before returning so an engine that emits synchronously from open() is heard
         eventsJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
           created.events.collect { onEngineEvent(it) }

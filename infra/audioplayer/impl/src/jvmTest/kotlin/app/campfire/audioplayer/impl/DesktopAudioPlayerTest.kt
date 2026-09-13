@@ -14,6 +14,7 @@ import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
 import app.campfire.audioplayer.impl.sleep.FakeSleepTimerManager
 import app.campfire.audioplayer.model.profileOrNull
+import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.fixtures.chapter
 import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.audioplayer.test.fixtures.track
@@ -46,6 +47,7 @@ class DesktopAudioPlayerTest {
   private val sleepTimer = FakeSleepTimerManager()
   private val settings = FakePlaybackSettings()
   private val equalizerSettings = FakeEqualizerSettings()
+  private val audioOutput = FakeAudioOutputController()
   private val finished = mutableListOf<LibraryItemId>()
 
   // Two tracks of 30min; three chapters at 0-10, 10-30, 30-60 minutes
@@ -73,6 +75,7 @@ class DesktopAudioPlayerTest {
     sleepTimerManagerFactory = sleepTimer.factory,
     engineFactory = factory,
     accessTokenProvider = { accessToken },
+    audioOutputController = audioOutput,
     engineDispatcher = UnconfinedTestDispatcher(testScheduler),
   )
 
@@ -395,15 +398,17 @@ class DesktopAudioPlayerTest {
   }
 
   @Test
-  fun `play after a fade left the volume at zero restores it first`() = runTest {
+  fun `play pause leaves the output gain alone`() = runTest {
+    // The player used to read a zero gain as "a fade left it there" and undo it on play, which
+    // would silently unmute anyone who muted on purpose. Nothing guesses at the gain any more.
+    audioOutput.setVolume(0.5f)
     val player = player()
     player.prepareBook()
     playing()
-    engine.volume = 0f
 
     player.playPause()
-    assertThat(engine.volume).isEqualTo(1f)
     assertThat(engine.pauses).isEqualTo(1)
+    assertThat(engine.volume).isEqualTo(0.25f)
   }
 
   @Test
@@ -473,5 +478,69 @@ class DesktopAudioPlayerTest {
     player.seekTo(45.minutes)
     assertThat(engine.opens.last().item.uri).isEqualTo("/Users/me/Downloads/book/2.m4b")
     assertThat(engine.opens.last().headers).isEqualTo(emptyMap())
+  }
+
+  @Test
+  fun `a new engine is created at the volume the user left, not at unity`() = runTest {
+    audioOutput.setVolume(0.5f)
+    val player = player()
+    player.prepareBook()
+
+    // 0.5 on the slider is a quarter of the power, per the perceptual taper
+    assertThat(engine.volume).isEqualTo(0.25f)
+  }
+
+  @Test
+  fun `moving the slider while playing reaches the engine`() = runTest {
+    val player = player()
+    player.prepareBook()
+    assertThat(engine.volume).isEqualTo(1f)
+
+    audioOutput.setVolume(0.5f)
+    assertThat(engine.volume).isEqualTo(0.25f)
+
+    audioOutput.setVolume(1f)
+    assertThat(engine.volume).isEqualTo(1f)
+  }
+
+  @Test
+  fun `muting silences the engine and unmuting returns to the previous level`() = runTest {
+    audioOutput.setVolume(0.5f)
+    val player = player()
+    player.prepareBook()
+
+    audioOutput.setMuted(true)
+    assertThat(engine.volume).isEqualTo(0f)
+
+    audioOutput.setMuted(false)
+    assertThat(engine.volume).isEqualTo(0.25f)
+  }
+
+  @Test
+  fun `pressing play while muted does not unmute`() = runTest {
+    val player = player()
+    player.prepareBook(playImmediately = false)
+    audioOutput.setMuted(true)
+    assertThat(engine.volume).isEqualTo(0f)
+
+    player.playPause()
+
+    assertThat(engine.plays).isEqualTo(1)
+    assertThat(engine.volume).isEqualTo(0f)
+  }
+
+  @Test
+  fun `a sleep fade releases back to the user volume rather than an absolute one`() = runTest {
+    audioOutput.setVolume(0.5f)
+    val player = player()
+    player.prepareBook()
+
+    // A zero-duration fade silences, pauses and releases in one go, exercising the whole path
+    // without depending on the wall clock the fade reads for its ramp.
+    val job = player.fadeToPause(duration = Duration.ZERO, tickRate = 10)
+
+    assertThat(job.isCompleted).isTrue()
+    assertThat(engine.pauses).isEqualTo(1)
+    assertThat(engine.volume).isEqualTo(0.25f)
   }
 }

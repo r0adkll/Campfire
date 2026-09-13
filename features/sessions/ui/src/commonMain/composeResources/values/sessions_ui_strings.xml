@@ -110,4 +110,8 @@
   <string name="bottom_bar_chapter_remaining">%1$s left in chapter</string>
   <string name="timeline_content_description">Book progress</string>
   <string name="timeline_time_placeholder">--:--</string>
+  <string name="action_volume">Volume</string>
+  <string name="action_mute">Mute</string>
+  <string name="action_unmute">Unmute</string>
+  <string name="volume_content_description">Volume</string>
 </resources>

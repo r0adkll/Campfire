@@ -68,9 +68,11 @@ import app.campfire.sessions.ui.bottombar.BookTimeline
 import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerText
+import app.campfire.sessions.ui.composables.VolumeControl
 import app.campfire.sessions.ui.playback.PlaybackPresenterFactory
 import app.campfire.sessions.ui.playback.PlaybackUiState
 import app.campfire.sessions.ui.playback.PlayerUiEvent
+import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -151,6 +153,7 @@ private fun PlaybackBottomBar(
     runningTimer = playerState.timer,
     equalizer = playerState.equalizer,
     bookmarks = playerState.bookmarks,
+    volume = uiState.volume,
     onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
     onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
     onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
@@ -178,6 +181,8 @@ internal fun PlaybackBottomBarContent(
   runningTimer: RunningTimer?,
   equalizer: EqualizerState,
   bookmarks: List<Bookmark>,
+  /** Null on platforms with no app-level volume, where the control is not rendered at all. */
+  volume: VolumeUiState?,
 
   session: Session?,
   onPlayPauseClick: () -> Unit,
@@ -250,6 +255,7 @@ internal fun PlaybackBottomBarContent(
           modifier = Modifier.weight(1f),
           enabled = hasSession,
           runningTimer = runningTimer,
+          volume = volume,
           onBookmarkAddClick = {
             if (session == null) return@ActionRow
             scope.launch {
@@ -390,6 +396,7 @@ private fun NowPlayingInfo(
 private fun ActionRow(
   enabled: Boolean,
   runningTimer: RunningTimer?,
+  volume: VolumeUiState?,
   onBookmarkAddClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   onTimerClick: () -> Unit,
@@ -488,6 +495,8 @@ private fun ActionRow(
         }
       }
     }
+
+    volume?.let { VolumeControl(state = it) }
   }
 }
 

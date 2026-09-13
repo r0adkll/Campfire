@@ -86,6 +86,7 @@ import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerAction
+import app.campfire.sessions.ui.composables.VolumeControl
 import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
 import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
 import app.campfire.sessions.ui.playback.PlaybackUiState
@@ -96,6 +97,7 @@ import app.campfire.sessions.ui.playback.QueueUiState
 import app.campfire.sessions.ui.playback.SharedBounds
 import app.campfire.sessions.ui.playback.SyncUiEvent
 import app.campfire.sessions.ui.playback.SyncUiState
+import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
@@ -172,6 +174,7 @@ internal fun <T> T.ExpandedPlaybackBar(
       queueState = playbackState.queueState,
       syncState = playbackState.syncUiState,
       playbackHistoryEnabled = playbackState.playbackHistoryEnabled,
+      volumeState = playbackState.volume,
       onClose = onClose,
       sharedTransitionScope = this,
       animatedVisibilityScope = this,
@@ -191,6 +194,7 @@ internal fun ExpandedPlaybackBar(
   queueState: QueueUiState,
   syncState: SyncUiState,
   playbackHistoryEnabled: Boolean,
+  volumeState: VolumeUiState?,
 
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -355,6 +359,7 @@ internal fun ExpandedPlaybackBar(
             syncState = syncState,
             itemValidation = itemValidation,
             playbackHistoryEnabled = playbackHistoryEnabled,
+            volumeState = volumeState,
             onClose = onClose,
             windowSizeClass = windowSizeClass,
             animatedVisibilityScope = animatedVisibilityScope,
@@ -378,6 +383,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   syncState: SyncUiState,
   itemValidation: LibraryItemValidation,
   playbackHistoryEnabled: Boolean,
+  volumeState: VolumeUiState?,
 
   onClose: () -> Unit,
 
@@ -613,6 +619,9 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             }
           },
         )
+      },
+      volumeContent = {
+        volumeState?.let { VolumeControl(state = it) }
       },
       onEqualizerClick = {
         scope.launch {

@@ -38,6 +38,7 @@ internal fun ActionRow(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  volumeContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -60,6 +61,7 @@ internal fun ActionRow(
       onBookmarksClick = onBookmarksClick,
       speedContent = speedContent,
       timerContent = timerContent,
+      volumeContent = volumeContent,
       onEqualizerClick = onEqualizerClick,
       showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
@@ -78,6 +80,7 @@ internal fun ActionColumn(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  volumeContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -99,6 +102,7 @@ internal fun ActionColumn(
       onBookmarksClick = onBookmarksClick,
       speedContent = speedContent,
       timerContent = timerContent,
+      volumeContent = volumeContent,
       onEqualizerClick = onEqualizerClick,
       showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
@@ -117,6 +121,7 @@ private fun ActionContent(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
+  volumeContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -217,5 +222,12 @@ private fun ActionContent(
         }
       }
     }
+  }
+
+  Box(
+    modifier = actionModifier,
+    contentAlignment = Alignment.Center,
+  ) {
+    volumeContent()
   }
 }

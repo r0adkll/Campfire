@@ -30,6 +30,8 @@ data class PlaybackUiState(
   val themeState: ThemeUiState,
   val validation: LibraryItemValidation,
   val playbackHistoryEnabled: Boolean,
+  /** Null on platforms with no app-level volume, where the control is not rendered at all. */
+  val volume: VolumeUiState?,
   val eventSink: (PlaybackUiEvent) -> Unit,
 )
 
@@ -48,6 +50,14 @@ data class PlayerUiState(
   val bookmarks: List<Bookmark>,
   val error: Throwable?,
   val eventSink: (PlayerUiEvent) -> Unit,
+)
+
+@Immutable
+data class VolumeUiState(
+  /** The slider's position, 0f..1f — not the gain, which the player derives from it. */
+  val volume: Float,
+  val isMuted: Boolean,
+  val eventSink: (VolumeUiEvent) -> Unit,
 )
 
 @Immutable
@@ -102,6 +112,12 @@ sealed interface PlayerUiEvent {
   data object ClearTimer : PlayerUiEvent
   data class ChapterSelected(val chapter: Chapter) : PlayerUiEvent
   data class AudioTrackSelected(val audioTrack: AudioTrack) : PlayerUiEvent
+}
+
+@Stable
+sealed interface VolumeUiEvent {
+  data class SetVolume(val volume: Float) : VolumeUiEvent
+  data object ToggleMute : VolumeUiEvent
 }
 
 @Stable

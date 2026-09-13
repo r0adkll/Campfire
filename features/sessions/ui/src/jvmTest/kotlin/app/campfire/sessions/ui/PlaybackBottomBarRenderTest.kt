@@ -24,6 +24,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.PlaybackSettingsComponent
+import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.test.FakePlaybackSettings
 import assertk.assertThat
@@ -81,6 +82,30 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `showing the app volume control`() {
+    render("bottom-bar-volume") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+      )
+    }
+  }
+
+  @Test
+  fun `showing the app volume control muted`() {
+    render("bottom-bar-volume-muted") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = true) {},
+      )
+    }
+  }
+
+  @Test
   fun `hovering a chapter tick shows its tooltip`() {
     render("bottom-bar-hover", beforeRender = { scene ->
       // Track spans [labelWidth + 16, width - labelWidth - 16] in dp; chapter 2 starts at 30/60
@@ -97,7 +122,13 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Composable
-  private fun Bar(session: Session?, state: AudioPlayer.State, bookTime: Duration, speed: Float = 1f) {
+  private fun Bar(
+    session: Session?,
+    state: AudioPlayer.State,
+    bookTime: Duration,
+    speed: Float = 1f,
+    volume: VolumeUiState? = null,
+  ) {
     CampfireTheme(useDarkColors = false) {
       ContentWithOverlays(overlayHost = rememberOverlayHost()) {
         Box(Modifier.fillMaxSize()) {
@@ -111,6 +142,7 @@ class PlaybackBottomBarRenderTest {
             runningTimer = null,
             equalizer = EqualizerState.Unsupported,
             bookmarks = if (session == null) emptyList() else bookmarks,
+            volume = volume,
             session = session,
             onPlayPauseClick = {},
             onRewindClick = {},
