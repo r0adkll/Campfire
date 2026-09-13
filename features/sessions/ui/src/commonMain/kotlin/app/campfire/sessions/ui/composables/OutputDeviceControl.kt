@@ -78,7 +78,9 @@ internal fun OutputDeviceMenuItems(
   // a pin, and it is the one route that keeps tracking the OS while playing.
   DropdownMenuItem(
     text = { Text(systemDefaultLabel) },
-    trailingIcon = selectedMark(state.selectedName == null),
+    // Ticked when the pin is missing too: that is what is actually playing, and the pinned row
+    // below shows separately that the choice is still remembered.
+    trailingIcon = selectedMark(state.selectedName == null || state.selectedIsMissing),
     onClick = {
       onChosen()
       state.eventSink(OutputDeviceUiEvent.SelectDevice(null))

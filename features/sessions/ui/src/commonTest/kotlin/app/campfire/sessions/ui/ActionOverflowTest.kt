@@ -56,6 +56,35 @@ class ActionOverflowTest {
   }
 
   @Test
+  fun `the output device picker folds away before anything else`() {
+    // 404dp is what the tool row gets at a 1080dp window — a common desktop size, and the width
+    // at which the picker is reached through the overflow rather than inline.
+    val folded = actionOverflow(
+      available = 404.dp,
+      hasEqualizer = true,
+      hasChapters = true,
+      hasOutputDevices = true,
+      timerRunning = false,
+    )
+    assertThat(folded).containsExactlyInAnyOrder(
+      OverflowAction.OutputDevice,
+      OverflowAction.Equalizer,
+      OverflowAction.Chapters,
+    )
+
+    // Wide enough and it stays in the row itself
+    assertThat(
+      actionOverflow(
+        available = 600.dp,
+        hasEqualizer = true,
+        hasChapters = true,
+        hasOutputDevices = true,
+        timerRunning = false,
+      ),
+    ).isEmpty()
+  }
+
+  @Test
   fun `actions the session does not have never appear in the overflow`() {
     // A book with no chapters and an engine with no equalizer only ever folds the timer
     assertThat(
