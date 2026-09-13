@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.engine.ffmpeg
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.impl.engine.EngineState
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
@@ -12,7 +13,6 @@ import app.campfire.core.logging.Cork
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
 import javax.sound.sampled.AudioFormat
-import javax.sound.sampled.AudioSystem
 import javax.sound.sampled.SourceDataLine
 import kotlin.math.roundToInt
 import kotlin.time.Duration
@@ -71,6 +71,10 @@ class FfmpegPlaybackEngine : PlaybackEngine {
   @Volatile
   private var equalizer: EqualizerConfig? = null
 
+  /** Name of the pinned output device, or null to follow the system default. */
+  @Volatile
+  private var deviceName: String? = null
+
   private var worker: Worker? = null
 
   override var volume: Float
@@ -115,6 +119,14 @@ class FfmpegPlaybackEngine : PlaybackEngine {
     worker?.post(Command.Reconfigure)
   }
 
+  override fun setAudioDevice(device: AudioDevice?) {
+    val name = device?.name
+    if (name == deviceName) return
+    deviceName = name
+    // Applied between frames while playing; a stopped engine picks it up at the next open.
+    worker?.post(Command.SetDevice)
+  }
+
   override fun release() {
     stop()
   }
@@ -124,6 +136,7 @@ class FfmpegPlaybackEngine : PlaybackEngine {
     data object Pause : Command
     data class Seek(val position: Duration) : Command
     data object Reconfigure : Command
+    data object SetDevice : Command
     data object Stop : Command
   }
 
@@ -285,9 +298,29 @@ class FfmpegPlaybackEngine : PlaybackEngine {
     private fun openOutput() {
       val audioFormat = AudioFormat(outSampleRate.toFloat(), 16, outChannels, true, false)
       val bufferBytes = (outSampleRate * outChannels * 2 * LINE_BUFFER_MILLIS / 1000)
-      val dataLine = AudioSystem.getSourceDataLine(audioFormat)
-      dataLine.open(audioFormat, bufferBytes)
-      line = dataLine
+      // Resolved by name on every open, never from a cached Mixer.Info — those go stale
+      line = JavaSoundDevices.openLine(deviceName, audioFormat, bufferBytes)
+    }
+
+    /**
+     * Moves playback to the currently selected device without disturbing FFmpeg, the filter graph
+     * or the position accounting — only the audio line is replaced.
+     *
+     * Costs whatever the old line had buffered but not yet played (up to [LINE_BUFFER_MILLIS])
+     * plus the reopen, so roughly a third of a second of silence. Restarting the item instead
+     * would re-fetch a network stream, and carrying the unplayed bytes across would mean redoing
+     * the `available()` bookkeeping that position depends on — the likeliest way to make a switch
+     * audibly repeat or skip.
+     */
+    private fun swapDevice() {
+      val previous = line ?: return
+      runCatching {
+        previous.stop()
+        previous.close()
+      }
+      openOutput()
+      // A line only starts once the first frame is written, so match whatever state we were in
+      if (lineStarted && !paused) line?.start()
     }
 
     // endregion
@@ -341,6 +374,7 @@ class FfmpegPlaybackEngine : PlaybackEngine {
         }
         is Command.Seek -> seek(command.position, emitPosition = true)
         Command.Reconfigure -> rebuildGraph = true
+        Command.SetDevice -> swapDevice()
         Command.Stop -> throw StopRequested()
       }
     }

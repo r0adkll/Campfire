@@ -253,7 +253,10 @@ fun AdaptiveCampfireLayout(
                   }
                 }
 
-                if (isSupportingPaneResizable) {
+                // Only while the pane is actually open. Closed, this Box is offset entirely off
+                // the trailing edge, which puts its leading-edge handle right on the window
+                // border — where it swallowed the drag for resizing the window itself.
+                if (isSupportingPaneResizable && supportingContentState == SupportingContentState.Open) {
                   SupportingPaneResizeHandle(
                     state = resizeState,
                     onDragStopped = {

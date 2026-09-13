@@ -231,7 +231,6 @@ class ExoPlayerAudioPlayer(
 
   private var progressJob: Job? = null
   private var fadeJob: Job? = null
-  private var previousVolumeLevel: Float = 0f
   private var isRemotePlayback = false
   private var castWatchdogJob: Job? = null
   private var chapterTimeline: ChapterTimeline? = null
@@ -496,15 +495,15 @@ class ExoPlayerAudioPlayer(
   }
 
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    previousVolumeLevel = player.volume
     fadeJob?.cancel()
 
+    // Nothing else attenuates output here — there is no app-level volume on this platform, so
+    // the fade's multiplier is the whole gain and it releases back to unity on its own.
     return VolumeFadeController.fade(
       scope = scope,
       duration = duration,
       tickRate = tickRate,
-      getVolume = { player.volume },
-      setVolume = { player.volume = it },
+      setFade = { player.volume = it },
       onPause = { player.pause() },
     ).also { fadeJob = it }
   }
@@ -515,13 +514,6 @@ class ExoPlayerAudioPlayer(
     } else {
       // Potentially trigger the auto sleep timer
       sleepTimerManager.onSessionStart()
-
-      // Reset volume if stored
-      if (player.volume == 0f && previousVolumeLevel > 0f) {
-        player.volume = previousVolumeLevel
-      } else if (player.volume == 0f) {
-        player.volume = 1f
-      }
 
       player.play()
     }

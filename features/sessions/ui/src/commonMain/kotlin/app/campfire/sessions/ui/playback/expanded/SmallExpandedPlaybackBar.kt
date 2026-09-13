@@ -656,6 +656,11 @@ private fun PlaybackOptionsColumn(
         },
       )
     },
+    // Empty: this layout is for landscape phones, and an app-level volume is desktop-only. A
+    // desktop window cannot reach it either — it needs isLandscapePhone (so, at least the
+    // Expanded width), and desktop only uses this bar *below* that width.
+    volumeContent = {},
+    outputDeviceContent = {},
     onEqualizerClick = {
       scope.launch {
         overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)

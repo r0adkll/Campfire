@@ -34,41 +34,45 @@ object VolumeFadeController {
   }
 
   /**
-   * Fade the player from its current volume to silence over [duration], then call [onPause] and
-   * restore the original volume. A zero [duration] pauses immediately.
+   * Fade playback to silence over [duration], then call [onPause] and release the fade.
+   * A zero [duration] pauses immediately.
+   *
+   * [setFade] receives a *multiplier*, 1f down to 0f, that the caller composes with whatever else
+   * is attenuating output — see [app.campfire.audioplayer.impl.volume.OutputGain]. The fade never
+   * learns the user's volume and never writes an absolute gain, so a slider moved mid-fade is
+   * neither clobbered on the way down nor undone when the fade releases.
    *
    * The curve is driven by elapsed wall time rather than a fixed per-tick decrement so a slow or
-   * delayed tick never stretches the fade past [duration]. Cancelling the returned job restores
-   * the original volume without pausing, so a listener who resumes mid-fade keeps listening.
+   * delayed tick never stretches the fade past [duration]. Cancelling the returned job releases
+   * the fade without pausing, so a listener who resumes mid-fade keeps listening.
    */
   fun fade(
     scope: CoroutineScope,
     duration: Duration,
     tickRate: Long,
-    getVolume: () -> Float,
-    setVolume: (Float) -> Unit,
+    setFade: (Float) -> Unit,
     onPause: () -> Unit,
     now: () -> Long = { Clock.System.now().toEpochMilliseconds() },
   ): Job {
     return scope.launch {
-      val startVolume = getVolume()
       val delayStep = 1000L / tickRate
       val totalMillis = duration.inWholeMilliseconds
 
       val start = now()
       try {
-        while (isActive && getVolume() > 0f) {
+        while (isActive) {
           val elapsed = now() - start
           if (elapsed >= totalMillis) break
-          setVolume(startVolume * gainAt(elapsed.toFloat() / totalMillis))
+          setFade(gainAt(elapsed.toFloat() / totalMillis))
           delay(delayStep)
         }
 
-        setVolume(0f)
+        setFade(0f)
         onPause()
       } finally {
-        // Reset the volume to where it started, whether the fade finished or was interrupted
-        setVolume(startVolume)
+        // Release the fade, whether it finished or was interrupted. Playback is paused by now in
+        // the finished case, so this restores the level for whenever it resumes.
+        setFade(1f)
       }
     }
   }

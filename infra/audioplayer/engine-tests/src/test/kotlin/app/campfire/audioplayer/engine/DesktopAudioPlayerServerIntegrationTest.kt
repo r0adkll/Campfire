@@ -9,6 +9,7 @@ import app.campfire.audioplayer.engine.ffmpeg.FfmpegPlaybackEngine
 import app.campfire.audioplayer.engine.vlc.VlcPlaybackEngine
 import app.campfire.audioplayer.impl.DesktopAudioPlayer
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.core.extensions.seconds
 import app.campfire.core.logging.Extras
@@ -113,6 +114,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
       engineFactory = engineFactory,
       accessTokenProvider = { token },
+      audioOutputController = FakeAudioOutputController(),
     )
 
     try {

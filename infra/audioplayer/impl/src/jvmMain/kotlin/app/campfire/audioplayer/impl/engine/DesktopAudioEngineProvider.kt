@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.engine
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.impl.BuildConfig
 
@@ -20,6 +21,21 @@ interface DesktopAudioEngineProvider {
    * the user's token, which needs request headers (libvlc can't; FFmpeg can).
    */
   val supportsHls: Boolean
+
+  /**
+   * Whether this engine can send output to a device the user picks.
+   *
+   * Lives on the provider rather than the engine because the picker has to be populated before
+   * anything is playing, and the engine is created lazily on first prepare. It is also where the
+   * per-OS gating belongs, so no platform check leaks into the controller or the UI.
+   */
+  val supportsDeviceSelection: Boolean get() = false
+
+  /**
+   * Outputs this engine can currently reach, excluding the system default. Empty when
+   * [supportsDeviceSelection] is false.
+   */
+  fun audioDevices(): List<AudioDevice> = emptyList()
 
   companion object {
     const val VLC = "vlc"
