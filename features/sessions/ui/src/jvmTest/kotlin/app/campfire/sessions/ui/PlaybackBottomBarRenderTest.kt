@@ -106,6 +106,21 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `at the narrowest docked width the tools collapse into an overflow menu`() {
+    // 840dp is where this bar takes over from the floating one, and the tool row cannot show
+    // everything there — the volume button used to be crushed to nothing.
+    render("bottom-bar-narrow", width = NARROW_WIDTH) {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        speed = 1.25f,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+      )
+    }
+  }
+
+  @Test
   fun `hovering a chapter tick shows its tooltip`() {
     render("bottom-bar-hover", beforeRender = { scene ->
       // Track spans [labelWidth + 16, width - labelWidth - 16] in dp; chapter 2 starts at 30/60
@@ -163,10 +178,11 @@ class PlaybackBottomBarRenderTest {
 
   private fun render(
     name: String,
+    width: Int = WIDTH,
     beforeRender: (ImageComposeScene) -> Unit = {},
     content: @Composable () -> Unit,
   ) {
-    ImageComposeScene(width = WIDTH * 2, height = HEIGHT * 2, density = Density(2f), content = content).use { scene ->
+    ImageComposeScene(width = width * 2, height = HEIGHT * 2, density = Density(2f), content = content).use { scene ->
       scene.render()
       beforeRender(scene)
       val image = scene.render(nanoTime = 1_000_000_000L)
@@ -179,6 +195,7 @@ class PlaybackBottomBarRenderTest {
 
   private companion object {
     const val WIDTH = 1440
+    const val NARROW_WIDTH = 840
     const val HEIGHT = 110
   }
 }

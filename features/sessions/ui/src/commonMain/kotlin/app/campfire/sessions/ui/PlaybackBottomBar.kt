@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -34,8 +37,10 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
@@ -54,6 +60,7 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
 import app.campfire.common.compose.icons.rounded.Equalizer
 import app.campfire.common.compose.icons.rounded.List
+import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
@@ -87,6 +94,7 @@ import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_equalizer
+import campfire.features.sessions.ui.generated.resources.action_more
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_remaining
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
@@ -392,6 +400,18 @@ private fun NowPlayingInfo(
   }
 }
 
+/**
+ * The tools at the right of the bar, collapsing into an overflow menu as space runs out.
+ *
+ * The row genuinely cannot show everything at the 840dp breakpoint where this bar first appears:
+ * the flexible space either side of the fixed transport block is 568dp, an even split gives this
+ * side 284dp, and the full set wants ~372dp. Widening this side instead would push the transport
+ * off centre by more the wider the window got, so the actions give way rather than the layout.
+ *
+ * Tiers are driven by measured width against the worst case for each item — the speed control is
+ * an icon at 1x and a wider "1.25x" label otherwise, and the sleep timer grows a countdown pill
+ * while running, so both are budgeted at their larger form.
+ */
 @Composable
 private fun ActionRow(
   enabled: Boolean,
@@ -405,9 +425,20 @@ private fun ActionRow(
   showChapters: Boolean,
   onChapterListClick: () -> Unit,
   modifier: Modifier = Modifier,
-) {
+) = BoxWithConstraints(modifier) {
+  val equalizerLabel = stringResource(Res.string.action_equalizer)
+  val chaptersLabel = stringResource(Res.string.action_chapters)
+  val timerLabel = stringResource(Res.string.action_sleep_timer)
+
+  val overflowed = actionOverflow(
+    available = maxWidth,
+    hasEqualizer = showEqualizer,
+    hasChapters = showChapters,
+    timerRunning = runningTimer != null,
+  )
+
   Row(
-    modifier = modifier.padding(horizontal = 8.dp),
+    modifier = Modifier.padding(horizontal = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
   ) {
@@ -421,7 +452,7 @@ private fun ActionRow(
     speedContent()
 
     AnimatedContent(
-      targetState = runningTimer,
+      targetState = runningTimer.takeIf { OverflowAction.Timer !in overflowed },
       transitionSpec = {
         (
           fadeIn(animationSpec = tween(220, delayMillis = 90)) +
@@ -435,8 +466,9 @@ private fun ActionRow(
       },
       contentAlignment = Alignment.CenterStart,
     ) { timer ->
-      if (timer == null) {
-        val timerLabel = stringResource(Res.string.action_sleep_timer)
+      if (OverflowAction.Timer in overflowed) {
+        Unit
+      } else if (timer == null) {
         IconButtonTooltip(text = timerLabel) {
           IconButton(onClick = onTimerClick, enabled = enabled) {
             Icon(CampfireIcons.Rounded.Timer, contentDescription = timerLabel)
@@ -478,8 +510,7 @@ private fun ActionRow(
       }
     }
 
-    if (showEqualizer) {
-      val equalizerLabel = stringResource(Res.string.action_equalizer)
+    if (showEqualizer && OverflowAction.Equalizer !in overflowed) {
       IconButtonTooltip(text = equalizerLabel) {
         IconButton(onClick = onEqualizerClick, enabled = enabled) {
           Icon(CampfireIcons.Rounded.Equalizer, contentDescription = equalizerLabel)
@@ -487,8 +518,7 @@ private fun ActionRow(
       }
     }
 
-    if (showChapters) {
-      val chaptersLabel = stringResource(Res.string.action_chapters)
+    if (showChapters && OverflowAction.Chapters !in overflowed) {
       IconButtonTooltip(text = chaptersLabel) {
         IconButton(onClick = onChapterListClick, enabled = enabled) {
           Icon(CampfireIcons.Rounded.List, contentDescription = chaptersLabel)
@@ -497,8 +527,135 @@ private fun ActionRow(
     }
 
     volume?.let { VolumeControl(state = it) }
+
+    if (overflowed.isNotEmpty()) {
+      ActionOverflowMenu(
+        overflowed = overflowed,
+        enabled = enabled,
+        runningTimer = runningTimer,
+        equalizerLabel = equalizerLabel,
+        chaptersLabel = chaptersLabel,
+        timerLabel = timerLabel,
+        onEqualizerClick = onEqualizerClick,
+        onChapterListClick = onChapterListClick,
+        onTimerClick = onTimerClick,
+      )
+    }
   }
 }
+
+/** An action that can be folded away when the bar's tool row runs out of room. */
+internal enum class OverflowAction { Equalizer, Chapters, Timer }
+
+/**
+ * Which actions must fold away for the row to fit in [available].
+ *
+ * Collapses in least-useful-first order: the equalizer and chapter list go together, and the
+ * sleep timer only follows when even that is not enough — which happens at the narrowest docked
+ * widths once the speed control is showing a label rather than its 1x icon.
+ */
+internal fun actionOverflow(
+  available: Dp,
+  hasEqualizer: Boolean,
+  hasChapters: Boolean,
+  timerRunning: Boolean,
+): Set<OverflowAction> {
+  val timerSize = if (timerRunning) RunningTimerSize else ActionSize
+  val optional = buildList {
+    if (hasEqualizer) add(OverflowAction.Equalizer)
+    if (hasChapters) add(OverflowAction.Chapters)
+  }
+  // Always on screen: bookmark, speed, volume — plus the overflow button once anything folds.
+  val fixed = ActionSize + WidestSpeedSize + ActionSize
+  val fullWidth = fixed + (ActionSize * optional.size) + timerSize +
+    actionSpacing(optional.size + 3)
+  if (available >= fullWidth) return emptySet()
+
+  val withoutOptional = fixed + timerSize + ActionSize + actionSpacing(4)
+  if (available >= withoutOptional) return optional.toSet()
+
+  return optional.toSet() + OverflowAction.Timer
+}
+
+private fun actionSpacing(items: Int): Dp = ActionSpacing * (items - 1).coerceAtLeast(0) + RowPadding * 2
+
+/**
+ * The folded-away actions, behind a single button. Uses the same trailing position the actions
+ * themselves occupied, so nothing jumps as the window crosses a tier.
+ */
+@Composable
+private fun ActionOverflowMenu(
+  overflowed: Set<OverflowAction>,
+  enabled: Boolean,
+  runningTimer: RunningTimer?,
+  equalizerLabel: String,
+  chaptersLabel: String,
+  timerLabel: String,
+  onEqualizerClick: () -> Unit,
+  onChapterListClick: () -> Unit,
+  onTimerClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  var expanded by remember { mutableStateOf(false) }
+  val moreLabel = stringResource(Res.string.action_more)
+
+  Box(modifier) {
+    IconButtonTooltip(text = moreLabel) {
+      IconButton(onClick = { expanded = true }, enabled = enabled) {
+        Icon(CampfireIcons.Rounded.MoreVert, contentDescription = moreLabel)
+      }
+    }
+
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+      if (OverflowAction.Timer in overflowed) {
+        DropdownMenuItem(
+          text = { Text(timerLabel) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.Timer, contentDescription = null) },
+          trailingIcon = runningTimer?.let {
+            {
+              RunningTimerText(
+                runningTimer = it,
+                endOfChapterText = stringResource(Res.string.label_end_of_chapter_short),
+                style = { MaterialTheme.typography.labelMedium },
+              )
+            }
+          },
+          onClick = {
+            expanded = false
+            onTimerClick()
+          },
+        )
+      }
+      if (OverflowAction.Equalizer in overflowed) {
+        DropdownMenuItem(
+          text = { Text(equalizerLabel) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.Equalizer, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onEqualizerClick()
+          },
+        )
+      }
+      if (OverflowAction.Chapters in overflowed) {
+        DropdownMenuItem(
+          text = { Text(chaptersLabel) },
+          leadingIcon = { Icon(CampfireIcons.Rounded.List, contentDescription = null) },
+          onClick = {
+            expanded = false
+            onChapterListClick()
+          },
+        )
+      }
+    }
+  }
+}
+
+/** A standard icon button's footprint, and the widest each variable-width control gets. */
+private val ActionSize = 48.dp
+private val WidestSpeedSize = 96.dp
+private val RunningTimerSize = 136.dp
+private val ActionSpacing = 4.dp
+private val RowPadding = 8.dp
 
 private val CoverSize = 48.dp
 private val ContentRowHeight = 68.dp
