@@ -438,7 +438,11 @@ private fun ActionRow(
   )
 
   Row(
-    modifier = Modifier.padding(horizontal = 8.dp),
+    // Fills the measured box rather than wrapping, so Alignment.End still packs the tools
+    // against the bar's trailing edge
+    modifier = Modifier
+      .fillMaxWidth()
+      .padding(horizontal = 8.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.End),
   ) {
