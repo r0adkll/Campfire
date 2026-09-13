@@ -18,4 +18,10 @@ class FakeAudioOutputSettings(volume: Float = 1f) : AudioOutputSettings {
     get() = _volume.value
     set(value) { _volume.value = value }
   override fun observeVolume(): StateFlow<Float> = _volume.asStateFlow()
+
+  private val _outputDeviceName = MutableStateFlow<String?>(null)
+  override var outputDeviceName: String?
+    get() = _outputDeviceName.value
+    set(value) { _outputDeviceName.value = value }
+  override fun observeOutputDeviceName(): StateFlow<String?> = _outputDeviceName.asStateFlow()
 }

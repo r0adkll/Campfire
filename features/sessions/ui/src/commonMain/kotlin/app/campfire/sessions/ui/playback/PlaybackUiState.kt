@@ -5,6 +5,7 @@ package app.campfire.sessions.ui.playback
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -32,6 +33,8 @@ data class PlaybackUiState(
   val playbackHistoryEnabled: Boolean,
   /** Null on platforms with no app-level volume, where the control is not rendered at all. */
   val volume: VolumeUiState?,
+  /** Null where output cannot be routed to a chosen device, including desktop on Linux. */
+  val outputDevices: OutputDeviceUiState?,
   val eventSink: (PlaybackUiEvent) -> Unit,
 )
 
@@ -58,6 +61,19 @@ data class VolumeUiState(
   val volume: Float,
   val isMuted: Boolean,
   val eventSink: (VolumeUiEvent) -> Unit,
+)
+
+@Immutable
+data class OutputDeviceUiState(
+  val devices: List<AudioDevice>,
+  /** The pinned device's name, or null when following the system default. */
+  val selectedName: String?,
+  /**
+   * True when a device is pinned but not currently present, so playback fell back to the system
+   * default. The picker still shows it, disabled, so the pin is visible and can be cleared.
+   */
+  val selectedIsMissing: Boolean,
+  val eventSink: (OutputDeviceUiEvent) -> Unit,
 )
 
 @Immutable
@@ -118,6 +134,13 @@ sealed interface PlayerUiEvent {
 sealed interface VolumeUiEvent {
   data class SetVolume(val volume: Float) : VolumeUiEvent
   data object ToggleMute : VolumeUiEvent
+}
+
+@Stable
+sealed interface OutputDeviceUiEvent {
+  /** Null selects the system default. */
+  data class SelectDevice(val device: AudioDevice?) : OutputDeviceUiEvent
+  data object Refresh : OutputDeviceUiEvent
 }
 
 @Stable

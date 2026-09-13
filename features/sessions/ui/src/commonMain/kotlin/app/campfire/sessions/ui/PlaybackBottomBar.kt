@@ -73,9 +73,11 @@ import app.campfire.core.model.Chapter
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.bottombar.BookTimeline
 import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
+import app.campfire.sessions.ui.composables.OutputDeviceControl
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.composables.VolumeControl
+import app.campfire.sessions.ui.playback.OutputDeviceUiState
 import app.campfire.sessions.ui.playback.PlaybackPresenterFactory
 import app.campfire.sessions.ui.playback.PlaybackUiState
 import app.campfire.sessions.ui.playback.PlayerUiEvent
@@ -162,6 +164,7 @@ private fun PlaybackBottomBar(
     equalizer = playerState.equalizer,
     bookmarks = playerState.bookmarks,
     volume = uiState.volume,
+    outputDevices = uiState.outputDevices,
     onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
     onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
     onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
@@ -191,6 +194,8 @@ internal fun PlaybackBottomBarContent(
   bookmarks: List<Bookmark>,
   /** Null on platforms with no app-level volume, where the control is not rendered at all. */
   volume: VolumeUiState?,
+  /** Null where output cannot be routed to a chosen device. */
+  outputDevices: OutputDeviceUiState?,
 
   session: Session?,
   onPlayPauseClick: () -> Unit,
@@ -264,6 +269,7 @@ internal fun PlaybackBottomBarContent(
           enabled = hasSession,
           runningTimer = runningTimer,
           volume = volume,
+          outputDevices = outputDevices,
           onBookmarkAddClick = {
             if (session == null) return@ActionRow
             scope.launch {
@@ -417,6 +423,7 @@ private fun ActionRow(
   enabled: Boolean,
   runningTimer: RunningTimer?,
   volume: VolumeUiState?,
+  outputDevices: OutputDeviceUiState?,
   onBookmarkAddClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   onTimerClick: () -> Unit,
@@ -434,6 +441,7 @@ private fun ActionRow(
     available = maxWidth,
     hasEqualizer = showEqualizer,
     hasChapters = showChapters,
+    hasOutputDevices = outputDevices != null,
     timerRunning = runningTimer != null,
   )
 
@@ -530,6 +538,10 @@ private fun ActionRow(
       }
     }
 
+    if (outputDevices != null && OverflowAction.OutputDevice !in overflowed) {
+      OutputDeviceControl(state = outputDevices)
+    }
+
     volume?.let { VolumeControl(state = it) }
 
     if (overflowed.isNotEmpty()) {
@@ -537,6 +549,7 @@ private fun ActionRow(
         overflowed = overflowed,
         enabled = enabled,
         runningTimer = runningTimer,
+        outputDevices = outputDevices,
         equalizerLabel = equalizerLabel,
         chaptersLabel = chaptersLabel,
         timerLabel = timerLabel,
@@ -549,7 +562,7 @@ private fun ActionRow(
 }
 
 /** An action that can be folded away when the bar's tool row runs out of room. */
-internal enum class OverflowAction { Equalizer, Chapters, Timer }
+internal enum class OverflowAction { OutputDevice, Equalizer, Chapters, Timer }
 
 /**
  * Which actions must fold away for the row to fit in [available].
@@ -562,10 +575,12 @@ internal fun actionOverflow(
   available: Dp,
   hasEqualizer: Boolean,
   hasChapters: Boolean,
+  hasOutputDevices: Boolean = false,
   timerRunning: Boolean,
 ): Set<OverflowAction> {
   val timerSize = if (timerRunning) RunningTimerSize else ActionSize
   val optional = buildList {
+    if (hasOutputDevices) add(OverflowAction.OutputDevice)
     if (hasEqualizer) add(OverflowAction.Equalizer)
     if (hasChapters) add(OverflowAction.Chapters)
   }
@@ -592,6 +607,7 @@ private fun ActionOverflowMenu(
   overflowed: Set<OverflowAction>,
   enabled: Boolean,
   runningTimer: RunningTimer?,
+  outputDevices: OutputDeviceUiState?,
   equalizerLabel: String,
   chaptersLabel: String,
   timerLabel: String,
@@ -610,7 +626,11 @@ private fun ActionOverflowMenu(
       }
     }
 
-    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+    DropdownMenu(
+      expanded = expanded,
+      onDismissRequest = { expanded = false },
+      shape = MaterialTheme.shapes.medium,
+    ) {
       if (OverflowAction.Timer in overflowed) {
         DropdownMenuItem(
           text = { Text(timerLabel) },

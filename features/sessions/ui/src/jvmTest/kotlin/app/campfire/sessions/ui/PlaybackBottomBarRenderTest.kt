@@ -13,6 +13,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -24,6 +25,7 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.PlaybackSettingsComponent
+import app.campfire.sessions.ui.playback.OutputDeviceUiState
 import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.test.FakePlaybackSettings
@@ -106,6 +108,26 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `the output device picker sits alongside volume when there is room`() {
+    render("bottom-bar-devices") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+        outputDevices = OutputDeviceUiState(
+          devices = listOf(
+            AudioDevice("MacBook Pro Speakers", "MacBook Pro Speakers"),
+            AudioDevice("Headphones", "Headphones"),
+          ),
+          selectedName = "Headphones",
+          selectedIsMissing = false,
+        ) {},
+      )
+    }
+  }
+
+  @Test
   fun `at the narrowest docked width the tools collapse into an overflow menu`() {
     // 840dp is where this bar takes over from the floating one, and the tool row cannot show
     // everything there — the volume button used to be crushed to nothing.
@@ -143,6 +165,7 @@ class PlaybackBottomBarRenderTest {
     bookTime: Duration,
     speed: Float = 1f,
     volume: VolumeUiState? = null,
+    outputDevices: OutputDeviceUiState? = null,
   ) {
     CampfireTheme(useDarkColors = false) {
       ContentWithOverlays(overlayHost = rememberOverlayHost()) {
@@ -158,6 +181,7 @@ class PlaybackBottomBarRenderTest {
             equalizer = EqualizerState.Unsupported,
             bookmarks = if (session == null) emptyList() else bookmarks,
             volume = volume,
+            outputDevices = outputDevices,
             session = session,
             onPlayPauseClick = {},
             onRewindClick = {},

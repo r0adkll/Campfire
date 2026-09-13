@@ -23,4 +23,13 @@ interface AudioOutputSettings {
    */
   var volume: Float
   fun observeVolume(): StateFlow<Float>
+
+  /**
+   * The name of the output device playback is pinned to, or null to follow the system default.
+   *
+   * A name rather than an identifier because Java Sound offers nothing else durable, and the pin
+   * is kept even when that device is absent so replugging it restores the choice.
+   */
+  var outputDeviceName: String?
+  fun observeOutputDeviceName(): StateFlow<String?>
 }

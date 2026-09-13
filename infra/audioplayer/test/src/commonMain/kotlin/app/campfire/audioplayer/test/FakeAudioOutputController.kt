@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.test
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioOutputController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,6 +17,8 @@ class FakeAudioOutputController(
   volume: Float = 1f,
   muted: Boolean = false,
   override val isSupported: Boolean = true,
+  override val supportsDeviceSelection: Boolean = false,
+  devices: List<AudioDevice> = emptyList(),
 ) : AudioOutputController {
 
   private val _volume = MutableStateFlow(volume)
@@ -32,5 +35,27 @@ class FakeAudioOutputController(
 
   override fun setMuted(muted: Boolean) {
     _isMuted.value = muted
+  }
+
+  private val _availableDevices = MutableStateFlow(devices)
+  override val availableDevices: StateFlow<List<AudioDevice>> = _availableDevices.asStateFlow()
+
+  private val _selectedDeviceName = MutableStateFlow<String?>(null)
+  override val selectedDeviceName: StateFlow<String?> = _selectedDeviceName.asStateFlow()
+
+  var refreshCount = 0
+    private set
+
+  override fun selectDevice(device: AudioDevice?) {
+    _selectedDeviceName.value = device?.name
+  }
+
+  override fun refreshDevices() {
+    refreshCount++
+  }
+
+  /** Simulates devices appearing or disappearing between refreshes. */
+  fun setDevices(devices: List<AudioDevice>) {
+    _availableDevices.value = devices
   }
 }

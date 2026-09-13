@@ -39,6 +39,7 @@ internal fun ActionRow(
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
   volumeContent: @Composable () -> Unit,
+  outputDeviceContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -62,6 +63,7 @@ internal fun ActionRow(
       speedContent = speedContent,
       timerContent = timerContent,
       volumeContent = volumeContent,
+      outputDeviceContent = outputDeviceContent,
       onEqualizerClick = onEqualizerClick,
       showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
@@ -81,6 +83,7 @@ internal fun ActionColumn(
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
   volumeContent: @Composable () -> Unit,
+  outputDeviceContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -103,6 +106,7 @@ internal fun ActionColumn(
       speedContent = speedContent,
       timerContent = timerContent,
       volumeContent = volumeContent,
+      outputDeviceContent = outputDeviceContent,
       onEqualizerClick = onEqualizerClick,
       showEqualizer = showEqualizer,
       onChapterListClick = onChapterListClick,
@@ -122,6 +126,7 @@ private fun ActionContent(
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
   volumeContent: @Composable () -> Unit,
+  outputDeviceContent: @Composable () -> Unit,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -229,5 +234,12 @@ private fun ActionContent(
     contentAlignment = Alignment.Center,
   ) {
     volumeContent()
+  }
+
+  Box(
+    modifier = actionModifier,
+    contentAlignment = Alignment.Center,
+  ) {
+    outputDeviceContent()
   }
 }

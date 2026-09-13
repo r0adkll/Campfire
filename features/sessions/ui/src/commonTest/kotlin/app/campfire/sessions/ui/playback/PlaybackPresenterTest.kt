@@ -3,6 +3,7 @@
 
 package app.campfire.sessions.ui.playback
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.test.FakeAudioOutputController
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayerHolder
@@ -167,6 +168,76 @@ class PlaybackPresenterTest {
       cancelAndIgnoreRemainingEvents()
     }
   }
+
+  @Test
+  fun `output device state exposes the devices and routes a selection`() = runTest {
+    val speakers = AudioDevice("Speakers", "Speakers")
+    val controller = FakeAudioOutputController(
+      supportsDeviceSelection = true,
+      devices = listOf(speakers),
+    )
+    val presenter = presenterWith(controller)
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = libraryItem())
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      presenter.present(expanded = false)
+    }.test {
+      val state = awaitItemMatching { it.outputDevices?.devices?.isNotEmpty() == true }
+      assertThat(state.outputDevices?.selectedName).isNull()
+      assertThat(state.outputDevices?.selectedIsMissing).isEqualTo(false)
+
+      state.outputDevices!!.eventSink(OutputDeviceUiEvent.SelectDevice(speakers))
+      assertThat(controller.selectedDeviceName.value).isEqualTo("Speakers")
+
+      state.outputDevices!!.eventSink(OutputDeviceUiEvent.Refresh)
+      assertThat(controller.refreshCount).isEqualTo(1)
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a pinned device that is gone reads as missing`() = runTest {
+    val controller = FakeAudioOutputController(supportsDeviceSelection = true, devices = emptyList())
+    controller.selectDevice(AudioDevice("Headphones", "Headphones"))
+    val presenter = presenterWith(controller)
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = libraryItem())
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      presenter.present(expanded = false)
+    }.test {
+      val state = awaitItemMatching { it.outputDevices?.selectedName != null }
+      assertThat(state.outputDevices?.selectedIsMissing).isEqualTo(true)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `no device picker where routing is unavailable`() = runTest {
+    val presenter = presenterWith(FakeAudioOutputController(supportsDeviceSelection = false))
+    sessionsRepository.currentSessionFlow.value = session(libraryItem = libraryItem())
+
+    moleculeFlow(RecompositionMode.Immediate) {
+      presenter.present(expanded = false)
+    }.test {
+      assertThat(awaitItem().outputDevices).isNull()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  private fun presenterWith(controller: FakeAudioOutputController) = PlaybackPresenter(
+    sessionQueue = sessionQueue,
+    sessionsRepository = sessionsRepository,
+    libraryItemValidator = libraryItemValidator,
+    mediaProgressRepository = mediaProgressRepository,
+    bookmarkRepository = bookmarkRepository,
+    playbackController = playbackController,
+    playbackSettings = playbackSettings,
+    audioPlayerHolder = audioPlayerHolder,
+    audioOutputController = controller,
+    themeSettings = themeSettings,
+    themeManager = themeManager,
+  )
 
   private suspend fun app.cash.turbine.ReceiveTurbine<PlaybackUiState>.awaitItemMatching(
     predicate: (PlaybackUiState) -> Boolean,

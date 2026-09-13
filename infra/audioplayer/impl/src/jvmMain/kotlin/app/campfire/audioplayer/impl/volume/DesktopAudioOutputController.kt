@@ -3,7 +3,10 @@
 
 package app.campfire.audioplayer.impl.volume
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioOutputController
+import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
+import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.AudioOutputSettings
@@ -29,7 +32,12 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class DesktopAudioOutputController(
   private val settings: AudioOutputSettings,
+  private val engineProviders: Set<DesktopAudioEngineProvider>,
 ) : AudioOutputController {
+
+  /** The engine that will actually play, so the picker reflects what it can reach. */
+  private val engine: DesktopAudioEngineProvider?
+    get() = DesktopEngineSelection.select(engineProviders, DesktopEngineSelection.requested())
 
   override val isSupported: Boolean = true
 
@@ -48,5 +56,21 @@ class DesktopAudioOutputController(
 
   override fun setMuted(muted: Boolean) {
     _isMuted.value = muted
+  }
+
+  override val supportsDeviceSelection: Boolean
+    get() = engine?.supportsDeviceSelection == true
+
+  private val _availableDevices = MutableStateFlow(emptyList<AudioDevice>())
+  override val availableDevices: StateFlow<List<AudioDevice>> = _availableDevices.asStateFlow()
+
+  override val selectedDeviceName: StateFlow<String?> = settings.observeOutputDeviceName()
+
+  override fun selectDevice(device: AudioDevice?) {
+    settings.outputDeviceName = device?.name
+  }
+
+  override fun refreshDevices() {
+    _availableDevices.value = engine?.audioDevices().orEmpty()
   }
 }

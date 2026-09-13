@@ -15,6 +15,7 @@ import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
+import app.campfire.audioplayer.impl.volume.AudioDeviceResolution
 import app.campfire.audioplayer.impl.volume.OutputGain
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -145,6 +146,9 @@ class DesktopAudioPlayer(
   private var muted = audioOutputController.isMuted.value
   private var fadeMultiplier = 1f
 
+  /** The pinned output device's name, or null to follow the system default. */
+  private var outputDeviceName: String? = audioOutputController.selectedDeviceName.value
+
   // endregion
 
   init {
@@ -161,6 +165,23 @@ class DesktopAudioPlayer(
         applyOutputGain()
       }
     }
+    scope.launch {
+      audioOutputController.selectedDeviceName.collect { name ->
+        outputDeviceName = name
+        applyOutputDevice()
+      }
+    }
+  }
+
+  /**
+   * Routes the engine to the pinned device, or to the system default when none is pinned or the
+   * pinned one is absent. Resolved against a fresh device list so an unplugged device falls back
+   * rather than failing the open.
+   */
+  private fun applyOutputDevice() {
+    val engine = engine ?: return
+    val device = AudioDeviceResolution.resolve(outputDeviceName, audioOutputController.availableDevices.value)
+    engine.setAudioDevice(device)
   }
 
   /** Recomputes the engine's gain from the user's volume, mute, and any running fade. */
@@ -392,8 +413,9 @@ class DesktopAudioPlayer(
         engine = created
         created.setRate(playbackSpeed.value)
         created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
-        // A new engine starts at unity; the user's volume lives in settings, not in here
+        // A new engine starts at unity on the system default; both live in settings, not in here
         applyOutputGain()
+        applyOutputDevice()
         // Subscribe before returning so an engine that emits synchronously from open() is heard
         eventsJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
           created.events.collect { onEngineEvent(it) }

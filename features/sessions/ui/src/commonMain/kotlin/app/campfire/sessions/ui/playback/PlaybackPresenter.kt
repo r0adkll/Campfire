@@ -90,6 +90,7 @@ class PlaybackPresenter(
     val itemValidation = observeItemValidation(currentSession)
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
     val volumeState = observeVolumeState()
+    val outputDeviceState = observeOutputDeviceState()
 
     return PlaybackUiState(
       session = currentSession.value,
@@ -100,6 +101,7 @@ class PlaybackPresenter(
       validation = itemValidation,
       playbackHistoryEnabled = playbackHistoryEnabled,
       volume = volumeState,
+      outputDevices = outputDeviceState,
     ) { event ->
       when (event) {
         PlaybackUiEvent.ClearSession -> {
@@ -478,6 +480,30 @@ class PlaybackPresenter(
       when (event) {
         is VolumeUiEvent.SetVolume -> audioOutputController.setVolume(event.volume)
         VolumeUiEvent.ToggleMute -> audioOutputController.toggleMuted()
+      }
+    }
+  }
+
+  /**
+   * The output device picker, or null where routing is not available — every platform but desktop,
+   * and desktop on Linux, where Java Sound cannot see the sinks the user's own settings name.
+   */
+  @Composable
+  private fun observeOutputDeviceState(): OutputDeviceUiState? {
+    if (!audioOutputController.supportsDeviceSelection) return null
+
+    val devices by audioOutputController.availableDevices.collectAsState()
+    val selectedName by audioOutputController.selectedDeviceName.collectAsState()
+
+    return OutputDeviceUiState(
+      devices = devices,
+      selectedName = selectedName,
+      selectedIsMissing = selectedName != null && devices.none { it.name == selectedName },
+    ) { event ->
+      when (event) {
+        is OutputDeviceUiEvent.SelectDevice -> audioOutputController.selectDevice(event.device)
+        // Enumerating is cheap and there is nothing to subscribe to, so the picker asks on open
+        OutputDeviceUiEvent.Refresh -> audioOutputController.refreshDevices()
       }
     }
   }
