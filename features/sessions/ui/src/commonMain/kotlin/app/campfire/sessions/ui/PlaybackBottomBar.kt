@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -74,6 +75,7 @@ import app.campfire.core.model.Session
 import app.campfire.sessions.ui.bottombar.BookTimeline
 import app.campfire.sessions.ui.bottombar.DesktopPlaybackActions
 import app.campfire.sessions.ui.composables.OutputDeviceControl
+import app.campfire.sessions.ui.composables.OutputDeviceMenuItems
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.composables.VolumeControl
@@ -97,6 +99,7 @@ import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_equalizer
 import campfire.features.sessions.ui.generated.resources.action_more
+import campfire.features.sessions.ui.generated.resources.action_output_device
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_remaining
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
@@ -631,46 +634,92 @@ private fun ActionOverflowMenu(
       onDismissRequest = { expanded = false },
       shape = MaterialTheme.shapes.medium,
     ) {
-      if (OverflowAction.Timer in overflowed) {
-        DropdownMenuItem(
-          text = { Text(timerLabel) },
-          leadingIcon = { Icon(CampfireIcons.Rounded.Timer, contentDescription = null) },
-          trailingIcon = runningTimer?.let {
-            {
-              RunningTimerText(
-                runningTimer = it,
-                endOfChapterText = stringResource(Res.string.label_end_of_chapter_short),
-                style = { MaterialTheme.typography.labelMedium },
-              )
-            }
-          },
-          onClick = {
-            expanded = false
-            onTimerClick()
-          },
-        )
-      }
-      if (OverflowAction.Equalizer in overflowed) {
-        DropdownMenuItem(
-          text = { Text(equalizerLabel) },
-          leadingIcon = { Icon(CampfireIcons.Rounded.Equalizer, contentDescription = null) },
-          onClick = {
-            expanded = false
-            onEqualizerClick()
-          },
-        )
-      }
-      if (OverflowAction.Chapters in overflowed) {
-        DropdownMenuItem(
-          text = { Text(chaptersLabel) },
-          leadingIcon = { Icon(CampfireIcons.Rounded.List, contentDescription = null) },
-          onClick = {
-            expanded = false
-            onChapterListClick()
-          },
-        )
-      }
+      ActionOverflowMenuItems(
+        overflowed = overflowed,
+        runningTimer = runningTimer,
+        outputDevices = outputDevices,
+        equalizerLabel = equalizerLabel,
+        chaptersLabel = chaptersLabel,
+        timerLabel = timerLabel,
+        onEqualizerClick = onEqualizerClick,
+        onChapterListClick = onChapterListClick,
+        onTimerClick = onTimerClick,
+        onChosen = { expanded = false },
+      )
     }
+  }
+}
+
+/**
+ * What the overflow button offers, split out from the menu itself so it can be rendered directly
+ * in tests — an [androidx.compose.ui.ImageComposeScene] draws the main scene only, and a
+ * `DropdownMenu`'s content lives in a popup layer it never captures.
+ */
+@Composable
+internal fun ActionOverflowMenuItems(
+  overflowed: Set<OverflowAction>,
+  runningTimer: RunningTimer?,
+  outputDevices: OutputDeviceUiState?,
+  equalizerLabel: String,
+  chaptersLabel: String,
+  timerLabel: String,
+  onEqualizerClick: () -> Unit,
+  onChapterListClick: () -> Unit,
+  onTimerClick: () -> Unit,
+  onChosen: () -> Unit,
+) {
+  // The device picker folds away first, so this is the usual route to it. Its own rows are
+  // reused rather than a menu nested inside a menu item.
+  if (outputDevices != null && OverflowAction.OutputDevice in overflowed) {
+    Text(
+      text = stringResource(Res.string.action_output_device),
+      style = MaterialTheme.typography.labelMedium,
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    )
+    OutputDeviceMenuItems(outputDevices, onChosen = onChosen)
+    HorizontalDivider()
+  }
+
+  if (OverflowAction.Timer in overflowed) {
+    DropdownMenuItem(
+      text = { Text(timerLabel) },
+      leadingIcon = { Icon(CampfireIcons.Rounded.Timer, contentDescription = null) },
+      trailingIcon = runningTimer?.let {
+        {
+          RunningTimerText(
+            runningTimer = it,
+            endOfChapterText = stringResource(Res.string.label_end_of_chapter_short),
+            style = { MaterialTheme.typography.labelMedium },
+          )
+        }
+      },
+      onClick = {
+        onChosen()
+        onTimerClick()
+      },
+    )
+  }
+
+  if (OverflowAction.Equalizer in overflowed) {
+    DropdownMenuItem(
+      text = { Text(equalizerLabel) },
+      leadingIcon = { Icon(CampfireIcons.Rounded.Equalizer, contentDescription = null) },
+      onClick = {
+        onChosen()
+        onEqualizerClick()
+      },
+    )
+  }
+
+  if (OverflowAction.Chapters in overflowed) {
+    DropdownMenuItem(
+      text = { Text(chaptersLabel) },
+      leadingIcon = { Icon(CampfireIcons.Rounded.List, contentDescription = null) },
+      onClick = {
+        onChosen()
+        onChapterListClick()
+      },
+    )
   }
 }
 

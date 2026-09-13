@@ -4,7 +4,9 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
@@ -143,6 +145,44 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `the folded device picker is offered in the overflow menu`() {
+    // At ordinary desktop widths the picker folds away, so the overflow is the route to it. The
+    // menu's content is rendered directly: a DropdownMenu draws into a popup layer that
+    // ImageComposeScene never captures, so clicking the button would prove nothing.
+    render("overflow-menu-with-devices", width = 360, height = 420) {
+      CampfireTheme(useDarkColors = false) {
+        Surface(Modifier.fillMaxSize()) {
+          Column {
+            ActionOverflowMenuItems(
+              overflowed = setOf(
+                OverflowAction.OutputDevice,
+                OverflowAction.Equalizer,
+                OverflowAction.Chapters,
+              ),
+              runningTimer = null,
+              outputDevices = OutputDeviceUiState(
+                devices = listOf(
+                  AudioDevice("MacBook Pro Speakers", "MacBook Pro Speakers"),
+                  AudioDevice("External Headphones", "External Headphones"),
+                ),
+                selectedName = "External Headphones",
+                selectedIsMissing = false,
+              ) {},
+              equalizerLabel = "Equalizer",
+              chaptersLabel = "Chapters",
+              timerLabel = "Sleep timer",
+              onEqualizerClick = {},
+              onChapterListClick = {},
+              onTimerClick = {},
+              onChosen = {},
+            )
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   fun `hovering a chapter tick shows its tooltip`() {
     render("bottom-bar-hover", beforeRender = { scene ->
       // Track spans [labelWidth + 16, width - labelWidth - 16] in dp; chapter 2 starts at 30/60
@@ -203,10 +243,11 @@ class PlaybackBottomBarRenderTest {
   private fun render(
     name: String,
     width: Int = WIDTH,
+    height: Int = HEIGHT,
     beforeRender: (ImageComposeScene) -> Unit = {},
     content: @Composable () -> Unit,
   ) {
-    ImageComposeScene(width = width * 2, height = HEIGHT * 2, density = Density(2f), content = content).use { scene ->
+    ImageComposeScene(width = width * 2, height = height * 2, density = Density(2f), content = content).use { scene ->
       scene.render()
       beforeRender(scene)
       val image = scene.render(nanoTime = 1_000_000_000L)
@@ -220,6 +261,7 @@ class PlaybackBottomBarRenderTest {
   private companion object {
     const val WIDTH = 1440
     const val NARROW_WIDTH = 840
+    const val MENU_HEIGHT = 420
     const val HEIGHT = 110
   }
 }
