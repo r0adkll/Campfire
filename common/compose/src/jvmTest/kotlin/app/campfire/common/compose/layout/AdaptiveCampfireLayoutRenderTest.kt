@@ -38,6 +38,7 @@ import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.EncodedImageFormat
@@ -94,6 +95,36 @@ class AdaptiveCampfireLayoutRenderTest {
     }
   }
 
+  @Test
+  fun `a hidden pane collects no drag at the window edge`() {
+    // Closed, the pane sits entirely off the trailing edge, so its leading-edge handle lands on
+    // the window border — where it used to swallow the drag for resizing the window itself.
+    var committed: Dp? = null
+    scene(
+      storedWidth = null,
+      onWidthChange = { committed = it },
+      showSupportingContent = false,
+    ).use { scene ->
+      scene.settle()
+      // Right on the window's trailing edge, a pixel in so the press lands inside the scene
+      val edgeX = WIDTH * DENSITY - 1f
+      val y = HEIGHT * DENSITY / 2f
+
+      scene.sendPointerEvent(PointerEventType.Move, Offset(edgeX, y))
+      scene.sendPointerEvent(PointerEventType.Press, Offset(edgeX, y), button = PointerButton.Primary)
+      var x = edgeX
+      repeat(5) {
+        x -= 30f * DENSITY
+        scene.sendPointerEvent(PointerEventType.Move, Offset(x, y))
+        scene.render()
+      }
+      scene.sendPointerEvent(PointerEventType.Release, Offset(x, y), button = PointerButton.Primary)
+      save("supporting-pane-hidden-drag", scene.render(nanoTime = 3_000_000_000L))
+
+      assertNull(committed, "a hidden pane should not have taken the drag")
+    }
+  }
+
   private fun renderAndMeasure(name: String, storedWidth: Dp?): Dp =
     scene(storedWidth, onWidthChange = {}).use { scene ->
       scene.settle()
@@ -102,16 +133,24 @@ class AdaptiveCampfireLayoutRenderTest {
       image.measurePaneWidth()
     }
 
-  private fun scene(storedWidth: Dp?, onWidthChange: (Dp) -> Unit) = ImageComposeScene(
+  private fun scene(
+    storedWidth: Dp?,
+    onWidthChange: (Dp) -> Unit,
+    showSupportingContent: Boolean = true,
+  ) = ImageComposeScene(
     width = (WIDTH * DENSITY).toInt(),
     height = (HEIGHT * DENSITY).toInt(),
     density = Density(DENSITY),
   ) {
-    Layout(storedWidth, onWidthChange)
+    Layout(storedWidth, onWidthChange, showSupportingContent)
   }
 
   @Composable
-  private fun Layout(storedWidth: Dp?, onWidthChange: (Dp) -> Unit) {
+  private fun Layout(
+    storedWidth: Dp?,
+    onWidthChange: (Dp) -> Unit,
+    showSupportingContent: Boolean = true,
+  ) {
     CampfireTheme(useDarkColors = false) {
       CompositionLocalProvider(
         LocalWindowSizeClass provides WindowSizeClass(minWidthDp = WIDTH, minHeightDp = HEIGHT),
@@ -136,7 +175,7 @@ class AdaptiveCampfireLayoutRenderTest {
               Text("Detail", color = Color.White)
             }
           },
-          showSupportingContent = true,
+          showSupportingContent = showSupportingContent,
           supportingContentWidth = storedWidth,
           onSupportingContentWidthChange = onWidthChange,
         )
