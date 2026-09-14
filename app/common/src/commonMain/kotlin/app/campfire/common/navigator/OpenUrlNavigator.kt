@@ -3,19 +3,20 @@
 
 package app.campfire.common.navigator
 
+import androidx.compose.ui.platform.UriHandler
 import app.campfire.common.screens.UrlScreen
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
 
 class OpenUrlNavigator(
   private val navigator: Navigator,
-  private val onOpenUrl: (String) -> Unit,
+  private val uriHandler: UriHandler,
 ) : Navigator by navigator {
 
   override fun goTo(screen: Screen): Boolean {
     return when (screen) {
       is UrlScreen -> {
-        onOpenUrl(screen.url)
+        uriHandler.openUri(screen.url)
         true
       }
       else -> navigator.goTo(screen)

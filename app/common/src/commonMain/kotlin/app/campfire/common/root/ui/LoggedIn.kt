@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -106,7 +107,6 @@ import org.jetbrains.compose.resources.stringResource
 internal fun LoggedInWindow(
   userComponent: UserComponent,
   onRootPop: () -> Unit,
-  onOpenUrl: (String) -> Unit,
   deepLink: DeepLink,
   settings: CampfireSettings,
   themeManager: ThemeManager,
@@ -139,8 +139,9 @@ internal fun LoggedInWindow(
     userComponent.sessionsRepository.observeCurrentSession()
   }.collectAsState(null)
 
-  val urlNavigator: Navigator = remember(navigator) {
-    OpenUrlNavigator(navigator, onOpenUrl)
+  val uriHandler = LocalUriHandler.current
+  val urlNavigator: Navigator = remember(navigator, uriHandler) {
+    OpenUrlNavigator(navigator, uriHandler)
   }
 
   // Remember an instance of the theme dispatcher
