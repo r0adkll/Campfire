@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.engine
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import kotlin.time.Duration
@@ -63,6 +64,13 @@ interface PlaybackEngine {
    * the engine's bands; implementations clamp to their own limits. Persists across [open] calls.
    */
   fun setEqualizer(enabled: Boolean, preampDb: Float, bandGainsDb: List<Float>)
+
+  /**
+   * Route output to [device], or back to the system default when null. Persists across [open]
+   * calls. Default no-op for engines that cannot choose — see
+   * [DesktopAudioEngineProvider.supportsDeviceSelection].
+   */
+  fun setAudioDevice(device: AudioDevice?) {}
 
   /** Release native resources. The engine must not be used afterwards. */
   fun release()

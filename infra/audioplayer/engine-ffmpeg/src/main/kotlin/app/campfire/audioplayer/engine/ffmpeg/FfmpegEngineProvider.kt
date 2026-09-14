@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.engine.ffmpeg
 
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.core.di.AppScope
@@ -16,4 +17,8 @@ class FfmpegEngineProvider : DesktopAudioEngineProvider {
   override val name: String = DesktopAudioEngineProvider.FFMPEG
   override val factory: PlaybackEngine.Factory = PlaybackEngine.Factory { FfmpegPlaybackEngine() }
   override val supportsHls: Boolean = true
+
+  override val supportsDeviceSelection: Boolean get() = JavaSoundDevices.supported
+
+  override fun audioDevices(): List<AudioDevice> = JavaSoundDevices.list()
 }

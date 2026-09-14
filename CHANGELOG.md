@@ -15,9 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop can stream large audiobooks over HLS, with the Streaming method setting now available there
 - Desktop windows between tablet and ultra-wide sizes get a collapsible navigation rail listing every destination, with the account and library switcher in its header and its expanded or collapsed state remembered
 - Desktop detail pane can be resized by dragging the handle on its edge, and the chosen width is remembered
+- Desktop playback bar has a volume slider and mute button for the app's own volume, kept separate from the system volume
+- Desktop can send playback to a specific audio output device instead of always following the system default (macOS and Windows)
 
 ### Changed
 
+- Desktop window can no longer be resized below a phone-sized layout
+- Desktop detail pane's resize handle no longer swallows the drag for resizing the window when the pane is hidden
 - Screens shown in the side detail pane now close with an X instead of showing a back arrow
 - Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
 - Desktop playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click

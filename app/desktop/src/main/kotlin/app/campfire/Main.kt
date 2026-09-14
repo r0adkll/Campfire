@@ -5,6 +5,7 @@ package app.campfire
 
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import app.campfire.core.navigation.DeepLink
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
 import java.awt.Desktop
+import java.awt.Dimension
 import java.awt.GraphicsEnvironment
 import java.net.URI
 import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
@@ -89,6 +91,12 @@ fun main() = application {
     },
 
   ) {
+    // Compose's WindowState carries no minimum, so the floor goes on the AWT window itself.
+    // Below a compact phone the adaptive layouts have nothing sensible left to do.
+    LaunchedEffect(window) {
+      window.minimumSize = Dimension(MinWindowWidth, MinWindowHeight)
+    }
+
     val component: WindowComponent = remember(applicationComponent) {
       ComponentHolder.component<WindowComponent.Factory>().create().also {
         ComponentHolder.components += it
@@ -121,6 +129,10 @@ fun main() = application {
     }
   }
 }
+
+/** The smallest the window may be shrunk to, in AWT units. */
+private const val MinWindowWidth = 450
+private const val MinWindowHeight = 800
 
 sealed class WindowSize private constructor(
   val width: Int,

@@ -94,7 +94,6 @@ class IosAudioPlayer(
   override val currentDuration: StateFlow<Duration> = player.currentDuration
 
   private var fadeJob: Job? = null
-  private var previousVolumeLevel: Float = 0f
 
   init {
     bark { "Initializing $this" }
@@ -272,15 +271,15 @@ class IosAudioPlayer(
   }
 
   override fun fadeToPause(duration: Duration, tickRate: Long): Job {
-    previousVolumeLevel = player.volume
     fadeJob?.cancel()
 
+    // Nothing else attenuates output here — there is no app-level volume on this platform, so
+    // the fade's multiplier is the whole gain and it releases back to unity on its own.
     return VolumeFadeController.fade(
       scope = scope,
       duration = duration,
       tickRate = tickRate,
-      getVolume = { player.volume },
-      setVolume = { player.volume = it },
+      setFade = { player.volume = it },
       onPause = { player.pause() },
     ).also { fadeJob = it }
   }
@@ -288,13 +287,6 @@ class IosAudioPlayer(
   override fun playPause() {
     if (state.value == AudioPlayer.State.Paused) {
       sleepTimerManager.onSessionStart()
-    }
-
-    // Reset volume if stored
-    if (player.volume == 0f && previousVolumeLevel > 0f) {
-      player.volume = previousVolumeLevel
-    } else if (player.volume == 0f) {
-      player.volume = 1f
     }
 
     player.playPause()

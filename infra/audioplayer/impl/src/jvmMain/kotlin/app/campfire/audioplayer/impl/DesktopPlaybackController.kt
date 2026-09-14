@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl
 
 import app.campfire.account.api.AccountManager
+import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
@@ -35,6 +36,7 @@ class DesktopPlaybackController(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val accountManager: AccountManager,
+  private val audioOutputController: AudioOutputController,
   private val engineProviders: Set<DesktopAudioEngineProvider>,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
@@ -90,6 +92,7 @@ class DesktopPlaybackController(
           sleepTimerManagerFactory = sleepTimerManagerFactory,
           engineFactory = engineFactory(),
           accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
+          audioOutputController = audioOutputController,
         ),
       )
     }

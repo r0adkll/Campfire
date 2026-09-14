@@ -4,7 +4,9 @@
 package app.campfire.sessions.ui
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
@@ -13,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.use
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -24,6 +27,8 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.PlaybackSettingsComponent
+import app.campfire.sessions.ui.playback.OutputDeviceUiState
+import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.test.FakePlaybackSettings
 import assertk.assertThat
@@ -81,6 +86,103 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `showing the app volume control`() {
+    render("bottom-bar-volume") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+      )
+    }
+  }
+
+  @Test
+  fun `showing the app volume control muted`() {
+    render("bottom-bar-volume-muted") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = true) {},
+      )
+    }
+  }
+
+  @Test
+  fun `the output device picker sits alongside volume when there is room`() {
+    render("bottom-bar-devices") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+        outputDevices = OutputDeviceUiState(
+          devices = listOf(
+            AudioDevice("MacBook Pro Speakers", "MacBook Pro Speakers"),
+            AudioDevice("Headphones", "Headphones"),
+          ),
+          selectedName = "Headphones",
+          selectedIsMissing = false,
+        ) {},
+      )
+    }
+  }
+
+  @Test
+  fun `at the narrowest docked width the tools collapse into an overflow menu`() {
+    // 840dp is where this bar takes over from the floating one, and the tool row cannot show
+    // everything there — the volume button used to be crushed to nothing.
+    render("bottom-bar-narrow", width = NARROW_WIDTH) {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        speed = 1.25f,
+        volume = VolumeUiState(volume = 0.7f, isMuted = false) {},
+      )
+    }
+  }
+
+  @Test
+  fun `the folded device picker is offered in the overflow menu`() {
+    // At ordinary desktop widths the picker folds away, so the overflow is the route to it. The
+    // menu's content is rendered directly: a DropdownMenu draws into a popup layer that
+    // ImageComposeScene never captures, so clicking the button would prove nothing.
+    render("overflow-menu-with-devices", width = 360, height = 420) {
+      CampfireTheme(useDarkColors = false) {
+        Surface(Modifier.fillMaxSize()) {
+          Column {
+            ActionOverflowMenuItems(
+              overflowed = setOf(
+                OverflowAction.OutputDevice,
+                OverflowAction.Equalizer,
+                OverflowAction.Chapters,
+              ),
+              runningTimer = null,
+              outputDevices = OutputDeviceUiState(
+                devices = listOf(
+                  AudioDevice("MacBook Pro Speakers", "MacBook Pro Speakers"),
+                  AudioDevice("External Headphones", "External Headphones"),
+                ),
+                selectedName = "External Headphones",
+                selectedIsMissing = false,
+              ) {},
+              equalizerLabel = "Equalizer",
+              chaptersLabel = "Chapters",
+              timerLabel = "Sleep timer",
+              onEqualizerClick = {},
+              onChapterListClick = {},
+              onTimerClick = {},
+              onChosen = {},
+            )
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   fun `hovering a chapter tick shows its tooltip`() {
     render("bottom-bar-hover", beforeRender = { scene ->
       // Track spans [labelWidth + 16, width - labelWidth - 16] in dp; chapter 2 starts at 30/60
@@ -97,7 +199,14 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Composable
-  private fun Bar(session: Session?, state: AudioPlayer.State, bookTime: Duration, speed: Float = 1f) {
+  private fun Bar(
+    session: Session?,
+    state: AudioPlayer.State,
+    bookTime: Duration,
+    speed: Float = 1f,
+    volume: VolumeUiState? = null,
+    outputDevices: OutputDeviceUiState? = null,
+  ) {
     CampfireTheme(useDarkColors = false) {
       ContentWithOverlays(overlayHost = rememberOverlayHost()) {
         Box(Modifier.fillMaxSize()) {
@@ -111,6 +220,8 @@ class PlaybackBottomBarRenderTest {
             runningTimer = null,
             equalizer = EqualizerState.Unsupported,
             bookmarks = if (session == null) emptyList() else bookmarks,
+            volume = volume,
+            outputDevices = outputDevices,
             session = session,
             onPlayPauseClick = {},
             onRewindClick = {},
@@ -131,10 +242,12 @@ class PlaybackBottomBarRenderTest {
 
   private fun render(
     name: String,
+    width: Int = WIDTH,
+    height: Int = HEIGHT,
     beforeRender: (ImageComposeScene) -> Unit = {},
     content: @Composable () -> Unit,
   ) {
-    ImageComposeScene(width = WIDTH * 2, height = HEIGHT * 2, density = Density(2f), content = content).use { scene ->
+    ImageComposeScene(width = width * 2, height = height * 2, density = Density(2f), content = content).use { scene ->
       scene.render()
       beforeRender(scene)
       val image = scene.render(nanoTime = 1_000_000_000L)
@@ -147,6 +260,8 @@ class PlaybackBottomBarRenderTest {
 
   private companion object {
     const val WIDTH = 1440
+    const val NARROW_WIDTH = 840
+    const val MENU_HEIGHT = 420
     const val HEIGHT = 110
   }
 }

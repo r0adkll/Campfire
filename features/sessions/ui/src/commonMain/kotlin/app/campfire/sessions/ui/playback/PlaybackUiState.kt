@@ -5,6 +5,7 @@ package app.campfire.sessions.ui.playback
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.model.Metadata
@@ -30,6 +31,10 @@ data class PlaybackUiState(
   val themeState: ThemeUiState,
   val validation: LibraryItemValidation,
   val playbackHistoryEnabled: Boolean,
+  /** Null on platforms with no app-level volume, where the control is not rendered at all. */
+  val volume: VolumeUiState?,
+  /** Null where output cannot be routed to a chosen device, including desktop on Linux. */
+  val outputDevices: OutputDeviceUiState?,
   val eventSink: (PlaybackUiEvent) -> Unit,
 )
 
@@ -48,6 +53,27 @@ data class PlayerUiState(
   val bookmarks: List<Bookmark>,
   val error: Throwable?,
   val eventSink: (PlayerUiEvent) -> Unit,
+)
+
+@Immutable
+data class VolumeUiState(
+  /** The slider's position, 0f..1f — not the gain, which the player derives from it. */
+  val volume: Float,
+  val isMuted: Boolean,
+  val eventSink: (VolumeUiEvent) -> Unit,
+)
+
+@Immutable
+data class OutputDeviceUiState(
+  val devices: List<AudioDevice>,
+  /** The pinned device's name, or null when following the system default. */
+  val selectedName: String?,
+  /**
+   * True when a device is pinned but not currently present, so playback fell back to the system
+   * default. The picker still shows it, disabled, so the pin is visible and can be cleared.
+   */
+  val selectedIsMissing: Boolean,
+  val eventSink: (OutputDeviceUiEvent) -> Unit,
 )
 
 @Immutable
@@ -102,6 +128,19 @@ sealed interface PlayerUiEvent {
   data object ClearTimer : PlayerUiEvent
   data class ChapterSelected(val chapter: Chapter) : PlayerUiEvent
   data class AudioTrackSelected(val audioTrack: AudioTrack) : PlayerUiEvent
+}
+
+@Stable
+sealed interface VolumeUiEvent {
+  data class SetVolume(val volume: Float) : VolumeUiEvent
+  data object ToggleMute : VolumeUiEvent
+}
+
+@Stable
+sealed interface OutputDeviceUiEvent {
+  /** Null selects the system default. */
+  data class SelectDevice(val device: AudioDevice?) : OutputDeviceUiEvent
+  data object Refresh : OutputDeviceUiEvent
 }
 
 @Stable

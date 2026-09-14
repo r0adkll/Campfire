@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
+import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.PlaybackController
@@ -62,6 +63,7 @@ class PlaybackPresenter(
   private val playbackController: PlaybackController,
   private val playbackSettings: PlaybackSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
+  private val audioOutputController: AudioOutputController,
   private val themeSettings: ThemeSettings,
   private val themeManager: ThemeManager,
 ) : Corked("PlaybackPresenter") {
@@ -87,6 +89,8 @@ class PlaybackPresenter(
     val themeState = observeThemeState(currentSession)
     val itemValidation = observeItemValidation(currentSession)
     val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
+    val volumeState = observeVolumeState()
+    val outputDeviceState = observeOutputDeviceState()
 
     return PlaybackUiState(
       session = currentSession.value,
@@ -96,6 +100,8 @@ class PlaybackPresenter(
       syncUiState = syncState,
       validation = itemValidation,
       playbackHistoryEnabled = playbackHistoryEnabled,
+      volume = volumeState,
+      outputDevices = outputDeviceState,
     ) { event ->
       when (event) {
         PlaybackUiEvent.ClearSession -> {
@@ -452,6 +458,52 @@ class PlaybackPresenter(
             audioPlayerHolder.currentPlayer.value?.seekTo(availableSync!!.targetTime)
           }
         }
+      }
+    }
+  }
+
+  /**
+   * The app's own volume, or null where there is none — Android and iOS leave volume to the
+   * system, and their [AudioOutputController] binding reports unsupported so nothing renders.
+   */
+  @Composable
+  private fun observeVolumeState(): VolumeUiState? {
+    if (!audioOutputController.isSupported) return null
+
+    val volume by audioOutputController.volume.collectAsState()
+    val isMuted by audioOutputController.isMuted.collectAsState()
+
+    return VolumeUiState(
+      volume = volume,
+      isMuted = isMuted,
+    ) { event ->
+      when (event) {
+        is VolumeUiEvent.SetVolume -> audioOutputController.setVolume(event.volume)
+        VolumeUiEvent.ToggleMute -> audioOutputController.toggleMuted()
+      }
+    }
+  }
+
+  /**
+   * The output device picker, or null where routing is not available — every platform but desktop,
+   * and desktop on Linux, where Java Sound cannot see the sinks the user's own settings name.
+   */
+  @Composable
+  private fun observeOutputDeviceState(): OutputDeviceUiState? {
+    if (!audioOutputController.supportsDeviceSelection) return null
+
+    val devices by audioOutputController.availableDevices.collectAsState()
+    val selectedName by audioOutputController.selectedDeviceName.collectAsState()
+
+    return OutputDeviceUiState(
+      devices = devices,
+      selectedName = selectedName,
+      selectedIsMissing = selectedName != null && devices.none { it.name == selectedName },
+    ) { event ->
+      when (event) {
+        is OutputDeviceUiEvent.SelectDevice -> audioOutputController.selectDevice(event.device)
+        // Enumerating is cheap and there is nothing to subscribe to, so the picker asks on open
+        OutputDeviceUiEvent.Refresh -> audioOutputController.refreshDevices()
       }
     }
   }
