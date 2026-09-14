@@ -2,6 +2,10 @@
 .gradle
 build/
 
+# Conveyor build output and the local root signing key
+output/
+defaults.conf
+
 # Signing information
 app/signing/campfire.keystore
 app/android/google-services.json

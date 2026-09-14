@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Campfire is published as a desktop app for macOS, Windows and Linux, with its own icon, signed and notarized on macOS so it opens without a Gatekeeper warning, and able to update itself. macOS 15 or later is required
 - Desktop on macOS shows the current chapter and cover art in Now Playing and responds to media keys, AirPods taps, and Control Center controls
 - Desktop on macOS adds playback controls to the Dock icon's menu
 - Desktop plays through a built-in audio engine, so VLC no longer needs to be installed

@@ -289,8 +289,10 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # The *release* variant, so the ProGuard configuration is exercised on every PR. A rules
+      # gap usually only shows at runtime, but a build failure here catches the rest.
       - name: Build Desktop App
-        run: ./gradlew --quiet :app:desktop:packageDistributionForCurrentOS
+        run: ./gradlew --quiet :app:desktop:packageReleaseDistributionForCurrentOS
 
       - name: Upload build outputs
         if: always()
