@@ -15,6 +15,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.UriHandler
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import app.campfire.android.di.ActivityComponent
@@ -83,15 +85,21 @@ class MainActivity : ComponentActivity() {
         deepLinkFlow
       }.collectAsState()
 
+      val uriHandler = remember {
+        object : UriHandler {
+          override fun openUri(uri: String) {
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(this@MainActivity, uri.toUri())
+          }
+        }
+      }
+
       CompositionLocalProvider(
         LocalToast provides toaster,
+        LocalUriHandler provides uriHandler,
       ) {
         component.campfireContent(
           ::finish,
-          { url: String ->
-            val intent = CustomTabsIntent.Builder().build()
-            intent.launchUrl(this@MainActivity, url.toUri())
-          },
           deepLink,
           Modifier,
         )
