@@ -223,6 +223,77 @@ jobs:
           LANE: ${{ github.event.release.prerelease && 'beta' || 'production' }}
           SUPPLY_JSON_KEY_DATA: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
 
+  # Builds and signs the macOS, Windows and Linux desktop packages and uploads them, along with
+  # the update metadata clients poll, to this GitHub release. Conveyor cross-builds and signs every
+  # machine from this one Linux runner — no Mac needed — so all four packages come from one run and
+  # share one update site. See docs/desktop-release.md for the credentials below.
+  #
+  # No-ops until CONVEYOR_SIGNING_KEY exists; macOS output is signed but unnotarized until the
+  # three APPLE_* secrets are set too.
+  desktop:
+    name: Build Desktop Packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check for Conveyor signing key
+        id: creds
+        env:
+          CONVEYOR_SIGNING_KEY: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+        run: |
+          if [ -n "$CONVEYOR_SIGNING_KEY" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::CONVEYOR_SIGNING_KEY is not set; skipping desktop packaging"
+          fi
+
+      - name: Set up JDK
+        if: steps.creds.outputs.present == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Gradle
+        if: steps.creds.outputs.present == 'true'
+        uses: gradle/actions/setup-gradle@v6
+
+      # conveyor.conf ships the shrunk jars this produces, not the raw classpath. Only the
+      # ProGuard step is needed — Conveyor jlinks its own JVM image, so building Compose's
+      # distributable here would be work thrown away. The version is
+      # pinned to the release tag through campfire.version rather
+      # than CAMPFIRE_VERSIONNAME, which the Android release-signing guard keys off and would
+      # fail this job for want of a keystore it never needs.
+      - name: Build Desktop Jars
+        if: steps.creds.outputs.present == 'true'
+        run: ./gradlew :app:desktop:proguardReleaseJars -Pcampfire.version=${{ github.event.release.tag_name }}
+        env:
+          CI: true
+
+      - name: Package and Upload to Release
+        if: steps.creds.outputs.present == 'true'
+        uses: hydraulic-software/conveyor/actions/build@v22.2
+        with:
+          command: make copied-site
+          signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
+          agree_to_license: 1
+          extra_flags: -Kapp.version=${{ github.event.release.tag_name }}
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          GITHUB_TOKEN: ${{ github.token }}
+          CI: true
+
+      - name: Upload build outputs
+        if: always() && steps.creds.outputs.present == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: desktop-build-outputs
+          path: output
+
   bump-version:
     name: Bump campfire.version
     needs: [ android-play, android-foss ]

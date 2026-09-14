@@ -4,6 +4,7 @@
 package app.campfire.di
 
 import androidx.compose.ui.unit.Density
+import app.campfire.BuildConfig
 import app.campfire.common.di.SharedAppComponent
 import app.campfire.config.FileSystemPreferences
 import app.campfire.core.app.ApplicationInfo
@@ -22,10 +23,10 @@ abstract class DesktopApplicationComponent : SharedAppComponent {
   @Provides
   fun provideApplicationId(): ApplicationInfo = ApplicationInfo(
     packageName = "app.campfire",
-    debugBuild = true,
+    debugBuild = BuildConfig.DEBUG,
     flavor = Flavor.Standard,
-    versionName = "1.0.0",
-    versionCode = 1,
+    versionName = BuildConfig.VERSION_NAME,
+    versionCode = BuildConfig.VERSION_CODE,
     osName = System.getProperty("os.name"),
     osVersion = System.getProperty("os.version"),
   )

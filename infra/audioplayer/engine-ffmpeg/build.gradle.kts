@@ -13,8 +13,6 @@ dependencies {
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.bytedeco.ffmpeg)
   implementation(libs.bytedeco.javacpp)
-  implementation(variantOf(libs.bytedeco.ffmpeg) { classifier(javacppPlatform) })
-  implementation(variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })
 
   implementation(libs.kimchi.annotations)
   implementation(libs.kotlininject.runtime)
@@ -22,12 +20,15 @@ dependencies {
   ksp(libs.kimchi.compiler)
 
   testImplementation(libs.bundles.test.common)
+  testRuntimeOnly(variantOf(libs.bytedeco.ffmpeg) { classifier(javacppPlatform) })
+  testRuntimeOnly(variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })
 }
 
 /**
- * The JavaCPP classifier whose natives ship: `campfire_javacpp_platform` when set (CI matrices
- * building for another architecture), otherwise the machine running the build. Desktop
- * distributions are per platform anyway — Compose has no universal binaries.
+ * The JavaCPP classifier the tests load natives from: `campfire_javacpp_platform` when set,
+ * otherwise the machine running the build. Only tests need a classifier resolved here — the
+ * shipped natives are declared per machine in `:app:desktop`, so that one Conveyor run can package
+ * every platform without the build host's natives leaking into all of them.
  */
 val javacppPlatform: String
   get() {
