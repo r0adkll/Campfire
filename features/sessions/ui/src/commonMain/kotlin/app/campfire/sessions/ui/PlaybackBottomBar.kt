@@ -25,10 +25,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,6 +67,7 @@ import app.campfire.common.compose.icons.rounded.List
 import app.campfire.common.compose.icons.rounded.MoreVert
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.ComponentHolder
@@ -79,6 +83,10 @@ import app.campfire.sessions.ui.composables.OutputDeviceMenuItems
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerText
 import app.campfire.sessions.ui.composables.VolumeControl
+import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
+import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
+import app.campfire.sessions.ui.playback.DefaultSheetColor
+import app.campfire.sessions.ui.playback.DefaultSheetContentColor
 import app.campfire.sessions.ui.playback.OutputDeviceUiState
 import app.campfire.sessions.ui.playback.PlaybackPresenterFactory
 import app.campfire.sessions.ui.playback.PlaybackUiState
@@ -149,38 +157,58 @@ fun PlaybackBottomBar(
   }
 }
 
+/**
+ * Re-themes the bar to the current item's cover palette, the same way the floating collapsed and
+ * expanded bars do, falling back to the app's own scheme when dynamic playback theming is off or
+ * nothing is playing.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun PlaybackBottomBar(
   uiState: PlaybackUiState,
   modifier: Modifier = Modifier,
 ) {
   val playerState = uiState.playerState
-  PlaybackBottomBarContent(
-    session = uiState.session,
-    state = playerState.state,
-    playbackSpeed = playerState.speed,
-    currentTime = playerState.time,
-    currentDuration = playerState.duration,
-    bookTime = playerState.bookTime,
-    currentMetadata = playerState.metadata,
-    runningTimer = playerState.timer,
-    equalizer = playerState.equalizer,
-    bookmarks = playerState.bookmarks,
-    volume = uiState.volume,
-    outputDevices = uiState.outputDevices,
-    onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
-    onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
-    onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
-    onSkipPreviousClick = { playerState.eventSink(PlayerUiEvent.PreviousClick) },
-    onSkipNextClick = { playerState.eventSink(PlayerUiEvent.NextClick) },
-    onSeekTo = { time -> playerState.eventSink(PlayerUiEvent.Seek.Position(time)) },
-    onTimerCleared = { playerState.eventSink(PlayerUiEvent.ClearTimer) },
-    onTimerSelected = { timer -> playerState.eventSink(PlayerUiEvent.TimerSelected(timer)) },
-    onChapterSelected = { chapter -> playerState.eventSink(PlayerUiEvent.ChapterSelected(chapter)) },
-    onAudioTrackSelected = { track -> playerState.eventSink(PlayerUiEvent.AudioTrackSelected(track)) },
-    onBookmarkSelected = { bookmark -> playerState.eventSink(PlayerUiEvent.BookmarkSelected(bookmark)) },
-    modifier = modifier,
-  )
+  MaterialExpressiveTheme(
+    colorScheme = uiState.themeState.theme?.colorScheme,
+  ) {
+    PlaybackBottomBarContent(
+      session = uiState.session,
+      containerColor = if (uiState.themeState.dynamicThemingEnabled) {
+        DefaultSheetColor
+      } else {
+        DefaultNonThemedSheetColor
+      },
+      contentColor = if (uiState.themeState.dynamicThemingEnabled) {
+        DefaultSheetContentColor
+      } else {
+        DefaultNonThemedContentColor
+      },
+      state = playerState.state,
+      playbackSpeed = playerState.speed,
+      currentTime = playerState.time,
+      currentDuration = playerState.duration,
+      bookTime = playerState.bookTime,
+      currentMetadata = playerState.metadata,
+      runningTimer = playerState.timer,
+      equalizer = playerState.equalizer,
+      bookmarks = playerState.bookmarks,
+      volume = uiState.volume,
+      outputDevices = uiState.outputDevices,
+      onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
+      onRewindClick = { playerState.eventSink(PlayerUiEvent.RewindClick) },
+      onForwardClick = { playerState.eventSink(PlayerUiEvent.FastForwardClick) },
+      onSkipPreviousClick = { playerState.eventSink(PlayerUiEvent.PreviousClick) },
+      onSkipNextClick = { playerState.eventSink(PlayerUiEvent.NextClick) },
+      onSeekTo = { time -> playerState.eventSink(PlayerUiEvent.Seek.Position(time)) },
+      onTimerCleared = { playerState.eventSink(PlayerUiEvent.ClearTimer) },
+      onTimerSelected = { timer -> playerState.eventSink(PlayerUiEvent.TimerSelected(timer)) },
+      onChapterSelected = { chapter -> playerState.eventSink(PlayerUiEvent.ChapterSelected(chapter)) },
+      onAudioTrackSelected = { track -> playerState.eventSink(PlayerUiEvent.AudioTrackSelected(track)) },
+      onBookmarkSelected = { bookmark -> playerState.eventSink(PlayerUiEvent.BookmarkSelected(bookmark)) },
+      modifier = modifier,
+    )
+  }
 }
 
 /** The bar itself, driven by plain values so it can be previewed and rendered in tests. */
@@ -214,6 +242,8 @@ internal fun PlaybackBottomBarContent(
   onBookmarkSelected: (Bookmark) -> Unit,
 
   modifier: Modifier = Modifier,
+  containerColor: Color = DefaultNonThemedSheetColor,
+  contentColor: Color = DefaultNonThemedContentColor,
 ) {
   val scope = rememberCoroutineScope()
   val hasSession = session != null
@@ -221,7 +251,8 @@ internal fun PlaybackBottomBarContent(
   val hasChapters = chapters.isNotEmpty() && session?.episodeId == null
 
   Surface(
-    color = MaterialTheme.colorScheme.secondaryContainer,
+    color = containerColor,
+    contentColor = contentColor,
     modifier = modifier,
   ) {
     Column {
