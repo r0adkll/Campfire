@@ -3,14 +3,11 @@
 
 package app.campfire.sessions.ui.playback.expanded
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -33,14 +30,10 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -61,17 +54,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.window.core.layout.WindowSizeClass
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -92,13 +81,14 @@ import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
-import app.campfire.sessions.ui.playback.expanded.composables.ClearQueueButton
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
+import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
+import app.campfire.sessions.ui.playback.expanded.composables.PlaybackQueueSwitcher
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
-import app.campfire.sessions.ui.playback.expanded.composables.QueueButton
-import app.campfire.sessions.ui.playback.expanded.composables.QueueContent
+import app.campfire.sessions.ui.playback.expanded.composables.PlayerCloseButton
 import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
+import app.campfire.sessions.ui.player.HostedMiniPlayerAction
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -113,7 +103,6 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
-import campfire.features.sessions.ui.generated.resources.action_close
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
 import campfire.features.sessions.ui.generated.resources.playback_error_message
@@ -121,8 +110,6 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
-import kotlin.time.Duration.Companion.milliseconds
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -182,6 +169,7 @@ internal fun SmallExpandedPlaybackBar(
   contentColor: Color = DefaultNonThemedContentColor,
 ) = with(sharedTransitionScope) {
   val windowSizeClass = LocalWindowSizeClass.current
+  val scope = rememberCoroutineScope()
 
   // Motion Stuff
   var dragOffset by remember { mutableStateOf(0f) }
@@ -249,108 +237,64 @@ internal fun SmallExpandedPlaybackBar(
       var showQueue by remember { mutableStateOf(false) }
       val hasQueue = queueState.queue.isNotEmpty()
 
-      TopAppBar(
-        title = {
-          androidx.compose.animation.AnimatedVisibility(
-            visible = hasQueue,
-            enter = fadeIn(),
-            exit = fadeOut(),
-          ) {
-            QueueButton(
-              checked = showQueue,
-              onCheckedChange = { showQueue = it },
-              buttonSize = ButtonDefaults.ExtraSmallContainerHeight,
-            )
-          }
+      ExpandedPlaybackTopBar(
+        hasQueue = hasQueue,
+        showQueue = showQueue,
+        onShowQueueChange = { showQueue = it },
+        onClearQueue = { queueState.eventSink(QueueUiEvent.ClearQueue) },
+        navigationIcon = { PlayerCloseButton(onClick = onClose) },
+        trailingActions = {
+          HostedMiniPlayerAction(onOpened = onClose)
+          CastButton()
         },
-        navigationIcon = {
-          val closeLabel = stringResource(Res.string.action_close)
-          IconButtonTooltip(text = closeLabel) {
-            IconButton(
-              onClick = onClose,
-            ) {
-              Icon(CampfireIcons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
-            }
-          }
-        },
-        actions = {
-          AnimatedContent(
-            targetState = hasQueue && showQueue,
-          ) { isQueueVisible ->
-            if (isQueueVisible) {
-              Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp),
-              ) {
-                ClearQueueButton(
-                  onConfirmClick = {
-                    queueState.eventSink(QueueUiEvent.ClearQueue)
-                  },
-                )
-              }
-            } else {
-              CastButton()
-            }
-          }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = containerColor,
-          navigationIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
-          actionIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
-        ),
+        containerColor = containerColor,
         windowInsets = if (windowSizeClass.isSupportingPaneEnabled) {
           WindowInsets(0.dp)
         } else {
           TopAppBarDefaults.windowInsets
         },
+        queueButtonSize = ButtonDefaults.ExtraSmallContainerHeight,
       )
 
-      AnimatedContent(
-        targetState = showQueue && hasQueue,
+      PlaybackQueueSwitcher(
+        showQueue = showQueue && hasQueue,
+        queueState = queueState,
+        onQueueItemChosen = { showQueue = false },
         modifier = Modifier.weight(1f),
-      ) { queue ->
-        if (queue) {
-          QueueContent(
-            queue = queueState.queue,
-            onItemClick = { entry ->
-              queueState.eventSink(QueueUiEvent.QueueItemClick(entry))
-              showQueue = false
-            },
-            onRemoveItem = { entry ->
-              queueState.eventSink(QueueUiEvent.RemoveQueueItem(entry))
-            },
-            onReorderItem = { fromKey, toKey ->
-              queueState.eventSink(QueueUiEvent.ReorderItem(fromKey, toKey))
-            },
-            onReorderStopped = {
-              queueState.eventSink(QueueUiEvent.ReorderStopped)
-            },
-            modifier = Modifier.fillMaxSize(),
-          )
-        } else {
-          SmallExpandedPlaybackContent(
-            navigator = navigator,
-            overlayHost = overlayHost,
-            session = session,
-            playerState = playerState,
-            syncState = syncState,
-            itemValidation = itemValidation,
-            playbackHistoryEnabled = playbackHistoryEnabled,
-            onClose = onClose,
-            windowSizeClass = windowSizeClass,
-            animatedVisibilityScope = animatedVisibilityScope,
-            modifier = Modifier.fillMaxSize(),
-          )
-        }
+      ) {
+        SmallExpandedPlaybackContent(
+          overlayHost = overlayHost,
+          session = session,
+          playerState = playerState,
+          syncState = syncState,
+          itemValidation = itemValidation,
+          playbackHistoryEnabled = playbackHistoryEnabled,
+          onItemClick = { clicked ->
+            scope.launch {
+              onClose()
+              delay(ItemNavigationDelay)
+              navigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = clicked.libraryItem.id,
+                  episodeId = clicked.episodeId,
+                ),
+              )
+            }
+          },
+          animatedVisibilityScope = animatedVisibilityScope,
+          modifier = Modifier.fillMaxSize(),
+        )
       }
     }
   }
 }
 
+/**
+ * The landscape-phone player body: cover and titles on the left, transport and seek bar in the
+ * middle, tools down the right. The caller owns the surface, top bar and insets.
+ */
 @Composable
 private fun SharedTransitionScope.SmallExpandedPlaybackContent(
-  navigator: Navigator,
   overlayHost: OverlayHost,
 
   session: Session?,
@@ -359,14 +303,11 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   itemValidation: LibraryItemValidation,
   playbackHistoryEnabled: Boolean,
 
-  onClose: () -> Unit,
+  onItemClick: (Session) -> Unit,
 
-  windowSizeClass: WindowSizeClass,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
 ) {
-  val scope = rememberCoroutineScope()
-
   val interactionSource = remember { MutableInteractionSource() }
   val isPressed by interactionSource.collectIsPressedAsState()
   val isDragged by interactionSource.collectIsDraggedAsState()
@@ -381,12 +322,11 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         .weight(1f),
     ) {
       this@SmallExpandedPlaybackContent.ItemMetadata(
-        navigator = navigator,
         playerState = playerState,
         session = session,
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
-        onClose = onClose,
+        onItemClick = onItemClick,
         modifier = Modifier
           .fillMaxHeight()
           .weight(0.8f),
@@ -404,7 +344,6 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
       )
 
       PlaybackOptionsColumn(
-        scope = scope,
         overlayHost = overlayHost,
         session = session,
         playerState = playerState,
@@ -415,18 +354,16 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   }
 }
 
+/** The cover, titles and chapter warning down the left of the wide layouts. */
 @Composable
-private fun SharedTransitionScope.ItemMetadata(
-  navigator: Navigator,
+internal fun SharedTransitionScope.ItemMetadata(
   playerState: PlayerUiState,
   session: Session?,
   itemValidation: LibraryItemValidation,
   animatedVisibilityScope: AnimatedVisibilityScope,
-  onClose: () -> Unit,
+  onItemClick: (Session) -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  val scope = rememberCoroutineScope()
-
   Column(
     modifier = modifier,
     horizontalAlignment = Alignment.CenterHorizontally,
@@ -444,17 +381,7 @@ private fun SharedTransitionScope.ItemMetadata(
         .padding(horizontal = 16.dp)
         .aspectRatio(1f)
         .clickable {
-          if (session == null) return@clickable
-          scope.launch {
-            onClose()
-            delay(350.milliseconds)
-            navigator.goTo(
-              LibraryItemScreen(
-                libraryItemId = session.libraryItem.id,
-                episodeId = session.episodeId,
-              ),
-            )
-          }
+          session?.let(onItemClick)
         },
     )
 
@@ -503,15 +430,22 @@ private fun SharedTransitionScope.ItemMetadata(
   }
 }
 
+/**
+ * Error and sync notices, the transport, the book-time readout and the seek bar, stacked and
+ * centred. [buttonSize] scales the transport; the play button's extra width scales with it.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ItemActions(
+internal fun ItemActions(
   session: Session?,
   playerState: PlayerUiState,
   syncState: SyncUiState,
   isInteracting: Boolean,
   interactionSource: MutableInteractionSource,
   modifier: Modifier = Modifier,
+  buttonSize: Dp = SmallTransportButtonSize,
+  /** Whether the whole-book time-left readout sits above the seek bar; off where height is short. */
+  showBookTime: Boolean = true,
 ) {
   Column(
     modifier = modifier,
@@ -562,9 +496,9 @@ private fun ItemActions(
     PlaybackActions(
       state = playerState.state,
       isInteracting = isInteracting,
-      buttonSize = 72.dp,
+      buttonSize = buttonSize,
       buttonShape = MaterialTheme.shapes.largeIncreased,
-      playButtonExtraWidth = 20.dp,
+      playButtonExtraWidth = buttonSize * PlayButtonExtraWidthFraction,
       onSkipPreviousClick = {
         playerState.eventSink(PlayerUiEvent.PreviousClick)
       },
@@ -584,7 +518,7 @@ private fun ItemActions(
 
     Spacer(Modifier.height(8.dp))
 
-    if (playerState.bookTimeEnabled && session?.episodeId == null) {
+    if (showBookTime && playerState.bookTimeEnabled && session?.episodeId == null) {
       BookTimeProgressIndicator(session, playerState)
       Spacer(Modifier.height(4.dp))
     }
@@ -604,14 +538,59 @@ private fun ItemActions(
 
 @Composable
 private fun PlaybackOptionsColumn(
-  scope: CoroutineScope,
   overlayHost: OverlayHost,
   session: Session?,
   playerState: PlayerUiState,
   playbackHistoryEnabled: Boolean,
   modifier: Modifier = Modifier,
 ) {
+  val actions = rememberPlaybackOptionActions(
+    overlayHost = overlayHost,
+    session = session,
+    playerState = playerState,
+  )
   ActionColumn(
+    onBookmarksClick = actions.onBookmarksClick,
+    speedContent = actions.speedContent,
+    timerContent = actions.timerContent,
+    // No volume or output-device slots: this layout is for landscape phones, and an app-level
+    // volume is desktop-only. A desktop window cannot reach it either — it needs isLandscapePhone
+    // (so, at least the Expanded width), and desktop only uses this bar *below* that width.
+    onEqualizerClick = actions.onEqualizerClick,
+    showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
+    onChapterListClick = actions.onChapterListClick,
+    showChapters = session?.episodeId == null,
+    onDescriptionClick = actions.onDescriptionClick,
+    showDescription = session?.episodeId != null,
+    onHistoryClick = actions.onHistoryClick,
+    showHistory = playbackHistoryEnabled,
+    modifier = modifier,
+  )
+}
+
+/**
+ * The tool actions' behaviour — each opens its sheet over [OverlayHost] and feeds the result back
+ * into the player — separated from their arrangement, so the column down the side of a landscape
+ * phone and the one down the side of the dedicated player wire up identically.
+ */
+internal class PlaybackOptionActions(
+  val onBookmarksClick: () -> Unit,
+  val speedContent: @Composable () -> Unit,
+  val timerContent: @Composable () -> Unit,
+  val onEqualizerClick: () -> Unit,
+  val onChapterListClick: () -> Unit,
+  val onDescriptionClick: () -> Unit,
+  val onHistoryClick: () -> Unit,
+)
+
+@Composable
+internal fun rememberPlaybackOptionActions(
+  overlayHost: OverlayHost,
+  session: Session?,
+  playerState: PlayerUiState,
+): PlaybackOptionActions {
+  val scope = rememberCoroutineScope()
+  return PlaybackOptionActions(
     onBookmarksClick = {
       scope.launch {
         when (val result = overlayHost.showBookmarksBottomSheet(session!!.libraryItem.id)) {
@@ -656,17 +635,11 @@ private fun PlaybackOptionsColumn(
         },
       )
     },
-    // Empty: this layout is for landscape phones, and an app-level volume is desktop-only. A
-    // desktop window cannot reach it either — it needs isLandscapePhone (so, at least the
-    // Expanded width), and desktop only uses this bar *below* that width.
-    volumeContent = {},
-    outputDeviceContent = {},
     onEqualizerClick = {
       scope.launch {
         overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)
       }
     },
-    showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
     onChapterListClick = {
       if (session!!.libraryItem.media.chapters.isNotEmpty()) {
         scope.launch {
@@ -692,9 +665,8 @@ private fun PlaybackOptionsColumn(
         }
       }
     },
-    showChapters = session?.episodeId == null,
     onDescriptionClick = {
-      val episode = session?.episode ?: return@ActionColumn
+      val episode = session?.episode ?: return@PlaybackOptionActions
       scope.launch {
         overlayHost.showEpisodeDescriptionBottomSheet(
           episode = episode,
@@ -704,7 +676,6 @@ private fun PlaybackOptionsColumn(
         )
       }
     },
-    showDescription = session?.episodeId != null,
     onHistoryClick = {
       scope.launch {
         val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
@@ -714,7 +685,11 @@ private fun PlaybackOptionsColumn(
         }
       }
     },
-    showHistory = playbackHistoryEnabled,
-    modifier = modifier,
   )
 }
+
+/** The landscape-phone transport size; also the floor for the wide layout's scaled one. */
+internal val SmallTransportButtonSize = 72.dp
+
+/** How much wider than tall the play button is, at any transport size. */
+private const val PlayButtonExtraWidthFraction = 0.28f

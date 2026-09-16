@@ -41,8 +41,13 @@ object DeepLinkKeys {
 sealed interface DeepLink {
   data object None : DeepLink
 
+  /**
+   * Open an item's detail screen. [nonce] makes repeat requests for the same item distinct, so
+   * a host that hands these over as state (the desktop mini-player) can re-open it.
+   */
   data class ItemDetail(
     val libraryItemId: LibraryItemId,
+    val nonce: Long = 0L,
   ) : DeepLink
 
   /**

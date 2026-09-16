@@ -40,6 +40,35 @@ class ActionOverflowTest {
   }
 
   @Test
+  fun `the mini-player toggle folds with the first tier`() {
+    // Room for everything without the toggle; with it, the whole optional set has to fold —
+    // the toggle included, since the mini window carries its own way back
+    val width = 372.dp
+    assertThat(
+      actionOverflow(available = width, hasEqualizer = true, hasChapters = true, timerRunning = false),
+    ).isEmpty()
+    assertThat(
+      actionOverflow(
+        available = width,
+        hasEqualizer = true,
+        hasChapters = true,
+        timerRunning = false,
+        hasMiniPlayer = true,
+      ),
+    ).containsExactlyInAnyOrder(OverflowAction.MiniPlayer, OverflowAction.Equalizer, OverflowAction.Chapters)
+
+    assertThat(
+      actionOverflow(
+        available = 420.dp,
+        hasEqualizer = true,
+        hasChapters = true,
+        timerRunning = false,
+        hasMiniPlayer = true,
+      ),
+    ).isEmpty()
+  }
+
+  @Test
   fun `a running timer takes its countdown width into account`() {
     // The same width that fits a stopped timer cannot fit the running pill, so it folds sooner
     val width = 380.dp

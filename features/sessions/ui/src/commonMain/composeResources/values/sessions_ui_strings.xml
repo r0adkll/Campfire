@@ -113,6 +113,8 @@
   <string name="action_volume">Volume</string>
   <string name="action_more">More</string>
   <string name="action_output_device">Output device</string>
+  <string name="action_open_mini_player">Open mini player</string>
+  <string name="action_return_to_window">Return player to main window</string>
   <string name="output_device_system_default">System Default</string>
   <string name="output_device_unavailable">Unavailable</string>
   <string name="action_mute">Mute</string>

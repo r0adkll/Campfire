@@ -6,10 +6,14 @@ package app.campfire
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.toPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -22,6 +26,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
 import app.campfire.common.compose.extensions.area
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Extras
@@ -32,6 +38,8 @@ import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
+import app.campfire.sessions.ui.player.LocalMiniPlayerHost
+import app.campfire.sessions.ui.player.MiniPlayerHost
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
@@ -83,6 +91,41 @@ fun main() = application {
     position = WindowPosition.Aligned(Alignment.Center),
   )
 
+  val component: WindowComponent = remember(applicationComponent) {
+    ComponentHolder.component<WindowComponent.Factory>().create().also {
+      ComponentHolder.components += it
+    }
+  }
+
+  // The mini-player is a second window, so what opens and closes it has to live above both. Its
+  // window state is kept here too, so it reopens where the user last left it.
+  var miniPlayerOpen by remember { mutableStateOf(false) }
+  val miniPlayerHost = remember {
+    object : MiniPlayerHost {
+      override val isOpen: Boolean get() = miniPlayerOpen
+
+      override fun open() {
+        Analytics.send(ActionEvent("mini_player", "opened"))
+        miniPlayerOpen = true
+      }
+
+      override fun close() {
+        Analytics.send(ActionEvent("mini_player", "closed"))
+        miniPlayerOpen = false
+      }
+    }
+  }
+  val miniPlayerState = rememberWindowState(
+    width = MiniPlayerDefaultWidth.dp,
+    height = MiniPlayerDefaultHeight.dp,
+    position = WindowPosition.Aligned(Alignment.BottomEnd),
+  )
+
+  // Requests from the mini-player that the main window has to act on: it cannot navigate the
+  // main window directly, so it hands over a deep link and the main window is brought forward.
+  var mainWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+  var deepLink by remember { mutableStateOf<DeepLink>(DeepLink.None) }
+
   Window(
     title = "Campfire",
     icon = remember(appIcon) { appIcon.toPainter() },
@@ -104,12 +147,7 @@ fun main() = application {
     // Below a compact phone the adaptive layouts have nothing sensible left to do.
     LaunchedEffect(window) {
       window.minimumSize = Dimension(MinWindowWidth, MinWindowHeight)
-    }
-
-    val component: WindowComponent = remember(applicationComponent) {
-      ComponentHolder.component<WindowComponent.Factory>().create().also {
-        ComponentHolder.components += it
-      }
+      mainWindow = window
     }
 
     val uriHandler = remember {
@@ -127,14 +165,32 @@ fun main() = application {
 
     CompositionLocalProvider(
       LocalUriHandler provides uriHandler,
+      LocalMiniPlayerHost provides miniPlayerHost,
     ) {
       component.campfireContent(
         { exitApplication() },
         WindowInsets(top = 12.dp),
-        DeepLink.None,
+        deepLink,
         Modifier,
       )
     }
+  }
+
+  if (miniPlayerOpen) {
+    MiniPlayerWindow(
+      state = miniPlayerState,
+      icon = remember(appIcon) { appIcon.toPainter() },
+      content = component.miniPlayerContent,
+      onClose = { miniPlayerHost.close() },
+      onItemClick = { libraryItemId ->
+        deepLink = DeepLink.ItemDetail(libraryItemId, nonce = System.nanoTime())
+        windowState.isMinimized = false
+        mainWindow?.let { main ->
+          main.toFront()
+          main.requestFocus()
+        }
+      },
+    )
   }
 }
 

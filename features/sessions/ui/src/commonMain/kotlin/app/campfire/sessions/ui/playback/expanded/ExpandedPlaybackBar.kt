@@ -3,15 +3,12 @@
 
 package app.campfire.sessions.ui.playback.expanded
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -38,14 +35,11 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -67,19 +61,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.window.core.layout.WindowSizeClass
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
-import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -104,15 +95,16 @@ import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
-import app.campfire.sessions.ui.playback.expanded.composables.ClearQueueButton
 import app.campfire.sessions.ui.playback.expanded.composables.DefaultThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
+import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
+import app.campfire.sessions.ui.playback.expanded.composables.PlaybackQueueSwitcher
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
-import app.campfire.sessions.ui.playback.expanded.composables.QueueButton
-import app.campfire.sessions.ui.playback.expanded.composables.QueueContent
+import app.campfire.sessions.ui.playback.expanded.composables.PlayerCloseButton
 import app.campfire.sessions.ui.playback.expanded.composables.SmallThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
+import app.campfire.sessions.ui.player.HostedMiniPlayerAction
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -127,7 +119,6 @@ import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
 import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
 import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
-import campfire.features.sessions.ui.generated.resources.action_close
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
 import campfire.features.sessions.ui.generated.resources.playback_error_message
@@ -148,6 +139,9 @@ internal val LargeCoverImageSize = 188.dp
 
 internal const val FlingThreshold = 4000f
 internal const val TranslationThreshold = 0.75f
+
+/** How long the collapse animation gets to play before the item screen is pushed on top of it. */
+internal val ItemNavigationDelay = 350.milliseconds
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -208,6 +202,7 @@ internal fun ExpandedPlaybackBar(
   contentColor: Color = DefaultNonThemedContentColor,
 ) = with(sharedTransitionScope) {
   val windowSizeClass = LocalWindowSizeClass.current
+  val scope = rememberCoroutineScope()
 
   // Motion Stuff
   var dragOffset by remember { mutableStateOf(0f) }
@@ -275,102 +270,55 @@ internal fun ExpandedPlaybackBar(
       var showQueue by remember { mutableStateOf(false) }
       val hasQueue = queueState.queue.isNotEmpty()
 
-      TopAppBar(
-        title = {
-          androidx.compose.animation.AnimatedVisibility(
-            visible = hasQueue,
-            enter = fadeIn(),
-            exit = fadeOut(),
-          ) {
-            QueueButton(
-              checked = showQueue,
-              onCheckedChange = { showQueue = it },
-              buttonSize = ButtonDefaults.MinHeight,
-            )
-          }
+      ExpandedPlaybackTopBar(
+        hasQueue = hasQueue,
+        showQueue = showQueue,
+        onShowQueueChange = { showQueue = it },
+        onClearQueue = { queueState.eventSink(QueueUiEvent.ClearQueue) },
+        navigationIcon = { PlayerCloseButton(onClick = onClose) },
+        trailingActions = {
+          HostedMiniPlayerAction(onOpened = onClose)
+          CastButton()
         },
-        navigationIcon = {
-          val closeLabel = stringResource(Res.string.action_close)
-          IconButtonTooltip(text = closeLabel) {
-            IconButton(
-              onClick = onClose,
-            ) {
-              Icon(CampfireIcons.Rounded.KeyboardArrowDown, contentDescription = closeLabel)
-            }
-          }
-        },
-        actions = {
-          AnimatedContent(
-            targetState = hasQueue && showQueue,
-          ) { isQueueVisible ->
-            if (isQueueVisible) {
-              Row(
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 8.dp),
-              ) {
-                ClearQueueButton(
-                  onConfirmClick = {
-                    queueState.eventSink(QueueUiEvent.ClearQueue)
-                  },
-                )
-              }
-            } else {
-              CastButton()
-            }
-          }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-          containerColor = containerColor,
-          navigationIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
-          actionIconContentColor = MaterialTheme.colorScheme.contentColorFor(containerColor),
-        ),
+        containerColor = containerColor,
         windowInsets = if (windowSizeClass.isSupportingPaneEnabled) {
           WindowInsets(0.dp)
         } else {
           TopAppBarDefaults.windowInsets
         },
+        queueButtonSize = ButtonDefaults.MinHeight,
       )
 
-      AnimatedContent(
-        targetState = showQueue && hasQueue,
+      PlaybackQueueSwitcher(
+        showQueue = showQueue && hasQueue,
+        queueState = queueState,
+        onQueueItemChosen = { showQueue = false },
         modifier = Modifier.weight(1f),
-      ) { queue ->
-        if (queue) {
-          QueueContent(
-            queue = queueState.queue,
-            onItemClick = { entry ->
-              queueState.eventSink(QueueUiEvent.QueueItemClick(entry))
-              showQueue = false
-            },
-            onRemoveItem = { entry ->
-              queueState.eventSink(QueueUiEvent.RemoveQueueItem(entry))
-            },
-            onReorderItem = { fromKey, toKey ->
-              queueState.eventSink(QueueUiEvent.ReorderItem(fromKey, toKey))
-            },
-            onReorderStopped = {
-              queueState.eventSink(QueueUiEvent.ReorderStopped)
-            },
-            modifier = Modifier.fillMaxSize(),
-          )
-        } else {
-          ExpandedPlaybackContent(
-            navigator = navigator,
-            overlayHost = overlayHost,
-            session = session,
-            playerState = playerState,
-            syncState = syncState,
-            itemValidation = itemValidation,
-            playbackHistoryEnabled = playbackHistoryEnabled,
-            volumeState = volumeState,
-            outputDeviceState = outputDeviceState,
-            onClose = onClose,
-            windowSizeClass = windowSizeClass,
-            animatedVisibilityScope = animatedVisibilityScope,
-            modifier = Modifier.fillMaxSize(),
-          )
-        }
+      ) {
+        ExpandedPlaybackContent(
+          overlayHost = overlayHost,
+          session = session,
+          playerState = playerState,
+          syncState = syncState,
+          itemValidation = itemValidation,
+          playbackHistoryEnabled = playbackHistoryEnabled,
+          volumeState = volumeState,
+          outputDeviceState = outputDeviceState,
+          onItemClick = { clicked ->
+            scope.launch {
+              onClose()
+              delay(ItemNavigationDelay)
+              navigator.goTo(
+                LibraryItemScreen(
+                  libraryItemId = clicked.libraryItem.id,
+                  episodeId = clicked.episodeId,
+                ),
+              )
+            }
+          },
+          animatedVisibilityScope = animatedVisibilityScope,
+          modifier = Modifier.fillMaxSize(),
+        )
       }
 
       Spacer(Modifier.navigationBarsPadding())
@@ -378,9 +326,13 @@ internal fun ExpandedPlaybackBar(
   }
 }
 
+/**
+ * The tall player body: cover, titles, seek bar, transport, and the tool row. Shared with the
+ * dedicated player, so it takes no chrome of its own — the caller owns the surface, top bar and
+ * insets. [onItemClick] receives the session whose cover was tapped.
+ */
 @Composable
-private fun SharedTransitionScope.ExpandedPlaybackContent(
-  navigator: Navigator,
+internal fun SharedTransitionScope.ExpandedPlaybackContent(
   overlayHost: OverlayHost,
 
   session: Session?,
@@ -391,9 +343,8 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
   volumeState: VolumeUiState?,
   outputDeviceState: OutputDeviceUiState?,
 
-  onClose: () -> Unit,
+  onItemClick: (Session) -> Unit,
 
-  windowSizeClass: WindowSizeClass,
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
 ) {
@@ -425,17 +376,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
             )
             .aspectRatio(1f)
             .clickable {
-              if (session == null) return@clickable
-              scope.launch {
-                onClose()
-                delay(350.milliseconds)
-                navigator.goTo(
-                  LibraryItemScreen(
-                    libraryItemId = session.libraryItem.id,
-                    episodeId = session.episodeId,
-                  ),
-                )
-              }
+              session?.let(onItemClick)
             },
         )
 
@@ -626,12 +567,8 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
           },
         )
       },
-      volumeContent = {
-        volumeState?.let { VolumeControl(state = it) }
-      },
-      outputDeviceContent = {
-        outputDeviceState?.let { OutputDeviceControl(state = it) }
-      },
+      volumeContent = volumeState?.let { { VolumeControl(state = it) } },
+      outputDeviceContent = outputDeviceState?.let { { OutputDeviceControl(state = it) } },
       onEqualizerClick = {
         scope.launch {
           overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)
@@ -686,6 +623,7 @@ private fun SharedTransitionScope.ExpandedPlaybackContent(
         }
       },
       showHistory = playbackHistoryEnabled,
+      modifier = Modifier.height(72.dp),
     )
   }
 }
