@@ -33,23 +33,27 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
     return build(session.libraryItem)
   }
 
+  /**
+   * True when [session] plays as one media item spanning the whole book: a routed HLS stream,
+   * or a single audio file segmented by multiple chapters. Chapter semantics for these queues
+   * are derived from the absolute position rather than media-item boundaries.
+   */
+  fun isSingleItemQueue(session: Session): Boolean {
+    if (session.episode != null) return false
+    return session.hlsStreamUrl != null || isSingleFileWithChapters(session.libraryItem)
+  }
+
+  private fun isSingleFileWithChapters(item: LibraryItem): Boolean {
+    return item.media.tracks.size == 1 && item.media.chapters.size > 1
+  }
+
   private fun buildHlsStream(session: Session, streamUrl: String): MediaItem {
     val media = session.libraryItem.media
     return MediaItem(
       id = "${media.id}_hls",
       uri = streamUrl,
       mimeType = "application/x-mpegURL",
-      metadata = MediaItem.Metadata(
-        id = 0,
-        title = media.metadata.title,
-        artist = media.metadata.authorName,
-        description = media.metadata.description ?: "",
-        subtitle = media.metadata.subtitle,
-        albumTitle = media.metadata.title,
-        artworkUri = media.coverImageUrl,
-        durationMs = session.duration.inWholeMilliseconds,
-        libraryItemId = session.libraryItem.id,
-      ),
+      metadata = createBookMetadata(media, session.libraryItem.id, session.duration.inWholeMilliseconds),
     )
   }
 
@@ -117,38 +121,21 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       }
     }
 
-    // If there is only one track, then this is likely the other common setup where one track (i.e File)
-    // is segmented by N-Chapters. Here we can make the assumption to just
-    if (audioTracks.size == 1) {
+    // If there is only one track, then this is the other common setup where one track (i.e. file)
+    // is segmented by N-Chapters. Play the whole file as a single item: clipping it per chapter
+    // restarts the audio pipeline at every chapter boundary for codecs whose samples aren't all
+    // sync samples (e.g. xHE-AAC), which breaks gapless playback. Chapter semantics are derived
+    // from the absolute position instead (see ChapterTimeline).
+    if (isSingleFileWithChapters(item)) {
       val track = audioTracks.first()
-      val trackStart = track.startOffset.seconds
-      val trackEnd = (track.startOffset + track.duration).seconds
-
-      // Filter Chapter to just those that "fit" in the track
-      val chaptersForTrack = chapters.filter { chapter ->
-        val chapterStart = chapter.start.seconds
-        chapterStart in trackStart.rangeTo(trackEnd)
-      }
-
-      // If there are fewer chapters to slice by then in the item, then the chapter meta
-      // is busted. Record an exception and then slice only the ones that matter
-      if (chaptersForTrack.size != chapters.size) {
-        recordMediaItemException("Chapters are mis-aligned and not all fit onto the track", item)
-      } else {
-        // We can assume all chapters cover this track,
-        // but let's validate that all the chapters provide full track coverage
-        val lastChapter = chapters.last()
-        val remainingTrackDuration = (track.startOffset + track.duration).seconds - lastChapter.end.seconds
-        if (remainingTrackDuration > RemainingTrackDurationThreshold) {
-          recordMediaItemException("Remaining track after last chapter is too long", item)
-        }
-      }
-
-      // Regardless of state, slice the track to the chapters and let the user
-      // see our error UI to correct the playback of this item
-      return chaptersForTrack.map { chapter ->
-        createMediaItem(chapter, track, true, media, id)
-      }
+      return listOf(
+        MediaItem(
+          id = "${media.id}_${track.index}",
+          uri = track.contentUrl,
+          mimeType = track.mimeType,
+          metadata = createBookMetadata(media, id, track.duration.seconds.inWholeMilliseconds),
+        ),
+      )
     }
 
     // If we have multiple tracks that are not the same # of chapters, then lets do our best
@@ -241,6 +228,24 @@ object MediaItemBuilder : Corked("MediaItemBuilders") {
       uri = track.contentUrl,
       mimeType = track.mimeType,
       metadata = createMediaMetadata(track, media, libraryItemId),
+    )
+  }
+
+  private fun createBookMetadata(
+    media: Media,
+    libraryItemId: String,
+    durationMs: Long,
+  ): MediaItem.Metadata {
+    return MediaItem.Metadata(
+      id = 0,
+      title = media.metadata.title,
+      artist = media.metadata.authorName,
+      description = media.metadata.description ?: "",
+      subtitle = media.metadata.subtitle,
+      albumTitle = media.metadata.title,
+      artworkUri = media.coverImageUrl,
+      durationMs = durationMs,
+      libraryItemId = libraryItemId,
     )
   }
 

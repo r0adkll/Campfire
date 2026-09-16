@@ -3,6 +3,7 @@
 
 package app.campfire.audioplayer.impl.mediaitem
 
+import app.campfire.audioplayer.test.fixtures.session
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.FileMetadata
@@ -10,12 +11,13 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Media
 import app.campfire.core.model.MediaType
 import assertk.assertThat
-import assertk.assertions.containsExactly
 import assertk.assertions.hasSize
 import assertk.assertions.isCloseTo
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isNotNull
 import assertk.assertions.isNull
+import assertk.assertions.isTrue
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 
@@ -273,10 +275,10 @@ class MediaItemBuilderTest {
 
   // endregion
 
-  // region Single track, multiple chapters (clip audio)
+  // region Single track, multiple chapters (whole file)
 
   @Test
-  fun `build with single track and multiple chapters clips audio for each chapter`() {
+  fun `build with single track and multiple chapters returns one unclipped whole-file item`() {
     val chapters = listOf(
       chapter(id = 0, start = 0f, end = 100f),
       chapter(id = 1, start = 100f, end = 250f),
@@ -287,100 +289,53 @@ class MediaItemBuilderTest {
 
     val result = MediaItemBuilder.build(item)
 
-    assertThat(result).hasSize(3)
-    // All should reference the same track URI
-    result.forEach { assertThat(it.uri).isEqualTo("/track0.m4b") }
-    // First clip
-    assertThat(result[0].clipping).isNotNull()
-    assertThat(result[0].clipping!!.startMs).isEqualTo(0L)
-    assertThat(result[0].clipping!!.endMs).isEqualTo(100.seconds.inWholeMilliseconds)
-    // Second clip
-    assertThat(result[1].clipping!!.startMs).isEqualTo(100.seconds.inWholeMilliseconds)
-    assertThat(result[1].clipping!!.endMs).isEqualTo(250.seconds.inWholeMilliseconds)
-    // Third clip
-    assertThat(result[2].clipping!!.startMs).isEqualTo(250.seconds.inWholeMilliseconds)
-    assertThat(result[2].clipping!!.endMs).isEqualTo(400.seconds.inWholeMilliseconds)
+    assertThat(result).hasSize(1)
+    assertThat(result[0].uri).isEqualTo("/track0.m4b")
+    assertThat(result[0].clipping).isNull()
+    assertThat(result[0].id).isEqualTo("media-1_0")
   }
 
   @Test
-  fun `build with single track and aligned chapters does not record exception`() {
-    // Chapters fully cover the track (last chapter ends at track end)
+  fun `build with single track and multiple chapters uses book metadata spanning the whole file`() {
     val chapters = listOf(
-      chapter(id = 0, start = 0f, end = 200f),
-      chapter(id = 1, start = 200f, end = 500f),
+      chapter(id = 0, start = 0f, end = 200f, title = "First"),
+      chapter(id = 1, start = 200f, end = 500f, title = "Second"),
     )
-    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 500f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
+    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 500f, tagTitle = "Tagged"))
+    val item = libraryItem(
+      media = media(
+        chapters = chapters,
+        tracks = tracks,
+        metadata = metadata(title = "Book Title", authorName = "Author", subtitle = "Sub"),
+      ),
+    )
 
-    // Should not throw — chapters fully cover track within threshold
-    val result = MediaItemBuilder.build(item)
-    assertThat(result).hasSize(2)
+    val m = MediaItemBuilder.build(item).single().metadata!!
+
+    assertThat(m.title).isEqualTo("Book Title")
+    assertThat(m.albumTitle).isEqualTo("Book Title")
+    assertThat(m.artist).isEqualTo("Author")
+    assertThat(m.subtitle).isEqualTo("Sub")
+    assertThat(m.durationMs).isEqualTo(500.seconds.inWholeMilliseconds)
+    assertThat(m.libraryItemId).isEqualTo("item-1")
   }
 
   @Test
-  fun `build with single track and chapters leaving small gap within threshold still returns all chapters`() {
-    // Last chapter ends 5 seconds before track end (< 10s threshold)
-    val chapters = listOf(
-      chapter(id = 0, start = 0f, end = 200f),
-      chapter(id = 1, start = 200f, end = 495f),
-    )
-    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 500f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
-
-    val result = MediaItemBuilder.build(item)
-    assertThat(result).hasSize(2)
-  }
-
-  @Test
-  fun `build with single track and chapters leaving large gap exceeding threshold still returns media items`() {
-    // Last chapter ends 20 seconds before track end (> 10s threshold)
-    val chapters = listOf(
-      chapter(id = 0, start = 0f, end = 200f),
-      chapter(id = 1, start = 200f, end = 480f),
-    )
-    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 500f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
-
-    // Should still return items even though exception is recorded
-    val result = MediaItemBuilder.build(item)
-    assertThat(result).hasSize(2)
-  }
-
-  @Test
-  fun `build with single track and misaligned chapters filters to only fitting chapters`() {
-    // Track only covers 0-200, but chapters go beyond
+  fun `build with single track keeps the whole file even when chapters are misaligned`() {
+    // Track only covers 0-200; a chapter beyond it must not drop audio from the queue
     val chapters = listOf(
       chapter(id = 0, start = 0f, end = 100f),
-      chapter(id = 1, start = 100f, end = 200f),
-      chapter(id = 2, start = 300f, end = 400f), // Starts outside the track
+      chapter(id = 1, start = 100f, end = 150f),
+      chapter(id = 2, start = 300f, end = 400f),
     )
     val tracks = listOf(track(index = 0, startOffset = 0f, duration = 200f))
     val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
 
     val result = MediaItemBuilder.build(item)
 
-    // Only 2 chapters fit within the track
-    assertThat(result).hasSize(2)
-    assertThat(result[0].metadata!!.id).isEqualTo(0)
-    assertThat(result[1].metadata!!.id).isEqualTo(1)
-  }
-
-  @Test
-  fun `build with single track with non-zero startOffset filters chapters correctly`() {
-    // Track starts at 100, chapters before that should be excluded
-    val chapters = listOf(
-      chapter(id = 0, start = 0f, end = 50f), // Before the track
-      chapter(id = 1, start = 100f, end = 200f),
-      chapter(id = 2, start = 200f, end = 300f),
-    )
-    val tracks = listOf(track(index = 0, startOffset = 100f, duration = 200f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
-
-    val result = MediaItemBuilder.build(item)
-
-    assertThat(result).hasSize(2)
-    assertThat(result[0].metadata!!.id).isEqualTo(1)
-    assertThat(result[1].metadata!!.id).isEqualTo(2)
+    assertThat(result).hasSize(1)
+    assertThat(result[0].clipping).isNull()
+    assertThat(result[0].metadata!!.durationMs).isEqualTo(200.seconds.inWholeMilliseconds)
   }
 
   // endregion
@@ -498,42 +453,28 @@ class MediaItemBuilderTest {
   }
 
   @Test
-  fun `clipping clamps end to track end when chapter extends beyond track`() {
-    // Single track, multiple chapters where last chapter extends beyond track
+  fun `clipping clamps a chapter spanning two tracks to each track's bounds`() {
+    // Chapter 1 starts in track 0 and ends in track 1
     val chapters = listOf(
       chapter(id = 0, start = 0f, end = 50f),
-      chapter(id = 1, start = 50f, end = 120f), // extends 20s beyond track
+      chapter(id = 1, start = 50f, end = 120f),
+      chapter(id = 2, start = 120f, end = 200f),
     )
-    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 100f))
+    val tracks = listOf(
+      track(index = 0, startOffset = 0f, duration = 100f),
+      track(index = 1, startOffset = 100f, duration = 100f),
+    )
     val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
 
     val result = MediaItemBuilder.build(item)
 
-    // Second chapter's clipping end should be clamped to track end (100s)
+    assertThat(result).hasSize(4)
+    // Track 0's slice of chapter 1 ends at the track end
+    assertThat(result[1].clipping!!.startMs).isEqualTo(50.seconds.inWholeMilliseconds)
     assertThat(result[1].clipping!!.endMs).isEqualTo(100.seconds.inWholeMilliseconds)
-  }
-
-  @Test
-  fun `clipping clamps start when chapter starts before track on single track with multi-chapters`() {
-    // Track starts at 50, chapters start within the track range
-    // Chapter 0 starts at 50 (at track start), chapter 1 starts at 100
-    // But chapter 0 was defined to start at 40 which is before track start
-    // In single-track path, chapters are filtered by start in [trackStart, trackEnd]
-    // so chapter starting at 40 would be excluded. Use a chapter that fits.
-    val chapters = listOf(
-      chapter(id = 0, start = 50f, end = 100f),
-      chapter(id = 1, start = 100f, end = 150f),
-    )
-    val tracks = listOf(track(index = 0, startOffset = 50f, duration = 100f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
-
-    val result = MediaItemBuilder.build(item)
-
-    assertThat(result).hasSize(2)
-    assertThat(result[0].clipping!!.startMs).isEqualTo(50.seconds.inWholeMilliseconds)
-    assertThat(result[0].clipping!!.endMs).isEqualTo(100.seconds.inWholeMilliseconds)
-    assertThat(result[1].clipping!!.startMs).isEqualTo(100.seconds.inWholeMilliseconds)
-    assertThat(result[1].clipping!!.endMs).isEqualTo(150.seconds.inWholeMilliseconds)
+    // Track 1's slice of chapter 1 starts at the track start
+    assertThat(result[2].clipping!!.startMs).isEqualTo(100.seconds.inWholeMilliseconds)
+    assertThat(result[2].clipping!!.endMs).isEqualTo(120.seconds.inWholeMilliseconds)
   }
 
   // endregion
@@ -683,14 +624,67 @@ class MediaItemBuilderTest {
   @Test
   fun `build with session delegates to build with libraryItem`() {
     val tracks = listOf(track(index = 0, duration = 60f))
-    val item = libraryItem(media = media(tracks = tracks))
-
-    // We can't easily create a full Session, so test the libraryItem path directly
-    // and verify build(item) produces the expected result
-    val result = MediaItemBuilder.build(item)
+    val result = MediaItemBuilder.build(session(tracks = tracks))
 
     assertThat(result).hasSize(1)
     assertThat(result[0].id).isEqualTo("media-1_0")
+  }
+
+  @Test
+  fun `build with hls session returns a single stream item`() {
+    val tracks = listOf(track(index = 0, duration = 60f), track(index = 1, startOffset = 60f, duration = 60f))
+
+    val result = MediaItemBuilder.build(session(tracks = tracks, hlsStreamUrl = "/hls/playlist.m3u8"))
+
+    assertThat(result).hasSize(1)
+    assertThat(result[0].uri).isEqualTo("/hls/playlist.m3u8")
+    assertThat(result[0].mimeType).isEqualTo("application/x-mpegURL")
+  }
+
+  // endregion
+
+  // region isSingleItemQueue
+
+  @Test
+  fun `isSingleItemQueue is true for a single file with multiple chapters`() {
+    val session = session(
+      chapters = listOf(chapter(id = 0, start = 0f, end = 50f), chapter(id = 1, start = 50f, end = 100f)),
+      tracks = listOf(track(index = 0, duration = 100f)),
+    )
+
+    assertThat(MediaItemBuilder.isSingleItemQueue(session)).isTrue()
+  }
+
+  @Test
+  fun `isSingleItemQueue is true for an hls session`() {
+    val session = session(
+      tracks = listOf(track(index = 0, duration = 60f), track(index = 1, startOffset = 60f, duration = 60f)),
+      hlsStreamUrl = "/hls/playlist.m3u8",
+    )
+
+    assertThat(MediaItemBuilder.isSingleItemQueue(session)).isTrue()
+  }
+
+  @Test
+  fun `isSingleItemQueue is false for 1-to-1 chapter files`() {
+    val session = session(
+      chapters = listOf(chapter(id = 0, start = 0f, end = 50f), chapter(id = 1, start = 50f, end = 100f)),
+      tracks = listOf(track(index = 0, duration = 50f), track(index = 1, startOffset = 50f, duration = 50f)),
+    )
+
+    assertThat(MediaItemBuilder.isSingleItemQueue(session)).isFalse()
+  }
+
+  @Test
+  fun `isSingleItemQueue is false for a single file with one or no chapters`() {
+    val tracks = listOf(track(index = 0, duration = 100f))
+
+    assertThat(MediaItemBuilder.isSingleItemQueue(session(tracks = tracks))).isFalse()
+    assertThat(
+      MediaItemBuilder.isSingleItemQueue(
+        session(chapters = listOf(chapter(id = 0, start = 0f, end = 100f)), tracks = tracks),
+      ),
+    ).isFalse()
   }
 
   // endregion
@@ -767,21 +761,6 @@ class MediaItemBuilderTest {
     // Track 0: chapter end (150) > track end (100), remaining = 100 - 150 = negative, no issue with threshold
     // Track 1: chapter end (150) is the last, remaining = 200 - 150 = 50 > 10, so falls back to track only
     assertThat(result).hasSize(2)
-  }
-
-  @Test
-  fun `build preserves chapter order in single track multi-chapter scenario`() {
-    val chapters = listOf(
-      chapter(id = 0, start = 0f, end = 100f, title = "First"),
-      chapter(id = 1, start = 100f, end = 200f, title = "Second"),
-      chapter(id = 2, start = 200f, end = 300f, title = "Third"),
-    )
-    val tracks = listOf(track(index = 0, startOffset = 0f, duration = 300f))
-    val item = libraryItem(media = media(chapters = chapters, tracks = tracks))
-
-    val result = MediaItemBuilder.build(item)
-
-    assertThat(result.map { it.metadata!!.title }).containsExactly("First", "Second", "Third")
   }
 
   // endregion

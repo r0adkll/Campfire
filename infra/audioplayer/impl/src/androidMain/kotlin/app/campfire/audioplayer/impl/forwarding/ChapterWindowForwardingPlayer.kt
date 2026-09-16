@@ -18,7 +18,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * Presents coarse single-item (HLS) playback to MediaController consumers — the system media
+ * Presents coarse single-item (HLS stream or single audio file) playback to MediaController consumers — the system media
  * notification, Android Auto, Bluetooth/car controllers — as a virtual playlist of chapter
  * windows, so their scrubbers, time labels, titles, and next/previous buttons carry chapter
  * semantics identical to the chapter-granular local queue. The in-app UI derives the same

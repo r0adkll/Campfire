@@ -13,7 +13,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * Chapter semantics derived from a session's absolute timeline.
  *
  * The player's queue is not always chapter-granular: remote (Cast) playback uses one item per
- * audio track, and HLS playback uses a single playlist item. In those *coarse-queue* modes the
+ * audio track, and HLS or single-file playback uses one item for the whole book. In those *coarse-queue* modes the
  * player can't lean on media-item boundaries for chapter behavior, so everything the UI and
  * sleep timer need — the current chapter, chapter-relative position, next/previous seek
  * targets, and boundary crossings — is derived here from the absolute position against the

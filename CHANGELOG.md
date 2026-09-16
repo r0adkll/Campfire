@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Content on Android sitting underneath the display cutout, and underneath the navigation bar in landscape
 - Android navigation bar buttons becoming hard to see when the app's theme didn't match the system's light or dark setting
 - Cast device picker opening in the corner of the screen, and taking up most of its width, on tablets, foldables and split layouts instead of next to the cast button
+- Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
 
 ### Other Notes & Contributions
 
