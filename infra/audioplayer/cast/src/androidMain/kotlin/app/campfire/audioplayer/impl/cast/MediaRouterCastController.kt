@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.cast
 
 import android.app.Application
+import android.os.Bundle
 import androidx.annotation.MainThread
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -472,7 +473,19 @@ class MediaRouterCastController(
     updateDevices(router)
   }
 
+  /**
+   * Refreshes [availableDevices] from the router. MediaRouter callbacks arrive on the main thread
+   * straight from the framework, so a malformed route must not take the app down with it.
+   */
   private fun updateDevices(router: MediaRouter) {
+    try {
+      publishDevices(router)
+    } catch (e: Throwable) {
+      wbark(throwable = e) { "Failed to update devices" }
+    }
+  }
+
+  private fun publishDevices(router: MediaRouter) {
     val selectedRoute = router.selectedRoute
     val selectedCastDeviceId = selectedRoute.castDeviceId
 
@@ -481,7 +494,7 @@ class MediaRouterCastController(
       .filter { it.description != MULTIZONE_MEMBER_DESCRIPTION }
       // The Cast provider publishes an extra session-scoped route for a connected device
       // alongside the device's own route; drop the duplicate.
-      .filter { route -> route.extras?.getString(EXTRA_SESSION_ID) == null }
+      .filter { route -> route.castExtras?.getString(EXTRA_SESSION_ID) == null }
       .distinctBy { route -> route.castDeviceId ?: route.id }
 
     // The system output-switcher provider publishes its own copy of every Cast device,
@@ -514,9 +527,17 @@ class MediaRouterCastController(
       }
   }
 
+  /**
+   * The Cast provider's route extras carry a parcelled [GmsCastDevice], and reading ANY key
+   * unparcels the whole bundle. Bundles from the router service default to the framework class
+   * loader, which can't resolve Play services classes, so point it at ours before reading.
+   */
+  private val RouteInfo.castExtras: Bundle?
+    get() = extras?.apply { classLoader = GmsCastDevice::class.java.classLoader }
+
   private val RouteInfo.castDeviceId: String?
     get() = try {
-      GmsCastDevice.getFromBundle(extras ?: return null)?.deviceId
+      GmsCastDevice.getFromBundle(castExtras ?: return null)?.deviceId
     } catch (t: Throwable) {
       null
     }
