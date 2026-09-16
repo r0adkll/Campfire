@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools">
+
+  <application>
+    <!-- Override this activity from app distribution to fix theme issue -->
+    <activity
+      android:name="com.google.firebase.appdistribution.impl.InstallActivity"
+      android:exported="true"
+      android:launchMode="singleTask"
+      android:theme="@style/Theme.AppCompat.DayNight"
+      tools:node="replace"
+      />
+  </application>
+</manifest>

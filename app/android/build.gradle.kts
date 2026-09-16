@@ -54,6 +54,11 @@ android {
       versionNameSuffix = "-alpha"
     }
 
+    // Tagged releases distributed through Firebase App Distribution: same applicationId and
+    // signing key as standard, but self-updates through App Distribution instead of Play.
+    create("beta") {
+    }
+
     // 100% FOSS build for F-Droid: same applicationId as standard, but the flavor-scoped
     // proprietary modules (Firebase, Mixpanel, ML Kit, Cast) are never wired in.
     create("foss") {
@@ -69,7 +74,7 @@ android {
 
   sourceSets {
     matching {
-      it.name == "alphaRelease"
+      it.name == "alphaRelease" || it.name == "betaRelease"
     }.configureEach {
       kotlin.directories.add("src/preRelease/kotlin")
     }
@@ -186,14 +191,17 @@ dependencies {
   // On-device AI theme generation (Gemini Nano via ML Kit)
   "standardImplementation"(projects.ui.theming.ai)
   "alphaImplementation"(projects.ui.theming.ai)
+  "betaImplementation"(projects.ui.theming.ai)
 
   // Mixpanel analytics (opt-in, off by default)
   "standardImplementation"(projects.data.analytics.mixpanel)
   "alphaImplementation"(projects.data.analytics.mixpanel)
+  "betaImplementation"(projects.data.analytics.mixpanel)
 
   // Google Cast remote playback (play-services-cast-framework + media3-cast)
   "standardImplementation"(projects.infra.audioplayer.cast)
   "alphaImplementation"(projects.infra.audioplayer.cast)
+  "betaImplementation"(projects.infra.audioplayer.cast)
 
   // Firebase Crashlytics — release variants only, matching the previous src/release
   // FirebaseInitializer behavior (debug builds never initialize Firebase). These
@@ -201,13 +209,14 @@ dependencies {
   val crashlyticsVariants = setOf(
     "standardReleaseImplementation",
     "alphaReleaseImplementation",
+    "betaReleaseImplementation",
   )
   configurations.matching { it.name in crashlyticsVariants }.configureEach {
     dependencies.add(project.dependencies.create(projects.data.crashreporting.firebase))
   }
 
   // Google Play in-app updates — only the Play-distributed production variant self-updates
-  // through Play; alpha uses Firebase App Distribution and foss updates via its store.
+  // through Play; alpha/beta use Firebase App Distribution and foss updates via its store.
   configurations.matching { it.name == "standardReleaseImplementation" }.configureEach {
     dependencies.add(project.dependencies.create(libs.google.play.app.update.get()))
   }

@@ -5,6 +5,98 @@ on:
     types: [ created ]
 
 jobs:
+  # Ships every release (rc and final) to Firebase App Distribution testers right away, without
+  # waiting on Google Play review. Same applicationId and key as the standard build, but with the
+  # App Distribution SDK so testers get in-app update prompts.
+  android-beta:
+    name: Build Android Beta Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup swap
+        run: |
+          sudo swapon --show
+          sudo swapoff -a
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          sudo swapon -s
+
+      - name: Free up disk space
+        run: |
+          sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(aspnetcore|cabal-|dotnet-|ghc-|libmono|mongodb-|mysql-|php)') \
+            firefox google-chrome-stable google-cloud-cli microsoft-edge-stable mono-devel mono-runtime-common monodoc-manual powershell ruby
+          sudo apt autoremove -yq
+          sudo apt clean
+          sudo rm -fr /opt/ghc /opt/hostedtoolcache /opt/az /opt/microsoft /opt/google /usr/lib/node_modules /usr/local/share/boost /usr/share/dotnet /usr/share/swift
+
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Decode Keystore
+        env:
+          ENCODED_KEYSTORE: ${{ secrets.CAMPFIRE_KEYSTORE }}
+        run: |
+          echo $ENCODED_KEYSTORE | base64 -di > app/signing/campfire.keystore
+
+      - name: Download Service Accounts
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+          APP_DISTRIBUTION_JSON: ${{ secrets.APP_DISTRIBUTION_SERVICE_ACCOUNT }}
+        run: |
+          echo $GOOGLE_SERVICES_JSON > app/android/google-services.json
+          echo $APP_DISTRIBUTION_JSON > app/android/campfire-app-distribution-service-account.json
+
+      - name: Assemble Beta Release APK
+        run: ./gradlew :app:android:assembleBetaRelease
+        env:
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEYSTORE_PWD: ${{ secrets.CAMPFIRE_KEYSTORE_PWD }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_KEY_PWD: ${{ secrets.CAMPFIRE_KEY_PWD }}
+          ORG_GRADLE_PROJECT_mixpanel_token: ${{ secrets.MIXPANEL_TOKEN }}
+          ORG_GRADLE_PROJECT_CAMPFIRE_VERSIONNAME: ${{ github.event.release.tag_name }}
+          CI: true
+
+      # scripts/release writes the store changelog for this versionCode when cutting the release;
+      # fall back to the GitHub release body if the tag was cut without it.
+      - name: Create Release Notes
+        env:
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          code="$(sed -n 's/^campfire\.versionCode=//p' gradle.properties)"
+          changelog="fastlane/metadata/android/en-US/changelogs/$code.txt"
+          if [ -f "$changelog" ]; then
+            cat "$changelog" > app/android/release-notes.txt
+          else
+            printf '%s\n' "$RELEASE_BODY" > app/android/release-notes.txt
+          fi
+          echo "$RELEASE_URL" >> app/android/release-notes.txt
+          echo " "
+          cat app/android/release-notes.txt
+
+      - name: Firebase App Distribution
+        run: |
+          ./gradlew :app:android:appDistributionUploadBetaRelease \
+            --serviceCredentialsFile="app/android/campfire-app-distribution-service-account.json" \
+            --releaseNotesFile="app/android/release-notes.txt"
+
+      - name: Upload build outputs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-beta-build-outputs
+          path: app/android/build/outputs
+
   android-play:
     name: Build Android Play Release Bundle
     runs-on: ubuntu-latest

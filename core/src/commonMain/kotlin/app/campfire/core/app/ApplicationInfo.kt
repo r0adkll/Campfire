@@ -24,6 +24,7 @@ data class ApplicationInfo(
       append("Campfire")
       append(
         when (flavor) {
+          Flavor.Beta -> " Beta"
           Flavor.Alpha -> " Alpha"
           else -> ""
         },
@@ -38,5 +39,5 @@ data class ApplicationInfo(
 }
 
 enum class Flavor {
-  Standard, Alpha, Foss
+  Standard, Beta, Alpha, Foss
 }
