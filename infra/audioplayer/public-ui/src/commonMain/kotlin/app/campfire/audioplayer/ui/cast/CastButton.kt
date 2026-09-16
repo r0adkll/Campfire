@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,14 +56,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionOnScreen
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import androidx.compose.ui.window.Popup
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
@@ -118,19 +126,27 @@ fun CastButton(
 
   var showDevices by remember { mutableStateOf(false) }
 
-  if (currentDevice != null) {
-    CurrentDeviceButton(
-      state = state,
-      device = currentDevice,
-      onClick = { showDevices = !showDevices },
-      modifier = modifier,
-    )
-  } else {
-    CastButton(
-      state = state,
-      onClick = { showDevices = !showDevices },
-      modifier = modifier,
-    )
+  // On screen rather than in the window: the picker is laid out in the popup's own window, and
+  // screen coordinates are the only space both windows agree on. See [CastDevices].
+  var buttonOnScreen by remember { mutableStateOf<IntRect?>(null) }
+
+  Box(
+    modifier = modifier.onGloballyPositioned { coordinates ->
+      buttonOnScreen = IntRect(coordinates.positionOnScreen().round(), coordinates.size)
+    },
+  ) {
+    if (currentDevice != null) {
+      CurrentDeviceButton(
+        state = state,
+        device = currentDevice,
+        onClick = { showDevices = !showDevices },
+      )
+    } else {
+      CastButton(
+        state = state,
+        onClick = { showDevices = !showDevices },
+      )
+    }
   }
 
   if (showDevices) {
@@ -164,6 +180,7 @@ fun CastButton(
     }
 
     CastDevices(
+      buttonOnScreen = buttonOnScreen,
       devices = devices,
       connectionAttempt = connectionAttempt,
       showLocalNetworkPermission = needsLocalNetworkPermission,
@@ -286,8 +303,71 @@ private fun CurrentDeviceButton(
   }
 }
 
+/** Gap kept between the card and the edges of the screen. */
+private val PopupEdgeMargin = 12.dp
+
+/** Wide enough for device names, narrow enough to still read as a menu on a tablet. */
+private val PopupPreferredWidth = 320.dp
+
+/**
+ * Where the picker card goes inside the popup's full-screen box: the corner it is [alignment]ed
+ * to, and the insets from the box's edges that land the card's corner on the button's. Absolute
+ * (left/right rather than start/end) because screen coordinates are — mirroring both under RTL
+ * would cancel out and put the card on the wrong side.
+ */
+@Immutable
+internal data class CastPopupPlacement(
+  val alignment: Alignment,
+  val left: Int,
+  val top: Int,
+  val right: Int,
+  val bottom: Int,
+  val width: Int,
+  val maxHeight: Int,
+)
+
+/**
+ * Lands the card's corner on the matching corner of the button at [anchorBounds], both relative
+ * to a [containerSize] box. The corner is whichever of the button's has the box behind it — the
+ * player's top bar puts the button top-trailing, the wide-and-short player's rail puts it
+ * bottom-leading — and [edgeMargin] is kept clear of every edge.
+ *
+ * The corner is read off the anchor alone, never the card's size, so it cannot flip out from
+ * under the expand/shrink animation as the card grows.
+ */
+internal fun castPopupPlacement(
+  anchorBounds: IntRect,
+  containerSize: IntSize,
+  edgeMargin: Int,
+  preferredWidth: Int,
+): CastPopupPlacement {
+  val pinsRight = anchorBounds.center.x * 2 >= containerSize.width
+  val pinsBottom = anchorBounds.center.y * 2 >= containerSize.height
+
+  val left = if (pinsRight) edgeMargin else anchorBounds.left.coerceAtLeast(edgeMargin)
+  val right = if (pinsRight) (containerSize.width - anchorBounds.right).coerceAtLeast(edgeMargin) else edgeMargin
+  val top = if (pinsBottom) edgeMargin else anchorBounds.top.coerceAtLeast(edgeMargin)
+  val bottom = if (pinsBottom) (containerSize.height - anchorBounds.bottom).coerceAtLeast(edgeMargin) else edgeMargin
+
+  return CastPopupPlacement(
+    alignment = when {
+      pinsBottom && pinsRight -> AbsoluteAlignment.BottomRight
+      pinsBottom -> AbsoluteAlignment.BottomLeft
+      pinsRight -> AbsoluteAlignment.TopRight
+      else -> AbsoluteAlignment.TopLeft
+    },
+    left = left,
+    top = top,
+    right = right,
+    bottom = bottom,
+    width = preferredWidth.coerceAtMost((containerSize.width - left - right).coerceAtLeast(0)),
+    maxHeight = (containerSize.height - top - bottom).coerceAtLeast(0),
+  )
+}
+
 @Composable
 private fun CastDevices(
+  buttonOnScreen: IntRect?,
   devices: List<CastDevice>,
   connectionAttempt: ConnectionAttempt?,
   showLocalNetworkPermission: Boolean,
@@ -297,10 +377,6 @@ private fun CastDevices(
 ) {
   val scope = rememberCoroutineScope()
   var visible by remember { mutableStateOf(false) }
-
-  LaunchedEffect(Unit) {
-    visible = true
-  }
 
   Impression {
     ScreenViewEvent("CastDevicesPopup", ScreenType.Dialog)
@@ -316,40 +392,82 @@ private fun CastDevices(
 
   Popup(
     alignment = Alignment.TopEnd,
-    offset = IntOffset(
-      x = 0,
-      y = withDensity { (-16).dp.roundToPx() },
-    ),
     onDismissRequest = dismissPopup,
   ) {
+    // Where this full-screen box actually landed. The popup is its own window and the platform is
+    // free to clamp or shift it, so rather than assume its origin, measure it — the button's
+    // position inside the box is then just the difference of the two screen positions.
+    var boxOnScreen by remember { mutableStateOf<IntRect?>(null) }
+
     Box(
       modifier = Modifier
-        .padding(end = 12.dp)
         .fillMaxSize()
+        .onGloballyPositioned { coordinates ->
+          boxOnScreen = IntRect(coordinates.positionOnScreen().round(), coordinates.size)
+        }
         .clickable(
           onClick = dismissPopup,
           indication = null,
           interactionSource = remember { MutableInteractionSource() },
         ),
-      contentAlignment = Alignment.TopEnd,
     ) {
-      AnimatedVisibility(
-        visible = visible,
-        enter = expandIn(
-          expandFrom = Alignment.TopEnd,
-        ) + fadeIn(),
-        exit = shrinkOut(
-          shrinkTowards = Alignment.TopEnd,
-        ) + fadeOut(),
-      ) {
-        CastDevicesCard(
-          devices = devices,
-          connectionAttempt = connectionAttempt,
-          showLocalNetworkPermission = showLocalNetworkPermission,
-          onRequestLocalNetworkPermission = onRequestLocalNetworkPermission,
-          onDeviceClick = onDeviceClick,
-          onDismissRequest = onDismissRequest,
-        )
+      val density = LocalDensity.current
+      val placement = remember(buttonOnScreen, boxOnScreen, density) {
+        val button = buttonOnScreen
+        val box = boxOnScreen
+        if (button == null || box == null) {
+          null
+        } else {
+          with(density) {
+            castPopupPlacement(
+              anchorBounds = button.translate(-box.left, -box.top),
+              containerSize = box.size,
+              edgeMargin = PopupEdgeMargin.roundToPx(),
+              preferredWidth = PopupPreferredWidth.roundToPx(),
+            )
+          }
+        }
+      }
+
+      // Nothing to place against until the box has been measured, one frame in. The card is only
+      // told to show once it is composed hidden here: AnimatedVisibility takes its first value as
+      // where it starts, so arriving already visible would skip the expand.
+      if (placement != null) {
+        LaunchedEffect(Unit) {
+          visible = true
+        }
+
+        AnimatedVisibility(
+          visible = visible,
+          enter = expandIn(
+            expandFrom = placement.alignment,
+          ) + fadeIn(),
+          exit = shrinkOut(
+            shrinkTowards = placement.alignment,
+          ) + fadeOut(),
+          // Aligned to the pinned corner and inset from it, so that corner stays on the button's
+          // while the card expands and shrinks about it.
+          modifier = Modifier
+            .align(placement.alignment)
+            .absolutePadding(
+              left = withDensity { placement.left.toDp() },
+              top = withDensity { placement.top.toDp() },
+              right = withDensity { placement.right.toDp() },
+              bottom = withDensity { placement.bottom.toDp() },
+            ),
+        ) {
+          CastDevicesCard(
+            devices = devices,
+            connectionAttempt = connectionAttempt,
+            showLocalNetworkPermission = showLocalNetworkPermission,
+            onRequestLocalNetworkPermission = onRequestLocalNetworkPermission,
+            onDeviceClick = onDeviceClick,
+            onDismissRequest = onDismissRequest,
+            modifier = Modifier
+              .width(withDensity { placement.width.toDp() })
+              .heightIn(max = withDensity { placement.maxHeight.toDp() }),
+          )
+        }
       }
     }
   }
@@ -367,8 +485,7 @@ private fun CastDevicesCard(
 ) {
   ElevatedCard(
     shape = MaterialTheme.shapes.extraLarge,
-    modifier = modifier
-      .fillMaxWidth(0.75f),
+    modifier = modifier,
   ) {
     Box(
       modifier = Modifier
@@ -619,6 +736,7 @@ private fun CastDevicesCardFailedPreview() {
       onRequestLocalNetworkPermission = {},
       onDeviceClick = {},
       onDismissRequest = {},
+      modifier = Modifier.width(PopupPreferredWidth),
     )
   }
 }
@@ -634,6 +752,7 @@ private fun CastDevicesCardFailedOnSelectedPreview() {
       onRequestLocalNetworkPermission = {},
       onDeviceClick = {},
       onDismissRequest = {},
+      modifier = Modifier.width(PopupPreferredWidth),
     )
   }
 }
@@ -649,6 +768,7 @@ private fun CastDevicesCardConnectingPreview() {
       onRequestLocalNetworkPermission = {},
       onDeviceClick = {},
       onDismissRequest = {},
+      modifier = Modifier.width(PopupPreferredWidth),
     )
   }
 }
@@ -664,6 +784,7 @@ private fun CastDevicesCardDarkFailedPreview() {
       onRequestLocalNetworkPermission = {},
       onDeviceClick = {},
       onDismissRequest = {},
+      modifier = Modifier.width(PopupPreferredWidth),
     )
   }
 }
