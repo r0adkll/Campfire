@@ -14,7 +14,7 @@ The MR: `https://gitlab.com/fdroid/fdroiddata/-/merge_requests/46619` (metadata 
 
 ## Invariants you must not break
 
-- **The foss flavor never depends on a proprietary module.** Firebase, Cast, ML Kit, Mixpanel, Play in-app-updates, App Distribution are wired to `standard*` / `alpha*` configurations only — **never `foss*`** (see `app/android/build.gradle.kts`). If you add a proprietary integration, follow the same pattern, and put its build files where F-Droid can `scandelete` them (see below).
+- **The foss flavor never depends on a proprietary module.** Firebase, Cast, ML Kit, Mixpanel, Play in-app-updates, App Distribution are wired to `standard*` / `alpha*` / `beta*` configurations only — **never `foss*`** (see `app/android/build.gradle.kts`). If you add a proprietary integration, follow the same pattern, and put its build files where F-Droid can `scandelete` them (see below).
 - **No custom Maven repository literal in any scanned `.gradle`/`.gradle.kts`.** The scanner flags **any** `maven(...)` / `maven { url … }` call whose URL isn't on F-Droid's allow-list — and it captures whatever is inside the parens, so even `maven(someVariable)` is flagged as `unknown maven repo 'someVariable)'`. Reading the URL from a property does **not** help. Custom repos must live in a `scandelete`-able standalone script (see the emulator.wtf pattern).
 - **Reproducibility hooks stay in place:**
   - `Project.normalizeFossReleasePgMapId()` (in `gradle/build-logic/convention/.../Reproducible.kt`), called from `app/android/build.gradle.kts` — zeroes R8's `pg-map-id` in the foss DEX (the one thing that varied per build environment).
