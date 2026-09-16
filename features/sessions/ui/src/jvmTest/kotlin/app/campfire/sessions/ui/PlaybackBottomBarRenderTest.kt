@@ -27,6 +27,10 @@ import app.campfire.core.di.ComponentHolder
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.composables.PlaybackSettingsComponent
+import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
+import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
+import app.campfire.sessions.ui.playback.DefaultSheetColor
+import app.campfire.sessions.ui.playback.DefaultSheetContentColor
 import app.campfire.sessions.ui.playback.OutputDeviceUiState
 import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.settings.api.PlaybackSettings
@@ -82,6 +86,21 @@ class PlaybackBottomBarRenderTest {
   fun `playing a chaptered book with bookmarks`() {
     render("bottom-bar-playing") {
       Bar(session = book, state = AudioPlayer.State.Playing, bookTime = 40.minutes, speed = 1.25f)
+    }
+  }
+
+  @Test
+  fun `playing a book with its own cover theme`() {
+    // With dynamic playback theming on, the bar sits on the item's scheme and reads its colours
+    // from the surface tokens rather than the app's secondary container.
+    render("bottom-bar-themed") {
+      Bar(
+        session = book,
+        state = AudioPlayer.State.Playing,
+        bookTime = 40.minutes,
+        speed = 1.25f,
+        themed = true,
+      )
     }
   }
 
@@ -232,11 +251,14 @@ class PlaybackBottomBarRenderTest {
     speed: Float = 1f,
     volume: VolumeUiState? = null,
     outputDevices: OutputDeviceUiState? = null,
+    themed: Boolean = false,
   ) {
     CampfireTheme(useDarkColors = false) {
       ContentWithOverlays(overlayHost = rememberOverlayHost()) {
         Box(Modifier.fillMaxSize()) {
           PlaybackBottomBarContent(
+            containerColor = if (themed) DefaultSheetColor else DefaultNonThemedSheetColor,
+            contentColor = if (themed) DefaultSheetContentColor else DefaultNonThemedContentColor,
             state = state,
             playbackSpeed = speed,
             currentTime = 10.minutes,

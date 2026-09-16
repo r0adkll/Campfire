@@ -274,7 +274,7 @@ jobs:
 
       - name: Package and Upload to Release
         if: steps.creds.outputs.present == 'true'
-        uses: hydraulic-software/conveyor/actions/build@v22.2
+        uses: hydraulic-software/conveyor/actions/build@v22.3
         with:
           command: make copied-site
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
