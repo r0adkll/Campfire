@@ -58,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Other Notes & Contributions
 
+- Android beta builds are published to Firebase App Distribution again with every release, reaching testers without waiting on Google Play review
+
 ## [1.1.0]
 
 ### Added
