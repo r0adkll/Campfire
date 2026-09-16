@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Titles removed from the server lingering in the app, including their downloads, or showing up twice after being re-added
 - Desktop app freezing while opening a chapter, bookmark, or track, and while starting playback
 - Desktop showing a blank strip under the bottom navigation bar in narrow windows
 - Search bar sitting flush against the top of the window on wide desktop layouts

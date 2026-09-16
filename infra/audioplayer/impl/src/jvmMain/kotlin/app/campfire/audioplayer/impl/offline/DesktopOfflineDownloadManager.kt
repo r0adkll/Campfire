@@ -68,6 +68,10 @@ class DesktopOfflineDownloadManager : OfflineDownloadManager {
     bark { "Not implemented yet!" }
   }
 
+  override suspend fun deleteAllForItemId(itemId: LibraryItemId) {
+    bark { "Not implemented yet!" }
+  }
+
   override fun stop(item: LibraryItem) {
     bark { "Not implemented yet!" }
   }

@@ -69,6 +69,10 @@ class FakeOfflineDownloadManager : OfflineDownloadManager {
     invocations += Invocation.DeleteEpisode(item, episode)
   }
 
+  override suspend fun deleteAllForItemId(itemId: LibraryItemId) {
+    invocations += Invocation.DeleteAllForItemId(itemId)
+  }
+
   override fun stop(item: LibraryItem) {
     invocations += Invocation.Stop(item)
   }
@@ -87,6 +91,7 @@ class FakeOfflineDownloadManager : OfflineDownloadManager {
     data class DownloadEpisode(val item: LibraryItem, val episode: PodcastEpisode) : Invocation
     data class Delete(val item: LibraryItem) : Invocation
     data class DeleteEpisode(val item: LibraryItem, val episode: PodcastEpisode) : Invocation
+    data class DeleteAllForItemId(val itemId: LibraryItemId) : Invocation
     data class Stop(val item: LibraryItem) : Invocation
     data class StopEpisode(val item: LibraryItem, val episode: PodcastEpisode) : Invocation
     object ResumeDownloads : Invocation

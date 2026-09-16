@@ -16,6 +16,7 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.Click
 import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Media
 import app.campfire.core.model.User
 import app.campfire.libraries.api.LibraryItemRepository
@@ -31,6 +32,7 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import kotlin.collections.orEmpty
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
@@ -64,6 +66,8 @@ class FindEpisodesPresenter(
 
     val libraryItem by remember {
       libraryItemRepository.observeLibraryItem(screen.libraryItemId)
+        // The stream ends with an error when the item was removed from the server.
+        .catch { bark(throwable = it) { "Unable to load library item ${screen.libraryItemId}" } }
     }.collectAsState(null)
 
     val feedLoadResult by remember(retryCount) {

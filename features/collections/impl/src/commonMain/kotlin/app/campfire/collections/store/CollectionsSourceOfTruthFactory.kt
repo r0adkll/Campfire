@@ -130,6 +130,9 @@ class CollectionsSourceOfTruthFactory(
         // Insert collection
         db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
+        // Replace, not add to, the collection's books so removed ones don't linger
+        db.collectionsBookJoinQueries.delete(collection.id)
+
         // Insert the collection books
         collection.books.forEachIndexed { index, book ->
 
@@ -160,6 +163,9 @@ class CollectionsSourceOfTruthFactory(
     db.transaction {
       // Insert collection
       db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
+
+      // Replace, not add to, the collection's books so removed ones don't linger
+      db.collectionsBookJoinQueries.delete(collection.id)
 
       // Insert the collection books
       collection.books.forEachIndexed { index, book ->

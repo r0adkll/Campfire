@@ -9,9 +9,11 @@ import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.Media
+import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.item.LibraryItemStore
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.isNotFound
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +31,7 @@ import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 class StoreLibraryItemRepository(
   libraryItemStoreFactory: LibraryItemStore.Factory,
   private val api: AudioBookShelfApi,
+  private val purger: LibraryItemPurger,
 ) : LibraryItemRepository {
 
   private val itemStore = libraryItemStoreFactory.create()
@@ -38,6 +41,12 @@ class StoreLibraryItemRepository(
       .mapNotNull { resp ->
         if (resp is StoreReadResponse.Error.Exception) {
           bark(throwable = resp.error) { "Library Item Store Response Error" }
+          // The item is gone from the server: drop the stale cached copy and end the stream
+          // with the error so the screen stops showing it.
+          if (resp.error.isNotFound) {
+            purger.purge(listOf(itemId))
+            throw resp.error
+          }
         }
         resp.dataOrNull()
       }
@@ -56,9 +65,13 @@ class StoreLibraryItemRepository(
     } catch (e: CancellationException) {
       throw e
     } catch (e: Exception) {
-      // The server may be unreachable (offline, DNS failure, timeout) or the item may have been
-      // removed (404). Prefer a partially-hydrated cached copy over crashing the caller; only
-      // propagate when we have nothing at all to hand back.
+      if (e.isNotFound) {
+        purger.purge(listOf(itemId))
+        throw e
+      }
+
+      // The server may be unreachable (offline, DNS failure, timeout). Prefer a partially-hydrated
+      // cached copy over crashing the caller; only propagate when we have nothing at all to hand back.
       if (cached != null) {
         bark(throwable = e) { "Failed to refresh library item $itemId, falling back to cached copy" }
         cached

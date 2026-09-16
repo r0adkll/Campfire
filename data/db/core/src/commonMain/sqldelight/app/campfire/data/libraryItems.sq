@@ -139,6 +139,12 @@ LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.userId = :userId
 WHERE media.metadata_authorName = :authorName;
 
+selectIdsForAuthorName:
+SELECT libraryItem.id FROM libraryItem
+INNER JOIN media ON media.libraryItemId = libraryItem.id
+WHERE media.metadata_authorName = :authorName
+  AND libraryItem.libraryId = :libraryId;
+
 deleteForLibrary:
 DELETE FROM libraryItem
 WHERE libraryId = ?;
@@ -146,6 +152,36 @@ WHERE libraryId = ?;
 deleteForId:
 DELETE FROM libraryItem
 WHERE id = ?;
+
+-- Removes an item the server no longer has, along with everything that references it.
+-- The join tables are cleared first because their libraryItem foreign keys are
+-- ON DELETE NO ACTION, which blocks the delete where foreign keys are enforced (Android).
+-- The media children are deleted explicitly because the other platforms don't enforce
+-- foreign keys, so ON DELETE CASCADE never runs there.
+purgeForId {
+  DELETE FROM seriesBookJoin WHERE libraryItemId = :id;
+  DELETE FROM collectionsBookJoin WHERE libraryItemId = :id;
+  DELETE FROM playlistItemJoin WHERE libraryItemId = :id;
+  DELETE FROM libraryItemPageJoin WHERE libraryItemId = :id;
+  DELETE FROM shelfJoin WHERE entityId = :id;
+  DELETE FROM search_books WHERE libraryItemId = :id;
+
+  DELETE FROM mediaAudioFiles WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);
+  DELETE FROM mediaAudioTracks WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);
+  DELETE FROM mediaChapters WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);
+  DELETE FROM metadataAuthor WHERE mediaId IN (SELECT mediaId FROM media WHERE libraryItemId = :id);
+  DELETE FROM media WHERE libraryItemId = :id;
+
+  DELETE FROM podcastEpisodeAudioTrack WHERE episodeId IN (SELECT id FROM podcastEpisode WHERE libraryItemId = :id);
+  DELETE FROM podcastEpisode WHERE libraryItemId = :id;
+  DELETE FROM podcastMedia WHERE libraryItemId = :id;
+
+  DELETE FROM libraryItem WHERE id = :id;
+}
+
+selectIdsForLibrary:
+SELECT id FROM libraryItem
+WHERE libraryId = ?;
 
 -- Filterable - Count Queries
 

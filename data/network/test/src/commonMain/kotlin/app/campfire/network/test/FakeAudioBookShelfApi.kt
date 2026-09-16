@@ -44,6 +44,19 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set libraryStatsResult on the fake"))
   }
 
+  val libraryItemRequests = mutableListOf<String>()
+  var libraryItemResult: suspend (itemId: String) -> Result<LibraryItemExpanded> = {
+    Result.failure(NotImplementedError("Set libraryItemResult on the fake"))
+  }
+
+  val libraryItemsMinifiedRequests = mutableListOf<String>()
+  var libraryItemsMinifiedResult: suspend (
+    libraryId: String,
+    page: Int,
+  ) -> Result<PagedResponse<LibraryItemMinified>> = { _, _ ->
+    Result.failure(NotImplementedError("Set libraryItemsMinifiedResult on the fake"))
+  }
+
   override suspend fun getCurrentUser(): Result<User> {
     TODO("Not yet implemented")
   }
@@ -64,11 +77,13 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     page: Int,
     limit: Int,
   ): Result<PagedResponse<LibraryItemMinified>> {
-    TODO("Not yet implemented")
+    libraryItemsMinifiedRequests += libraryId
+    return libraryItemsMinifiedResult(libraryId, page)
   }
 
   override suspend fun getLibraryItem(itemId: String): Result<LibraryItemExpanded> {
-    TODO("Not yet implemented")
+    libraryItemRequests += itemId
+    return libraryItemResult(itemId)
   }
 
   override suspend fun getLibraryStats(libraryId: String): Result<LibraryStats> {

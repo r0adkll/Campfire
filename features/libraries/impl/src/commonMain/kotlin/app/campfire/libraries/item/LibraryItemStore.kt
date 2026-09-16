@@ -9,6 +9,7 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.AudioBookShelfApi
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.MemoryPolicy
@@ -26,10 +27,11 @@ object LibraryItemStore : Cork {
     db: CampfireDatabase,
     libraryItemDao: LibraryItemDao,
     dispatcherProvider: DispatcherProvider,
+    purger: LibraryItemPurger,
   ) {
 
     private val fetcherFactory = LibraryItemFetcherFactory(api)
-    private val sourceOfTruthFactory = LibraryItemSourceOfTruthFactory(db, libraryItemDao, dispatcherProvider)
+    private val sourceOfTruthFactory = LibraryItemSourceOfTruthFactory(db, libraryItemDao, dispatcherProvider, purger)
 
     fun create(): Store<LibraryItemId, LibraryItem> {
       return StoreBuilder.from(

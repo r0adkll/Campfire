@@ -11,6 +11,7 @@ import app.campfire.core.model.MediaType
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.model.mapToLibraryItem
 import app.campfire.data.mapping.model.mapToPodcastLibraryItem
+import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.models.LibraryItemExpanded as NetworkLibraryItem
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
@@ -19,13 +20,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 
 class LibraryItemSourceOfTruthFactory(
   private val db: CampfireDatabase,
   private val libraryItemDao: LibraryItemDao,
   private val dispatcherProvider: DispatcherProvider,
+  private val purger: LibraryItemPurger,
 ) {
 
   fun create(): SourceOfTruth<LibraryItemId, NetworkLibraryItem, LibraryItem> {
@@ -72,8 +73,6 @@ class LibraryItemSourceOfTruthFactory(
   }
 
   private suspend fun deleteItem(libraryItemId: LibraryItemId) {
-    withContext(dispatcherProvider.databaseWrite) {
-      db.libraryItemsQueries.deleteForId(libraryItemId)
-    }
+    purger.purge(listOf(libraryItemId))
   }
 }
