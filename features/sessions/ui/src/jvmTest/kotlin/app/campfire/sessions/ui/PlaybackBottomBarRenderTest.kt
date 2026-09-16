@@ -183,6 +183,32 @@ class PlaybackBottomBarRenderTest {
   }
 
   @Test
+  fun `the folded mini-player toggle is offered in the overflow menu`() {
+    render("overflow-menu-with-mini-player", width = 360, height = 300) {
+      CampfireTheme(useDarkColors = false) {
+        Surface(Modifier.fillMaxSize()) {
+          Column {
+            ActionOverflowMenuItems(
+              overflowed = setOf(OverflowAction.MiniPlayer, OverflowAction.Equalizer, OverflowAction.Chapters),
+              runningTimer = null,
+              outputDevices = null,
+              equalizerLabel = "Equalizer",
+              chaptersLabel = "Chapters",
+              timerLabel = "Sleep timer",
+              onEqualizerClick = {},
+              onChapterListClick = {},
+              onTimerClick = {},
+              onChosen = {},
+              miniPlayerOpen = true,
+              onMiniPlayerClick = {},
+            )
+          }
+        }
+      }
+    }
+  }
+
+  @Test
   fun `hovering a chapter tick shows its tooltip`() {
     render("bottom-bar-hover", beforeRender = { scene ->
       // Track spans [labelWidth + 16, width - labelWidth - 16] in dp; chapter 2 starts at 30/60

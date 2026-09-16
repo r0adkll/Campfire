@@ -53,7 +53,7 @@ interface CampfirePlaybackBarComponent {
 }
 
 @Composable
-private fun rememberCampfirePlaybackBarComponent(): State<CampfirePlaybackBarComponent> {
+internal fun rememberCampfirePlaybackBarComponent(): State<CampfirePlaybackBarComponent> {
   return remember {
     ComponentHolder.subscribe<CampfirePlaybackBarComponent>()
   }.collectAsState(ComponentHolder.component<CampfirePlaybackBarComponent>())

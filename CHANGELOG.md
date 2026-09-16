@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop detail pane can be resized by dragging the handle on its edge, and the chosen width is remembered
 - Desktop playback bar has a volume slider and mute button for the app's own volume, kept separate from the system volume
 - Desktop can send playback to a specific audio output device instead of always following the system default (macOS and Windows)
+- Desktop can break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
+- Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
 
 ### Changed
 

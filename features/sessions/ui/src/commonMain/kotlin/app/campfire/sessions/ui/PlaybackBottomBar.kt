@@ -59,9 +59,11 @@ import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.common.compose.extensions.readoutFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Bookmarks
+import app.campfire.common.compose.icons.rounded.DockToBottom
 import app.campfire.common.compose.icons.rounded.Equalizer
 import app.campfire.common.compose.icons.rounded.List
 import app.campfire.common.compose.icons.rounded.MoreVert
+import app.campfire.common.compose.icons.rounded.OpenInNew
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
@@ -84,6 +86,8 @@ import app.campfire.sessions.ui.playback.PlaybackPresenterFactory
 import app.campfire.sessions.ui.playback.PlaybackUiState
 import app.campfire.sessions.ui.playback.PlayerUiEvent
 import app.campfire.sessions.ui.playback.VolumeUiState
+import app.campfire.sessions.ui.player.LocalMiniPlayerHost
+import app.campfire.sessions.ui.player.MiniPlayerAction
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
 import app.campfire.sessions.ui.sheets.chapters.ChapterResult
@@ -99,7 +103,9 @@ import campfire.features.sessions.ui.generated.resources.action_add_bookmark
 import campfire.features.sessions.ui.generated.resources.action_chapters
 import campfire.features.sessions.ui.generated.resources.action_equalizer
 import campfire.features.sessions.ui.generated.resources.action_more
+import campfire.features.sessions.ui.generated.resources.action_open_mini_player
 import campfire.features.sessions.ui.generated.resources.action_output_device
+import campfire.features.sessions.ui.generated.resources.action_return_to_window
 import campfire.features.sessions.ui.generated.resources.action_sleep_timer
 import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_remaining
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
@@ -155,8 +161,14 @@ private fun PlaybackBottomBar(
   modifier: Modifier = Modifier,
 ) {
   val playerState = uiState.playerState
+  val miniPlayerHost = LocalMiniPlayerHost.current
   PlaybackBottomBarContent(
     session = uiState.session,
+    miniPlayerOpen = miniPlayerHost?.isOpen,
+    onMiniPlayerClick = {
+      if (miniPlayerHost == null) return@PlaybackBottomBarContent
+      if (miniPlayerHost.isOpen) miniPlayerHost.close() else miniPlayerHost.open()
+    },
     state = playerState.state,
     playbackSpeed = playerState.speed,
     currentTime = playerState.time,
@@ -214,6 +226,9 @@ internal fun PlaybackBottomBarContent(
   onBookmarkSelected: (Bookmark) -> Unit,
 
   modifier: Modifier = Modifier,
+  /** Whether the mini-player window is open, or null where the platform has no such window. */
+  miniPlayerOpen: Boolean? = null,
+  onMiniPlayerClick: () -> Unit = {},
 ) {
   val scope = rememberCoroutineScope()
   val hasSession = session != null
@@ -273,6 +288,8 @@ internal fun PlaybackBottomBarContent(
           runningTimer = runningTimer,
           volume = volume,
           outputDevices = outputDevices,
+          miniPlayerOpen = miniPlayerOpen,
+          onMiniPlayerClick = onMiniPlayerClick,
           onBookmarkAddClick = {
             if (session == null) return@ActionRow
             scope.launch {
@@ -434,6 +451,8 @@ private fun ActionRow(
   onEqualizerClick: () -> Unit,
   showChapters: Boolean,
   onChapterListClick: () -> Unit,
+  miniPlayerOpen: Boolean?,
+  onMiniPlayerClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) = BoxWithConstraints(modifier) {
   val equalizerLabel = stringResource(Res.string.action_equalizer)
@@ -446,6 +465,7 @@ private fun ActionRow(
     hasChapters = showChapters,
     hasOutputDevices = outputDevices != null,
     timerRunning = runningTimer != null,
+    hasMiniPlayer = miniPlayerOpen != null,
   )
 
   Row(
@@ -547,32 +567,45 @@ private fun ActionRow(
 
     volume?.let { VolumeControl(state = it) }
 
+    // The mini window carries its own return button, so this stays usable once the player is
+    // out there but is never essential — it folds with the first tier.
+    if (miniPlayerOpen != null && OverflowAction.MiniPlayer !in overflowed) {
+      MiniPlayerAction(
+        isOpen = miniPlayerOpen,
+        onClick = onMiniPlayerClick,
+        enabled = enabled || miniPlayerOpen,
+      )
+    }
+
     if (overflowed.isNotEmpty()) {
       ActionOverflowMenu(
         overflowed = overflowed,
-        enabled = enabled,
+        enabled = enabled || miniPlayerOpen == true,
         runningTimer = runningTimer,
         outputDevices = outputDevices,
+        miniPlayerOpen = miniPlayerOpen,
         equalizerLabel = equalizerLabel,
         chaptersLabel = chaptersLabel,
         timerLabel = timerLabel,
         onEqualizerClick = onEqualizerClick,
         onChapterListClick = onChapterListClick,
         onTimerClick = onTimerClick,
+        onMiniPlayerClick = onMiniPlayerClick,
       )
     }
   }
 }
 
 /** An action that can be folded away when the bar's tool row runs out of room. */
-internal enum class OverflowAction { OutputDevice, Equalizer, Chapters, Timer }
+internal enum class OverflowAction { MiniPlayer, OutputDevice, Equalizer, Chapters, Timer }
 
 /**
  * Which actions must fold away for the row to fit in [available].
  *
- * Collapses in least-useful-first order: the equalizer and chapter list go together, and the
- * sleep timer only follows when even that is not enough — which happens at the narrowest docked
- * widths once the speed control is showing a label rather than its 1x icon.
+ * Collapses in least-useful-first order: the mini-player toggle, output device, equalizer and
+ * chapter list go together, and the sleep timer only follows when even that is not enough — which
+ * happens at the narrowest docked widths once the speed control is showing a label rather than
+ * its 1x icon.
  */
 internal fun actionOverflow(
   available: Dp,
@@ -580,9 +613,11 @@ internal fun actionOverflow(
   hasChapters: Boolean,
   hasOutputDevices: Boolean = false,
   timerRunning: Boolean,
+  hasMiniPlayer: Boolean = false,
 ): Set<OverflowAction> {
   val timerSize = if (timerRunning) RunningTimerSize else ActionSize
   val optional = buildList {
+    if (hasMiniPlayer) add(OverflowAction.MiniPlayer)
     if (hasOutputDevices) add(OverflowAction.OutputDevice)
     if (hasEqualizer) add(OverflowAction.Equalizer)
     if (hasChapters) add(OverflowAction.Chapters)
@@ -611,12 +646,14 @@ private fun ActionOverflowMenu(
   enabled: Boolean,
   runningTimer: RunningTimer?,
   outputDevices: OutputDeviceUiState?,
+  miniPlayerOpen: Boolean?,
   equalizerLabel: String,
   chaptersLabel: String,
   timerLabel: String,
   onEqualizerClick: () -> Unit,
   onChapterListClick: () -> Unit,
   onTimerClick: () -> Unit,
+  onMiniPlayerClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
@@ -645,6 +682,8 @@ private fun ActionOverflowMenu(
         onChapterListClick = onChapterListClick,
         onTimerClick = onTimerClick,
         onChosen = { expanded = false },
+        miniPlayerOpen = miniPlayerOpen,
+        onMiniPlayerClick = onMiniPlayerClick,
       )
     }
   }
@@ -667,6 +706,9 @@ internal fun ActionOverflowMenuItems(
   onChapterListClick: () -> Unit,
   onTimerClick: () -> Unit,
   onChosen: () -> Unit,
+  /** Whether the mini-player window is open, or null where the platform has no such window. */
+  miniPlayerOpen: Boolean? = null,
+  onMiniPlayerClick: () -> Unit = {},
 ) {
   // The device picker folds away first, so this is the usual route to it. Its own rows are
   // reused rather than a menu nested inside a menu item.
@@ -718,6 +760,28 @@ internal fun ActionOverflowMenuItems(
       onClick = {
         onChosen()
         onChapterListClick()
+      },
+    )
+  }
+
+  if (miniPlayerOpen != null && OverflowAction.MiniPlayer in overflowed) {
+    DropdownMenuItem(
+      text = {
+        Text(
+          stringResource(
+            if (miniPlayerOpen) Res.string.action_return_to_window else Res.string.action_open_mini_player,
+          ),
+        )
+      },
+      leadingIcon = {
+        Icon(
+          imageVector = if (miniPlayerOpen) CampfireIcons.Rounded.DockToBottom else CampfireIcons.Rounded.OpenInNew,
+          contentDescription = null,
+        )
+      },
+      onClick = {
+        onChosen()
+        onMiniPlayerClick()
       },
     )
   }

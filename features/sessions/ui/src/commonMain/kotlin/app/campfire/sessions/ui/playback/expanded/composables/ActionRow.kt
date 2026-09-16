@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -38,8 +37,10 @@ internal fun ActionRow(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
-  volumeContent: @Composable () -> Unit,
-  outputDeviceContent: @Composable () -> Unit,
+  /** The app-volume control, or null to leave no slot for it — mobile has no app volume. */
+  volumeContent: (@Composable () -> Unit)? = null,
+  /** The output-device picker, or null to leave no slot for it. */
+  outputDeviceContent: (@Composable () -> Unit)? = null,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -53,7 +54,6 @@ internal fun ActionRow(
   Row(
     modifier = modifier
       .fillMaxWidth()
-      .height(72.dp)
       .padding(horizontal = 16.dp),
     verticalAlignment = Alignment.CenterVertically,
     horizontalArrangement = Arrangement.SpaceEvenly,
@@ -82,8 +82,10 @@ internal fun ActionColumn(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
-  volumeContent: @Composable () -> Unit,
-  outputDeviceContent: @Composable () -> Unit,
+  /** The app-volume control, or null to leave no slot for it — mobile has no app volume. */
+  volumeContent: (@Composable () -> Unit)? = null,
+  /** The output-device picker, or null to leave no slot for it. */
+  outputDeviceContent: (@Composable () -> Unit)? = null,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -125,8 +127,10 @@ private fun ActionContent(
   onBookmarksClick: () -> Unit,
   speedContent: @Composable () -> Unit,
   timerContent: @Composable () -> Unit,
-  volumeContent: @Composable () -> Unit,
-  outputDeviceContent: @Composable () -> Unit,
+  /** The app-volume control, or null to leave no slot for it — mobile has no app volume. */
+  volumeContent: (@Composable () -> Unit)? = null,
+  /** The output-device picker, or null to leave no slot for it. */
+  outputDeviceContent: (@Composable () -> Unit)? = null,
   onEqualizerClick: () -> Unit,
   showEqualizer: Boolean,
   onChapterListClick: () -> Unit,
@@ -229,17 +233,23 @@ private fun ActionContent(
     }
   }
 
-  Box(
-    modifier = actionModifier,
-    contentAlignment = Alignment.Center,
-  ) {
-    volumeContent()
+  // Each slot shares the row equally, so an empty one would still take its share and shove the
+  // rest off centre; absent controls get no slot at all.
+  if (volumeContent != null) {
+    Box(
+      modifier = actionModifier,
+      contentAlignment = Alignment.Center,
+    ) {
+      volumeContent()
+    }
   }
 
-  Box(
-    modifier = actionModifier,
-    contentAlignment = Alignment.Center,
-  ) {
-    outputDeviceContent()
+  if (outputDeviceContent != null) {
+    Box(
+      modifier = actionModifier,
+      contentAlignment = Alignment.Center,
+    ) {
+      outputDeviceContent()
+    }
   }
 }
