@@ -17,7 +17,9 @@ import app.campfire.data.mapping.asDbModel
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
+import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.AudioBookShelfApi
+import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
@@ -48,6 +50,7 @@ interface AuthorDetailStoreModule {
     db: CampfireDatabase,
     urlHydrator: UrlHydrator,
     dispatcherProvider: DispatcherProvider,
+    purger: LibraryItemPurger,
   ): AuthorDetailStore {
     return StoreBuilder
       .from(
@@ -92,6 +95,18 @@ interface AuthorDetailStoreModule {
                   db.mediaQueries.insertOrIgnore(dbMedia)
                 }
               }
+            }
+
+            // The detail response lists every book by this author, so a cached book the
+            // reader would show that isn't in it may have been removed from the server.
+            author.libraryItems?.let { libraryItems ->
+              val serverIds = libraryItems.mapTo(HashSet()) { it.id }
+              val cachedIds = withContext(dispatcherProvider.databaseRead) {
+                db.libraryItemsQueries
+                  .selectIdsForAuthorName(authorName = author.name, libraryId = author.libraryId)
+                  .awaitAsList()
+              }
+              purger.purgeIfRemoved(cachedIds.filterNot { it in serverIds })
             }
           },
           delete = { authorId ->

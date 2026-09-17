@@ -191,6 +191,24 @@ class AndroidOfflineDownloadManager(
     )
   }
 
+  override suspend fun deleteAllForItemId(itemId: LibraryItemId) {
+    downloadTracker.downloadIdsForItem(itemId).forEach { downloadId ->
+      // Cache cleanup can run while the app is in the background, where Android 12+ refuses a
+      // foreground service start. Fall back to a plain start and, failing that, skip — the files
+      // are picked up again the next time this item id is cleaned up.
+      try {
+        DownloadService.sendRemoveDownload(application, CampfireDownloadService::class.java, downloadId, true)
+      } catch (e: IllegalStateException) {
+        bark(throwable = e) { "Unable to start download service in the foreground, retrying in background" }
+        try {
+          DownloadService.sendRemoveDownload(application, CampfireDownloadService::class.java, downloadId, false)
+        } catch (e: IllegalStateException) {
+          bark(throwable = e) { "Unable to start download service, skipping removal of $downloadId" }
+        }
+      }
+    }
+  }
+
   override fun stop(item: LibraryItem) {
     delete(item)
   }

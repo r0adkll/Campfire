@@ -25,9 +25,11 @@ kotlin {
         implementation(projects.data.account.api)
         implementation(projects.data.db.mapping)
         implementation(projects.data.crashreporting.api)
+        implementation(projects.infra.audioplayer.api)
         implementation(projects.infra.socket.api)
 
         implementation(libs.androidx.paging.common)
+        implementation(libs.multiplatformsettings.core)
         implementation(libs.store)
       }
     }
@@ -35,6 +37,12 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.features.libraries.test)
+        implementation(projects.common.test)
+        implementation(projects.features.user.test)
+        implementation(projects.infra.audioplayer.test)
+        implementation(projects.data.db.test)
+        implementation(projects.data.network.test)
+        implementation(libs.multiplatformsettings.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
       }

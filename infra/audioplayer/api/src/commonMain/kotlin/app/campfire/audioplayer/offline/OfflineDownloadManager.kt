@@ -81,6 +81,13 @@ interface OfflineDownloadManager {
   fun deleteEpisode(item: LibraryItem, episode: PodcastEpisode)
 
   /**
+   * Delete every offline download (book tracks and podcast episodes) tagged with [itemId].
+   * Works without the [LibraryItem] itself, so downloads can be cleaned up for an item
+   * that no longer exists on the server or in the local cache.
+   */
+  suspend fun deleteAllForItemId(itemId: LibraryItemId)
+
+  /**
    * Stop any current download of a [LibraryItem].
    * @param item The [LibraryItem] to stop the download for.
    */

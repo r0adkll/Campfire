@@ -197,7 +197,7 @@ fun LibraryItemContent(
             )
           }
 
-          if (state.user.canEditCollections) {
+          if (state.user.canEditCollections && state.libraryItem != null) {
             val addToCollectionLabel = stringResource(Res.string.cd_add_to_collection)
             IconButtonTooltip(text = addToCollectionLabel) {
               IconButton(
@@ -289,9 +289,11 @@ fun LibraryItemContent(
     }
   }
 
-  if (showAddToCollectionDialog) {
+  // The item can disappear while the dialog is open, when it's removed from the server
+  val libraryItem = state.libraryItem
+  if (showAddToCollectionDialog && libraryItem != null) {
     addToCollectionDialog.Content(
-      item = state.libraryItem!!,
+      item = libraryItem,
       onDismiss = { showAddToCollectionDialog = false },
       modifier = Modifier,
     )

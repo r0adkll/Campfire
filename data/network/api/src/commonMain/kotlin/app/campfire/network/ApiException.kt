@@ -9,3 +9,9 @@ class ApiException(
 ) : Exception("API Error [$statusCode]: $apiMessage")
 
 class AuthorizationException : Exception("Not valid login configuration found")
+
+/**
+ * Whether this failure is the server reporting that the requested resource doesn't exist.
+ */
+val Throwable.isNotFound: Boolean
+  get() = this is ApiException && statusCode == 404

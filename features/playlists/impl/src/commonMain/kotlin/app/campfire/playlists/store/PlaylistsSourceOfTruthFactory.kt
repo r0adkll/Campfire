@@ -149,6 +149,9 @@ class PlaylistsSourceOfTruthFactory(
         // Insert playlist
         db.playlistsQueries.insert(playlist.asDbModel(userId, libraryId))
 
+        // Replace, not add to, the playlist's items so removed ones don't linger
+        db.playlistItemJoinQueries.delete(playlist.id)
+
         // Insert the playlist items
         playlist.items.forEachIndexed { index, item ->
           writePlaylistItem(playlist.id, item, index)
@@ -165,6 +168,9 @@ class PlaylistsSourceOfTruthFactory(
     db.transaction {
       // Insert playlist
       db.playlistsQueries.insert(playlist.asDbModel(userId, libraryId))
+
+      // Replace, not add to, the playlist's items so removed ones don't linger
+      db.playlistItemJoinQueries.delete(playlist.id)
 
       // Insert the playlist items
       playlist.items.forEachIndexed { index, item ->

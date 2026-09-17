@@ -151,6 +151,10 @@ class StoreSeriesRepository(
             val series = networkResult.series.asDbModel(s.userId, s.libraryId)
             db.seriesQueries.insertOrIgnore(series)
 
+            // This is the series' full book list, so replace its links rather than adding to
+            // them — books removed from the series (or the server) would otherwise linger.
+            db.seriesBookJoinQueries.deleteForSeries(s.seriesId)
+
             // Insert the books
             networkResult.books.forEach { item ->
               val libraryItem = item.asDbModel(serverUrl)

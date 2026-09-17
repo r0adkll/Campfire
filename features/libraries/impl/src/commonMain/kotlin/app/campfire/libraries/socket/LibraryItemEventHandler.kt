@@ -3,14 +3,12 @@
 
 package app.campfire.libraries.socket
 
-import app.campfire.CampfireDatabase
-import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.dao.LibraryItemDao
+import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.models.LibraryItemExpanded
 import com.r0adkll.kimchi.annotations.ContributesBinding
-import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
 /**
@@ -29,9 +27,8 @@ interface LibraryItemEventHandler {
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultLibraryItemEventHandler(
-  private val db: CampfireDatabase,
   private val libraryItemDao: LibraryItemDao,
-  private val dispatcherProvider: DispatcherProvider,
+  private val purger: LibraryItemPurger,
 ) : LibraryItemEventHandler {
 
   override suspend fun onItemAdded(item: LibraryItemExpanded) {
@@ -43,9 +40,7 @@ class DefaultLibraryItemEventHandler(
   }
 
   override suspend fun onItemRemoved(itemId: LibraryItemId) {
-    withContext(dispatcherProvider.databaseWrite) {
-      db.libraryItemsQueries.deleteForId(itemId)
-    }
+    purger.purge(listOf(itemId))
   }
 
   override suspend fun onItemsAdded(items: List<LibraryItemExpanded>) {
