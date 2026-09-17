@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop can break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
 - Desktop can download audiobooks and podcast episodes for offline listening, picking up unfinished downloads the next time the app opens
 - Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
+- Pull down on the Home screen to refresh its shelves
 
 ### Changed
 

@@ -5,6 +5,8 @@ package app.campfire.home
 
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.ShelfEntity
@@ -19,6 +21,7 @@ import app.campfire.home.store.home.HomeStore
 import app.campfire.home.store.shelf.ShelfStore
 import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
@@ -28,6 +31,7 @@ import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse
 import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -76,6 +80,18 @@ class StoreHomeRepository(
             }
           }
       }
+  }
+
+  override suspend fun refreshHomeFeed() {
+    val user = userRepository.getCurrentUser()
+    try {
+      homeStore.fresh(HomeStore.Key(user.id, user.selectedLibraryId))
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      // Like the feed stream, a failed fetch (often just no network) keeps the cached shelves.
+      bark(LogPriority.WARN, throwable = e) { "Failed to refresh the home feed" }
+    }
   }
 
   override fun observeMediaProgress(libraryItemIds: Set<LibraryItemId>): Flow<Map<LibraryItemId, MediaProgress>> {

@@ -7,7 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ContentSelected
@@ -45,6 +48,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -63,6 +67,9 @@ class HomePresenter(
   @OptIn(ExperimentalCoroutinesApi::class)
   @Composable
   override fun present(): HomeUiState {
+    val scope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+
     // Observe just the shelf information. We will use this to compose the remaining elements
     val domainFeed by remember {
       homeRepository.observeHomeFeed()
@@ -142,6 +149,7 @@ class HomePresenter(
       homeFeed = feed,
       offlineStates = offlineDownloads,
       progressStates = userMediaProgress,
+      isRefreshing = isRefreshing,
     ) { event ->
       when (event) {
         is HomeUiEvent.OpenLibraryItem -> {
@@ -162,6 +170,16 @@ class HomePresenter(
         }
         is HomeUiEvent.OpenUpcomingBook -> navigator.goTo(UrlScreen(event.url))
         HomeUiEvent.OpenUpcomingScreen -> navigator.goTo(UpcomingScreen)
+        HomeUiEvent.Refresh -> if (!isRefreshing) {
+          isRefreshing = true
+          scope.launch {
+            try {
+              homeRepository.refreshHomeFeed()
+            } finally {
+              isRefreshing = false
+            }
+          }
+        }
       }
     }
   }
