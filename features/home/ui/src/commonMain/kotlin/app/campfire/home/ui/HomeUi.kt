@@ -5,6 +5,7 @@ package app.campfire.home.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -13,13 +14,17 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
 import app.campfire.common.compose.tracing.TraceEffect
+import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
@@ -69,60 +74,78 @@ fun HomeScreen(
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
-    when (val feed = state.homeFeed) {
-      FeedResponse.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      is FeedResponse.Error -> {
-        val reason = when (feed) {
-          is FeedResponse.Error.Exception ->
-            feed.error.message
-              ?: feed.error::class.simpleName
-              ?: "<Unknown error>"
+    val pullToRefreshState = rememberPullToRefreshState()
+    PullToRefreshBox(
+      isRefreshing = state.isRefreshing,
+      onRefresh = { state.eventSink(HomeUiEvent.Refresh) },
+      state = pullToRefreshState,
+      modifier = Modifier.fillMaxSize(),
+      indicator = {
+        CampfireLoadingIndicator(
+          state = pullToRefreshState,
+          isRefreshing = state.isRefreshing,
+          modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = paddingValues.calculateTopPadding()),
+        )
+      },
+    ) {
+      when (val feed = state.homeFeed) {
+        FeedResponse.Loading -> LoadingListState(Modifier.padding(paddingValues))
+        is FeedResponse.Error -> {
+          val reason = when (feed) {
+            is FeedResponse.Error.Exception ->
+              feed.error.message
+                ?: feed.error::class.simpleName
+                ?: "<Unknown error>"
 
-          is FeedResponse.Error.Message -> feed.message
+            is FeedResponse.Error.Message -> feed.message
+          }
+          ErrorListState(
+            stringResource(Res.string.home_feed_load_error, reason),
+            modifier = Modifier.padding(paddingValues),
+          )
         }
-        ErrorListState(
-          stringResource(Res.string.home_feed_load_error, reason),
-          modifier = Modifier.padding(paddingValues),
-        )
-      }
 
-      is FeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
-        EmptyState(randomEmptyMessage())
-      } else {
-        LoadedState(
-          shelves = state.homeFeed.data,
-          offlineStatus = { libraryItemId ->
-            state.offlineStates[libraryItemId].asWidgetStatus()
-          },
-          progressStatus = { libraryItemId, podcastEpisodeId ->
-            state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
-          },
-          contentPadding = paddingValues,
-          onViewAllUpcomingClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
-          onItemClick = { shelf, item ->
-            when (item) {
-              is LibraryItem -> state.eventSink(
-                HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
-              )
+        is FeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
+          EmptyState(randomEmptyMessage())
+        } else {
+          LoadedState(
+            shelves = state.homeFeed.data,
+            offlineStatus = { libraryItemId ->
+              state.offlineStates[libraryItemId].asWidgetStatus()
+            },
+            progressStatus = { libraryItemId, podcastEpisodeId ->
+              state.progressStates[MediaProgressKey(libraryItemId, podcastEpisodeId)]
+            },
+            contentPadding = paddingValues,
+            modifier = Modifier.fillMaxSize(),
+            onViewAllUpcomingClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
+            onItemClick = { shelf, item ->
+              when (item) {
+                is LibraryItem -> state.eventSink(
+                  HomeUiEvent.OpenLibraryItem(item, item.id + shelf.id),
+                )
 
-              is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
-              is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
+                is Author -> state.eventSink(HomeUiEvent.OpenAuthor(item))
+                is Series -> state.eventSink(HomeUiEvent.OpenSeries(item))
 
-              is ShelfEntity.UpcomingBookShelfEntry -> item.providerUrl?.let { url ->
-                state.eventSink(HomeUiEvent.OpenUpcomingBook(url))
+                is ShelfEntity.UpcomingBookShelfEntry -> item.providerUrl?.let { url ->
+                  state.eventSink(HomeUiEvent.OpenUpcomingBook(url))
+                }
+
+                is ShelfEntity.EpisodeShelfEntry -> state.eventSink(
+                  HomeUiEvent.OpenLibraryItemWithEpisode(
+                    item = item.libraryItem,
+                    episodeId = item.recentEpisode.id,
+                    sharedTransitionKey = item.transitionKey + shelf.id,
+                  ),
+                )
+                else -> Unit
               }
-
-              is ShelfEntity.EpisodeShelfEntry -> state.eventSink(
-                HomeUiEvent.OpenLibraryItemWithEpisode(
-                  item = item.libraryItem,
-                  episodeId = item.recentEpisode.id,
-                  sharedTransitionKey = item.transitionKey + shelf.id,
-                ),
-              )
-              else -> Unit
-            }
-          },
-        )
+            },
+          )
+        }
       }
     }
   }

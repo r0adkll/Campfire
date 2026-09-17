@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop can break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
 - Desktop can download audiobooks and podcast episodes for offline listening, picking up unfinished downloads the next time the app opens
 - Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
+- Pull down on the Home screen to refresh its shelves
 
 ### Changed
 
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop and tablet search results close once you pick one
 - Desktop renders the built-in themes on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
 - Download options are hidden for accounts the server doesn't allow to download, updating as soon as an admin changes the permission; existing downloads can still be removed
+- Pull-to-refresh shows a livelier animated flame that grows as you pull and throws off embers while refreshing, now on every platform
 
 ### Deprecated
 

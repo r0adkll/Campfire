@@ -34,8 +34,10 @@ import assertk.assertions.hasSize
 import assertk.assertions.index
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isNotNull
+import assertk.assertions.isTrue
 import assertk.assertions.key
 import assertk.assertions.prop
 import com.slack.circuit.test.FakeNavigator
@@ -43,6 +45,7 @@ import com.slack.circuit.test.test
 import kotlin.test.Test
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.PersistentList
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -489,6 +492,41 @@ class HomePresenterTest {
 
       assertThat(navigator.awaitNextScreen()).isEqualTo(SeriesDetailScreen(seriesId, seriesName))
       assertThat(analytics.events.first()).prop(AnalyticEvent::eventName).isEqualTo("series_selected")
+    }
+  }
+
+  @Test
+  fun eventSink_Refresh_refreshesFeedOnceWhileShowingProgress() = runTest {
+    val refreshGate = CompletableDeferred<Unit>()
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { emptyFlow() },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+      onRefreshHomeFeed = { refreshGate.await() },
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
+      analytics = analytics,
+    )
+
+    presenter.test {
+      val idle = awaitItem()
+      assertThat(idle.isRefreshing).isFalse()
+
+      idle.eventSink(HomeUiEvent.Refresh)
+      val refreshing = awaitItem()
+      assertThat(refreshing.isRefreshing).isTrue()
+
+      // Pulling again while the first refresh is in flight doesn't start a second one
+      refreshing.eventSink(HomeUiEvent.Refresh)
+      refreshGate.complete(Unit)
+
+      assertThat(awaitItem().isRefreshing).isFalse()
+      assertThat(repository.refreshCount).isEqualTo(1)
     }
   }
 }
