@@ -68,12 +68,10 @@ class SeriesScannerTest {
     val untracked = libraryItem(
       media = media(metadata = mediaMetadata(title = "Untracked", ISBN = null, ASIN = null)),
     )
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Good Series", books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Mystery Series", books = listOf(untracked)),
-        series(id = "s3", name = "Broken Series", books = listOf(ownedItem("Book B", "B000000002"))),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Good Series", books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Mystery Series", books = listOf(untracked)),
+      series(id = "s3", name = "Broken Series", books = listOf(ownedItem("Book B", "B000000002"))),
     )
     registry.fetchSeriesResults["Good Series"] = successWith(upcomingEntry("B000000003", "Book C"))
     registry.fetchSeriesResults["Broken Series"] = SeriesFetchResult.Error
@@ -90,16 +88,16 @@ class SeriesScannerTest {
   }
 
   @Test
-  fun `the refresh flag flows through to the snapshot and every fetch`() = runTest {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+  fun `every scan walks the full listing and the refresh flag flows through to every fetch`() = runTest {
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
     )
     registry.fetchSeriesResults["Series One"] = successWith()
 
     scanner.scan(refresh = false).last()
     scanner.scan(refresh = true).last()
 
-    assertThat(seriesRepository.observeAllSeriesRequests).isEqualTo(listOf(false, true))
+    assertThat(seriesRepository.getAllSeriesCount).isEqualTo(2)
     assertThat(registry.fetchSeriesRequests.map { it.refresh }).isEqualTo(listOf(false, true))
   }
 
@@ -107,11 +105,9 @@ class SeriesScannerTest {
   fun `progress streams in as each series completes`() = runTest {
     val gate = Channel<Unit>()
     registry.fetchSeriesGate = { gate.receive() }
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
     )
     registry.fetchSeriesResults["Series One"] = successWith()
     registry.fetchSeriesResults["Series Two"] = successWith()
@@ -129,12 +125,10 @@ class SeriesScannerTest {
 
   @Test
   fun `recently updated series scan first`() = runTest {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Dusty", updatedAt = 100L, books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Active", updatedAt = 300L, books = listOf(ownedItem("Book B", "B000000002"))),
-        series(id = "s3", name = "Recent", updatedAt = 200L, books = listOf(ownedItem("Book C", "B000000003"))),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Dusty", updatedAt = 100L, books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Active", updatedAt = 300L, books = listOf(ownedItem("Book B", "B000000002"))),
+      series(id = "s3", name = "Recent", updatedAt = 200L, books = listOf(ownedItem("Book C", "B000000003"))),
     )
 
     scanner.scan(refresh = false).last()
@@ -147,8 +141,8 @@ class SeriesScannerTest {
 
   @Test
   fun `a rate limited series is retried after the pause`() = runTest {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
     )
     registry.fetchSeriesResultQueue["Series One"] = ArrayDeque(
       listOf(
@@ -167,11 +161,9 @@ class SeriesScannerTest {
 
   @Test
   fun `a second rate limit stops the scan with a terminal flag`() = runTest {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Limited", updatedAt = 300L, books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Also Limited", updatedAt = 100L, books = listOf(ownedItem("Book B", "B000000002"))),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Limited", updatedAt = 300L, books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Also Limited", updatedAt = 100L, books = listOf(ownedItem("Book B", "B000000002"))),
     )
     registry.fetchSeriesResults["Limited"] = SeriesFetchResult.RateLimited(retryAfter = null)
     registry.fetchSeriesResults["Also Limited"] = SeriesFetchResult.RateLimited(retryAfter = null)

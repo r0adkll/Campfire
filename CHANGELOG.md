@@ -65,6 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - App crashing when a request finishes after logging out or while signing in
 - Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
 - Sleep timer's Time and End of Chapter buttons having mismatched sizes when a label wraps onto two lines
+- Upcoming only checking the series you had already browsed to, instead of every series in the library
 
 ### Other Notes & Contributions
 

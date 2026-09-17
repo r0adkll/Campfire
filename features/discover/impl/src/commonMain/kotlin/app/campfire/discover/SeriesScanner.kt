@@ -13,7 +13,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -63,17 +62,15 @@ class SeriesScanner(
 
   /**
    * Runs one full scan, emitting [Progress] after the initial snapshot and
-   * after every series. With [refresh] each series listing bypasses its cache
-   * TTL and the series snapshot itself is refetched from the server; without
-   * it everything reads through caches, which lets an interrupted scan
+   * after every series. The series snapshot is always the server's listing.
+   * With [refresh] each series' provider listing bypasses its cache TTL;
+   * without it those read through the cache, which lets an interrupted scan
    * fast-forward to where it left off.
    */
   fun scan(refresh: Boolean): Flow<Progress> = channelFlow {
-    // Stale scans read the local snapshot so they never rewrite the series
-    // cache (which would reset the series list screen's pagination); an
-    // explicit scan also kicks off a listing refresh so new series land for
-    // this or the next pass.
-    val allSeries = seriesRepository.observeAllSeries(refresh = refresh).first()
+    // Always the server's complete listing: the local series cache only holds
+    // series that were loaded somewhere else (series pages, shelves, search).
+    val allSeries = seriesRepository.getAllSeries()
       .sortedByDescending { it.updatedAt }
 
     var progress = Progress(done = 0, total = allSeries.size, skippedCount = 0, failedCount = 0)
