@@ -364,6 +364,10 @@ jobs:
         env:
           CI: true
 
+      # The upload to GitHub Releases reads its token from app.site.github.oauth-token only, never
+      # from GITHUB_TOKEN in the environment. It is passed as a flag rather than set in
+      # conveyor.conf because Conveyor fails to load a config whose token is blank or unset,
+      # which would break local `conveyor make site` for anyone without one.
       - name: Package and Upload to Release
         if: steps.creds.outputs.present == 'true'
         uses: hydraulic-software/conveyor/actions/build@v22.3
@@ -371,12 +375,11 @@ jobs:
           command: make copied-site
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
           agree_to_license: 1
-          extra_flags: -Kapp.version=${{ github.event.release.tag_name }}
+          extra_flags: -Kapp.version=${{ github.event.release.tag_name }} -Kapp.site.github.oauth-token=${{ github.token }}
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          GITHUB_TOKEN: ${{ github.token }}
           CI: true
 
       - name: Upload build outputs
