@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop can break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
 - Desktop can download audiobooks and podcast episodes for offline listening, picking up unfinished downloads the next time the app opens
 - Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
-- Pull down on the Home screen to refresh its shelves
+- Pull down on the Home, Playlists and Collections screens to refresh them
 
 ### Changed
 
@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Android app crashing when a Cast device appears on the network
 - App crashing when a request finishes after logging out or while signing in
 - Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
+- Sleep timer's Time and End of Chapter buttons having mismatched sizes when a label wraps onto two lines
 - Upcoming only checking the series you had already browsed to, instead of every series in the library
 
 ### Other Notes & Contributions

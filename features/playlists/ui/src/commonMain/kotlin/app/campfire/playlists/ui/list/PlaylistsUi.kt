@@ -22,11 +22,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SmallExtendedFloatingActionButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -38,6 +41,7 @@ import app.campfire.common.compose.icons.rounded.PlaylistAdd
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.FilterBar
@@ -116,21 +120,38 @@ fun Playlists(
       .exclude(OverlappedNavigationBarInsets)
       .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
-    when (state.playlistContentState) {
-      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LoadState.Error -> ErrorListState(
-        message = stringResource(Res.string.error_playlists_message),
-        modifier = Modifier.padding(paddingValues),
-      )
+    val pullToRefreshState = rememberPullToRefreshState()
+    PullToRefreshBox(
+      isRefreshing = state.isRefreshing,
+      onRefresh = { state.eventSink(PlaylistsUiEvent.Refresh) },
+      state = pullToRefreshState,
+      modifier = Modifier.fillMaxSize(),
+      indicator = {
+        CampfireLoadingIndicator(
+          state = pullToRefreshState,
+          isRefreshing = state.isRefreshing,
+          modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = paddingValues.calculateTopPadding()),
+        )
+      },
+    ) {
+      when (state.playlistContentState) {
+        LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+        LoadState.Error -> ErrorListState(
+          message = stringResource(Res.string.error_playlists_message),
+          modifier = Modifier.padding(paddingValues),
+        )
 
-      is LoadState.Loaded -> LoadedState(
-        items = state.playlistContentState.data,
-        displayState = state.displayState,
-        onPlaylistClick = { state.eventSink(PlaylistsUiEvent.PlaylistClick(it)) },
-        onToggleDisplayState = { state.eventSink(PlaylistsUiEvent.ToggleDisplayState) },
-        contentPadding = paddingValues,
-        state = gridState,
-      )
+        is LoadState.Loaded -> LoadedState(
+          items = state.playlistContentState.data,
+          displayState = state.displayState,
+          onPlaylistClick = { state.eventSink(PlaylistsUiEvent.PlaylistClick(it)) },
+          onToggleDisplayState = { state.eventSink(PlaylistsUiEvent.ToggleDisplayState) },
+          contentPadding = paddingValues,
+          state = gridState,
+        )
+      }
     }
   }
 }
