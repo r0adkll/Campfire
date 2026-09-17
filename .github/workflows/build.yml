@@ -17,6 +17,11 @@ jobs:
       image: docker://ghcr.io/r0adkll/danger-kotlin:2.0.8
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # The Dangerfile diffs the PR with git; the container runs as a different user than the checkout's owner.
+      - name: Trust the checkout
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Run Danger
         run: danger-kotlin ci --failOnErrors --no-publish-check
         env:
