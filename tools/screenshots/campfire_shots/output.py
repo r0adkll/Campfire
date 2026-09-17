@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 
 from .config import DeviceClass, Spec
-from .proc import log
+from campfire_harness.proc import log
 
 
 def class_dir(spec: Spec, cls: DeviceClass, locale: str) -> Path:

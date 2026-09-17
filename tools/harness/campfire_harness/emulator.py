@@ -1,4 +1,4 @@
-"""Create, boot, and prepare the per-Device-Class emulators."""
+"""Create, boot, and stop the harness's pinned emulators (never personal AVDs)."""
 import os
 import shlex
 import shutil
@@ -6,8 +6,8 @@ import subprocess
 import time
 from pathlib import Path
 
-from .config import DeviceClass, WORK_DIR, pinned_now
-from .proc import ShotError, log, out, run, wait_until, which
+from .config import DeviceDef
+from .proc import HarnessError, log, out, run, wait_until, which
 
 SDK = Path(os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT") or "~/Library/Android/sdk").expanduser()
 AVD_HOME = Path(os.environ.get("ANDROID_AVD_HOME") or "~/.android/avd").expanduser()
@@ -38,25 +38,25 @@ class Adb:
         return run([self.adb, "-s", self.serial, *args], capture=True, timeout=timeout).stdout
 
 
-def ensure_avd(cls: DeviceClass) -> None:
+def ensure_avd(cls: DeviceDef) -> None:
     """Write the AVD files directly (no avdmanager needed) if the AVD doesn't exist or its pinned
-    definition (resolution, density, orientation, system image) changed in shots.toml."""
+    definition (resolution, density, orientation, system image) changed in the spec."""
     avd_dir = AVD_HOME / f"{cls.avd_name}.avd"
     ini = AVD_HOME / f"{cls.avd_name}.ini"
     if avd_dir.exists() and ini.exists():
         if _avd_matches(avd_dir / "config.ini", cls):
             return
-        log(f"AVD {cls.avd_name} no longer matches shots.toml; recreating")
+        log(f"AVD {cls.avd_name} no longer matches its spec; recreating")
         shutil.rmtree(avd_dir)
         ini.unlink()
 
     parts = cls.system_image.split(";")  # system-images;android-36;google_apis;arm64-v8a
     if len(parts) != 4:
-        raise ShotError(f"Bad system_image '{cls.system_image}' (expected system-images;android-N;tag;abi)")
+        raise HarnessError(f"Bad system_image '{cls.system_image}' (expected system-images;android-N;tag;abi)")
     _, platform, tag, abi = parts
     sysdir = SDK / "system-images" / platform / tag / abi
     if not (sysdir / "system.img").exists():
-        raise ShotError(
+        raise HarnessError(
             f"System image not installed: {sysdir}\n"
             f"Install with: sdkmanager \"{cls.system_image}\"  (or Android Studio > SDK Manager)"
         )
@@ -112,7 +112,7 @@ def ensure_avd(cls: DeviceClass) -> None:
     )
 
 
-def _avd_matches(config_ini: Path, cls: DeviceClass) -> bool:
+def _avd_matches(config_ini: Path, cls: DeviceDef) -> bool:
     if not config_ini.exists():
         return False
     current = dict(line.split("=", 1) for line in config_ini.read_text().splitlines() if "=" in line)
@@ -135,7 +135,7 @@ def _running_serials() -> list[str]:
 def _avd_name_of(serial: str) -> str | None:
     try:
         text = out([adb_path(), "-s", serial, "emu", "avd", "name"], timeout=10)
-    except ShotError:
+    except HarnessError:
         return None
     for line in text.splitlines():
         line = line.strip()
@@ -144,13 +144,14 @@ def _avd_name_of(serial: str) -> str | None:
     return None
 
 
-def stop_other_shot_emulators(cls: DeviceClass) -> None:
-    """Stop other `campfire-shots-*` emulators (never personal AVDs) to keep the host responsive."""
+def stop_other_emulators(cls: DeviceDef, prefix: str) -> None:
+    """Stop other emulators whose AVD name starts with `prefix` (never personal AVDs) to keep the
+    host responsive."""
     for serial in _running_serials():
         if not serial.startswith("emulator-"):
             continue
         name = _avd_name_of(serial)
-        if name and name.startswith("campfire-shots-") and name != cls.avd_name:
+        if name and name.startswith(prefix) and name != cls.avd_name:
             log(f"Stopping {name} ({serial})")
             run([adb_path(), "-s", serial, "emu", "kill"], check=False, capture=True)
     time.sleep(2)
@@ -162,18 +163,18 @@ def stop(adb: Adb) -> None:
     try:
         wait_until(lambda: adb.serial not in _running_serials(), timeout=45, interval=2,
                    what="emulator to shut down")
-    except ShotError as e:
+    except HarnessError as e:
         log(f"WARNING: {e}")
 
 
-def find_running(cls: DeviceClass) -> str | None:
+def find_running(cls: DeviceDef) -> str | None:
     for serial in _running_serials():
         if serial.startswith("emulator-") and _avd_name_of(serial) == cls.avd_name:
             return serial
     return None
 
 
-def boot(cls: DeviceClass, *, cold: bool = False, headless: bool = False) -> Adb:
+def boot(cls: DeviceDef, *, log_path: Path, cold: bool = False, headless: bool = False) -> Adb:
     serial = find_running(cls)
     if serial:
         log(f"Reusing running emulator {serial} ({cls.avd_name})")
@@ -186,8 +187,8 @@ def boot(cls: DeviceClass, *, cold: bool = False, headless: bool = False) -> Adb
         cmd.append("-no-snapshot-load")
     if headless:
         cmd.append("-no-window")
-    WORK_DIR.mkdir(parents=True, exist_ok=True)
-    logf = open(WORK_DIR / f"emulator-{cls.key}.log", "wb")
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    logf = open(log_path, "wb")
     log(f"Booting {cls.avd_name}…")
     subprocess.Popen(cmd, stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
 
@@ -214,83 +215,15 @@ def boot(cls: DeviceClass, *, cold: bool = False, headless: bool = False) -> Adb
 
 
 def prepare(adb: Adb) -> None:
-    """Deterministic chrome: demo-mode status bar, no animations, screen on, portrait/landscape locked."""
-    # Window/transition animations off so captures don't catch a transition. The animator scale
-    # stays at 1: at 0, Compose InfiniteTransitions (e.g. the search empty state) spin the main
-    # thread and ANR the app.
+    """Settings every automated run needs: no window/transition animations, screen kept on and
+    unlocked, rotation locked."""
+    # The animator scale stays at 1: at 0, Compose InfiniteTransitions (e.g. the search empty
+    # state) spin the main thread and ANR the app.
     for key in ("window_animation_scale", "transition_animation_scale"):
         adb.shell("settings", "put", "global", key, "0")
     adb.shell("settings", "put", "global", "animator_duration_scale", "1")
     adb.shell("settings", "put", "system", "screen_off_timeout", "1800000")
     adb.shell("settings", "put", "system", "accelerometer_rotation", "0")
     adb.shell("settings", "put", "secure", "immersive_mode_confirmations", "confirmed")
-    # No soft keyboard in captures: the AVD has a hardware keyboard (hw.keyboard=yes) and the soft
-    # keyboard is told not to show alongside it. `input text` injects key events directly.
-    adb.shell("settings", "put", "secure", "show_ime_with_hard_keyboard", "0")
     adb.shell("input", "keyevent", "KEYCODE_WAKEUP")
     adb.shell("wm", "dismiss-keyguard")
-
-    # SystemUI demo mode for the clock / battery / notification shade. The `network` demo command
-    # is deliberately NOT used: on the android-36 google_apis image every call renders a broken
-    # glyph that accumulates. Instead the cellular radio is silenced via the emulator console and
-    # Wi-Fi is left connected, which yields a bar with just the clock and a full battery.
-    # Status bar. SystemUI demo mode is NOT used: on the android-36 google_apis image every demo
-    # status event renders a broken glyph that accumulates. Instead the real bar is shaped:
-    # clock pinned via root `date` (auto time off), full battery on the emulator console, full
-    # cellular signal, then SystemUI restarted so no stale icons survive a previous run.
-    adb("root", check=False)
-    time.sleep(1)
-    # No soft keyboard: disable the real keyboards and select the voice IME (which draws nothing).
-    # Disabling alone is not enough — the system re-enables a default IME on first text input.
-    imes = adb.shell("ime", "list", "-s", check=False).split()
-    voice = [i for i in imes if "voice" in i.lower() or "tts" in i.lower()]
-    for ime in imes:
-        if ime not in voice:
-            adb.shell("ime", "disable", ime, check=False)
-    if voice:
-        adb.shell("ime", "set", voice[0], check=False)
-    adb.shell("settings", "put", "global", "auto_time", "0")
-    adb.shell("settings", "put", "global", "auto_time_zone", "0")
-    adb.shell("settings", "put", "global", "sysui_demo_allowed", "0")
-    adb.shell("am", "broadcast", "-a", "com.android.systemui.demo", "-e", "command", "exit", check=False)
-    adb("emu", "power", "ac", "off", check=False)
-    adb("emu", "power", "capacity", "100", check=False)
-    adb("emu", "gsm", "voice", "home", check=False)
-    adb("emu", "gsm", "data", "home", check=False)
-    adb("emu", "gsm", "signal-profile", "4", check=False)
-    # Hide the mobile signal/RAT icons: the "5G" label comes and goes between runs. Cosmetic only —
-    # disabling mobile data instead breaks the emulator's route to the host.
-    adb.shell("settings", "put", "secure", "icon_blacklist", "mobile", check=False)
-    set_clock(adb)
-    # Hide the "USB debugging connected" notification icon
-    adb.shell("setprop", "persist.adb.notify", "0", check=False)
-    adb.shell("pkill", "-f", "com.android.systemui", check=False)
-    time.sleep(6)
-    # Hide notification icons (ADB debugging etc.) from the freshly restarted bar
-    adb.shell("cmd", "statusbar", "send-disable-flag", "notification-icons", check=False)
-
-
-def set_clock(adb: Adb) -> None:
-    """Pin the device clock to `pinned_now()` (needs root). Called before every capture so it never drifts."""
-    adb.shell("date", pinned_now().strftime("%m%d%H%M%Y.%S"), check=False)
-    adb.shell("am", "broadcast", "-a", "android.intent.action.TIME_SET", check=False)
-
-
-def current_locale(adb: Adb) -> str:
-    return adb.shell("getprop", "persist.sys.locale").strip() or adb.shell("getprop", "ro.product.locale").strip()
-
-
-def set_locale(adb: Adb, locale: str) -> None:
-    """Switch the system locale (requires a google_apis image so `adb root` works)."""
-    if current_locale(adb) == locale:
-        return
-    log(f"Switching emulator locale to {locale} (restarts the runtime)")
-    adb("root")
-    time.sleep(2)
-    adb.shell("setprop", "persist.sys.locale", locale)
-    adb.shell("setprop", "ctl.restart", "zygote")
-    time.sleep(5)
-    wait_until(lambda: adb.shell("getprop", "sys.boot_completed", check=False).strip() == "1",
-               timeout=180, interval=3, what="runtime restart after locale change")
-    time.sleep(3)
-    prepare(adb)

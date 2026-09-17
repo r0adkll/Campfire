@@ -1,0 +1,57 @@
+# Testbed spec: a throwaway Audiobookshelf server + emulator for exercising the app end to end.
+# See tools/testbed/README.md.
+
+[server]
+path = "~/OpenSource/audiobookshelf"
+repo = "https://github.com/advplyr/audiobookshelf.git"
+tag = "v2.34.0"
+# Not the screenshot tool's port, so a testbed and a screenshot run can coexist.
+port = 13379
+node = "auto"
+username = "demo"
+password = "campfire"
+server_name = "Testbed"
+
+[sample_library]
+path = "~/Libation/StoreSampleLibrary"
+
+[[sample_library.libraries]]
+name = "Audiobooks"
+folder = "Audiobooks"
+media_type = "book"
+
+[[sample_library.libraries]]
+name = "Podcasts"
+folder = "Podcasts"
+media_type = "podcast"
+
+# Kept small and offline: no Audible author matching.
+[fixture]
+match_authors = false
+
+[[fixture.progress]]
+title = "Project Hail Mary"
+progress = 0.38
+
+[[fixture.progress]]
+title = "The Hobbit"
+finished = true
+
+[[fixture.playlists]]
+name = "Testbed Playlist"
+description = "Seeded by the testbed"
+titles = ["Project Hail Mary", "All Systems Red"]
+
+[app]
+variant = "fossDebug"
+package = "app.campfire.android"
+activity = "app.campfire.android.MainActivity"
+library = "Audiobooks"
+
+# The AVD is created as `campfire-testbed` and never touches personal or screenshot AVDs.
+[device]
+system_image = "system-images;android-36;google_apis;arm64-v8a"
+width = 1080
+height = 2400
+density = 420
+orientation = "portrait"

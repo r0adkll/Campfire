@@ -5,24 +5,25 @@ import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-from .config import REPO_ROOT, Spec
+from .config import REPO_ROOT, AppConfig, ServerConfig
 from .emulator import Adb
-from .proc import wait_until, ShotError, log, run
-
-MAIN = "app.campfire.android.MainActivity"
+from .proc import wait_until, HarnessError, log, run
 
 
 class App:
-    def __init__(self, spec: Spec, adb: Adb, server_url: str):
-        self.spec = spec
+    """The debug build on an emulator, driven through the debug-only `campfire_action` intents
+    (`setup`, `navigate`, `play`, `expand_player`, `stop_playback`) and uiautomator."""
+
+    def __init__(self, app: AppConfig, server: ServerConfig, adb: Adb):
+        self.server = server
         self.adb = adb
-        self.server_url = server_url
-        self.package = spec.app["package"]
-        self.activity = spec.app.get("activity", MAIN)
-        self.variant = spec.app["variant"]
+        self.server_url = server.url_for_emulator
+        self.package = app.package
+        self.activity = app.activity
+        self.variant = app.variant
 
     # -- install -------------------------------------------------------------------------
-    def build_and_install(self, *, skip_build: bool = False) -> None:
+    def build_and_install(self, *, skip_build: bool = False, clear_data: bool = True) -> None:
         flavor = self.variant.replace("Debug", "")
         if not skip_build:
             log(f"Building {self.variant} APK")
@@ -33,10 +34,14 @@ class App:
         pattern = str(REPO_ROOT / "app" / "android" / "build" / "outputs" / "apk" / flavor / "debug" / "*.apk")
         apks = glob.glob(pattern)
         if not apks:
-            raise ShotError(f"No APK found at {pattern}")
+            raise HarnessError(f"No APK found at {pattern}")
         log(f"Installing {Path(apks[0]).name}")
-        self.adb("install", "-r", "-g", apks[0], timeout=300)
-        self.adb.shell("pm", "clear", self.package)
+        # A local build with a higher version code may already be installed on a reused AVD. When the
+        # data is being cleared anyway, install over it (-d); an in-place upgrade keeps the check.
+        downgrade = ["-d"] if clear_data else []
+        self.adb("install", "-r", "-g", *downgrade, apks[0], timeout=300)
+        if clear_data:
+            self.adb.shell("pm", "clear", self.package)
         for perm in ("android.permission.POST_NOTIFICATIONS", "android.permission.ACCESS_LOCAL_NETWORK"):
             self.adb.shell("pm", "grant", self.package, perm, check=False)
 
@@ -49,7 +54,7 @@ class App:
         self._start()
 
     def setup(self, *, library: str, theme_mode: str | None, theme: str | None) -> None:
-        cfg = self.spec.server
+        cfg = self.server
         extras = [
             "--es", "campfire_action", "setup",
             "--es", "campfire_server_url", self.server_url,
@@ -91,7 +96,7 @@ class App:
             if "Continue Listening" in joined or "Recently Added" in joined or "\nSearch" in joined:
                 return
             time.sleep(2)
-        raise ShotError("App did not reach a signed-in Home in time (see adb logcat)")
+        raise HarnessError("App did not reach a signed-in Home in time (see adb logcat)")
 
     def navigate(self, screen: str, arg: str | None = None) -> None:
         extras = ["--es", "campfire_action", "navigate", "--es", "campfire_screen", screen]
@@ -124,7 +129,30 @@ class App:
     def stop(self) -> None:
         self.adb.shell("am", "force-stop", self.package)
 
+    def restart(self) -> None:
+        """Kill the process and cold-start it, e.g. to exercise app-start behavior."""
+        self.stop()
+        time.sleep(1)
+        self.launch()
+
+    def logcat(self, *, lines: int = 500) -> str:
+        """Recent log lines from the app's process (empty when it isn't running)."""
+        pid = self.adb.shell("pidof", self.package, check=False).strip()
+        args = ["logcat", "-d", "-t", str(lines)]
+        if pid:
+            args += [f"--pid={pid.split()[0]}"]
+        return self.adb(*args, check=False)
+
     # -- UI ------------------------------------------------------------------------------
+    def ui_labels(self) -> list[tuple[str, str]]:
+        """(label, bounds) for every on-screen node with text or a content-description."""
+        labels = []
+        for node in self._ui_nodes():
+            for label in (node.get("text", ""), node.get("content-desc", "")):
+                if label:
+                    labels.append((label, node.get("bounds", "")))
+        return labels
+
     def _ui_nodes(self):
         self.adb.shell("uiautomator", "dump", "/sdcard/campfire-ui.xml")
         xml = self.adb.raw("exec-out", "cat", "/sdcard/campfire-ui.xml").decode(errors="replace")
@@ -146,7 +174,7 @@ class App:
                 self.adb.shell("input", "tap", str((x1 + x2) // 2), str((y1 + y2) // 2))
                 return
             time.sleep(1)
-        raise ShotError(f"tap: no on-screen node matching /{pattern}/")
+        raise HarnessError(f"tap: no on-screen node matching /{pattern}/")
 
     def wait_for(self, pattern: str, timeout_ms: int = 20_000) -> None:
         """Block until a node whose text / content-description matches `pattern` is on screen."""
@@ -177,6 +205,6 @@ class App:
     def screencap(self, dest: Path) -> None:
         png = self.adb.raw("exec-out", "screencap", "-p")
         if not png.startswith(b"\x89PNG"):
-            raise ShotError("screencap did not return a PNG")
+            raise HarnessError("screencap did not return a PNG")
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(png)

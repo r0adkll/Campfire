@@ -1,10 +1,25 @@
-import os
+import sys
 import tomllib
 from datetime import datetime
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .proc import ShotError
+TOOL_DIR = Path(__file__).resolve().parents[1]
+WORK_DIR = TOOL_DIR / ".work"
+sys.path.insert(0, str(TOOL_DIR.parent / "harness"))
+
+from campfire_harness.config import (  # noqa: E402
+    REPO_ROOT,
+    AppConfig,
+    DeviceDef,
+    FixtureSpec,
+    ServerConfig,
+    load_app,
+    load_device,
+    load_fixture,
+    load_server,
+)
+from campfire_harness.proc import HarnessError  # noqa: E402
 
 
 def pinned_now() -> datetime:
@@ -13,76 +28,12 @@ def pinned_now() -> datetime:
     and "today" in the data always agree."""
     return datetime.now().replace(hour=12, minute=0, second=0, microsecond=0)
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
-TOOL_DIR = Path(__file__).resolve().parents[1]
-WORK_DIR = TOOL_DIR / ".work"
-
-
-def _p(value: str) -> Path:
-    return Path(os.path.expanduser(value)).resolve()
-
-
-@dataclass
-class ServerConfig:
-    path: Path
-    repo: str
-    tag: str
-    port: int
-    username: str
-    password: str
-    server_name: str
-    node: str = "auto"
-
-    @property
-    def url_for_emulator(self) -> str:
-        return f"http://10.0.2.2:{self.port}"
-
-    @property
-    def url_for_host(self) -> str:
-        return f"http://127.0.0.1:{self.port}"
-
-
-@dataclass
-class LibraryDef:
-    name: str
-    folder: Path
-    media_type: str
-
-
-@dataclass
-class ProgressSeed:
-    title: str
-    progress: float | None = None
-    finished: bool = False
-
-
-@dataclass
-class SessionSeed:
-    title: str
-    minutes: int
-    days_ago: int
-
-
-@dataclass
-class PlaylistSeed:
-    name: str
-    description: str
-    titles: list[str]
-
 
 @dataclass
 class DeviceClass:
     key: str
     store_dir: str
-    system_image: str
-    width: int
-    height: int
-    density: int
-    orientation: str
-
-    @property
-    def avd_name(self) -> str:
-        return f"campfire-shots-{self.key}"
+    device: DeviceDef
 
 
 @dataclass
@@ -100,15 +51,8 @@ class Shot:
 @dataclass
 class Spec:
     server: ServerConfig
-    sample_library_path: Path
-    regenerate_cmd: str | None
-    libraries: list[LibraryDef]
-    progress: list[ProgressSeed]
-    sessions: list[SessionSeed]
-    playlists: list[PlaylistSeed]
-    match_authors: bool
-    author_region: str
-    app: dict
+    fixture: FixtureSpec
+    app: AppConfig
     output_root: Path
     classes: dict[str, DeviceClass]
     shots: list[Shot]
@@ -128,7 +72,7 @@ class Spec:
         if names is not None:
             missing = set(names) - {s.name for s in chosen}
             if missing:
-                raise ShotError(
+                raise HarnessError(
                     f"No shot named {sorted(missing)} for class '{class_key}'. "
                     f"Known: {[s.name for s in self.shots if class_key in s.classes]}"
                 )
@@ -139,48 +83,21 @@ def load_spec(path: Path) -> Spec:
     with open(path, "rb") as f:
         raw = tomllib.load(f)
 
-    s = raw["server"]
-    server = ServerConfig(
-        path=_p(s["path"]), repo=s["repo"], tag=s["tag"], port=int(s["port"]),
-        username=s["username"], password=s["password"], server_name=s["server_name"],
-        node=s.get("node", "auto"),
-    )
-    sl = raw["sample_library"]
-    sample_path = _p(sl["path"])
-    libraries = [
-        LibraryDef(name=l["name"], folder=sample_path / l["folder"], media_type=l["media_type"])
-        for l in sl.get("libraries", [])
-    ]
-    progress = [
-        ProgressSeed(title=p["title"], progress=p.get("progress"), finished=bool(p.get("finished", False)))
-        for p in raw.get("fixture", {}).get("progress", [])
-    ]
-    sessions = [
-        SessionSeed(title=x["title"], minutes=int(x["minutes"]), days_ago=int(x.get("days_ago", 0)))
-        for x in raw.get("fixture", {}).get("sessions", [])
-    ]
-    playlists = [
-        PlaylistSeed(name=x["name"], description=x.get("description", ""), titles=list(x["titles"]))
-        for x in raw.get("fixture", {}).get("playlists", [])
-    ]
     classes = {
-        key: DeviceClass(key=key, **{k: v for k, v in c.items()})
+        key: DeviceClass(key=key, store_dir=c["store_dir"], device=load_device(c, avd_name=f"campfire-shots-{key}"))
         for key, c in raw["classes"].items()
     }
     shots = []
     for sh in raw.get("shot", []):
         unknown = set(sh["classes"]) - set(classes)
         if unknown:
-            raise ShotError(f"Shot '{sh['name']}' references unknown classes {sorted(unknown)}")
+            raise HarnessError(f"Shot '{sh['name']}' references unknown classes {sorted(unknown)}")
         shots.append(Shot(
             name=sh["name"], classes=list(sh["classes"]), steps=list(sh.get("steps", [])),
             enabled=bool(sh.get("enabled", True)), library=sh.get("library"),
             theme_mode=sh.get("theme_mode"), theme=sh.get("theme"), settle_ms=sh.get("settle_ms"),
         ))
     return Spec(
-        server=server, sample_library_path=sample_path, regenerate_cmd=sl.get("regenerate"),
-        libraries=libraries, progress=progress, sessions=sessions, playlists=playlists,
-        match_authors=bool(raw.get("fixture", {}).get("match_authors", False)),
-        author_region=raw.get("fixture", {}).get("author_region", "us"), app=raw["app"],
+        server=load_server(raw), fixture=load_fixture(raw), app=load_app(raw),
         output_root=(REPO_ROOT / raw["output"]["root"]).resolve(), classes=classes, shots=shots, raw=raw,
     )
