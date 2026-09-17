@@ -18,6 +18,12 @@ interface CollectionsRepository {
   fun observeAllCollections(): Flow<List<Collection>>
 
   /**
+   * Re-fetch the current library's collections from the server, suspending until they land. The
+   * fresh collections reach [observeAllCollections]; a failed fetch leaves the cached collections as is.
+   */
+  suspend fun refreshCollections()
+
+  /**
    * Observe a single collection for a given item
    * @param collectionId the id of the collection to observe
    * @return a flow of the [Collection]
