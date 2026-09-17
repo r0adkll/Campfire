@@ -26,6 +26,7 @@ import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.user.api.UserRepository
 import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -46,6 +47,7 @@ class PlaylistDetailPresenter(
   private val sessionsRepository: SessionsRepository,
   private val sessionQueue: SessionQueue,
   private val downloadManager: OfflineDownloadManager,
+  private val userRepository: UserRepository,
   private val settings: CampfireSettings,
 ) : Presenter<PlaylistDetailUiState> {
 
@@ -109,11 +111,15 @@ class PlaylistDetailPresenter(
       settings.observeShowConfirmDownload()
     }.collectAsState()
 
+    // Live from the user row, which the socket updates when an admin changes permissions
+    val currentUser by userRepository.userFlow.collectAsState()
+
     return PlaylistDetailUiState(
       name = playlistName,
       description = playlistDescription,
       currentSession = session,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
+      canDownload = currentUser.canDownload,
       playlistState = playlistContentState,
       playlistContentState = playlistItemsState,
       playlistItems = playlistItems,
@@ -197,6 +203,7 @@ class PlaylistDetailPresenter(
         }
 
         is PlaylistDetailUiEvent.DownloadAll -> {
+          if (!currentUser.canDownload) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "download"))
           settings.showConfirmDownload = !event.doNotShowAgain
           // Offline downloads are item-scoped, not episode-scoped; de-dupe podcast

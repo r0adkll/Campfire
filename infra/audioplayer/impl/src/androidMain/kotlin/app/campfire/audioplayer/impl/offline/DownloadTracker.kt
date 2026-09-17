@@ -3,9 +3,7 @@
 
 package app.campfire.audioplayer.impl.offline
 
-import android.net.Uri
 import androidx.annotation.OptIn
-import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
@@ -51,7 +49,8 @@ class DownloadTracker(
     data class Removed(val download: Download) : Event
   }
 
-  private val downloads = mutableMapOf<Uri, Download>()
+  /** Keyed by [cacheKey]: the track's streaming URL, whichever URL the bytes were fetched from. */
+  private val downloads = mutableMapOf<String, Download>()
 
   private val events = MutableSharedFlow<Event>(
     replay = 1,
@@ -103,7 +102,7 @@ class DownloadTracker(
   fun getOfflineDownload(item: LibraryItem): OfflineDownload {
     val itemDownloads = if (item.media.tracks.isNotEmpty()) {
       item.media.tracks.mapNotNull {
-        downloads[it.contentUrl.toUri()]
+        downloads[it.contentUrl]
       }
     } else {
       // Find all the downloads by the items associated metadata id. Restrict to
@@ -207,12 +206,12 @@ class DownloadTracker(
   }
 
   override fun onDownloadChanged(downloadManager: DownloadManager, download: Download, finalException: Exception?) {
-    downloads[download.request.uri] = download
+    downloads[download.cacheKey] = download
     scope.launch { events.emit(Event.Changed(download)) }
   }
 
   override fun onDownloadRemoved(downloadManager: DownloadManager, download: Download) {
-    downloads.remove(download.request.uri)
+    downloads.remove(download.cacheKey)
     scope.launch { events.emit(Event.Removed(download)) }
   }
 
@@ -221,7 +220,7 @@ class DownloadTracker(
       downloadManager.downloadIndex.getDownloads().use { cursor ->
         while (cursor.moveToNext()) {
           val download = cursor.download
-          downloads[download.request.uri] = download
+          downloads[download.cacheKey] = download
         }
       }
     } catch (e: Exception) {
@@ -231,6 +230,9 @@ class DownloadTracker(
     }
   }
 }
+
+private val Download.cacheKey: String
+  get() = request.customCacheKey ?: request.uri.toString()
 
 /**
  * A [Download.State] that represents a null download for a given media item uri

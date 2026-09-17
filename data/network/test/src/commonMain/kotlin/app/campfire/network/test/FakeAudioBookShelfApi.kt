@@ -57,9 +57,11 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set libraryItemsMinifiedResult on the fake"))
   }
 
-  override suspend fun getCurrentUser(): Result<User> {
-    TODO("Not yet implemented")
+  var currentUserResult: suspend () -> Result<User> = {
+    Result.failure(NotImplementedError("Set currentUserResult on the fake"))
   }
+
+  override suspend fun getCurrentUser(): Result<User> = currentUserResult()
 
   override suspend fun getAllLibraries(): Result<List<Library>> {
     TODO("Not yet implemented")

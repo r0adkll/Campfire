@@ -76,6 +76,7 @@ abstract class BaseLibraryItemPresenterTest {
     playbackController = playbackController,
     audioPlayerHolder = audioPlayerHolder,
     offlineDownloadManager = offlineDownloadManager,
+    userRepository = userRepository,
     settings = settings,
     analytics = analytics,
     themeManager = themeManager,

@@ -200,6 +200,7 @@ class PodcastPresenter(
           }
 
           is LibraryItemUiEvent.DownloadEpisodeClick -> {
+            if (!currentUser.canDownload) return@ContentUiState
             analytics.send(ActionEvent("download_episode", Click))
             settings.showConfirmDownload = !event.doNotShowAgain
             offlineDownloadManager.downloadEpisode(libraryItem, event.episode)
@@ -301,6 +302,7 @@ private fun buildSlots(
         isCurrentSession = currentSession?.libraryItem?.id == episode.libraryItemId &&
           currentSession.episodeId == episode.id,
         offlineDownload = episodeDownloads[episode.id],
+        canDownload = user.canDownload,
         showConfirmDownloadDialog = showConfirmDownloadDialog,
         addToPlaylistDialog = addToPlaylistDialog,
       )

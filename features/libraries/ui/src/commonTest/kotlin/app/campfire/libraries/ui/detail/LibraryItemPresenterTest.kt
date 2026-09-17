@@ -232,6 +232,27 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
+  fun present_downloadPermission_UpdatesExpressiveControlSlot() = runTest {
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      awaitItemMatching { it.firstExpressiveControl()?.canDownload == true }
+
+      val user = userRepository.currentStatefulUserFlow.value
+      userRepository.currentStatefulUserFlow.value = user.copy(
+        permissions = user.permissions.copy(download = false),
+      )
+
+      assertThat(awaitItemMatching { it.firstExpressiveControl()?.canDownload == false })
+        .loadedSlots
+        .firstInstanceOf<ExpressiveControlSlot>()
+        .prop(ExpressiveControlSlot::canDownload)
+        .isEqualTo(false)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun present_willStreamHls_UpdatesTitleAndControlSlots() = runTest {
     val libraryItem = emptyLibraryItem()
     streamingRoutePredictor.canStreamHls = true

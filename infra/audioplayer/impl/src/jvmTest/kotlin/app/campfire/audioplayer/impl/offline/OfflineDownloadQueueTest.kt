@@ -316,16 +316,6 @@ class OfflineDownloadQueueTest {
   }
 
   @Test
-  fun `library file urls download through the download route`() {
-    assertThat(OfflineDownloadQueue.downloadUrl("https://abs.example.com/api/items/li_1/file/123"))
-      .isEqualTo("https://abs.example.com/api/items/li_1/file/123/download")
-    assertThat(OfflineDownloadQueue.downloadUrl("https://abs.example.com/api/items/li_1/file/123?token=abc"))
-      .isEqualTo("https://abs.example.com/api/items/li_1/file/123/download")
-    assertThat(OfflineDownloadQueue.downloadUrl("https://abs.example.com/hls/stream.m3u8"))
-      .isEqualTo("https://abs.example.com/hls/stream.m3u8")
-  }
-
-  @Test
   fun `unreadable manifests are skipped`() {
     File(root, "li_1/item").mkdirs()
     File(root, "li_1/item/manifest.json").writeText("{ not json")

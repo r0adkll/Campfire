@@ -11,6 +11,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.audioplayer.offline.OfflineDownloadPayload
+import app.campfire.audioplayer.offline.offlineDownloadUrl
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
@@ -28,6 +29,12 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.isActive
 import me.tatarka.inject.annotations.Inject
 
+/**
+ * Downloads fetch from the server's download route ([offlineDownloadUrl]), which refuses users
+ * without download permission, but are cached under the track's streaming URL so playback — which
+ * reads the cache by that URL — finds them. Downloads made before this used the streaming URL for
+ * both, so their cache key is the same.
+ */
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 @SingleIn(AppScope::class)
@@ -130,7 +137,8 @@ class AndroidOfflineDownloadManager(
     ).encode()
 
     item.media.tracks.forEach { track ->
-      val request = DownloadRequest.Builder(track.metadata.filename, track.contentUrl.toUri())
+      val request = DownloadRequest.Builder(track.metadata.filename, offlineDownloadUrl(track.contentUrl).toUri())
+        .setCustomCacheKey(track.contentUrl)
         .setData(payload)
         .build()
 
@@ -159,7 +167,11 @@ class AndroidOfflineDownloadManager(
       title = episode.title,
       subtitle = item.media.metadata.title.orEmpty(),
     ).encode()
-    val request = DownloadRequest.Builder(episodeDownloadId(item.id, episode.id), track.contentUrl.toUri())
+    val request = DownloadRequest.Builder(
+      episodeDownloadId(item.id, episode.id),
+      offlineDownloadUrl(track.contentUrl).toUri(),
+    )
+      .setCustomCacheKey(track.contentUrl)
       .setData(payload)
       .build()
 

@@ -110,6 +110,27 @@ class LibraryItemPresenterEventsTest : BaseLibraryItemPresenterTest() {
   }
 
   @Test
+  fun downloadClick_withoutDownloadPermission_isIgnored() = runTest {
+    val user = userRepository.currentStatefulUserFlow.value
+    userRepository.currentStatefulUserFlow.value = user.copy(
+      permissions = user.permissions.copy(download = false),
+    )
+    libraryItemRepository.libraryItemFlow.emit(emptyLibraryItem())
+
+    presenter.test {
+      skipItems(1)
+      val item = awaitItem()
+
+      item.eventSink(LibraryItemUiEvent.DownloadClick())
+
+      assertThat(offlineDownloadManager.invocations).isEmpty()
+      assertThat(analytics.events).isEmpty()
+
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun deleteItemClick_onFailure_setsErrorMessage_andClearErrorResetsIt() = runTest {
     val libraryItem = emptyLibraryItem()
     libraryItemRepository.libraryItemFlow.emit(libraryItem)

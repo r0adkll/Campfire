@@ -6,6 +6,7 @@ package app.campfire.audioplayer.impl.offline
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadKey
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.audioplayer.offline.offlineDownloadUrl
 import app.campfire.core.logging.Cork
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.LibraryItem
@@ -221,7 +222,7 @@ internal class OfflineDownloadQueue(
       files = tracks.map { track ->
         DownloadManifest.File(
           trackIndex = track.index,
-          url = downloadUrl(track.contentUrl),
+          url = offlineDownloadUrl(track.contentUrl),
           expectedBytes = track.metadata.size,
           fileName = OfflineDownloadStore.fileName(track.index, track.metadata.ext),
         )
@@ -371,18 +372,5 @@ internal class OfflineDownloadQueue(
 
     const val DEFAULT_PARALLEL_DOWNLOADS = 2
     val DEFAULT_RETRY_DELAYS = listOf(2.seconds, 10.seconds, 30.seconds)
-
-    private val LIBRARY_FILE_PATH = Regex("/api/items/[^/?#]+/file/[^/?#]+$")
-
-    /**
-     * The download route for a track's streaming [contentUrl]: ABS serves the same file from
-     * `/api/items/:id/file/:ino/download`, which, unlike the streaming route, enforces the user's
-     * download permission — the route the official apps download through. Any other URL shape is
-     * downloaded as-is.
-     */
-    fun downloadUrl(contentUrl: String): String {
-      val path = contentUrl.substringBefore('?').substringBefore('#')
-      return if (LIBRARY_FILE_PATH.containsMatchIn(path)) "$path/download" else contentUrl
-    }
   }
 }

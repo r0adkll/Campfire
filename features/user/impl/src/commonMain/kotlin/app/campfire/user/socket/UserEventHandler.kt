@@ -36,13 +36,12 @@ class DefaultUserEventHandler(
 
   override suspend fun onUserUpdated(user: NetworkUser) {
     withContext(dispatcherProvider.databaseWrite) {
-      db.usersQueries.update(
+      db.usersQueries.updateFromServer(
         name = user.username,
         type = User.Type.from(user.type),
         seriesHideFromContinueListening = user.seriesHideFromContinueListening,
         isActive = user.isActive,
         isLocked = user.isLocked,
-        lastSeen = user.lastSeen,
         createdAt = user.createdAt,
         permission_download = user.permissions.download,
         permission_upload = user.permissions.upload,

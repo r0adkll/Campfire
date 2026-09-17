@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop docks the playback bar along the bottom of any tablet-width or wider window instead of only ultra-wide ones
 - Desktop and tablet search results close once you pick one
 - Desktop renders the built-in themes on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
+- Download options are hidden for accounts the server doesn't allow to download, updating as soon as an admin changes the permission; existing downloads can still be removed
 
 ### Deprecated
 

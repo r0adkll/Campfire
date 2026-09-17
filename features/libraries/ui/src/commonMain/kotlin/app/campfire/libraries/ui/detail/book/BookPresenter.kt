@@ -71,6 +71,7 @@ import app.campfire.sessions.api.observeContains
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
+import app.campfire.user.api.UserRepository
 import campfire.features.libraries.ui.generated.resources.Res
 import campfire.features.libraries.ui.generated.resources.by_author_line
 import campfire.features.libraries.ui.generated.resources.by_narrator_line
@@ -105,6 +106,7 @@ class BookPresenter(
   private val playbackController: PlaybackController,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
+  private val userRepository: UserRepository,
   private val settings: CampfireSettings,
   private val analytics: Analytics,
   private val themeManager: ThemeManager,
@@ -160,6 +162,10 @@ class BookPresenter(
     val offlineDownloadState by remember {
       offlineDownloadManager.observeForItem(libraryItem)
     }.collectAsState(null)
+
+    // Live from the user row, which the socket updates when an admin changes permissions
+    val currentUser by userRepository.userFlow.collectAsState()
+    val canDownload = currentUser.canDownload
 
     // Session-local community source override; null lets the registry pick.
     var communitySource by remember { mutableStateOf<ProviderId?>(null) }
@@ -239,6 +245,7 @@ class BookPresenter(
       communityInfoState = communityInfoState,
       showTimeInBook = showTimeInBook,
       showConfirmDownloadDialog = showConfirmDownloadDialog,
+      canDownload = canDownload,
       hasSession = currentSession != null,
       session = itemSession.sessionOrNull(),
       isQueued = isQueued,
@@ -360,7 +367,7 @@ class BookPresenter(
         }
 
         is LibraryItemUiEvent.DownloadClick -> {
-          if (libraryItem.isEbookOnly) return@ContentUiState
+          if (libraryItem.isEbookOnly || !canDownload) return@ContentUiState
           analytics.send(ActionEvent("download", Click))
           settings.showConfirmDownload = !event.doNotShowAgain
 
@@ -423,6 +430,7 @@ private fun buildSlots(
   communityInfoState: CommunityInfoState?,
   showTimeInBook: Boolean,
   showConfirmDownloadDialog: Boolean,
+  canDownload: Boolean,
   hasSession: Boolean,
   isQueued: Boolean,
   session: Session?,
@@ -497,6 +505,7 @@ private fun buildSlots(
       hasSession = hasSession,
       isQueued = isQueued,
       showConfirmDownloadDialogSetting = showConfirmDownloadDialog,
+      canDownload = canDownload,
       addToPlaylistDialog = addToPlaylistDialog,
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls,

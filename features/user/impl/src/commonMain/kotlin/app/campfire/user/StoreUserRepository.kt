@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadRequest
@@ -38,9 +39,12 @@ class StoreUserRepository(
   private val userStore by lazy { userStoreFactory.create() }
 
   override val userFlow: StateFlow<User> by lazy {
-    userStore.stream(StoreReadRequest.cached(Unit, refresh = false))
-      .filterNot { it is StoreReadResponse.Loading || it is StoreReadResponse.NoNewData }
-      .map { it.requireData() }
+    // Refreshed from the server once per session: the server only pushes `user_updated` to the
+    // admin who changed an account, never to the account itself, so this is how a user's own
+    // permission changes (e.g. download) reach the app. Offline, the fetch fails and the cached
+    // user stands.
+    userStore.stream(StoreReadRequest.cached(Unit, refresh = true))
+      .mapNotNull { it.dataOrNull() }
       .distinctUntilChanged()
       .stateIn(
         // Cache this in our UserScope coroutine scope

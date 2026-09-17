@@ -70,6 +70,7 @@ internal fun PlayAndDownloadButtons(
   isEbookOnly: Boolean,
   canStreamHls: Boolean,
   willStreamHls: Boolean,
+  canDownload: Boolean = true,
 ) {
   Row(
     modifier = Modifier.fillMaxWidth(),
@@ -80,9 +81,10 @@ internal fun PlayAndDownloadButtons(
 
     // The trailing button is either the play-options menu (HLS-capable servers) or a plain
     // download button. It never shows for ebooks, the menu is pointless while this item is
-    // already playing, and the download button never shows once a download record exists.
+    // already playing, and the download button never shows once a download record exists or
+    // when the server doesn't allow this user to download.
     val showPlayOptionsMenu = canStreamHls && !isCurrentSession && !isEbookOnly
-    val showDownloadButton = !showPlayOptionsMenu && !hasOfflineDownload && !isEbookOnly
+    val showDownloadButton = !showPlayOptionsMenu && !hasOfflineDownload && !isEbookOnly && canDownload
     val showTrailingButton = showPlayOptionsMenu || showDownloadButton
 
     val size = ButtonDefaults.MediumContainerHeight
@@ -205,6 +207,7 @@ internal fun PlayAndDownloadButtons(
           hasProgress = hasProgress,
           hasOfflineDownload = hasOfflineDownload,
           isEbookOnly = isEbookOnly,
+          canDownload = canDownload,
           onPlayClick = onPlayClick,
           onDownloadClick = onDownloadClick,
         )
@@ -283,6 +286,7 @@ private fun PlayOptionsMenu(
   hasProgress: Boolean,
   hasOfflineDownload: Boolean,
   isEbookOnly: Boolean,
+  canDownload: Boolean,
   onPlayClick: (PlayMethod) -> Unit,
   onDownloadClick: () -> Unit,
   modifier: Modifier = Modifier,
@@ -315,7 +319,7 @@ private fun PlayOptionsMenu(
       )
     }
 
-    if (!hasOfflineDownload && !isEbookOnly) {
+    if (!hasOfflineDownload && !isEbookOnly && canDownload) {
       DropdownMenuItem(
         text = { Text(stringResource(Res.string.menu_item_download)) },
         onClick = onDownloadClick,
