@@ -1,0 +1,148 @@
+#!/bin/bash
+# Writes the Homebrew cask for the desktop macOS packages to the tap, one commit per release.
+#
+# Everything it needs is what `conveyor make site` already left in output/: the two per-arch zips
+# it hashes, and the version in their names. It talks to the tap through the GitHub contents API
+# rather than cloning it, so it needs no git identity and no checkout — only a token that can
+# write to the tap (see docs/desktop-release.md).
+#
+# Usage:
+#   scripts/publish-cask --dry-run            # print the cask, touch nothing
+#   scripts/publish-cask                      # write it to the tap
+#
+# Options:
+#   --version X      version to publish (default: campfire.version from gradle.properties)
+#   --output-dir D   where the zips are (default: output)
+#   --tap OWNER/REPO the tap repository (default: r0adkll/homebrew-tap)
+#   --dry-run        print the rendered cask to stdout and exit
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+VERSION=""
+OUTPUT_DIR="$REPO_ROOT/output"
+TAP="r0adkll/homebrew-tap"
+CASK_PATH="Casks/campfire.rb"
+DRY_RUN=false
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --version)    VERSION="$2"; shift 2 ;;
+    --output-dir) OUTPUT_DIR="$2"; shift 2 ;;
+    --tap)        TAP="$2"; shift 2 ;;
+    --dry-run)    DRY_RUN=true; shift ;;
+    -h|--help)    sed -n '2,20p' "$0"; exit 0 ;;
+    *)            echo "error: unknown argument '$1'" >&2; exit 1 ;;
+  esac
+done
+
+die() { echo "error: $*" >&2; exit 1; }
+
+if [ -z "$VERSION" ]; then
+  VERSION="$(sed -n 's/^campfire\.version=//p' "$REPO_ROOT/gradle.properties")"
+  [ -n "$VERSION" ] || die "campfire.version not found in gradle.properties"
+fi
+VERSION="${VERSION#v}"
+
+case "$VERSION" in
+  *-rc*) die "$VERSION is a pre-release; the cask tracks final releases only" ;;
+esac
+
+# The floor lives in conveyor.conf, where the FFmpeg natives pin it. Keeping the two in step by
+# hand is how they drift, so read it — and refuse to guess at a release name we do not know.
+plist_floor="$(sed -n 's/^[[:space:]]*info-plist\.LSMinimumSystemVersion[[:space:]]*=[[:space:]]*//p' "$REPO_ROOT/conveyor.conf" | tr -d '"')"
+[ -n "$plist_floor" ] || die "info-plist.LSMinimumSystemVersion not found in conveyor.conf"
+case "${plist_floor%%.*}" in
+  11) MACOS_FLOOR="big_sur" ;;
+  12) MACOS_FLOOR="monterey" ;;
+  13) MACOS_FLOOR="ventura" ;;
+  14) MACOS_FLOOR="sonoma" ;;
+  15) MACOS_FLOOR="sequoia" ;;
+  26) MACOS_FLOOR="tahoe" ;;
+  *)  die "no Homebrew symbol known for macOS $plist_floor; add it to $(basename "$0")" ;;
+esac
+
+# Hash what was actually built. Falling back to the release assets lets this run on a machine that
+# has not built anything — a dry run against a release that already shipped, say.
+hash_for() {
+  arch="$1"
+  zip="$OUTPUT_DIR/campfire-$VERSION-mac-$arch.zip"
+  if [ ! -f "$zip" ]; then
+    echo "fetching campfire-$VERSION-mac-$arch.zip from the $VERSION release..." >&2
+    mkdir -p "$OUTPUT_DIR"
+    gh release download "$VERSION" --repo r0adkll/Campfire \
+      --pattern "campfire-$VERSION-mac-$arch.zip" --dir "$OUTPUT_DIR" \
+      || die "no $zip, and it is not on the $VERSION release either"
+  fi
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$zip" | cut -d' ' -f1
+  else
+    shasum -a 256 "$zip" | cut -d' ' -f1
+  fi
+}
+
+SHA_ARM="$(hash_for aarch64)"
+SHA_INTEL="$(hash_for amd64)"
+
+read -r -d '' CASK <<CASK_EOF || true
+# Written by scripts/publish-cask in r0adkll/Campfire for each release; edit it there.
+cask "campfire" do
+  arch arm: "aarch64", intel: "amd64"
+
+  version "$VERSION"
+  sha256 arm:   "$SHA_ARM",
+         intel: "$SHA_INTEL"
+
+  url "https://github.com/r0adkll/Campfire/releases/download/#{version}/campfire-#{version}-mac-#{arch}.zip"
+  name "Campfire"
+  desc "Audiobook player for Audiobookshelf servers"
+  homepage "https://github.com/r0adkll/Campfire"
+
+  livecheck do
+    url :url
+    strategy :github_latest
+  end
+
+  # Updates itself through Sparkle, so brew leaves the installed copy alone unless asked greedily.
+  auto_updates true
+  depends_on macos: :$MACOS_FLOOR
+
+  app "Campfire.app"
+
+  uninstall quit: "app.campfire"
+
+  zap trash: [
+    "~/.config/Campfire",
+    "~/Library/Caches/app.campfire",
+    "~/Library/Preferences/app.campfire.plist",
+  ]
+end
+CASK_EOF
+
+if [ "$DRY_RUN" = true ]; then
+  printf '%s\n' "$CASK"
+  exit 0
+fi
+
+command -v gh >/dev/null 2>&1 || die "gh is required"
+
+# Blank when the cask does not exist yet, which is exactly what the contents API wants for a create.
+# gh prints the error body on stdout when it 404s, so take the output only when the call succeeded,
+# and only when it looks like a blob sha.
+if ! existing_sha="$(gh api "repos/$TAP/contents/$CASK_PATH" --jq .sha 2>/dev/null)"; then
+  existing_sha=""
+fi
+case "$existing_sha" in
+  *[!0-9a-f]* | "") existing_sha="" ;;
+esac
+
+encoded="$(printf '%s\n' "$CASK" | base64 | tr -d '\n')"
+
+set -- -X PUT "repos/$TAP/contents/$CASK_PATH" \
+  -f "message=campfire $VERSION" \
+  -f "content=$encoded"
+[ -n "$existing_sha" ] && set -- "$@" -f "sha=$existing_sha"
+
+gh api "$@" --jq '.commit.html_url' | sed 's/^/cask published: /'

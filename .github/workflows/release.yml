@@ -391,6 +391,18 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: gh release upload "$TAG" output/* --clobber --repo "$GITHUB_REPOSITORY"
 
+      # Points r0adkll/homebrew-tap at the macOS zips this job just uploaded, so `brew upgrade`
+      # and a fresh `brew install` land on the new version. Deliberately after the upload: the
+      # cask names the release assets, and a cask pushed ahead of them fetches a 404. Final
+      # releases only — an rc must not become what `brew install campfire` gets. The token is
+      # the same bot PAT the version bump uses; Rotom-Bot needs write access on the tap.
+      - name: Publish Homebrew cask
+        if: steps.creds.outputs.present == 'true' && github.event.release.prerelease == false
+        env:
+          GH_TOKEN: ${{ secrets.CAMPFIRE_BOT_PAT }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: scripts/publish-cask --version "$TAG"
+
       - name: Upload build outputs
         if: always() && steps.creds.outputs.present == 'true'
         uses: actions/upload-artifact@v7
