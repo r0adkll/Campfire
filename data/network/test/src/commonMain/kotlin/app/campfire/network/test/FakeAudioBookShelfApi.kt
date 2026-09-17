@@ -61,6 +61,11 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set currentUserResult on the fake"))
   }
 
+  val personalizedHomeRequests = mutableListOf<String>()
+  var personalizedHomeResult: suspend (libraryId: String) -> Result<List<Shelf>> = {
+    Result.failure(NotImplementedError("Set personalizedHomeResult on the fake"))
+  }
+
   override suspend fun getCurrentUser(): Result<User> = currentUserResult()
 
   override suspend fun getAllLibraries(): Result<List<Library>> {
@@ -93,7 +98,8 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun getPersonalizedHome(libraryId: String): Result<List<Shelf>> {
-    TODO("Not yet implemented")
+    personalizedHomeRequests += libraryId
+    return personalizedHomeResult(libraryId)
   }
 
   override suspend fun getRecentEpisodes(
