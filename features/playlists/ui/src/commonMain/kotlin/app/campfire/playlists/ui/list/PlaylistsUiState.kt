@@ -14,11 +14,13 @@ import com.slack.circuit.runtime.CircuitUiState
 data class PlaylistsUiState(
   val playlistContentState: LoadState<out List<Playlist>>,
   val displayState: GroupDisplayState,
+  val isRefreshing: Boolean,
   val eventSink: (PlaylistsUiEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface PlaylistsUiEvent : CircuitUiEvent {
   data object Back : PlaylistsUiEvent
   data object ToggleDisplayState : PlaylistsUiEvent
+  data object Refresh : PlaylistsUiEvent
   data class PlaylistClick(val playlist: Playlist) : PlaylistsUiEvent
 }

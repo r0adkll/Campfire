@@ -17,6 +17,12 @@ interface PlaylistsRepository {
   fun observeAllPlaylists(): Flow<List<Playlist>>
 
   /**
+   * Re-fetch the current library's playlists from the server, suspending until they land. The fresh
+   * playlists reach [observeAllPlaylists]; a failed fetch leaves the cached playlists as is.
+   */
+  suspend fun refreshPlaylists()
+
+  /**
    * Observe a single playlist
    * @param playlistId the id of the playlist to observe
    * @param isCreatedId the [playlistId] is a locally created id from a new playlist

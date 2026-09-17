@@ -6,7 +6,10 @@ package app.campfire.playlists.ui.list
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ContentSelected
@@ -23,6 +26,7 @@ import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 
@@ -37,6 +41,9 @@ class PlaylistsPresenter(
 
   @Composable
   override fun present(): PlaylistsUiState {
+    val scope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
+
     val playlistContentState by remember {
       playlistsRepository.observeAllPlaylists()
         .map { LoadState.Loaded(it) }
@@ -50,9 +57,21 @@ class PlaylistsPresenter(
     return PlaylistsUiState(
       playlistContentState = playlistContentState,
       displayState = displayState,
+      isRefreshing = isRefreshing,
     ) { event ->
       when (event) {
         PlaylistsUiEvent.Back -> navigator.pop()
+
+        PlaylistsUiEvent.Refresh -> if (!isRefreshing) {
+          isRefreshing = true
+          scope.launch {
+            try {
+              playlistsRepository.refreshPlaylists()
+            } finally {
+              isRefreshing = false
+            }
+          }
+        }
 
         PlaylistsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("playlists_display_state", "toggle"))
