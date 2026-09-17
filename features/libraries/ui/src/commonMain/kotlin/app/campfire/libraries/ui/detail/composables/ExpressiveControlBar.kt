@@ -115,6 +115,7 @@ internal fun ExpressiveControlBar(
   isEbookOnly: Boolean = false,
   canStreamHls: Boolean = false,
   willStreamHls: Boolean = false,
+  canDownload: Boolean = true,
 ) {
   Surface(
     modifier = modifier
@@ -140,6 +141,7 @@ internal fun ExpressiveControlBar(
         isEbookOnly = isEbookOnly,
         canStreamHls = canStreamHls,
         willStreamHls = willStreamHls,
+        canDownload = canDownload,
       )
 
       if (!offlineDownload.isNullOrNone()) {
@@ -150,7 +152,7 @@ internal fun ExpressiveControlBar(
           totalSizeInBytes = totalSizeInBytes,
           onDeleteClick = onDeleteDownloadClick,
           onStopClick = onStopDownloadClick,
-          onRetryClick = onDownloadClick,
+          onRetryClick = onDownloadClick.takeIf { canDownload },
         )
       }
 
@@ -182,7 +184,8 @@ private fun OfflineStatus(
   totalSizeInBytes: Long,
   onDeleteClick: () -> Unit,
   onStopClick: () -> Unit,
-  onRetryClick: () -> Unit,
+  /** Null when the user can't download, which hides retry for a failed download. */
+  onRetryClick: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
   Card(
@@ -247,22 +250,24 @@ private fun OfflineStatus(
                 offlineDownload.state == OfflineDownload.State.Failed ||
                 offlineDownload.state == OfflineDownload.State.Stopped
               ) {
-                val retryLabel = stringResource(Res.string.action_retry_download)
-                IconButtonTooltip(text = retryLabel) {
-                  IconButton(
-                    onClick = onRetryClick,
-                    shapes = IconButtonDefaults.shapes(),
-                    modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
-                  ) {
-                    Icon(
-                      CampfireIcons.Rounded.Replay,
-                      contentDescription = retryLabel,
-                      modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
-                    )
+                if (onRetryClick != null) {
+                  val retryLabel = stringResource(Res.string.action_retry_download)
+                  IconButtonTooltip(text = retryLabel) {
+                    IconButton(
+                      onClick = onRetryClick,
+                      shapes = IconButtonDefaults.shapes(),
+                      modifier = Modifier.size(IconButtonDefaults.extraSmallContainerSize()),
+                    ) {
+                      Icon(
+                        CampfireIcons.Rounded.Replay,
+                        contentDescription = retryLabel,
+                        modifier = Modifier.size(IconButtonDefaults.extraSmallIconSize),
+                      )
+                    }
                   }
-                }
 
-                Spacer(Modifier.size(8.dp))
+                  Spacer(Modifier.size(8.dp))
+                }
 
                 val deleteDownloadLabel = stringResource(Res.string.action_delete_download)
                 IconButtonTooltip(text = deleteDownloadLabel) {

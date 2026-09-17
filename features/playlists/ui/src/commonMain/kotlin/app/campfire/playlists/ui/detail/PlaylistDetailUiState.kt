@@ -18,6 +18,7 @@ data class PlaylistDetailUiState(
   val description: String?,
   val currentSession: Session?,
   val showConfirmDownloadDialog: Boolean,
+  val canDownload: Boolean,
   val playlistState: LoadState<out Playlist>,
   val playlistContentState: LoadState<out List<Playlist.Item.Expanded>>,
   val playlistItems: List<Playlist.Item.Expanded>,

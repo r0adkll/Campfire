@@ -33,6 +33,10 @@ data class User(
   val canDeleteItems: Boolean
     get() = permissions.delete && (type == Type.Admin || type == Type.Root)
 
+  /** Mirrors the server's `User.canDownload`, which also refuses downloads to a deactivated user. */
+  val canDownload: Boolean
+    get() = permissions.download && isActive
+
   enum class Type {
     Root,
     Guest,

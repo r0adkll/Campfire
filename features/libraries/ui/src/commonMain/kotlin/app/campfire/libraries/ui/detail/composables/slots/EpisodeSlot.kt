@@ -60,6 +60,8 @@ class EpisodeSlot(
   private val progress: MediaProgress?,
   private val isCurrentSession: Boolean,
   private val offlineDownload: OfflineDownload?,
+  /** Whether the user may start a download; an existing download stays stoppable and removable. */
+  private val canDownload: Boolean,
   private val showConfirmDownloadDialog: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : ContentSlot {
@@ -141,7 +143,12 @@ class EpisodeSlot(
           EpisodeListItemDefaults.singleItemShape()
         },
         actions = {
-          if (episode.audioTrack != null) {
+          // Without permission the action only remains to stop or remove a download that exists
+          val downloadState = offlineDownload?.state ?: OfflineDownload.State.None
+          val hasActiveOrCompletedDownload = downloadState == OfflineDownload.State.Queued ||
+            downloadState == OfflineDownload.State.Downloading ||
+            downloadState == OfflineDownload.State.Completed
+          if (episode.audioTrack != null && (canDownload || hasActiveOrCompletedDownload)) {
             DownloadEpisodeAction(
               offlineDownload = offlineDownload,
               onDownloadClick = {

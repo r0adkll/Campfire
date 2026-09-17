@@ -39,7 +39,8 @@ internal fun PlaylistFloatingToolbar(
   onPlayAllClick: () -> Unit,
   onEditClick: () -> Unit,
   onReorderChange: (Boolean) -> Unit,
-  onDownloadClick: () -> Unit,
+  /** Null when the user can't download, which hides the download button. */
+  onDownloadClick: (() -> Unit)?,
   onDeleteClick: () -> Unit,
   modifier: Modifier = Modifier,
   expanded: Boolean = true,
@@ -61,12 +62,14 @@ internal fun PlaylistFloatingToolbar(
     floatingActionButtonPosition = FloatingToolbarHorizontalFabPosition.Start,
     modifier = modifier,
   ) {
-    ToolbarButton(
-      CampfireIcons.Rounded.Download,
-      onClick = onDownloadClick,
-      expanded = expanded,
-      contentDescription = stringResource(Res.string.action_download_playlist),
-    )
+    if (onDownloadClick != null) {
+      ToolbarButton(
+        CampfireIcons.Rounded.Download,
+        onClick = onDownloadClick,
+        expanded = expanded,
+        contentDescription = stringResource(Res.string.action_download_playlist),
+      )
+    }
     ToolbarButton(
       CampfireIcons.Rounded.Edit,
       onClick = onEditClick,

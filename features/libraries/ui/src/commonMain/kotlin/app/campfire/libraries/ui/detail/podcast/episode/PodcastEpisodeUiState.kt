@@ -22,6 +22,7 @@ data class PodcastEpisodeUiState(
   val hasSession: Boolean,
   val sessionState: SessionUiState,
   val offlineDownload: OfflineDownload?,
+  val canDownload: Boolean,
   val showConfirmDownloadDialog: Boolean,
   val addToPlaylistDialog: AddToPlaylistDialog,
   val eventSink: (PodcastEpisodeUiEvent) -> Unit,

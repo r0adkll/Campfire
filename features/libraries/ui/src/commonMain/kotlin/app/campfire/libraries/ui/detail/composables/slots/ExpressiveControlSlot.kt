@@ -39,6 +39,8 @@ class ExpressiveControlSlot(
   private val isCurrentSession: Boolean,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   @get:VisibleForTesting val showConfirmDownloadDialogSetting: Boolean,
+  /** Whether the user may start a download; existing downloads stay removable either way. */
+  @get:VisibleForTesting val canDownload: Boolean = true,
   @get:VisibleForTesting val canStreamHls: Boolean = false,
   @get:VisibleForTesting val willStreamHls: Boolean = false,
 ) : ContentSlot {
@@ -94,6 +96,7 @@ class ExpressiveControlSlot(
       canStreamHls = canStreamHls,
       willStreamHls = willStreamHls,
       offlineDownload = offlineDownload,
+      canDownload = canDownload,
       totalSizeInBytes = libraryItem.media.sizeInBytes,
       mediaProgress = mediaProgress,
       onPlayClick = { method ->

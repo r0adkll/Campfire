@@ -163,7 +163,7 @@ fun PlaylistDetail(
           } else {
             state.eventSink(PlaylistDetailUiEvent.DownloadAll())
           }
-        },
+        }.takeIf { state.canDownload },
         isReordering = isReordering,
         onReorderChange = { isReordering = it },
         onDeleteClick = { showDeleteConfirmation = true },

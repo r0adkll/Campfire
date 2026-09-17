@@ -211,6 +211,7 @@ private fun PodcastEpisodeBottomSheet(
       isCurrentSession = state.sessionState is SessionUiState.Current,
       mediaProgress = state.progress,
       offlineDownload = state.offlineDownload,
+      canDownload = state.canDownload,
       onPlayClick = { state.eventSink(PodcastEpisodeUiEvent.PlayClick) },
       onDownloadClick = {
         if (state.showConfirmDownloadDialog) {
