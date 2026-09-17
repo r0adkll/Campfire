@@ -197,6 +197,59 @@ The version is pinned to the release tag with `-Pcampfire.version=<tag>`, delibe
 `CAMPFIRE_VERSIONNAME` — the Android release-signing guard keys off that variable and would fail
 the desktop job for want of a keystore it never needs.
 
+## Homebrew cask
+
+macOS users can install with `brew install r0adkll/tap/campfire`, from a cask in
+[r0adkll/homebrew-tap](https://github.com/r0adkll/homebrew-tap). The `desktop` job writes that cask
+itself, in the same run that produced the packages, through `scripts/publish-cask`:
+
+```bash
+scripts/publish-cask --dry-run              # render the cask, touch nothing
+scripts/publish-cask --version 1.2.0        # write it to the tap
+```
+
+It hashes the two macOS zips sitting in `output/`, renders the cask around them and PUTs it to the
+tap through the GitHub contents API — no clone, no git identity, one commit per release. Given a
+version it has no zips for, it pulls them from that GitHub release instead, which is what makes the
+dry run work on a machine that has not built anything.
+
+Three details of the arrangement are worth keeping in mind before editing either file:
+
+- **The cask is generated, not maintained.** Hand-edit `Casks/campfire.rb` in the tap and the next
+  release overwrites it. The source of truth is the heredoc in `scripts/publish-cask`.
+- **It runs after the assets are uploaded, and only for final releases.** The cask names release
+  assets by URL, so publishing it first would leave `brew install` fetching a 404; and an rc
+  reaching the cask would make `brew install campfire` hand out a pre-release. The step's `if:`
+  covers both.
+- **The macOS floor is read from `conveyor.conf`.** `depends_on macos:` is derived from
+  `info-plist.LSMinimumSystemVersion` rather than written twice, and `scripts/publish-cask` fails
+  the release if that version has no Homebrew symbol in its table — a new macOS needs one line
+  there.
+
+Authentication is `CAMPFIRE_BOT_PAT`, the same bot token the version bump uses; `GITHUB_TOKEN`
+cannot write to another repository. Rotom-Bot needs push access to the tap:
+
+```bash
+gh api -X PUT repos/r0adkll/homebrew-tap/collaborators/Rotom-Bot -f permission=push
+```
+
+Sparkle still owns updates — `auto_updates true` in the cask tells Homebrew so, which keeps
+`brew upgrade` from reinstalling over an app that has already updated itself. A cask bump therefore
+matters most for fresh installs, and for anyone who runs `brew upgrade --greedy`.
+
+Check a rendered cask before trusting it to a release. Homebrew refuses to audit a loose file, so
+it has to go through a throwaway tap:
+
+```bash
+brew tap-new local/casktest --no-git
+scripts/publish-cask --version 1.2.0 --dry-run > "$(brew --repository)/Library/Taps/local/homebrew-casktest/Casks/campfire.rb"
+brew style --cask local/casktest/campfire
+brew audit --cask --online local/casktest/campfire
+brew info --cask local/casktest/campfire            # neither of the above prints deprecations
+brew install --cask --appdir=/tmp/casktest local/casktest/campfire   # installs nothing into /Applications
+brew uninstall --cask local/casktest/campfire && brew untap local/casktest
+```
+
 ## Size and native libraries
 
 `app.jvm.extract-native-libraries` is on, via the vendored

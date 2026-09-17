@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- [Desktop] Install and update on macOS with Homebrew: `brew install r0adkll/tap/campfire`
+
 ### Changed
 
 ### Deprecated
