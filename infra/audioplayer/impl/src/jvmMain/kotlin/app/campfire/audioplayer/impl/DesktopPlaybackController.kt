@@ -10,6 +10,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
+import app.campfire.audioplayer.impl.offline.DesktopOfflineDownloadManager
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
@@ -38,6 +39,7 @@ class DesktopPlaybackController(
   private val accountManager: AccountManager,
   private val audioOutputController: AudioOutputController,
   private val engineProviders: Set<DesktopAudioEngineProvider>,
+  private val offlineDownloadManager: DesktopOfflineDownloadManager,
   @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : PlaybackController {
 
@@ -93,6 +95,7 @@ class DesktopPlaybackController(
           engineFactory = engineFactory(),
           accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },
           audioOutputController = audioOutputController,
+          offlineTrackFiles = offlineDownloadManager::localPathFor,
         ),
       )
     }

@@ -134,6 +134,13 @@ interface HttpClientModule {
     }
   }
 
+  @DownloadClient
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideDownloadHttpClient(
+    applicationInfo: ApplicationInfo,
+  ): HttpClient = createDownloadHttpClient(applicationInfo)
+
   @UserClient
   @SingleIn(AppScope::class)
   @Provides
@@ -151,6 +158,23 @@ interface HttpClientModule {
       installUserAuth(userSessionManager, accountManager)
       installUserExtraHeaders(userSessionManager, accountManager)
     }
+  }
+}
+
+/**
+ * Builds the [DownloadClient]: deliberately not derived from the base client, whose `HttpCache`
+ * (and, in debug builds, Livewire inspection) reads whole responses into memory. There's no
+ * request timeout, since a download legitimately takes minutes; the socket timeout instead
+ * abandons a transfer that stops receiving data.
+ */
+internal fun createDownloadHttpClient(applicationInfo: ApplicationInfo): HttpClient = HttpClient {
+  install(HttpTimeout) {
+    connectTimeoutMillis = 15_000
+    socketTimeoutMillis = 60_000
+  }
+
+  defaultRequest {
+    header(HttpHeaders.UserAgent, applicationInfo.userAgent)
   }
 }
 

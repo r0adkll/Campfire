@@ -76,8 +76,12 @@ class DesktopAudioPlayerTest {
     engineFactory = factory,
     accessTokenProvider = { accessToken },
     audioOutputController = audioOutput,
+    offlineTrackFiles = { itemId, episodeId, track -> downloadedTracks[Triple(itemId, episodeId, track.index)] },
     engineDispatcher = UnconfinedTestDispatcher(testScheduler),
   )
+
+  /** (library item id, episode id, track index) → downloaded file path. */
+  private val downloadedTracks = mutableMapOf<Triple<LibraryItemId, String?, Int>, String>()
 
   private var accessToken: String? = null
 
@@ -434,6 +438,50 @@ class DesktopAudioPlayerTest {
 
     player.seekTo(105.minutes)
     assertThat(engine.opens.last().item.uri).isEqualTo("/Users/me/Downloads/book/4.m4b")
+  }
+
+  @Test
+  fun `a downloaded track opens from disk without credentials while the rest stream`() = runTest {
+    accessToken = "abc123"
+    engine.supportsRequestHeaders = true
+    val tracks = listOf(
+      track(1, 0f, 1800f).copy(contentUrl = "https://abs.example.com/api/items/i/file/1"),
+      track(2, 1800f, 1800f).copy(contentUrl = "https://abs.example.com/api/items/i/file/2"),
+    )
+    downloadedTracks[Triple("item-1", null, 2)] = "/downloads/item-1/item/2.m4b"
+    val player = player()
+    player.prepare(session(tracks = tracks), playImmediately = true) { }
+
+    assertThat(engine.opens.single().item.uri).isEqualTo("https://abs.example.com/api/items/i/file/1")
+    assertThat(engine.opens.single().headers).isEqualTo(mapOf("Authorization" to "Bearer abc123"))
+
+    player.seekTo(45.minutes)
+    val local = engine.opens.last()
+    assertThat(local.item.uri).isEqualTo("/downloads/item-1/item/2.m4b")
+    assertThat(local.startPosition).isEqualTo(15.minutes)
+    assertThat(local.headers).isEmpty()
+  }
+
+  @Test
+  fun `a download that finishes mid-session is picked up at the next track`() = runTest {
+    accessToken = "abc123"
+    val player = player()
+    player.prepareBook()
+    playing()
+
+    downloadedTracks[Triple("item-1", null, 2)] = "/downloads/item-1/item/2.m4b"
+    ended()
+
+    assertThat(engine.opens.last().item.uri).isEqualTo("/downloads/item-1/item/2.m4b")
+  }
+
+  @Test
+  fun `an hls stream ignores downloads`() = runTest {
+    downloadedTracks[Triple("item-1", null, 1)] = "/downloads/item-1/item/1.m4b"
+    val player = player()
+    player.prepareBook(hlsStreamUrl = "https://abs.example.com/hls/1/output.m3u8")
+
+    assertThat(engine.opens.single().item.uri).isEqualTo("https://abs.example.com/hls/1/output.m3u8")
   }
 
   @Test
