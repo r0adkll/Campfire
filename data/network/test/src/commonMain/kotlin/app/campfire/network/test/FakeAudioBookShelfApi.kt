@@ -142,7 +142,11 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     TODO("Not yet implemented")
   }
 
-  var series: Result<PagedResponse<Series>> = Result.failure(IllegalStateException("missing fake"))
+  val seriesPageRequests = mutableListOf<Int>()
+  var seriesResult: suspend (page: Int) -> Result<PagedResponse<Series>> = {
+    Result.failure(NotImplementedError("Set seriesResult on the fake"))
+  }
+
   override suspend fun getSeries(
     libraryId: String,
     filter: LibraryItemFilter?,
@@ -151,7 +155,8 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     page: Int,
     limit: Int,
   ): Result<PagedResponse<Series>> {
-    return series
+    seriesPageRequests += page
+    return seriesResult(page)
   }
 
   override suspend fun getSeriesById(

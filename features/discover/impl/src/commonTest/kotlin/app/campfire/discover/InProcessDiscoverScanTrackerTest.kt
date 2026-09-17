@@ -84,9 +84,9 @@ class InProcessDiscoverScanTrackerTest {
     return state.first { it is DiscoverScanState.Completed } as DiscoverScanState.Completed
   }
 
-  private suspend fun emitOneScannableSeries() {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001")))),
+  private fun emitOneScannableSeries() {
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
     )
     registry.fetchSeriesResults["Series One"] = success()
   }
@@ -96,11 +96,9 @@ class InProcessDiscoverScanTrackerTest {
     val untracked = libraryItem(
       media = media(metadata = mediaMetadata(title = "Untracked", ISBN = null, ASIN = null)),
     )
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Mystery Series", books = listOf(untracked)),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Mystery Series", books = listOf(untracked)),
     )
     registry.fetchSeriesResults["Series One"] = success()
     val tracker = tracker()
@@ -162,11 +160,9 @@ class InProcessDiscoverScanTrackerTest {
   fun `cancelling freezes progress into a completed state`() = runTest {
     val gate = Channel<Unit>()
     registry.fetchSeriesGate = { gate.receive() }
-    seriesRepository.allSeriesFlow.emit(
-      listOf(
-        series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
-        series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
-      ),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Series One", books = listOf(ownedItem("Book A", "B000000001"))),
+      series(id = "s2", name = "Series Two", books = listOf(ownedItem("Book B", "B000000002"))),
     )
     registry.fetchSeriesResults["Series One"] = success()
     val tracker = tracker()
@@ -212,15 +208,14 @@ class InProcessDiscoverScanTrackerTest {
     tracker.awaitCompleted()
 
     assertThat(registry.fetchSeriesRequests.map { it.refresh }).isEqualTo(listOf(false, true))
-    // The stale scan reads the local snapshot; only the explicit scan
-    // refreshes the series listing itself.
-    assertThat(seriesRepository.observeAllSeriesRequests).isEqualTo(listOf(false, true))
+    // Both scans walk the server's full series listing.
+    assertThat(seriesRepository.getAllSeriesCount).isEqualTo(2)
   }
 
   @Test
   fun `a rate limited stop freezes as completed with the flag set`() = runTest {
-    seriesRepository.allSeriesFlow.emit(
-      listOf(series(id = "s1", name = "Limited", books = listOf(ownedItem("Book A", "B000000001")))),
+    seriesRepository.allSeries = listOf(
+      series(id = "s1", name = "Limited", books = listOf(ownedItem("Book A", "B000000001"))),
     )
     registry.fetchSeriesResults["Limited"] = SeriesFetchResult.RateLimited(retryAfter = null)
     val tracker = tracker()

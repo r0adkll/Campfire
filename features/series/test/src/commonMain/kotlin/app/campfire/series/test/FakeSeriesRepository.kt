@@ -23,6 +23,13 @@ class FakeSeriesRepository : SeriesRepository {
     return allSeriesFlow
   }
 
+  var allSeries: List<Series> = emptyList()
+  var getAllSeriesCount = 0
+  override suspend fun getAllSeries(): List<Series> {
+    getAllSeriesCount++
+    return allSeries
+  }
+
   val seriesLibraryItemsFlow = MutableSharedFlow<List<LibraryItem>>(replay = 1)
   override fun observeSeriesLibraryItems(seriesId: String): Flow<List<LibraryItem>> {
     return seriesLibraryItemsFlow

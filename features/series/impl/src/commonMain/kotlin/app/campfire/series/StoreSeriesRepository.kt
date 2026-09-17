@@ -42,6 +42,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,6 +62,8 @@ import org.mobilenativefoundation.store.store5.StoreBuilder
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse
 import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
+import org.mobilenativefoundation.store.store5.impl.extensions.fresh
+import org.mobilenativefoundation.store.store5.impl.extensions.get
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -214,6 +217,20 @@ class StoreSeriesRepository(
             }
           }
       }
+  }
+
+  override suspend fun getAllSeries(): List<Series> {
+    val user = userRepository.getCurrentUser()
+    val key = SeriesStore.Key(user.id, user.selectedLibraryId)
+    val series = try {
+      seriesStore.fresh(key)
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      bark(LogPriority.WARN, throwable = e) { "Failed to fetch the series listing, falling back to the cache" }
+      seriesStore.get(key)
+    }
+    return series.sortedBy { it.name }
   }
 
   override fun createSeriesPager(
