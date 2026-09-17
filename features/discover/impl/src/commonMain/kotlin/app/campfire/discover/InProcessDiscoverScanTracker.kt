@@ -62,6 +62,8 @@ class InProcessDiscoverScanTracker(
 
   private suspend fun scan(refresh: Boolean) {
     var last = SeriesScanner.Progress(done = 0, total = 0, skippedCount = 0, failedCount = 0)
+    // The scanner's first emission waits on the series listing.
+    _state.value = DiscoverScanState.Running(done = 0, total = null)
     try {
       seriesScanner.scan(refresh).collect { progress ->
         last = progress

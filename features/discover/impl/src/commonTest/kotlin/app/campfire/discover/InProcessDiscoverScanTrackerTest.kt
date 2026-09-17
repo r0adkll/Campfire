@@ -112,6 +112,22 @@ class InProcessDiscoverScanTrackerTest {
   }
 
   @Test
+  fun `a scan reports no total until the series listing loads`() = runTest {
+    val listingGate = Channel<Unit>()
+    seriesRepository.getAllSeriesGate = { listingGate.receive() }
+    emitOneScannableSeries()
+    val tracker = tracker()
+
+    tracker.startScan()
+    runCurrent()
+
+    assertThat(tracker.state.value).isEqualTo(DiscoverScanState.Running(done = 0, total = null))
+    listingGate.send(Unit)
+    tracker.state.first { it is DiscoverScanState.Running && it.total == 1 }
+    tracker.awaitCompleted()
+  }
+
+  @Test
   fun `a new tracker rehydrates the persisted completion`() = runTest {
     emitOneScannableSeries()
     val first = tracker()

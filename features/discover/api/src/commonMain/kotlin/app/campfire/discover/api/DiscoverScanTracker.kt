@@ -46,7 +46,8 @@ sealed interface DiscoverScanState {
 
   data class Running(
     val done: Int,
-    val total: Int,
+    /** Series in the scan, or null while the library's series listing is still loading. */
+    val total: Int?,
   ) : DiscoverScanState
 
   data class Completed(

@@ -1,6 +1,7 @@
 <resources>
   <string name="scan_notification_channel_name">Series scans</string>
   <string name="scan_notification_title">Scanning your series</string>
+  <string name="scan_notification_loading_series">Getting series from your server…</string>
   <string name="scan_notification_progress">%1$d of %2$d series</string>
   <string name="scan_notification_cancel">Cancel</string>
   <plurals name="scan_notification_completed">

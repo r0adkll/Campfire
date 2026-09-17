@@ -60,7 +60,8 @@ class AndroidDiscoverScanTracker(
     when {
       running != null -> DiscoverScanState.Running(
         done = running.progress.getInt(DiscoverScanWorker.KEY_DONE, 0),
-        total = running.progress.getInt(DiscoverScanWorker.KEY_TOTAL, 0),
+        // The worker publishes no progress until the series listing has loaded.
+        total = running.progress.keyValueMap[DiscoverScanWorker.KEY_TOTAL] as? Int,
       )
       completed != null -> completed
       else -> DiscoverScanState.Idle

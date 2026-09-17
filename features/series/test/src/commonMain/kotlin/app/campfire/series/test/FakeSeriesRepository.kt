@@ -25,8 +25,10 @@ class FakeSeriesRepository : SeriesRepository {
 
   var allSeries: List<Series> = emptyList()
   var getAllSeriesCount = 0
+  var getAllSeriesGate: suspend () -> Unit = {}
   override suspend fun getAllSeries(): List<Series> {
     getAllSeriesCount++
+    getAllSeriesGate()
     return allSeries
   }
 

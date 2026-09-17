@@ -25,9 +25,10 @@ internal class DiscoverScanNotifications(context: Context) {
   private val appContext: Context = context.applicationContext
   private val notificationManager = NotificationManagerCompat.from(appContext)
 
+  /** A null [total] means the series listing is still loading. */
   fun buildProgress(
     done: Int,
-    total: Int,
+    total: Int?,
     contentIntent: PendingIntent,
     cancelIntent: PendingIntent,
   ): Notification {
@@ -36,10 +37,14 @@ internal class DiscoverScanNotifications(context: Context) {
       .setSmallIcon(R.drawable.ic_notification)
       .setContentTitle(appContext.getString(R.string.scan_notification_title))
       .setContentText(
-        total.takeIf { it > 0 }?.let { appContext.getString(R.string.scan_notification_progress, done, it) },
+        if (total == null) {
+          appContext.getString(R.string.scan_notification_loading_series)
+        } else {
+          appContext.getString(R.string.scan_notification_progress, done, total)
+        },
       )
       .setContentIntent(contentIntent)
-      .setProgress(total, done, total == 0)
+      .setProgress(total ?: 0, done, total == null)
       .setOngoing(true)
       .setShowWhen(false)
       .setOnlyAlertOnce(true)
@@ -53,7 +58,7 @@ internal class DiscoverScanNotifications(context: Context) {
   }
 
   @SuppressLint("MissingPermission")
-  fun notifyProgress(done: Int, total: Int, contentIntent: PendingIntent, cancelIntent: PendingIntent) {
+  fun notifyProgress(done: Int, total: Int?, contentIntent: PendingIntent, cancelIntent: PendingIntent) {
     if (!notificationManager.areNotificationsEnabled()) return
     notificationManager.notify(PROGRESS_NOTIFICATION_ID, buildProgress(done, total, contentIntent, cancelIntent))
   }
