@@ -27,6 +27,9 @@ import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.extensions.seconds
 import app.campfire.core.image.CoverUrls
 import app.campfire.core.logging.Cork
+import app.campfire.core.model.AudioTrack
+import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
 import app.campfire.core.model.UserId
 import app.campfire.core.model.loggableId
@@ -59,6 +62,10 @@ import kotlinx.coroutines.withContext
  * are virtual boundaries on the absolute timeline, exactly like the Cast and HLS paths on Android.
  * Every seek is expressed as an absolute session time, translated to (track, offset) here.
  *
+ * Offline: a track with a completed download ([OfflineTrackFiles]) opens from disk instead, looked
+ * up each time the track is opened, so a download that finishes mid-session is picked up at the
+ * next track and a deleted one falls back to streaming.
+ *
  * Authentication: track URLs are hydrated without credentials; [AccessTokenProvider] supplies the
  * token that is appended as a query parameter when an item is opened (the only mechanism libvlc
  * supports). ABS access tokens expire after about an hour, so a very long single track may need
@@ -76,6 +83,7 @@ class DesktopAudioPlayer(
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
   private val audioOutputController: AudioOutputController,
+  private val offlineTrackFiles: OfflineTrackFiles = OfflineTrackFiles { _, _, _ -> null },
   private val engineDispatcher: CoroutineDispatcher = newEngineDispatcher(),
 ) : AudioPlayer {
 
@@ -86,6 +94,11 @@ class DesktopAudioPlayer(
    */
   fun interface AccessTokenProvider {
     suspend fun accessToken(userId: UserId): String?
+  }
+
+  /** Locates the downloaded copy of a track, if it has one. */
+  fun interface OfflineTrackFiles {
+    fun localPathFor(libraryItemId: LibraryItemId, episodeId: PodcastEpisodeId?, track: AudioTrack): String?
   }
 
   private val scope = CoroutineScope(SupervisorJob() + engineDispatcher)
@@ -118,6 +131,9 @@ class DesktopAudioPlayer(
 
   private var timeline: ChapterTimeline? = null
   private var queue: List<MediaItem> = emptyList()
+
+  /** The audio track behind each [queue] item, for offline lookups; empty for an HLS stream. */
+  private var queueTracks: List<AudioTrack> = emptyList()
   private var currentIndex = 0
 
   /** True when the single queue item spans the whole session (HLS), so item position is absolute. */
@@ -211,6 +227,10 @@ class DesktopAudioPlayer(
     val timeline = ChapterTimeline(session).also { this@DesktopAudioPlayer.timeline = it }
     singleStream = session.episode == null && session.hlsStreamUrl != null
     queue = if (singleStream) MediaItemBuilder.build(session) else MediaItemBuilder.buildTracks(session)
+    queueTracks = when {
+      singleStream -> emptyList()
+      else -> session.episode?.let { listOfNotNull(it.audioTrack) } ?: session.libraryItem.media.tracks
+    }
     itemDuration = null
     lastBoundaryCheckTime = null
 
@@ -381,13 +401,27 @@ class DesktopAudioPlayer(
   }
 
   /**
-   * Opens [index] at [offset] with the freshest access token: as a bearer header when the
+   * Opens [index] at [offset] from its download when there is one, otherwise streamed with the
+   * freshest access token: as a bearer header when the
    * engine sends headers (which also reaches HLS segment requests), otherwise stamped onto the
    * item's URL.
    */
   private suspend fun openItem(engine: PlaybackEngine, index: Int, offset: Duration, playWhenReady: Boolean) {
     val item = queue[index]
-    val userId = preparedSession?.userId
+    val session = preparedSession
+    val track = queueTracks.getOrNull(index)
+    val localPath = if (session != null && track != null) {
+      offlineTrackFiles.localPathFor(session.libraryItem.id, session.episodeId, track)
+    } else {
+      null
+    }
+    if (localPath != null) {
+      dbark { "Opening item $index from its download" }
+      engine.open(item.copy(uri = localPath), offset, playWhenReady)
+      return
+    }
+
+    val userId = session?.userId
     val token = userId?.let { accessTokenProvider.accessToken(it) }
     if (engine.supportsRequestHeaders) {
       val headers = if (token.isNullOrEmpty() || !item.uri.startsWith("http", ignoreCase = true)) {

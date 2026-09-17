@@ -9,6 +9,7 @@ plugins {
   id("app.campfire.compose")
   alias(libs.plugins.ksp)
   alias(libs.plugins.buildConfig)
+  alias(libs.plugins.kotlin.serialization)
 }
 
 // Desktop audio engine: "ffmpeg" (default), "vlc", or "both" for dev builds that carry the two
@@ -104,6 +105,14 @@ kotlin {
       dependencies {
         implementation(libs.jna)
         implementation(libs.kotlinx.coroutines.swing)
+        implementation(libs.kotlinx.serialization.json)
+      }
+    }
+
+    jvmTest {
+      dependencies {
+        implementation(libs.ktor.client.okhttp)
+        implementation(libs.ktor.client.mock)
       }
     }
   }
