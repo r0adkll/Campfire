@@ -14,9 +14,10 @@ concrete ways to resolve it:
   2. Baseline    regenerate app baseline/startup profiles on a local Gradle managed device
                  or on emulator.wtf (token from the macOS Keychain via `set-ew-token`).
                  Gradle output is quiet; it is captured to build/release/*.log
-  3. Changelog   roll `## [Unreleased]` into `## [<version>]` and write the F-Droid /
-                 IzzyOnDroid changelog (fastlane/.../changelogs/<versionCode>.txt); if it is
-                 over the 500-character store limit you can trim it in $EDITOR on the spot
+  3. Changelog   roll `## [Unreleased]` into `## [<version>]` and write the Play / F-Droid /
+                 IzzyOnDroid changelog (fastlane/.../changelogs/<versionCode>.txt) from the
+                 entries that apply to Android; if it is over the 500-character store limit
+                 you can trim it in $EDITOR on the spot
   4. Review      show the GitHub release notes (PRs merged since the last tag, bots excluded)
   5. Publish     commit, push main, create the GitHub release (which triggers the Release
                  workflow that builds and attaches the APKs/AAB)
@@ -61,6 +62,10 @@ REPO_URL = f"https://github.com/{REPO}"
 SEMVER_REGEX = re.compile(r"^v?(\d+)\.(\d+)\.(\d+)(?:-rc(\d+))?$", re.IGNORECASE)
 PR_NUMBER_REGEX = re.compile(r"\(#(\d+)\)\s*$")
 CATEGORIES = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Other Notes & Contributions"]
+# CHANGELOG.md platform tags (`- [Desktop] …`); untagged entries apply to every platform. Keep in
+# sync with ChangelogPlatform in gradle/build-logic, which fails the build on an unknown tag.
+PLATFORMS = ("Android", "Desktop", "iOS")
+PLATFORM_TAG_REGEX = re.compile(r"^- \[([^\]]+)\]\s+(.+)$")
 FASTLANE_CHAR_LIMIT = 500
 EXCLUDED_AUTHOR_PATTERNS = ("[bot]", "renovate", "app/", "dependabot", "github-actions")
 # Automated housekeeping PRs opened by our own workflows via CAMPFIRE_BOT_PAT.
@@ -472,6 +477,7 @@ def roll_changelog(version):
     sections = parse_sections(match.group(1))
     if not sections:
         raise Abort("the Unreleased section of CHANGELOG.md has no entries — nothing to release")
+    platform_sections(sections, PLATFORMS[0])  # rejects unknown platform tags before writing
 
     released = [f"## [{version}]"]
     for category in CATEGORIES:
@@ -500,7 +506,30 @@ def released_sections(version):
     return parse_sections(match.group(1)) if match else None
 
 
+def platform_sections(sections, platform):
+    """The entries that apply to platform, with their platform tags stripped."""
+    filtered = {}
+    for category, text in sections.items():
+        lines = []
+        for line in text.splitlines():
+            match = PLATFORM_TAG_REGEX.match(line)
+            if not match:
+                lines.append(line)
+                continue
+            tags = [tag.strip() for tag in match.group(1).split(",")]
+            unknown = [tag for tag in tags if tag.lower() not in (p.lower() for p in PLATFORMS)]
+            if unknown:
+                raise Abort(f"unknown platform tag {', '.join(unknown)} in CHANGELOG.md entry: {line}")
+            if platform.lower() in (tag.lower() for tag in tags):
+                lines.append(f"- {match.group(2)}")
+        text = "\n".join(lines).strip("\n")
+        if text:
+            filtered[category] = text
+    return filtered
+
+
 def fastlane_text(sections):
+    sections = platform_sections(sections, "Android")
     lines = []
     multiple = len(sections) > 1
     for category in CATEGORIES:

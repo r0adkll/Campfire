@@ -9,34 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Campfire is published as a desktop app for macOS, Windows and Linux, with its own icon, signed and notarized on macOS so it opens without a Gatekeeper warning, and able to update itself. macOS 15 or later is required
-- Desktop on macOS shows the current chapter and cover art in Now Playing and responds to media keys, AirPods taps, and Control Center controls
-- Desktop on macOS adds playback controls to the Dock icon's menu
-- Desktop plays through a built-in audio engine, so VLC no longer needs to be installed
-- Desktop can stream large audiobooks over HLS, with the Streaming method setting now available there
-- Desktop windows between tablet and ultra-wide sizes get a collapsible navigation rail listing every destination, with the account and library switcher in its header and its expanded or collapsed state remembered
-- Desktop detail pane can be resized by dragging the handle on its edge, and the chosen width is remembered
-- Desktop playback bar has a volume slider and mute button for the app's own volume, kept separate from the system volume
-- Desktop playback bar takes on the current book's cover colours when dynamic playback theming is on, matching the phone player
-- Desktop can send playback to a specific audio output device instead of always following the system default (macOS and Windows)
-- Desktop can break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
-- Desktop can download audiobooks and podcast episodes for offline listening, picking up unfinished downloads the next time the app opens
-- Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
+- [Desktop] Campfire is published as a desktop app for macOS, Windows and Linux, with its own icon, signed and notarized on macOS so it opens without a Gatekeeper warning, and able to update itself. macOS 15 or later is required
+- [Desktop] Now Playing on macOS shows the current chapter and cover art, and media keys, AirPods taps, and Control Center controls work
+- [Desktop] Playback controls in the Dock icon's menu on macOS
+- [Desktop] Plays through a built-in audio engine, so VLC no longer needs to be installed
+- [Desktop] Stream large audiobooks over HLS, with the Streaming method setting
+- [Desktop] Windows between tablet and ultra-wide sizes get a collapsible navigation rail listing every destination, with the account and library switcher in its header and its expanded or collapsed state remembered
+- [Desktop] Detail pane can be resized by dragging the handle on its edge, and the chosen width is remembered
+- [Desktop] Playback bar has a volume slider and mute button for the app's own volume, kept separate from the system volume
+- [Desktop] Playback bar takes on the current book's cover colours when dynamic playback theming is on, matching the phone player
+- [Desktop] Send playback to a specific audio output device instead of always following the system default (macOS and Windows)
+- [Desktop] Break the player out into a compact always-on-top mini-player window from the playback bar, and bring it back
+- [Desktop] Download audiobooks and podcast episodes for offline listening, picking up unfinished downloads the next time the app opens
+- [Android] Foldable phones opened halfway on a table split the screen while something is playing: the app above the hinge, the full player below it
 - Pull down on the Home, Playlists and Collections screens to refresh them
 
 ### Changed
 
-- Desktop window can no longer be resized below a phone-sized layout
-- Desktop detail pane's resize handle no longer swallows the drag for resizing the window when the pane is hidden
+- [Desktop] Window can no longer be resized below a phone-sized layout
+- [Desktop] Detail pane's resize handle no longer swallows the drag for resizing the window when the pane is hidden
 - Screens shown in the side detail pane now close with an X instead of showing a back arrow
-- Desktop plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
-- Desktop playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click
-- Desktop docks the playback bar along the bottom of any tablet-width or wider window instead of only ultra-wide ones
-- Desktop and tablet search results close once you pick one
-- Desktop renders the built-in themes on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
+- [Desktop] Plays each audio file whole and navigates chapters within it, instead of re-opening the file at every chapter
+- [Desktop] Playback bar is shorter and shows progress through the whole book, with chapter and bookmark markers you can hover and click
+- [Desktop] Playback bar docks along the bottom of any tablet-width or wider window instead of only ultra-wide ones
+- [Android, Desktop] Search results on tablet and desktop layouts close once you pick one
+- [Desktop] Built-in themes render on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
 - Download options are hidden for accounts the server doesn't allow to download, updating as soon as an admin changes the permission; existing downloads can still be removed
 - Pull-to-refresh shows a livelier animated flame that grows as you pull and throws off embers while refreshing, now on every platform
 - Upcoming scans say they're getting series from your server while the list loads, instead of showing an empty "0 of 0 series" bar
+- What's New only lists the changes for the device you're using
 
 ### Deprecated
 
@@ -46,31 +47,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Titles removed from the server lingering in the app, including their downloads, or showing up twice after being re-added
 - Crash when tapping Add to collection on a title that couldn't be loaded
-- Desktop app freezing while opening a chapter, bookmark, or track, and while starting playback
-- Desktop showing a blank strip under the bottom navigation bar in narrow windows
-- Search bar sitting flush against the top of the window on wide desktop layouts
+- [Desktop] App freezing while opening a chapter, bookmark, or track, and while starting playback
+- [Desktop] Blank strip under the bottom navigation bar in narrow windows
+- [Desktop] Search bar sitting flush against the top of the window on wide layouts
 - Expanded search results on wide layouts spilling past the search bar's edge instead of lining up under it
 - Navigation drawer always highlighting Home instead of the section being viewed
-- Desktop resuming up to a second before the saved position
-- Desktop resuming from a stale position after listening on another device
-- Desktop playback of streamed audiobooks failing because track requests were not authenticated
-- Desktop app crashing on launch, and again on every launch after the first
+- [Desktop] Resuming up to a second before the saved position
+- [Desktop] Resuming from a stale position after listening on another device
+- [Desktop] Playback of streamed audiobooks failing because track requests were not authenticated
+- [Desktop] App crashing on launch, and again on every launch after the first
 - Item detail showing a stray download button while the item is playing or already downloading, and a mismatched play button shape while a download is in progress
-- Desktop page headers scrolling out of view and stranding halfway, taking the back button and page actions with them
+- [Desktop] Page headers scrolling out of view and stranding halfway, taking the back button and page actions with them
 - Cover art on the playing screen flickering and reloading while dragging the player up or down
 - Book covers flashing a loading spinner when opening an item from home, a library, or a series
-- Content on Android sitting underneath the display cutout, and underneath the navigation bar in landscape
-- Android navigation bar buttons becoming hard to see when the app's theme didn't match the system's light or dark setting
-- Cast device picker opening in the corner of the screen, and taking up most of its width, on tablets, foldables and split layouts instead of next to the cast button
-- Android app crashing when a Cast device appears on the network
+- [Android] Content sitting underneath the display cutout, and underneath the navigation bar in landscape
+- [Android] Navigation bar buttons becoming hard to see when the app's theme didn't match the system's light or dark setting
+- [Android] Cast device picker opening in the corner of the screen, and taking up most of its width, on tablets, foldables and split layouts instead of next to the cast button
+- [Android] App crashing when a Cast device appears on the network
 - App crashing when a request finishes after logging out or while signing in
-- Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
+- [Android] Briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
 - Sleep timer's Time and End of Chapter buttons having mismatched sizes when a label wraps onto two lines
 - Upcoming only checking the series you had already browsed to, instead of every series in the library
 
 ### Other Notes & Contributions
 
-- Android beta builds are published to Firebase App Distribution again with every release, reaching testers without waiting on Google Play review
+- [Android] Beta builds are published to Firebase App Distribution again with every release, reaching testers without waiting on Google Play review
 
 ## [1.1.0]
 
