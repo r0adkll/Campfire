@@ -1,0 +1,7 @@
+- Split-player on foldables in the half-closed position (tabletop)
+- Pull down on the Home, Playlists and Collections screens to refresh them
+- Download options now respect server-side permission for the user
+- Improved Pull-to-refresh indicator and animation
+- Missing items now removed from cache
+- Cast device picker opening away from button in foldable/tablet layouts
+- Briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC

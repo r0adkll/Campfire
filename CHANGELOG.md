@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Other Notes & Contributions
+
+## [1.2.0]
+
+### Added
+
 - [Desktop] Now Playing on macOS shows the current chapter and cover art, and media keys, AirPods taps, and Control Center controls work
 - [Desktop] Plays through a built-in audio engine, so VLC no longer needs to be installed
 - [Desktop] Ton of Desktop centered UI improvements
@@ -26,10 +40,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Desktop] Built-in themes render on neutral cool-grey surfaces with a bolder version of the theme's colour as the accent, instead of tinting every surface
 - Download options now respect server-side permission for the user
 - Improved Pull-to-refresh indicator and animation
-
-### Deprecated
-
-### Removed
 
 ### Fixed
 
@@ -546,6 +556,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial Alpha Release.
 
+[1.2.0]: https://github.com/r0adkll/Campfire/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/r0adkll/Campfire/compare/1.0.5...1.1.0
 [1.0.5]: https://github.com/r0adkll/Campfire/compare/1.0.4...1.0.5
 [1.0.4]: https://github.com/r0adkll/Campfire/compare/1.0.3...1.0.4
