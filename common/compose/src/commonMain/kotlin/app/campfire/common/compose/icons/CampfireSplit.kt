@@ -3,20 +3,11 @@
 
 package app.campfire.common.compose.icons
 
-import androidx.compose.animation.core.EaseInOutSine
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.StartOffset
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.SolidColor
@@ -225,80 +216,6 @@ fun NoisyCampfireIcon(
           amplitude = 0.04f,
           speed = .75f,
         ),
-    )
-  }
-}
-
-@Composable
-fun LoadingCampfireIcon(
-  modifier: Modifier = Modifier,
-) {
-  Box(
-    modifier = modifier,
-  ) {
-    Image(
-      CampfireIcons.CampfireLogs,
-      contentDescription = null,
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(0f),
-    )
-
-    val infiniteTransition = rememberInfiniteTransition()
-
-    val outerScale by infiniteTransition.animateFloat(
-      initialValue = 0.95f,
-      targetValue = 1.05f,
-      animationSpec = infiniteRepeatable(
-        animation = tween(
-          durationMillis = 1000,
-          easing = EaseInOutSine,
-        ),
-        repeatMode = RepeatMode.Reverse,
-        initialStartOffset = StartOffset(750),
-      ),
-    )
-
-    Image(
-      CampfireIcons.CampfireFireOuter,
-      contentDescription = null,
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(1f)
-        .applyNoiseEffect(
-          frequencyX = 18f,
-          frequencyY = 3f,
-          speed = 0.8f,
-          amplitude = 0.03f,
-        )
-        .scale(outerScale),
-    )
-
-    val innerScale by infiniteTransition.animateFloat(
-      initialValue = 0.95f,
-      targetValue = 1.05f,
-      animationSpec = infiniteRepeatable(
-        animation = tween(
-          durationMillis = 1000,
-          easing = EaseInOutSine,
-        ),
-        repeatMode = RepeatMode.Reverse,
-      ),
-    )
-
-    Image(
-      CampfireIcons.CampfireFireInner,
-      contentDescription = null,
-      modifier = Modifier
-        .fillMaxSize()
-        .zIndex(2f)
-        .applyNoiseEffect(
-          frequencyX = 9f,
-          frequencyY = 5f,
-          amplitude = 0.05f,
-          speed = .75f,
-        )
-        .scale(innerScale),
     )
   }
 }
