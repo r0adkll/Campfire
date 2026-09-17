@@ -46,13 +46,12 @@ object UserStore : Corked("UserStore") {
         writer = { _, networkUser ->
           // The initial user should already be in the database, so we should ONLY update it
           withContext(dispatcherProvider.databaseWrite) {
-            db.usersQueries.update(
+            db.usersQueries.updateFromServer(
               name = networkUser.username,
               type = User.Type.from(networkUser.type),
               seriesHideFromContinueListening = networkUser.seriesHideFromContinueListening,
               isActive = networkUser.isActive,
               isLocked = networkUser.isLocked,
-              lastSeen = networkUser.lastSeen,
               createdAt = networkUser.createdAt,
               permission_download = networkUser.permissions.download,
               permission_upload = networkUser.permissions.upload,

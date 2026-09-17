@@ -84,6 +84,31 @@ SET
   itemTagsAccessible = ?
 WHERE id = ?;
 
+/**
+ * Mirrors the server's copy of the user mid-session (the /api/me refresh and the user_updated socket
+ * event). Leaves lastSeen alone: the server bumps it on every socket connection, so writing it would
+ * re-emit the user to every observer on each refresh when nothing the app uses has changed.
+ */
+updateFromServer:
+UPDATE user
+SET
+  name = ?,
+  type = ?,
+  seriesHideFromContinueListening = ?,
+  isActive = ?,
+  isLocked = ?,
+  createdAt = ?,
+  permission_download = ?,
+  permission_update = ?,
+  permission_delete = ?,
+  permission_upload = ?,
+  permission_accessAllLibraries = ?,
+  permission_accessAllTags = ?,
+  permission_accessExplicitContent = ?,
+  librariesAccessible = ?,
+  itemTagsAccessible = ?
+WHERE id = ?;
+
 updateSelectedLibrary:
 UPDATE user
 SET selectedLibraryId = :libraryId
