@@ -4,6 +4,7 @@
 package app.campfire.discover.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
@@ -66,6 +67,7 @@ import campfire.features.discover.ui.generated.resources.Res
 import campfire.features.discover.ui.generated.resources.discover_cancel_scan
 import campfire.features.discover.ui.generated.resources.discover_empty_upcoming
 import campfire.features.discover.ui.generated.resources.discover_scan_action
+import campfire.features.discover.ui.generated.resources.discover_scan_loading_series
 import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_scan_rate_limited
 import campfire.features.discover.ui.generated.resources.discover_scanning_title
@@ -190,11 +192,15 @@ fun UpcomingUi(
   }
 }
 
+/**
+ * A null [total] means the series listing is still loading, so there's nothing
+ * to measure progress against yet.
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ScanProgressHeader(
+internal fun ScanProgressHeader(
   done: Int,
-  total: Int,
+  total: Int?,
   onCancel: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -208,19 +214,32 @@ private fun ScanProgressHeader(
       style = MaterialTheme.typography.titleSmall,
     )
     Spacer(Modifier.height(4.dp))
-    LinearProgressIndicator(
-      progress = { if (total == 0) 0f else done.toFloat() / total },
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(6.dp),
-    )
-    Row(verticalAlignment = Alignment.CenterVertically) {
-      Text(
-        text = stringResource(Res.string.discover_scan_progress, done, total),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    val indicatorModifier = Modifier
+      .fillMaxWidth()
+      .height(6.dp)
+    if (total == null) {
+      LinearProgressIndicator(modifier = indicatorModifier)
+    } else {
+      LinearProgressIndicator(
+        progress = { if (total == 0) 0f else done.toFloat() / total },
+        modifier = indicatorModifier,
       )
-      Spacer(Modifier.weight(1f))
+    }
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Crossfade(
+        targetState = total,
+        modifier = Modifier.weight(1f),
+      ) { targetTotal ->
+        Text(
+          text = if (targetTotal == null) {
+            stringResource(Res.string.discover_scan_loading_series)
+          } else {
+            stringResource(Res.string.discover_scan_progress, done, targetTotal)
+          },
+          style = MaterialTheme.typography.labelMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
       val buttonSize = ButtonDefaults.ExtraSmallContainerHeight
       TextButton(
         onClick = onCancel,
@@ -256,6 +275,17 @@ private fun PreviewWrapper(
 @Composable
 private fun UpcomingUiPreview_Idle() = PreviewWrapper {
   UpcomingUi(state = previewState(DiscoverScanState.Idle))
+}
+
+@Preview
+@Composable
+private fun UpcomingUiPreview_LoadingSeries() = PreviewWrapper {
+  UpcomingUi(
+    state = previewState(
+      DiscoverScanState.Running(done = 0, total = null),
+      upcoming = previewUpcoming(),
+    ),
+  )
 }
 
 @Preview

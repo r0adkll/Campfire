@@ -41,7 +41,7 @@ internal class DiscoverScanWorker(
   override suspend fun getForegroundInfo(): ForegroundInfo {
     return ForegroundInfo(
       DiscoverScanNotifications.PROGRESS_NOTIFICATION_ID,
-      notifications.buildProgress(done = 0, total = 0, contentIntent(), cancelIntent()),
+      notifications.buildProgress(done = 0, total = null, contentIntent(), cancelIntent()),
       ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
     )
   }
@@ -70,16 +70,21 @@ internal class DiscoverScanWorker(
 
     var last = SeriesScanner.Progress(done = 0, total = 0, skippedCount = 0, failedCount = 0)
     var publishedDone = 0
+    var publishedTotal = false
     var publishedAt = TimeSource.Monotonic.markNow()
     try {
       userComponent.seriesScanner.scan(refresh).collect { progress ->
         last = progress
         val step = max(1, progress.total / 200)
-        val publish = progress.done - publishedDone >= step ||
+        // Always publish the first emission: until KEY_TOTAL lands the tracker
+        // reports the series listing as still loading.
+        val publish = !publishedTotal ||
+          progress.done - publishedDone >= step ||
           publishedAt.elapsedNow() >= 1.seconds ||
           progress.done == progress.total
         if (publish) {
           publishedDone = progress.done
+          publishedTotal = true
           publishedAt = TimeSource.Monotonic.markNow()
           setProgress(workDataOf(KEY_DONE to progress.done, KEY_TOTAL to progress.total))
           notifications.notifyProgress(progress.done, progress.total, contentIntent(), cancelIntent())
