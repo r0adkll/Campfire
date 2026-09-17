@@ -9,8 +9,10 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -311,13 +313,14 @@ private fun InactiveTimerSheetContent(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TimerTypeSelector(
+internal fun TimerTypeSelector(
   isEpochTimeSelection: Boolean,
   onTimerTypeChange: (Boolean) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  // Size the row to its tallest button so a wrapped label can't give one button a different shape
   Row(
-    modifier = modifier,
+    modifier = modifier.height(IntrinsicSize.Min),
     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
   ) {
     val size = ButtonDefaults.MinHeight
@@ -330,6 +333,7 @@ private fun TimerTypeSelector(
       colors = colors,
       modifier = Modifier
         .heightIn(size)
+        .fillMaxHeight()
         .weight(1f)
         .semantics { role = Role.RadioButton },
     ) {
@@ -357,6 +361,7 @@ private fun TimerTypeSelector(
       colors = colors,
       modifier = Modifier
         .heightIn(size)
+        .fillMaxHeight()
         .weight(1f)
         .semantics { role = Role.RadioButton },
     ) {
@@ -373,6 +378,7 @@ private fun TimerTypeSelector(
       Text(
         text = "End of Chapter",
         style = ButtonDefaults.textStyleFor(size),
+        textAlign = TextAlign.Center,
       )
     }
   }

@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Android app crashing when a Cast device appears on the network
 - App crashing when a request finishes after logging out or while signing in
 - Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
+- Sleep timer's Time and End of Chapter buttons having mismatched sizes when a label wraps onto two lines
 
 ### Other Notes & Contributions
 
