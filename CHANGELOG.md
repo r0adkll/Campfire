@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cast device picker opening in the corner of the screen, and taking up most of its width, on tablets, foldables and split layouts instead of next to the cast button
 - Android app crashing when a Cast device appears on the network
 - App crashing when a request finishes after logging out or while signing in
+- Android briefly going silent between chapters of single-file audiobooks encoded with xHE-AAC
 
 ### Other Notes & Contributions
 
