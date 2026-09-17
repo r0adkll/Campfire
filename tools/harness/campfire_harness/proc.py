@@ -5,12 +5,21 @@ import sys
 import time
 
 
-class ShotError(Exception):
+class HarnessError(Exception):
     """A failure the user needs to act on. Printed without a traceback."""
 
 
+_log_prefix = "harness"
+
+
+def set_log_prefix(prefix: str) -> None:
+    """Name the tool in log lines (e.g. `shots`, `testbed`)."""
+    global _log_prefix
+    _log_prefix = prefix
+
+
 def log(msg: str) -> None:
-    print(f"[shots] {msg}", file=sys.stderr, flush=True)
+    print(f"[{_log_prefix}] {msg}", file=sys.stderr, flush=True)
 
 
 def run(cmd, *, check=True, capture=False, cwd=None, env=None, timeout=None, input_bytes=None):
@@ -23,7 +32,7 @@ def run(cmd, *, check=True, capture=False, cwd=None, env=None, timeout=None, inp
         detail = ""
         if capture:
             detail = "\n" + (result.stderr or b"").decode(errors="replace").strip()
-        raise ShotError(f"Command failed ({result.returncode}): {' '.join(map(str, cmd))}{detail}")
+        raise HarnessError(f"Command failed ({result.returncode}): {' '.join(map(str, cmd))}{detail}")
     return result
 
 
@@ -39,7 +48,7 @@ def which(name: str, *candidates: str) -> str:
         c = os.path.expanduser(c)
         if os.path.exists(c):
             return c
-    raise ShotError(f"'{name}' not found on PATH (also looked in {', '.join(candidates) or 'nowhere'})")
+    raise HarnessError(f"'{name}' not found on PATH (also looked in {', '.join(candidates) or 'nowhere'})")
 
 
 def wait_until(predicate, *, timeout: float, interval: float = 1.0, what: str = "condition"):
@@ -48,4 +57,4 @@ def wait_until(predicate, *, timeout: float, interval: float = 1.0, what: str = 
         if predicate():
             return True
         time.sleep(interval)
-    raise ShotError(f"Timed out after {timeout:.0f}s waiting for {what}")
+    raise HarnessError(f"Timed out after {timeout:.0f}s waiting for {what}")

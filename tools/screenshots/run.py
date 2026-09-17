@@ -6,13 +6,15 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "harness"))
 
-from campfire_shots import emulator  # noqa: E402
-from campfire_shots.config import TOOL_DIR, WORK_DIR, Shot, load_spec  # noqa: E402
-from campfire_shots.device import App  # noqa: E402
+from campfire_shots import chrome  # noqa: E402
+from campfire_shots.config import TOOL_DIR, WORK_DIR, Shot, load_spec, pinned_now  # noqa: E402
 from campfire_shots.output import write_shots  # noqa: E402
-from campfire_shots.proc import ShotError, log, run  # noqa: E402
-from campfire_shots.server import Fixture, Server  # noqa: E402
+from campfire_harness import emulator  # noqa: E402
+from campfire_harness.app import App  # noqa: E402
+from campfire_harness.proc import HarnessError, log, run, set_log_prefix  # noqa: E402
+from campfire_harness.server import Fixture, Server  # noqa: E402
 
 
 def parse_args(argv):
@@ -62,54 +64,56 @@ def run_steps(app: App, fixture: Fixture, shot: Shot, settle_ms: int) -> None:
         elif step.get("back"):
             app.back()
         else:
-            raise ShotError(f"Shot '{shot.name}': unknown step {step}")
+            raise HarnessError(f"Shot '{shot.name}': unknown step {step}")
         time.sleep(0.8)
     time.sleep(settle_ms / 1000)
 
 
 def main(argv=None) -> int:
+    set_log_prefix("shots")
     args = parse_args(argv)
     spec = load_spec(args.spec)
     if args.device_class not in spec.classes:
-        raise ShotError(f"Unknown class '{args.device_class}'; known: {list(spec.classes)}")
+        raise HarnessError(f"Unknown class '{args.device_class}'; known: {list(spec.classes)}")
     cls = spec.classes[args.device_class]
     names = [n.strip() for n in args.shots.split(",")] if args.shots else None
     shots = spec.shots_for(cls.key, names)
     if not shots:
-        raise ShotError(f"No shots to capture for class '{cls.key}'")
-    locale = args.locale or spec.app.get("locale", "en-US")
+        raise HarnessError(f"No shots to capture for class '{cls.key}'")
+    locale = args.locale or spec.app.raw.get("locale", "en-US")
     log(f"Class {cls.key}: {[s.name for s in shots]} @ {locale}")
 
     WORK_DIR.mkdir(parents=True, exist_ok=True)
     if args.regenerate:
-        if not spec.regenerate_cmd:
-            raise ShotError("--regenerate given but [sample_library].regenerate is not set")
+        if not spec.fixture.regenerate_cmd:
+            raise HarnessError("--regenerate given but [sample_library].regenerate is not set")
         log("Regenerating the Sample Library…")
-        run(["sh", "-c", spec.regenerate_cmd], cwd=str(spec.sample_library_path))
+        run(["sh", "-c", spec.fixture.regenerate_cmd], cwd=str(spec.fixture.sample_library_path))
 
-    server = Server(spec.server)
+    server = Server(spec.server, WORK_DIR)
     server.ensure_checkout()
     server.start()
     adb = None
     try:
-        fixture = Fixture(spec, server.client)
+        fixture = Fixture(spec.fixture, spec.server, server.client, now=pinned_now())
         fixture.apply()
         if args.server_only:
             log(f"Server ready at {spec.server.url_for_host} (emulator: {spec.server.url_for_emulator}); Ctrl-C to stop")
             while True:
                 time.sleep(3600)
 
-        emulator.stop_other_shot_emulators(cls)
-        adb = emulator.boot(cls, cold=args.cold, headless=args.headless)
-        emulator.set_locale(adb, locale)
-        emulator.prepare(adb)
+        emulator.stop_other_emulators(cls.device, prefix="campfire-shots-")
+        adb = emulator.boot(cls.device, log_path=WORK_DIR / f"emulator-{cls.key}.log",
+                            cold=args.cold, headless=args.headless)
+        chrome.set_locale(adb, locale)
+        chrome.prepare(adb)
 
-        app = App(spec, adb, spec.server.url_for_emulator)
+        app = App(spec.app, spec.server, adb)
         app.build_and_install(skip_build=args.skip_build)
 
-        default_library = spec.app.get("library")
+        default_library = spec.app.library
         def send_setup():
-            app.setup(library=default_library, theme_mode=spec.app.get("theme_mode"), theme=spec.app.get("theme"))
+            app.setup(library=default_library, theme_mode=spec.app.theme_mode, theme=spec.app.theme)
 
         send_setup()
         time.sleep(6)  # login + initial sync
@@ -121,17 +125,17 @@ def main(argv=None) -> int:
             log(f"Shot: {shot.name}")
             library = shot.library or default_library
             if shot.library or shot.theme_mode or shot.theme:
-                app.setup(library=library, theme_mode=shot.theme_mode or spec.app.get("theme_mode"),
-                          theme=shot.theme or spec.app.get("theme"))
+                app.setup(library=library, theme_mode=shot.theme_mode or spec.app.theme_mode,
+                          theme=shot.theme or spec.app.theme)
                 time.sleep(2)
-            run_steps(app, fixture, shot, shot.settle_ms or int(spec.app.get("settle_ms", 2000)))
-            emulator.set_clock(adb)
+            run_steps(app, fixture, shot, shot.settle_ms or int(spec.app.raw.get("settle_ms", 2000)))
+            chrome.set_clock(adb)
             time.sleep(0.5)
             png = captures_dir / f"{shot.name}.png"
             app.screencap(png)
             captured.append((shot.name, png))
             if shot.library or shot.theme_mode or shot.theme:
-                app.setup(library=default_library, theme_mode=spec.app.get("theme_mode"), theme=spec.app.get("theme"))
+                app.setup(library=default_library, theme_mode=spec.app.theme_mode, theme=spec.app.theme)
                 time.sleep(2)
             # Reset to a neutral state so shots don't leak into each other
             app.stop_playback()
@@ -158,7 +162,7 @@ def main(argv=None) -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except ShotError as e:
+    except HarnessError as e:
         log(f"ERROR: {e}")
         sys.exit(1)
     except KeyboardInterrupt:

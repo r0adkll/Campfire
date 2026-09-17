@@ -1,17 +1,19 @@
 """Run a fresh local Audiobookshelf server and seed the Fixture."""
 import json
 import os
+import signal
 import uuid
 import shutil
 import subprocess
 import time
+from datetime import datetime
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
-from .config import ServerConfig, Spec, WORK_DIR, pinned_now
-from .proc import ShotError, log, out, run, wait_until, which
+from .config import FixtureSpec, ServerConfig
+from .proc import HarnessError, log, out, run, wait_until
 
 
 class AbsClient:
@@ -31,7 +33,7 @@ class AbsClient:
             with urllib.request.urlopen(req, timeout=timeout) as resp:
                 raw = resp.read()
         except urllib.error.HTTPError as e:
-            raise ShotError(f"{method} {path} -> HTTP {e.code}: {e.read().decode(errors='replace')[:300]}")
+            raise HarnessError(f"{method} {path} -> HTTP {e.code}: {e.read().decode(errors='replace')[:300]}")
         if not raw:
             return None
         try:
@@ -50,7 +52,7 @@ class AbsClient:
         user = res["user"]
         self.token = user.get("accessToken") or user.get("token")
         if not self.token:
-            raise ShotError("Login succeeded but no token in response")
+            raise HarnessError("Login succeeded but no token in response")
         return user
 
     def create_library(self, name: str, folder: Path, media_type: str) -> str:
@@ -61,6 +63,9 @@ class AbsClient:
             "provider": "google",
         })
         return res["id"]
+
+    def libraries(self) -> list[dict]:
+        return list((self.request("GET", "/api/libraries") or {}).get("libraries", []))
 
     def scan_library(self, library_id: str):
         self.request("POST", f"/api/libraries/{library_id}/scan?force=1")
@@ -87,7 +92,7 @@ class AbsClient:
         if len(candidates) == 1:
             return candidates[0]
         names = [c.get("media", {}).get("metadata", {}).get("title") for c in candidates]
-        raise ShotError(f"No item titled '{title}' (search returned {names})")
+        raise HarnessError(f"No item titled '{title}' (search returned {names})")
 
     def sync_local_sessions(self, sessions: list[dict]):
         res = self.request("POST", "/api/session/local-all", {"sessions": sessions, "deviceInfo": {
@@ -95,7 +100,7 @@ class AbsClient:
         }})
         failed = [r for r in (res or {}).get("results", []) if not r.get("success")]
         if failed:
-            raise ShotError(f"Session seeding failed: {failed}")
+            raise HarnessError(f"Session seeding failed: {failed}")
 
     def list_authors(self, library_id: str) -> list[dict]:
         res = self.request("GET", f"/api/libraries/{library_id}/authors") or {}
@@ -105,7 +110,7 @@ class AbsClient:
         """Quick-match an author against Audible so ABS saves a real author photo. Returns success."""
         try:
             res = self.request("POST", f"/api/authors/{author_id}/match", {"q": name, "region": region}, timeout=60)
-        except ShotError as e:
+        except HarnessError as e:
             log(f"  match failed for {name}: {e}")
             return False
         return bool((res or {}).get("author", {}).get("imagePath") or (res or {}).get("updated"))
@@ -129,13 +134,18 @@ class AbsClient:
 
 
 class Server:
-    """Lifecycle of the local ABS checkout: ensure → start (fresh data dir) → stop."""
+    """Lifecycle of the local ABS checkout: ensure → start (fresh data dir) → stop.
 
-    def __init__(self, cfg: ServerConfig):
+    The server runs in its own process group so it (and a `nix shell` wrapper around Node) can be
+    stopped from a later process that only knows the pid — see `stop_pid`.
+    """
+
+    def __init__(self, cfg: ServerConfig, work_dir: Path):
         self.cfg = cfg
         self.proc: subprocess.Popen | None = None
-        self.data_dir = WORK_DIR / "server"
-        self.log_path = WORK_DIR / "server.log"
+        self.work_dir = work_dir
+        self.data_dir = work_dir / "server"
+        self.log_path = work_dir / "server.log"
         self.client = AbsClient(cfg.url_for_host)
 
     def ensure_checkout(self):
@@ -168,17 +178,20 @@ class Server:
         for cmd in candidates:
             try:
                 version = out([*cmd, "--version"], timeout=600).strip()
-            except ShotError:
+            except HarnessError:
                 continue
             major = int(version.lstrip("v").split(".")[0])
             if major in self.SUPPORTED_NODE:
                 log(f"Using Node {version} via: {' '.join(cmd)}")
                 return cmd
             log(f"Node {version} from '{' '.join(cmd)}' is outside the supported range 20-22")
-        raise ShotError(
+        raise HarnessError(
             "No supported Node (20-22) found. Install one, or set [server].node in shots.toml "
             "(e.g. node = \"/opt/homebrew/opt/node@22/bin/node\")"
         )
+
+    def is_up(self) -> bool:
+        return self._port_in_use()
 
     def _port_in_use(self) -> bool:
         try:
@@ -189,7 +202,7 @@ class Server:
 
     def start(self):
         if self._port_in_use():
-            raise ShotError(
+            raise HarnessError(
                 f"Something is already listening on port {self.cfg.port}; stop it or change [server].port"
             )
         if self.data_dir.exists():
@@ -197,17 +210,18 @@ class Server:
         config_dir, metadata_dir = self.data_dir / "config", self.data_dir / "metadata"
         config_dir.mkdir(parents=True)
         metadata_dir.mkdir(parents=True)
+        self.work_dir.mkdir(parents=True, exist_ok=True)
         env = dict(os.environ, PORT=str(self.cfg.port), HOST="0.0.0.0",
                    CONFIG_PATH=str(config_dir), METADATA_PATH=str(metadata_dir), NODE_ENV="production")
         log(f"Starting Audiobookshelf on :{self.cfg.port} (log: {self.log_path})")
         logf = open(self.log_path, "wb")
         self.proc = subprocess.Popen([*self.node, "index.js"], cwd=str(self.cfg.path), env=env,
-                                     stdout=logf, stderr=subprocess.STDOUT)
+                                     stdout=logf, stderr=subprocess.STDOUT, start_new_session=True)
 
         def up_or_dead():
             if self.proc.poll() is not None:
                 tail = self.log_path.read_text(errors="replace").splitlines()[-15:]
-                raise ShotError("Audiobookshelf exited during startup:\n" + "\n".join(tail))
+                raise HarnessError("Audiobookshelf exited during startup:\n" + "\n".join(tail))
             return self._port_in_use()
 
         wait_until(up_or_dead, timeout=120, what="server to come up")
@@ -215,48 +229,61 @@ class Server:
     def stop(self):
         if self.proc and self.proc.poll() is None:
             log("Stopping Audiobookshelf")
-            self.proc.terminate()
+            self.stop_pid(self.proc.pid)
             try:
-                self.proc.wait(timeout=15)
+                self.proc.wait(timeout=5)
             except subprocess.TimeoutExpired:
-                self.proc.kill()
+                pass
         self.proc = None
+
+    def stop_pid(self, pid: int):
+        """Stop a server started earlier (possibly by another process) by its process group."""
+        for sig in (signal.SIGTERM, signal.SIGKILL):
+            try:
+                os.killpg(pid, sig)
+            except ProcessLookupError:
+                return
+            try:
+                wait_until(lambda: not self._port_in_use(), timeout=15, interval=0.5, what="server to stop")
+                return
+            except HarnessError:
+                continue
 
 
 class Fixture:
-    """Initialize the fresh server, create libraries, scan, and seed progress."""
+    """Initialize the fresh server, create libraries, scan, and seed progress.
 
-    def __init__(self, spec: Spec, client: AbsClient):
+    `now` anchors seeded listening sessions ("n days ago"); the screenshot tool passes the instant
+    its emulator clock is pinned to.
+    """
+
+    def __init__(self, spec: FixtureSpec, server: ServerConfig, client: AbsClient, *, now: datetime | None = None):
         self.spec = spec
+        self.server = server
         self.client = client
+        self.now = now or datetime.now()
         self.library_ids: dict[str, str] = {}
 
     def apply(self):
-        cfg = self.spec.server
+        cfg = self.server
         status = self.client.status()
         if status.get("isInit"):
-            raise ShotError("Server is already initialized; the data dir should have been fresh")
+            raise HarnessError("Server is already initialized; the data dir should have been fresh")
         self.client.init_root(cfg.username, cfg.password)
         self.client.login(cfg.username, cfg.password)
 
         for lib in self.spec.libraries:
             if not lib.folder.is_dir():
-                raise ShotError(f"Sample Library folder missing: {lib.folder}")
+                raise HarnessError(f"Sample Library folder missing: {lib.folder}")
             self.library_ids[lib.name] = self.client.create_library(lib.name, lib.folder, lib.media_type)
             log(f"Created library '{lib.name}' → {lib.folder}")
 
-        for name, lib_id in self.library_ids.items():
-            self.client.scan_library(lib_id)
-        time.sleep(2)
-        wait_until(lambda: not (self.client.running_scans() & set(self.library_ids.values())),
-                   timeout=600, interval=3, what="library scans to finish")
-        for name, lib_id in self.library_ids.items():
-            log(f"Scanned '{name}': {self.client.item_count(lib_id)} items")
+        self.scan()
 
         # Listening sessions (drive the statistics screen). Seeded *before* progress so the
         # progress PATCH below is the newest write and wins for Continue Listening.
         if self.spec.sessions:
-            now_ms = int(pinned_now().timestamp() * 1000)
+            now_ms = int(self.now.timestamp() * 1000)
             payload = []
             for seed in self.spec.sessions:
                 item = self.find_book(seed.title)
@@ -293,7 +320,7 @@ class Fixture:
             items = [self.find_book(t) for t in playlist.titles]
             library_ids = {i["libraryId"] for i in items}
             if len(library_ids) != 1:
-                raise ShotError(f"Playlist '{playlist.name}' spans libraries {library_ids}; ABS playlists are per-library")
+                raise HarnessError(f"Playlist '{playlist.name}' spans libraries {library_ids}; ABS playlists are per-library")
             self.client.create_playlist(library_ids.pop(), playlist.name, playlist.description, [i["id"] for i in items])
             log(f"Created playlist '{playlist.name}' ({len(items)} items)")
 
@@ -301,15 +328,33 @@ class Fixture:
             item = self.find_book(seed.title)
             duration = float(item.get("media", {}).get("duration") or 0)
             if duration <= 0:
-                raise ShotError(f"'{seed.title}' has no duration; cannot seed progress")
+                raise HarnessError(f"'{seed.title}' has no duration; cannot seed progress")
             self.client.set_progress(item["id"], duration, progress=seed.progress, finished=seed.finished)
             log(f"Seeded progress: {seed.title} → {'finished' if seed.finished else f'{seed.progress:.0%}'}")
+
+    def attach(self):
+        """Pick up an already-applied Fixture on a running server: sign in and map library names to ids."""
+        self.client.login(self.server.username, self.server.password)
+        names = {lib.name for lib in self.spec.libraries}
+        self.library_ids = {lib["name"]: lib["id"] for lib in self.client.libraries() if lib["name"] in names}
+
+    def scan(self, library_ids: list[str] | None = None):
+        """Scan libraries (default: every Fixture library) and block until the scans finish."""
+        ids = library_ids or list(self.library_ids.values())
+        for lib_id in ids:
+            self.client.scan_library(lib_id)
+        time.sleep(2)
+        wait_until(lambda: not (self.client.running_scans() & set(ids)),
+                   timeout=600, interval=3, what="library scans to finish")
+        for name, lib_id in self.library_ids.items():
+            if lib_id in ids:
+                log(f"Scanned '{name}': {self.client.item_count(lib_id)} items")
 
     def find_book(self, title: str) -> dict:
         errors = []
         for lib_id in self.library_ids.values():
             try:
                 return self.client.find_item(lib_id, title)
-            except ShotError as e:
+            except HarnessError as e:
                 errors.append(str(e))
-        raise ShotError(f"Could not resolve '{title}' in any library: {errors}")
+        raise HarnessError(f"Could not resolve '{title}' in any library: {errors}")

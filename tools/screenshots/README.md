@@ -10,6 +10,9 @@ seven-inch, ten-inch) backed by one pinned emulator; the **Fixture** is the know
 starts from (Sample Library + fresh scan + seeded progress/sessions); **Store Metadata** is the
 `fastlane/` tree.
 
+The server, Fixture, emulator and app automation live in the shared `tools/harness/` package (also
+used by `tools/testbed/`); this tool adds the Shot Spec, status-bar styling and store output.
+
 ## Prerequisites
 
 - macOS with Python 3.11+, Node 20+, `git`, and the Android SDK (`ANDROID_HOME` or `~/Library/Android/sdk`)
