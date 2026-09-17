@@ -184,9 +184,14 @@ find output -name '*.jar' | sed 's|.*/||' | grep -E 'skiko-awt-runtime|^ffmpeg-|
 ## Releasing
 
 The `desktop` job in [`.github/workflows/release.yml`](../.github/workflows/release.yml) runs on
-every published GitHub release, alongside the Android jobs. It runs `conveyor make copied-site`,
-which uploads the packages *and* the update metadata to that release. Clients poll
-`releases/latest/download`, derived from `app.vcs-url`, so updates need no other hosting.
+every published GitHub release, alongside the Android jobs. It runs `conveyor make site`, then
+uploads every file in `output/` (the packages *and* the update metadata) to that release with
+`gh release upload`. Clients poll `releases/latest/download`, derived from `app.vcs-url`, so
+updates need no other hosting.
+
+It deliberately does not use `conveyor make copied-site`. Conveyor's GitHub upload always creates
+the release itself and fails with "There is already a GitHub Release … for version X" when one
+exists, and `scripts/release` creates that release first — it is what triggers the workflow.
 
 The version is pinned to the release tag with `-Pcampfire.version=<tag>`, deliberately not with
 `CAMPFIRE_VERSIONNAME` — the Android release-signing guard keys off that variable and would fail

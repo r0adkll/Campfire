@@ -364,23 +364,32 @@ jobs:
         env:
           CI: true
 
-      # The upload to GitHub Releases reads its token from app.site.github.oauth-token only, never
-      # from GITHUB_TOKEN in the environment. It is passed as a flag rather than set in
-      # conveyor.conf because Conveyor fails to load a config whose token is blank or unset,
-      # which would break local `conveyor make site` for anyone without one.
-      - name: Package and Upload to Release
+      # `make site` rather than `make copied-site`: Conveyor's GitHub upload always creates the
+      # release itself and refuses when one already exists for the version, but scripts/release
+      # creates it first (that release is what triggers this workflow).
+      - name: Package Desktop Site
         if: steps.creds.outputs.present == 'true'
         uses: hydraulic-software/conveyor/actions/build@v22.3
         with:
-          command: make copied-site
+          command: make site
           signing_key: ${{ secrets.CONVEYOR_SIGNING_KEY }}
           agree_to_license: 1
-          extra_flags: -Kapp.version=${{ github.event.release.tag_name }} -Kapp.site.github.oauth-token=${{ github.token }}
+          extra_flags: -Kapp.version=${{ github.event.release.tag_name }}
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           CI: true
+
+      # The site is flat, and clients fetch each file from releases/latest/download/<name>, so
+      # every file goes up as an asset under its own name: packages, Sparkle appcasts, the apt
+      # repository index, the Windows appinstaller and metadata.properties alike.
+      - name: Upload Site to Release
+        if: steps.creds.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" output/* --clobber --repo "$GITHUB_REPOSITORY"
 
       - name: Upload build outputs
         if: always() && steps.creds.outputs.present == 'true'
