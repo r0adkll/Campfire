@@ -78,6 +78,25 @@ class LibraryItemUiTest {
   }
 
   @Test
+  fun errorStateHasNoAddToCollectionAction() = runComposeUiTest {
+    // A removed or unreachable item never loads, so there's nothing to add to a collection
+    val state = LibraryItemUiState(
+      user = user,
+      libraryItem = null,
+      theme = null,
+      swatch = null,
+      contentState = LoadState.Error,
+      eventSink = events::invoke,
+    )
+
+    setContent {
+      TestLibraryItem(state)
+    }
+
+    onNodeWithContentDescription("Add to collection").assertDoesNotExist()
+  }
+
+  @Test
   fun testLoadingList() = runComposeUiTest {
     val state = LibraryItemUiState(
       user = user,
