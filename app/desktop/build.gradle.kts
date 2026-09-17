@@ -90,11 +90,17 @@ machineDependencies("linuxAmd64", composeTarget = "linux-x64", javacppPlatform =
 /** Declares one machine's skiko-backed Compose runtime and the FFmpeg/JavaCPP natives beside it. */
 fun machineDependencies(machine: String, composeTarget: String, javacppPlatform: String) {
   val composeVersion = libs.versions.compose.multiplatform.get()
+  val ffmpegNatives = ffmpegNativesWithoutCliTools(javacppPlatform)
   dependencies {
     add(machine, "org.jetbrains.compose.desktop:desktop-jvm-$composeTarget:$composeVersion")
-    add(machine, files(ffmpegNativesWithoutCliTools(javacppPlatform)))
+    add(machine, files(ffmpegNatives))
     add(machine, variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })
   }
+
+  // printConveyorConfig only prints each machine's classpath, and nothing else in a build resolves
+  // a machine other than the host's, so without this the other machines' natives jars are never
+  // built and Conveyor fails on the first missing one.
+  tasks.named("printConveyorConfig") { dependsOn(ffmpegNatives) }
 }
 
 /**
