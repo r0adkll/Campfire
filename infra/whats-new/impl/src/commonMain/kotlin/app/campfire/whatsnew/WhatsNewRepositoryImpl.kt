@@ -5,12 +5,12 @@ package app.campfire.whatsnew
 
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.currentPlatform
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.whatsnew.api.Changelog
-import app.campfire.whatsnew.api.VersionChanges
 import app.campfire.whatsnew.api.WhatsNewRepository
 import campfire.infra.whats_new.impl.generated.resources.Res
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -29,13 +29,14 @@ class WhatsNewRepositoryImpl(
 ) : WhatsNewRepository {
 
   override suspend fun getChangelog(): Changelog {
-    return loadFromDisk()
+    return Changelog(loadFromDisk().forPlatform(currentPlatform))
   }
 
   override fun observeShouldShowWhatsNew(): Flow<Boolean> {
     return settings.observeLastSeenVersion()
       .map { lastSeenVersion ->
-        lastSeenVersion != applicationInfo.versionName
+        lastSeenVersion != applicationInfo.versionName &&
+          loadFromDisk().hasChangesFor(applicationInfo.versionName, currentPlatform)
       }
   }
 
@@ -43,23 +44,14 @@ class WhatsNewRepositoryImpl(
     settings.lastSeenVersion = applicationInfo.versionName
   }
 
-  private suspend fun loadFromDisk(): Changelog = withContext(dispatcherProvider.io) {
+  private suspend fun loadFromDisk(): List<VersionEntry> = withContext(dispatcherProvider.io) {
     try {
       val json = Json { isLenient = true }
       val changelogBytes = Res.readBytes("files/changelog.json")
-      val changes: List<VersionChanges> = json.decodeFromString(changelogBytes.decodeToString())
-      Changelog(
-        changes.map { versionChanges ->
-          versionChanges.copy(
-            changes = versionChanges.changes.filter {
-              it.changes.isNotEmpty()
-            },
-          )
-        },
-      )
+      json.decodeFromString(changelogBytes.decodeToString())
     } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "Unable to read changelog from disk" }
-      Changelog(emptyList())
+      emptyList()
     }
   }
 }

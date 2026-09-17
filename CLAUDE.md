@@ -145,6 +145,8 @@ Every PR that changes app behavior must include an entry in `CHANGELOG.md` under
 
 The changelog describes what the user gets in the release, not the PR history: a feature shipped across multiple (often stacked) PRs keeps ONE entry covering the whole feature — the first PR adds the line, later PRs refine it (or leave it alone) rather than adding entries of their own.
 
+Each platform only sees the entries that apply to it: the in-app What's New filters by the running platform, and `scripts/release` writes the Play / F-Droid notes from the Android entries. Tag an entry that applies to some platforms only with a leading list — `- [Desktop] …`, `- [Android, iOS] …` (valid tags: `Android`, `Desktop`, `iOS`; an unknown tag fails the build). Leave shared changes untagged; they apply to every platform. Because the tag already says where the change applies, don't also name the platform in the text: write `- [Desktop] Download audiobooks for offline listening`, not `- [Desktop] Desktop can download…`. When a platform ships its first release, set its `firstRelease` in `ChangelogPlatform` (`gradle/build-logic`) so older untagged entries stay out of its What's New.
+
 ## Database Migrations
 
 Schema lives in `data/db/core/src/commonMain/sqldelight/app/campfire/data/*.sq`; migrations live alongside in `migrations/{N}.sqm` and the baseline schema dump is `app/campfire/databases/1.db`. SQLDelight's `verifyCommonMainCampfireDatabaseMigration` task compares the migrated database against the fresh `.sq` schema — any drift fails the build.

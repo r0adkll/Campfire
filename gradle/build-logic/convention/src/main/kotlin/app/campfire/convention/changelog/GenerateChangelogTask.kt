@@ -15,9 +15,8 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
 /**
- * Generates the `changelog.json` compose resource from CHANGELOG.md, mirroring the output
- * of `./campfire changelog -aj` without spawning a nested Gradle build (which sandboxed
- * builders like F-Droid's can't run).
+ * Generates the `changelog.json` compose resource from CHANGELOG.md. Entries carry the
+ * platforms they apply to, and the app filters them for the platform it runs on.
  *
  * The `Unreleased` section is included only for alpha/dev builds (dev builds are
  * recognized by the all-nines placeholder version code).
@@ -45,7 +44,7 @@ abstract class GenerateChangelogTask : DefaultTask() {
     val includeUnreleased = name.contains("alpha", ignoreCase = true) || code.all { it == '9' }
 
     val versions = ChangelogParser.parse(changelogFile.get().asFile)
-      .filter { includeUnreleased || it.version != "Unreleased" }
+      .filter { includeUnreleased || it.version != ChangelogParser.UNRELEASED }
 
     val output = outputFile.get().asFile
     output.parentFile.mkdirs()
