@@ -10,6 +10,8 @@ import app.campfire.collections.store.CollectionsStore
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
+import app.campfire.core.logging.LogPriority
+import app.campfire.core.logging.bark
 import app.campfire.core.model.Collection
 import app.campfire.core.model.CollectionId
 import app.campfire.core.model.LibraryItem
@@ -21,9 +23,11 @@ import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import com.r0adkll.kimchi.annotations.ContributesBinding
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.mapNotNull
@@ -72,6 +76,21 @@ class StoreCollectionsRepository(
             }
           }
       }
+  }
+
+  override suspend fun refreshCollections() {
+    val user = userRepository.getCurrentUser()
+    val operation = CollectionsStore.Operation.All(user.id, user.selectedLibraryId)
+    try {
+      collectionsStore.stream<StoreReadResponse<CollectionsStore.Output>>(StoreReadRequest.fresh(operation))
+        .first { it !is StoreReadResponse.Loading && it !is StoreReadResponse.NoNewData }
+        .throwIfError()
+    } catch (e: CancellationException) {
+      throw e
+    } catch (e: Exception) {
+      // Like the list stream, a failed fetch (often just no network) keeps the cached collections.
+      bark(LogPriority.WARN, throwable = e) { "Failed to refresh the collections" }
+    }
   }
 
   override fun observeCollection(collectionId: CollectionId): Flow<Collection> {

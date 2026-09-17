@@ -12,11 +12,13 @@ import com.slack.circuit.runtime.CircuitUiState
 data class CollectionsUiState(
   val collectionContentState: LoadState<out List<Collection>>,
   val displayState: GroupDisplayState,
+  val isRefreshing: Boolean,
   val eventSink: (CollectionsUiEvent) -> Unit,
 ) : CircuitUiState
 
 sealed interface CollectionsUiEvent : CircuitUiEvent {
   data object Back : CollectionsUiEvent
   data object ToggleDisplayState : CollectionsUiEvent
+  data object Refresh : CollectionsUiEvent
   data class CollectionClick(val collection: Collection) : CollectionsUiEvent
 }

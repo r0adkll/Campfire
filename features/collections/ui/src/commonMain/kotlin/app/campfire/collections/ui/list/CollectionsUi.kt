@@ -15,7 +15,10 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
@@ -24,6 +27,7 @@ import app.campfire.common.compose.extensions.plus
 import app.campfire.common.compose.layout.DefaultAdaptiveColumnSize
 import app.campfire.common.compose.layout.LargeAdaptiveColumnSize
 import app.campfire.common.compose.layout.LazyCampfireGrid
+import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.CampfireTopAppBar
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
@@ -69,21 +73,38 @@ fun Collections(
     },
     modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
   ) { paddingValues ->
-    when (state.collectionContentState) {
-      LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
-      LoadState.Error -> ErrorListState(
-        message = stringResource(Res.string.error_collection_items_message),
-        modifier = Modifier.padding(paddingValues),
-      )
+    val pullToRefreshState = rememberPullToRefreshState()
+    PullToRefreshBox(
+      isRefreshing = state.isRefreshing,
+      onRefresh = { state.eventSink(CollectionsUiEvent.Refresh) },
+      state = pullToRefreshState,
+      modifier = Modifier.fillMaxSize(),
+      indicator = {
+        CampfireLoadingIndicator(
+          state = pullToRefreshState,
+          isRefreshing = state.isRefreshing,
+          modifier = Modifier
+            .align(Alignment.TopCenter)
+            .padding(top = paddingValues.calculateTopPadding()),
+        )
+      },
+    ) {
+      when (state.collectionContentState) {
+        LoadState.Loading -> LoadingListState(Modifier.padding(paddingValues))
+        LoadState.Error -> ErrorListState(
+          message = stringResource(Res.string.error_collection_items_message),
+          modifier = Modifier.padding(paddingValues),
+        )
 
-      is LoadState.Loaded -> LoadedState(
-        items = state.collectionContentState.data,
-        displayState = state.displayState,
-        onCollectionClick = { state.eventSink(CollectionsUiEvent.CollectionClick(it)) },
-        onToggleDisplayState = { state.eventSink(CollectionsUiEvent.ToggleDisplayState) },
-        contentPadding = paddingValues,
-        state = gridState,
-      )
+        is LoadState.Loaded -> LoadedState(
+          items = state.collectionContentState.data,
+          displayState = state.displayState,
+          onCollectionClick = { state.eventSink(CollectionsUiEvent.CollectionClick(it)) },
+          onToggleDisplayState = { state.eventSink(CollectionsUiEvent.ToggleDisplayState) },
+          contentPadding = paddingValues,
+          state = gridState,
+        )
+      }
     }
   }
 }
