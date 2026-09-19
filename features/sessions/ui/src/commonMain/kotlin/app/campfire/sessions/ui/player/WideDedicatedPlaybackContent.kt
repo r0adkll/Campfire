@@ -94,6 +94,7 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
         onItemClick = onItemClick,
+        showBookTime = showBookTime,
         modifier = Modifier
           .fillMaxHeight()
           .weight(0.8f),
@@ -106,7 +107,6 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
         isInteracting = isInteracting,
         interactionSource = interactionSource,
         buttonSize = transportSize,
-        showBookTime = showBookTime,
         modifier = Modifier
           .fillMaxHeight()
           .weight(1.2f)

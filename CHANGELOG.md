@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Reworked the full-screen player layout so the cover art stays as large as the screen allows, with more compact transport controls on shorter screens
+
 ### Deprecated
 
 ### Removed

@@ -3,7 +3,6 @@
 
 package app.campfire.sessions.ui.playback.expanded
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -17,9 +16,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
@@ -34,8 +32,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,9 +61,6 @@ import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
 import app.campfire.common.compose.LocalWindowSizeClass
-import app.campfire.common.compose.extensions.readoutFormat
-import app.campfire.common.compose.icons.CampfireIcons
-import app.campfire.common.compose.icons.rounded.KeyboardDoubleArrowRight
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -95,15 +88,21 @@ import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionRow
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
+import app.campfire.sessions.ui.playback.expanded.composables.BookTimeProgressIndicator
+import app.campfire.sessions.ui.playback.expanded.composables.CompactActionsCoverThreshold
+import app.campfire.sessions.ui.playback.expanded.composables.CompactPlaybackActions
 import app.campfire.sessions.ui.playback.expanded.composables.DefaultThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
+import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActionSize
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
+import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActionsFit
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackQueueSwitcher
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackSeekBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlayerCloseButton
 import app.campfire.sessions.ui.playback.expanded.composables.SmallThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
+import app.campfire.sessions.ui.playback.expanded.composables.rememberUseCompact
 import app.campfire.sessions.ui.player.HostedMiniPlayerAction
 import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
 import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
@@ -126,7 +125,6 @@ import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
-import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -226,6 +224,11 @@ internal fun ExpandedPlaybackBar(
     derivedStateOf { easedOffset > TranslationThreshold }
   }
 
+  // Anything but a resting sheet: dragged, or still springing back after release.
+  val isSheetDisplaced by remember {
+    derivedStateOf { easedOffset > 0f }
+  }
+
   val hapticFeedback = LocalHapticFeedback.current
   LaunchedEffect(isDisposing) {
     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -250,11 +253,7 @@ internal fun ExpandedPlaybackBar(
           dragOffset = 0f
         },
       )
-      .fluentIf(windowSizeClass.isSupportingPaneEnabled && !windowSizeClass.isLandscapePhone) {
-        systemBarsPadding()
-          .padding(top = 32.dp)
-      }
-      .fluentIf(windowSizeClass.isLandscapePhone) {
+      .fluentIf(windowSizeClass.isSupportingPaneEnabled || windowSizeClass.isLandscapePhone) {
         systemBarsPadding()
       }
       .padding(
@@ -286,7 +285,7 @@ internal fun ExpandedPlaybackBar(
         } else {
           TopAppBarDefaults.windowInsets
         },
-        queueButtonSize = ButtonDefaults.MinHeight,
+        queueButtonSize = ButtonDefaults.ExtraSmallContainerHeight,
       )
 
       PlaybackQueueSwitcher(
@@ -318,6 +317,7 @@ internal fun ExpandedPlaybackBar(
           },
           animatedVisibilityScope = animatedVisibilityScope,
           modifier = Modifier.fillMaxSize(),
+          freezeActionsLayout = isSheetDisplaced,
         )
       }
 
@@ -347,8 +347,16 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
 
   animatedVisibilityScope: AnimatedVisibilityScope,
   modifier: Modifier = Modifier,
+  compactActionsThreshold: Float = CompactActionsCoverThreshold,
+  /** Holds the current actions layout; see [rememberUseCompact]. */
+  freezeActionsLayout: Boolean = false,
 ) {
   val scope = rememberCoroutineScope()
+  val actionsFit = remember { PlaybackActionsFit() }
+  val useCompactActions = actionsFit.rememberUseCompact(
+    threshold = compactActionsThreshold,
+    frozen = freezeActionsLayout,
+  )
 
   Column(
     modifier = modifier,
@@ -363,34 +371,40 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
       ) {
-        ExpandedItemImage(
-          currentMetadata = playerState.metadata,
-          runningTimer = playerState.timer,
-          session = session,
-          animatedVisibilityScope = animatedVisibilityScope,
-          size = Dp.Unspecified,
+        Box(
+          contentAlignment = Alignment.Center,
           modifier = Modifier
             .weight(1f)
-            .padding(
-              horizontal = 48.dp,
-            )
-            .aspectRatio(1f)
-            .clickable {
-              session?.let(onItemClick)
-            },
-        )
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .then(actionsFit.coverSlotModifier),
+        ) {
+          ExpandedItemImage(
+            currentMetadata = playerState.metadata,
+            runningTimer = playerState.timer,
+            session = session,
+            animatedVisibilityScope = animatedVisibilityScope,
+            size = Dp.Unspecified,
+            modifier = Modifier
+              .aspectRatio(1f)
+              .clickable {
+                session?.let(onItemClick)
+              },
+          )
+        }
 
         Spacer(Modifier.height(16.dp))
 
+        // Chapter Title
         Text(
           text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
           textAlign = TextAlign.Center,
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.SemiBold,
           fontFamily = PaytoneOneFontFamily,
-          maxLines = 3,
+          maxLines = 1,
           autoSize = TextAutoSize.StepBased(
-            minFontSize = 24.sp,
+            minFontSize = 18.sp,
             maxFontSize = 28.sp,
           ),
           overflow = TextOverflow.Ellipsis,
@@ -399,17 +413,29 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
             .padding(horizontal = 24.dp),
         )
 
+        // Book Title
         Text(
           text = session?.libraryItem?.media?.metadata?.title ?: "",
           textAlign = TextAlign.Center,
           style = MaterialTheme.typography.titleMedium,
-          maxLines = 2,
+          maxLines = 1,
+          autoSize = TextAutoSize.StepBased(
+            minFontSize = 14.sp,
+            maxFontSize = 16.sp,
+          ),
           overflow = TextOverflow.Ellipsis,
           modifier = Modifier
             .align(Alignment.CenterHorizontally)
             .padding(horizontal = 24.dp)
             .alpha(50f),
         )
+
+        // Book time progress
+        if (playerState.bookTimeEnabled && session?.episodeId == null) {
+          Spacer(Modifier.height(8.dp))
+          BookTimeProgressIndicator(session, playerState)
+          Spacer(Modifier.height(4.dp))
+        }
 
         if (itemValidation is LibraryItemValidation.Error.InvalidChapters) {
           Spacer(Modifier.height(4.dp))
@@ -475,11 +501,6 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
       val isDragged by interactionSource.collectIsDraggedAsState()
       val isInteracting = isPressed || isDragged
 
-      if (playerState.bookTimeEnabled && session?.episodeId == null) {
-        BookTimeProgressIndicator(session, playerState)
-        Spacer(Modifier.height(4.dp))
-      }
-
       PlaybackSeekBar(
         state = playerState.state,
         currentTime = playerState.time,
@@ -497,30 +518,58 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
         },
       )
 
-      Spacer(Modifier.height(24.dp))
+      Spacer(Modifier.height(16.dp))
 
-      PlaybackActions(
-        state = playerState.state,
-        isInteracting = isInteracting,
-        onSkipPreviousClick = {
-          playerState.eventSink(PlayerUiEvent.PreviousClick)
-        },
-        onRewindClick = {
-          playerState.eventSink(PlayerUiEvent.RewindClick)
-        },
-        onPlayPauseClick = {
-          playerState.eventSink(PlayerUiEvent.PlayPauseClick)
-        },
-        onForwardClick = {
-          playerState.eventSink(PlayerUiEvent.FastForwardClick)
-        },
-        onSkipNextClick = {
-          playerState.eventSink(PlayerUiEvent.NextClick)
-        },
-      )
+      Box(actionsFit.actionsModifier(compact = useCompactActions)) {
+        if (useCompactActions) {
+          CompactPlaybackActions(
+            state = playerState.state,
+            isInteracting = isInteracting,
+            onSkipPreviousClick = {
+              playerState.eventSink(PlayerUiEvent.PreviousClick)
+            },
+            onRewindClick = {
+              playerState.eventSink(PlayerUiEvent.RewindClick)
+            },
+            onPlayPauseClick = {
+              playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+            },
+            onForwardClick = {
+              playerState.eventSink(PlayerUiEvent.FastForwardClick)
+            },
+            onSkipNextClick = {
+              playerState.eventSink(PlayerUiEvent.NextClick)
+            },
+            size = PlaybackActionSize.compact(),
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 24.dp),
+          )
+        } else {
+          PlaybackActions(
+            state = playerState.state,
+            isInteracting = isInteracting,
+            onSkipPreviousClick = {
+              playerState.eventSink(PlayerUiEvent.PreviousClick)
+            },
+            onRewindClick = {
+              playerState.eventSink(PlayerUiEvent.RewindClick)
+            },
+            onPlayPauseClick = {
+              playerState.eventSink(PlayerUiEvent.PlayPauseClick)
+            },
+            onForwardClick = {
+              playerState.eventSink(PlayerUiEvent.FastForwardClick)
+            },
+            onSkipNextClick = {
+              playerState.eventSink(PlayerUiEvent.NextClick)
+            },
+          )
+        }
+      }
     }
 
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(8.dp))
 
     ActionRow(
       onBookmarksClick = {
@@ -624,61 +673,6 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
       },
       showHistory = playbackHistoryEnabled,
       modifier = Modifier.height(72.dp),
-    )
-  }
-}
-
-@Composable
-internal fun ColumnScope.BookTimeProgressIndicator(
-  session: Session?,
-  playerState: PlayerUiState,
-) {
-  val bookDuration = session?.duration ?: Duration.ZERO
-  if (bookDuration != Duration.ZERO) {
-    Row(
-      modifier = Modifier.align(Alignment.CenterHorizontally),
-    ) {
-      val isAccelerated = playerState.speed != 1f
-      AnimatedVisibility(
-        visible = isAccelerated,
-      ) {
-        Icon(
-          CampfireIcons.Rounded.KeyboardDoubleArrowRight,
-          contentDescription = null,
-          modifier = Modifier.size(16.dp),
-          tint = MaterialTheme.colorScheme.secondary,
-        )
-      }
-
-      val currentRemainingDuration = (bookDuration - playerState.bookTime).div(playerState.speed.toDouble())
-      Text(
-        text = "${currentRemainingDuration.readoutFormat()} left",
-        style = MaterialTheme.typography.labelSmall.fluentIf(isAccelerated) {
-          copy(
-            fontWeight = FontWeight.Bold,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.secondary,
-            fontSize = 12.sp,
-          )
-        },
-      )
-    }
-
-    Spacer(Modifier.height(4.dp))
-
-    LinearProgressIndicator(
-      progress = { (playerState.bookTime / bookDuration).toFloat() },
-      trackColor = MaterialTheme.colorScheme.surfaceContainer,
-      color = MaterialTheme.colorScheme.secondary,
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 32.dp),
-    )
-  } else {
-    LinearProgressIndicator(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 32.dp),
     )
   }
 }
