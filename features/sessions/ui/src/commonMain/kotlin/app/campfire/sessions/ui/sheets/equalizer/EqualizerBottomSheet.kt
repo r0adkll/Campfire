@@ -53,7 +53,8 @@ import app.campfire.common.compose.icons.rounded.Book
 import app.campfire.common.compose.icons.rounded.Globe
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.VerticalSlider
-import app.campfire.common.compose.widgets.bottomSheetShape
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
+import app.campfire.common.compose.widgets.sheets.SheetPresentation
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerPresets
 import app.campfire.core.audio.EqualizerProfile
@@ -80,7 +81,6 @@ import campfire.features.sessions.ui.generated.resources.equalizer_preset_warm
 import campfire.features.sessions.ui.generated.resources.equalizer_unavailable_casting
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
@@ -95,11 +95,13 @@ suspend fun OverlayHost.showEqualizerBottomSheet(
   itemId: LibraryItemId,
 ) {
   show(
-    BottomSheetOverlay(
+    AdaptiveSheetOverlay(
       model = EqualizerInput(itemId),
       onDismiss = { },
-      sheetShape = bottomSheetShape,
-      skipPartiallyExpandedState = true,
+      skipPartiallyExpanded = true,
+      // Ten vertical band sliders need height, so a short region gets the centred card rather
+      // than a panel down its edge, which would have even less of it.
+      shortRegionPresentation = SheetPresentation.Dialog,
     ) { input, _ ->
       Impression {
         ScreenViewEvent("Equalizer", ScreenType.Overlay)

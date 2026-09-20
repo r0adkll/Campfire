@@ -21,6 +21,8 @@ kotlin {
         api(libs.androidx.paging.compose)
         api(libs.circuit.foundation)
         api(libs.circuit.overlay)
+        api(libs.circuitx.overlays)
+        api(libs.compose.navigationevent)
         api(libs.coil)
         api(libs.coil.compose)
         api(libs.coil.svg)

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
@@ -76,6 +75,7 @@ import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.icons.rounded.TimerOff
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItemId
@@ -93,7 +93,6 @@ import campfire.features.sessions.ui.generated.resources.option_shake_to_reset_t
 import campfire.features.sessions.ui.generated.resources.timer_bottomsheet_title
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -133,14 +132,10 @@ internal suspend fun OverlayHost.showSleepTimerBottomSheet(
   runningTimer: RunningTimer? = null,
 ): TimerResult {
   return show(
-    BottomSheetOverlay<TimerModel, TimerResult>(
+    AdaptiveSheetOverlay<TimerModel, TimerResult>(
       model = runningTimer?.let { TimerModel.Running(it) } ?: TimerModel.None,
       onDismiss = { TimerResult.None },
-      sheetShape = RoundedCornerShape(
-        topStart = 32.dp,
-        topEnd = 32.dp,
-      ),
-      skipPartiallyExpandedState = true,
+      skipPartiallyExpanded = true,
     ) { model, overlayNavigator ->
       Impression {
         ScreenViewEvent("SleepTimer", ScreenType.Overlay)

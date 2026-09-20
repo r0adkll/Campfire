@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reworked the full-screen player layout so the cover art stays as large as the screen allows, with more compact transport controls on shorter screens
+- Chapters, bookmarks, speed and the other player controls now open in a panel beside the player when your phone is sideways or your foldable is half-open, instead of a bottom sheet with room for barely two rows
 
 ### Deprecated
 

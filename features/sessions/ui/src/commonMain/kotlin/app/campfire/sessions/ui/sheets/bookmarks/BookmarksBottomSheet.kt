@@ -76,8 +76,8 @@ import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.widgets.FilledTonalIconButton
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.common.compose.widgets.SizedIcon
-import app.campfire.common.compose.widgets.bottomSheetShape
 import app.campfire.common.compose.widgets.circularReveal
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.coroutines.onError
 import app.campfire.core.coroutines.onLoaded
@@ -104,7 +104,6 @@ import campfire.features.sessions.ui.generated.resources.cd_forward_time
 import campfire.features.sessions.ui.generated.resources.cd_rewind_time
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -128,11 +127,10 @@ interface BookmarksBottomSheetComponent {
 
 suspend fun OverlayHost.showBookmarksBottomSheet(libraryItemId: LibraryItemId): BookmarkResult {
   return show(
-    BottomSheetOverlay<LibraryItemId, BookmarkResult>(
+    AdaptiveSheetOverlay<LibraryItemId, BookmarkResult>(
       model = libraryItemId,
       onDismiss = { BookmarkResult.None },
-      sheetShape = bottomSheetShape,
-      skipPartiallyExpandedState = true,
+      skipPartiallyExpanded = true,
     ) { id, overlayNavigator ->
       Impression {
         ScreenViewEvent("Bookmarks", ScreenType.Overlay)

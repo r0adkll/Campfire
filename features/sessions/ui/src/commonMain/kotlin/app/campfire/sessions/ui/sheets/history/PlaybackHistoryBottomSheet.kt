@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -56,6 +55,7 @@ import app.campfire.common.compose.icons.rounded.SkipNext
 import app.campfire.common.compose.icons.rounded.SkipPrevious
 import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableFormat
 import app.campfire.core.model.LibraryItemId
@@ -77,7 +77,6 @@ import campfire.features.sessions.ui.generated.resources.history_empty_message
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.OverlayNavigator
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
@@ -95,14 +94,10 @@ suspend fun OverlayHost.showPlaybackHistoryBottomSheet(
   libraryItemId: LibraryItemId,
 ): PlaybackHistoryResult {
   return show(
-    BottomSheetOverlay<LibraryItemId, PlaybackHistoryResult>(
+    AdaptiveSheetOverlay<LibraryItemId, PlaybackHistoryResult>(
       model = libraryItemId,
       onDismiss = { PlaybackHistoryResult.None },
-      sheetShape = RoundedCornerShape(
-        topStart = 32.dp,
-        topEnd = 32.dp,
-      ),
-      dragHandle = {},
+      contentDrawsDragHandle = true,
     ) { model, overlayNavigator ->
       PlaybackHistoryBottomSheet(
         libraryItemId = model,
