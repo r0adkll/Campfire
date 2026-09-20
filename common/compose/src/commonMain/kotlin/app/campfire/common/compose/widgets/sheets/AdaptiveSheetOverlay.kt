@@ -6,6 +6,7 @@ package app.campfire.common.compose.widgets.sheets
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
@@ -56,6 +58,7 @@ import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import com.slack.circuit.overlay.Overlay
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import kotlin.math.roundToInt
 
 /**
  * An [Overlay] that shows [content] in whichever of the three [SheetPresentation]s suits the region
@@ -177,7 +180,14 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
           scaleOut(targetScale = 0.9f) + fadeOut()
         },
       ) {
-        var travelled by remember { mutableFloatStateOf(0f) }
+        // The panel tracks the finger rather than only reacting on release. Dismissing on release
+        // alone reads as not draggable at all: nothing moves while you drag, and the panel simply
+        // vanishes once you let go.
+        //
+        // Plain state rather than an Animatable: the drag has to land synchronously, and an
+        // Animatable driven by a coroutine per delta lets a queued snapTo cancel the spring that
+        // brings the panel home, stranding it part-way off the edge.
+        var dragPx by remember { mutableFloatStateOf(0f) }
         val dragInteractions = remember { MutableInteractionSource() }
 
         Surface(
@@ -195,17 +205,27 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
                 Modifier
                   .width(panelWidth)
                   .fillMaxHeight()
-                  // Swiping the panel back towards the edge it came from closes it, the way
-                  // dragging a bottom sheet downwards does.
+                  .offset { IntOffset(dragPx.roundToInt(), 0) }
+                  // Dragging the panel back towards the edge it came from closes it, the way
+                  // dragging a bottom sheet downwards does. It only gives outwards: pulling the
+                  // other way would tear it off the edge it is anchored to.
                   .draggable(
-                    state = rememberDraggableState { delta -> travelled += delta },
+                    state = rememberDraggableState { delta ->
+                      val outwards = (dragPx + delta) * sign
+                      dragPx = outwards.coerceAtLeast(0f) * sign
+                    },
                     orientation = Orientation.Horizontal,
                     interactionSource = dragInteractions,
                     onDragStopped = { velocity ->
-                      val outwards = travelled * sign
+                      val travelled = dragPx * sign
                       val flung = velocity * sign
-                      if (outwards > SwipeDismissDistance || flung > SwipeDismissVelocity) dismiss()
-                      travelled = 0f
+                      if (travelled > SwipeDismissDistance || flung > SwipeDismissVelocity) {
+                        dismiss()
+                      } else {
+                        animate(dragPx, 0f, animationSpec = SlideBackSpring) { value, _ ->
+                          dragPx = value
+                        }
+                      }
                     },
                   )
               } else {
@@ -244,6 +264,11 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
     }
   }
 }
+
+private val SlideBackSpring = spring<Float>(
+  dampingRatio = Spring.DampingRatioNoBouncy,
+  stiffness = Spring.StiffnessMediumLow,
+)
 
 private val SlideSpring = spring<IntOffset>(
   dampingRatio = Spring.DampingRatioNoBouncy,

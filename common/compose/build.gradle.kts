@@ -70,6 +70,7 @@ kotlin {
       dependencies {
         implementation(compose.desktop.currentOs)
         implementation(projects.common.test)
+        implementation(libs.compose.ui.test)
       }
     }
 
