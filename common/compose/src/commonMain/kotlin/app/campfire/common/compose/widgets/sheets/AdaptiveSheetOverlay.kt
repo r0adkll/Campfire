@@ -18,8 +18,10 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -160,13 +163,9 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
 
       AnimatedVisibility(
         visibleState = visibleState,
-        modifier = Modifier.align(
-          when {
-            !isSide -> Alignment.Center
-            sign > 0 -> Alignment.CenterEnd
-            else -> Alignment.CenterStart
-          },
-        ),
+        // CenterEnd already resolves to the trailing edge in either layout direction; only the
+        // slide offset below is in raw pixels and needs the sign.
+        modifier = Modifier.align(if (isSide) Alignment.CenterEnd else Alignment.Center),
         enter = if (isSide) {
           slideInHorizontally(SlideSpring) { it * sign } + fadeIn()
         } else {
@@ -179,13 +178,15 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
         },
       ) {
         var travelled by remember { mutableFloatStateOf(0f) }
+        val dragInteractions = remember { MutableInteractionSource() }
 
         Surface(
-          shape = when {
-            // Rounded only where it meets the content it slid over; the far edge is the screen's.
-            isSide && sign > 0 -> RoundedCornerShape(topStart = SheetCorner, bottomStart = SheetCorner)
-            isSide -> RoundedCornerShape(topEnd = SheetCorner, bottomEnd = SheetCorner)
-            else -> RoundedCornerShape(SheetCorner)
+          // Rounded only where it meets the content it slid over; the far edge is the screen's.
+          // topStart/bottomStart is the inner edge in either layout direction.
+          shape = if (isSide) {
+            RoundedCornerShape(topStart = SheetCorner, bottomStart = SheetCorner)
+          } else {
+            RoundedCornerShape(SheetCorner)
           },
           color = BottomSheetDefaults.ContainerColor,
           modifier = Modifier
@@ -199,6 +200,7 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
                   .draggable(
                     state = rememberDraggableState { delta -> travelled += delta },
                     orientation = Orientation.Horizontal,
+                    interactionSource = dragInteractions,
                     onDragStopped = { velocity ->
                       val outwards = travelled * sign
                       val flung = velocity * sign
@@ -214,9 +216,28 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
             // Taps inside the panel belong to the panel; they must not fall through to the scrim.
             .pointerInput(Unit) { detectTapGestures {} },
         ) {
-          content(model) { result ->
-            pendingResult = result
-            visibleState.targetState = false
+          val body: @Composable () -> Unit = {
+            content(model) { result ->
+              pendingResult = result
+              visibleState.targetState = false
+            }
+          }
+
+          if (isSide) {
+            // The panel is draggable anywhere, but nothing said so. A handle down its inner edge
+            // is the same affordance the bottom sheet gets, turned ninety degrees — and it shares
+            // the drag's interaction source, so it reacts while the panel is being moved.
+            Row(Modifier.fillMaxSize()) {
+              Box(
+                modifier = Modifier.fillMaxHeight().width(DragHandleSlotWidth),
+                contentAlignment = Alignment.Center,
+              ) {
+                VerticalDragHandle(interactionSource = dragInteractions)
+              }
+              Box(Modifier.weight(1f)) { body() }
+            }
+          } else {
+            body()
           }
         }
       }
@@ -244,6 +265,9 @@ private val MinScrimStrip = 56.dp
 
 /** The margin around the centred card, which is otherwise as large as the region allows. */
 private val DialogMargin = 16.dp
+
+/** The strip down the panel's inner edge that the drag handle sits in. */
+private val DragHandleSlotWidth = 24.dp
 
 /** Pixels of outward drag, or pixels-per-second of outward fling, that close the panel. */
 private const val SwipeDismissDistance = 160f
