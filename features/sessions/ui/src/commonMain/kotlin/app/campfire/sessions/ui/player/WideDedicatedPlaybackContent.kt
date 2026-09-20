@@ -18,7 +18,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,7 @@ import app.campfire.sessions.ui.playback.expanded.ItemActions
 import app.campfire.sessions.ui.playback.expanded.ItemMetadata
 import app.campfire.sessions.ui.playback.expanded.SmallTransportButtonSize
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
+import app.campfire.sessions.ui.playback.expanded.composables.EqualizerPanelSwitcher
 import app.campfire.sessions.ui.playback.expanded.rememberPlaybackOptionActions
 import com.slack.circuit.overlay.OverlayHost
 
@@ -79,6 +82,8 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
     val transportSize = (if (showBookTime) room else room + BookTimeReadoutHeight)
       .coerceIn(SmallTransportButtonSize, ButtonDefaults.LargeContainerHeight)
 
+    var equalizerOpen by remember { mutableStateOf(false) }
+
     // Each column centres its content, so they all get the same vertical margin: the cover
     // column and the tool column already end 16dp short of the bottom, and this tops the
     // three of them up to match. Without it the body sits flush under the rail's first
@@ -88,35 +93,49 @@ internal fun SharedTransitionScope.WideDedicatedPlaybackContent(
         .fillMaxSize()
         .padding(top = WideVerticalMargin),
     ) {
-      this@WideDedicatedPlaybackContent.ItemMetadata(
-        playerState = playerState,
-        session = session,
-        itemValidation = itemValidation,
-        animatedVisibilityScope = animatedVisibilityScope,
-        onItemClick = onItemClick,
-        showBookTime = showBookTime,
+      // The equalizer takes the cover and transport's share of the row; the tool column keeps
+      // its place beside it, so the button that opened it is still there to close it.
+      EqualizerPanelSwitcher(
+        open = equalizerOpen,
+        itemId = session?.libraryItem?.id,
+        onClose = { equalizerOpen = false },
         modifier = Modifier
           .fillMaxHeight()
-          .weight(0.8f),
-      )
+          .weight(2f),
+      ) {
+        Row(Modifier.fillMaxSize()) {
+          this@WideDedicatedPlaybackContent.ItemMetadata(
+            playerState = playerState,
+            session = session,
+            itemValidation = itemValidation,
+            animatedVisibilityScope = animatedVisibilityScope,
+            onItemClick = onItemClick,
+            showBookTime = showBookTime,
+            modifier = Modifier
+              .fillMaxHeight()
+              .weight(0.8f),
+          )
 
-      ItemActions(
-        session = session,
-        playerState = playerState,
-        syncState = syncState,
-        isInteracting = isInteracting,
-        interactionSource = interactionSource,
-        buttonSize = transportSize,
-        modifier = Modifier
-          .fillMaxHeight()
-          .weight(1.2f)
-          .padding(bottom = WideVerticalMargin),
-      )
+          ItemActions(
+            session = session,
+            playerState = playerState,
+            syncState = syncState,
+            isInteracting = isInteracting,
+            interactionSource = interactionSource,
+            buttonSize = transportSize,
+            modifier = Modifier
+              .fillMaxHeight()
+              .weight(1.2f)
+              .padding(bottom = WideVerticalMargin),
+          )
+        }
+      }
 
       val actions = rememberPlaybackOptionActions(
         overlayHost = overlayHost,
         session = session,
         playerState = playerState,
+        onToggleEqualizerInPlace = { equalizerOpen = !equalizerOpen },
       )
       ActionColumn(
         onBookmarksClick = actions.onBookmarksClick,

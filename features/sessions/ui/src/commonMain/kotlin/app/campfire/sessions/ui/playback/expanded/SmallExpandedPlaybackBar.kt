@@ -89,6 +89,7 @@ import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
 import app.campfire.sessions.ui.playback.expanded.composables.BookTimeProgressIndicator
+import app.campfire.sessions.ui.playback.expanded.composables.EqualizerPanelSwitcher
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
@@ -335,33 +336,48 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
     // first, the same trade the wide layout makes, rather than the cover shrinking to nothing.
     val showBookTime = playerState.bookTimeEnabled && maxHeight >= BookTimeMinHeight
 
+    var equalizerOpen by remember { mutableStateOf(false) }
+
     Row(
       modifier = Modifier
         .fillMaxWidth()
         .fillMaxHeight(),
     ) {
-      this@SmallExpandedPlaybackContent.ItemMetadata(
-        playerState = playerState,
-        session = session,
-        itemValidation = itemValidation,
-        animatedVisibilityScope = animatedVisibilityScope,
-        onItemClick = onItemClick,
-        showBookTime = showBookTime,
+      // The equalizer takes the cover and transport's share of the row; the tool column keeps
+      // its place beside it, so the button that opened it is still there to close it.
+      EqualizerPanelSwitcher(
+        open = equalizerOpen,
+        itemId = session?.libraryItem?.id,
+        onClose = { equalizerOpen = false },
         modifier = Modifier
           .fillMaxHeight()
-          .weight(1f),
-      )
+          .weight(2.2f),
+      ) {
+        Row(Modifier.fillMaxSize()) {
+          this@SmallExpandedPlaybackContent.ItemMetadata(
+            playerState = playerState,
+            session = session,
+            itemValidation = itemValidation,
+            animatedVisibilityScope = animatedVisibilityScope,
+            onItemClick = onItemClick,
+            showBookTime = showBookTime,
+            modifier = Modifier
+              .fillMaxHeight()
+              .weight(1f),
+          )
 
-      ItemActions(
-        session = session,
-        playerState = playerState,
-        syncState = syncState,
-        isInteracting = isInteracting,
-        interactionSource = interactionSource,
-        modifier = Modifier
-          .fillMaxHeight()
-          .weight(1.2f),
-      )
+          ItemActions(
+            session = session,
+            playerState = playerState,
+            syncState = syncState,
+            isInteracting = isInteracting,
+            interactionSource = interactionSource,
+            modifier = Modifier
+              .fillMaxHeight()
+              .weight(1.2f),
+          )
+        }
+      }
 
       PlaybackOptionsColumn(
         overlayHost = overlayHost,
@@ -370,6 +386,7 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         playbackHistoryEnabled = playbackHistoryEnabled,
         volumeState = volumeState,
         outputDeviceState = outputDeviceState,
+        onToggleEqualizerInPlace = { equalizerOpen = !equalizerOpen },
         modifier = Modifier.padding(bottom = 16.dp),
       )
     }
@@ -575,12 +592,14 @@ private fun PlaybackOptionsColumn(
   playbackHistoryEnabled: Boolean,
   volumeState: VolumeUiState?,
   outputDeviceState: OutputDeviceUiState?,
+  onToggleEqualizerInPlace: (() -> Unit)? = null,
   modifier: Modifier = Modifier,
 ) {
   val actions = rememberPlaybackOptionActions(
     overlayHost = overlayHost,
     session = session,
     playerState = playerState,
+    onToggleEqualizerInPlace = onToggleEqualizerInPlace,
   )
   ActionColumn(
     onBookmarksClick = actions.onBookmarksClick,
@@ -623,6 +642,11 @@ internal fun rememberPlaybackOptionActions(
   overlayHost: OverlayHost,
   session: Session?,
   playerState: PlayerUiState,
+  /**
+   * Where the host can give the equalizer the player's body instead of a sheet — the layouts that
+   * keep their tool column on screen beside it. Null everywhere else, and the sheet opens.
+   */
+  onToggleEqualizerInPlace: (() -> Unit)? = null,
 ): PlaybackOptionActions {
   val scope = rememberCoroutineScope()
   return PlaybackOptionActions(
@@ -670,10 +694,11 @@ internal fun rememberPlaybackOptionActions(
         },
       )
     },
-    onEqualizerClick = {
+    onEqualizerClick = onToggleEqualizerInPlace ?: {
       scope.launch {
         overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)
       }
+      Unit
     },
     onChapterListClick = {
       if (session!!.libraryItem.media.chapters.isNotEmpty()) {

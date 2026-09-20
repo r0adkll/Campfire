@@ -5,6 +5,7 @@ package app.campfire.sessions.ui.sheets.equalizer
 
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
@@ -107,7 +109,7 @@ suspend fun OverlayHost.showEqualizerBottomSheet(
         ScreenViewEvent("Equalizer", ScreenType.Overlay)
       }
 
-      EqualizerBottomSheet(
+      EqualizerContent(
         input = input,
         modifier = Modifier.navigationBarsPadding(),
       )
@@ -129,12 +131,16 @@ private fun rememberEqualizerComponent(): EqualizerBottomSheetComponent {
 }
 
 /**
- * State/DI layer for the equalizer sheet: resolves the component, collects the player and
- * settings flows, and handles events so [EqualizerSheet] stays pure and previewable.
+ * State/DI layer for the equalizer: resolves the component, collects the player and settings
+ * flows, and handles events so [EqualizerSheet] stays pure and previewable.
+ *
+ * Internal rather than private because the equalizer is not always a sheet. Where the player lays
+ * out sideways it takes the cover and transport's place in the body instead, and that host needs
+ * the same state layer — see `EqualizerPanel`.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Composable
-private fun EqualizerBottomSheet(
+internal fun EqualizerContent(
   input: EqualizerInput,
   modifier: Modifier = Modifier,
   component: EqualizerBottomSheetComponent = rememberEqualizerComponent(),
@@ -240,76 +246,131 @@ internal fun EqualizerSheet(
       )
     },
   ) {
-    if (!available) {
-      Text(
-        text = stringResource(Res.string.equalizer_unavailable_casting),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
+    val unavailableNotice: @Composable () -> Unit = {
+      if (!available) {
+        Text(
+          text = stringResource(Res.string.equalizer_unavailable_casting),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          textAlign = TextAlign.Center,
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(8.dp))
+      }
+    }
+
+    val enableRow: @Composable () -> Unit = {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp),
-      )
-      Spacer(Modifier.height(8.dp))
+      ) {
+        Text(
+          text = stringResource(Res.string.equalizer_enabled_toggle),
+          style = MaterialTheme.typography.bodyLarge,
+          modifier = Modifier.weight(1f),
+        )
+        Switch(
+          checked = profile.enabled,
+          onCheckedChange = onEnabledChange,
+          enabled = available,
+        )
+      }
     }
 
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp),
-    ) {
-      Text(
-        text = stringResource(Res.string.equalizer_enabled_toggle),
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.weight(1f),
-      )
-      Switch(
-        checked = profile.enabled,
-        onCheckedChange = onEnabledChange,
-        enabled = available,
+    val presets: @Composable () -> Unit = {
+      PresetChipRow(
+        selectedPresetId = profile.presetId,
+        enabled = controlsEnabled,
+        onPresetSelected = onPresetSelected,
       )
     }
 
-    Spacer(Modifier.height(8.dp))
+    val bands: @Composable () -> Unit = {
+      BandFaderRow(
+        bandGainsDb = profile.bandGainsDb,
+        enabled = controlsEnabled,
+        onBandGainChange = onBandGainChange,
+      )
+    }
 
-    PresetChipRow(
-      selectedPresetId = profile.presetId,
-      enabled = controlsEnabled,
-      onPresetSelected = onPresetSelected,
-    )
+    val levels: @Composable () -> Unit = {
+      LabeledSlider(
+        label = stringResource(Res.string.equalizer_loudness_label),
+        value = profile.loudnessGainDb,
+        valueRange = EqualizerBands.LoudnessGainRangeDb,
+        valueText = "+${profile.loudnessGainDb.roundToInt()} dB",
+        enabled = controlsEnabled,
+        onValueChange = { onLoudnessChange(it.roundToInt().toFloat()) },
+      )
 
-    Spacer(Modifier.height(16.dp))
+      LabeledSlider(
+        label = stringResource(Res.string.equalizer_bass_label),
+        value = profile.bassBoost,
+        valueRange = EqualizerBands.BassBoostRange,
+        valueText = "${(profile.bassBoost * 100).roundToInt()}%",
+        enabled = controlsEnabled,
+        onValueChange = { onBassBoostChange((it * 20).roundToInt() / 20f) },
+      )
+    }
 
-    BandFaderRow(
-      bandGainsDb = profile.bandGainsDb,
-      enabled = controlsEnabled,
-      onBandGainChange = onBandGainChange,
-    )
+    BoxWithConstraints {
+      // Stacked, the faders plus the presets and the two sliders come to roughly 490dp, which a
+      // region laid out sideways does not have -- and this body is shown in place of the player
+      // there, not in a sheet that can grow. Given the width, the controls move beside the faders
+      // instead so the whole equalizer is on screen at once.
+      val sideBySide = maxHeight < StackedMinHeight && maxWidth >= SideBySideMinWidth
 
-    Spacer(Modifier.height(16.dp))
-
-    LabeledSlider(
-      label = stringResource(Res.string.equalizer_loudness_label),
-      value = profile.loudnessGainDb,
-      valueRange = EqualizerBands.LoudnessGainRangeDb,
-      valueText = "+${profile.loudnessGainDb.roundToInt()} dB",
-      enabled = controlsEnabled,
-      onValueChange = { onLoudnessChange(it.roundToInt().toFloat()) },
-    )
-
-    LabeledSlider(
-      label = stringResource(Res.string.equalizer_bass_label),
-      value = profile.bassBoost,
-      valueRange = EqualizerBands.BassBoostRange,
-      valueText = "${(profile.bassBoost * 100).roundToInt()}%",
-      enabled = controlsEnabled,
-      onValueChange = { onBassBoostChange((it * 20).roundToInt() / 20f) },
-    )
-
-    Spacer(Modifier.height(24.dp))
+      if (sideBySide) {
+        Row(Modifier.fillMaxWidth()) {
+          Column(
+            modifier = Modifier
+              .weight(1.3f)
+              .verticalScroll(rememberScrollState()),
+          ) {
+            bands()
+          }
+          Column(
+            modifier = Modifier
+              .weight(1f)
+              .verticalScroll(rememberScrollState()),
+          ) {
+            unavailableNotice()
+            enableRow()
+            Spacer(Modifier.height(8.dp))
+            presets()
+            Spacer(Modifier.height(8.dp))
+            levels()
+          }
+        }
+      } else {
+        // Scrolls as a safety net: a short sheet would otherwise clip the sliders off the bottom.
+        Column(
+          modifier = Modifier.verticalScroll(rememberScrollState()),
+        ) {
+          unavailableNotice()
+          enableRow()
+          Spacer(Modifier.height(8.dp))
+          presets()
+          Spacer(Modifier.height(16.dp))
+          bands()
+          Spacer(Modifier.height(16.dp))
+          levels()
+          Spacer(Modifier.height(24.dp))
+        }
+      }
+    }
   }
 }
+
+/** Below this, the stacked arrangement does not fit and the controls move beside the faders. */
+private val StackedMinHeight = 480.dp
+
+/** The width the side-by-side arrangement needs before it is worth splitting into two columns. */
+private val SideBySideMinWidth = 600.dp
 
 @Composable
 private fun PresetChipRow(
