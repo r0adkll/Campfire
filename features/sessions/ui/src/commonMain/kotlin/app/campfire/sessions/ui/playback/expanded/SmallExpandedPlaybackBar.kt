@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.campfire.audioplayer.PlaybackEngineUnavailableException
 import app.campfire.audioplayer.model.EqualizerState
 import app.campfire.audioplayer.ui.cast.CastButton
@@ -81,6 +83,7 @@ import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
 import app.campfire.sessions.ui.playback.expanded.composables.AvailableSyncButton
+import app.campfire.sessions.ui.playback.expanded.composables.BookTimeProgressIndicator
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedItemImage
 import app.campfire.sessions.ui.playback.expanded.composables.ExpandedPlaybackTopBar
 import app.campfire.sessions.ui.playback.expanded.composables.PlaybackActions
@@ -327,9 +330,10 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
         onItemClick = onItemClick,
+        showBookTime = playerState.bookTimeEnabled,
         modifier = Modifier
           .fillMaxHeight()
-          .weight(0.8f),
+          .weight(1f),
       )
 
       ItemActions(
@@ -363,6 +367,8 @@ internal fun SharedTransitionScope.ItemMetadata(
   animatedVisibilityScope: AnimatedVisibilityScope,
   onItemClick: (Session) -> Unit,
   modifier: Modifier = Modifier,
+  /** Whether the whole-book time-left readout sits above the seek bar; off where height is short. */
+  showBookTime: Boolean = true,
 ) {
   Column(
     modifier = modifier,
@@ -385,33 +391,6 @@ internal fun SharedTransitionScope.ItemMetadata(
         },
     )
 
-    Spacer(Modifier.height(16.dp))
-
-    Text(
-      text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
-      textAlign = TextAlign.Center,
-      style = MaterialTheme.typography.headlineSmall,
-      fontWeight = FontWeight.SemiBold,
-      fontFamily = PaytoneOneFontFamily,
-      maxLines = 3,
-      overflow = TextOverflow.Ellipsis,
-      modifier = Modifier
-        .align(Alignment.CenterHorizontally)
-        .padding(horizontal = 24.dp),
-    )
-
-    Text(
-      text = session?.libraryItem?.media?.metadata?.title ?: "",
-      textAlign = TextAlign.Center,
-      style = MaterialTheme.typography.titleSmall,
-      maxLines = 2,
-      overflow = TextOverflow.Ellipsis,
-      modifier = Modifier
-        .align(Alignment.CenterHorizontally)
-        .padding(horizontal = 24.dp)
-        .alpha(50f),
-    )
-
     if (itemValidation is LibraryItemValidation.Error.InvalidChapters) {
       Spacer(Modifier.height(4.dp))
       Text(
@@ -426,7 +405,13 @@ internal fun SharedTransitionScope.ItemMetadata(
       )
     }
 
-    Spacer(Modifier.height(16.dp))
+    if (showBookTime && playerState.bookTimeEnabled && session?.episodeId == null) {
+      Spacer(Modifier.height(8.dp))
+      BookTimeProgressIndicator(session, playerState)
+      Spacer(Modifier.height(8.dp))
+    } else {
+      Spacer(Modifier.height(16.dp))
+    }
   }
 }
 
@@ -444,13 +429,46 @@ internal fun ItemActions(
   interactionSource: MutableInteractionSource,
   modifier: Modifier = Modifier,
   buttonSize: Dp = SmallTransportButtonSize,
-  /** Whether the whole-book time-left readout sits above the seek bar; off where height is short. */
-  showBookTime: Boolean = true,
 ) {
   Column(
     modifier = modifier,
     verticalArrangement = Arrangement.Center,
   ) {
+    Text(
+      text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
+      textAlign = TextAlign.Center,
+      style = MaterialTheme.typography.titleLarge,
+      fontWeight = FontWeight.SemiBold,
+      fontFamily = PaytoneOneFontFamily,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      autoSize = TextAutoSize.StepBased(
+        minFontSize = 18.sp,
+        maxFontSize = 22.sp,
+      ),
+      modifier = Modifier
+        .align(Alignment.CenterHorizontally)
+        .padding(horizontal = 16.dp),
+    )
+
+    Text(
+      text = session?.libraryItem?.media?.metadata?.title ?: "",
+      textAlign = TextAlign.Center,
+      style = MaterialTheme.typography.titleSmall,
+      maxLines = 1,
+      autoSize = TextAutoSize.StepBased(
+        minFontSize = 12.sp,
+        maxFontSize = 16.sp,
+      ),
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier
+        .align(Alignment.CenterHorizontally)
+        .padding(horizontal = 16.dp)
+        .alpha(50f),
+    )
+
+    Spacer(Modifier.height(16.dp))
+
     if (playerState.error != null) {
       Text(
         text = stringResource(
@@ -517,11 +535,6 @@ internal fun ItemActions(
     )
 
     Spacer(Modifier.height(8.dp))
-
-    if (showBookTime && playerState.bookTimeEnabled && session?.episodeId == null) {
-      BookTimeProgressIndicator(session, playerState)
-      Spacer(Modifier.height(4.dp))
-    }
 
     PlaybackSeekBar(
       state = playerState.state,

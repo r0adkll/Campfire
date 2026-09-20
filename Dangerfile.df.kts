@@ -106,8 +106,14 @@ danger(args) {
       }
     }
 
-    // Big PR Check
-    if ((pullRequest.additions ?: 0) - (pullRequest.deletions ?: 0) > 300) {
+    // Size checks. Both read the counts GitHub already reports rather than git.linesOfCode:
+    // that property round-trips the whole diff back through the Danger JS bridge, which deadlocks
+    // on a diff large enough to fill the pipe — the job then hangs with no output until it is
+    // cancelled.
+    val additions = pullRequest.additions ?: 0
+    val deletions = pullRequest.deletions ?: 0
+
+    if (additions - deletions > 300) {
       warn("Big PR, try to keep changes smaller if you can")
     }
 
@@ -116,7 +122,7 @@ danger(args) {
       warn("PR is classed as Work in Progress")
     }
 
-    if (git.linesOfCode > 500) {
+    if (additions + deletions > 500) {
       warn("This PR is original Xbox Huge! Consider breaking into smaller PRs")
     }
 
