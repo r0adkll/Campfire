@@ -69,8 +69,6 @@ import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.sessions.ui.composables.OutputDeviceControl
-import app.campfire.sessions.ui.composables.PlaybackSpeedAction
-import app.campfire.sessions.ui.composables.RunningTimerAction
 import app.campfire.sessions.ui.composables.VolumeControl
 import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
 import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
@@ -104,19 +102,6 @@ import app.campfire.sessions.ui.playback.expanded.composables.SmallThumbSize
 import app.campfire.sessions.ui.playback.expanded.composables.TargetSyncContent
 import app.campfire.sessions.ui.playback.expanded.composables.rememberUseCompact
 import app.campfire.sessions.ui.player.HostedMiniPlayerAction
-import app.campfire.sessions.ui.sheets.bookmarks.BookmarkResult
-import app.campfire.sessions.ui.sheets.bookmarks.showBookmarksBottomSheet
-import app.campfire.sessions.ui.sheets.chapters.ChapterResult
-import app.campfire.sessions.ui.sheets.chapters.showChapterBottomSheet
-import app.campfire.sessions.ui.sheets.description.showEpisodeDescriptionBottomSheet
-import app.campfire.sessions.ui.sheets.equalizer.showEqualizerBottomSheet
-import app.campfire.sessions.ui.sheets.history.PlaybackHistoryResult
-import app.campfire.sessions.ui.sheets.history.showPlaybackHistoryBottomSheet
-import app.campfire.sessions.ui.sheets.sleeptimer.TimerResult
-import app.campfire.sessions.ui.sheets.sleeptimer.showSleepTimerBottomSheet
-import app.campfire.sessions.ui.sheets.speed.showPlaybackSpeedBottomSheet
-import app.campfire.sessions.ui.sheets.tracks.AudioTrackResult
-import app.campfire.sessions.ui.sheets.tracks.showAudioTrackBottomSheet
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
@@ -351,7 +336,6 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
   /** Holds the current actions layout; see [rememberUseCompact]. */
   freezeActionsLayout: Boolean = false,
 ) {
-  val scope = rememberCoroutineScope()
   val actionsFit = remember { PlaybackActionsFit() }
   val useCompactActions = actionsFit.rememberUseCompact(
     threshold = compactActionsThreshold,
@@ -571,106 +555,24 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
 
     Spacer(Modifier.height(8.dp))
 
+    val actions = rememberPlaybackOptionActions(
+      overlayHost = overlayHost,
+      session = session,
+      playerState = playerState,
+    )
     ActionRow(
-      onBookmarksClick = {
-        scope.launch {
-          when (val result = overlayHost.showBookmarksBottomSheet(session!!.libraryItem.id)) {
-            is BookmarkResult.Selected -> {
-              playerState.eventSink(PlayerUiEvent.BookmarkSelected(result.bookmark))
-            }
-
-            BookmarkResult.None -> Unit
-          }
-        }
-      },
-      speedContent = {
-        PlaybackSpeedAction(
-          playbackSpeed = playerState.speed,
-          onClick = {
-            scope.launch {
-              overlayHost.showPlaybackSpeedBottomSheet(session!!.libraryItem.id, playerState.speed)
-            }
-          },
-        )
-      },
-      timerContent = {
-        RunningTimerAction(
-          runningTimer = playerState.timer,
-          currentTime = playerState.time,
-          currentDuration = playerState.duration,
-          playbackSpeed = playerState.speed,
-          onClick = {
-            scope.launch {
-              when (val result = overlayHost.showSleepTimerBottomSheet(playerState.timer)) {
-                is TimerResult.Selected -> {
-                  playerState.eventSink(PlayerUiEvent.TimerSelected(result.timer))
-                }
-
-                TimerResult.Cleared -> {
-                  playerState.eventSink(PlayerUiEvent.ClearTimer)
-                }
-
-                else -> Unit
-              }
-            }
-          },
-        )
-      },
+      onBookmarksClick = actions.onBookmarksClick,
+      speedContent = actions.speedContent,
+      timerContent = actions.timerContent,
       volumeContent = volumeState?.let { { VolumeControl(state = it) } },
       outputDeviceContent = outputDeviceState?.let { { OutputDeviceControl(state = it) } },
-      onEqualizerClick = {
-        scope.launch {
-          overlayHost.showEqualizerBottomSheet(session!!.libraryItem.id)
-        }
-      },
+      onEqualizerClick = actions.onEqualizerClick,
       showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
-      onChapterListClick = {
-        if (session!!.libraryItem.media.chapters.isNotEmpty()) {
-          scope.launch {
-            val result = overlayHost.showChapterBottomSheet(
-              chapters = session.libraryItem.media.chapters,
-              currentChapter = session.chapter,
-              playbackSpeed = playerState.speed,
-            )
-            if (result is ChapterResult.Selected) {
-              playerState.eventSink(PlayerUiEvent.ChapterSelected(result.chapter))
-            }
-          }
-        } else if (session.libraryItem.media.tracks.isNotEmpty()) {
-          scope.launch {
-            val result = overlayHost.showAudioTrackBottomSheet(
-              audioTracks = session.libraryItem.media.tracks,
-              currentAudioTrack = session.audioTrack,
-              playbackSpeed = playerState.speed,
-            )
-            if (result is AudioTrackResult.Selected) {
-              playerState.eventSink(PlayerUiEvent.AudioTrackSelected(result.audioTrack))
-            }
-          }
-        }
-      },
+      onChapterListClick = actions.onChapterListClick,
       showChapters = session?.episodeId == null,
-      onDescriptionClick = {
-        val episode = session?.episode ?: return@ActionRow
-        scope.launch {
-          overlayHost.showEpisodeDescriptionBottomSheet(
-            episode = episode,
-            onSeek = { duration ->
-              playerState.eventSink(PlayerUiEvent.Seek.Position(duration))
-            },
-          )
-        }
-      },
+      onDescriptionClick = actions.onDescriptionClick,
       showDescription = session?.episodeId != null,
-      onHistoryClick = {
-        scope.launch {
-          val result = overlayHost.showPlaybackHistoryBottomSheet(session!!.libraryItem.id)
-          if (result is PlaybackHistoryResult.Selected) {
-            val position = result.action.toPosition ?: result.action.fromPosition
-            playerState.eventSink(PlayerUiEvent.Seek.Position(position))
-          }
-        }
-      },
+      onHistoryClick = actions.onHistoryClick,
       showHistory = playbackHistoryEnabled,
       modifier = Modifier.height(72.dp),
     )
