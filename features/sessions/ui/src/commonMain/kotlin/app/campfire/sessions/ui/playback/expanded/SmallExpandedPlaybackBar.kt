@@ -114,9 +114,8 @@ import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.misaligned_chapters_error_message
 import campfire.features.sessions.ui.generated.resources.playback_engine_unavailable_message
 import campfire.features.sessions.ui.generated.resources.playback_error_message
-import com.slack.circuit.overlay.ContentWithOverlays
+import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.runtime.Navigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -133,29 +132,31 @@ internal fun <T> T.SmallExpandedPlaybackBar(
   containerColor: Color = DefaultNonThemedSheetColor,
   contentColor: Color = DefaultNonThemedContentColor,
 ) where T : SharedTransitionScope, T : AnimatedVisibilityScope {
-  val overlayHost = rememberOverlayHost()
-  ContentWithOverlays(
-    overlayHost = overlayHost,
+  // This player is capped at 700dp and pinned to a corner, so hosting its own overlays would trap
+  // its sheets inside that card -- half a screen wide, ending in mid-air. The root host spans the
+  // window and draws above the player, so a sheet fills the screen from the trailing edge the way
+  // a bottom sheet fills it from the bottom.
+  //
+  // A player docked into a region keeps its own host instead: there, staying inside the region is
+  // the whole point, or a sheet would span the hinge. See DedicatedPlayer.
+  SmallExpandedPlaybackBar(
+    containerColor = containerColor,
+    contentColor = contentColor,
+    navigator = navigator,
+    overlayHost = LocalOverlayHost.current,
+    session = session,
+    itemValidation = playbackState.validation,
+    playerState = playbackState.playerState,
+    queueState = playbackState.queueState,
+    syncState = playbackState.syncUiState,
+    playbackHistoryEnabled = playbackState.playbackHistoryEnabled,
+    volumeState = playbackState.volume,
+    outputDeviceState = playbackState.outputDevices,
+    onClose = onClose,
+    sharedTransitionScope = this,
+    animatedVisibilityScope = this,
     modifier = modifier,
-  ) {
-    SmallExpandedPlaybackBar(
-      containerColor = containerColor,
-      contentColor = contentColor,
-      navigator = navigator,
-      overlayHost = overlayHost,
-      session = session,
-      itemValidation = playbackState.validation,
-      playerState = playbackState.playerState,
-      queueState = playbackState.queueState,
-      syncState = playbackState.syncUiState,
-      playbackHistoryEnabled = playbackState.playbackHistoryEnabled,
-      volumeState = playbackState.volume,
-      outputDeviceState = playbackState.outputDevices,
-      onClose = onClose,
-      sharedTransitionScope = this,
-      animatedVisibilityScope = this,
-    )
-  }
+  )
 }
 
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)

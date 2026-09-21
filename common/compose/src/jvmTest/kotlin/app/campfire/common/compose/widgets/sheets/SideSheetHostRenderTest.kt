@@ -52,19 +52,27 @@ class SideSheetHostRenderTest {
 
   private val renders = File("build/renders").apply { mkdirs() }
 
+  /**
+   * The landscape player is capped at 700dp and pinned to a corner, so hosting its own overlays
+   * would trap its sheets in that card — half a screen wide, ending in mid-air. It uses the root
+   * host instead, which spans the window, so the sheet comes in from the window's trailing edge
+   * over a player that is only part of it.
+   */
   @Test
-  fun `the sheet inside the landscape phone's floating player`() {
+  fun `the sheet over the landscape phone's floating player fills the window`() {
     render("host-floating-player", width = 914, height = 411) {
-      // LoggedIn caps the bar at 700dp and aligns it to the bottom-start corner.
-      Box(Modifier.fillMaxSize()) {
-        Box(
-          Modifier
-            .align(Alignment.BottomStart)
-            .widthIn(max = 700.dp)
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        ) {
-          PlayerWithSheet(regionWidth = 700, regionHeight = 411)
+      // The host is the window; the player is a 700dp card in the bottom-start corner of it.
+      HostedSheet(regionWidth = 914, regionHeight = 411) {
+        Box(Modifier.fillMaxSize()) {
+          Box(
+            Modifier
+              .align(Alignment.BottomStart)
+              .widthIn(max = 700.dp)
+              .fillMaxWidth()
+              .fillMaxHeight(),
+          ) {
+            Player()
+          }
         }
       }
     }
@@ -83,30 +91,40 @@ class SideSheetHostRenderTest {
           Text("above the hinge", Modifier.padding(16.dp), color = Color.White)
         }
         Box(Modifier.fillMaxWidth().weight(1f)) {
-          PlayerWithSheet(regionWidth = 840, regionHeight = 320)
+          // A docked player hosts its own overlays: staying inside the region is the point here,
+          // or the sheet would span the hinge.
+          HostedSheet(regionWidth = 840, regionHeight = 320) { Player() }
         }
       }
     }
   }
 
-  /** Mirrors how the player hosts its own overlays: its own size class, its own host, filling. */
+  /** The player itself: a rounded card filling whatever box it is given. */
   @Composable
-  private fun PlayerWithSheet(regionWidth: Int, regionHeight: Int) {
+  private fun Player() {
+    Surface(
+      color = MaterialTheme.colorScheme.secondaryContainer,
+      shape = RoundedCornerShape(32.dp),
+      modifier = Modifier.fillMaxSize(),
+    ) {
+      Text("the player", Modifier.padding(24.dp))
+    }
+  }
+
+  /** An overlay host covering [regionWidth] x [regionHeight], with a sheet shown over [content]. */
+  @Composable
+  private fun HostedSheet(
+    regionWidth: Int,
+    regionHeight: Int,
+    content: @Composable () -> Unit,
+  ) {
     val regionSizeClass = WindowSizeClass.BREAKPOINTS_V2
       .computeWindowSizeClass(regionWidth.toFloat(), regionHeight.toFloat())
 
     CompositionLocalProvider(LocalWindowSizeClass provides regionSizeClass) {
       val overlayHost = rememberOverlayHost()
       ContentWithOverlays(overlayHost = overlayHost, modifier = Modifier.fillMaxSize()) {
-        // The player draws itself as a rounded surface inset from its region, the way the
-        // expanded bar does.
-        Surface(
-          color = MaterialTheme.colorScheme.secondaryContainer,
-          shape = RoundedCornerShape(32.dp),
-          modifier = Modifier.fillMaxSize(),
-        ) {
-          Text("the player", Modifier.padding(24.dp))
-        }
+        content()
       }
 
       LaunchedEffect(Unit) {
