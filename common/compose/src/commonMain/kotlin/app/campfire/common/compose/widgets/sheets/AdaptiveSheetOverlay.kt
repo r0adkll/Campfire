@@ -16,9 +16,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -215,10 +217,17 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
         // Insets pad the content, not the surface — the way ModalBottomSheet's
         // contentWindowInsets does. Padding the surface shrank the sheet away from its region's
         // edges, which is what left it short of the bottom in a docked player.
+        //
+        // Only the edges the sheet actually meets: it is pinned to the trailing edge and spans the
+        // height, so the status bar, the navigation bar and a cutout on that edge all matter. The
+        // leading edge is interior to the screen — padding it for a cutout on the *other* side,
+        // which a phone held sideways always has, just opens a gutter down the sheet.
         Box(
           Modifier
             .fillMaxHeight()
-            .windowInsetsPadding(WindowInsets.safeDrawing),
+            .windowInsetsPadding(
+              WindowInsets.safeDrawing.only(WindowInsetsSides.Vertical + WindowInsetsSides.End),
+            ),
         ) {
           content(model) { result ->
             pendingResult = result
