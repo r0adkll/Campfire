@@ -30,21 +30,22 @@ class SheetPresentationTest {
     assertThat(presentationFor(840, 340)).isEqualTo(SheetPresentation.Side) // foldable, lower half
   }
 
+  /**
+   * Width does not enter into it. The side sheet sizes itself to its content and caps at the
+   * region, so a narrow region gets a sheet that covers more of it rather than a different
+   * presentation — the same way a bottom sheet on a small phone simply fills the width.
+   */
   @Test
-  fun `regions too short and too narrow for either get the card`() {
-    assertThat(presentationFor(480, 360)).isEqualTo(SheetPresentation.Dialog)
-    assertThat(presentationFor(380, 380)).isEqualTo(SheetPresentation.Dialog)
+  fun `short regions get the side sheet however narrow they are`() {
+    assertThat(presentationFor(480, 360)).isEqualTo(SheetPresentation.Side)
+    assertThat(presentationFor(380, 380)).isEqualTo(SheetPresentation.Side)
   }
 
   @Test
-  fun `the boundary sits on the Medium breakpoints`() {
-    // Height: 480dp is the Medium bound, so it is the first that is not compact.
+  fun `the boundary sits on the Medium height breakpoint`() {
+    // 480dp is the Medium bound, so it is the first height that is not compact.
     assertThat(presentationFor(900, 480)).isEqualTo(SheetPresentation.Bottom)
     assertThat(presentationFor(900, 479)).isEqualTo(SheetPresentation.Side)
-
-    // Width: 600dp is the Medium bound, and below it there is no room for a panel.
-    assertThat(presentationFor(600, 400)).isEqualTo(SheetPresentation.Side)
-    assertThat(presentationFor(599, 400)).isEqualTo(SheetPresentation.Dialog)
   }
 
   private fun presentationFor(width: Int, height: Int): SheetPresentation =

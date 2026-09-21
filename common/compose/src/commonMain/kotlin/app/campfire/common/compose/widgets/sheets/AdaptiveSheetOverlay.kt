@@ -3,22 +3,15 @@
 
 package app.campfire.common.compose.widgets.sheets
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableDefaults
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.anchoredDraggable
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -27,9 +20,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
@@ -38,15 +31,19 @@ import androidx.compose.material3.VerticalDragHandle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
@@ -59,31 +56,32 @@ import com.slack.circuit.overlay.Overlay
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /**
- * An [Overlay] that shows [content] in whichever of the three [SheetPresentation]s suits the region
- * hosting it, and hands a [Result] back to the caller when it closes.
+ * An [Overlay] that shows [content] as a bottom sheet where the region has the height for one, and
+ * as a side sheet where it does not.
  *
- * [SheetPresentation.Bottom] is Material's own [BottomSheetOverlay], unchanged. The other two are
- * drawn **in composition**, inside the `ContentWithOverlays` that launched them, rather than in a
- * dialog window of their own. That is the point of them: a `ModalBottomSheet` renders into a
- * `ModalBottomSheetDialog` that covers the whole window, so a sheet opened from a player docked
- * into half a folded screen spans the hinge and covers both halves. A side panel stays in its half.
+ * The bottom case is Material's own [BottomSheetOverlay], unchanged. The side case is that sheet
+ * turned ninety degrees, and deliberately built the way `ModalBottomSheet` is: sized to its content
+ * on the axis it slides along and capped there, filling the other axis, and driven by an
+ * [AnchoredDraggableState] with Material's own fling behaviour rather than a hand-rolled distance
+ * threshold. So it follows the finger, settles where a bottom sheet would settle, and stretches for
+ * content that needs the room — the equalizer's ten faders, say — rather than forcing every sheet
+ * through one fixed width.
+ *
+ * It is drawn **in composition**, inside the `ContentWithOverlays` that launched it, which the
+ * bottom sheet cannot be: `ModalBottomSheet` renders into a `ModalBottomSheetDialog` covering the
+ * whole window, so a sheet opened from a player docked into half a folded screen spans the hinge
+ * and covers both halves. `SheetRegionContainmentTest` pins that difference down.
  */
 class AdaptiveSheetOverlay<Model : Any, Result : Any>(
   private val model: Model,
   private val onDismiss: () -> Result,
-  /**
-   * What a wide, short region gets in place of the side panel. The equalizer passes
-   * [SheetPresentation.Dialog]: ten vertical band sliders want height, and a 400dp panel down the
-   * edge of a short region has less of it than the region does. Tall regions are unaffected — they
-   * keep the bottom sheet either way.
-   */
-  private val shortRegionPresentation: SheetPresentation = SheetPresentation.Side,
   private val skipPartiallyExpanded: Boolean = false,
   /**
    * True where [content] draws its own drag handle — the sheets whose scrolled-title bar has to
-   * own it — so the bottom sheet does not draw a second one above it.
+   * own it — so the sheet does not draw a second one above it.
    */
   private val contentDrawsDragHandle: Boolean = false,
   private val content: @Composable (Model, OverlayNavigator<Result>) -> Unit,
@@ -93,14 +91,11 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
   override fun Content(navigator: OverlayNavigator<Result>) {
     // Read from inside the overlay, so a host that narrowed the size class for its own region --
     // the docked player does exactly that -- gets its region's verdict, not the window's.
-    val presentation = when (val chosen = LocalWindowSizeClass.current.sheetPresentation()) {
-      SheetPresentation.Side -> shortRegionPresentation
-      else -> chosen
-    }
+    val presentation = LocalWindowSizeClass.current.sheetPresentation()
 
     CompositionLocalProvider(LocalSheetPresentation provides presentation) {
-      if (presentation == SheetPresentation.Bottom) {
-        BottomSheetOverlay(
+      when (presentation) {
+        SheetPresentation.Bottom -> BottomSheetOverlay(
           model = model,
           onDismiss = onDismiss,
           sheetShape = RoundedCornerShape(topStart = SheetCorner, topEnd = SheetCorner),
@@ -108,156 +103,123 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
           dragHandle = if (contentDrawsDragHandle) ({ }) else null,
           content = content,
         ).Content(navigator)
-      } else {
-        InComposition(navigator, presentation)
+
+        SheetPresentation.Side -> SideSheet(navigator)
       }
     }
   }
 
-  /**
-   * The side panel and the centred card. Both scrim the region and animate themselves in and out,
-   * and both hold the caller's result back until the exit has played -- the way the bottom sheet
-   * does, and for the same reason: otherwise the panel vanishes the instant a row is tapped.
-   */
   @Composable
-  private fun InComposition(
-    navigator: OverlayNavigator<Result>,
-    presentation: SheetPresentation,
-  ) {
-    val isSide = presentation == SheetPresentation.Side
-    val sign = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1 else -1
-
-    val visibleState = remember { MutableTransitionState(false).apply { targetState = true } }
-    var pendingResult by remember { mutableStateOf<Result?>(null) }
+  private fun SideSheet(navigator: OverlayNavigator<Result>) {
+    val scope = rememberCoroutineScope()
     val currentNavigator by rememberUpdatedState(navigator)
 
-    val dismiss = {
+    // Anchors are in raw x translation, so their sign carries the layout direction: a trailing
+    // sheet hides to the right, and the same sheet in right-to-left hides to the left. The offset
+    // modifier then applies them as they are, with no mirroring of its own.
+    val hiddenSign = if (LocalLayoutDirection.current == LayoutDirection.Ltr) 1f else -1f
+
+    val state = remember { AnchoredDraggableState(initialValue = SideSheetValue.Hidden) }
+    var sheetWidthPx by remember { mutableFloatStateOf(0f) }
+    var pendingResult by remember { mutableStateOf<Result?>(null) }
+
+    val dismiss: () -> Unit = {
       if (pendingResult == null) pendingResult = onDismiss()
-      visibleState.targetState = false
+      scope.launch { state.animateTo(SideSheetValue.Hidden) }
     }
 
     // Back closes the sheet before anything else acts on it. Overlay priority so it beats the main
     // back stack whatever the composition order, and composed inside the overlay so it also covers
     // hosts with no central handler of their own -- the docked player.
-    OverlayPriorityBackHandler(enabled = visibleState.targetState, onBack = dismiss)
+    OverlayPriorityBackHandler(
+      enabled = state.targetValue != SideSheetValue.Hidden,
+      onBack = dismiss,
+    )
 
-    LaunchedEffect(visibleState.isIdle, visibleState.currentState) {
-      if (visibleState.isIdle && !visibleState.currentState) {
+    // The sheet is sized by its content, so its anchors are only known once it has been measured.
+    LaunchedEffect(sheetWidthPx, hiddenSign) {
+      if (sheetWidthPx <= 0f) return@LaunchedEffect
+      state.updateAnchors(
+        newAnchors = DraggableAnchors {
+          SideSheetValue.Expanded at 0f
+          SideSheetValue.Hidden at sheetWidthPx * hiddenSign
+        },
+        newTarget = if (pendingResult == null) SideSheetValue.Expanded else SideSheetValue.Hidden,
+      )
+    }
+
+    // Settled back at Hidden -- by a drag, the scrim, back, or a row being chosen -- so the caller
+    // gets its result once the sheet is actually gone rather than the moment it was asked to go.
+    LaunchedEffect(state.settledValue, sheetWidthPx) {
+      if (sheetWidthPx > 0f && state.settledValue == SideSheetValue.Hidden) {
         currentNavigator.finish(pendingResult ?: onDismiss())
       }
     }
 
     BoxWithConstraints(
-      // Its own traversal group, so a screen reader reads the panel before wandering back into
+      // Its own traversal group, so a screen reader reads the sheet before wandering back into
       // the content it covers.
       Modifier.fillMaxSize().semantics { isTraversalGroup = true },
     ) {
-      // Always leave a strip of the region tappable, however narrow it gets.
-      val panelWidth = minOf(SidePanelWidth, maxWidth - MinScrimStrip)
+      // Always leave a strip of the region tappable, however wide the content would like to be.
+      val maxSheetWidth = minOf(SheetMaxWidth, maxWidth - MinScrimStrip)
+      val regionWidthPx = constraints.maxWidth.toFloat()
 
-      AnimatedVisibility(visibleState, enter = fadeIn(), exit = fadeOut()) {
-        Box(
-          Modifier
-            .fillMaxSize()
-            .background(BottomSheetDefaults.ScrimColor)
-            .pointerInput(Unit) { detectTapGestures { dismiss() } },
-        )
+      val scrimVisible by remember {
+        derivedStateOf { state.targetValue != SideSheetValue.Hidden }
       }
+      val scrimAlpha by animateFloatAsState(if (scrimVisible) 1f else 0f)
 
-      AnimatedVisibility(
-        visibleState = visibleState,
-        // CenterEnd already resolves to the trailing edge in either layout direction; only the
-        // slide offset below is in raw pixels and needs the sign.
-        modifier = Modifier.align(if (isSide) Alignment.CenterEnd else Alignment.Center),
-        enter = if (isSide) {
-          slideInHorizontally(SlideSpring) { it * sign } + fadeIn()
-        } else {
-          scaleIn(initialScale = 0.9f) + fadeIn()
-        },
-        exit = if (isSide) {
-          slideOutHorizontally(SlideSpring) { it * sign } + fadeOut()
-        } else {
-          scaleOut(targetScale = 0.9f) + fadeOut()
-        },
-      ) {
-        // The panel tracks the finger rather than only reacting on release. Dismissing on release
-        // alone reads as not draggable at all: nothing moves while you drag, and the panel simply
-        // vanishes once you let go.
-        //
-        // Plain state rather than an Animatable: the drag has to land synchronously, and an
-        // Animatable driven by a coroutine per delta lets a queued snapTo cancel the spring that
-        // brings the panel home, stranding it part-way off the edge.
-        var dragPx by remember { mutableFloatStateOf(0f) }
-        val dragInteractions = remember { MutableInteractionSource() }
+      Box(
+        Modifier
+          .fillMaxSize()
+          .alpha(scrimAlpha)
+          .background(BottomSheetDefaults.ScrimColor)
+          .pointerInput(Unit) { detectTapGestures { dismiss() } },
+      )
 
-        Surface(
-          // Rounded only where it meets the content it slid over; the far edge is the screen's.
-          // topStart/bottomStart is the inner edge in either layout direction.
-          shape = if (isSide) {
-            RoundedCornerShape(topStart = SheetCorner, bottomStart = SheetCorner)
-          } else {
-            RoundedCornerShape(SheetCorner)
-          },
-          color = BottomSheetDefaults.ContainerColor,
-          modifier = Modifier
-            .then(
-              if (isSide) {
-                Modifier
-                  .width(panelWidth)
-                  .fillMaxHeight()
-                  .offset { IntOffset(dragPx.roundToInt(), 0) }
-                  // Dragging the panel back towards the edge it came from closes it, the way
-                  // dragging a bottom sheet downwards does. It only gives outwards: pulling the
-                  // other way would tear it off the edge it is anchored to.
-                  .draggable(
-                    state = rememberDraggableState { delta ->
-                      val outwards = (dragPx + delta) * sign
-                      dragPx = outwards.coerceAtLeast(0f) * sign
-                    },
-                    orientation = Orientation.Horizontal,
-                    interactionSource = dragInteractions,
-                    onDragStopped = { velocity ->
-                      val travelled = dragPx * sign
-                      val flung = velocity * sign
-                      if (travelled > SwipeDismissDistance || flung > SwipeDismissVelocity) {
-                        dismiss()
-                      } else {
-                        animate(dragPx, 0f, animationSpec = SlideBackSpring) { value, _ ->
-                          dragPx = value
-                        }
-                      }
-                    },
-                  )
-              } else {
-                Modifier.padding(DialogMargin)
-              },
-            )
-            .windowInsetsPadding(WindowInsets.safeDrawing)
-            // Taps inside the panel belong to the panel; they must not fall through to the scrim.
-            .pointerInput(Unit) { detectTapGestures {} },
-        ) {
-          val body: @Composable () -> Unit = {
-            content(model) { result ->
-              pendingResult = result
-              visibleState.targetState = false
-            }
+      val dragInteractions = remember { MutableInteractionSource() }
+
+      Surface(
+        // Rounded only where it meets the content it slid over; the far edge is the screen's.
+        // topStart/bottomStart is the inner edge in either layout direction.
+        shape = RoundedCornerShape(topStart = SheetCorner, bottomStart = SheetCorner),
+        color = BottomSheetDefaults.ContainerColor,
+        modifier = Modifier
+          .align(Alignment.CenterEnd)
+          // Sized by its content up to a cap, the way a bottom sheet's height is.
+          .widthIn(max = maxSheetWidth)
+          .fillMaxHeight()
+          .offset {
+            // Until it has been measured there are no anchors and no offset, so park it off the
+            // region's edge rather than letting it flash into view at rest.
+            val offset = state.offset.takeIf { !it.isNaN() } ?: (regionWidthPx * hiddenSign)
+            IntOffset(offset.roundToInt(), 0)
           }
-
-          if (isSide) {
-            // The panel is draggable anywhere, but nothing said so. A handle down its inner edge
-            // is the same affordance the bottom sheet gets, turned ninety degrees — and it shares
-            // the drag's interaction source, so it reacts while the panel is being moved.
-            Row(Modifier.fillMaxSize()) {
-              Box(
-                modifier = Modifier.fillMaxHeight().width(DragHandleSlotWidth),
-                contentAlignment = Alignment.Center,
-              ) {
-                VerticalDragHandle(interactionSource = dragInteractions)
-              }
-              Box(Modifier.weight(1f)) { body() }
-            }
-          } else {
-            body()
+          .onSizeChanged { sheetWidthPx = it.width.toFloat() }
+          .anchoredDraggable(
+            state = state,
+            orientation = Orientation.Horizontal,
+            enabled = state.settledValue != SideSheetValue.Hidden,
+            interactionSource = dragInteractions,
+            flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
+          )
+          .windowInsetsPadding(WindowInsets.safeDrawing)
+          // Taps inside the sheet belong to the sheet; they must not fall through to the scrim.
+          .pointerInput(Unit) { detectTapGestures {} },
+      ) {
+        Row(Modifier.fillMaxHeight()) {
+          // The same affordance the bottom sheet gets, turned ninety degrees, sharing the drag's
+          // interaction source so it reacts while the sheet is being moved.
+          Box(
+            modifier = Modifier.fillMaxHeight().width(DragHandleSlotWidth),
+            contentAlignment = Alignment.Center,
+          ) {
+            VerticalDragHandle(interactionSource = dragInteractions)
+          }
+          content(model) { result ->
+            pendingResult = result
+            scope.launch { state.animateTo(SideSheetValue.Hidden) }
           }
         }
       }
@@ -265,35 +227,24 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
   }
 }
 
-private val SlideBackSpring = spring<Float>(
-  dampingRatio = Spring.DampingRatioNoBouncy,
-  stiffness = Spring.StiffnessMediumLow,
-)
+/** Where the side sheet can rest: on screen, or off the edge it came from. */
+private enum class SideSheetValue {
+  Hidden,
+  Expanded,
+}
 
-private val SlideSpring = spring<IntOffset>(
-  dampingRatio = Spring.DampingRatioNoBouncy,
-  stiffness = Spring.StiffnessMediumLow,
-)
-
-/** Rounded corner shared with `bottomSheetShape`, so every presentation reads as the same sheet. */
+/** Rounded corner shared with `bottomSheetShape`, so both presentations read as the same sheet. */
 private val SheetCorner = 32.dp
 
 /**
- * The side panel's width. Flat rather than a fraction of the region: across the range that occurs a
- * fraction lands on the same number anyway (0.45 of an 892dp landscape phone is 401dp), and the
- * content is list-shaped, so it wants a measure that does not drift with the device.
+ * The widest the side sheet grows before its content has to wrap — the mirror of
+ * `BottomSheetDefaults.SheetMaxWidth`, which is what caps a bottom sheet's cross axis. Content
+ * that wants less makes a narrower sheet.
  */
-private val SidePanelWidth = 400.dp
+private val SheetMaxWidth = 640.dp
 
-/** How much of the region behind the panel stays tappable, even on the narrowest of them. */
+/** How much of the region behind the sheet stays tappable, however wide the content wants to be. */
 private val MinScrimStrip = 56.dp
 
-/** The margin around the centred card, which is otherwise as large as the region allows. */
-private val DialogMargin = 16.dp
-
-/** The strip down the panel's inner edge that the drag handle sits in. */
+/** The strip down the sheet's inner edge that the drag handle sits in. */
 private val DragHandleSlotWidth = 24.dp
-
-/** Pixels of outward drag, or pixels-per-second of outward fling, that close the panel. */
-private const val SwipeDismissDistance = 160f
-private const val SwipeDismissVelocity = 400f

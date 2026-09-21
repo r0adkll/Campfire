@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.rememberModalBottomSheetState
@@ -54,7 +55,6 @@ import app.campfire.common.compose.icons.rounded.Globe
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.VerticalSlider
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
-import app.campfire.common.compose.widgets.sheets.SheetPresentation
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerPresets
 import app.campfire.core.audio.EqualizerProfile
@@ -99,9 +99,6 @@ suspend fun OverlayHost.showEqualizerBottomSheet(
       model = EqualizerInput(itemId),
       onDismiss = { },
       skipPartiallyExpanded = true,
-      // Ten vertical band sliders need height, so a short region gets the centred card rather
-      // than a panel down its edge, which would have even less of it.
-      shortRegionPresentation = SheetPresentation.Dialog,
     ) { input, _ ->
       Impression {
         ScreenViewEvent("Equalizer", ScreenType.Overlay)
@@ -240,74 +237,81 @@ internal fun EqualizerSheet(
       )
     },
   ) {
-    if (!available) {
-      Text(
-        text = stringResource(Res.string.equalizer_unavailable_casting),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        textAlign = TextAlign.Center,
+    // Ten vertical faders plus the presets and the two sliders come to more height than a short
+    // sheet has, and the body was simply clipped there — the loudness and bass sliders were off
+    // the bottom with no way to reach them. Scrolling keeps the faders full size instead.
+    Column(
+      modifier = Modifier.verticalScroll(rememberScrollState()),
+    ) {
+      if (!available) {
+        Text(
+          text = stringResource(Res.string.equalizer_unavailable_casting),
+          style = MaterialTheme.typography.bodyMedium,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          textAlign = TextAlign.Center,
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        )
+        Spacer(Modifier.height(8.dp))
+      }
+
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
           .fillMaxWidth()
           .padding(horizontal = 16.dp),
-      )
+      ) {
+        Text(
+          text = stringResource(Res.string.equalizer_enabled_toggle),
+          style = MaterialTheme.typography.bodyLarge,
+          modifier = Modifier.weight(1f),
+        )
+        Switch(
+          checked = profile.enabled,
+          onCheckedChange = onEnabledChange,
+          enabled = available,
+        )
+      }
+
       Spacer(Modifier.height(8.dp))
-    }
 
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 16.dp),
-    ) {
-      Text(
-        text = stringResource(Res.string.equalizer_enabled_toggle),
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = Modifier.weight(1f),
+      PresetChipRow(
+        selectedPresetId = profile.presetId,
+        enabled = controlsEnabled,
+        onPresetSelected = onPresetSelected,
       )
-      Switch(
-        checked = profile.enabled,
-        onCheckedChange = onEnabledChange,
-        enabled = available,
+
+      Spacer(Modifier.height(16.dp))
+
+      BandFaderRow(
+        bandGainsDb = profile.bandGainsDb,
+        enabled = controlsEnabled,
+        onBandGainChange = onBandGainChange,
       )
+
+      Spacer(Modifier.height(16.dp))
+
+      LabeledSlider(
+        label = stringResource(Res.string.equalizer_loudness_label),
+        value = profile.loudnessGainDb,
+        valueRange = EqualizerBands.LoudnessGainRangeDb,
+        valueText = "+${profile.loudnessGainDb.roundToInt()} dB",
+        enabled = controlsEnabled,
+        onValueChange = { onLoudnessChange(it.roundToInt().toFloat()) },
+      )
+
+      LabeledSlider(
+        label = stringResource(Res.string.equalizer_bass_label),
+        value = profile.bassBoost,
+        valueRange = EqualizerBands.BassBoostRange,
+        valueText = "${(profile.bassBoost * 100).roundToInt()}%",
+        enabled = controlsEnabled,
+        onValueChange = { onBassBoostChange((it * 20).roundToInt() / 20f) },
+      )
+
+      Spacer(Modifier.height(24.dp))
     }
-
-    Spacer(Modifier.height(8.dp))
-
-    PresetChipRow(
-      selectedPresetId = profile.presetId,
-      enabled = controlsEnabled,
-      onPresetSelected = onPresetSelected,
-    )
-
-    Spacer(Modifier.height(16.dp))
-
-    BandFaderRow(
-      bandGainsDb = profile.bandGainsDb,
-      enabled = controlsEnabled,
-      onBandGainChange = onBandGainChange,
-    )
-
-    Spacer(Modifier.height(16.dp))
-
-    LabeledSlider(
-      label = stringResource(Res.string.equalizer_loudness_label),
-      value = profile.loudnessGainDb,
-      valueRange = EqualizerBands.LoudnessGainRangeDb,
-      valueText = "+${profile.loudnessGainDb.roundToInt()} dB",
-      enabled = controlsEnabled,
-      onValueChange = { onLoudnessChange(it.roundToInt().toFloat()) },
-    )
-
-    LabeledSlider(
-      label = stringResource(Res.string.equalizer_bass_label),
-      value = profile.bassBoost,
-      valueRange = EqualizerBands.BassBoostRange,
-      valueText = "${(profile.bassBoost * 100).roundToInt()}%",
-      enabled = controlsEnabled,
-      onValueChange = { onBassBoostChange((it * 20).roundToInt() / 20f) },
-    )
-
-    Spacer(Modifier.height(24.dp))
   }
 }
 
