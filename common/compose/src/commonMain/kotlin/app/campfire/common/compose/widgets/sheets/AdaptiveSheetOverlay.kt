@@ -161,8 +161,14 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
       // the content it covers.
       Modifier.fillMaxSize().semantics { isTraversalGroup = true },
     ) {
-      // Always leave a strip of the region tappable, however wide the content would like to be.
-      val maxSheetWidth = minOf(SheetMaxWidth, maxWidth - MinScrimStrip)
+      // A bottom sheet leaves part of the screen showing however tall its content is, and this
+      // has to do the same however wide the region is. The cap alone is not enough: a player
+      // floating in a 700dp box would keep only a sliver of itself beside a 640dp sheet.
+      val maxSheetWidth = minOf(
+        SheetMaxWidth,
+        maxWidth * SheetMaxWidthFraction,
+        maxWidth - MinScrimStrip,
+      )
       val regionWidthPx = constraints.maxWidth.toFloat()
 
       val scrimVisible by remember {
@@ -204,11 +210,17 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
             interactionSource = dragInteractions,
             flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
           )
-          .windowInsetsPadding(WindowInsets.safeDrawing)
           // Taps inside the sheet belong to the sheet; they must not fall through to the scrim.
           .pointerInput(Unit) { detectTapGestures {} },
       ) {
-        Row(Modifier.fillMaxHeight()) {
+        // Insets pad the content, not the surface — the way ModalBottomSheet's
+        // contentWindowInsets does. Padding the surface shrank the sheet away from its region's
+        // edges, which is what left it short of the bottom in a docked player.
+        Row(
+          Modifier
+            .fillMaxHeight()
+            .windowInsetsPadding(WindowInsets.safeDrawing),
+        ) {
           // The same affordance the bottom sheet gets, turned ninety degrees, sharing the drag's
           // interaction source so it reacts while the sheet is being moved.
           Box(
@@ -242,6 +254,14 @@ private val SheetCorner = 32.dp
  * that wants less makes a narrower sheet.
  */
 private val SheetMaxWidth = 640.dp
+
+/**
+ * The most of its region the sheet will take. A bottom sheet leaves part of the screen showing
+ * whatever its content's height, and a side sheet has to leave part of its region showing whatever
+ * the content's width — including when that region is a player floating in a corner rather than
+ * the whole screen.
+ */
+private const val SheetMaxWidthFraction = 0.72f
 
 /** How much of the region behind the sheet stays tappable, however wide the content wants to be. */
 private val MinScrimStrip = 56.dp
