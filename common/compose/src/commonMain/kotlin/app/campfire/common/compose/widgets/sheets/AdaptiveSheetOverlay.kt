@@ -15,7 +15,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -216,22 +215,32 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
         // Insets pad the content, not the surface — the way ModalBottomSheet's
         // contentWindowInsets does. Padding the surface shrank the sheet away from its region's
         // edges, which is what left it short of the bottom in a docked player.
-        Row(
+        Box(
           Modifier
             .fillMaxHeight()
             .windowInsetsPadding(WindowInsets.safeDrawing),
         ) {
-          // The same affordance the bottom sheet gets, turned ninety degrees, sharing the drag's
-          // interaction source so it reacts while the sheet is being moved.
-          Box(
-            modifier = Modifier.fillMaxHeight().width(DragHandleSlotWidth),
-            contentAlignment = Alignment.Center,
-          ) {
-            VerticalDragHandle(interactionSource = dragInteractions)
-          }
           content(model) { result ->
             pendingResult = result
             scope.launch { state.animateTo(SideSheetValue.Hidden) }
+          }
+
+          // The bottom sheet's handle sits above its content and costs it no width; this one sits
+          // in the margin the content already leaves at its leading edge, rather than reserving a
+          // column of its own down the whole height. It shares the drag's interaction source, so
+          // it still reacts while the sheet is being moved.
+          //
+          // The handle carries a 48dp touch target, so centring it in a strip this narrow spills
+          // that target over both edges -- harmless, since the surface clips it and the whole
+          // sheet is the drag target anyway, and it is what keeps the pill itself off the content.
+          Box(
+            modifier = Modifier
+              .align(Alignment.CenterStart)
+              .width(DragHandleMargin)
+              .fillMaxHeight(),
+            contentAlignment = Alignment.Center,
+          ) {
+            VerticalDragHandle(interactionSource = dragInteractions)
           }
         }
       }
@@ -266,5 +275,8 @@ private const val SheetMaxWidthFraction = 0.72f
 /** How much of the region behind the sheet stays tappable, however wide the content wants to be. */
 private val MinScrimStrip = 56.dp
 
-/** The strip down the sheet's inner edge that the drag handle sits in. */
-private val DragHandleSlotWidth = 24.dp
+/**
+ * The strip at the sheet's inner edge the drag handle is centred in. Narrow on purpose: it sits
+ * inside the margin the content already leaves, so the content keeps its full width.
+ */
+private val DragHandleMargin = 16.dp

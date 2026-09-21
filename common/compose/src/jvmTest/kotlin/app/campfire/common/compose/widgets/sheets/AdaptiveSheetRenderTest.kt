@@ -29,6 +29,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.theme.CampfireTheme
 import assertk.assertThat
 import assertk.assertions.isGreaterThan
+import assertk.assertions.isLessThan
 import assertk.assertions.isNotEqualTo
 import com.slack.circuit.overlay.ContentWithOverlays
 import com.slack.circuit.overlay.rememberOverlayHost
@@ -84,9 +85,11 @@ class AdaptiveSheetRenderTest {
    * edge runs straight through it, so it sees the pill and the surface behind it.
    */
   @Test
-  fun `the sheet carries a drag handle whatever the region`() {
-    assertThat(coloursDownHandleColumn(914, 411)).isGreaterThan(1)
-    assertThat(coloursDownHandleColumn(480, 360)).isGreaterThan(1)
+  fun `the sheet carries a drag handle near its leading edge`() {
+    // Found rather than assumed, so the test says "there is a handle in the margin" instead of
+    // restating whatever inset the sheet happens to use.
+    assertThat(handleOffsetFromLeadingEdge(914, 411)).isLessThan(HandleSearchWidth)
+    assertThat(handleOffsetFromLeadingEdge(480, 360)).isLessThan(HandleSearchWidth)
   }
 
   @Test
@@ -106,15 +109,22 @@ class AdaptiveSheetRenderTest {
     return (0 until image.width).first { x -> pixels.getColor(x, y) != scrim }
   }
 
-  /** How many distinct colours appear down a column just inside the sheet's leading edge. */
-  private fun coloursDownHandleColumn(width: Int, height: Int): Int {
+  /**
+   * How far in from the sheet's leading edge the drag handle sits, in pixels: the first column
+   * that is not a single flat colour down the middle of the sheet. Returns [HandleSearchWidth] if
+   * there is no such column, which fails the caller's bound.
+   */
+  private fun handleOffsetFromLeadingEdge(width: Int, height: Int): Int {
     val image = image(width, height)
     val pixels = image.peekPixels()!!
-    val x = sheetLeftEdge(image) + HandleColumnInset
+    val left = sheetLeftEdge(image)
 
     val top = image.height / 4
     val bottom = image.height * 3 / 4
-    return (top until bottom).map { y -> pixels.getColor(x, y) }.distinct().size
+    return (0 until HandleSearchWidth).firstOrNull { offset ->
+      val x = left + offset
+      (top until bottom).map { y -> pixels.getColor(x, y) }.distinct().size > 1
+    } ?: HandleSearchWidth
   }
 
   private fun render(name: String, width: Int, height: Int) {
@@ -191,7 +201,7 @@ class AdaptiveSheetRenderTest {
   }
 
   private companion object {
-    /** Far enough inside the sheet to land on the drag handle's column, in pixels at 2x. */
-    const val HandleColumnInset = 24
+    /** How far in from the sheet's edge a handle may sit and still count as being in the margin. */
+    const val HandleSearchWidth = 48
   }
 }
