@@ -63,11 +63,14 @@ For anything else, use `adb -s <serial>` with the serial from `status`.
   plain `DELETE /api/items/<id>` removes the item from the server's database only, and a `scan`
   brings it back under a new id.
 - The first boot of a newly created AVD is slow; if `up` times out waiting for Home, run it again.
-- **Finish with `down`.** An emulator left running costs gigabytes of memory for as long as it is up,
-  and relaunching is cheap, so tear one down rather than keeping it warm for a follow-up. `down`
-  only stops the server and `campfire-testbed`: an AVD you booted yourself — a foldable, or a device
-  with a display cutout, neither of which `campfire-testbed` has — survives it and needs
-  `adb -s <serial> emu kill`. `adb devices` should come back empty.
+- **Finish with `down`, for what you started.** An emulator left running costs gigabytes of memory
+  for as long as it is up, and relaunching is cheap, so tear one down rather than keeping it warm
+  for a follow-up. Two things `down` will not do for you: it only stops the server and
+  `campfire-testbed`, so an AVD you booted yourself — a foldable, or one with a display cutout,
+  neither of which `campfire-testbed` has — needs `adb -s <serial> emu kill`; and it stops
+  `campfire-testbed` even if that was already running before you began, which `--keep-emulator`
+  avoids. Note `adb devices` before you start and leave anything that was already there alone: it
+  is someone's working device, not yours.
 - A server left over from a crashed run: `down` stops it by the pid in `.work/state.json`. If the
   state file is gone, find it with `lsof -iTCP:13379 -sTCP:LISTEN`.
 - Logs: `.work/server.log`, `.work/emulator.log`.
