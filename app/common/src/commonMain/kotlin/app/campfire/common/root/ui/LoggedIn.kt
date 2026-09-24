@@ -43,8 +43,8 @@ import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ScreenType
 import app.campfire.analytics.events.ScreenViewEvent
-import app.campfire.common.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.LocalWindowSizeClass
+import app.campfire.common.compose.back.OverlayPriorityBackHandler
 import app.campfire.common.compose.extensions.shouldUseDarkColors
 import app.campfire.common.compose.layout.AdaptiveCampfireLayout
 import app.campfire.common.compose.layout.isLandscapePhone
