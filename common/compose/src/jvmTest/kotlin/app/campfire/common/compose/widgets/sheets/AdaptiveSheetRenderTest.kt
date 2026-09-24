@@ -81,13 +81,13 @@ class AdaptiveSheetRenderTest {
 
   /**
    * The sheet can be dragged back towards the edge to close it, and the handle is what says so —
-   * the bottom sheet's affordance turned ninety degrees. A column just inside the sheet's leading
-   * edge runs straight through it, so it sees the pill and the surface behind it.
+   * the bottom sheet's affordance turned ninety degrees. It floats on the scrim *beside* the
+   * sheet rather than over its content, so it is found by looking outward from the leading edge.
    */
   @Test
-  fun `the sheet carries a drag handle near its leading edge`() {
-    // Found rather than assumed, so the test says "there is a handle in the margin" instead of
-    // restating whatever inset the sheet happens to use.
+  fun `the sheet carries a drag handle floating outside its leading edge`() {
+    // Found rather than assumed, so the test says "there is a handle just outside the edge"
+    // instead of restating whatever gap the sheet happens to use.
     assertThat(handleOffsetFromLeadingEdge(914, 411)).isLessThan(HandleSearchWidth)
     assertThat(handleOffsetFromLeadingEdge(480, 360)).isLessThan(HandleSearchWidth)
   }
@@ -99,31 +99,32 @@ class AdaptiveSheetRenderTest {
   }
 
   /**
-   * The x of the sheet's leading edge, found by scanning the middle row for where the scrim gives
-   * way to the sheet's surface. Colour-agnostic: the theme owns the actual values.
+   * The x of the sheet's leading edge, found by scanning a row for where the scrim gives way to
+   * the sheet's surface. Colour-agnostic: the theme owns the actual values. Sampled well above
+   * the middle, because the handle floats on the scrim at the vertical centre and would otherwise
+   * be mistaken for the sheet.
    */
   private fun sheetLeftEdge(image: Image): Int {
     val pixels = image.peekPixels()!!
-    val y = image.height / 2
+    val y = image.height / 8
     val scrim = pixels.getColor(0, y)
     return (0 until image.width).first { x -> pixels.getColor(x, y) != scrim }
   }
 
   /**
-   * How far in from the sheet's leading edge the drag handle sits, in pixels: the first column
-   * that is not a single flat colour down the middle of the sheet. Returns [HandleSearchWidth] if
-   * there is no such column, which fails the caller's bound.
+   * How far out from the sheet's leading edge the drag handle's pill sits, in pixels: scanning
+   * left along the sheet's vertical centre, the first column that is no longer bare scrim.
+   * Returns [HandleSearchWidth] if there is none, which fails the caller's bound.
    */
   private fun handleOffsetFromLeadingEdge(width: Int, height: Int): Int {
     val image = image(width, height)
     val pixels = image.peekPixels()!!
     val left = sheetLeftEdge(image)
 
-    val top = image.height / 4
-    val bottom = image.height * 3 / 4
-    return (0 until HandleSearchWidth).firstOrNull { offset ->
-      val x = left + offset
-      (top until bottom).map { y -> pixels.getColor(x, y) }.distinct().size > 1
+    val y = image.height / 2
+    val scrim = pixels.getColor(0, y)
+    return (1..HandleSearchWidth).firstOrNull { offset ->
+      pixels.getColor(left - offset, y) != scrim
     } ?: HandleSearchWidth
   }
 
@@ -201,7 +202,7 @@ class AdaptiveSheetRenderTest {
   }
 
   private companion object {
-    /** How far in from the sheet's edge a handle may sit and still count as being in the margin. */
+    /** How far out from the sheet's edge a handle may float and still count as beside it. */
     const val HandleSearchWidth = 48
   }
 }

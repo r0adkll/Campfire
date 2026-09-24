@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -187,6 +186,40 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
 
       val dragInteractions = remember { MutableInteractionSource() }
 
+      // The handle floats on the scrim beside the sheet rather than inside it, so the content
+      // keeps the whole surface and nothing is drawn over it. It rides the sheet's own offset, so
+      // it stays pinned to the edge through a drag.
+      //
+      // Drawn *before* the sheet on purpose. VerticalDragHandle centres its pill in a 48dp touch
+      // target, so positioning the pill in the gap leaves the far half of that target lying over
+      // the sheet's edge; below the surface it is both hidden and out of the way of the content's
+      // taps, while the half out on the scrim stays live. It needs its own anchoredDraggable --
+      // out here the sheet's does not reach it, and a handle that cannot be dragged is decoration.
+      var handleWidthPx by remember { mutableFloatStateOf(0f) }
+
+      Box(
+        modifier = Modifier
+          .align(Alignment.CenterEnd)
+          .onSizeChanged { handleWidthPx = it.width.toFloat() }
+          .offset {
+            val offset = state.offset.takeIf { !it.isNaN() } ?: (regionWidthPx * hiddenSign)
+            // Out past the sheet's inner edge by the gap, measured to the pill rather than to the
+            // touch target around it.
+            val inset = sheetWidthPx + DragHandleGap.toPx() +
+              DragHandlePillWidth.toPx() / 2f - handleWidthPx / 2f
+            IntOffset((offset - hiddenSign * inset).roundToInt(), 0)
+          }
+          .anchoredDraggable(
+            state = state,
+            orientation = Orientation.Horizontal,
+            enabled = state.settledValue != SideSheetValue.Hidden,
+            interactionSource = dragInteractions,
+            flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
+          ),
+      ) {
+        VerticalDragHandle(interactionSource = dragInteractions)
+      }
+
       Surface(
         // Rounded only where it meets the content it slid over; the far edge is the screen's.
         // topStart/bottomStart is the inner edge in either layout direction.
@@ -233,24 +266,6 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
             pendingResult = result
             scope.launch { state.animateTo(SideSheetValue.Hidden) }
           }
-
-          // The bottom sheet's handle sits above its content and costs it no width; this one sits
-          // in the margin the content already leaves at its leading edge, rather than reserving a
-          // column of its own down the whole height. It shares the drag's interaction source, so
-          // it still reacts while the sheet is being moved.
-          //
-          // The handle carries a 48dp touch target, so centring it in a strip this narrow spills
-          // that target over both edges -- harmless, since the surface clips it and the whole
-          // sheet is the drag target anyway, and it is what keeps the pill itself off the content.
-          Box(
-            modifier = Modifier
-              .align(Alignment.CenterStart)
-              .width(DragHandleMargin)
-              .fillMaxHeight(),
-            contentAlignment = Alignment.Center,
-          ) {
-            VerticalDragHandle(interactionSource = dragInteractions)
-          }
         }
       }
     }
@@ -284,8 +299,11 @@ private const val SheetMaxWidthFraction = 0.72f
 /** How much of the region behind the sheet stays tappable, however wide the content wants to be. */
 private val MinScrimStrip = 56.dp
 
+/** The gap between the sheet's inner edge and the handle floating beside it on the scrim. */
+private val DragHandleGap = 8.dp
+
 /**
- * The strip at the sheet's inner edge the drag handle is centred in. Narrow on purpose: it sits
- * inside the margin the content already leaves, so the content keeps its full width.
+ * `VerticalDragHandle`'s own width, which it centres inside a 48dp touch target — needed to place
+ * the pill rather than the target.
  */
-private val DragHandleMargin = 16.dp
+private val DragHandlePillWidth = 4.dp
