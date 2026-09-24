@@ -23,7 +23,11 @@ import me.tatarka.inject.annotations.Inject
 @Inject
 class AndroidAppLifecycleObserver : AppLifecycleObserver {
 
-  private val _state = MutableStateFlow(AppLifecycleState.Foreground)
+  // Start in Background: a process launched for playback alone (media resumption, Android Auto,
+  // a notification action) never starts an activity, so ProcessLifecycleOwner never emits and a
+  // Foreground default would keep foreground-only work (the socket) running indefinitely.
+  // Registering the observer replays ON_START when an activity is already visible.
+  private val _state = MutableStateFlow(AppLifecycleState.Background)
   override val state: StateFlow<AppLifecycleState> = _state.asStateFlow()
 
   private val lifecycleObserver = object : DefaultLifecycleObserver {
