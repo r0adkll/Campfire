@@ -48,10 +48,16 @@ val WindowSizeClass.isSupportingPaneEnabled: Boolean
   get() = isWidthAtLeastMedium
 
 /**
- * Return if the device is in landscape/phone mode
+ * Return if the window is wide and short: a phone held sideways, and equally a half-open
+ * foldable's region or a desktop window dragged squat.
+ *
+ * The width bound is Medium rather than Expanded because a large share of phones in landscape
+ * fall short of the Expanded bar — a Galaxy S24 is 780dp across, an iPhone 13 mini 812dp, a
+ * Galaxy S24+ at its default resolution around 832dp. Gated at Expanded those devices laid the
+ * portrait arrangement out in 360dp of height instead.
  */
 val WindowSizeClass.isLandscapePhone: Boolean
-  get() = isWidthAtLeastExpanded && isHeightCompact
+  get() = isWidthAtLeastMedium && isHeightCompact
 
 /**
  * Return if the full-width bottom playback bar should be used instead of the floating

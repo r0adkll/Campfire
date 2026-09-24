@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
+
 ### Other Notes & Contributions
 
 ## [1.2.0]

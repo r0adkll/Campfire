@@ -16,6 +16,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -67,10 +68,13 @@ import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.sessions.ui.composables.OutputDeviceControl
 import app.campfire.sessions.ui.composables.PlaybackSpeedAction
 import app.campfire.sessions.ui.composables.RunningTimerAction
+import app.campfire.sessions.ui.composables.VolumeControl
 import app.campfire.sessions.ui.playback.DefaultNonThemedContentColor
 import app.campfire.sessions.ui.playback.DefaultNonThemedSheetColor
+import app.campfire.sessions.ui.playback.OutputDeviceUiState
 import app.campfire.sessions.ui.playback.PlaybackUiState
 import app.campfire.sessions.ui.playback.PlayerUiEvent
 import app.campfire.sessions.ui.playback.PlayerUiState
@@ -79,6 +83,7 @@ import app.campfire.sessions.ui.playback.QueueUiState
 import app.campfire.sessions.ui.playback.SharedBounds
 import app.campfire.sessions.ui.playback.SyncUiEvent
 import app.campfire.sessions.ui.playback.SyncUiState
+import app.campfire.sessions.ui.playback.VolumeUiState
 import app.campfire.sessions.ui.playback.collapsed.ShadowElevation
 import app.campfire.sessions.ui.playback.collapsed.TonalElevation
 import app.campfire.sessions.ui.playback.expanded.composables.ActionColumn
@@ -144,6 +149,8 @@ internal fun <T> T.SmallExpandedPlaybackBar(
       queueState = playbackState.queueState,
       syncState = playbackState.syncUiState,
       playbackHistoryEnabled = playbackState.playbackHistoryEnabled,
+      volumeState = playbackState.volume,
+      outputDeviceState = playbackState.outputDevices,
       onClose = onClose,
       sharedTransitionScope = this,
       animatedVisibilityScope = this,
@@ -163,6 +170,8 @@ internal fun SmallExpandedPlaybackBar(
   queueState: QueueUiState,
   syncState: SyncUiState,
   playbackHistoryEnabled: Boolean,
+  volumeState: VolumeUiState?,
+  outputDeviceState: OutputDeviceUiState?,
 
   onClose: () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -272,6 +281,8 @@ internal fun SmallExpandedPlaybackBar(
           syncState = syncState,
           itemValidation = itemValidation,
           playbackHistoryEnabled = playbackHistoryEnabled,
+          volumeState = volumeState,
+          outputDeviceState = outputDeviceState,
           onItemClick = { clicked ->
             scope.launch {
               onClose()
@@ -305,6 +316,8 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   syncState: SyncUiState,
   itemValidation: LibraryItemValidation,
   playbackHistoryEnabled: Boolean,
+  volumeState: VolumeUiState?,
+  outputDeviceState: OutputDeviceUiState?,
 
   onItemClick: (Session) -> Unit,
 
@@ -316,13 +329,16 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
   val isDragged by interactionSource.collectIsDraggedAsState()
   val isInteracting = isPressed || isDragged
 
-  Column(
-    modifier = modifier,
-  ) {
+  BoxWithConstraints(modifier) {
+    // The cover column stacks a square cover over the whole-book readout, and on the shortest
+    // regions the two together do not fit — the readout ran off the bottom edge. It gives way
+    // first, the same trade the wide layout makes, rather than the cover shrinking to nothing.
+    val showBookTime = playerState.bookTimeEnabled && maxHeight >= BookTimeMinHeight
+
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .weight(1f),
+        .fillMaxHeight(),
     ) {
       this@SmallExpandedPlaybackContent.ItemMetadata(
         playerState = playerState,
@@ -330,7 +346,7 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         itemValidation = itemValidation,
         animatedVisibilityScope = animatedVisibilityScope,
         onItemClick = onItemClick,
-        showBookTime = playerState.bookTimeEnabled,
+        showBookTime = showBookTime,
         modifier = Modifier
           .fillMaxHeight()
           .weight(1f),
@@ -352,6 +368,8 @@ private fun SharedTransitionScope.SmallExpandedPlaybackContent(
         session = session,
         playerState = playerState,
         playbackHistoryEnabled = playbackHistoryEnabled,
+        volumeState = volumeState,
+        outputDeviceState = outputDeviceState,
         modifier = Modifier.padding(bottom = 16.dp),
       )
     }
@@ -555,6 +573,8 @@ private fun PlaybackOptionsColumn(
   session: Session?,
   playerState: PlayerUiState,
   playbackHistoryEnabled: Boolean,
+  volumeState: VolumeUiState?,
+  outputDeviceState: OutputDeviceUiState?,
   modifier: Modifier = Modifier,
 ) {
   val actions = rememberPlaybackOptionActions(
@@ -566,9 +586,11 @@ private fun PlaybackOptionsColumn(
     onBookmarksClick = actions.onBookmarksClick,
     speedContent = actions.speedContent,
     timerContent = actions.timerContent,
-    // No volume or output-device slots: this layout is for landscape phones, and an app-level
-    // volume is desktop-only. A desktop window cannot reach it either — it needs isLandscapePhone
-    // (so, at least the Expanded width), and desktop only uses this bar *below* that width.
+    // Both slots are null wherever there is nothing to put in them — the presenter leaves them
+    // that way on Android and iOS, which have no app-level volume and no device routing. A
+    // desktop window short enough to land on this layout does get them.
+    volumeContent = volumeState?.let { { VolumeControl(state = it) } },
+    outputDeviceContent = outputDeviceState?.let { { OutputDeviceControl(state = it) } },
     onEqualizerClick = actions.onEqualizerClick,
     showEqualizer = playerState.equalizer !is EqualizerState.Unsupported,
     onChapterListClick = actions.onChapterListClick,
@@ -703,6 +725,14 @@ internal fun rememberPlaybackOptionActions(
 
 /** The landscape-phone transport size; also the floor for the wide layout's scaled one. */
 internal val SmallTransportButtonSize = 72.dp
+
+/**
+ * The shortest body that still gets the whole-book readout under the cover. Below it the readout
+ * is dropped rather than left to run off the bottom edge, which is what it did on the shortest
+ * phones this layout now covers — a 360dp-tall window clipped it, 384dp cleared it with room to
+ * spare. Calibrated by `SmallExpandedPlaybackBarRenderTest`.
+ */
+private val BookTimeMinHeight = 320.dp
 
 /** How much wider than tall the play button is, at any transport size. */
 private const val PlayButtonExtraWidthFraction = 0.28f
