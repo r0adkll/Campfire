@@ -26,8 +26,10 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.VerticalDragHandle
+import androidx.compose.material3.VerticalDragHandleDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -47,11 +49,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.isTraversalGroup
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.back.OverlayPriorityBackHandler
+import app.campfire.common.compose.theme.LocalUseDarkColors
 import com.slack.circuit.overlay.Overlay
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuitx.overlays.BottomSheetOverlay
@@ -217,7 +221,27 @@ class AdaptiveSheetOverlay<Model : Any, Result : Any>(
             flingBehavior = AnchoredDraggableDefaults.flingBehavior(state),
           ),
       ) {
-        VerticalDragHandle(interactionSource = dragInteractions)
+        VerticalDragHandle(
+          colors = if (LocalUseDarkColors.current) {
+            VerticalDragHandleDefaults.colors(
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              pressedColor = MaterialTheme.colorScheme.onSurface,
+              draggedColor = MaterialTheme.colorScheme.onSurface,
+            )
+          } else {
+            VerticalDragHandleDefaults.colors(
+              color = MaterialTheme.colorScheme.surfaceDim,
+              pressedColor = MaterialTheme.colorScheme.surface,
+              draggedColor = MaterialTheme.colorScheme.surface,
+            )
+          },
+          sizes = VerticalDragHandleDefaults.sizes(
+            size = DpSize(4.dp, 64.dp),
+            pressedSize = DpSize(12.dp, 72.dp),
+            draggedSize = DpSize(12.dp, 72.dp),
+          ),
+          interactionSource = dragInteractions,
+        )
       }
 
       Surface(
