@@ -48,7 +48,7 @@ import app.campfire.common.compose.icons.rounded.Schedule
 import app.campfire.common.compose.icons.rounded.SdStorage
 import app.campfire.common.compose.icons.rounded.Today
 import app.campfire.common.compose.widgets.WithTimestampUriHandler
-import app.campfire.common.compose.widgets.bottomSheetShape
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.extensions.asDate
 import app.campfire.core.extensions.asReadableBytes
 import app.campfire.core.logging.bark
@@ -60,7 +60,6 @@ import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import org.jetbrains.compose.resources.stringResource
@@ -70,10 +69,9 @@ suspend fun OverlayHost.showEpisodeDescriptionBottomSheet(
   onSeek: (Duration) -> Unit,
 ) {
   show(
-    BottomSheetOverlay(
+    AdaptiveSheetOverlay(
       model = episode,
       onDismiss = { Unit },
-      sheetShape = bottomSheetShape,
     ) { ep, _ ->
       Impression {
         ScreenViewEvent("EpisodeDescription", ScreenType.Overlay)
