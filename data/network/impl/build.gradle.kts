@@ -58,14 +58,12 @@ kotlin {
       dependencies {
         api(libs.okhttp.okhttp)
         api(libs.ktor.client.okhttp)
-        implementation(libs.connectivity.http)
       }
     }
 
     iosMain {
       dependencies {
         api(libs.ktor.client.darwin)
-        implementation(libs.connectivity.apple)
       }
     }
   }

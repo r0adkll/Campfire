@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - [Desktop] Install and update on macOS with Homebrew: `brew install r0adkll/tap/campfire`
-- [Android] Campfire stops trying to reach a server on your home network while you're away, and remembers the networks it can reach it from (Settings → Connection)
+- Campfire stops trying to reach a server on your home network while you're away, and remembers the networks it can reach it from (Settings → Connection)
 
 ### Changed
 
@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Desktop] Campfire no longer contacts Google, GitHub, or Bing to check whether you're online
 - Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
 - The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
 - [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
