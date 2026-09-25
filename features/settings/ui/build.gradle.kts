@@ -16,6 +16,7 @@ kotlin {
 
         implementation(projects.data.analytics.api)
         implementation(projects.features.settings.api)
+        implementation(projects.data.network.api)
         implementation(projects.features.sessions.api)
         implementation(projects.features.libraries.api)
         implementation(projects.infra.whatsNew.api)

@@ -13,6 +13,9 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
+import app.campfire.network.reachability.HomeNetwork
+import app.campfire.network.reachability.NetworkSnapshot
+import app.campfire.network.reachability.Reachability
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.ResumeRewindConfig
@@ -35,6 +38,7 @@ data class SettingsUiState(
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
   val socketSyncEnabled: Boolean,
+  val homeNetworkSettings: HomeNetworkSettingsInfo,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
@@ -44,6 +48,16 @@ data class SettingsUiState(
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
+
+@Immutable
+data class HomeNetworkSettingsInfo(
+  /** Whether this platform can tell networks apart; the section is hidden where it can't. */
+  val isAvailable: Boolean,
+  val pauseAwayFromHome: Boolean,
+  /** Learned networks only matter (and are only shown) for a server with a local address. */
+  val isLocalServer: Boolean,
+  val networks: List<HomeNetwork>,
+)
 
 @Immutable
 data class AppearanceSettingsInfo(
@@ -143,6 +157,19 @@ data class DeveloperSettingsInfo(
   val fakeAppUpdateSignedIn: Boolean,
   val fakeAppUpdateAvailable: Boolean,
   val fakeAppUpdateFailDownload: Boolean,
+  val adaptToUnreachableServer: Boolean,
+  val networkDiagnostics: NetworkDiagnostics,
+)
+
+/** A read-only view of what the reachability layer currently believes, for field debugging. */
+@Immutable
+data class NetworkDiagnostics(
+  val reachability: Reachability,
+  val inRange: Boolean,
+  val isLocalServer: Boolean,
+  val network: NetworkSnapshot,
+  val networkSupported: Boolean,
+  val learnedNetworkCount: Int,
 )
 
 enum class SettingsPane {
@@ -177,6 +204,10 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface AccountSettingEvent : SettingsUiEvent {
     data class ChangeName(val name: String) : AccountSettingEvent
     data class SocketSyncEnabled(val enabled: Boolean) : AccountSettingEvent
+    data class PauseAwayFromHome(val enabled: Boolean) : AccountSettingEvent
+    data class RenameHomeNetwork(val key: String, val label: String) : AccountSettingEvent
+    data class ForgetHomeNetwork(val key: String) : AccountSettingEvent
+    data object ForgetAllHomeNetworks : AccountSettingEvent
     data object Logout : AccountSettingEvent
   }
 
@@ -252,6 +283,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data object ClearMediaButtonPackages : DeveloperSettingEvent
     data class SessionAge(val sessionAge: Duration) : DeveloperSettingEvent
     data class HlsLargeItemThreshold(val threshold: Duration) : DeveloperSettingEvent
+    data class AdaptToUnreachableServer(val enabled: Boolean) : DeveloperSettingEvent
     data class ShowWidgetPinningChange(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateSignedIn(val enabled: Boolean) : DeveloperSettingEvent
     data class FakeAppUpdateAvailable(val enabled: Boolean) : DeveloperSettingEvent

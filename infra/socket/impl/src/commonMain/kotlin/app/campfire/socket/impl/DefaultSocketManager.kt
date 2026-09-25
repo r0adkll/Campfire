@@ -17,6 +17,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DevSettings
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -69,6 +70,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -89,6 +91,7 @@ class DefaultSocketManager(
   private val settings: CampfireSettings,
   private val connectivity: Connectivity,
   private val serverReachability: ServerReachability,
+  private val devSettings: DevSettings,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
@@ -312,12 +315,16 @@ class DefaultSocketManager(
       connectionJob = coroutineScope.launch {
         launch { observeReachability(newSocket) }
 
-        connectionDemand(appLifecycleObserver.state, connectivity).collect { demanded ->
+        connectionDemand(
+          lifecycle = appLifecycleObserver.state,
+          connectivity = connectivity,
+          inRange = serverReachability.observeInRange(url),
+        ).collect { demanded ->
           socketDemanded = demanded
           if (demanded) {
             if (!settings.socketEnabled) return@collect
             if (!newSocket.connected) {
-              ibark { "Socket demanded (foreground + network); opening with a fresh backoff" }
+              ibark { "Socket demanded (foreground + network in range); opening with a fresh backoff" }
               _state.value = SocketState.Connecting
               // close() first resets the manager's reconnect backoff, so regaining the network
               // or foregrounding the app attempts immediately instead of waiting out a delay
@@ -326,7 +333,7 @@ class DefaultSocketManager(
               newSocket.open()
             }
           } else {
-            ibark { "Socket no longer demanded (background or no network); closing" }
+            ibark { "Socket no longer demanded (background, no network, or away from home); closing" }
             newSocket.close()
             if (_state.value !is SocketState.Disabled) {
               _state.value = SocketState.Disconnected
@@ -344,7 +351,13 @@ class DefaultSocketManager(
    * instead of waiting out its backoff.
    */
   private suspend fun observeReachability(socket: Socket) {
-    reachabilitySignals(serverReachability.status).collect { signal ->
+    combine(
+      reachabilitySignals(serverReachability.status),
+      devSettings.observeAdaptToUnreachableServer(),
+    ) { signal, adapt ->
+      // The developer switch restores plain socket.io backoff
+      if (adapt || signal == ReachabilitySignal.Reconnect) signal else ReachabilitySignal.Fast
+    }.collect { signal ->
       when (signal) {
         ReachabilitySignal.Slow -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MAX_MS)
         ReachabilitySignal.Fast -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)

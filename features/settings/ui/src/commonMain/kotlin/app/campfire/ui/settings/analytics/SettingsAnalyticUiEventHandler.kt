@@ -5,6 +5,7 @@ package app.campfire.ui.settings.analytics
 
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.Click
+import app.campfire.analytics.events.Deleted
 import app.campfire.analytics.events.SettingActionEvent
 import app.campfire.analytics.events.Updated
 import app.campfire.analytics.events.Verb
@@ -66,6 +67,12 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }
+      is SettingsUiEvent.AccountSettingEvent.PauseAwayFromHome -> {
+        send("pause_away_from_home", Updated, event.enabled)
+      }
+      is SettingsUiEvent.AccountSettingEvent.RenameHomeNetwork -> send("home_network", Updated)
+      is SettingsUiEvent.AccountSettingEvent.ForgetHomeNetwork -> send("home_network", Deleted)
+      SettingsUiEvent.AccountSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
       Logout -> send("logout", Click)
     }
 

@@ -81,6 +81,59 @@ internal fun DeveloperPane(
       )
 
       Header(
+        title = { Text("Network") },
+      )
+
+      SwitchSetting(
+        value = state.developerSettings.adaptToUnreachableServer,
+        onValueChange = {
+          state.eventSink(DeveloperSettingEvent.AdaptToUnreachableServer(it))
+        },
+        headlineContent = { Text("Adapt to unreachable server") },
+        supportingContent = {
+          Text(
+            "Fail requests fast, slow socket reconnects, and back off playback sync while the " +
+              "server can't be reached. Turn off for plain network behavior.",
+          )
+        },
+      )
+
+      val diagnostics = state.developerSettings.networkDiagnostics
+      ActionSetting(
+        headlineContent = { Text("Reachability") },
+        supportingContent = {
+          Text(
+            buildString {
+              append("Status: ${diagnostics.reachability}")
+              append("\nIn range: ${diagnostics.inRange}")
+              append("\nLocal server: ${diagnostics.isLocalServer}")
+              append("\nLearned home networks: ${diagnostics.learnedNetworkCount}")
+            },
+          )
+        },
+      )
+
+      ActionSetting(
+        headlineContent = { Text("Current network") },
+        supportingContent = {
+          val network = diagnostics.network
+          Text(
+            if (!diagnostics.networkSupported) {
+              "Not available on this platform"
+            } else {
+              buildString {
+                append("Connected: ${network.connected}, metered: ${network.metered}")
+                append("\nTransports: ${network.transports.joinToString().ifEmpty { "none" }}")
+                append("\nSubnet: ${network.fingerprint?.subnet ?: "none"}")
+                append("\nGateway: ${network.fingerprint?.gateway ?: "none"}")
+                append("\nDomain: ${network.domain ?: "none"}")
+              }
+            },
+          )
+        },
+      )
+
+      Header(
         title = { Text("Media Buttons") },
       )
 

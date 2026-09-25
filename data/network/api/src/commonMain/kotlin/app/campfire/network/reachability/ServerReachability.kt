@@ -3,6 +3,7 @@
 
 package app.campfire.network.reachability
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -22,6 +23,13 @@ interface ServerReachability {
 
   /** Records that the server at [serverUrl] answered (an HTTP response or socket handshake). */
   fun reportReachable(serverUrl: String)
+
+  /**
+   * Whether the current network is one the server at [serverUrl] can be reached from. False
+   * only for a local server while away from home (see [Reachability.OutOfRange]); the socket
+   * stays closed until it flips back.
+   */
+  fun observeInRange(serverUrl: String): Flow<Boolean>
 }
 
 enum class Reachability {
@@ -29,4 +37,10 @@ enum class Reachability {
   Unknown,
   Reachable,
   Unreachable,
+
+  /**
+   * A local server (e.g. `192.168.x.x`) and a network that can't reach it — cellular only, or a
+   * Wi-Fi network it has never been reached from. Nothing is attempted until the network changes.
+   */
+  OutOfRange,
 }

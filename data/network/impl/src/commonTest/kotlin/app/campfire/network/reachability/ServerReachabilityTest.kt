@@ -3,7 +3,7 @@
 
 package app.campfire.network.reachability
 
-import app.campfire.core.time.FatherTime
+import app.campfire.settings.test.FakeDevSettings
 import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.isEqualTo
@@ -18,19 +18,18 @@ import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.request.get
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalDateTime
 
 class ServerReachabilityTest {
 
   private val time = FakeFatherTime()
   private val connectivity = FakeConnectivity(Connectivity.Status.Connected(metered = false))
-  private val reachability = DefaultServerReachability(connectivity, time)
+  private val devSettings = FakeDevSettings()
+  private val reachability = reachability(
+    connectivity = connectivity,
+    time = time,
+    devSettings = devSettings,
+  )
 
   private val server = "https://abs.example.com:443"
 
@@ -125,6 +124,16 @@ class ServerReachabilityTest {
     assertThat(reachability.status.value).isEqualTo(Reachability.Unknown)
   }
 
+  @Test
+  fun `the developer switch turns fail fast off`() {
+    devSettings.adaptToUnreachableServer = false
+
+    reachability.unreachable(server)
+
+    assertThat(reachability.status.value).isEqualTo(Reachability.Unreachable)
+    assertThat(reachability.shouldFailFast(server)).isFalse()
+  }
+
   private fun client(beforeRespond: () -> Unit = {}): HttpClient = HttpClient(
     MockEngine {
       beforeRespond()
@@ -132,28 +141,5 @@ class ServerReachabilityTest {
     },
   ) {
     install(serverReachabilityPlugin(reachability))
-  }
-
-  private class FakeFatherTime(var nowMillis: Long = 1_000_000L) : FatherTime {
-    override fun now(): LocalDateTime = error("unused")
-    override fun today(): LocalDate = error("unused")
-    override fun nowInEpochMillis(): Long = nowMillis
-  }
-
-  private class FakeConnectivity(initial: Connectivity.Status) : Connectivity {
-    private val updates = MutableSharedFlow<Connectivity.Status>(replay = 1).apply { tryEmit(initial) }
-
-    override val statusUpdates: SharedFlow<Connectivity.Status> = updates
-    override val monitoring: StateFlow<Boolean> = MutableStateFlow(true)
-
-    override suspend fun status(): Connectivity.Status = updates.replayCache.last()
-
-    fun update(status: Connectivity.Status) {
-      updates.tryEmit(status)
-    }
-
-    override fun start() = Unit
-    override fun stop() = Unit
-    override fun close() = Unit
   }
 }

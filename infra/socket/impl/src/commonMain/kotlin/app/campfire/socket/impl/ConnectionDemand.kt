@@ -12,8 +12,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 
 /**
- * Whether the realtime socket should be connected: only while the app is visible AND the
- * device has a network. Socket events only refresh on-screen data, so there is nothing to gain
+ * Whether the realtime socket should be connected: only while the app is visible, the device
+ * has a network, AND that network can reach the server ([inRange] — false for a local server
+ * while away from home). Socket events only refresh on-screen data, so there is nothing to gain
  * from dialing the server in the background or with no route to it — and socket.io's reconnect
  * loop would otherwise keep the radio awake the whole time.
  *
@@ -24,12 +25,13 @@ import kotlinx.coroutines.flow.onStart
 internal fun connectionDemand(
   lifecycle: Flow<AppLifecycleState>,
   connectivity: Connectivity,
+  inRange: Flow<Boolean>,
 ): Flow<Boolean> {
   val online = connectivity.statusUpdates
     .map { it.isConnected }
     .onStart { emit(connectivity.status().isConnected) }
     .distinctUntilChanged()
-  return combine(lifecycle, online) { state, isOnline ->
-    state == AppLifecycleState.Foreground && isOnline
+  return combine(lifecycle, online, inRange) { state, isOnline, isInRange ->
+    state == AppLifecycleState.Foreground && isOnline && isInRange
   }.distinctUntilChanged()
 }

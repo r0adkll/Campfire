@@ -43,6 +43,11 @@ class DevSettingsImpl(
 
   override fun observeHlsLargeItemThreshold(): StateFlow<Duration> = hlsLargeItemThresholdProperty.observe()
 
+  private val adaptToUnreachableServerProperty = booleanSetting(KEY_ADAPT_TO_UNREACHABLE_SERVER, true)
+  override var adaptToUnreachableServer: Boolean by adaptToUnreachableServerProperty
+
+  override fun observeAdaptToUnreachableServer(): StateFlow<Boolean> = adaptToUnreachableServerProperty.observe()
+
   private val mediaButtonPackagesProperty = customSetting(
     key = KEY_MEDIA_BUTTON_PACKAGES,
     defaultValue = emptySet(),
@@ -87,6 +92,7 @@ class DevSettingsImpl(
 internal const val KEY_DEVELOPER_MODE = "pref_developer_mode_enabled"
 internal const val KEY_SESSION_AGE = "pref_dev_setting_session_age"
 internal const val KEY_HLS_LARGE_ITEM_THRESHOLD = "pref_dev_setting_hls_large_item_threshold"
+internal const val KEY_ADAPT_TO_UNREACHABLE_SERVER = "pref_dev_setting_adapt_to_unreachable_server"
 internal const val KEY_MEDIA_BUTTON_PACKAGES = "pref_dev_setting_media_button_packages"
 internal const val KEY_FAKE_APP_UPDATE_SIGNED_IN = "pref_dev_setting_fake_app_update_signed_in"
 internal const val KEY_FAKE_APP_UPDATE_AVAILABLE = "pref_dev_setting_fake_app_update_available"

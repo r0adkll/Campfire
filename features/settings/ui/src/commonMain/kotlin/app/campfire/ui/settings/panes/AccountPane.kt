@@ -89,6 +89,13 @@ internal fun AccountPane(
       leadingContent = { Icon(CampfireIcons.Rounded.Sync, contentDescription = null) },
     )
 
+    if (state.homeNetworkSettings.isAvailable) {
+      HomeNetworkSettings(
+        info = state.homeNetworkSettings,
+        onEvent = state.eventSink,
+      )
+    }
+
     ActionSetting(
       headlineContent = { Text(stringResource(Res.string.setting_account_logout)) },
       trailingContent = { Icon(CampfireIcons.Rounded.Logout, contentDescription = null) },

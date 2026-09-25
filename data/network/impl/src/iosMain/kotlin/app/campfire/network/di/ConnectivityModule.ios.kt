@@ -3,9 +3,11 @@
 
 package app.campfire.network.di
 
+import app.campfire.network.reachability.NetworkMonitor
 import dev.jordond.connectivity.Connectivity
 
-actual fun createConnectivity(): Connectivity {
+@Suppress("UNUSED_PARAMETER")
+actual fun createConnectivity(networkMonitor: NetworkMonitor): Connectivity {
   return Connectivity {
     autoStart = true
   }
