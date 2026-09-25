@@ -108,6 +108,7 @@ internal fun DeveloperPane(
               append("\nIn range: ${diagnostics.inRange}")
               append("\nLocal server: ${diagnostics.isLocalServer}")
               append("\nLearned home networks: ${diagnostics.learnedNetworkCount}")
+              append("\nLocal network permission missing: ${diagnostics.localNetworkPermissionMissing}")
             },
           )
         },

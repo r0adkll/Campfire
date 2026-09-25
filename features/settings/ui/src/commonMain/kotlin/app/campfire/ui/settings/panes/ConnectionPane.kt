@@ -31,6 +31,13 @@ internal fun ConnectionPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    state.localNetworkAccess?.let { access ->
+      LocalNetworkAccessSetting(
+        access = access,
+        onEvent = state.eventSink,
+      )
+    }
+
     Header(
       title = { Text(stringResource(Res.string.setting_connection_realtime_sync_header)) },
     )

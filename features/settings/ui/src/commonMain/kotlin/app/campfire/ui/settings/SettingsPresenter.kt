@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -30,6 +31,7 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.Media
 import app.campfire.core.model.Server
+import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.core.session.user
@@ -141,6 +143,7 @@ class SettingsPresenter(
   private val homeNetworks: HomeNetworks,
   private val serverReachability: ServerReachability,
   private val networkMonitor: NetworkMonitor,
+  private val localNetworkPermission: LocalNetworkPermissionController,
 ) : NonPausablePresenter<SettingsUiState> {
 
   @Composable
@@ -250,6 +253,9 @@ class SettingsPresenter(
     val customHeaders by remember(userId) {
       userId?.let(accountManager::observeExtraHeaders) ?: flowOf(emptyMap())
     }.collectAsState(emptyMap())
+    val localNetworkMissing by remember { localNetworkPermission.observePermissionMissing() }
+      .collectAsState(false)
+    var localNetworkDenied by remember { mutableStateOf(false) }
     val homeNetworksState by remember(serverUrl) {
       serverUrl?.let(homeNetworks::observe) ?: flowOf(HomeNetworksState(isLocalServer = false, networks = emptyList()))
     }.collectAsState(HomeNetworksState(isLocalServer = false, networks = emptyList()))
@@ -335,6 +341,11 @@ class SettingsPresenter(
       ),
       socketSyncEnabled = socketSyncEnabled,
       customHeaders = customHeaders,
+      localNetworkAccess = when {
+        !localNetworkMissing || !homeNetworksState.isLocalServer -> null
+        localNetworkDenied -> LocalNetworkAccess.Denied
+        else -> LocalNetworkAccess.Missing
+      },
       homeNetworkSettings = HomeNetworkSettingsInfo(
         isAvailable = networkMonitor.isSupported,
         pauseAwayFromHome = pauseAwayFromHome,
@@ -368,6 +379,7 @@ class SettingsPresenter(
           network = network,
           networkSupported = networkMonitor.isSupported,
           learnedNetworkCount = homeNetworksState.networks.size,
+          localNetworkPermissionMissing = localNetworkMissing,
         ),
       ),
     ) { event ->
@@ -413,6 +425,14 @@ class SettingsPresenter(
             val updated = customHeaders.withHeader(event.originalName, event.name, event.value)
             scope.launch { accountManager.setExtraHeaders(id, updated) }
           }
+
+          SettingsUiEvent.ConnectionSettingEvent.AllowLocalNetwork -> scope.launch {
+            // A denial (including a permanent one, which resolves without UI) leaves only the
+            // system settings route
+            localNetworkDenied = !localNetworkPermission.request()
+          }
+
+          SettingsUiEvent.ConnectionSettingEvent.OpenAppSettings -> localNetworkPermission.openSettings()
 
           is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> {
             val id = userId ?: return@SettingsUiState

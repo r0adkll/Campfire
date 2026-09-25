@@ -35,6 +35,11 @@
   <string name="setting_connection_realtime_sync_header">Realtime sync</string>
   <string name="setting_connection_socket_sync_title">Live updates</string>
   <string name="setting_connection_socket_sync_subtitle">Stay connected to the server so library, podcast, and playback changes from other devices appear instantly. Turn off to disable the persistent socket.</string>
+  <string name="setting_connection_local_network_title">Allow local network access</string>
+  <string name="setting_connection_local_network_missing">Android is blocking Campfire from reaching your server on your home network. Allow local network access to connect.</string>
+  <string name="setting_connection_local_network_denied">Local network access is turned off for Campfire. Turn it on in the app's settings to reach your server on your home network.</string>
+  <string name="setting_connection_local_network_allow">Allow</string>
+  <string name="setting_connection_local_network_open_settings">Open settings</string>
   <string name="setting_connection_headers_header">Custom headers</string>
   <string name="setting_connection_headers_description">Sent with every request to your server, such as a token for a reverse proxy or access gateway in front of it.</string>
   <string name="setting_connection_headers_empty">No custom headers</string>
