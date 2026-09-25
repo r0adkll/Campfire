@@ -46,6 +46,7 @@ import app.campfire.common.compose.icons.rounded.Info
 import app.campfire.common.compose.icons.rounded.NotificationsPaused
 import app.campfire.common.compose.icons.rounded.Palette
 import app.campfire.common.compose.icons.rounded.VolumeUp
+import app.campfire.common.compose.icons.rounded.Wifi
 import app.campfire.common.compose.layout.LocalSupportingContentState
 import app.campfire.common.compose.layout.SupportingContentState
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
@@ -60,6 +61,7 @@ import app.campfire.ui.settings.panes.AboutPane
 import app.campfire.ui.settings.panes.AccountPane
 import app.campfire.ui.settings.panes.AndroidAutoPane
 import app.campfire.ui.settings.panes.AppearancePane
+import app.campfire.ui.settings.panes.ConnectionPane
 import app.campfire.ui.settings.panes.DeveloperPane
 import app.campfire.ui.settings.panes.DownloadsPane
 import app.campfire.ui.settings.panes.LocalPaneState
@@ -75,6 +77,8 @@ import campfire.features.settings.ui.generated.resources.setting_android_auto_su
 import campfire.features.settings.ui.generated.resources.setting_android_auto_title
 import campfire.features.settings.ui.generated.resources.setting_appearance_subtitle
 import campfire.features.settings.ui.generated.resources.setting_appearance_title
+import campfire.features.settings.ui.generated.resources.setting_connection_subtitle
+import campfire.features.settings.ui.generated.resources.setting_connection_title
 import campfire.features.settings.ui.generated.resources.setting_developer_subtitle
 import campfire.features.settings.ui.generated.resources.setting_developer_title
 import campfire.features.settings.ui.generated.resources.setting_downloads_subtitle
@@ -109,6 +113,7 @@ fun SettingsUi(
       when (screen.page) {
         SettingsScreen.Page.Root -> null
         SettingsScreen.Page.Account -> SettingsPane.Account
+        SettingsScreen.Page.Connection -> SettingsPane.Connection
         SettingsScreen.Page.Appearance -> SettingsPane.Appearance
         SettingsScreen.Page.Downloads -> SettingsPane.Downloads
         SettingsScreen.Page.Playback -> SettingsPane.Playback
@@ -300,6 +305,23 @@ private fun SettingsRootPane(
         shape = SettingsPaneDefaults.topShape(),
       )
 
+      // Connection
+      SettingPaneListItem(
+        selected = pane == SettingsPane.Connection && isTwoPane,
+        icon = {
+          Icon(
+            CampfireIcons.Rounded.Wifi,
+            contentDescription = null,
+          )
+        },
+        title = { Text(stringResource(Res.string.setting_connection_title)) },
+        subtitle = { Text(stringResource(Res.string.setting_connection_subtitle)) },
+        onClick = {
+          onPaneClick(SettingsPane.Connection)
+        },
+        shape = SettingsPaneDefaults.middleShape(),
+      )
+
       // Appearance
       SettingPaneListItem(
         selected = pane == SettingsPane.Appearance && isTwoPane,
@@ -461,6 +483,12 @@ private fun SettingPaneContent(
 ) {
   when (settingsPane) {
     SettingsPane.Account -> AccountPane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.Connection -> ConnectionPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,

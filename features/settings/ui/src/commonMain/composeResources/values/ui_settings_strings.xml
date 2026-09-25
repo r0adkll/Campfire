@@ -4,6 +4,8 @@
   <!-- Root setting strings -->
   <string name="setting_account_title">Account</string>
   <string name="setting_account_subtitle">Name, tent, and other campsite settings</string>
+  <string name="setting_connection_title">Connection</string>
+  <string name="setting_connection_subtitle">Live updates and staying quiet away from home</string>
   <string name="setting_appearance_title">Appearance</string>
   <string name="setting_appearance_subtitle">Theme, look and feel</string>
   <string name="setting_downloads_title">Downloads</string>
@@ -30,25 +32,25 @@
   <string name="setting_account_name_subtitle">Update the name of this server in the app</string>
   <string name="setting_account_dialog_title">Change server name</string>
   <string name="setting_account_dialog_label">Server name</string>
-  <string name="setting_account_realtime_sync_header">Realtime sync</string>
-  <string name="setting_account_socket_sync_title">Live updates</string>
-  <string name="setting_account_socket_sync_subtitle">Stay connected to the server so library, podcast, and playback changes from other devices appear instantly. Turn off to disable the persistent socket.</string>
-  <string name="setting_account_away_header">Away from home</string>
-  <string name="setting_account_pause_away_title">Pause when away from home</string>
-  <string name="setting_account_pause_away_subtitle">Stop trying to reach a server on your home network while you're on mobile data or a network that has never reached it. Downloaded books keep playing and your listening syncs when you're back.</string>
-  <string name="setting_account_home_networks_header">Home networks</string>
-  <string name="setting_account_home_networks_empty">Campfire remembers the networks where it reaches your server. Networks show up here after you connect from them.</string>
-  <string name="setting_account_home_network_current">Connected now</string>
-  <string name="setting_account_home_network_gateway">gateway %1$s</string>
-  <string name="setting_account_home_network_last_seen">last seen %1$s</string>
-  <string name="setting_account_home_network_wifi">Wi-Fi</string>
-  <string name="setting_account_home_network_ethernet">Ethernet</string>
-  <string name="setting_account_home_network_options">Network options</string>
-  <string name="setting_account_home_network_rename">Rename</string>
-  <string name="setting_account_home_network_forget">Forget</string>
-  <string name="setting_account_home_network_rename_title">Rename network</string>
-  <string name="setting_account_home_network_rename_label">Name</string>
-  <string name="setting_account_home_networks_forget_all">Forget all home networks</string>
+  <string name="setting_connection_realtime_sync_header">Realtime sync</string>
+  <string name="setting_connection_socket_sync_title">Live updates</string>
+  <string name="setting_connection_socket_sync_subtitle">Stay connected to the server so library, podcast, and playback changes from other devices appear instantly. Turn off to disable the persistent socket.</string>
+  <string name="setting_connection_away_header">Away from home</string>
+  <string name="setting_connection_pause_away_title">Pause when away from home</string>
+  <string name="setting_connection_pause_away_subtitle">Stop trying to reach a server on your home network while you're on mobile data or a network that has never reached it. Downloaded books keep playing and your listening syncs when you're back.</string>
+  <string name="setting_connection_home_networks_header">Home networks</string>
+  <string name="setting_connection_home_networks_empty">Campfire remembers the networks where it reaches your server. Networks show up here after you connect from them.</string>
+  <string name="setting_connection_home_network_current">Connected now</string>
+  <string name="setting_connection_home_network_gateway">gateway %1$s</string>
+  <string name="setting_connection_home_network_last_seen">last seen %1$s</string>
+  <string name="setting_connection_home_network_wifi">Wi-Fi</string>
+  <string name="setting_connection_home_network_ethernet">Ethernet</string>
+  <string name="setting_connection_home_network_options">Network options</string>
+  <string name="setting_connection_home_network_rename">Rename</string>
+  <string name="setting_connection_home_network_forget">Forget</string>
+  <string name="setting_connection_home_network_rename_title">Rename network</string>
+  <string name="setting_connection_home_network_rename_label">Name</string>
+  <string name="setting_connection_home_networks_forget_all">Forget all home networks</string>
 
   <!-- Appearance setting strings -->
   <string name="header_appearance_overall">Application</string>
