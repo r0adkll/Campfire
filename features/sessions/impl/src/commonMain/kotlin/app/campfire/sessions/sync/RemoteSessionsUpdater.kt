@@ -13,6 +13,7 @@ import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
+import app.campfire.network.isServerUnreachable
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
 import app.campfire.settings.api.PlaybackSettings
@@ -47,6 +48,8 @@ class NetworkRemoteSessionsUpdater(
 
   private var lastSyncTimeMs: Long = 0L
   private var currentSyncJob: Job? = null
+  private val backoff = UnreachableServerBackoff()
+  private var lastConnectivity: Connectivity.Status? = null
 
   override suspend fun update(skipInterval: Boolean) = withContext(dispatcherProvider.computation) {
     // Check for running jobs
@@ -60,24 +63,39 @@ class NetworkRemoteSessionsUpdater(
 
     // Cheap throttle first: this is called from the 500ms playback tick, so bail on the
     // shorter of the two intervals before touching platform connectivity. The final
-    // (possibly stricter) interval is re-checked against the actual connection below.
+    // (possibly stricter, possibly backed-off) interval is re-checked against the actual
+    // connection below — after a network change has had the chance to reset the backoff.
     val elapsedSinceSync = fatherTime.nowInEpochMillis() - lastSyncTimeMs
     if (elapsedSinceSync < minOf(unmeteredIntervalMs, meteredIntervalMs) && !skipInterval) return@withContext
 
     // Check for connectivity
     val status = connectivity.status()
+    if (lastConnectivity != null && status != lastConnectivity) {
+      // A different network may have a route to the server the old one lacked (e.g. back on
+      // the home Wi-Fi), so give it the normal cadence rather than the stretched one.
+      backoff.onReachable()
+    }
+    lastConnectivity = status
+
     if (status.isConnected) {
       val elapsed = fatherTime.nowInEpochMillis() - lastSyncTimeMs
       val interval = when {
-        status.isMetered -> meteredIntervalMs
-        else -> unmeteredIntervalMs
-      }
+        status.isMetered -> backoff.interval(playbackSettings.syncIntervalMetered)
+        else -> backoff.interval(playbackSettings.syncIntervalUnmetered)
+      }.inWholeMilliseconds
 
       if (elapsed >= interval || skipInterval) {
         ibark { "Starting session sync with $status connection" }
         currentSyncJob = async {
           try {
-            syncLocalSessionsToServer()
+            when (syncLocalSessionsToServer()) {
+              ServerContact.Reached -> backoff.onReachable()
+              ServerContact.Unreachable -> {
+                backoff.onUnreachable()
+                wbark { "Server unreachable; stretching sync interval" }
+              }
+              ServerContact.NotAttempted -> Unit
+            }
           } catch (e: Exception) {
             ebark { "Error syncing local sessions to the server: $e" }
           } finally {
@@ -90,9 +108,9 @@ class NetworkRemoteSessionsUpdater(
     }
   }
 
-  private suspend fun syncLocalSessionsToServer() {
+  private suspend fun syncLocalSessionsToServer(): ServerContact {
     // Read local sessions from db
-    val currentUserId = userSession.userId ?: return
+    val currentUserId = userSession.userId ?: return ServerContact.NotAttempted
 
     // Sessions with an attach in flight are pending: exactly one sync path may ever report
     // a listening interval, so they wait for the attach to resolve to SERVER or LOCAL.
@@ -101,8 +119,13 @@ class NetworkRemoteSessionsUpdater(
 
     val (serverOwned, localOwned) = sessions.partition { it.serverSessionId != null }
 
-    serverOwned.forEach { session -> syncServerSession(session) }
-    syncLocalSessions(localOwned)
+    var contact = ServerContact.NotAttempted
+    for (session in serverOwned) {
+      contact = contact + syncServerSession(session)
+      // One unanswered request is enough: the rest would only queue up more timeouts
+      if (contact == ServerContact.Unreachable) return contact
+    }
+    return contact + syncLocalSessions(localOwned)
   }
 
   /**
@@ -111,12 +134,12 @@ class NetworkRemoteSessionsUpdater(
    * same-device supersession): the row detaches and falls back to the local path — where
    * the watermark ensures only the still-unreported remainder is ever uploaded.
    */
-  private suspend fun syncServerSession(session: Session) {
-    val serverSessionId = session.serverSessionId ?: return
+  private suspend fun syncServerSession(session: Session): ServerContact {
+    val serverSessionId = session.serverSessionId ?: return ServerContact.NotAttempted
     val delta = session.timeListening - session.reportedTimeListening
     val isEnded = session.isFinished || session.isDeleted
 
-    if (delta <= Duration.ZERO && !isEnded) return
+    if (delta <= Duration.ZERO && !isEnded) return ServerContact.NotAttempted
 
     val result = if (isEnded) {
       // Close carries the final delta inline (or an empty body when there is none — a
@@ -157,9 +180,10 @@ class NetworkRemoteSessionsUpdater(
           ebark(error) { "Failed to sync server session $serverSessionId" }
         }
       }
+    return result.serverContact()
   }
 
-  private suspend fun syncLocalSessions(sessions: List<Session>) {
+  private suspend fun syncLocalSessions(sessions: List<Session>): ServerContact {
     // Filter out any with insufficient listening time, counting only what the local path
     // still owes: time already reported through a (now dead) server session must never be
     // re-uploaded — the server sums listening stats across session rows.
@@ -197,9 +221,16 @@ class NetworkRemoteSessionsUpdater(
         .onFailure { t ->
           ebark(t) { "Failed to sync for user" }
         }
+      return result.serverContact()
     } else {
       dbark { "Local sessions empty, skipping sync" }
+      return ServerContact.NotAttempted
     }
+  }
+
+  private fun Result<*>.serverContact(): ServerContact {
+    val error = exceptionOrNull() ?: return ServerContact.Reached
+    return if (error.isServerUnreachable) ServerContact.Unreachable else ServerContact.Reached
   }
 
   private fun Duration.asSecondsDouble(): Double = inWholeMilliseconds / 1000.0

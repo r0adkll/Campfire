@@ -12,7 +12,6 @@ import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.lifecycle.AppLifecycleObserver
-import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
@@ -56,6 +55,7 @@ import com.piasy.kmp.socketio.socketio.Socket
 import com.piasy.kmp.xlog.Logging
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.jordond.connectivity.Connectivity
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -86,11 +86,14 @@ class DefaultSocketManager(
   private val tokenRefresher: TokenRefresher,
   private val appLifecycleObserver: AppLifecycleObserver,
   private val settings: CampfireSettings,
+  private val connectivity: Connectivity,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
   companion object : Corked("DefaultSocketManager") {
     private const val MAX_AUTH_RETRIES = 3
+    private const val RECONNECTION_DELAY_MS = 2_000L
+    private const val RECONNECTION_DELAY_MAX_MS = 60_000L
 
     init {
       // Configure kmp-socketio's xlog backend exactly once per process. The default backend
@@ -157,7 +160,7 @@ class DefaultSocketManager(
   @Volatile
   private var socket: Socket? = null
 
-  /** Foreground/background observer for the currently active socket; cancelled on [stop] so a
+  /** Connection-demand observer for the currently active socket; cancelled on [stop] so a
    * replaced socket's observer can't reopen the stale connection alongside the new one. */
   @Volatile
   private var appLifecycleJob: Job? = null
@@ -177,6 +180,11 @@ class DefaultSocketManager(
 
     val opts = IO.Options().apply {
       this.transports = listOf(WebSocket.NAME)
+      // socket.io defaults to retrying every <=5s forever, which keeps the radio awake while
+      // the server is unreachable (off the home network, server down). Back off to a minute;
+      // regaining the network or foregrounding the app resets the backoff.
+      this.reconnectionDelay = RECONNECTION_DELAY_MS
+      this.reconnectionDelayMax = RECONNECTION_DELAY_MAX_MS
     }
     IO.socket(url, opts) { newSocket ->
       socket = newSocket
@@ -286,26 +294,28 @@ class DefaultSocketManager(
         }
       }
 
-      newSocket.open()
-
+      // No unconditional open(): the demand observer below opens the socket only while the
+      // app is visible and the device has a network, so a process started for background
+      // playback never dials the server.
       appLifecycleJob?.cancel()
       appLifecycleJob = coroutineScope.launch {
-        appLifecycleObserver.state.collectLatest { lifecycleState ->
-          when (lifecycleState) {
-            AppLifecycleState.Background -> {
-              ibark { "App backgrounded; closing socket" }
+        connectionDemand(appLifecycleObserver.state, connectivity).collect { demanded ->
+          if (demanded) {
+            if (!settings.socketEnabled) return@collect
+            if (!newSocket.connected) {
+              ibark { "Socket demanded (foreground + network); opening with a fresh backoff" }
+              _state.value = SocketState.Connecting
+              // close() first resets the manager's reconnect backoff, so regaining the network
+              // or foregrounding the app attempts immediately instead of waiting out a delay
+              // accrued while the server was unreachable.
               newSocket.close()
-              if (_state.value !is SocketState.Disabled) {
-                _state.value = SocketState.Disconnected
-              }
+              newSocket.open()
             }
-            AppLifecycleState.Foreground -> {
-              if (!settings.socketEnabled) return@collectLatest
-              if (!newSocket.connected) {
-                ibark { "App foregrounded; reopening socket" }
-                _state.value = SocketState.Connecting
-                newSocket.open()
-              }
+          } else {
+            ibark { "Socket no longer demanded (background or no network); closing" }
+            newSocket.close()
+            if (_state.value !is SocketState.Disabled) {
+              _state.value = SocketState.Disconnected
             }
           }
         }
