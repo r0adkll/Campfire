@@ -162,10 +162,16 @@ class DefaultSocketManager(
   @Volatile
   private var socket: Socket? = null
 
-  /** Connection-demand observer for the currently active socket; cancelled on [stop] so a
-   * replaced socket's observer can't reopen the stale connection alongside the new one. */
+  /** Connection-demand and reachability observers for the currently active socket; cancelled on
+   * [stop] so a replaced socket's observers can't reopen the stale connection alongside the new
+   * one. */
   @Volatile
-  private var appLifecycleJob: Job? = null
+  private var connectionJob: Job? = null
+
+  /** Whether the active socket is currently demanded (foreground + network); gates reachability
+   * reconnects so a server coming back never opens a socket the app doesn't want. */
+  @Volatile
+  private var socketDemanded: Boolean = false
 
   internal suspend fun start(session: UserSession.LoggedIn) {
     if (accountManager.getToken(session.user.id)?.accessToken == null) {
@@ -302,9 +308,12 @@ class DefaultSocketManager(
       // No unconditional open(): the demand observer below opens the socket only while the
       // app is visible and the device has a network, so a process started for background
       // playback never dials the server.
-      appLifecycleJob?.cancel()
-      appLifecycleJob = coroutineScope.launch {
+      connectionJob?.cancel()
+      connectionJob = coroutineScope.launch {
+        launch { observeReachability(newSocket) }
+
         connectionDemand(appLifecycleObserver.state, connectivity).collect { demanded ->
+          socketDemanded = demanded
           if (demanded) {
             if (!settings.socketEnabled) return@collect
             if (!newSocket.connected) {
@@ -328,9 +337,34 @@ class DefaultSocketManager(
     }
   }
 
+  /**
+   * Tunes [socket]'s reconnect loop to the app-wide [ServerReachability]: while the server is
+   * known to be unreachable every attempt waits the maximum delay, and the moment another path
+   * (an HTTP probe, a network change) finds it reachable again the socket reconnects immediately
+   * instead of waiting out its backoff.
+   */
+  private suspend fun observeReachability(socket: Socket) {
+    reachabilitySignals(serverReachability.status).collect { signal ->
+      when (signal) {
+        ReachabilitySignal.Slow -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MAX_MS)
+        ReachabilitySignal.Fast -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+        ReachabilitySignal.Reconnect -> {
+          socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+          if (socketDemanded && settings.socketEnabled && !socket.connected) {
+            ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
+            _state.value = SocketState.Connecting
+            socket.close()
+            socket.open()
+          }
+        }
+      }
+    }
+  }
+
   internal suspend fun stop() {
-    appLifecycleJob?.cancel()
-    appLifecycleJob = null
+    connectionJob?.cancel()
+    connectionJob = null
+    socketDemanded = false
     val current = socket
     socket = null
     if (current != null) {
