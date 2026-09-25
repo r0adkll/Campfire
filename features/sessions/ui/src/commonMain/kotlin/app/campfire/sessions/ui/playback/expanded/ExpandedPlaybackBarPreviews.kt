@@ -422,6 +422,8 @@ private fun ExpandedPlaybackBarPreview(
               queueState = state.queueState,
               syncState = state.syncUiState,
               playbackHistoryEnabled = state.playbackHistoryEnabled,
+              volumeState = state.volume,
+              outputDeviceState = state.outputDevices,
               onClose = {},
               sharedTransitionScope = this@SharedTransitionLayout,
               animatedVisibilityScope = this,
