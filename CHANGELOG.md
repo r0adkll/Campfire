@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Battery drain while your server is unreachable, such as when you're away from your home network
+- Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
 
 ### Other Notes & Contributions
 

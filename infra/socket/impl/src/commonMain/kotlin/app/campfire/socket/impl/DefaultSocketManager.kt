@@ -15,6 +15,7 @@ import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
+import app.campfire.network.reachability.ServerReachability
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
@@ -87,6 +88,7 @@ class DefaultSocketManager(
   private val appLifecycleObserver: AppLifecycleObserver,
   private val settings: CampfireSettings,
   private val connectivity: Connectivity,
+  private val serverReachability: ServerReachability,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
@@ -211,6 +213,9 @@ class DefaultSocketManager(
         val username = payload?.string("username")
         if (authedUserId != null && username != null) {
           ibark { "Socket authenticated!" }
+          // The handshake proves the server is back — lift any fail-fast on HTTP requests now
+          // rather than waiting for the next probe
+          serverReachability.reportReachable(url)
           _state.value = SocketState.Authenticated(authedUserId, username)
         }
       }
