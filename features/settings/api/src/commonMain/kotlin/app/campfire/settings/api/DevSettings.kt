@@ -34,6 +34,16 @@ interface DevSettings {
   fun observeHlsLargeItemThreshold(): StateFlow<Duration>
 
   /**
+   * Whether Campfire adapts to an unreachable server: failing requests fast instead of waiting
+   * out connect timeouts, slowing the socket's reconnect loop, and backing off playback sync.
+   * Turning it off restores plain network behavior for debugging.
+   * Default: `true`
+   */
+  var adaptToUnreachableServer: Boolean
+
+  fun observeAdaptToUnreachableServer(): StateFlow<Boolean>
+
+  /**
    * Observe the set of package names that have triggered skip-next / skip-previous media button
    * events on Android. Used by developer settings to surface unknown Bluetooth / remote control
    * package names so we can add them to our interception allow-list.

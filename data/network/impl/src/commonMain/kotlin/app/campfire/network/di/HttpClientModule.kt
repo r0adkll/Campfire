@@ -16,6 +16,8 @@ import app.campfire.network.RefreshResponse
 import app.campfire.network.asBearerTokens
 import app.campfire.network.cleanServerUrl
 import app.campfire.network.plugins.suspendingDefaultHeaders
+import app.campfire.network.reachability.ReachabilityGate
+import app.campfire.network.reachability.serverReachabilityPlugin
 import com.livewire.plugin.network.ktor.LivewireNetworkPlugin
 import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
@@ -149,8 +151,11 @@ interface HttpClientModule {
     userSessionManager: UserSessionManager,
     accountManager: AccountManager,
     applicationInfo: ApplicationInfo,
+    reachabilityGate: ReachabilityGate,
   ): HttpClient {
     return baseClient.config {
+      install(serverReachabilityPlugin(reachabilityGate))
+
       install(WebSockets) {
         pingIntervalMillis = 20_000
       }

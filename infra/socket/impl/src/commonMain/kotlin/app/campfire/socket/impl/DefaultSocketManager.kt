@@ -15,7 +15,9 @@ import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
+import app.campfire.network.reachability.ServerReachability
 import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DevSettings
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
 import app.campfire.socket.events.AuthorAdded
@@ -68,6 +70,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -87,6 +90,8 @@ class DefaultSocketManager(
   private val appLifecycleObserver: AppLifecycleObserver,
   private val settings: CampfireSettings,
   private val connectivity: Connectivity,
+  private val serverReachability: ServerReachability,
+  private val devSettings: DevSettings,
   @ForScope(AppScope::class) private val coroutineScope: CoroutineScope,
 ) : SocketManager {
 
@@ -160,10 +165,16 @@ class DefaultSocketManager(
   @Volatile
   private var socket: Socket? = null
 
-  /** Connection-demand observer for the currently active socket; cancelled on [stop] so a
-   * replaced socket's observer can't reopen the stale connection alongside the new one. */
+  /** Connection-demand and reachability observers for the currently active socket; cancelled on
+   * [stop] so a replaced socket's observers can't reopen the stale connection alongside the new
+   * one. */
   @Volatile
-  private var appLifecycleJob: Job? = null
+  private var connectionJob: Job? = null
+
+  /** Whether the active socket is currently demanded (foreground + network); gates reachability
+   * reconnects so a server coming back never opens a socket the app doesn't want. */
+  @Volatile
+  private var socketDemanded: Boolean = false
 
   internal suspend fun start(session: UserSession.LoggedIn) {
     if (accountManager.getToken(session.user.id)?.accessToken == null) {
@@ -211,6 +222,9 @@ class DefaultSocketManager(
         val username = payload?.string("username")
         if (authedUserId != null && username != null) {
           ibark { "Socket authenticated!" }
+          // The handshake proves the server is back — lift any fail-fast on HTTP requests now
+          // rather than waiting for the next probe
+          serverReachability.reportReachable(url)
           _state.value = SocketState.Authenticated(authedUserId, username)
         }
       }
@@ -297,13 +311,20 @@ class DefaultSocketManager(
       // No unconditional open(): the demand observer below opens the socket only while the
       // app is visible and the device has a network, so a process started for background
       // playback never dials the server.
-      appLifecycleJob?.cancel()
-      appLifecycleJob = coroutineScope.launch {
-        connectionDemand(appLifecycleObserver.state, connectivity).collect { demanded ->
+      connectionJob?.cancel()
+      connectionJob = coroutineScope.launch {
+        launch { observeReachability(newSocket) }
+
+        connectionDemand(
+          lifecycle = appLifecycleObserver.state,
+          connectivity = connectivity,
+          inRange = serverReachability.observeInRange(url),
+        ).collect { demanded ->
+          socketDemanded = demanded
           if (demanded) {
             if (!settings.socketEnabled) return@collect
             if (!newSocket.connected) {
-              ibark { "Socket demanded (foreground + network); opening with a fresh backoff" }
+              ibark { "Socket demanded (foreground + network in range); opening with a fresh backoff" }
               _state.value = SocketState.Connecting
               // close() first resets the manager's reconnect backoff, so regaining the network
               // or foregrounding the app attempts immediately instead of waiting out a delay
@@ -312,7 +333,7 @@ class DefaultSocketManager(
               newSocket.open()
             }
           } else {
-            ibark { "Socket no longer demanded (background or no network); closing" }
+            ibark { "Socket no longer demanded (background, no network, or away from home); closing" }
             newSocket.close()
             if (_state.value !is SocketState.Disabled) {
               _state.value = SocketState.Disconnected
@@ -323,9 +344,40 @@ class DefaultSocketManager(
     }
   }
 
+  /**
+   * Tunes [socket]'s reconnect loop to the app-wide [ServerReachability]: while the server is
+   * known to be unreachable every attempt waits the maximum delay, and the moment another path
+   * (an HTTP probe, a network change) finds it reachable again the socket reconnects immediately
+   * instead of waiting out its backoff.
+   */
+  private suspend fun observeReachability(socket: Socket) {
+    combine(
+      reachabilitySignals(serverReachability.status),
+      devSettings.observeAdaptToUnreachableServer(),
+    ) { signal, adapt ->
+      // The developer switch restores plain socket.io backoff
+      if (adapt || signal == ReachabilitySignal.Reconnect) signal else ReachabilitySignal.Fast
+    }.collect { signal ->
+      when (signal) {
+        ReachabilitySignal.Slow -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MAX_MS)
+        ReachabilitySignal.Fast -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+        ReachabilitySignal.Reconnect -> {
+          socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+          if (socketDemanded && settings.socketEnabled && !socket.connected) {
+            ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
+            _state.value = SocketState.Connecting
+            socket.close()
+            socket.open()
+          }
+        }
+      }
+    }
+  }
+
   internal suspend fun stop() {
-    appLifecycleJob?.cancel()
-    appLifecycleJob = null
+    connectionJob?.cancel()
+    connectionJob = null
+    socketDemanded = false
     val current = socket
     socket = null
     if (current != null) {

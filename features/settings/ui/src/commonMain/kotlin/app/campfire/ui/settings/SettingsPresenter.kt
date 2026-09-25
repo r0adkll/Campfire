@@ -32,12 +32,18 @@ import app.campfire.core.model.Media
 import app.campfire.core.model.Server
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
+import app.campfire.core.session.user
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
+import app.campfire.network.reachability.HomeNetworks
+import app.campfire.network.reachability.HomeNetworksState
+import app.campfire.network.reachability.NetworkMonitor
+import app.campfire.network.reachability.ServerReachability
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
+import app.campfire.settings.api.HomeNetworkSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
@@ -98,6 +104,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -130,6 +137,10 @@ class SettingsPresenter(
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
   private val appUpdateSource: AppUpdateSource,
+  private val homeNetworkSettings: HomeNetworkSettings,
+  private val homeNetworks: HomeNetworks,
+  private val serverReachability: ServerReachability,
+  private val networkMonitor: NetworkMonitor,
 ) : NonPausablePresenter<SettingsUiState> {
 
   @Composable
@@ -231,6 +242,13 @@ class SettingsPresenter(
       .collectAsState()
     val socketSyncEnabled by remember { settings.observeSocketEnabled() }
       .collectAsState()
+
+    // Home network Settings
+    val serverUrl = remember { userSession.user?.serverUrl }
+    val pauseAwayFromHome by remember { homeNetworkSettings.observePauseAwayFromHome() }.collectAsState()
+    val homeNetworksState by remember(serverUrl) {
+      serverUrl?.let(homeNetworks::observe) ?: flowOf(HomeNetworksState(isLocalServer = false, networks = emptyList()))
+    }.collectAsState(HomeNetworksState(isLocalServer = false, networks = emptyList()))
     val appUpdateSignInDismissed by remember { settings.observeAppUpdateSignInDismissed() }
       .collectAsState()
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
@@ -251,6 +269,12 @@ class SettingsPresenter(
     val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState()
     val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState()
     val fakeAppUpdateFailDownload by remember { devSettings.observeFakeAppUpdateFailDownload() }.collectAsState()
+    val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState()
+    val reachability by remember { serverReachability.status }.collectAsState()
+    val network by remember { networkMonitor.snapshot }.collectAsState()
+    val inRange by remember(serverUrl) {
+      serverUrl?.let(serverReachability::observeInRange) ?: flowOf(true)
+    }.collectAsState(true)
 
     return SettingsUiState(
       server = server,
@@ -306,6 +330,12 @@ class SettingsPresenter(
         },
       ),
       socketSyncEnabled = socketSyncEnabled,
+      homeNetworkSettings = HomeNetworkSettingsInfo(
+        isAvailable = networkMonitor.isSupported,
+        pauseAwayFromHome = pauseAwayFromHome,
+        isLocalServer = homeNetworksState.isLocalServer,
+        networks = homeNetworksState.networks,
+      ),
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
         analyticReportingEnabled = analyticReportingEnabled,
@@ -325,6 +355,15 @@ class SettingsPresenter(
         fakeAppUpdateSignedIn = fakeAppUpdateSignedIn,
         fakeAppUpdateAvailable = fakeAppUpdateAvailable,
         fakeAppUpdateFailDownload = fakeAppUpdateFailDownload,
+        adaptToUnreachableServer = adaptToUnreachableServer,
+        networkDiagnostics = NetworkDiagnostics(
+          reachability = reachability,
+          inRange = inRange,
+          isLocalServer = homeNetworksState.isLocalServer,
+          network = network,
+          networkSupported = networkMonitor.isSupported,
+          learnedNetworkCount = homeNetworksState.networks.size,
+        ),
       ),
     ) { event ->
       analyticUiEventHandler.handle(event)
@@ -340,6 +379,22 @@ class SettingsPresenter(
 
           is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
             settings.socketEnabled = event.enabled
+          }
+
+          is SettingsUiEvent.AccountSettingEvent.PauseAwayFromHome -> {
+            homeNetworkSettings.pauseAwayFromHome = event.enabled
+          }
+
+          is SettingsUiEvent.AccountSettingEvent.RenameHomeNetwork -> {
+            serverUrl?.let { homeNetworks.rename(it, event.key, event.label) }
+          }
+
+          is SettingsUiEvent.AccountSettingEvent.ForgetHomeNetwork -> {
+            serverUrl?.let { homeNetworks.forget(it, event.key) }
+          }
+
+          SettingsUiEvent.AccountSettingEvent.ForgetAllHomeNetworks -> {
+            serverUrl?.let(homeNetworks::forgetAll)
           }
 
           Logout -> {
@@ -458,6 +513,8 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.sessionAge = event.sessionAge
           is SettingsUiEvent.DeveloperSettingEvent.HlsLargeItemThreshold ->
             devSettings.hlsLargeItemThreshold = event.threshold
+          is SettingsUiEvent.DeveloperSettingEvent.AdaptToUnreachableServer ->
+            devSettings.adaptToUnreachableServer = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
             settings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true

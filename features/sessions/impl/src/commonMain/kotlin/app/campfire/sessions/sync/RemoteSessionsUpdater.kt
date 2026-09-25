@@ -16,6 +16,7 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.isServerUnreachable
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.network.NetworkSessionMapper
+import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
@@ -43,6 +44,7 @@ class NetworkRemoteSessionsUpdater(
   private val connectivity: Connectivity,
   private val fatherTime: FatherTime,
   private val playbackSettings: PlaybackSettings,
+  private val devSettings: DevSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : RemoteSessionsUpdater {
 
@@ -79,12 +81,14 @@ class NetworkRemoteSessionsUpdater(
 
     if (status.isConnected) {
       val elapsed = fatherTime.nowInEpochMillis() - lastSyncTimeMs
-      val interval = when {
-        status.isMetered -> backoff.interval(playbackSettings.syncIntervalMetered)
-        else -> backoff.interval(playbackSettings.syncIntervalUnmetered)
-      }.inWholeMilliseconds
+      val baseInterval = when {
+        status.isMetered -> playbackSettings.syncIntervalMetered
+        else -> playbackSettings.syncIntervalUnmetered
+      }
+      // The developer switch restores the plain cadence for debugging
+      val interval = if (devSettings.adaptToUnreachableServer) backoff.interval(baseInterval) else baseInterval
 
-      if (elapsed >= interval || skipInterval) {
+      if (elapsed >= interval.inWholeMilliseconds || skipInterval) {
         ibark { "Starting session sync with $status connection" }
         currentSyncJob = async {
           try {

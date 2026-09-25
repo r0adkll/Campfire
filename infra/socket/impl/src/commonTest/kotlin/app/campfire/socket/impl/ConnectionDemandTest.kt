@@ -20,10 +20,11 @@ class ConnectionDemandTest {
 
   private val lifecycle = MutableStateFlow(AppLifecycleState.Background)
   private val connectivity = FakeConnectivity(Connectivity.Status.Connected(metered = false))
+  private val inRange = MutableStateFlow(true)
 
   @Test
   fun `a background process never demands the socket`() = runTest {
-    connectionDemand(lifecycle, connectivity).test {
+    connectionDemand(lifecycle, connectivity, inRange).test {
       assertThat(awaitItem()).isFalse()
       expectNoEvents()
     }
@@ -31,7 +32,7 @@ class ConnectionDemandTest {
 
   @Test
   fun `foreground with a network demands the socket`() = runTest {
-    connectionDemand(lifecycle, connectivity).test {
+    connectionDemand(lifecycle, connectivity, inRange).test {
       assertThat(awaitItem()).isFalse()
 
       lifecycle.value = AppLifecycleState.Foreground
@@ -46,7 +47,7 @@ class ConnectionDemandTest {
   fun `losing the network withdraws demand and regaining it restores it`() = runTest {
     lifecycle.value = AppLifecycleState.Foreground
 
-    connectionDemand(lifecycle, connectivity).test {
+    connectionDemand(lifecycle, connectivity, inRange).test {
       assertThat(awaitItem()).isTrue()
 
       connectivity.emit(Connectivity.Status.Disconnected)
@@ -61,12 +62,27 @@ class ConnectionDemandTest {
   fun `capability churn on a live network does not re-trigger demand`() = runTest {
     lifecycle.value = AppLifecycleState.Foreground
 
-    connectionDemand(lifecycle, connectivity).test {
+    connectionDemand(lifecycle, connectivity, inRange).test {
       assertThat(awaitItem()).isTrue()
 
       connectivity.emit(Connectivity.Status.Connected(metered = true))
       connectivity.emit(Connectivity.Status.Connected(metered = false))
       expectNoEvents()
+    }
+  }
+
+  @Test
+  fun `a network that cannot reach the server withdraws demand`() = runTest {
+    lifecycle.value = AppLifecycleState.Foreground
+
+    connectionDemand(lifecycle, connectivity, inRange).test {
+      assertThat(awaitItem()).isTrue()
+
+      inRange.value = false
+      assertThat(awaitItem()).isFalse()
+
+      inRange.value = true
+      assertThat(awaitItem()).isTrue()
     }
   }
 

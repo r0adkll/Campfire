@@ -5,6 +5,7 @@ package app.campfire.network.di
 
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.network.reachability.NetworkMonitor
 import com.r0adkll.kimchi.annotations.ContributesTo
 import dev.jordond.connectivity.Connectivity
 import me.tatarka.inject.annotations.Provides
@@ -14,7 +15,12 @@ interface ConnectivityModule {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideConnectivity(): Connectivity = createConnectivity()
+  fun provideConnectivity(networkMonitor: NetworkMonitor): Connectivity = createConnectivity(networkMonitor)
 }
 
-expect fun createConnectivity(): Connectivity
+/**
+ * Where the platform can describe its network ([NetworkMonitor.isSupported]), connectivity is
+ * derived from [networkMonitor] so one system callback serves both; otherwise the connectivity
+ * library monitors on its own.
+ */
+expect fun createConnectivity(networkMonitor: NetworkMonitor): Connectivity
