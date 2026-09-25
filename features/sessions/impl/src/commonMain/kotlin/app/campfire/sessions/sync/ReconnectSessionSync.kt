@@ -34,9 +34,11 @@ import me.tatarka.inject.annotations.Inject
  *
  * Reachability alone isn't enough to trigger on: it only changes when something makes a request,
  * and with the app in the background nothing does. So regaining the network, or moving back onto
- * a network that can reach a local server, triggers an attempt too. Nothing is spent when there's
- * nothing to upload — the updater skips empty syncs — or when the server still can't be reached,
- * since those requests fail without touching the network.
+ * a network that can reach a local server, triggers an attempt too. An attempt costs nothing while
+ * the server still can't be reached (the request fails without touching the network) or when there
+ * are no sessions to report. An open locally-owned session is re-sent whole on every sync, as the
+ * periodic and pause syncs already do — the server upserts it by id, so a repeat is one idempotent
+ * request per reconnect.
  */
 @ContributesMultibinding(UserScope::class, boundType = Scoped::class)
 @Inject
