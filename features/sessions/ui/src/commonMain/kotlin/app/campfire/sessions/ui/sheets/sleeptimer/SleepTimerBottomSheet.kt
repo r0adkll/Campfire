@@ -8,7 +8,9 @@ import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,7 +22,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
@@ -76,6 +79,9 @@ import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.icons.rounded.Timer
 import app.campfire.common.compose.icons.rounded.TimerOff
 import app.campfire.common.compose.theme.CampfireTheme
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
+import app.campfire.common.compose.widgets.sheets.LocalSheetPresentation
+import app.campfire.common.compose.widgets.sheets.SheetPresentation
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItemId
@@ -93,7 +99,6 @@ import campfire.features.sessions.ui.generated.resources.option_shake_to_reset_t
 import campfire.features.sessions.ui.generated.resources.timer_bottomsheet_title
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -133,14 +138,10 @@ internal suspend fun OverlayHost.showSleepTimerBottomSheet(
   runningTimer: RunningTimer? = null,
 ): TimerResult {
   return show(
-    BottomSheetOverlay<TimerModel, TimerResult>(
+    AdaptiveSheetOverlay<TimerModel, TimerResult>(
       model = runningTimer?.let { TimerModel.Running(it) } ?: TimerModel.None,
       onDismiss = { TimerResult.None },
-      sheetShape = RoundedCornerShape(
-        topStart = 32.dp,
-        topEnd = 32.dp,
-      ),
-      skipPartiallyExpandedState = true,
+      skipPartiallyExpanded = true,
     ) { model, overlayNavigator ->
       Impression {
         ScreenViewEvent("SleepTimer", ScreenType.Overlay)
@@ -161,7 +162,7 @@ internal suspend fun OverlayHost.showSleepTimerBottomSheet(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun TimerBottomSheetV2(
+internal fun TimerBottomSheetV2(
   runningTimer: RunningTimer?,
   modifier: Modifier = Modifier,
   onTimerSelected: (PlaybackTimer) -> Unit,
@@ -172,8 +173,15 @@ private fun TimerBottomSheetV2(
     modifier = modifier,
     title = { Text(stringResource(Res.string.timer_bottomsheet_title)) },
   ) {
+    // This is the tallest of the sheets and none of it shrinks, so give it somewhere to go rather
+    // than letting the action clip off the bottom. `fill = false` keeps the sheet sized to its
+    // content the way it is everywhere else — the scroll only engages once there is more content
+    // than room, which a large font scale can still manage even in the side sheet's two columns.
     AnimatedContent(
       targetState = runningTimer,
+      modifier = Modifier
+        .weight(1f, fill = false)
+        .verticalScroll(rememberScrollState()),
     ) { timer ->
       if (timer != null) {
         ActiveTimerSheetContent(
@@ -226,6 +234,8 @@ private fun InactiveTimerSheetContent(
   onTimerSelected: (PlaybackTimer) -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  val isSideSheet = LocalSheetPresentation.current == SheetPresentation.Side
+
   Column(modifier) {
     var isEpochTimeSelection by remember { mutableStateOf(true) }
 
@@ -235,7 +245,7 @@ private fun InactiveTimerSheetContent(
       modifier = Modifier.padding(horizontal = 24.dp),
     )
 
-    Spacer(Modifier.height(24.dp))
+    Spacer(Modifier.height(if (isSideSheet) 16.dp else 24.dp))
 
     val timerInputState = rememberTimePickerState(
       initialHour = component.sleepSettings.lastSetSleepTimer.inWholeHours.toInt(),
@@ -283,7 +293,7 @@ private fun InactiveTimerSheetContent(
       }
     }
 
-    Spacer(Modifier.height(16.dp))
+    Spacer(Modifier.height(if (isSideSheet) 8.dp else 16.dp))
 
     val isEnabled by remember {
       derivedStateOf {
@@ -393,8 +403,22 @@ private fun EpochTimerContent(
   modifier: Modifier = Modifier,
   timers: List<Int> = DefaultTimers,
 ) {
-  Column(modifier = modifier) {
-    var timeInputCanFocus by remember { mutableStateOf(false) }
+  var timeInputCanFocus by remember { mutableStateOf(false) }
+
+  // This is a hack to prevent the keyboard from showing by default
+  LaunchedEffect(Unit) {
+    delay(300L)
+    timeInputCanFocus = true
+  }
+
+  var sliderValue by remember {
+    val startIndex = timers.indexOfFirst { it.minutes > initialTime }
+      .let { if (it > 0) it - 1 else 0 }
+      .toFloat()
+    mutableFloatStateOf(startIndex)
+  }
+
+  val timeInput: @Composable ColumnScope.() -> Unit = {
     TimeInput(
       state = timeInputState,
       modifier = Modifier
@@ -403,19 +427,9 @@ private fun EpochTimerContent(
           canFocus = timeInputCanFocus
         },
     )
+  }
 
-    // This is a hack to prevent the keyboard from showing by default
-    LaunchedEffect(Unit) {
-      delay(300L)
-      timeInputCanFocus = true
-    }
-
-    var sliderValue by remember {
-      val startIndex = timers.indexOfFirst { it.minutes > initialTime }
-        .let { if (it > 0) it - 1 else 0 }
-        .toFloat()
-      mutableFloatStateOf(startIndex)
-    }
+  val presetSlider: @Composable () -> Unit = {
     Slider(
       value = sliderValue,
       steps = timers.size - 2,
@@ -432,9 +446,9 @@ private fun EpochTimerContent(
           horizontal = 20.dp,
         ),
     )
+  }
 
-    Spacer(Modifier.height(16.dp))
-
+  val shakeOption: @Composable () -> Unit = {
     ListItem(
       headlineContent = { Text(stringResource(Res.string.option_shake_to_reset_title)) },
       supportingContent = { Text(stringResource(Res.string.option_shake_to_reset_subtitle)) },
@@ -453,6 +467,27 @@ private fun EpochTimerContent(
         },
     )
   }
+
+  // A side sheet is short and wide — stacked, this form overflows its height while leaving most of
+  // its width empty. The typed duration and the shake option are independent, so they sit side by
+  // side, and the preset slider keeps the full width underneath both, which it needs to stay
+  // readable. That is enough to bring the action button back on screen.
+  if (LocalSheetPresentation.current == SheetPresentation.Side) {
+    Column(modifier = modifier) {
+      Row {
+        Column(Modifier.weight(1f)) { timeInput() }
+        Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { shakeOption() }
+      }
+      presetSlider()
+    }
+  } else {
+    Column(modifier = modifier) {
+      timeInput()
+      presetSlider()
+      Spacer(Modifier.height(16.dp))
+      shakeOption()
+    }
+  }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -465,7 +500,8 @@ private fun EndOfChapterContent(
     modifier = modifier
       .fillMaxWidth()
       .padding(
-        vertical = 32.dp,
+        // The side sheet has height to spare here — this body is one readout — but not 32dp of it.
+        vertical = if (LocalSheetPresentation.current == SheetPresentation.Side) 16.dp else 32.dp,
         horizontal = 32.dp,
       ),
     verticalArrangement = Arrangement.Center,

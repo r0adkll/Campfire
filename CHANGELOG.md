@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Reworked the full-screen player layout so the cover art stays as large as the screen allows, with more compact transport controls on shorter screens
+- Chapters, bookmarks, speed and the other player controls now open in a panel beside the player when your phone is sideways or your foldable is half-open, instead of a bottom sheet with room for barely two rows
 
 ### Deprecated
 
@@ -23,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
+- The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
+- [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
 
 ### Other Notes & Contributions
 
