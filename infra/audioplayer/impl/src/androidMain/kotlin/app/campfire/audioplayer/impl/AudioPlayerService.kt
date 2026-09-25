@@ -79,10 +79,6 @@ class AudioPlayerService : MediaLibraryService() {
     ComponentHolder.component<AudioPlayerComponent>()
   }
 
-  private val userComponent by lazy {
-    ComponentHolder.component<AudioPlayerUserComponent>()
-  }
-
   override fun onCreate() {
     super.onCreate()
     bark(LogPriority.INFO) { "AudioPlayerService::onCreate()" }
@@ -102,7 +98,13 @@ class AudioPlayerService : MediaLibraryService() {
         serviceScope = serviceScope,
         player = player,
         component = component,
-        userComponent = userComponent,
+        userComponent = {
+          if (component.userSessionManager.current is UserSession.LoggedIn) {
+            ComponentHolder.component<AudioPlayerUserComponent>()
+          } else {
+            null
+          }
+        },
       ),
     )
       .setSessionActivity(

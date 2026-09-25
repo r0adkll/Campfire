@@ -81,16 +81,22 @@ class MediaTree(
   private val androidAutoSettings: AndroidAutoSettings,
 ) {
 
-  val root
-    get() = MediaItem.Builder()
-      .setMediaId(ROOT_ID)
-      .setMediaMetadata(
-        MediaMetadata.Builder()
-          .setIsBrowsable(true)
-          .setIsPlayable(false)
-          .build(),
-      )
-      .build()
+  companion object {
+    /**
+     * The browse root. Static and user-independent, so a browser can always obtain it — even
+     * before anyone signs in, when there's no user component to ask.
+     */
+    val root: MediaItem
+      get() = MediaItem.Builder()
+        .setMediaId(ROOT_ID)
+        .setMediaMetadata(
+          MediaMetadata.Builder()
+            .setIsBrowsable(true)
+            .setIsPlayable(false)
+            .build(),
+        )
+        .build()
+  }
 
   /**
    * Return one page of a parent's children. The full child list is loaded (and cached)
