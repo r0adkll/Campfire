@@ -45,6 +45,11 @@ internal fun ConnectionPane(
       leadingContent = { Icon(CampfireIcons.Rounded.Sync, contentDescription = null) },
     )
 
+    CustomHeaderSettings(
+      headers = state.customHeaders,
+      onEvent = state.eventSink,
+    )
+
     if (state.homeNetworkSettings.isAvailable) {
       HomeNetworkSettings(
         info = state.homeNetworkSettings,

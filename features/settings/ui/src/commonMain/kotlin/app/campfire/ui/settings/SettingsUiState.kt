@@ -38,6 +38,8 @@ data class SettingsUiState(
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
   val socketSyncEnabled: Boolean,
+  /** Extra headers sent with every request to the server, e.g. for reverse-proxy auth. */
+  val customHeaders: Map<String, String>,
   val homeNetworkSettings: HomeNetworkSettingsInfo,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
@@ -215,6 +217,10 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class RenameHomeNetwork(val key: String, val label: String) : ConnectionSettingEvent
     data class ForgetHomeNetwork(val key: String) : ConnectionSettingEvent
     data object ForgetAllHomeNetworks : ConnectionSettingEvent
+
+    /** Adds or edits a header; [originalName] is the header being edited, if any. */
+    data class SaveHeader(val originalName: String?, val name: String, val value: String) : ConnectionSettingEvent
+    data class RemoveHeader(val name: String) : ConnectionSettingEvent
   }
 
   sealed interface AppearanceSettingEvent : SettingsUiEvent {

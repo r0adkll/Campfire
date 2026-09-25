@@ -246,6 +246,10 @@ class SettingsPresenter(
     // Home network Settings
     val serverUrl = remember { userSession.user?.serverUrl }
     val pauseAwayFromHome by remember { homeNetworkSettings.observePauseAwayFromHome() }.collectAsState()
+    val userId = remember { userSession.user?.id }
+    val customHeaders by remember(userId) {
+      userId?.let(accountManager::observeExtraHeaders) ?: flowOf(emptyMap())
+    }.collectAsState(emptyMap())
     val homeNetworksState by remember(serverUrl) {
       serverUrl?.let(homeNetworks::observe) ?: flowOf(HomeNetworksState(isLocalServer = false, networks = emptyList()))
     }.collectAsState(HomeNetworksState(isLocalServer = false, networks = emptyList()))
@@ -330,6 +334,7 @@ class SettingsPresenter(
         },
       ),
       socketSyncEnabled = socketSyncEnabled,
+      customHeaders = customHeaders,
       homeNetworkSettings = HomeNetworkSettingsInfo(
         isAvailable = networkMonitor.isSupported,
         pauseAwayFromHome = pauseAwayFromHome,
@@ -401,6 +406,17 @@ class SettingsPresenter(
 
           SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> {
             serverUrl?.let(homeNetworks::forgetAll)
+          }
+
+          is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> {
+            val id = userId ?: return@SettingsUiState
+            val updated = customHeaders.withHeader(event.originalName, event.name, event.value)
+            scope.launch { accountManager.setExtraHeaders(id, updated) }
+          }
+
+          is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> {
+            val id = userId ?: return@SettingsUiState
+            scope.launch { accountManager.setExtraHeaders(id, customHeaders - event.name) }
           }
         }
 

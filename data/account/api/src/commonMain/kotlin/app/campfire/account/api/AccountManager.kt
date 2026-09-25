@@ -6,6 +6,7 @@ package app.campfire.account.api
 import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
+import kotlinx.coroutines.flow.Flow
 
 /**
  * The interface by which the entire application accesses all the stored/authorized accounts and servicers
@@ -67,4 +68,14 @@ interface AccountManager {
    * @return a map of extra headers to send
    */
   suspend fun getExtraHeaders(userId: UserId): Map<String, String>?
+
+  /**
+   * Replace the extra headers sent with every request for [userId]. An empty map removes them.
+   * Takes effect on the next request; observers of [observeExtraHeaders] (e.g. the socket) are
+   * notified so they can reconnect with the new headers.
+   */
+  suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>)
+
+  /** The extra headers for [userId], re-emitting whenever they change. */
+  fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>>
 }
