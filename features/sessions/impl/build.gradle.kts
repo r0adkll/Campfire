@@ -37,6 +37,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.impl)
       }
     }
   }

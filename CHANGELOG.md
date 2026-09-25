@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Listening progress recorded while your server was unreachable uploads as soon as it can be reached again, instead of waiting for your next play or pause
 - Reworked the full-screen player layout so the cover art stays as large as the screen allows, with more compact transport controls on shorter screens
 
 ### Deprecated
