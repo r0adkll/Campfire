@@ -131,6 +131,7 @@ data class SettingsScreen(
   enum class Page {
     Root,
     Account,
+    Connection,
     Appearance,
     Downloads,
     Playback,

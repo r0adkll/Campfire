@@ -64,16 +64,19 @@ class SettingsAnalyticUiEventHandler(
 
     is SettingsUiEvent.AccountSettingEvent -> when (event) {
       is ChangeName -> send("account_name", Updated)
-      is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
+      Logout -> send("logout", Click)
+    }
+
+    is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
+      is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }
-      is SettingsUiEvent.AccountSettingEvent.PauseAwayFromHome -> {
+      is SettingsUiEvent.ConnectionSettingEvent.PauseAwayFromHome -> {
         send("pause_away_from_home", Updated, event.enabled)
       }
-      is SettingsUiEvent.AccountSettingEvent.RenameHomeNetwork -> send("home_network", Updated)
-      is SettingsUiEvent.AccountSettingEvent.ForgetHomeNetwork -> send("home_network", Deleted)
-      SettingsUiEvent.AccountSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
-      Logout -> send("logout", Click)
+      is SettingsUiEvent.ConnectionSettingEvent.RenameHomeNetwork -> send("home_network", Updated)
+      is SettingsUiEvent.ConnectionSettingEvent.ForgetHomeNetwork -> send("home_network", Deleted)
+      SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
     }
 
     is SettingsUiEvent.AppearanceSettingEvent -> when (event) {

@@ -10,26 +10,21 @@ import androidx.compose.ui.Modifier
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Dns
 import app.campfire.common.compose.icons.rounded.Logout
-import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.core.coroutines.onLoaded
 import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
-import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TextFieldSetting
 import campfire.features.settings.ui.generated.resources.Res
 import campfire.features.settings.ui.generated.resources.setting_account_dialog_label
 import campfire.features.settings.ui.generated.resources.setting_account_dialog_title
 import campfire.features.settings.ui.generated.resources.setting_account_logout
 import campfire.features.settings.ui.generated.resources.setting_account_name_subtitle
-import campfire.features.settings.ui.generated.resources.setting_account_realtime_sync_header
 import campfire.features.settings.ui.generated.resources.setting_account_server_appearance_title
 import campfire.features.settings.ui.generated.resources.setting_account_server_title
 import campfire.features.settings.ui.generated.resources.setting_account_server_url
 import campfire.features.settings.ui.generated.resources.setting_account_server_version
-import campfire.features.settings.ui.generated.resources.setting_account_socket_sync_subtitle
-import campfire.features.settings.ui.generated.resources.setting_account_socket_sync_title
 import campfire.features.settings.ui.generated.resources.setting_account_title
 import org.jetbrains.compose.resources.stringResource
 
@@ -72,27 +67,6 @@ internal fun AccountPane(
       ActionSetting(
         headlineContent = { Text(stringResource(Res.string.setting_account_server_version)) },
         supportingContent = { Text(server.settings.version) },
-      )
-    }
-
-    Header(
-      title = { Text(stringResource(Res.string.setting_account_realtime_sync_header)) },
-    )
-
-    SwitchSetting(
-      value = state.socketSyncEnabled,
-      onValueChange = {
-        state.eventSink(SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled(it))
-      },
-      headlineContent = { Text(stringResource(Res.string.setting_account_socket_sync_title)) },
-      supportingContent = { Text(stringResource(Res.string.setting_account_socket_sync_subtitle)) },
-      leadingContent = { Icon(CampfireIcons.Rounded.Sync, contentDescription = null) },
-    )
-
-    if (state.homeNetworkSettings.isAvailable) {
-      HomeNetworkSettings(
-        info = state.homeNetworkSettings,
-        onEvent = state.eventSink,
       )
     }
 

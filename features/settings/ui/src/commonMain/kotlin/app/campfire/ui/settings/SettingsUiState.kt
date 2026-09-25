@@ -174,6 +174,7 @@ data class NetworkDiagnostics(
 
 enum class SettingsPane {
   Account,
+  Connection,
   Appearance,
   Downloads,
   Playback,
@@ -185,6 +186,7 @@ enum class SettingsPane {
 
   val screenPage: SettingsScreen.Page get() = when (this) {
     Account -> SettingsScreen.Page.Account
+    Connection -> SettingsScreen.Page.Connection
     Appearance -> SettingsScreen.Page.Appearance
     Downloads -> SettingsScreen.Page.Downloads
     Playback -> SettingsScreen.Page.Playback
@@ -203,15 +205,18 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Account Pane Events
   sealed interface AccountSettingEvent : SettingsUiEvent {
     data class ChangeName(val name: String) : AccountSettingEvent
-    data class SocketSyncEnabled(val enabled: Boolean) : AccountSettingEvent
-    data class PauseAwayFromHome(val enabled: Boolean) : AccountSettingEvent
-    data class RenameHomeNetwork(val key: String, val label: String) : AccountSettingEvent
-    data class ForgetHomeNetwork(val key: String) : AccountSettingEvent
-    data object ForgetAllHomeNetworks : AccountSettingEvent
     data object Logout : AccountSettingEvent
   }
 
   // Appearance Pane Events
+  sealed interface ConnectionSettingEvent : SettingsUiEvent {
+    data class SocketSyncEnabled(val enabled: Boolean) : ConnectionSettingEvent
+    data class PauseAwayFromHome(val enabled: Boolean) : ConnectionSettingEvent
+    data class RenameHomeNetwork(val key: String, val label: String) : ConnectionSettingEvent
+    data class ForgetHomeNetwork(val key: String) : ConnectionSettingEvent
+    data object ForgetAllHomeNetworks : ConnectionSettingEvent
+  }
+
   sealed interface AppearanceSettingEvent : SettingsUiEvent {
     data class Theme(val themeMode: ThemeMode) : AppearanceSettingEvent
     data class DynamicItemDetailTheming(val enabled: Boolean) : AppearanceSettingEvent

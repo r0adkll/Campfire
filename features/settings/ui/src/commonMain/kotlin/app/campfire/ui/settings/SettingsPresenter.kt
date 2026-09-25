@@ -377,28 +377,30 @@ class SettingsPresenter(
             scope.launch { serverRepository.changeName(event.name) }
           }
 
-          is SettingsUiEvent.AccountSettingEvent.SocketSyncEnabled -> {
+          Logout -> {
+            scope.launch { accountManager.logout(server.dataOrNull!!) }
+          }
+        }
+
+        is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
+          is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
             settings.socketEnabled = event.enabled
           }
 
-          is SettingsUiEvent.AccountSettingEvent.PauseAwayFromHome -> {
+          is SettingsUiEvent.ConnectionSettingEvent.PauseAwayFromHome -> {
             homeNetworkSettings.pauseAwayFromHome = event.enabled
           }
 
-          is SettingsUiEvent.AccountSettingEvent.RenameHomeNetwork -> {
+          is SettingsUiEvent.ConnectionSettingEvent.RenameHomeNetwork -> {
             serverUrl?.let { homeNetworks.rename(it, event.key, event.label) }
           }
 
-          is SettingsUiEvent.AccountSettingEvent.ForgetHomeNetwork -> {
+          is SettingsUiEvent.ConnectionSettingEvent.ForgetHomeNetwork -> {
             serverUrl?.let { homeNetworks.forget(it, event.key) }
           }
 
-          SettingsUiEvent.AccountSettingEvent.ForgetAllHomeNetworks -> {
+          SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> {
             serverUrl?.let(homeNetworks::forgetAll)
-          }
-
-          Logout -> {
-            scope.launch { accountManager.logout(server.dataOrNull!!) }
           }
         }
 
