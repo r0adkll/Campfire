@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.campfire.common.compose.widgets.sheets.LocalSheetPresentation
+import app.campfire.common.compose.widgets.sheets.SheetPresentation
 
 internal val SessionSheetTitleHeight = 56.dp
 
@@ -63,7 +65,10 @@ internal fun SessionSheetLayout(
       // FIXME: Having this here is a hack to make the scrolling color change
       //  work with this setup. We should hoist this and apply the color to the actual
       //  component we hand to the bottom sheet
-      if (state != null) {
+      //
+      //  Only the bottom sheet has an edge to be dragged from; a side panel is dismissed by
+      //  swiping the panel itself, and a centred card not at all, so neither shows a handle.
+      if (state != null && LocalSheetPresentation.current == SheetPresentation.Bottom) {
         BottomSheetDefaults.DragHandle(
           modifier = Modifier.align(Alignment.CenterHorizontally),
         )

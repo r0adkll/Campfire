@@ -29,6 +29,7 @@
       android:exported="true"
       android:theme="@style/Theme.Campfire.Home"
       android:launchMode="singleTop"
+      android:windowSoftInputMode="adjustResize"
       >
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -43,6 +42,7 @@ import app.campfire.common.compose.extensions.clockFormat
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.BookRibbon
 import app.campfire.common.compose.icons.rounded.Timer
+import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.seconds
@@ -54,7 +54,6 @@ import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.chapters_bottomsheet_title
 import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
-import com.slack.circuitx.overlays.BottomSheetOverlay
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface ChapterResult {
@@ -79,19 +78,14 @@ suspend fun OverlayHost.showChapterBottomSheet(
   playbackSpeed: Float = 1f,
 ): ChapterResult {
   return show(
-    BottomSheetOverlay<ChapterSheetModel, ChapterResult>(
+    AdaptiveSheetOverlay<ChapterSheetModel, ChapterResult>(
       model = ChapterSheetModel(
         chapters = chapters,
         currentChapter = currentChapter,
         playbackSpeed = playbackSpeed,
       ),
       onDismiss = { ChapterResult.None },
-      sheetShape = RoundedCornerShape(
-        topStart = 32.dp,
-        topEnd = 32.dp,
-      ),
-      dragHandle = {
-      },
+      contentDrawsDragHandle = true,
     ) { model, overlayNavigator ->
       Impression {
         ScreenViewEvent("Chapters", ScreenType.Overlay)
