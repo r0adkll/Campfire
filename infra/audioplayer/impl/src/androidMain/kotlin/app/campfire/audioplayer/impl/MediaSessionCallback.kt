@@ -21,6 +21,7 @@ import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import app.campfire.audioplayer.impl.browse.BrowseMediaId
+import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.browse.SuspendingMediaLibrarySessionCallback
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.core.logging.LogPriority
@@ -40,7 +41,13 @@ internal class MediaSessionCallback(
   private val serviceScope: CoroutineScope,
   private val player: ExoPlayerAudioPlayer,
   private val component: AudioPlayerComponent,
-  private val userComponent: AudioPlayerUserComponent,
+  /**
+   * The signed-in user's component, resolved on every call: the service outlives sessions (it can
+   * start before sign-in, for media resumption or Android Auto) and the UserComponent is rebuilt
+   * on every session change, so a component captured at service creation goes stale. Null while
+   * nobody is signed in.
+   */
+  private val userComponent: () -> AudioPlayerUserComponent?,
 ) : SuspendingMediaLibrarySessionCallback(serviceScope) {
 
   private val cycleSpeedCommand = SessionCommand(WidgetSessionCommand.CYCLE_SPEED, Bundle.EMPTY)
@@ -132,8 +139,9 @@ internal class MediaSessionCallback(
     // an exception escaping here would leave the freshly started foreground service without a
     // notification and Android would kill the process.
     try {
-      userComponent.sessionsRepository.getCurrentSession()?.let { session ->
-        userComponent.playbackSessionManager.startSession(
+      val user = userComponent()
+      user?.sessionsRepository?.getCurrentSession()?.let { session ->
+        user.playbackSessionManager.startSession(
           libraryItemId = session.libraryItem.id,
           playImmediately = isForPlayback,
           episodeId = session.episodeId,
@@ -203,7 +211,7 @@ internal class MediaSessionCallback(
     // the main thread on this result (see SuspendingMediaLibrarySessionCallback). The root
     // is a static item, so it can be built synchronously.
     return try {
-      Futures.immediateFuture(LibraryResult.ofItem(userComponent.mediaTree.root, params))
+      Futures.immediateFuture(LibraryResult.ofItem(MediaTree.root, params))
     } catch (e: Exception) {
       bark(LogPriority.ERROR, throwable = e) { "onGetLibraryRoot: ${browser.uid}" }
       Futures.immediateFuture(LibraryResult.ofError(SessionError.ERROR_BAD_VALUE))
@@ -218,7 +226,8 @@ internal class MediaSessionCallback(
     pageSize: Int,
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
-    val children = userComponent.mediaTree.getChildren(parentId, page, pageSize)
+    val user = userComponent() ?: return notSignedIn()
+    val children = user.mediaTree.getChildren(parentId, page, pageSize)
     // An empty page past the first is a valid end-of-pagination signal, not an error.
     if (children.isNotEmpty() || page > 0) {
       return LibraryResult.ofItemList(children, params)
@@ -231,7 +240,8 @@ internal class MediaSessionCallback(
     browser: MediaSession.ControllerInfo,
     mediaId: String,
   ): LibraryResult<MediaItem> {
-    userComponent.mediaTree.getItem(mediaId)?.let {
+    val user = userComponent() ?: return notSignedIn()
+    user.mediaTree.getItem(mediaId)?.let {
       return LibraryResult.ofItem(it, null)
     }
     return LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
@@ -243,7 +253,8 @@ internal class MediaSessionCallback(
     query: String,
     params: LibraryParams?,
   ): LibraryResult<Void> {
-    val results = userComponent.mediaTree.search(query)
+    val user = userComponent() ?: return notSignedIn()
+    val results = user.mediaTree.search(query)
     session.notifySearchResultChanged(browser, query, results.size, params)
     return LibraryResult.ofVoid()
   }
@@ -256,7 +267,8 @@ internal class MediaSessionCallback(
     pageSize: Int,
     params: LibraryParams?,
   ): LibraryResult<ImmutableList<MediaItem>> {
-    return userComponent.mediaTree.getSearchResults(query, page, pageSize).let {
+    val user = userComponent() ?: return notSignedIn()
+    return user.mediaTree.getSearchResults(query, page, pageSize).let {
       LibraryResult.ofItemList(it, params)
     }
   }
@@ -281,7 +293,8 @@ internal class MediaSessionCallback(
         // Podcast episode entries from the media tree encode their episode id into the
         // mediaId, so decode it to start the session against the right episode.
         val browseId = BrowseMediaId.decode(mediaItems.first().mediaId)
-        userComponent.playbackSessionManager.startSession(
+        val user = userComponent() ?: error("Can't start playback without a signed-in user")
+        user.playbackSessionManager.startSession(
           libraryItemId = browseId.libraryItemId,
           episodeId = browseId.episodeId,
         )
@@ -302,9 +315,10 @@ internal class MediaSessionCallback(
     startIndex: Int,
     startPositionMs: Long,
   ): MediaSession.MediaItemsWithStartPosition {
+    val user = userComponent() ?: error("Can't resolve media items without a signed-in user")
     val resolvedItems = mediaItems.flatMap { item ->
       if (item.localConfiguration == null) {
-        userComponent.mediaTree.resolveMediaItem(item.mediaId)
+        user.mediaTree.resolveMediaItem(item.mediaId)
       } else {
         listOf(item)
       }
@@ -316,6 +330,14 @@ internal class MediaSessionCallback(
       error("Media items contain an unplayable item!")
     }
   }
+
+  /**
+   * Browsing asks for user data; without a signed-in user, tell the browser to prompt for sign-in
+   * rather than failing. Once someone signs in, the service invalidates the tree and the browser
+   * re-queries.
+   */
+  private fun <V : Any> notSignedIn(): LibraryResult<V> =
+    LibraryResult.ofError<V>(SessionError.ERROR_SESSION_AUTHENTICATION_EXPIRED)
 
   private fun createCustomLayoutCommandButtons(): List<CommandButton> {
     val skipBackIcon = when (component.playbackSettings.backwardTimeMs) {
