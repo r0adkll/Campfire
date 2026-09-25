@@ -5,6 +5,8 @@ package app.campfire.ui.settings.panes
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -21,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import app.campfire.common.compose.extensions.timeAgo
 import app.campfire.common.compose.icons.CampfireIcons
@@ -224,6 +227,9 @@ private fun RenameNetworkDialog(
         onValueChange = { text = it },
         label = { Text(stringResource(Res.string.setting_connection_home_network_rename_label)) },
         singleLine = true,
+        // The keyboard can cover the dialog buttons (e.g. in landscape), so Done confirms too
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onConfirm(text.text) }),
       )
     },
     confirmButton = {
