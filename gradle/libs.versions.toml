@@ -246,9 +246,6 @@ ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.re
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 ktor-client-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 connectivity-core = { module = "dev.jordond.connectivity:connectivity-core", version.ref = "connectivity" }
-connectivity-android = { module = "dev.jordond.connectivity:connectivity-android", version.ref = "connectivity" }
-connectivity-apple = { module = "dev.jordond.connectivity:connectivity-apple", version.ref = "connectivity" }
-connectivity-http = { module = "dev.jordond.connectivity:connectivity-http", version.ref = "connectivity" }
 kmp-xlog-api = "com.piasy:kmp-xlog-api:1.5.0"
 kotlinx-io-bytestring = "org.jetbrains.kotlinx:kotlinx-io-bytestring:0.9.1"
 kotlinx-io-core = "org.jetbrains.kotlinx:kotlinx-io-core:0.9.1"

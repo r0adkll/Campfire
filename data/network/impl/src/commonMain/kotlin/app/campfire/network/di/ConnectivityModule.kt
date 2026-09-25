@@ -8,19 +8,30 @@ import app.campfire.core.di.SingleIn
 import app.campfire.network.reachability.NetworkMonitor
 import com.r0adkll.kimchi.annotations.ContributesTo
 import dev.jordond.connectivity.Connectivity
+import dev.jordond.connectivity.asProvider
+import kotlinx.coroutines.flow.map
 import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
 interface ConnectivityModule {
 
+  /**
+   * Connectivity is derived from each platform's [NetworkMonitor], so one system monitor serves
+   * both — and no platform asks the network whether it's online (the library's desktop provider
+   * did that by requesting public websites).
+   */
   @SingleIn(AppScope::class)
   @Provides
-  fun provideConnectivity(networkMonitor: NetworkMonitor): Connectivity = createConnectivity(networkMonitor)
+  fun provideConnectivity(networkMonitor: NetworkMonitor): Connectivity {
+    val statuses = networkMonitor.snapshot.map { snapshot ->
+      if (snapshot.connected) {
+        Connectivity.Status.Connected(metered = snapshot.metered)
+      } else {
+        Connectivity.Status.Disconnected
+      }
+    }
+    return Connectivity(provider = statuses.asProvider()) {
+      autoStart = true
+    }
+  }
 }
-
-/**
- * Where the platform can describe its network ([NetworkMonitor.isSupported]), connectivity is
- * derived from [networkMonitor] so one system callback serves both; otherwise the connectivity
- * library monitors on its own.
- */
-expect fun createConnectivity(networkMonitor: NetworkMonitor): Connectivity
