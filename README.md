@@ -21,6 +21,16 @@
 <a href="https://appdistribution.firebase.dev/i/14b078b4670cc57e"><img width=200 src=".github/art/badge_firebase_alpha.png" /></a>
 <a href="https://appdistribution.firebase.dev/i/6021e2e24ae35f4c"><img width=200 src=".github/art/badge_firebase_beta.png" /></a>
 
+### Desktop
+
+Install via Homebrew:
+
+```shell
+brew install r0adkll/tap/campfire
+```
+
+or for Linux/Windows check out the [latest release](https://github.com/r0adkll/Campfire/releases/latest)
+
 ## Setup
 
 - [OIDC Setup](docs/oidc_setup.md) — configure the `campfireaudiobooks://oauth` redirect URI in Audiobookshelf
