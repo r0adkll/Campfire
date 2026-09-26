@@ -54,7 +54,6 @@
   <string name="setting_connection_home_networks_header">Home networks</string>
   <string name="setting_connection_home_networks_empty">Campfire remembers the networks where it reaches your server. Networks show up here after you connect from them.</string>
   <string name="setting_connection_home_network_current">Connected now</string>
-  <string name="setting_connection_home_network_gateway">gateway %1$s</string>
   <string name="setting_connection_home_network_last_seen">last seen %1$s</string>
   <string name="setting_connection_home_network_wifi">Wi-Fi</string>
   <string name="setting_connection_home_network_ethernet">Ethernet</string>
