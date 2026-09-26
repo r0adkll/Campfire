@@ -111,6 +111,54 @@ class LocalRouteTest {
     assertThat(verdict(ServerLocality.Private, snapshot)).isEqualTo(RouteVerdict.Allow)
   }
 
+  @Test
+  fun `a local server is skipped while the local network permission is missing`() {
+    assertThat(
+      routeVerdict(
+        ServerLocality.Private,
+        wifi(),
+        isSupported = true,
+        learned = setOf(home),
+        localNetworkBlocked = true,
+      ),
+    ).isEqualTo(RouteVerdict.Skip)
+  }
+
+  @Test
+  fun `the permission gate applies even where networks can't be described`() {
+    assertThat(
+      routeVerdict(
+        ServerLocality.Private,
+        wifi(),
+        isSupported = false,
+        learned = emptySet(),
+        localNetworkBlocked = true,
+      ),
+    ).isEqualTo(RouteVerdict.Skip)
+  }
+
+  @Test
+  fun `a VPN or a public server is unaffected by the permission`() {
+    assertThat(
+      routeVerdict(
+        ServerLocality.Private,
+        cellular(vpn = true),
+        isSupported = true,
+        learned = setOf(home),
+        localNetworkBlocked = true,
+      ),
+    ).isEqualTo(RouteVerdict.Allow)
+    assertThat(
+      routeVerdict(
+        ServerLocality.Public,
+        wifi(),
+        isSupported = true,
+        learned = setOf(home),
+        localNetworkBlocked = true,
+      ),
+    ).isEqualTo(RouteVerdict.Allow)
+  }
+
   private fun verdict(locality: ServerLocality, network: NetworkSnapshot) =
     routeVerdict(locality, network, isSupported = true, learned = setOf(home))
 

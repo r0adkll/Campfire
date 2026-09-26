@@ -40,6 +40,8 @@ data class SettingsUiState(
   val socketSyncEnabled: Boolean,
   /** Extra headers sent with every request to the server, e.g. for reverse-proxy auth. */
   val customHeaders: Map<String, String>,
+  /** Set while the OS is blocking the local server for lack of the local network permission. */
+  val localNetworkAccess: LocalNetworkAccess?,
   val homeNetworkSettings: HomeNetworkSettingsInfo,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
@@ -50,6 +52,14 @@ data class SettingsUiState(
   val developerSettings: DeveloperSettingsInfo,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
+
+enum class LocalNetworkAccess {
+  /** Not granted yet; asking will show the system prompt. */
+  Missing,
+
+  /** Asking didn't grant it (possibly a permanent denial); only system settings can now. */
+  Denied,
+}
 
 @Immutable
 data class HomeNetworkSettingsInfo(
@@ -172,6 +182,7 @@ data class NetworkDiagnostics(
   val network: NetworkSnapshot,
   val networkSupported: Boolean,
   val learnedNetworkCount: Int,
+  val localNetworkPermissionMissing: Boolean,
 )
 
 enum class SettingsPane {
@@ -221,6 +232,8 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     /** Adds or edits a header; [originalName] is the header being edited, if any. */
     data class SaveHeader(val originalName: String?, val name: String, val value: String) : ConnectionSettingEvent
     data class RemoveHeader(val name: String) : ConnectionSettingEvent
+    data object AllowLocalNetwork : ConnectionSettingEvent
+    data object OpenAppSettings : ConnectionSettingEvent
   }
 
   sealed interface AppearanceSettingEvent : SettingsUiEvent {

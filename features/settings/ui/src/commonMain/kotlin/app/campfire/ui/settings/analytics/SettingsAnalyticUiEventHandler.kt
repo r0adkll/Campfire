@@ -79,6 +79,8 @@ class SettingsAnalyticUiEventHandler(
       SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
       is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> send("custom_header", Updated)
       is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> send("custom_header", Deleted)
+      SettingsUiEvent.ConnectionSettingEvent.AllowLocalNetwork -> send("local_network_permission", Click)
+      SettingsUiEvent.ConnectionSettingEvent.OpenAppSettings -> send("app_settings", Click)
     }
 
     is SettingsUiEvent.AppearanceSettingEvent -> when (event) {

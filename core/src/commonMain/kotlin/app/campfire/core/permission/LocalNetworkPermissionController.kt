@@ -3,6 +3,9 @@
 
 package app.campfire.core.permission
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+
 /**
  * Gates access to the platform's "local network" permission (Android 17+ Local Network
  * Protection). Campfire talks to self-hosted Audiobookshelf servers that frequently live on the
@@ -39,4 +42,16 @@ interface LocalNetworkPermissionController {
    * resolves immediately without UI. Returns `true` when access is available afterwards.
    */
   suspend fun request(): Boolean = true
+
+  /**
+   * [isPermissionMissing] as a stream, re-checked whenever it may have changed: after a request
+   * and when the app returns to the foreground (the user may have granted it in system settings).
+   */
+  fun observePermissionMissing(): Flow<Boolean> = flowOf(isPermissionMissing())
+
+  /**
+   * Opens the system settings page for this app, where a permanently denied permission can still
+   * be granted. No-op on platforms without the gate.
+   */
+  fun openSettings() = Unit
 }

@@ -17,7 +17,8 @@ internal enum class RouteVerdict {
 
 /**
  * Decides whether [network] can reach a server of [locality], given the fingerprints of the
- * networks it has been reached from before ([learned]).
+ * networks it has been reached from before ([learned]) and whether the platform is blocking
+ * local network traffic for lack of a permission ([localNetworkBlocked]).
  *
  * Every uncertain case resolves to [RouteVerdict.Allow] — the cost of guessing wrong there is only
  * today's behavior (fail fast, periodic probe), whereas a wrong [RouteVerdict.Skip] would hide a
@@ -28,10 +29,15 @@ internal fun routeVerdict(
   network: NetworkSnapshot,
   isSupported: Boolean,
   learned: Set<NetworkFingerprint>,
+  localNetworkBlocked: Boolean = false,
 ): RouteVerdict {
-  if (locality == ServerLocality.Public || !isSupported) return RouteVerdict.Allow
+  if (locality == ServerLocality.Public) return RouteVerdict.Allow
   // A VPN can carry traffic into the home network from anywhere
   if (network.hasVpn) return RouteVerdict.Allow
+  // The OS drops LAN traffic outright without the local network permission (Android 17+), so
+  // every attempt would only wait out a connect timeout
+  if (locality == ServerLocality.Private && localNetworkBlocked) return RouteVerdict.Skip
+  if (!isSupported) return RouteVerdict.Allow
   if (locality == ServerLocality.VpnOnly) return RouteVerdict.Skip
 
   // A private address is unreachable over cellular without a VPN

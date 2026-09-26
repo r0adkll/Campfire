@@ -4,11 +4,17 @@
 package app.campfire.android.permission
 
 import android.app.Application
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
+import app.campfire.core.di.qualifier.ForScope
+import app.campfire.core.lifecycle.AppLifecycleObserver
+import app.campfire.core.lifecycle.AppLifecycleState
 import app.campfire.core.logging.bark
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.permission.extractUrlHost
@@ -17,6 +23,12 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.UnknownHostException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -34,10 +46,36 @@ class AndroidLocalNetworkPermissionController(
   private val application: Application,
   private val launcher: LocalNetworkPermissionLauncher,
   private val dispatcherProvider: DispatcherProvider,
+  appLifecycleObserver: AppLifecycleObserver,
+  @ForScope(AppScope::class) scope: CoroutineScope,
 ) : LocalNetworkPermissionController {
 
   private val mutex = Mutex()
   private var requestedThisSession = false
+
+  private val missing = MutableStateFlow(isPermissionMissing())
+
+  init {
+    // The permission can be granted from system settings while the app is backgrounded
+    scope.launch {
+      appLifecycleObserver.state
+        .filter { it == AppLifecycleState.Foreground }
+        .collect { refreshMissing() }
+    }
+  }
+
+  override fun observePermissionMissing(): Flow<Boolean> = missing.asStateFlow()
+
+  override fun openSettings() {
+    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+      .setData(Uri.fromParts("package", application.packageName, null))
+      .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    application.startActivity(intent)
+  }
+
+  private fun refreshMissing() {
+    missing.value = isPermissionMissing()
+  }
 
   override suspend fun requestIfNeeded(serverUrl: String): Boolean {
     // LNP only applies on Android 17+; older versions have no such gate.
@@ -56,6 +94,7 @@ class AndroidLocalNetworkPermissionController(
 
     val granted = launcher.launch(ACCESS_LOCAL_NETWORK).getOrDefault(false)
     bark { "ACCESS_LOCAL_NETWORK permission ${if (granted) "granted" else "denied"}" }
+    refreshMissing()
     return granted
   }
 
@@ -77,6 +116,7 @@ class AndroidLocalNetworkPermissionController(
 
     val granted = launcher.launch(ACCESS_LOCAL_NETWORK).getOrDefault(false)
     bark { "ACCESS_LOCAL_NETWORK permission ${if (granted) "granted" else "denied"} (explicit request)" }
+    refreshMissing()
     return granted
   }
 

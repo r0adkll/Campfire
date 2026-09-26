@@ -3,10 +3,12 @@
 
 package app.campfire.network.reachability
 
+import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.test.FakeDevSettings
 import app.campfire.settings.test.FakeHomeNetworkSettings
 import dev.jordond.connectivity.Connectivity
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -19,6 +21,7 @@ internal fun reachability(
   monitor: NetworkMonitor = FakeNetworkMonitor(supported = false),
   homeNetworkSettings: FakeHomeNetworkSettings = FakeHomeNetworkSettings(),
   devSettings: FakeDevSettings = FakeDevSettings(),
+  localNetworkPermission: FakeLocalNetworkPermission = FakeLocalNetworkPermission(),
   time: FakeFatherTime = FakeFatherTime(),
 ): DefaultServerReachability = DefaultServerReachability(
   connectivity = connectivity,
@@ -26,8 +29,17 @@ internal fun reachability(
   homeNetworks = HomeNetworkStore(homeNetworkSettings, monitor, time),
   homeNetworkSettings = homeNetworkSettings,
   devSettings = devSettings,
+  localNetworkPermission = localNetworkPermission,
   fatherTime = time,
 )
+
+internal class FakeLocalNetworkPermission(missing: Boolean = false) : LocalNetworkPermissionController {
+  val missing = MutableStateFlow(missing)
+
+  override suspend fun requestIfNeeded(serverUrl: String): Boolean = !missing.value
+  override fun isPermissionMissing(): Boolean = missing.value
+  override fun observePermissionMissing(): Flow<Boolean> = missing
+}
 
 internal class FakeFatherTime(var nowMillis: Long = 1_000_000L) : FatherTime {
   override fun now(): LocalDateTime = error("unused")
