@@ -60,7 +60,7 @@ class ReconnectSessionSync(
         inRange = serverReachability.observeInRange(serverUrl),
         online = connectivity.statusUpdates.map { it.isConnected },
       ).collect {
-        ibark { "Server reachable again; syncing sessions recorded while away" }
+        ibark { "Server may be reachable again; syncing sessions recorded while away" }
         try {
           remoteSessionsUpdater.update(skipInterval = true)
         } catch (e: CancellationException) {
