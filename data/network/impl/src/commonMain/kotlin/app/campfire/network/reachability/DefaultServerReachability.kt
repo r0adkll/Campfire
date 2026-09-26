@@ -9,11 +9,12 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.HomeNetworkSettings
+import app.campfire.settings.api.LocalServerSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
 import io.ktor.http.Url
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +24,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import me.tatarka.inject.annotations.Inject
 
+/**
+ * Tracks whether the signed-in user's server can be reached, per network connection.
+ *
+ * Any response proves the server reachable. A connection-level failure marks it unreachable for
+ * the current connection: requests then fail without touching the network, except for one real
+ * attempt after each step of [RETRY_SCHEDULE] (30s, 1m, 2m, 5m, then every 10m). Joining a
+ * network — any network, including rejoining the same one — starts fresh. This covers both a
+ * server that's down while you're home (it's found again within minutes) and being somewhere it
+ * can't be reached (a handful of cheap attempts an hour), without having to tell them apart.
+ *
+ * Some networks can't reach a local server at all; [routeVerdict] decides those, and nothing is
+ * attempted on them ([Reachability.OutOfRange]).
+ */
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, boundType = ServerReachability::class)
 @ContributesBinding(AppScope::class, boundType = ReachabilityGate::class)
@@ -30,8 +44,7 @@ import me.tatarka.inject.annotations.Inject
 class DefaultServerReachability(
   private val connectivity: Connectivity,
   private val networkMonitor: NetworkMonitor,
-  private val homeNetworks: HomeNetworkLearner,
-  private val homeNetworkSettings: HomeNetworkSettings,
+  private val localServerSettings: LocalServerSettings,
   private val devSettings: DevSettings,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val fatherTime: FatherTime,
@@ -45,58 +58,56 @@ class DefaultServerReachability(
   private val _status = MutableStateFlow(Reachability.Unknown)
   override val status: StateFlow<Reachability> = _status.asStateFlow()
 
-  /** The network an away-from-home probe was already spent on, per server origin. */
-  private val probedNetworks = MutableStateFlow<Map<String, Any?>>(emptyMap())
-
   override fun reportReachable(serverUrl: String) {
     reachable(serverOrigin(serverUrl))
   }
 
   override fun observeInRange(serverUrl: String): Flow<Boolean> {
-    val origin = serverOrigin(serverUrl)
     val locality = ServerLocality.of(serverUrl)
     return combine(
       networkMonitor.snapshot,
-      homeNetworkSettings.observePauseAwayFromHome(),
-      homeNetworkSettings.observeLearnedHomeNetworks(),
+      localServerSettings.observeAvoidMobileData(),
       localNetworkPermission.observePermissionMissing(),
-    ) { snapshot, pause, _, blocked ->
+    ) { snapshot, avoidMobileData, blocked ->
       routeVerdict(
         locality = locality,
         network = snapshot,
-        isSupported = networkMonitor.isSupported && pause,
-        learned = homeNetworks.learned(origin),
+        isSupported = networkMonitor.isSupported,
+        avoidMobileData = avoidMobileData,
         localNetworkBlocked = blocked,
       ) == RouteVerdict.Allow
     }.distinctUntilChanged()
   }
 
+  override fun isLocalServer(serverUrl: String): Boolean =
+    ServerLocality.of(serverUrl) != ServerLocality.Public
+
   override fun reachable(origin: String) {
     publish(Belief(origin = origin, status = Reachability.Reachable))
-    if (ServerLocality.of(origin) == ServerLocality.Private) {
-      homeNetworks.learn(origin, networkMonitor.snapshot.value)
-    }
   }
 
   override fun unreachable(origin: String) {
+    val network = currentNetwork()
     val previous = belief.value
-    val outOfRange = verdict(origin) == RouteVerdict.ProbeOnce
-    val status = if (outOfRange) Reachability.OutOfRange else Reachability.Unreachable
+    val failures = if (
+      previous.origin == origin &&
+      previous.status == Reachability.Unreachable &&
+      previous.network == network
+    ) {
+      previous.failures + 1
+    } else {
+      1
+    }
     publish(
       Belief(
         origin = origin,
-        status = status,
+        status = Reachability.Unreachable,
         checkedAtMs = fatherTime.nowInEpochMillis(),
-        network = currentNetwork(),
+        network = network,
+        failures = failures,
       ),
     )
-    if (previous.status != status || previous.origin != origin) {
-      if (outOfRange) {
-        wbark { "Server not reachable from this network; pausing requests until the network changes" }
-      } else {
-        wbark { "Server unreachable; failing fast and probing every $PROBE_INTERVAL" }
-      }
-    }
+    wbark { "Server unreachable ($failures in a row); next attempt in ${retryDelay(failures)}" }
   }
 
   override fun shouldFailFast(origin: String): Boolean {
@@ -105,7 +116,6 @@ class DefaultServerReachability(
         markOutOfRange(origin)
         true
       }
-      RouteVerdict.ProbeOnce -> !claimProbe(origin)
       RouteVerdict.Allow -> devSettings.adaptToUnreachableServer && failFastWhileUnreachable(origin)
     }
   }
@@ -113,32 +123,10 @@ class DefaultServerReachability(
   private fun verdict(origin: String): RouteVerdict = routeVerdict(
     locality = ServerLocality.of(origin),
     network = networkMonitor.snapshot.value,
-    // With the away-from-home setting off, only the permission gate still applies
-    isSupported = networkMonitor.isSupported && homeNetworkSettings.pauseAwayFromHome,
-    learned = homeNetworks.learned(origin),
+    isSupported = networkMonitor.isSupported,
+    avoidMobileData = localServerSettings.avoidMobileData,
     localNetworkBlocked = localNetworkPermission.isPermissionMissing(),
   )
-
-  /**
-   * On an unfamiliar network, lets exactly one request per network through to find out whether
-   * it reaches the server (a second home, a replaced router). Once spent, requests stay off the
-   * network until it changes — or the probe succeeds, which learns the network and turns the
-   * verdict to Allow.
-   */
-  private fun claimProbe(origin: String): Boolean {
-    val network = currentNetwork()
-    while (true) {
-      val probed = probedNetworks.value
-      if (origin in probed && probed[origin] == network) {
-        if (belief.value.status != Reachability.Reachable) markOutOfRange(origin)
-        return false
-      }
-      if (probedNetworks.compareAndSet(probed, probed + (origin to network))) {
-        ibark { "Unfamiliar network for a local server; probing once" }
-        return true
-      }
-    }
-  }
 
   private fun markOutOfRange(origin: String) {
     val current = belief.value
@@ -156,15 +144,14 @@ class DefaultServerReachability(
 
   /**
    * Whether a request to [origin] should fail without touching the network because the server
-   * is known to be unreachable. False whenever it isn't, the device changed networks since it
-   * was, or a probe is due — in which case exactly one caller claims the probe and the rest keep
+   * was unreachable on this connection. False when it wasn't, the device changed connections since,
+   * or the next retry is due — in which case exactly one caller claims it and the rest keep
    * failing fast.
    */
   private fun failFastWhileUnreachable(origin: String): Boolean {
     while (true) {
       val current = belief.value
-      val known = current.status == Reachability.Unreachable || current.status == Reachability.OutOfRange
-      if (!known || current.origin != origin) return false
+      if (current.status != Reachability.Unreachable || current.origin != origin) return false
 
       if (currentNetwork() != current.network) {
         ibark { "Network changed since the server was unreachable; retrying" }
@@ -176,9 +163,9 @@ class DefaultServerReachability(
       }
 
       val now = fatherTime.nowInEpochMillis()
-      if (now - current.checkedAtMs < PROBE_INTERVAL.inWholeMilliseconds) return true
+      if (now - current.checkedAtMs < retryDelay(current.failures).inWholeMilliseconds) return true
 
-      // Probe due: claim it by restarting the window so concurrent callers keep failing fast
+      // Retry due: claim it by restarting the window so concurrent callers keep failing fast
       if (belief.compareAndSet(current, current.copy(checkedAtMs = now))) return false
     }
   }
@@ -189,8 +176,8 @@ class DefaultServerReachability(
   }
 
   /**
-   * Identifies the current network: the monitor's snapshot where the platform can describe it
-   * (so moving between two Wi-Fi networks counts as a change), else connectivity status.
+   * Identifies the current network connection: the monitor's snapshot where the platform can
+   * describe it (its id changes on every join), else connectivity status.
    */
   private fun currentNetwork(): Any? = if (networkMonitor.isSupported) {
     networkMonitor.snapshot.value
@@ -203,10 +190,15 @@ class DefaultServerReachability(
     val status: Reachability = Reachability.Unknown,
     val checkedAtMs: Long = 0L,
     val network: Any? = null,
+    val failures: Int = 0,
   )
 
   companion object {
-    val PROBE_INTERVAL: Duration = 30.seconds
+    /** How long to wait before the next real attempt after each consecutive failure. */
+    val RETRY_SCHEDULE: List<Duration> = listOf(30.seconds, 1.minutes, 2.minutes, 5.minutes, 10.minutes)
+
+    internal fun retryDelay(failures: Int): Duration =
+      RETRY_SCHEDULE[(failures - 1).coerceIn(0, RETRY_SCHEDULE.lastIndex)]
   }
 }
 

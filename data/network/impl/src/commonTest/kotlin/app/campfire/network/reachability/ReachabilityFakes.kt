@@ -6,7 +6,7 @@ package app.campfire.network.reachability
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.test.FakeDevSettings
-import app.campfire.settings.test.FakeHomeNetworkSettings
+import app.campfire.settings.test.FakeLocalServerSettings
 import dev.jordond.connectivity.Connectivity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,15 +19,14 @@ import kotlinx.datetime.LocalDateTime
 internal fun reachability(
   connectivity: Connectivity = FakeConnectivity(Connectivity.Status.Connected(metered = false)),
   monitor: NetworkMonitor = FakeNetworkMonitor(supported = false),
-  homeNetworkSettings: FakeHomeNetworkSettings = FakeHomeNetworkSettings(),
+  localServerSettings: FakeLocalServerSettings = FakeLocalServerSettings(),
   devSettings: FakeDevSettings = FakeDevSettings(),
   localNetworkPermission: FakeLocalNetworkPermission = FakeLocalNetworkPermission(),
   time: FakeFatherTime = FakeFatherTime(),
 ): DefaultServerReachability = DefaultServerReachability(
   connectivity = connectivity,
   networkMonitor = monitor,
-  homeNetworks = HomeNetworkStore(homeNetworkSettings, monitor, time),
-  homeNetworkSettings = homeNetworkSettings,
+  localServerSettings = localServerSettings,
   devSettings = devSettings,
   localNetworkPermission = localNetworkPermission,
   fatherTime = time,
@@ -76,6 +75,7 @@ internal fun wifi(
   subnet: String = "192.168.1.0/24",
   gateway: String? = "192.168.1.1",
   vpn: Boolean = false,
+  id: Long = 1L,
 ) = NetworkSnapshot(
   connected = true,
   metered = false,
@@ -85,6 +85,7 @@ internal fun wifi(
   },
   fingerprint = NetworkFingerprint(subnet, gateway),
   domain = null,
+  id = id,
 )
 
 internal fun cellular(vpn: Boolean = false) = NetworkSnapshot(
