@@ -77,6 +77,7 @@ import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackRat
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.RemoteNextPrevSkipsChapters
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ResumeRewindRange
+import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.ScrollingTitles
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.StreamingMethodChanged
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.SyncIntervalMetered
@@ -186,6 +187,7 @@ class SettingsPresenter(
     }.collectAsState()
     val bookTimeInPlaybackUi by remember { playbackSettings.observeBookTimeInPlaybackUi() }.collectAsState()
     val playbackWavyScrubber by remember { playbackSettings.observePlaybackWavyScrubber() }.collectAsState()
+    val scrollingTitles by remember { playbackSettings.observeScrollingTitles() }.collectAsState()
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -316,6 +318,7 @@ class SettingsPresenter(
         autoRewindStopAtChapterBoundary = autoRewindStopAtChapterBoundary,
         bookTimeInPlaybackUi = bookTimeInPlaybackUi,
         playbackWavyScrubber = playbackWavyScrubber,
+        scrollingTitles = scrollingTitles,
       ),
       sleepSettings = SleepSettingsInfo(
         shakeToReset = shakeToResetEnabled,
@@ -485,6 +488,7 @@ class SettingsPresenter(
             playbackSettings.autoRewindStopAtChapterBoundary = event.enabled
           is BookTimeInPlaybackUi -> playbackSettings.bookTimeInPlaybackUi = event.enabled
           is PlaybackWavyScrubber -> playbackSettings.playbackWavyScrubber = event.enabled
+          is ScrollingTitles -> playbackSettings.scrollingTitles = event.enabled
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {

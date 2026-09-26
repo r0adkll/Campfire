@@ -45,6 +45,7 @@ data class PlayerUiState(
   val bookTimeEnabled: Boolean,
   val duration: Duration,
   val wavySliderEnabled: Boolean,
+  val scrollingTitlesEnabled: Boolean,
   val metadata: Metadata,
   val state: AudioPlayer.State,
   val speed: Float,

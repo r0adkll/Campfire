@@ -135,4 +135,12 @@ class FakePlaybackSettings : PlaybackSettings {
 
   override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
     _playbackWavyScrubber.asStateFlow()
+
+  private val _scrollingTitles = MutableStateFlow(true)
+  override var scrollingTitles: Boolean
+    get() = _scrollingTitles.value
+    set(value) { _scrollingTitles.value = value }
+
+  override fun observeScrollingTitles(): StateFlow<Boolean> =
+    _scrollingTitles.asStateFlow()
 }

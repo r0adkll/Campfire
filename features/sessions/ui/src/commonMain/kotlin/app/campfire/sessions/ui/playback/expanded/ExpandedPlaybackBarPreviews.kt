@@ -486,6 +486,7 @@ private fun previewState(
     bookTimeEnabled = false,
     duration = 38.minutes,
     wavySliderEnabled = false,
+    scrollingTitlesEnabled = true,
     metadata = Metadata(title = "Chapter 7: Embers"),
     state = AudioPlayer.State.Playing,
     speed = 1f,
@@ -713,6 +714,8 @@ internal class PreviewPlaybackSettings : PlaybackSettings {
   override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> = MutableStateFlow(bookTimeInPlaybackUi)
   override var playbackWavyScrubber = false
   override fun observePlaybackWavyScrubber(): StateFlow<Boolean> = MutableStateFlow(playbackWavyScrubber)
+  override var scrollingTitles = true
+  override fun observeScrollingTitles(): StateFlow<Boolean> = MutableStateFlow(scrollingTitles)
 }
 
 // endregion

@@ -143,6 +143,13 @@ interface PlaybackSettings {
    */
   var playbackWavyScrubber: Boolean
   fun observePlaybackWavyScrubber(): StateFlow<Boolean>
+
+  /**
+   * When true, chapter and book titles too long for the player scroll a few times; otherwise they
+   * are ellipsized.
+   */
+  var scrollingTitles: Boolean
+  fun observeScrollingTitles(): StateFlow<Boolean>
 }
 
 /** The configurable bounds for the metered/unmetered listening-sync intervals. */
