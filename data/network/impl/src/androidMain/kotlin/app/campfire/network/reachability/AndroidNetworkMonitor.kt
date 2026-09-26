@@ -43,16 +43,20 @@ class AndroidNetworkMonitor(
   private var capabilities: NetworkCapabilities? = null
   private var linkProperties: LinkProperties? = null
 
+  // The platform's handle for the current connection: a new one for every join, even of the
+  // same network, which is exactly the lifetime reachability is judged over
+  private var networkHandle: Long = 0L
+
   private val _snapshot = MutableStateFlow(initialSnapshot())
   override val snapshot: StateFlow<NetworkSnapshot> = _snapshot.asStateFlow()
 
   private val callback = object : ConnectivityManager.NetworkCallback() {
     override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-      update(caps = networkCapabilities)
+      update(network, caps = networkCapabilities)
     }
 
     override fun onLinkPropertiesChanged(network: Network, linkProperties: LinkProperties) {
-      update(link = linkProperties)
+      update(network, link = linkProperties)
     }
 
     override fun onLost(network: Network) {
@@ -73,13 +77,21 @@ class AndroidNetworkMonitor(
     val network = manager?.activeNetwork ?: return NetworkSnapshot.Disconnected
     capabilities = manager.getNetworkCapabilities(network)
     linkProperties = manager.getLinkProperties(network)
+    networkHandle = network.networkHandle
     return snapshotOf(capabilities, linkProperties)
   }
 
   private fun update(
+    network: Network,
     caps: NetworkCapabilities? = null,
     link: LinkProperties? = null,
   ) = synchronized(this) {
+    if (network.networkHandle != networkHandle) {
+      // A new default network: drop the previous one's properties rather than mixing them in
+      networkHandle = network.networkHandle
+      capabilities = null
+      linkProperties = null
+    }
     if (caps != null) capabilities = caps
     if (link != null) linkProperties = link
     val next = snapshotOf(capabilities, linkProperties)
@@ -109,6 +121,7 @@ class AndroidNetworkMonitor(
       transports = transports,
       fingerprint = if (isLocal) link?.fingerprint() else null,
       domain = if (isLocal) link?.domains?.takeIf { it.isNotBlank() } else null,
+      id = networkHandle,
     )
   }
 }

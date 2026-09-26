@@ -52,9 +52,9 @@ internal fun ConnectionPane(
       leadingContent = { Icon(CampfireIcons.Rounded.Sync, contentDescription = null) },
     )
 
-    if (state.homeNetworkSettings.isAvailable) {
-      HomeNetworkSettings(
-        info = state.homeNetworkSettings,
+    if (state.homeServerSettings.isVisible) {
+      HomeServerSettings(
+        avoidMobileData = state.homeServerSettings.avoidMobileData,
         onEvent = state.eventSink,
       )
     }

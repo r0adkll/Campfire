@@ -14,8 +14,8 @@ import kotlinx.coroutines.flow.StateFlow
  * unreachable.
  *
  * While unreachable, requests to the server fail fast instead of each waiting out a connect
- * timeout, with a periodic probe let through to notice the server's return. A network change
- * clears the belief so the new network gets a fresh attempt.
+ * timeout, with real attempts let through at growing intervals (30s up to 10m) to notice the
+ * server's return. Joining a network — even rejoining the same one — starts fresh.
  */
 interface ServerReachability {
 
@@ -25,11 +25,16 @@ interface ServerReachability {
   fun reportReachable(serverUrl: String)
 
   /**
-   * Whether the current network is one the server at [serverUrl] can be reached from. False
-   * only for a local server while away from home (see [Reachability.OutOfRange]); the socket
-   * stays closed until it flips back.
+   * Whether the current network can reach the server at [serverUrl] at all. False only when it
+   * certainly can't (see [Reachability.OutOfRange]); the socket stays closed until it flips back.
    */
   fun observeInRange(serverUrl: String): Flow<Boolean>
+
+  /**
+   * Whether [serverUrl] has a local address (e.g. `192.168.x.x`, `*.local`, Tailscale), judged
+   * from the address alone — the servers the mobile-data and local-network rules apply to.
+   */
+  fun isLocalServer(serverUrl: String): Boolean
 }
 
 enum class Reachability {
@@ -39,8 +44,8 @@ enum class Reachability {
   Unreachable,
 
   /**
-   * A local server (e.g. `192.168.x.x`) and a network that can't reach it — cellular only, or a
-   * Wi-Fi network it has never been reached from. Nothing is attempted until the network changes.
+   * A local server (e.g. `192.168.x.x`) and a network that can't reach it — mobile data only, or
+   * Android's local network permission missing. Nothing is attempted until that changes.
    */
   OutOfRange,
 }

@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.onStart
 /**
  * Whether the realtime socket should be connected: only while the app is visible, the device
  * has a network, AND that network can reach the server ([inRange] — false for a local server
- * while away from home). Socket events only refresh on-screen data, so there is nothing to gain
+ * over mobile data). Socket events only refresh on-screen data, so there is nothing to gain
  * from dialing the server in the background or with no route to it — and socket.io's reconnect
  * loop would otherwise keep the radio awake the whole time.
  *

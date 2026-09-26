@@ -49,14 +49,14 @@ class ServerReachabilityTest {
     assertThat(reachability.status.value).isEqualTo(Reachability.Unreachable)
     assertThat(reachability.shouldFailFast(server)).isTrue()
 
-    time.nowMillis += (DefaultServerReachability.PROBE_INTERVAL - 1.seconds).inWholeMilliseconds
+    time.nowMillis += (DefaultServerReachability.retryDelay(1) - 1.seconds).inWholeMilliseconds
     assertThat(reachability.shouldFailFast(server)).isTrue()
   }
 
   @Test
   fun `a due probe lets exactly one request through`() {
     reachability.unreachable(server)
-    time.nowMillis += DefaultServerReachability.PROBE_INTERVAL.inWholeMilliseconds
+    time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
 
     assertThat(reachability.shouldFailFast(server)).isFalse()
     assertThat(reachability.shouldFailFast(server)).isTrue()
@@ -108,7 +108,7 @@ class ServerReachabilityTest {
   @Test
   fun `plugin treats any response as reachable`() = runTest {
     reachability.unreachable(server)
-    time.nowMillis += DefaultServerReachability.PROBE_INTERVAL.inWholeMilliseconds
+    time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
     val client = client()
 
     client.get("https://abs.example.com/api/me")

@@ -13,9 +13,9 @@ internal enum class ReachabilitySignal {
   Fast,
 
   /**
-   * The server is known to be unreachable: wait the maximum delay between attempts. The socket
-   * keeps retrying rather than stopping — HTTP only probes when something makes a request, so
-   * the socket's attempts are what notice the server's return while the app sits idle.
+   * The server is known to be unreachable: space attempts out, growing from one minute to ten.
+   * The socket keeps retrying rather than stopping — HTTP only retries when something makes a
+   * request, so the socket's attempts are what notice the server's return while the app sits idle.
    */
   Slow,
 

@@ -71,12 +71,9 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }
-      is SettingsUiEvent.ConnectionSettingEvent.PauseAwayFromHome -> {
-        send("pause_away_from_home", Updated, event.enabled)
+      is SettingsUiEvent.ConnectionSettingEvent.AvoidMobileData -> {
+        send("avoid_mobile_data", Updated, event.enabled)
       }
-      is SettingsUiEvent.ConnectionSettingEvent.RenameHomeNetwork -> send("home_network", Updated)
-      is SettingsUiEvent.ConnectionSettingEvent.ForgetHomeNetwork -> send("home_network", Deleted)
-      SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
       is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> send("custom_header", Updated)
       is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> send("custom_header", Deleted)
       SettingsUiEvent.ConnectionSettingEvent.AllowLocalNetwork -> send("local_network_permission", Click)

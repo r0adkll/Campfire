@@ -5,7 +5,7 @@
   <string name="setting_account_title">Account</string>
   <string name="setting_account_subtitle">Name, tent, and other campsite settings</string>
   <string name="setting_connection_title">Connection</string>
-  <string name="setting_connection_subtitle">Live updates and staying quiet away from home</string>
+  <string name="setting_connection_subtitle">Live updates, your home server, and custom headers</string>
   <string name="setting_appearance_title">Appearance</string>
   <string name="setting_appearance_subtitle">Theme, look and feel</string>
   <string name="setting_downloads_title">Downloads</string>
@@ -40,6 +40,9 @@
   <string name="setting_connection_local_network_denied">Local network access is turned off for Campfire. Turn it on in the app's settings to reach your server on your home network.</string>
   <string name="setting_connection_local_network_allow">Allow</string>
   <string name="setting_connection_local_network_open_settings">Open settings</string>
+  <string name="setting_connection_home_server_header">Home server</string>
+  <string name="setting_connection_avoid_mobile_title">Don't use mobile data for your home server</string>
+  <string name="setting_connection_avoid_mobile_subtitle">Your server has a local address, which can't be reached over mobile data. Campfire won't try until you're back on Wi-Fi or a VPN. Downloaded books keep playing and your listening syncs when you're back.</string>
   <string name="setting_connection_headers_header">Custom headers</string>
   <string name="setting_connection_headers_description">Sent with every request to your server, such as a token for a reverse proxy or access gateway in front of it.</string>
   <string name="setting_connection_headers_empty">No custom headers</string>
@@ -53,21 +56,6 @@
   <string name="setting_connection_headers_error_invalid_name">Header names can only use letters, numbers, and - _ . ! # $ % &amp; ' * + ^ ` | ~</string>
   <string name="setting_connection_headers_error_missing_value">Enter a value</string>
   <string name="setting_connection_headers_error_invalid_value">Values must be a single line</string>
-  <string name="setting_connection_away_header">Away from home</string>
-  <string name="setting_connection_pause_away_title">Pause when away from home</string>
-  <string name="setting_connection_pause_away_subtitle">Stop trying to reach a server on your home network while you're on mobile data or a network that has never reached it. Downloaded books keep playing and your listening syncs when you're back.</string>
-  <string name="setting_connection_home_networks_header">Home networks</string>
-  <string name="setting_connection_home_networks_empty">Campfire remembers the networks where it reaches your server. Networks show up here after you connect from them.</string>
-  <string name="setting_connection_home_network_current">Connected now</string>
-  <string name="setting_connection_home_network_last_seen">last seen %1$s</string>
-  <string name="setting_connection_home_network_wifi">Wi-Fi</string>
-  <string name="setting_connection_home_network_ethernet">Ethernet</string>
-  <string name="setting_connection_home_network_options">Network options</string>
-  <string name="setting_connection_home_network_rename">Rename</string>
-  <string name="setting_connection_home_network_forget">Forget</string>
-  <string name="setting_connection_home_network_rename_title">Rename network</string>
-  <string name="setting_connection_home_network_rename_label">Name</string>
-  <string name="setting_connection_home_networks_forget_all">Forget all home networks</string>
 
   <!-- Appearance setting strings -->
   <string name="header_appearance_overall">Application</string>
