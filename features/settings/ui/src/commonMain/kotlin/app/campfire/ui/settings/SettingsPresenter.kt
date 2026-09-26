@@ -43,7 +43,7 @@ import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.LocalServerSettings
+import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
@@ -137,7 +137,7 @@ class SettingsPresenter(
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
   private val appUpdateSource: AppUpdateSource,
-  private val localServerSettings: LocalServerSettings,
+  private val mobileDataSettings: MobileDataSettings,
   private val serverReachability: ServerReachability,
   private val networkMonitor: NetworkMonitor,
   private val localNetworkPermission: LocalNetworkPermissionController,
@@ -246,7 +246,8 @@ class SettingsPresenter(
     // Connection Settings
     val serverUrl = remember { userSession.user?.serverUrl }
     val isLocalServer = remember(serverUrl) { serverUrl?.let(serverReachability::isLocalServer) ?: false }
-    val avoidMobileData by remember { localServerSettings.observeAvoidMobileData() }.collectAsState()
+    val homeServerOnMobileData by remember { mobileDataSettings.observeHomeServerOnMobileData() }.collectAsState()
+    val downloadOnWifiOnly by remember { mobileDataSettings.observeDownloadOnWifiOnly() }.collectAsState()
     val userId = remember { userSession.user?.id }
     val customHeaders by remember(userId) {
       userId?.let(accountManager::observeExtraHeaders) ?: flowOf(emptyMap())
@@ -295,6 +296,8 @@ class SettingsPresenter(
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
+        isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
+        downloadOnWifiOnly = downloadOnWifiOnly,
         downloads = downloadEntries,
       ),
       playbackSettings = PlaybackSettingsInfo(
@@ -343,7 +346,7 @@ class SettingsPresenter(
       },
       homeServerSettings = HomeServerSettingsInfo(
         isVisible = networkMonitor.isSupported && isLocalServer,
-        avoidMobileData = avoidMobileData,
+        homeServerOnMobileData = homeServerOnMobileData,
       ),
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
@@ -396,8 +399,8 @@ class SettingsPresenter(
             settings.socketEnabled = event.enabled
           }
 
-          is SettingsUiEvent.ConnectionSettingEvent.AvoidMobileData -> {
-            localServerSettings.avoidMobileData = event.enabled
+          is SettingsUiEvent.ConnectionSettingEvent.HomeServerOnMobileData -> {
+            mobileDataSettings.homeServerOnMobileData = event.enabled
           }
 
           is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> {
@@ -430,6 +433,9 @@ class SettingsPresenter(
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
           is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
+          is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
+            mobileDataSettings.downloadOnWifiOnly = event.enabled
+          }
           is DownloadClicked -> navigator.goTo(
             LibraryItemScreen(
               libraryItemId = event.entry.libraryItem.id,

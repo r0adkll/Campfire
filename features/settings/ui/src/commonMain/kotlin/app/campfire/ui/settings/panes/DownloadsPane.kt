@@ -69,6 +69,8 @@ import campfire.features.settings.ui.generated.resources.action_stop_download
 import campfire.features.settings.ui.generated.resources.download_header_downloads
 import campfire.features.settings.ui.generated.resources.label_confirm_download_delete
 import campfire.features.settings.ui.generated.resources.label_confirm_download_stop
+import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_description
+import campfire.features.settings.ui.generated.resources.setting_download_on_wifi_only_title
 import campfire.features.settings.ui.generated.resources.setting_downloads_title
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_description
 import campfire.features.settings.ui.generated.resources.setting_show_download_confirmation_title
@@ -91,6 +93,15 @@ internal fun DownloadsPane(
       headlineContent = { Text(stringResource(Res.string.setting_show_download_confirmation_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_show_download_confirmation_description)) },
     )
+
+    if (state.downloadsSettings.isWifiOnlyAvailable) {
+      SwitchSetting(
+        value = state.downloadsSettings.downloadOnWifiOnly,
+        onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly(it)) },
+        headlineContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_title)) },
+        supportingContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_description)) },
+      )
+    }
 
     Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
 

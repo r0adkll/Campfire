@@ -71,8 +71,8 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
         send("socket_sync", Updated, event.enabled)
       }
-      is SettingsUiEvent.ConnectionSettingEvent.AvoidMobileData -> {
-        send("avoid_mobile_data", Updated, event.enabled)
+      is SettingsUiEvent.ConnectionSettingEvent.HomeServerOnMobileData -> {
+        send("home_server_on_mobile_data", Updated, event.enabled)
       }
       is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> send("custom_header", Updated)
       is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> send("custom_header", Deleted)
@@ -90,6 +90,9 @@ class SettingsAnalyticUiEventHandler(
 
     is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
       is ShowDownloadConfirmation -> send("show_confirm_download", Updated, event.enabled.toString())
+      is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
+        send("download_on_wifi_only", Updated, event.enabled.toString())
+      }
       is DeleteDownload -> send("delete_download", Click)
       is DownloadClicked -> send("download", Click)
     }

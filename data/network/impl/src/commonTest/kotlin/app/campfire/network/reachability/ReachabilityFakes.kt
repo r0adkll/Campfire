@@ -6,7 +6,7 @@ package app.campfire.network.reachability
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.test.FakeDevSettings
-import app.campfire.settings.test.FakeLocalServerSettings
+import app.campfire.settings.test.FakeMobileDataSettings
 import dev.jordond.connectivity.Connectivity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,14 +19,14 @@ import kotlinx.datetime.LocalDateTime
 internal fun reachability(
   connectivity: Connectivity = FakeConnectivity(Connectivity.Status.Connected(metered = false)),
   monitor: NetworkMonitor = FakeNetworkMonitor(supported = false),
-  localServerSettings: FakeLocalServerSettings = FakeLocalServerSettings(),
+  mobileDataSettings: FakeMobileDataSettings = FakeMobileDataSettings(),
   devSettings: FakeDevSettings = FakeDevSettings(),
   localNetworkPermission: FakeLocalNetworkPermission = FakeLocalNetworkPermission(),
   time: FakeFatherTime = FakeFatherTime(),
 ): DefaultServerReachability = DefaultServerReachability(
   connectivity = connectivity,
   networkMonitor = monitor,
-  localServerSettings = localServerSettings,
+  mobileDataSettings = mobileDataSettings,
   devSettings = devSettings,
   localNetworkPermission = localNetworkPermission,
   fatherTime = time,

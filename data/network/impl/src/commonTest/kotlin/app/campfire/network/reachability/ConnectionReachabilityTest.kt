@@ -3,7 +3,7 @@
 
 package app.campfire.network.reachability
 
-import app.campfire.settings.test.FakeLocalServerSettings
+import app.campfire.settings.test.FakeMobileDataSettings
 import app.cash.turbine.test
 import assertk.assertFailure
 import assertk.assertThat
@@ -27,11 +27,11 @@ class ConnectionReachabilityTest {
 
   private val time = FakeFatherTime()
   private val monitor = FakeNetworkMonitor(initial = wifi(id = 1))
-  private val settings = FakeLocalServerSettings()
+  private val settings = FakeMobileDataSettings()
   private val permission = FakeLocalNetworkPermission()
   private val reachability = reachability(
     monitor = monitor,
-    localServerSettings = settings,
+    mobileDataSettings = settings,
     localNetworkPermission = permission,
     time = time,
   )
@@ -126,7 +126,7 @@ class ConnectionReachabilityTest {
   @Test
   fun `turning the setting off allows mobile data`() {
     monitor.snapshot.value = cellular()
-    settings.avoidMobileData = false
+    settings.homeServerOnMobileData = true
 
     assertThat(reachability.shouldFailFast(local)).isFalse()
   }

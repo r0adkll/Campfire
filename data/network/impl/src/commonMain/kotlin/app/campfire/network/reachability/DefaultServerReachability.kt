@@ -9,7 +9,7 @@ import app.campfire.core.logging.Cork
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.LocalServerSettings
+import app.campfire.settings.api.MobileDataSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
 import io.ktor.http.Url
@@ -44,7 +44,7 @@ import me.tatarka.inject.annotations.Inject
 class DefaultServerReachability(
   private val connectivity: Connectivity,
   private val networkMonitor: NetworkMonitor,
-  private val localServerSettings: LocalServerSettings,
+  private val mobileDataSettings: MobileDataSettings,
   private val devSettings: DevSettings,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val fatherTime: FatherTime,
@@ -66,14 +66,14 @@ class DefaultServerReachability(
     val locality = ServerLocality.of(serverUrl)
     return combine(
       networkMonitor.snapshot,
-      localServerSettings.observeAvoidMobileData(),
+      mobileDataSettings.observeHomeServerOnMobileData(),
       localNetworkPermission.observePermissionMissing(),
-    ) { snapshot, avoidMobileData, blocked ->
+    ) { snapshot, homeServerOnMobileData, blocked ->
       routeVerdict(
         locality = locality,
         network = snapshot,
         isSupported = networkMonitor.isSupported,
-        avoidMobileData = avoidMobileData,
+        avoidMobileData = !homeServerOnMobileData,
         localNetworkBlocked = blocked,
       ) == RouteVerdict.Allow
     }.distinctUntilChanged()
@@ -124,7 +124,7 @@ class DefaultServerReachability(
     locality = ServerLocality.of(origin),
     network = networkMonitor.snapshot.value,
     isSupported = networkMonitor.isSupported,
-    avoidMobileData = localServerSettings.avoidMobileData,
+    avoidMobileData = !mobileDataSettings.homeServerOnMobileData,
     localNetworkBlocked = localNetworkPermission.isPermissionMissing(),
   )
 

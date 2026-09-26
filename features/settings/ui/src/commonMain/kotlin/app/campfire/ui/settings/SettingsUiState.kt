@@ -67,7 +67,7 @@ data class HomeServerSettingsInfo(
    * apart; it has no effect anywhere else.
    */
   val isVisible: Boolean,
-  val avoidMobileData: Boolean,
+  val homeServerOnMobileData: Boolean,
 )
 
 @Immutable
@@ -82,6 +82,9 @@ data class AppearanceSettingsInfo(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
+  /** Only where downloads can wait for Wi-Fi (Android); desktop never reports mobile data. */
+  val isWifiOnlyAvailable: Boolean,
+  val downloadOnWifiOnly: Boolean,
   val downloads: List<DownloadEntry>,
 )
 
@@ -222,7 +225,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Appearance Pane Events
   sealed interface ConnectionSettingEvent : SettingsUiEvent {
     data class SocketSyncEnabled(val enabled: Boolean) : ConnectionSettingEvent
-    data class AvoidMobileData(val enabled: Boolean) : ConnectionSettingEvent
+    data class HomeServerOnMobileData(val enabled: Boolean) : ConnectionSettingEvent
 
     /** Adds or edits a header; [originalName] is the header being edited, if any. */
     data class SaveHeader(val originalName: String?, val name: String, val value: String) : ConnectionSettingEvent
@@ -242,6 +245,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Downloads Pane Events
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
+    data class DownloadOnWifiOnly(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadClicked(val entry: DownloadEntry) : DownloadsSettingEvent
     data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
   }

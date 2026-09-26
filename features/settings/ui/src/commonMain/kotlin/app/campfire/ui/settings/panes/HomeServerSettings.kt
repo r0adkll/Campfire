@@ -14,15 +14,15 @@ import app.campfire.ui.settings.SettingsUiEvent.ConnectionSettingEvent
 import app.campfire.ui.settings.composables.Header
 import app.campfire.ui.settings.composables.SwitchSetting
 import campfire.features.settings.ui.generated.resources.Res
-import campfire.features.settings.ui.generated.resources.setting_connection_avoid_mobile_subtitle
-import campfire.features.settings.ui.generated.resources.setting_connection_avoid_mobile_title
 import campfire.features.settings.ui.generated.resources.setting_connection_home_server_header
+import campfire.features.settings.ui.generated.resources.setting_connection_home_server_mobile_subtitle
+import campfire.features.settings.ui.generated.resources.setting_connection_home_server_mobile_title
 import org.jetbrains.compose.resources.stringResource
 
-/** For a server with a local address: whether to skip it while on mobile data alone. */
+/** For a server with a local address: whether to reach it over mobile data. */
 @Composable
 internal fun HomeServerSettings(
-  avoidMobileData: Boolean,
+  homeServerOnMobileData: Boolean,
   onEvent: (ConnectionSettingEvent) -> Unit,
   modifier: Modifier = Modifier,
 ) {
@@ -32,10 +32,10 @@ internal fun HomeServerSettings(
     )
 
     SwitchSetting(
-      value = avoidMobileData,
-      onValueChange = { onEvent(ConnectionSettingEvent.AvoidMobileData(it)) },
-      headlineContent = { Text(stringResource(Res.string.setting_connection_avoid_mobile_title)) },
-      supportingContent = { Text(stringResource(Res.string.setting_connection_avoid_mobile_subtitle)) },
+      value = homeServerOnMobileData,
+      onValueChange = { onEvent(ConnectionSettingEvent.HomeServerOnMobileData(it)) },
+      headlineContent = { Text(stringResource(Res.string.setting_connection_home_server_mobile_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_connection_home_server_mobile_subtitle)) },
       leadingContent = { Icon(CampfireIcons.Rounded.WifiHome, contentDescription = null) },
     )
   }

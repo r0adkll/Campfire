@@ -54,7 +54,7 @@ internal fun ConnectionPane(
 
     if (state.homeServerSettings.isVisible) {
       HomeServerSettings(
-        avoidMobileData = state.homeServerSettings.avoidMobileData,
+        homeServerOnMobileData = state.homeServerSettings.homeServerOnMobileData,
         onEvent = state.eventSink,
       )
     }

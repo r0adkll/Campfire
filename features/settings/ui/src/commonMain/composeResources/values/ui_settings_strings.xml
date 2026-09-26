@@ -41,8 +41,8 @@
   <string name="setting_connection_local_network_allow">Allow</string>
   <string name="setting_connection_local_network_open_settings">Open settings</string>
   <string name="setting_connection_home_server_header">Home server</string>
-  <string name="setting_connection_avoid_mobile_title">Don't use mobile data for your home server</string>
-  <string name="setting_connection_avoid_mobile_subtitle">Your server has a local address, which can't be reached over mobile data. Campfire won't try until you're back on Wi-Fi or a VPN. Downloaded books keep playing and your listening syncs when you're back.</string>
+  <string name="setting_connection_home_server_mobile_title">Use mobile data for your home server</string>
+  <string name="setting_connection_home_server_mobile_subtitle">Your server has a local address (like 192.168.x.x), which usually can't be reached over mobile data, so Campfire waits for Wi-Fi or a VPN. Turn this on if your setup can reach it anyway.</string>
   <string name="setting_connection_headers_header">Custom headers</string>
   <string name="setting_connection_headers_description">Sent with every request to your server, such as a token for a reverse proxy or access gateway in front of it.</string>
   <string name="setting_connection_headers_empty">No custom headers</string>
@@ -75,6 +75,8 @@
   <!-- Downloads setting strings-->
   <string name="setting_show_download_confirmation_title">Show download confirmation dialog</string>
   <string name="setting_show_download_confirmation_description">Show a dialog to confirm each item download for offline listening</string>
+  <string name="setting_download_on_wifi_only_title">Download on Wi-Fi only</string>
+  <string name="setting_download_on_wifi_only_description">Downloads wait for Wi-Fi and pause if you switch to mobile data.</string>
   <string name="download_header_downloads">Downloads</string>
   <string name="action_delete_download">Delete</string>
   <string name="action_stop_download">Stop</string>
