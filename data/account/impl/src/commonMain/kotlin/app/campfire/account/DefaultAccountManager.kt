@@ -27,10 +27,6 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
@@ -163,22 +159,16 @@ class DefaultAccountManager(
     return extraHeaderStorage.get(userId)
   }
 
-  // Bumped on every header write so observers re-read storage (which has no change feed)
-  private val extraHeadersVersion = MutableStateFlow(0)
-
   override suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>) {
     if (headers.isEmpty()) {
       extraHeaderStorage.remove(userId)
     } else {
       extraHeaderStorage.put(userId, headers)
     }
-    extraHeadersVersion.update { it + 1 }
   }
 
   override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> =
-    extraHeadersVersion
-      .map { extraHeaderStorage.get(userId).orEmpty() }
-      .distinctUntilChanged()
+    extraHeaderStorage.observe(userId)
 
   private suspend inline fun changeSession(block: suspend () -> UserSession) {
     // Force the UI into a loading state, making sure to pull all usages of the current graph

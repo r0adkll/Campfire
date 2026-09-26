@@ -12,6 +12,11 @@ import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.toSuspendSettings
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -38,11 +43,23 @@ class SecureExtraHeaderStorage(
     headers: Map<String, String>,
   ) {
     settings.putString(storageKey(userId), serialize(headers))
+    version.update { it + 1 }
   }
 
   override suspend fun remove(userId: UserId) {
     settings.remove(storageKey(userId))
+    version.update { it + 1 }
   }
+
+  // Bumped on every write so observers re-read the store, which has no change feed of its own.
+  // Lives here because this storage is an app-wide singleton — AccountManager is not, so state
+  // held there is invisible to other holders (e.g. the socket).
+  private val version = MutableStateFlow(0)
+
+  override fun observe(userId: UserId): Flow<Map<String, String>> =
+    version
+      .map { get(userId).orEmpty() }
+      .distinctUntilChanged()
 
   private fun serialize(extraHeaders: Map<String, String>): String {
     return extraHeaders
