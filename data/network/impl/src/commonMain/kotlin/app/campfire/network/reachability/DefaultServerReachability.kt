@@ -6,6 +6,7 @@ package app.campfire.network.reachability
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
+import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.HomeNetworkSettings
@@ -32,6 +33,7 @@ class DefaultServerReachability(
   private val homeNetworks: HomeNetworkLearner,
   private val homeNetworkSettings: HomeNetworkSettings,
   private val devSettings: DevSettings,
+  private val localNetworkPermission: LocalNetworkPermissionController,
   private val fatherTime: FatherTime,
 ) : ServerReachability, ReachabilityGate, Cork {
 
@@ -57,9 +59,15 @@ class DefaultServerReachability(
       networkMonitor.snapshot,
       homeNetworkSettings.observePauseAwayFromHome(),
       homeNetworkSettings.observeLearnedHomeNetworks(),
-    ) { snapshot, pause, _ ->
-      !pause || routeVerdict(locality, snapshot, networkMonitor.isSupported, homeNetworks.learned(origin)) ==
-        RouteVerdict.Allow
+      localNetworkPermission.observePermissionMissing(),
+    ) { snapshot, pause, _, blocked ->
+      routeVerdict(
+        locality = locality,
+        network = snapshot,
+        isSupported = networkMonitor.isSupported && pause,
+        learned = homeNetworks.learned(origin),
+        localNetworkBlocked = blocked,
+      ) == RouteVerdict.Allow
     }.distinctUntilChanged()
   }
 
@@ -102,15 +110,14 @@ class DefaultServerReachability(
     }
   }
 
-  private fun verdict(origin: String): RouteVerdict {
-    if (!homeNetworkSettings.pauseAwayFromHome) return RouteVerdict.Allow
-    return routeVerdict(
-      locality = ServerLocality.of(origin),
-      network = networkMonitor.snapshot.value,
-      isSupported = networkMonitor.isSupported,
-      learned = homeNetworks.learned(origin),
-    )
-  }
+  private fun verdict(origin: String): RouteVerdict = routeVerdict(
+    locality = ServerLocality.of(origin),
+    network = networkMonitor.snapshot.value,
+    // With the away-from-home setting off, only the permission gate still applies
+    isSupported = networkMonitor.isSupported && homeNetworkSettings.pauseAwayFromHome,
+    learned = homeNetworks.learned(origin),
+    localNetworkBlocked = localNetworkPermission.isPermissionMissing(),
+  )
 
   /**
    * On an unfamiliar network, lets exactly one request per network through to find out whether

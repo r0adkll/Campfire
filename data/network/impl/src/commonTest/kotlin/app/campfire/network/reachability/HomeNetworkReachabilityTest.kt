@@ -30,9 +30,11 @@ class HomeNetworkReachabilityTest {
   private val monitor = FakeNetworkMonitor(initial = wifi())
   private val settings = FakeHomeNetworkSettings()
   private val store = HomeNetworkStore(settings, monitor, time)
+  private val permission = FakeLocalNetworkPermission()
   private val reachability = reachability(
     monitor = monitor,
     homeNetworkSettings = settings,
+    localNetworkPermission = permission,
     time = time,
   )
 
@@ -146,6 +148,39 @@ class HomeNetworkReachabilityTest {
     monitor.snapshot.value = cellular()
 
     assertThat(reachability.observeInRange("https://abs.example.com").first()).isTrue()
+  }
+
+  @Test
+  fun `a missing local network permission skips the home server`() = runTest {
+    reachability.reachable(local)
+    permission.missing.value = true
+    var calls = 0
+    val client = client { calls++ }
+
+    assertFailure { client.get("$localUrl/api/me") }.isInstanceOf<ServerUnreachableException>()
+    assertThat(calls).isEqualTo(0)
+    assertThat(reachability.status.value).isEqualTo(Reachability.OutOfRange)
+  }
+
+  @Test
+  fun `granting the permission brings the server back in range`() = runTest {
+    reachability.reachable(local)
+    permission.missing.value = true
+
+    reachability.observeInRange(localUrl).test {
+      assertThat(awaitItem()).isFalse()
+
+      permission.missing.value = false
+      assertThat(awaitItem()).isTrue()
+    }
+  }
+
+  @Test
+  fun `the permission gate still applies with the away setting off`() {
+    settings.pauseAwayFromHome = false
+    permission.missing.value = true
+
+    assertThat(reachability.shouldFailFast(local)).isTrue()
   }
 
   // region HomeNetworkStore
