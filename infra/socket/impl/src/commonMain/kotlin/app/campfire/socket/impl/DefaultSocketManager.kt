@@ -53,6 +53,7 @@ import app.campfire.socket.events.UserUpdated
 import app.campfire.socket.impl.logging.NoOpLogging
 import com.piasy.kmp.socketio.engineio.transports.WebSocket
 import com.piasy.kmp.socketio.socketio.IO
+import com.piasy.kmp.socketio.socketio.Manager
 import com.piasy.kmp.socketio.socketio.Socket
 import com.piasy.kmp.xlog.Logging
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -100,6 +101,11 @@ class DefaultSocketManager(
     private const val MAX_AUTH_RETRIES = 3
     private const val RECONNECTION_DELAY_MS = 2_000L
     private const val RECONNECTION_DELAY_MAX_MS = 60_000L
+
+    // While the server is unreachable the socket is the idle-time check (HTTP only retries when
+    // something makes a request), so its attempts follow the same growing gaps: 1m up to 10m
+    private const val UNREACHABLE_DELAY_MS = 60_000L
+    private const val UNREACHABLE_DELAY_MAX_MS = 600_000L
 
     init {
       // Configure kmp-socketio's xlog backend exactly once per process. The default backend
@@ -339,7 +345,7 @@ class DefaultSocketManager(
               newSocket.open()
             }
           } else {
-            ibark { "Socket no longer demanded (background, no network, or away from home); closing" }
+            ibark { "Socket no longer demanded (background, no network, or server out of range); closing" }
             newSocket.close()
             if (_state.value !is SocketState.Disabled) {
               _state.value = SocketState.Disconnected
@@ -365,10 +371,10 @@ class DefaultSocketManager(
       if (adapt || signal == ReachabilitySignal.Reconnect) signal else ReachabilitySignal.Fast
     }.collect { signal ->
       when (signal) {
-        ReachabilitySignal.Slow -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MAX_MS)
-        ReachabilitySignal.Fast -> socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+        ReachabilitySignal.Slow -> socket.io.setDelays(UNREACHABLE_DELAY_MS, UNREACHABLE_DELAY_MAX_MS)
+        ReachabilitySignal.Fast -> socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
         ReachabilitySignal.Reconnect -> {
-          socket.io.reconnectionDelay(RECONNECTION_DELAY_MS)
+          socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
           if (socketDemanded && settings.socketEnabled && !socket.connected) {
             ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
             _state.value = SocketState.Connecting
@@ -378,6 +384,11 @@ class DefaultSocketManager(
         }
       }
     }
+  }
+
+  private fun Manager.setDelays(minMs: Long, maxMs: Long) {
+    reconnectionDelay(minMs)
+    reconnectionDelayMax(maxMs)
   }
 
   internal suspend fun stop() {

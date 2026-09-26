@@ -25,12 +25,14 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.impl.networking.AuthRefreshingHttpDataSource
 import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
+import app.campfire.audioplayer.impl.offline.downloadRequirements
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.SingleIn
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.network.di.UserClient
+import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import com.r0adkll.kimchi.annotations.ContributesTo
 import io.ktor.client.HttpClient
@@ -94,6 +96,7 @@ interface ExoPlayerAppComponent {
     @DownloadCache downloadCache: SimpleCache,
     appInfo: ApplicationInfo,
     @UserClient userClient: HttpClient,
+    mobileDataSettings: MobileDataSettings,
   ): DownloadManager {
     val numCpus = Runtime.getRuntime().availableProcessors()
     val httpDataSourceFactory = DefaultHttpDataSource.Factory()
@@ -111,6 +114,8 @@ interface ExoPlayerAppComponent {
       Executors.newFixedThreadPool(numCpus),
     ).apply {
       maxParallelDownloads = numCpus
+      // Set on the manager's own thread; later changes go through DownloadRequirementsObserver
+      requirements = downloadRequirements(wifiOnly = mobileDataSettings.downloadOnWifiOnly)
     }
   }
 

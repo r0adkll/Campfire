@@ -51,7 +51,7 @@ class DesktopNetworkMonitor(
     scope.launch(Dispatchers.IO) {
       while (isActive) {
         delay(POLL_INTERVAL)
-        val next = readSnapshot()
+        val next = readSnapshot().withConnectionId(_snapshot.value)
         if (next != _snapshot.value) {
           dbark { "Default network: ${next.transports} fingerprint=${next.fingerprint}" }
         }

@@ -22,10 +22,15 @@ data class NetworkSnapshot(
   val connected: Boolean,
   val metered: Boolean,
   val transports: Set<NetworkTransport>,
-  /** Present for Wi-Fi/Ethernet networks with an IPv4 address. */
+  /** Present for Wi-Fi/Ethernet networks with an IPv4 address; shown in diagnostics. */
   val fingerprint: NetworkFingerprint?,
   /** The DHCP search domain, e.g. `lan`, when the network provides one. */
   val domain: String?,
+  /**
+   * Identifies this connection: it changes whenever the device joins a network, including
+   * rejoining the same one, so reachability learned on one connection never carries into the next.
+   */
+  val id: Long = 0L,
 ) {
 
   val hasVpn: Boolean get() = NetworkTransport.Vpn in transports
@@ -69,10 +74,8 @@ enum class NetworkTransport {
   Vpn,
 }
 
-/** Identifies a local network by the device's IPv4 [subnet] (e.g. `192.168.1.0/24`) and [gateway]. */
+/** The device's IPv4 [subnet] (e.g. `192.168.1.0/24`) and [gateway] on a local network. */
 data class NetworkFingerprint(
   val subnet: String,
   val gateway: String?,
-) {
-  val key: String get() = "$subnet|${gateway.orEmpty()}"
-}
+)

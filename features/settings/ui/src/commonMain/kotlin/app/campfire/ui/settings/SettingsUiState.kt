@@ -13,7 +13,6 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
-import app.campfire.network.reachability.HomeNetwork
 import app.campfire.network.reachability.NetworkSnapshot
 import app.campfire.network.reachability.Reachability
 import app.campfire.settings.api.AndroidAutoCategory
@@ -42,7 +41,7 @@ data class SettingsUiState(
   val customHeaders: Map<String, String>,
   /** Set while the OS is blocking the local server for lack of the local network permission. */
   val localNetworkAccess: LocalNetworkAccess?,
-  val homeNetworkSettings: HomeNetworkSettingsInfo,
+  val homeServerSettings: HomeServerSettingsInfo,
   val appearanceSettings: AppearanceSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
@@ -62,13 +61,13 @@ enum class LocalNetworkAccess {
 }
 
 @Immutable
-data class HomeNetworkSettingsInfo(
-  /** Whether this platform can tell networks apart; the section is hidden where it can't. */
-  val isAvailable: Boolean,
-  val pauseAwayFromHome: Boolean,
-  /** Learned networks only matter (and are only shown) for a server with a local address. */
-  val isLocalServer: Boolean,
-  val networks: List<HomeNetwork>,
+data class HomeServerSettingsInfo(
+  /**
+   * Shown only for a server with a local address, on a platform that can tell mobile data
+   * apart; it has no effect anywhere else.
+   */
+  val isVisible: Boolean,
+  val homeServerOnMobileData: Boolean,
 )
 
 @Immutable
@@ -83,6 +82,9 @@ data class AppearanceSettingsInfo(
 @Immutable
 data class DownloadsSettingsInfo(
   val showDownloadConfirmation: Boolean,
+  /** Only where downloads can wait for Wi-Fi (Android); desktop never reports mobile data. */
+  val isWifiOnlyAvailable: Boolean,
+  val downloadOnWifiOnly: Boolean,
   val downloads: List<DownloadEntry>,
 )
 
@@ -181,7 +183,6 @@ data class NetworkDiagnostics(
   val isLocalServer: Boolean,
   val network: NetworkSnapshot,
   val networkSupported: Boolean,
-  val learnedNetworkCount: Int,
   val localNetworkPermissionMissing: Boolean,
 )
 
@@ -224,10 +225,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Appearance Pane Events
   sealed interface ConnectionSettingEvent : SettingsUiEvent {
     data class SocketSyncEnabled(val enabled: Boolean) : ConnectionSettingEvent
-    data class PauseAwayFromHome(val enabled: Boolean) : ConnectionSettingEvent
-    data class RenameHomeNetwork(val key: String, val label: String) : ConnectionSettingEvent
-    data class ForgetHomeNetwork(val key: String) : ConnectionSettingEvent
-    data object ForgetAllHomeNetworks : ConnectionSettingEvent
+    data class HomeServerOnMobileData(val enabled: Boolean) : ConnectionSettingEvent
 
     /** Adds or edits a header; [originalName] is the header being edited, if any. */
     data class SaveHeader(val originalName: String?, val name: String, val value: String) : ConnectionSettingEvent
@@ -247,6 +245,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   // Downloads Pane Events
   sealed interface DownloadsSettingEvent : SettingsUiEvent {
     data class ShowDownloadConfirmation(val enabled: Boolean) : DownloadsSettingEvent
+    data class DownloadOnWifiOnly(val enabled: Boolean) : DownloadsSettingEvent
     data class DownloadClicked(val entry: DownloadEntry) : DownloadsSettingEvent
     data class DeleteDownload(val entry: DownloadEntry) : DownloadsSettingEvent
   }

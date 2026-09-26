@@ -92,8 +92,8 @@ internal fun DeveloperPane(
         headlineContent = { Text("Adapt to unreachable server") },
         supportingContent = {
           Text(
-            "Fail requests fast, slow socket reconnects, and back off playback sync while the " +
-              "server can't be reached. Turn off for plain network behavior.",
+            "While the server can't be reached, fail requests fast and retry at growing intervals " +
+              "(30s up to 10m), and slow socket reconnects. Turn off for plain network behavior.",
           )
         },
       )
@@ -107,7 +107,6 @@ internal fun DeveloperPane(
               append("Status: ${diagnostics.reachability}")
               append("\nIn range: ${diagnostics.inRange}")
               append("\nLocal server: ${diagnostics.isLocalServer}")
-              append("\nLearned home networks: ${diagnostics.learnedNetworkCount}")
               append("\nLocal network permission missing: ${diagnostics.localNetworkPermissionMissing}")
             },
           )

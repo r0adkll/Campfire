@@ -10,8 +10,6 @@ import kotlin.test.Test
 
 class LocalRouteTest {
 
-  private val home = NetworkFingerprint("192.168.1.0/24", "192.168.1.1")
-
   // region ServerLocality
 
   @Test
@@ -65,21 +63,31 @@ class LocalRouteTest {
   }
 
   @Test
-  fun `unsupported platforms are always allowed`() {
-    assertThat(
-      routeVerdict(ServerLocality.Private, cellular(), isSupported = false, learned = setOf(home)),
-    ).isEqualTo(RouteVerdict.Allow)
+  fun `any wifi network is allowed`() {
+    assertThat(verdict(ServerLocality.Private, wifi())).isEqualTo(RouteVerdict.Allow)
+    assertThat(verdict(ServerLocality.Private, wifi(subnet = "10.0.0.0/24", gateway = "10.0.0.1")))
+      .isEqualTo(RouteVerdict.Allow)
   }
 
   @Test
-  fun `a local server is skipped on cellular`() {
+  fun `a local server is skipped on mobile data`() {
     assertThat(verdict(ServerLocality.Private, cellular())).isEqualTo(RouteVerdict.Skip)
+  }
+
+  @Test
+  fun `turning the setting off allows mobile data`() {
+    assertThat(verdict(ServerLocality.Private, cellular(), avoidMobileData = false)).isEqualTo(RouteVerdict.Allow)
+  }
+
+  @Test
+  fun `unsupported platforms are allowed`() {
+    assertThat(verdict(ServerLocality.Private, cellular(), isSupported = false)).isEqualTo(RouteVerdict.Allow)
   }
 
   @Test
   fun `a VPN reaches a local server from anywhere`() {
     assertThat(verdict(ServerLocality.Private, cellular(vpn = true))).isEqualTo(RouteVerdict.Allow)
-    assertThat(verdict(ServerLocality.VpnOnly, wifi(subnet = "10.9.0.0/24", vpn = true))).isEqualTo(RouteVerdict.Allow)
+    assertThat(verdict(ServerLocality.VpnOnly, wifi(vpn = true))).isEqualTo(RouteVerdict.Allow)
   }
 
   @Test
@@ -88,79 +96,49 @@ class LocalRouteTest {
   }
 
   @Test
-  fun `a learned network is allowed`() {
-    assertThat(verdict(ServerLocality.Private, wifi())).isEqualTo(RouteVerdict.Allow)
-  }
-
-  @Test
-  fun `an unfamiliar network gets one probe`() {
-    assertThat(verdict(ServerLocality.Private, wifi(subnet = "10.0.0.0/24", gateway = "10.0.0.1")))
-      .isEqualTo(RouteVerdict.ProbeOnce)
-  }
-
-  @Test
-  fun `nothing learned yet means learning, not blocking`() {
-    assertThat(
-      routeVerdict(ServerLocality.Private, wifi(subnet = "10.0.0.0/24"), isSupported = true, learned = emptySet()),
-    ).isEqualTo(RouteVerdict.Allow)
-  }
-
-  @Test
-  fun `a network without a fingerprint is allowed`() {
-    val snapshot = wifi().copy(fingerprint = null)
-    assertThat(verdict(ServerLocality.Private, snapshot)).isEqualTo(RouteVerdict.Allow)
-  }
-
-  @Test
   fun `a local server is skipped while the local network permission is missing`() {
-    assertThat(
-      routeVerdict(
-        ServerLocality.Private,
-        wifi(),
-        isSupported = true,
-        learned = setOf(home),
-        localNetworkBlocked = true,
-      ),
-    ).isEqualTo(RouteVerdict.Skip)
+    assertThat(verdict(ServerLocality.Private, wifi(), localNetworkBlocked = true)).isEqualTo(RouteVerdict.Skip)
   }
 
   @Test
-  fun `the permission gate applies even where networks can't be described`() {
+  fun `the permission gate applies regardless of the setting or platform support`() {
     assertThat(
-      routeVerdict(
-        ServerLocality.Private,
-        wifi(),
-        isSupported = false,
-        learned = emptySet(),
-        localNetworkBlocked = true,
-      ),
+      verdict(ServerLocality.Private, wifi(), isSupported = false, avoidMobileData = false, localNetworkBlocked = true),
     ).isEqualTo(RouteVerdict.Skip)
   }
 
   @Test
   fun `a VPN or a public server is unaffected by the permission`() {
-    assertThat(
-      routeVerdict(
-        ServerLocality.Private,
-        cellular(vpn = true),
-        isSupported = true,
-        learned = setOf(home),
-        localNetworkBlocked = true,
-      ),
-    ).isEqualTo(RouteVerdict.Allow)
-    assertThat(
-      routeVerdict(
-        ServerLocality.Public,
-        wifi(),
-        isSupported = true,
-        learned = setOf(home),
-        localNetworkBlocked = true,
-      ),
-    ).isEqualTo(RouteVerdict.Allow)
+    assertThat(verdict(ServerLocality.Private, cellular(vpn = true), localNetworkBlocked = true))
+      .isEqualTo(RouteVerdict.Allow)
+    assertThat(verdict(ServerLocality.Public, wifi(), localNetworkBlocked = true)).isEqualTo(RouteVerdict.Allow)
   }
 
-  private fun verdict(locality: ServerLocality, network: NetworkSnapshot) =
-    routeVerdict(locality, network, isSupported = true, learned = setOf(home))
+  private fun verdict(
+    locality: ServerLocality,
+    network: NetworkSnapshot,
+    isSupported: Boolean = true,
+    avoidMobileData: Boolean = true,
+    localNetworkBlocked: Boolean = false,
+  ) = routeVerdict(locality, network, isSupported, avoidMobileData, localNetworkBlocked)
+
+  // endregion
+
+  // region withConnectionId
+
+  @Test
+  fun `the same connection keeps its id`() {
+    val first = wifi(id = 4)
+    assertThat(wifi(id = 0).withConnectionId(first).id).isEqualTo(4L)
+  }
+
+  @Test
+  fun `a reconnect or a different network gets a new id`() {
+    val first = wifi(id = 4)
+    assertThat(wifi(id = 0).withConnectionId(NetworkSnapshot.Disconnected.copy(id = 4)).id).isEqualTo(5L)
+    assertThat(wifi(subnet = "10.0.0.0/24", id = 0).withConnectionId(first).id).isEqualTo(5L)
+    assertThat(cellular().withConnectionId(first).id).isEqualTo(5L)
+  }
 
   // endregion
 

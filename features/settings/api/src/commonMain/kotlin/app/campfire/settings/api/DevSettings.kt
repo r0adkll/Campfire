@@ -35,7 +35,7 @@ interface DevSettings {
 
   /**
    * Whether Campfire adapts to an unreachable server: failing requests fast instead of waiting
-   * out connect timeouts, slowing the socket's reconnect loop, and backing off playback sync.
+   * out connect timeouts, retrying at growing intervals, and slowing the socket's reconnect loop.
    * Turning it off restores plain network behavior for debugging.
    * Default: `true`
    */

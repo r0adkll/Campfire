@@ -74,6 +74,7 @@ class IosNetworkMonitor : NetworkMonitor, Cork {
           ebark(throwable = it) { "Unable to read the current path" }
           NetworkSnapshot.Unknown
         }
+        .withConnectionId(_snapshot.value)
       if (next != _snapshot.value) {
         dbark { "Current path: ${next.transports} fingerprint=${next.fingerprint}" }
       }

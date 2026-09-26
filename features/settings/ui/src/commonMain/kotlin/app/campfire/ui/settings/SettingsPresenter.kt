@@ -37,15 +37,13 @@ import app.campfire.core.session.requiredUser
 import app.campfire.core.session.user
 import app.campfire.libraries.api.LibraryItemRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
-import app.campfire.network.reachability.HomeNetworks
-import app.campfire.network.reachability.HomeNetworksState
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.HomeNetworkSettings
+import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
@@ -139,8 +137,7 @@ class SettingsPresenter(
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
   private val appUpdateSource: AppUpdateSource,
-  private val homeNetworkSettings: HomeNetworkSettings,
-  private val homeNetworks: HomeNetworks,
+  private val mobileDataSettings: MobileDataSettings,
   private val serverReachability: ServerReachability,
   private val networkMonitor: NetworkMonitor,
   private val localNetworkPermission: LocalNetworkPermissionController,
@@ -246,9 +243,11 @@ class SettingsPresenter(
     val socketSyncEnabled by remember { settings.observeSocketEnabled() }
       .collectAsState()
 
-    // Home network Settings
+    // Connection Settings
     val serverUrl = remember { userSession.user?.serverUrl }
-    val pauseAwayFromHome by remember { homeNetworkSettings.observePauseAwayFromHome() }.collectAsState()
+    val isLocalServer = remember(serverUrl) { serverUrl?.let(serverReachability::isLocalServer) ?: false }
+    val homeServerOnMobileData by remember { mobileDataSettings.observeHomeServerOnMobileData() }.collectAsState()
+    val downloadOnWifiOnly by remember { mobileDataSettings.observeDownloadOnWifiOnly() }.collectAsState()
     val userId = remember { userSession.user?.id }
     val customHeaders by remember(userId) {
       userId?.let(accountManager::observeExtraHeaders) ?: flowOf(emptyMap())
@@ -256,9 +255,6 @@ class SettingsPresenter(
     val localNetworkMissing by remember { localNetworkPermission.observePermissionMissing() }
       .collectAsState(false)
     var localNetworkDenied by remember { mutableStateOf(false) }
-    val homeNetworksState by remember(serverUrl) {
-      serverUrl?.let(homeNetworks::observe) ?: flowOf(HomeNetworksState(isLocalServer = false, networks = emptyList()))
-    }.collectAsState(HomeNetworksState(isLocalServer = false, networks = emptyList()))
     val appUpdateSignInDismissed by remember { settings.observeAppUpdateSignInDismissed() }
       .collectAsState()
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
@@ -300,6 +296,8 @@ class SettingsPresenter(
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
+        isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
+        downloadOnWifiOnly = downloadOnWifiOnly,
         downloads = downloadEntries,
       ),
       playbackSettings = PlaybackSettingsInfo(
@@ -342,15 +340,13 @@ class SettingsPresenter(
       socketSyncEnabled = socketSyncEnabled,
       customHeaders = customHeaders,
       localNetworkAccess = when {
-        !localNetworkMissing || !homeNetworksState.isLocalServer -> null
+        !localNetworkMissing || !isLocalServer -> null
         localNetworkDenied -> LocalNetworkAccess.Denied
         else -> LocalNetworkAccess.Missing
       },
-      homeNetworkSettings = HomeNetworkSettingsInfo(
-        isAvailable = networkMonitor.isSupported,
-        pauseAwayFromHome = pauseAwayFromHome,
-        isLocalServer = homeNetworksState.isLocalServer,
-        networks = homeNetworksState.networks,
+      homeServerSettings = HomeServerSettingsInfo(
+        isVisible = networkMonitor.isSupported && isLocalServer,
+        homeServerOnMobileData = homeServerOnMobileData,
       ),
       aboutSettings = AboutSettingsInfo(
         crashReportingEnabled = crashReportingEnabled,
@@ -375,10 +371,9 @@ class SettingsPresenter(
         networkDiagnostics = NetworkDiagnostics(
           reachability = reachability,
           inRange = inRange,
-          isLocalServer = homeNetworksState.isLocalServer,
+          isLocalServer = isLocalServer,
           network = network,
           networkSupported = networkMonitor.isSupported,
-          learnedNetworkCount = homeNetworksState.networks.size,
           localNetworkPermissionMissing = localNetworkMissing,
         ),
       ),
@@ -404,20 +399,8 @@ class SettingsPresenter(
             settings.socketEnabled = event.enabled
           }
 
-          is SettingsUiEvent.ConnectionSettingEvent.PauseAwayFromHome -> {
-            homeNetworkSettings.pauseAwayFromHome = event.enabled
-          }
-
-          is SettingsUiEvent.ConnectionSettingEvent.RenameHomeNetwork -> {
-            serverUrl?.let { homeNetworks.rename(it, event.key, event.label) }
-          }
-
-          is SettingsUiEvent.ConnectionSettingEvent.ForgetHomeNetwork -> {
-            serverUrl?.let { homeNetworks.forget(it, event.key) }
-          }
-
-          SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> {
-            serverUrl?.let(homeNetworks::forgetAll)
+          is SettingsUiEvent.ConnectionSettingEvent.HomeServerOnMobileData -> {
+            mobileDataSettings.homeServerOnMobileData = event.enabled
           }
 
           is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> {
@@ -450,6 +433,9 @@ class SettingsPresenter(
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
           is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
+          is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
+            mobileDataSettings.downloadOnWifiOnly = event.enabled
+          }
           is DownloadClicked -> navigator.goTo(
             LibraryItemScreen(
               libraryItemId = event.entry.libraryItem.id,
