@@ -26,6 +26,7 @@ import app.campfire.settings.api.CampfireSettings
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 
@@ -157,6 +158,17 @@ class DefaultAccountManager(
   override suspend fun getExtraHeaders(userId: UserId): Map<String, String>? {
     return extraHeaderStorage.get(userId)
   }
+
+  override suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>) {
+    if (headers.isEmpty()) {
+      extraHeaderStorage.remove(userId)
+    } else {
+      extraHeaderStorage.put(userId, headers)
+    }
+  }
+
+  override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> =
+    extraHeaderStorage.observe(userId)
 
   private suspend inline fun changeSession(block: suspend () -> UserSession) {
     // Force the UI into a loading state, making sure to pull all usages of the current graph

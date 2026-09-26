@@ -26,6 +26,8 @@ import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
@@ -237,6 +239,8 @@ class DefaultAuthRepositoryTest {
     override suspend fun getToken(userId: UserId): AbsToken? = null
     override suspend fun updateToken(userId: UserId, newToken: AbsToken) = Unit
     override suspend fun getExtraHeaders(userId: UserId): Map<String, String>? = null
+    override suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>) = Unit
+    override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> = emptyFlow()
   }
 
   private class FakeUserStorageStrategy : UserStorageStrategy {

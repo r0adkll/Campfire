@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - [Desktop] Install and update on macOS with Homebrew: `brew install r0adkll/tap/campfire`
 - Campfire stops trying to reach a server on your home network while you're away, and remembers the networks it can reach it from (Settings → Connection)
+- Edit the custom headers sent to your server, such as a reverse-proxy or access-gateway token, in Settings → Connection without signing out; live updates now send them too
 
 ### Changed
 

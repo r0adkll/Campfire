@@ -71,6 +71,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -189,8 +190,13 @@ class DefaultSocketManager(
     authFailureCount = 0
     _state.value = SocketState.Connecting
 
+    // Custom headers (e.g. reverse-proxy auth) guard the WebSocket upgrade as much as the API
+    val extraHeaders = accountManager.getExtraHeaders(userId).orEmpty()
     val opts = IO.Options().apply {
       this.transports = listOf(WebSocket.NAME)
+      this.extraHeaders = extraHeaders.mapValues { (_, value) -> listOf(value) }
+      // A fresh manager per start: a multiplexed one would keep the headers it was created with
+      this.forceNew = true
       // socket.io defaults to retrying every <=5s forever, which keeps the radio awake while
       // the server is unreachable (off the home network, server down). Back off to a minute;
       // regaining the network or foregrounding the app resets the backoff.
@@ -439,15 +445,22 @@ class DefaultSocketManager(
     override suspend fun onCreate() {
       val session = userSession as? UserSession.LoggedIn ?: return
       // collectLatest cancels the previous start when the setting flips, so toggling off
-      // mid-connection cleanly disconnects and toggling back on spins up a fresh socket.
+      // mid-connection cleanly disconnects and toggling back on spins up a fresh socket. Editing
+      // the custom headers restarts it too, so the new headers reach the WebSocket handshake.
       observerJob = socketManager.coroutineScope.launch {
-        socketManager.settings.observeSocketEnabled().collectLatest { enabled ->
-          if (enabled) {
-            socketManager.start(session)
-          } else {
-            socketManager.stopForDisable()
+        combine(
+          socketManager.settings.observeSocketEnabled(),
+          socketManager.accountManager.observeExtraHeaders(session.user.id),
+        ) { enabled, headers -> enabled to headers }
+          .distinctUntilChanged()
+          .collectLatest { (enabled, _) ->
+            if (enabled) {
+              socketManager.stop()
+              socketManager.start(session)
+            } else {
+              socketManager.stopForDisable()
+            }
           }
-        }
       }
     }
 

@@ -51,5 +51,10 @@ internal fun ConnectionPane(
         onEvent = state.eventSink,
       )
     }
+
+    CustomHeaderSettings(
+      headers = state.customHeaders,
+      onEvent = state.eventSink,
+    )
   }
 }

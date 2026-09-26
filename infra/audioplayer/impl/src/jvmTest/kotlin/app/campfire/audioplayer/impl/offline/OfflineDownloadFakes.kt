@@ -11,8 +11,10 @@ import app.campfire.core.model.Server
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.emptyFlow
 
 internal val downloadingUser = User(
   id = "user-1",
@@ -60,6 +62,8 @@ internal class FakeAccountManager : AccountManager {
   }
 
   override suspend fun getExtraHeaders(userId: UserId): Map<String, String>? = extraHeaders
+  override suspend fun setExtraHeaders(userId: UserId, headers: Map<String, String>) = Unit
+  override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> = emptyFlow()
 }
 
 internal class FakeTokenRefresher(private val accountManager: FakeAccountManager) : TokenRefresher {

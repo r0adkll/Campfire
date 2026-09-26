@@ -49,7 +49,6 @@ import campfire.features.settings.ui.generated.resources.setting_connection_away
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_current
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_ethernet
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_forget
-import campfire.features.settings.ui.generated.resources.setting_connection_home_network_gateway
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_last_seen
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_options
 import campfire.features.settings.ui.generated.resources.setting_connection_home_network_rename
@@ -131,13 +130,12 @@ private fun HomeNetworkItem(
       else -> Res.string.setting_connection_home_network_wifi
     },
   )
-  val details = buildList {
-    if (network.label != null) add(network.subnet)
-    network.gateway?.let { add(stringResource(Res.string.setting_connection_home_network_gateway, it)) }
-    add(transportLabel)
-    network.domain?.let { add(it) }
-    add(stringResource(Res.string.setting_connection_home_network_last_seen, network.lastSeenAtMs.timeAgo))
-  }.joinToString(" · ")
+  // The subnet is only shown as the headline of an unnamed network, where it's what tells networks
+  // apart; the gateway and domain are in the developer diagnostics
+  val details = listOf(
+    transportLabel,
+    stringResource(Res.string.setting_connection_home_network_last_seen, network.lastSeenAtMs.timeAgo),
+  ).joinToString(" · ")
 
   SettingListItem(
     headlineContent = { Text(network.label ?: network.subnet) },

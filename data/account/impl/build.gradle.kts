@@ -37,6 +37,8 @@ kotlin {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
         implementation(projects.common.test)
+        implementation(libs.bundles.test.impl)
+        implementation(libs.multiplatformsettings.test)
       }
     }
 

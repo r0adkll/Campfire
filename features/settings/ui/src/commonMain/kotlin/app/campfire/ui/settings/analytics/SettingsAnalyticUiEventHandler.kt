@@ -77,6 +77,8 @@ class SettingsAnalyticUiEventHandler(
       is SettingsUiEvent.ConnectionSettingEvent.RenameHomeNetwork -> send("home_network", Updated)
       is SettingsUiEvent.ConnectionSettingEvent.ForgetHomeNetwork -> send("home_network", Deleted)
       SettingsUiEvent.ConnectionSettingEvent.ForgetAllHomeNetworks -> send("home_networks", Deleted)
+      is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> send("custom_header", Updated)
+      is SettingsUiEvent.ConnectionSettingEvent.RemoveHeader -> send("custom_header", Deleted)
     }
 
     is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
