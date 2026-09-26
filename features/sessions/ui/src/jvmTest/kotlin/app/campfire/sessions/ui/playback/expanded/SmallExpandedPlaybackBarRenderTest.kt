@@ -195,6 +195,7 @@ class SmallExpandedPlaybackBarRenderTest {
                 bookTimeEnabled = bookTime,
                 duration = 30.minutes,
                 wavySliderEnabled = false,
+                scrollingTitlesEnabled = true,
                 metadata = Metadata(title = "Chapter 3"),
                 state = AudioPlayer.State.Playing,
                 speed = 1.25f,

@@ -268,6 +268,7 @@ class PlaybackBottomBarRenderTest {
             runningTimer = null,
             equalizer = EqualizerState.Unsupported,
             bookmarks = if (session == null) emptyList() else bookmarks,
+            scrollingTitles = true,
             volume = volume,
             outputDevices = outputDevices,
             session = session,

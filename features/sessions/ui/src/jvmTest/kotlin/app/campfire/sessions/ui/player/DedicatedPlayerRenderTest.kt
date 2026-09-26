@@ -129,6 +129,7 @@ class DedicatedPlayerRenderTest {
             bookTimeEnabled = true,
             duration = 30.minutes,
             wavySliderEnabled = false,
+            scrollingTitlesEnabled = true,
             metadata = Metadata(title = if (session == null) null else "Chapter 3"),
             state = AudioPlayer.State.Playing,
             speed = 1.25f,

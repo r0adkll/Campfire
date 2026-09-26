@@ -177,6 +177,14 @@ class PlaybackSettingsImpl(
   override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
     playbackWavyScrubberProperty.observe()
 
+  private val scrollingTitlesProperty = booleanSetting(
+    PREF_SCROLLING_TITLES,
+    true,
+  )
+  override var scrollingTitles: Boolean by scrollingTitlesProperty
+  override fun observeScrollingTitles(): StateFlow<Boolean> =
+    scrollingTitlesProperty.observe()
+
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 
   private fun String.asItemSpeedMap(): Map<LibraryItemId, Float> {
@@ -224,6 +232,7 @@ internal const val PREF_AUTO_REWIND_STOP_AT_CHAPTER = "pref_playback_auto_rewind
 internal const val PREF_AUTO_REWIND_ON_RESUME = "pref_playback_auto_rewind_on_resume"
 internal const val PREF_BOOK_TIME_UI = "pref_book_time_playback_ui"
 internal const val PREF_WAVY_SLIDER = "pref_wavy_playback_slider"
+internal const val PREF_SCROLLING_TITLES = "pref_scrolling_titles"
 
 internal const val PLAYBACK_RATES_SEPARATOR = "::"
 

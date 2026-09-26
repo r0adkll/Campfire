@@ -51,7 +51,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.AudioPlayer
@@ -72,6 +71,7 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.theme.colorScheme
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.MarqueeText
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.AudioTrack
@@ -205,6 +205,7 @@ private fun PlaybackBottomBar(
       runningTimer = playerState.timer,
       equalizer = playerState.equalizer,
       bookmarks = playerState.bookmarks,
+      scrollingTitles = playerState.scrollingTitlesEnabled,
       volume = uiState.volume,
       outputDevices = uiState.outputDevices,
       onPlayPauseClick = { playerState.eventSink(PlayerUiEvent.PlayPauseClick) },
@@ -235,6 +236,7 @@ internal fun PlaybackBottomBarContent(
   runningTimer: RunningTimer?,
   equalizer: EqualizerState,
   bookmarks: List<Bookmark>,
+  scrollingTitles: Boolean,
   /** Null on platforms with no app-level volume, where the control is not rendered at all. */
   volume: VolumeUiState?,
   /** Null where output cannot be routed to a chosen device. */
@@ -294,6 +296,7 @@ internal fun PlaybackBottomBarContent(
       ) {
         NowPlayingInfo(
           session = session,
+          scrollingTitles = scrollingTitles,
           currentMetadata = currentMetadata,
           currentTime = currentTime,
           currentDuration = currentDuration,
@@ -395,6 +398,7 @@ internal fun PlaybackBottomBarContent(
 @Composable
 private fun NowPlayingInfo(
   session: Session?,
+  scrollingTitles: Boolean,
   currentMetadata: Metadata,
   currentTime: Duration,
   currentDuration: Duration,
@@ -424,7 +428,8 @@ private fun NowPlayingInfo(
     Spacer(Modifier.width(12.dp))
 
     Column(verticalArrangement = Arrangement.Center) {
-      Text(
+      MarqueeText(
+        scrollEnabled = scrollingTitles,
         text = if (session == null) {
           stringResource(Res.string.bottom_bar_nothing_playing)
         } else {
@@ -433,8 +438,6 @@ private fun NowPlayingInfo(
         style = MaterialTheme.typography.titleMedium,
         fontWeight = FontWeight.SemiBold,
         fontFamily = PaytoneOneFontFamily,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
       )
 
       val subtitle = when {
@@ -446,11 +449,10 @@ private fun NowPlayingInfo(
         }
         else -> session.libraryItem.media.metadata.title.orEmpty()
       }
-      Text(
+      MarqueeText(
         text = subtitle,
+        scrollEnabled = scrollingTitles,
         style = MaterialTheme.typography.labelSmall,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.alpha(0.7f),
       )
     }

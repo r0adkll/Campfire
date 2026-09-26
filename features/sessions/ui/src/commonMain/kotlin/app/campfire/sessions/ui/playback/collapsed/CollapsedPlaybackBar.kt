@@ -13,7 +13,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.draggable2D
 import androidx.compose.foundation.gestures.rememberDraggable2DState
@@ -77,6 +76,7 @@ import app.campfire.common.compose.icons.rounded.Sync
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.common.compose.widgets.MarqueeText
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.extensions.progressOver
 import app.campfire.core.model.Session
@@ -251,13 +251,11 @@ private fun CollapsedPlaybackBarContent(
           else -> title
         }
 
-        Text(
+        MarqueeText(
           text = playbackBarTitle,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Medium,
           fontFamily = PaytoneOneFontFamily,
-          maxLines = 1,
-          modifier = Modifier.basicMarquee(),
         )
 
         val subtitle = when {

@@ -57,6 +57,8 @@ import campfire.features.settings.ui.generated.resources.setting_playback_rewind
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_range_title
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_rewind_stop_chapter_title
+import campfire.features.settings.ui.generated.resources.setting_playback_scrolling_titles_subtitle
+import campfire.features.settings.ui.generated.resources.setting_playback_scrolling_titles_title
 import campfire.features.settings.ui.generated.resources.setting_playback_speed_options_description
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_sync_title
@@ -174,6 +176,15 @@ internal fun PlaybackPane(
       },
       headlineContent = { Text(stringResource(Res.string.setting_playback_wavy_scrubber_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_playback_wavy_scrubber_subtitle)) },
+    )
+
+    SwitchSetting(
+      value = state.playbackSettings.scrollingTitles,
+      onValueChange = {
+        state.eventSink(PlaybackSettingEvent.ScrollingTitles(it))
+      },
+      headlineContent = { Text(stringResource(Res.string.setting_playback_scrolling_titles_title)) },
+      supportingContent = { Text(stringResource(Res.string.setting_playback_scrolling_titles_subtitle)) },
     )
 
     Header(

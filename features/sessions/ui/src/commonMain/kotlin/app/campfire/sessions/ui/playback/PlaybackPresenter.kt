@@ -293,6 +293,10 @@ class PlaybackPresenter(
       playbackSettings.observePlaybackWavyScrubber()
     }.collectAsState()
 
+    val scrollingTitlesEnabled by remember {
+      playbackSettings.observeScrollingTitles()
+    }.collectAsState()
+
     // Until an audio player is prepared for this session (service cold start, resume
     // priming), derive the same display values from the session row the player would seed
     // from — the handoff to live player state is value-identical
@@ -310,6 +314,7 @@ class PlaybackPresenter(
       bookTime = placeholder?.bookTime ?: bookTime,
       bookTimeEnabled = bookTimeEnabled,
       wavySliderEnabled = wavySliderEnabled,
+      scrollingTitlesEnabled = scrollingTitlesEnabled,
       metadata = placeholder?.metadata ?: metadata,
       state = state,
       speed = speed,

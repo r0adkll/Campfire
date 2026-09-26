@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -31,11 +30,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.CoverImage
+import app.campfire.common.compose.widgets.MarqueeText
 import app.campfire.core.model.Session
 import app.campfire.sessions.ui.playback.PlayerUiEvent
 import app.campfire.sessions.ui.playback.PlayerUiState
@@ -105,21 +104,19 @@ internal fun CompactDedicatedPlaybackContent(
           vertical = 4.dp,
         ),
     ) {
-      Text(
+      MarqueeText(
         text = playerState.metadata.title ?: session.title,
+        scrollEnabled = playerState.scrollingTitlesEnabled,
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.SemiBold,
         fontFamily = PaytoneOneFontFamily,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
       )
-      Text(
+      MarqueeText(
         text = session.libraryItem.media.metadata.title ?: "",
+        scrollEnabled = playerState.scrollingTitlesEnabled,
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodyMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
         modifier = Modifier.alpha(0.8f),
       )
     }

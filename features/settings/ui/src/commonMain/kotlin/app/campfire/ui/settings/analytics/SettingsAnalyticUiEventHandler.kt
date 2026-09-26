@@ -130,6 +130,8 @@ class SettingsAnalyticUiEventHandler(
         send("book_time_playback_ui", Updated, event.enabled)
       is SettingsUiEvent.PlaybackSettingEvent.PlaybackWavyScrubber ->
         send("wavy_playback_slider", Updated, event.enabled)
+      is SettingsUiEvent.PlaybackSettingEvent.ScrollingTitles ->
+        send("scrolling_titles", Updated, event.enabled)
     }
 
     is SettingsUiEvent.SleepSettingEvent -> when (event) {

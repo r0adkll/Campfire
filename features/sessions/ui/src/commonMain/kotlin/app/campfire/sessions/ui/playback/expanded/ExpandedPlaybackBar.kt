@@ -53,7 +53,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,6 +63,7 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
+import app.campfire.common.compose.widgets.MarqueeText
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.model.Session
 import app.campfire.libraries.api.LibraryItemValidation
@@ -380,34 +380,32 @@ internal fun SharedTransitionScope.ExpandedPlaybackContent(
         Spacer(Modifier.height(16.dp))
 
         // Chapter Title
-        Text(
+        MarqueeText(
           text = playerState.metadata.title ?: session?.title ?: Session.TITLE_PLACEHOLDER,
+          scrollEnabled = playerState.scrollingTitlesEnabled,
           textAlign = TextAlign.Center,
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.SemiBold,
           fontFamily = PaytoneOneFontFamily,
-          maxLines = 1,
           autoSize = TextAutoSize.StepBased(
             minFontSize = 18.sp,
             maxFontSize = 28.sp,
           ),
-          overflow = TextOverflow.Ellipsis,
           modifier = Modifier
             .align(Alignment.CenterHorizontally)
             .padding(horizontal = 24.dp),
         )
 
         // Book Title
-        Text(
+        MarqueeText(
           text = session?.libraryItem?.media?.metadata?.title ?: "",
+          scrollEnabled = playerState.scrollingTitlesEnabled,
           textAlign = TextAlign.Center,
           style = MaterialTheme.typography.titleMedium,
-          maxLines = 1,
           autoSize = TextAutoSize.StepBased(
             minFontSize = 14.sp,
             maxFontSize = 16.sp,
           ),
-          overflow = TextOverflow.Ellipsis,
           modifier = Modifier
             .align(Alignment.CenterHorizontally)
             .padding(horizontal = 24.dp)

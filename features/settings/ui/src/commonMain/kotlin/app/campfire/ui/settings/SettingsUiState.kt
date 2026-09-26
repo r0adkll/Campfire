@@ -127,6 +127,7 @@ data class PlaybackSettingsInfo(
   val autoRewindStopAtChapterBoundary: Boolean,
   val bookTimeInPlaybackUi: Boolean,
   val playbackWavyScrubber: Boolean,
+  val scrollingTitles: Boolean,
 )
 
 @Immutable
@@ -273,6 +274,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class AutoRewindStopAtChapterBoundary(val enabled: Boolean) : PlaybackSettingEvent
     data class BookTimeInPlaybackUi(val enabled: Boolean) : PlaybackSettingEvent
     data class PlaybackWavyScrubber(val enabled: Boolean) : PlaybackSettingEvent
+    data class ScrollingTitles(val enabled: Boolean) : PlaybackSettingEvent
   }
 
   // Sleep Setting Events
