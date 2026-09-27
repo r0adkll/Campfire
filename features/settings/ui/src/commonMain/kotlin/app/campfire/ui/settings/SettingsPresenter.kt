@@ -18,6 +18,7 @@ import app.campfire.analytics.Analytics
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.common.screens.AttributionScreen
 import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.SettingsScreen
@@ -149,6 +150,7 @@ class SettingsPresenter(
   private val libraryRepository: LibraryRepository,
   private val homeRepository: HomeRepository,
   private val homeLayoutSettings: HomeLayoutSettings,
+  private val bookInfoRegistry: BookInfoRegistry,
   private val accountManager: AccountManager,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
@@ -216,8 +218,15 @@ class SettingsPresenter(
     val savedHomeLayout by remember(currentLibrary?.id) {
       currentLibrary?.id?.let(homeLayoutSettings::observeLayout) ?: flowOf(null)
     }.collectAsState(null)
-    val homeLayout = remember(savedHomeLayout, homeFeed) {
-      resolveHomeLayout(savedHomeLayout, defaultAvailableShelves(homeFeed.dataOrNull.orEmpty()))
+    val hasUpcomingReleases by remember {
+      bookInfoRegistry.observeCachedUpcoming().map { upcoming -> upcoming.any { it.isDated } }
+    }.collectAsState(false)
+    val homeLayout = remember(savedHomeLayout, homeFeed, hasUpcomingReleases) {
+      val available = defaultAvailableShelves(
+        serverShelves = homeFeed.dataOrNull.orEmpty(),
+        hasUpcomingReleases = hasUpcomingReleases,
+      )
+      resolveHomeLayout(savedHomeLayout, available)
     }
     val homeShelves = homeLayout.shelves.shownShelves + homeLayout.shelves.hiddenShelves
 

@@ -85,7 +85,11 @@ data class UpcomingRelease(
   val seriesName: String,
   val entry: ProviderSeriesEntry,
   val providerId: ProviderId,
-)
+) {
+  /** Only dated releases make the home shelf; undated announcements live on the Upcoming screen. */
+  val isDated: Boolean
+    get() = entry.releaseDate != null
+}
 
 sealed interface SeriesFetchResult {
   /**

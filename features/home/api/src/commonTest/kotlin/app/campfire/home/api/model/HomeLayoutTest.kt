@@ -16,6 +16,7 @@ class HomeLayoutTest {
   fun `default shelves put upcoming after discover`() {
     val shelves = defaultAvailableShelves(
       listOf(shelf("continue-listening"), shelf(ShelfIds.Discover), shelf("recent-series")),
+      hasUpcomingReleases = true,
     )
 
     assertThat(shelves.map { it.id }).containsExactly(
@@ -28,12 +29,41 @@ class HomeLayoutTest {
 
   @Test
   fun `default shelves put upcoming last without discover`() {
-    val shelves = defaultAvailableShelves(listOf(shelf("continue-listening"), shelf("recent-series")))
+    val shelves = defaultAvailableShelves(
+      listOf(shelf("continue-listening"), shelf("recent-series")),
+      hasUpcomingReleases = true,
+    )
 
     assertThat(shelves.map { it.id }).containsExactly(
       "continue-listening",
       "recent-series",
       ShelfIds.UpcomingReleases,
+    )
+  }
+
+  @Test
+  fun `an empty upcoming shelf stays listed but is not rendered`() {
+    val layout = resolveHomeLayout(
+      saved = null,
+      available = defaultAvailableShelves(listOf(shelf(ShelfIds.Discover)), hasUpcomingReleases = false),
+    )
+
+    assertThat(layout.shelves).containsExactly(
+      HomeLayoutShelf(ShelfIds.Discover, ShelfIds.Discover, visible = true, isAvailable = true),
+      HomeLayoutShelf(ShelfIds.UpcomingReleases, "", visible = true, isAvailable = false),
+    )
+    assertThat(layout.visibleShelves.map { it.id }).containsExactly(ShelfIds.Discover)
+  }
+
+  @Test
+  fun `a saved client shelf without content is not rendered`() {
+    val layout = resolveHomeLayout(
+      saved = listOf(entry("client")),
+      available = listOf(available("client", hasContent = false)),
+    )
+
+    assertThat(layout.shelves).containsExactly(
+      HomeLayoutShelf("client", "client", visible = true, isAvailable = false),
     )
   }
 
@@ -160,8 +190,12 @@ class HomeLayoutTest {
 
   private fun shelf(id: String) = Shelf(id, label = id, total = 1, type = ShelfType.BOOK, order = 0)
 
-  private fun available(id: String, label: String = id, defaultVisible: Boolean = true) =
-    AvailableShelf(id, label, defaultVisible)
+  private fun available(
+    id: String,
+    label: String = id,
+    defaultVisible: Boolean = true,
+    hasContent: Boolean = true,
+  ) = AvailableShelf(id, label, defaultVisible, hasContent)
 
   private fun entry(id: String, visible: Boolean = true, label: String = id) = HomeLayoutEntry(id, visible, label)
 

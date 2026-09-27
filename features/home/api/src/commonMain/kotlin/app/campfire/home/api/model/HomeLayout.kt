@@ -16,18 +16,23 @@ data class HomeLayoutEntry(
 )
 
 /**
- * A shelf that Home can show right now, listed in its default order.
+ * A shelf Home knows about, listed in its default order.
+ *
+ * @param hasContent false for a client-side shelf with nothing to show right now; it stays in the
+ *  layout (so it can be arranged ahead of time) but Home doesn't render it
  */
 data class AvailableShelf(
   val id: ShelfId,
   val label: String,
   val defaultVisible: Boolean = true,
+  val hasContent: Boolean = true,
 )
 
 /**
  * A shelf in a resolved [HomeLayout].
  *
- * @param isAvailable false for a saved shelf that Home can't show right now; it keeps its slot
+ * @param isAvailable false for a shelf that Home can't show right now, e.g. a saved server shelf
+ *  missing from the feed or an empty client-side shelf; it keeps its slot
  */
 data class HomeLayoutShelf(
   val id: ShelfId,
@@ -55,12 +60,17 @@ data class HomeLayout(
 }
 
 /**
- * The shelves Home can show in their default order: the server's feed, with the client-side
+ * The shelves Home knows about in their default order: the server's feed, with the client-side
  * upcoming releases shelf placed after Discover (or at the end without one).
+ *
+ * @param hasUpcomingReleases whether the upcoming releases shelf has anything to show
  */
-fun defaultAvailableShelves(serverShelves: List<Shelf>): List<AvailableShelf> {
+fun defaultAvailableShelves(
+  serverShelves: List<Shelf>,
+  hasUpcomingReleases: Boolean,
+): List<AvailableShelf> {
   val shelves = serverShelves.map { AvailableShelf(it.id, it.label) }
-  val upcoming = AvailableShelf(ShelfIds.UpcomingReleases, label = "")
+  val upcoming = AvailableShelf(ShelfIds.UpcomingReleases, label = "", hasContent = hasUpcomingReleases)
   val anchor = shelves.indexOfFirst { it.id == ShelfIds.Discover }
   return if (anchor >= 0) {
     shelves.toMutableList().apply { add(anchor + 1, upcoming) }
@@ -100,7 +110,7 @@ fun resolveHomeLayout(
         id = entry.shelfId,
         label = current?.label ?: entry.label,
         visible = entry.visible,
-        isAvailable = current != null,
+        isAvailable = current?.hasContent == true,
       )
     }
     .toMutableList()
@@ -123,5 +133,5 @@ private fun AvailableShelf.toLayoutShelf(visible: Boolean) = HomeLayoutShelf(
   id = id,
   label = label,
   visible = visible,
-  isAvailable = true,
+  isAvailable = hasContent,
 )

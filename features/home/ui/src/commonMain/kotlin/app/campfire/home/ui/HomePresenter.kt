@@ -131,7 +131,11 @@ class HomePresenter(
         if (layoutState !is LoadState.Loaded) return@derivedStateOf FeedResponse.Loading
         domainFeed.map { shelves ->
           val shelvesById = shelves.associateBy { it.id }
-          val layout = resolveHomeLayout(layoutState.data, defaultAvailableShelves(shelves))
+          val available = defaultAvailableShelves(
+            serverShelves = shelves,
+            hasUpcomingReleases = upcomingReleases.any { it.isDated },
+          )
+          val layout = resolveHomeLayout(layoutState.data, available)
           layout.visibleShelves
             .mapNotNull { entry ->
               if (entry.id == ShelfIds.UpcomingReleases) {
@@ -222,7 +226,7 @@ class HomePresenter(
  * stays empty here; the UI resolves it from resources by shelf id.
  */
 private fun upcomingShelf(upcoming: List<UpcomingRelease>): UiShelf<ShelfEntity>? {
-  val dated = upcoming.filter { it.entry.releaseDate != null }
+  val dated = upcoming.filter { it.isDated }
   if (dated.isEmpty()) return null
 
   return UiShelf(
