@@ -14,26 +14,24 @@ import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AiThemeBuilder
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
-import app.campfire.ui.theming.api.NoOpAiThemeBuilder
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(ThemePickerScreen::class, UserScope::class)
 @Inject
 class ThemePickerPresenter(
   private val appThemeRepository: AppThemeRepository,
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   // Defaults to NoOp when the optional :ui:theming:ai module isn't in this build.
-  private val aiThemeBuilder: AiThemeBuilder = NoOpAiThemeBuilder,
+  private val aiThemeBuilder: AiThemeBuilder,
 ) : Presenter<ThemePickerUiState> {
 
   @Composable

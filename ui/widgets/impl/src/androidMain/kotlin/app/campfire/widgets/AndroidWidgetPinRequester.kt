@@ -8,8 +8,8 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import app.campfire.core.di.AppScope
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

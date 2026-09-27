@@ -25,20 +25,19 @@ import app.campfire.podcasts.api.PodcastsRepository
 import app.campfire.podcasts.api.mergedWith
 import app.campfire.podcasts.api.sanitizePodcastPathSegment
 import app.campfire.podcasts.api.screen.AddPodcastBuilderScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(AddPodcastBuilderScreen::class, UserScope::class)
 @Inject
 class AddPodcastBuilderPresenter(
-  @Assisted private val screen: AddPodcastBuilderScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: AddPodcastBuilderScreen,
+  private val navigator: Navigator,
   private val analytics: Analytics,
   private val libraryRepository: LibraryRepository,
   private val podcastsRepository: PodcastsRepository,

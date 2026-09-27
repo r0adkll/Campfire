@@ -6,15 +6,15 @@ package app.campfire.audioplayer.impl
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Hooks [MediaControllerConnector] into the app startup sequence so its process-lifecycle
  * observation begins at launch, without the connector doing work at construction time.
  */
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class MediaControllerConnectorInitializer(
   private val connector: MediaControllerConnector,

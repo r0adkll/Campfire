@@ -28,7 +28,7 @@ import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Surface
 import com.livewire.ui.widget.Tab
 import com.livewire.ui.widget.TabRow
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 /**
  * Campfire-specific debugging: the Audiobookshelf socket connection, the account /

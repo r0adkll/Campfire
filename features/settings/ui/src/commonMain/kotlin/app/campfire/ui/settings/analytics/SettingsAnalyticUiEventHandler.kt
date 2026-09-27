@@ -46,7 +46,7 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.AutoSleepTimer
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.FadeOutDuration
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivity
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class SettingsAnalyticUiEventHandler(

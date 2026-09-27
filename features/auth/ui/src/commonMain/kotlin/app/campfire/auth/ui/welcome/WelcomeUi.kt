@@ -29,7 +29,7 @@ import app.campfire.common.compose.theme.LocalUseDarkColors
 import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.colorScheme
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import com.slack.circuit.sharedelements.SharedElementTransitionScope.AnimatedScope.Navigation
 

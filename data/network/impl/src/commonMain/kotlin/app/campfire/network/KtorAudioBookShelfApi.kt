@@ -3,7 +3,6 @@
 
 package app.campfire.network
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requireServerUrl
@@ -59,7 +58,9 @@ import app.campfire.network.models.SearchResult
 import app.campfire.network.models.Series
 import app.campfire.network.models.Shelf
 import app.campfire.network.models.User
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
@@ -77,7 +78,6 @@ import io.ktor.http.contentType
 import io.ktor.http.encodeURLQueryComponent
 import io.ktor.http.takeFrom
 import io.ktor.util.encodeBase64
-import me.tatarka.inject.annotations.Inject
 
 @Inject
 @SingleIn(UserScope::class)

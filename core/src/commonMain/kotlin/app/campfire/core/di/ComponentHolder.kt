@@ -15,21 +15,19 @@ import kotlinx.coroutines.launch
 
 /**
  * DI component holder that provides a convenient way to fetch contributed elements on the graph.
- * Take the example where you might contribute a subcomponent,
+ * Take the example where you might contribute a graph extension,
  * ```
- * @ContributesSubcomponent(
- *   scope = UserScope::class,
- *   parentScope = AppScope::class,
- * )
+ * @GraphExtension(UserScope::class)
  * interface UserComponent {
- *   @ContributesSubcomponent.Factory
+ *   @ContributesTo(AppScope::class)
+ *   @GraphExtension.Factory
  *   interface Factory {
- *     fun create(userSession: UserSession): UserComponent
+ *     fun create(@Provides userSession: UserSession): UserComponent
  *   }
  * }
  * ```
- * If you have already added its parent to the [components] set in this holder, then you can fetch the above
- * subcomponent factory like so:
+ * If you have already added its parent graph to the [components] set in this holder, then you can fetch the
+ * above graph extension factory like so:
  * ```
  * ComponentHolder.component<UserComponent.Factory>().create(…)
  * ```

@@ -49,7 +49,7 @@ import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import campfire.features.series.ui.generated.resources.missing_section_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 

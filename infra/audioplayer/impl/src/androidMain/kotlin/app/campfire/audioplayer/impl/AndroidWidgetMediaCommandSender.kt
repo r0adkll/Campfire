@@ -7,8 +7,8 @@ import android.os.Bundle
 import androidx.media3.session.SessionCommand
 import app.campfire.audioplayer.WidgetMediaCommandSender
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

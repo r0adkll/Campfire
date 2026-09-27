@@ -4,7 +4,6 @@
 package app.campfire.podcasts.downloads
 
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryId
@@ -13,7 +12,10 @@ import app.campfire.network.models.PodcastEpisodeDownload
 import app.campfire.podcasts.api.EpisodeDownloadsSnapshot
 import app.campfire.podcasts.api.RemoteEpisodeDownload
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -24,13 +26,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 private val FINISHED_TTL = 60.seconds
 
 @SingleIn(UserScope::class)
-@ContributesBinding(UserScope::class, boundType = RemoteEpisodeDownloadTracker::class)
-@ContributesBinding(UserScope::class, boundType = RemoteEpisodeDownloadSink::class)
+@ContributesBinding(UserScope::class, binding = binding<RemoteEpisodeDownloadTracker>())
+@ContributesBinding(UserScope::class, binding = binding<RemoteEpisodeDownloadSink>())
 @Inject
 class DefaultRemoteEpisodeDownloadTracker(
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,

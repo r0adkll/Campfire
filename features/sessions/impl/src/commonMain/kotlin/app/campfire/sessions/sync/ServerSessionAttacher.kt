@@ -10,7 +10,6 @@ import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
@@ -21,14 +20,16 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.DeviceInfo
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.concurrent.atomics.AtomicReference
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Opportunistically attaches a server playback session (`POST /api/items/{id}/play`) to a
@@ -69,7 +70,7 @@ interface ServerSessionAttacher {
 
 @OptIn(ExperimentalAtomicApi::class)
 @SingleIn(UserScope::class)
-@ContributesBinding(UserScope::class, boundType = ServerSessionAttacher::class)
+@ContributesBinding(UserScope::class, binding = binding<ServerSessionAttacher>())
 @Inject
 class DefaultServerSessionAttacher(
   private val api: AudioBookShelfApi,

@@ -14,17 +14,16 @@ import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @CircuitInject(AnalyticConsentScreen::class, UserScope::class)
 @Inject
 class AnalyticConsentPresenter(
-  @Assisted private val screen: AnalyticConsentScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: AnalyticConsentScreen,
+  private val navigator: Navigator,
   private val userSession: UserSession,
   private val settings: CampfireSettings,
   private val userSessionManager: UserSessionManager,

@@ -14,9 +14,9 @@ import app.campfire.core.di.UserScope
 import app.campfire.search.api.ui.LocalSearchEventHandler
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.search.ui.composables.SearchResultContent
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.slack.circuit.sharedelements.SharedElementTransitionLayout
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

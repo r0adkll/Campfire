@@ -6,16 +6,16 @@ package app.campfire.audioplayer.impl.offline
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.PodcastEpisodeId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

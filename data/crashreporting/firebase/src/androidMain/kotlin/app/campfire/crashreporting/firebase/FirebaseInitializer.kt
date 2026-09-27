@@ -21,15 +21,15 @@ import app.campfire.crashreporting.impl.redactedCopyOrSelf
 import app.campfire.settings.api.CampfireSettings
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class FirebaseInitializer(
   private val application: Application,

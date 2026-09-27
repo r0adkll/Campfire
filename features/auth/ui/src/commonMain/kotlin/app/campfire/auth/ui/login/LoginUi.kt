@@ -70,7 +70,7 @@ import campfire.features.auth.ui.generated.resources.action_login_openid
 import campfire.features.auth.ui.generated.resources.label_authenticating_loading_message
 import campfire.features.auth.ui.generated.resources.login_add_account_title
 import campfire.features.auth.ui.generated.resources.login_reauth_account_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout

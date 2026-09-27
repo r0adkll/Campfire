@@ -10,11 +10,12 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Holds the [ActivityResultLauncher] that Google Play's in-app update flow uses to show its
@@ -24,7 +25,7 @@ import me.tatarka.inject.annotations.Inject
  */
 @SingleIn(AppScope::class)
 @Inject
-@ContributesMultibinding(AppScope::class, boundType = ComponentActivityPlugin::class)
+@ContributesIntoSet(AppScope::class, binding = binding<ComponentActivityPlugin>())
 class PlayUpdateFlowLauncher : ComponentActivityPlugin {
 
   private val _results = MutableSharedFlow<ActivityResult>(extraBufferCapacity = 1)

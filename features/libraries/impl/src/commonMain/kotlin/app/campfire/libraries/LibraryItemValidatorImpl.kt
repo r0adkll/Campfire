@@ -8,10 +8,10 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.model.LibraryItem
 import app.campfire.libraries.api.LibraryItemValidation
 import app.campfire.libraries.api.LibraryItemValidator
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlin.math.floor
 import kotlin.time.Duration.Companion.seconds
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

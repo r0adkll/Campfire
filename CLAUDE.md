@@ -44,7 +44,7 @@ scripts/release
 - **Presentation**: Slack's Circuit (state machine-driven UI)
 - **Networking**: Ktor Client with OIDC auth
 - **Database**: SQLDelight (multiplatform SQLite) + Store5 (cache layer)
-- **DI**: kotlin-inject + Kimchi (compile-time, annotation-based)
+- **DI**: [Metro](https://zacsweers.github.io/metro/) (compiler plugin, compile-time, annotation-based; also generates the Circuit factories)
 - **Code Style**: ktlint (invoked via `scripts/ktlint`)
 
 ## Architecture
@@ -97,8 +97,8 @@ sealed interface MyEvent {
 @CircuitInject(MyScreen::class, UserScope::class)
 @Inject
 class MyPresenter(
-  @Assisted private val screen: MyScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: MyScreen,
+  private val navigator: Navigator,
   private val repository: MyRepository,
 ) : Presenter<MyUiState> {
   @Composable
@@ -116,11 +116,15 @@ fun MyUi(state: MyUiState, modifier: Modifier = Modifier) { /* ... */ }
 - `AppScope` - App-level singletons (APIs, database)
 - `UserScope` - Per-user instances (created on login, destroyed on logout)
 
-### Platform bindings (Kimchi/KSP)
+### DI (Metro)
 
-- A module whose `@Contributes*` annotations all live in commonMain uses `addKspDependencyForCommon(libs.kimchi.compiler)`. Adding a contribution in a platform sourceset (androidMain etc.) requires switching that module to `addKspDependencyForAllTargets` — and clean the module once after switching (stale metadata-target output lingers).
-- A platform sourceset can override a common binding in the same module with `@ContributesBinding(Scope::class, replaces = [CommonImpl::class])`; the platform target's merge sees both and drops the replaced one. Precedents: `AndroidDiscoverScanTracker` replaces `InProcessDiscoverScanTracker` (same module), `MediaRouterCastController` replaces `NoOpCastController` (cross-module).
-- After binding changes, confirm which implementation the graph constructs by grepping the generated merged component under `app/android/build/generated/ksp/<variant>/kotlin/kimchi/merge/`.
+- Every module that declares or contributes bindings applies `id("app.campfire.di")` (the `app.campfire.ui` convention applies it for UI modules). There is no KSP; contributions in any sourceset (commonMain or platform) just work.
+- Graphs: `AndroidAppComponent` / `DesktopApplicationComponent` / `IosApplicationComponent` are the `@DependencyGraph(AppScope::class)` roots, one per platform so platform contributions are visible. `UserComponent` (UserScope) and the per-platform UiScope components are `@GraphExtension`s whose factories are `@ContributesTo(AppScope::class)`.
+- Circuit: `@CircuitInject` presenters are plain `@Inject` classes — the screen and `Navigator` are ordinary constructor params (no `@Assisted`); UI functions may take injected params alongside state/modifier. Default parameter values are not honored for Circuit-injected params, so optional features bind a fallback that the optional module `replaces` (see `UnsupportedAiThemeBuilder`).
+- Other assisted injection uses `@AssistedInject` plus an `@AssistedFactory fun interface` (e.g. `SearchPresenterFactory`). Metro does not treat typealiases as distinct binding keys and treats `() -> T` as a provider, so never bind a function-type typealias — use a `fun interface` (e.g. `CampfireAppBar`) or an `@Inject` class.
+- `@ContributesBinding`/`@ContributesIntoSet` take `binding = binding<Type>()` when the class has several supertypes; `@Provides` functions in one interface need distinct names.
+- A platform sourceset can override a common binding with `@ContributesBinding(Scope::class, replaces = [CommonImpl::class])`. Precedents: `AndroidDiscoverScanTracker` replaces `InProcessDiscoverScanTracker` (same module), `MediaRouterCastController` replaces `NoOpCastController` (cross-module).
+- Confirm which implementation a graph constructs with Metro's reports: `./gradlew :app:android:compileStandardDebugKotlin -Pcampfire.metro.reports=true --rerun`, then look under `app/android/build/reports/metro/`.
 - Framework-constructed objects (Services, WorkManager workers) resolve dependencies through `ComponentHolder` accessor interfaces (`@ContributesTo` on the scope), re-resolved fresh on each use — the `UserComponent` is rebuilt on every session change (see `AudioPlayerService`, `DiscoverScanWorker`).
 
 ## Code Coverage Requirements

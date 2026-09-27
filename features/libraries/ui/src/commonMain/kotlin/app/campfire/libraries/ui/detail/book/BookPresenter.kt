@@ -78,6 +78,7 @@ import campfire.features.libraries.ui.generated.resources.by_narrator_line
 import campfire.features.libraries.ui.generated.resources.genres_title
 import campfire.features.libraries.ui.generated.resources.tags_title
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
@@ -88,7 +89,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 import org.jetbrains.compose.resources.stringResource
 
 @Suppress("UNCHECKED_CAST")

@@ -13,8 +13,9 @@ import app.campfire.socket.events.EpisodeDownloadQueued
 import app.campfire.socket.events.EpisodeDownloadStarted
 import app.campfire.socket.events.SocketEvent
 import app.campfire.socket.events.SocketEventListener
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 
 /**
  * Reacts to podcast/episode socket events from the Audiobookshelf server.
@@ -24,7 +25,7 @@ import me.tatarka.inject.annotations.Inject
  * - The four `EpisodeDownload*` events feed the in-memory `RemoteEpisodeDownloadTracker` via its
  *   package-internal sink, mirroring the server's queue state for the "Downloads" feature.
  */
-@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)
+@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())
 @Inject
 class PodcastEpisodeSocketListener(
   private val libraryItemDao: LibraryItemDao,

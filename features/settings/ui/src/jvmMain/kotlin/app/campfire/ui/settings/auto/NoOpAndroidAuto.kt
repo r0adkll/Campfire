@@ -4,8 +4,8 @@
 package app.campfire.ui.settings.auto
 
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

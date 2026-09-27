@@ -63,7 +63,7 @@ import campfire.features.playlists.ui.generated.resources.Res
 import campfire.features.playlists.ui.generated.resources.empty_playlists_message
 import campfire.features.playlists.ui.generated.resources.error_playlists_message
 import campfire.features.playlists.ui.generated.resources.filter_bar_playlist_count
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource

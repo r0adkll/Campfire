@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * Build-level seam for the on-device AI Theme Builder feature. The real implementation is
  * contributed by the optional `:ui:theming:ai` module; builds that exclude that module
- * (e.g. FOSS distributions) fall back to [NoOpAiThemeBuilder] via the injection site's
- * default argument.
+ * (e.g. FOSS distributions) fall back to [NoOpAiThemeBuilder] through the always-present
+ * `UnsupportedAiThemeBuilder` binding that the optional module replaces.
  */
 interface AiThemeBuilder {
 
@@ -30,8 +30,7 @@ interface AiThemeBuilder {
 }
 
 /**
- * Default used when no [AiThemeBuilder] binding is present in the DI graph: the feature
- * is absent from the build, permanently unavailable.
+ * The feature is absent from the build: permanently unavailable.
  */
 object NoOpAiThemeBuilder : AiThemeBuilder {
   override val isSupported: Boolean = false

@@ -24,6 +24,9 @@ import app.campfire.search.api.SearchRepository
 import app.campfire.search.api.SearchResult
 import app.campfire.search.api.ui.SearchResultNavEvent
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -31,16 +34,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onStart
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias SearchPresenterFactory = (
-  textFieldState: TextFieldState,
-  onSearchEvent: (SearchResultNavEvent) -> Unit,
-) -> SearchPresenter
+@AssistedFactory
+fun interface SearchPresenterFactory {
+  operator fun invoke(
+    textFieldState: TextFieldState,
+    onSearchEvent: (SearchResultNavEvent) -> Unit,
+  ): SearchPresenter
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Inject
+@AssistedInject
 class SearchPresenter(
   private val searchRepository: SearchRepository,
   @Assisted private val textFieldState: TextFieldState,

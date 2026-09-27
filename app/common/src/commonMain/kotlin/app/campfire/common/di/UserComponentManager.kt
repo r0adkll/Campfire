@@ -6,7 +6,6 @@ package app.campfire.common.di
 import app.campfire.account.api.di.UserGraphManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
@@ -14,7 +13,9 @@ import app.campfire.core.session.UserSession
 import app.campfire.tracing.DiTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -22,7 +23,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

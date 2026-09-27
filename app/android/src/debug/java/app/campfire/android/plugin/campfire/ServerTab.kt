@@ -30,7 +30,7 @@ import com.livewire.ui.modifier.padding
 import com.livewire.ui.modifier.verticalScroll
 import com.livewire.ui.theme.LivewireTheme
 import com.livewire.ui.widget.Text
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.launch
 
 /**

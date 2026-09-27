@@ -98,9 +98,10 @@ import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.updates.source.AppUpdateSource
 import app.campfire.whatsnew.api.screen.ChangelogScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -109,14 +110,12 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(SettingsScreen::class, UserScope::class)
 @Inject
 class SettingsPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val userSession: UserSession,
   private val analytics: Analytics,
   private val analyticUiEventHandler: SettingsAnalyticUiEventHandler,

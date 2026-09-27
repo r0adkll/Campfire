@@ -53,9 +53,9 @@ import campfire.features.collections.ui.generated.resources.edit_collection_bott
 import campfire.features.collections.ui.generated.resources.edit_collection_bottomsheet_input_description_label
 import campfire.features.collections.ui.generated.resources.edit_collection_bottomsheet_input_title_label
 import campfire.features.collections.ui.generated.resources.edit_collection_bottomsheet_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

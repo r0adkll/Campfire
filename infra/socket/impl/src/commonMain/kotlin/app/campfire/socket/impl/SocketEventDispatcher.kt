@@ -10,11 +10,12 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Corked
 import app.campfire.socket.SocketManager
 import app.campfire.socket.events.SocketEventListener
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+@ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class SocketEventDispatcher(
   private val socketManager: SocketManager,

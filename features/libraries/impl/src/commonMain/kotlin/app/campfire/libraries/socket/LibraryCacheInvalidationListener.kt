@@ -14,10 +14,11 @@ import app.campfire.socket.events.LibraryRemoved
 import app.campfire.socket.events.LibraryUpdated
 import app.campfire.socket.events.SocketEvent
 import app.campfire.socket.events.SocketEventListener
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 
-@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)
+@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())
 @Inject
 class LibraryCacheInvalidationListener(
   private val itemHandler: LibraryItemEventHandler,

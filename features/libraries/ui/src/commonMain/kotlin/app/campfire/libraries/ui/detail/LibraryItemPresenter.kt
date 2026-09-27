@@ -28,24 +28,23 @@ import app.campfire.libraries.ui.detail.podcast.PodcastPresenter
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.SwatchSelector
 import app.campfire.ui.theming.api.ThemeManager
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.compose.Schema
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Inject
 class LibraryItemPresenter(
-  @Assisted private val screen: LibraryItemScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: LibraryItemScreen,
+  private val navigator: Navigator,
   private val userSession: UserSession,
   private val repository: LibraryItemRepository,
   private val bookPresenter: BookPresenter,

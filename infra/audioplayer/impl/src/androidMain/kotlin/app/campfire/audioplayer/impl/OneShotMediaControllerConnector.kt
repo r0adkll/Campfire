@@ -10,9 +10,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * This class spools up a media controller connection to start playback, then immediately tears it down

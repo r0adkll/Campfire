@@ -8,7 +8,6 @@ import app.campfire.account.api.TokenRefresher
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.lifecycle.AppLifecycleObserver
@@ -56,9 +55,12 @@ import com.piasy.kmp.socketio.socketio.IO
 import com.piasy.kmp.socketio.socketio.Manager
 import com.piasy.kmp.socketio.socketio.Socket
 import com.piasy.kmp.xlog.Logging
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import dev.jordond.connectivity.Connectivity
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.concurrent.Volatile
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -80,7 +82,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
@@ -440,7 +441,7 @@ class DefaultSocketManager(
     return runCatching { element.jsonPrimitive.contentOrNull }.getOrNull()
   }
 
-  @ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+  @ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
   @Inject
   class Lifecycle(
     private val socketManager: DefaultSocketManager,

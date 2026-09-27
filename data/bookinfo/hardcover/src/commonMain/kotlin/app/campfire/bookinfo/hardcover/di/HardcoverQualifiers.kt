@@ -3,7 +3,7 @@
 
 package app.campfire.bookinfo.hardcover.di
 
-import me.tatarka.inject.annotations.Qualifier
+import dev.zacsweers.metro.Qualifier
 
 /** Qualifies the [io.ktor.client.HttpClient] configured for the Hardcover GraphQL API. */
 @Qualifier

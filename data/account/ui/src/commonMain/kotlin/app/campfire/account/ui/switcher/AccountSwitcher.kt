@@ -72,7 +72,7 @@ import campfire.data.account.ui.generated.resources.action_switch_account
 import campfire.data.account.ui.generated.resources.libraries_error_message
 import campfire.data.account.ui.generated.resources.server_name_error
 import campfire.data.account.ui.generated.resources.server_name_loading
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesTo(UserScope::class)

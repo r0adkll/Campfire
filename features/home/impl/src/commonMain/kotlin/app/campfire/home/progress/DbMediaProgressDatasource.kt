@@ -13,10 +13,10 @@ import app.campfire.core.session.requiredUserId
 import app.campfire.data.mapping.asDomainModel
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

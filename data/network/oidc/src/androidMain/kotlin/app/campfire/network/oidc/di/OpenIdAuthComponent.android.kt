@@ -9,8 +9,8 @@ import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.oidc.AndroidAuthorizationFlow
 import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.network.oidc.StartActivityForResultFlowLauncher
-import me.tatarka.inject.annotations.IntoSet
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.IntoSet
+import dev.zacsweers.metro.Provides
 
 actual interface PlatformOpenIdAuthComponent {
 

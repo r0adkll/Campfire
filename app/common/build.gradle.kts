@@ -1,13 +1,10 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
-
-import app.campfire.convention.addKspDependencyForAllTargets
-
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -111,10 +108,6 @@ kotlin {
 
         api(libs.coil.networking.ktor3)
         api(libs.ktor.client.auth)
-
-        implementation(libs.kotlininject.runtime)
-        implementation(libs.kimchi.annotations)
-        implementation(libs.kimchi.circuit.annotations)
         implementation(libs.compose.navigationevent)
       }
     }
@@ -136,11 +129,3 @@ kotlin {
     }
   }
 }
-
-ksp {
-  arg("me.tatarka.inject.generateCompanionExtensions", "true")
-}
-
-addKspDependencyForAllTargets(libs.kotlininject.ksp)
-addKspDependencyForAllTargets(libs.kimchi.compiler)
-addKspDependencyForAllTargets(libs.kimchi.circuit.compiler)

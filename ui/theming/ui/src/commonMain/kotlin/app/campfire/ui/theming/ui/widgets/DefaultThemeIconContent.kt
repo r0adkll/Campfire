@@ -24,8 +24,8 @@ import app.campfire.socket.SocketState
 import app.campfire.ui.theming.api.AppThemeImage
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

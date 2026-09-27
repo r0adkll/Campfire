@@ -22,16 +22,22 @@ import app.campfire.network.AudioBookShelfApi
 import app.campfire.podcasts.api.LatestEpisode
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias RecentEpisodesRemoteMediatorFactory = (User) -> RecentEpisodesRemoteMediator
+@AssistedFactory
+fun interface RecentEpisodesRemoteMediatorFactory {
+  operator fun invoke(
+    user: User,
+  ): RecentEpisodesRemoteMediator
+}
 
 private const val MAX_CACHE_TIME_MS = 24L * 60L * 60 * 1000L
 
 @OptIn(ExperimentalPagingApi::class)
-@Inject
+@AssistedInject
 class RecentEpisodesRemoteMediator(
   @Assisted private val user: User,
   private val api: AudioBookShelfApi,

@@ -6,13 +6,14 @@ package app.campfire.ui.theming.quantizer
 import androidx.compose.ui.graphics.ImageBitmap
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import co.touchlab.stately.collections.ConcurrentMutableList
 import co.touchlab.stately.collections.ConcurrentMutableMap
 import co.touchlab.stately.collections.ConcurrentMutableSet
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.swatchbuckler.compose.SwatchBuilder
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

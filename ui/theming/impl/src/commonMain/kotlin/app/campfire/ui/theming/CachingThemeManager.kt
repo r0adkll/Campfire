@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Corked
 import app.campfire.settings.api.ThemeSettings
@@ -20,11 +19,13 @@ import app.campfire.ui.theming.quantizer.QuantizerPipeline
 import app.campfire.ui.theming.theme.ComputedTheme
 import app.campfire.ui.theming.theme.ThemeCacheKeyBuilder
 import app.campfire.ui.theming.theme.ThemePipeline
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.compose.Schema
 import com.r0adkll.swatchbuckler.compose.Swatch
 import com.r0adkll.swatchbuckler.compose.Theme
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.measureTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -37,7 +38,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

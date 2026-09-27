@@ -12,7 +12,7 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.User
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.db.paging.QueryPagingSource
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class LibraryItemPagerFactory(

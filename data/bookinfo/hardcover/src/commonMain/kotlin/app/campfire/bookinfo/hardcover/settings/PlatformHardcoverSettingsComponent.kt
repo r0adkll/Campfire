@@ -4,7 +4,7 @@
 package app.campfire.bookinfo.hardcover.settings
 
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 
 /**
  * Component to be implemented by platform configurations to provide the

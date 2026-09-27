@@ -78,7 +78,7 @@ import campfire.features.collections.ui.generated.resources.dialog_confirm_delet
 import campfire.features.collections.ui.generated.resources.dialog_confirm_delete_message
 import campfire.features.collections.ui.generated.resources.dialog_confirm_delete_title
 import campfire.features.collections.ui.generated.resources.error_collection_detail_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlinx.coroutines.launch

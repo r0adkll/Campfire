@@ -4,7 +4,6 @@
 package app.campfire.settings
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
@@ -14,18 +13,20 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = CampfireSettings::class)
+@ContributesBinding(AppScope::class, binding = binding<CampfireSettings>())
 @Inject
 class CampfireSettingsImpl(
   override val settings: ObservableSettings,

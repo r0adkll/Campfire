@@ -48,7 +48,7 @@ import campfire.features.collections.ui.generated.resources.collections_title
 import campfire.features.collections.ui.generated.resources.empty_collection_items_message
 import campfire.features.collections.ui.generated.resources.error_collection_items_message
 import campfire.features.collections.ui.generated.resources.filter_bar_collection_count
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 

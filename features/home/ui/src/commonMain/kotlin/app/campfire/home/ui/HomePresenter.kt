@@ -34,9 +34,10 @@ import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
@@ -49,13 +50,11 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(HomeScreen::class, UserScope::class)
 @Inject
 class HomePresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val homeRepository: HomeRepository,
   private val mediaProgressRepository: MediaProgressRepository,
   private val offlineDownloadManager: OfflineDownloadManager,

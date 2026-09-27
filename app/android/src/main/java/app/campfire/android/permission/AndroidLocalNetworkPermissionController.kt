@@ -11,7 +11,6 @@ import android.os.Build
 import android.provider.Settings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.lifecycle.AppLifecycleState
@@ -19,7 +18,9 @@ import app.campfire.core.logging.bark
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.permission.extractUrlHost
 import app.campfire.core.permission.isPrivateNetworkAddress
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.UnknownHostException
@@ -32,7 +33,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Android 17+ Local Network Protection gates private IP ranges behind the runtime

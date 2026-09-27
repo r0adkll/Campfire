@@ -13,13 +13,13 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import com.google.common.util.concurrent.ListenableFuture
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import java.util.concurrent.CancellationException
 import java.util.concurrent.ExecutionException
 import kotlinx.coroutines.flow.MutableStateFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * This class is responsible for connecting and disconnecting the [MediaController] instance

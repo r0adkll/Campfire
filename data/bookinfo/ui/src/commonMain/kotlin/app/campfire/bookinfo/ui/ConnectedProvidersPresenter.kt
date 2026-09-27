@@ -17,17 +17,16 @@ import app.campfire.bookinfo.api.ProviderId
 import app.campfire.common.screens.ConnectedProvidersScreen
 import app.campfire.common.screens.UrlScreen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(ConnectedProvidersScreen::class, UserScope::class)
 @Inject
 class ConnectedProvidersPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val bookInfoRegistry: BookInfoRegistry,
   private val settings: BookInfoProviderSettings,
 ) : Presenter<ConnectedProvidersUiState> {

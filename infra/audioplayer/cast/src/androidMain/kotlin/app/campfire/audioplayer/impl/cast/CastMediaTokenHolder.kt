@@ -7,14 +7,14 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.userId
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Synchronous snapshot of the current ABS access token for the cast path.

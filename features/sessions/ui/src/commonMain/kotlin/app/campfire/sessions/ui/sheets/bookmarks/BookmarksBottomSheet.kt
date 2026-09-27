@@ -102,8 +102,8 @@ import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_lab
 import campfire.features.sessions.ui.generated.resources.bookmark_new_dialog_title
 import campfire.features.sessions.ui.generated.resources.cd_forward_time
 import campfire.features.sessions.ui.generated.resources.cd_rewind_time
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi

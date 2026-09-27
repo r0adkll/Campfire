@@ -17,10 +17,10 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.socket.SocketManager
 import app.campfire.ui.theming.api.AppThemeRepository
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 typealias AccountSwitcherPresenterFactory = () -> AccountSwitcherPresenter
 

@@ -13,16 +13,22 @@ import app.campfire.account.api.ServerRepository
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.Server
 import com.slack.circuit.foundation.NonPausablePresenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias AccountPickerPresenterFactory = (() -> Unit) -> AccountPickerPresenter
+@AssistedFactory
+fun interface AccountPickerPresenterFactory {
+  operator fun invoke(
+    requestDismiss: () -> Unit,
+  ): AccountPickerPresenter
+}
 
-@Inject
+@AssistedInject
 class AccountPickerPresenter(
   @Assisted private val requestDismiss: () -> Unit,
   private val serverRepository: ServerRepository,

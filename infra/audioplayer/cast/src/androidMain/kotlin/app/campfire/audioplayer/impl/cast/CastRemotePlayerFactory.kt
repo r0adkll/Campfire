@@ -13,8 +13,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.impl.RemotePlayerFactory
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 /**
  * Real [RemotePlayerFactory] contributed when this module is included in the build,

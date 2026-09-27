@@ -20,7 +20,6 @@ import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.author.api.AuthorRepository
 import app.campfire.collections.api.CollectionsRepository
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.fluentIf
 import app.campfire.core.logging.LogPriority
@@ -51,6 +50,8 @@ import app.campfire.search.api.SearchResult
 import app.campfire.series.api.SeriesRepository
 import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoSettings
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.collections.firstOrNull
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -63,7 +64,6 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeoutOrNull
-import me.tatarka.inject.annotations.Inject
 
 @Inject
 @SingleIn(UserScope::class)

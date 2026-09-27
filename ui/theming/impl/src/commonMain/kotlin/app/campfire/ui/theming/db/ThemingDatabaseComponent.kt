@@ -4,10 +4,10 @@
 package app.campfire.ui.theming.db
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.themes.CampfireThemeDatabase
-import com.r0adkll.kimchi.annotations.ContributesTo
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 expect interface SqlDelightDatabasePlatformComponent
 

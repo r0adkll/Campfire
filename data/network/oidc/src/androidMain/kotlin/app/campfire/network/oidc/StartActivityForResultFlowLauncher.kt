@@ -8,8 +8,8 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import app.campfire.core.ActivityResultFlowLauncher
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 @SingleIn(AppScope::class)
 @Inject

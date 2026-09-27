@@ -12,13 +12,13 @@ import app.campfire.android.plugin.playback.PlaybackLivewirePlugin
 import app.campfire.audioplayer.impl.AudioPlayerService
 import app.campfire.audioplayer.impl.offline.CampfireDownloadService
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.livewire.client.LivewireClient
 import com.livewire.plugin.database.DatabasePlugin
 import com.livewire.plugin.network.NetworkPlugin
 import com.livewire.plugin.recomposition.RecompositionPlugin
-import com.r0adkll.kimchi.annotations.ContributesTo
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 @ContributesTo(AppScope::class)
 interface LivewireComponent {

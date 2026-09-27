@@ -33,7 +33,7 @@ import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

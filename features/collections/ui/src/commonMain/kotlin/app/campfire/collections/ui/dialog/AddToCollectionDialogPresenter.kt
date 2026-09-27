@@ -12,15 +12,24 @@ import app.campfire.collections.api.CollectionsRepository
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 typealias OnDismissListener = () -> Unit
 
-@Inject
+@AssistedFactory
+fun interface AddToCollectionDialogPresenterFactory {
+  operator fun invoke(
+    libraryItem: LibraryItem,
+    onDismiss: OnDismissListener,
+  ): AddToCollectionDialogPresenter
+}
+
+@AssistedInject
 class AddToCollectionDialogPresenter(
   @Assisted private val libraryItem: LibraryItem,
   @Assisted private val onDismiss: OnDismissListener,

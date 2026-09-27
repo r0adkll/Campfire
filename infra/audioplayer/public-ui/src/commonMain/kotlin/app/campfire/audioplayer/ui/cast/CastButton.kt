@@ -99,7 +99,7 @@ import campfire.infra.audioplayer.public_ui.generated.resources.label_couldnt_co
 import campfire.infra.audioplayer.public_ui.generated.resources.label_local_network_rationale
 import campfire.infra.audioplayer.public_ui.generated.resources.media_route_dialog_title
 import coil3.compose.AsyncImage
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

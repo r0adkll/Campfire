@@ -28,18 +28,18 @@ import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
 import app.campfire.audioplayer.impl.offline.downloadRequirements
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.network.di.UserClient
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import java.io.File
 import java.util.concurrent.Executors
 import kotlinx.coroutines.runBlocking
-import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
 interface ExoPlayerAppComponent {

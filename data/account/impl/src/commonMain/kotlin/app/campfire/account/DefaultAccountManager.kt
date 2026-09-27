@@ -23,12 +23,12 @@ import app.campfire.core.session.userId
 import app.campfire.core.toast.GlobalToaster
 import app.campfire.core.toast.Toast
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

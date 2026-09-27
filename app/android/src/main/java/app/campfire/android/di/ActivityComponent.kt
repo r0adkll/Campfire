@@ -10,18 +10,14 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.common.root.CampfireContent
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
 import app.campfire.core.permission.LocalNetworkPermissionController
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Provides
 import java.util.Locale
-import me.tatarka.inject.annotations.Provides
 
-@SingleIn(UiScope::class)
-@ContributesSubcomponent(
-  scope = UiScope::class,
-  parentScope = AppScope::class,
-)
+@GraphExtension(UiScope::class)
 interface ActivityComponent {
   val campfireContent: CampfireContent
   val componentActivityPlugins: Set<ComponentActivityPlugin>
@@ -35,8 +31,9 @@ interface ActivityComponent {
       .get(0) ?: Locale.getDefault()
   }
 
-  @ContributesSubcomponent.Factory
+  @ContributesTo(AppScope::class)
+  @GraphExtension.Factory
   interface Factory {
-    fun create(activity: Activity): ActivityComponent
+    fun create(@Provides activity: Activity): ActivityComponent
   }
 }

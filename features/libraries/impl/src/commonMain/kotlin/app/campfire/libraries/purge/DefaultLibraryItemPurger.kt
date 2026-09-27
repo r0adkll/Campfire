@@ -13,10 +13,10 @@ import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.ApiException
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.isNotFound
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(UserScope::class)
 @Inject

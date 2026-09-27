@@ -12,9 +12,11 @@ import app.campfire.bookinfo.api.ProviderCapabilities
 import app.campfire.bookinfo.api.ProviderId
 import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.openlibrary.di.OpenLibraryClient
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -27,7 +29,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Keyless aggregate-rating and metadata source backed by Open Library
@@ -36,7 +37,7 @@ import me.tatarka.inject.annotations.Inject
  * ASIN-only audiobooks are declared unservable and left to other providers.
  */
 @SingleIn(UserScope::class)
-@ContributesMultibinding(UserScope::class, boundType = BookInfoProvider::class)
+@ContributesIntoSet(UserScope::class, binding = binding<BookInfoProvider>())
 @Inject
 class OpenLibraryBookInfoProvider(
   @OpenLibraryClient private val client: HttpClient,

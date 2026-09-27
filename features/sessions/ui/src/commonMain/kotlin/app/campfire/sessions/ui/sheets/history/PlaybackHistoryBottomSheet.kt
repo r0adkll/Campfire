@@ -74,9 +74,9 @@ import campfire.features.sessions.ui.generated.resources.history_context_skip_ne
 import campfire.features.sessions.ui.generated.resources.history_context_skip_previous
 import campfire.features.sessions.ui.generated.resources.history_context_sync
 import campfire.features.sessions.ui.generated.resources.history_empty_message
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuit.overlay.OverlayNavigator
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

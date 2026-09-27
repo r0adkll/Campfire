@@ -8,13 +8,13 @@ import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.settings.api.AudioOutputSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Desktop's app-level volume.

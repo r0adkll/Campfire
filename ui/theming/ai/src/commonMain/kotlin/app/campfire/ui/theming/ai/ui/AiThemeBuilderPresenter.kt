@@ -20,21 +20,20 @@ import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(AiThemeBuilderScreen::class, UserScope::class)
 @Inject
 class AiThemeBuilderPresenter(
   private val themeRepository: AppThemeRepository,
   private val halogenThemeManager: HalogenThemeManager,
-  @Assisted private val screen: AiThemeBuilderScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: AiThemeBuilderScreen,
+  private val navigator: Navigator,
 ) : Presenter<AiThemeBuilderUiState> {
 
   @Composable

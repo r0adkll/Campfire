@@ -6,7 +6,6 @@ package app.campfire.ui.theming
 import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
@@ -20,9 +19,11 @@ import app.campfire.ui.theming.db.mapping.asDomainModel
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.measureTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)

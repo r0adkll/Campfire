@@ -17,8 +17,10 @@ import app.campfire.libraries.paging.fetchAllPages
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.user.api.UserRepository
 import app.cash.sqldelight.async.coroutines.awaitAsList
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import com.russhwolf.settings.ObservableSettings
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
@@ -28,7 +30,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Catches library items that were removed from the server without the app hearing about it —
@@ -36,7 +37,7 @@ import me.tatarka.inject.annotations.Inject
  * database, which never emits a socket event. Once a day per library it lists every item on
  * the server and asks about any cached item missing from that listing.
  */
-@ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+@ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class RemovedLibraryItemReconciler(
   private val api: AudioBookShelfApi,

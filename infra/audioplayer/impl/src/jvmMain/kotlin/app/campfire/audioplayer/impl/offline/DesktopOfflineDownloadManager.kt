@@ -9,7 +9,6 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.LibraryItem
@@ -18,19 +17,21 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.DownloadClient
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.HttpClient
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Desktop offline downloads, stored under the app's config directory next to its database. See
  * [OfflineDownloadQueue] for how downloads run and [OfflineDownloadStore] for the layout on disk.
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = OfflineDownloadManager::class)
+@ContributesBinding(AppScope::class, binding = binding<OfflineDownloadManager>())
 @Inject
 class DesktopOfflineDownloadManager(
   accountManager: AccountManager,

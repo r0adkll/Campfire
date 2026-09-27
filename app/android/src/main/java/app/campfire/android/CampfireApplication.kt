@@ -14,7 +14,7 @@ import app.campfire.core.logging.LogRedaction
 import app.campfire.tracing.DiTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
-import kimchi.merge.app.campfire.android.di.createAndroidAppComponent
+import dev.zacsweers.metro.createGraphFactory
 
 class CampfireApplication : Application() {
 
@@ -28,7 +28,7 @@ class CampfireApplication : Application() {
 
     // Create application component
     val component = Trace.trace(DiTraceSections.APP_GRAPH) {
-      AndroidAppComponent.createAndroidAppComponent(this).also {
+      createGraphFactory<AndroidAppComponent.Factory>().create(this).also {
         ComponentHolder.components += it
       }
     }

@@ -4,13 +4,13 @@
 package app.campfire.updates.source
 
 import app.campfire.settings.api.DevSettings
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Inject
 
 /**
  * A fake [AppUpdateSource] for debug builds, driven entirely by the fake app update

@@ -14,29 +14,46 @@ import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.layout.isLandscapePhone
 import app.campfire.common.compose.layout.isSupportingPaneEnabled
 import app.campfire.common.compose.navigation.localDrawerOpener
+import app.campfire.core.di.UserScope
 import app.campfire.search.api.ui.SearchComponent
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
 
-// Injectable typealias
-@OptIn(ExperimentalMaterial3Api::class)
-typealias CampfireAppBar = @Composable (
-  modifier: Modifier,
-  scrollBehavior: SearchBarScrollBehavior?,
-) -> Unit
+/**
+ * The app bar shown atop top-level screens, injected into Circuit UIs that need it.
+ */
+fun interface CampfireAppBar {
+  @OptIn(ExperimentalMaterial3Api::class)
+  @Composable
+  operator fun invoke(
+    modifier: Modifier,
+    scrollBehavior: SearchBarScrollBehavior?,
+  )
+}
+
+@ContributesBinding(UserScope::class)
+class DefaultCampfireAppBar(
+  private val searchComponent: SearchComponent,
+  private val themeIconContent: ThemeIconContent,
+) : CampfireAppBar {
+  @OptIn(ExperimentalMaterial3Api::class)
+  @Composable
+  override fun invoke(
+    modifier: Modifier,
+    scrollBehavior: SearchBarScrollBehavior?,
+  ) = CampfireAppBarContent(searchComponent, themeIconContent, modifier, scrollBehavior)
+}
 
 object SharedAppBar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
-@Inject
 @Composable
-fun CampfireAppBar(
+private fun CampfireAppBarContent(
   searchComponent: SearchComponent,
   themeIconContent: ThemeIconContent,
-  @Assisted modifier: Modifier = Modifier,
-  @Assisted scrollBehavior: SearchBarScrollBehavior?,
+  modifier: Modifier,
+  scrollBehavior: SearchBarScrollBehavior?,
 ) = SharedElementTransitionScope {
   val windowSizeClass by rememberUpdatedState(LocalWindowSizeClass.current)
   if (windowSizeClass.isSupportingPaneEnabled && !windowSizeClass.isLandscapePhone) {

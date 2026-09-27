@@ -7,11 +7,11 @@ import app.campfire.audioplayer.AudioDevice
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 
 /** Offers the bundled FFmpeg engine whenever this module is on the classpath. */
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class FfmpegEngineProvider : DesktopAudioEngineProvider {
   override val name: String = DesktopAudioEngineProvider.FFMPEG

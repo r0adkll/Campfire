@@ -16,8 +16,8 @@ import app.campfire.core.model.UserId
 import app.campfire.core.time.FatherTime
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.network.AudioBookShelfApi
+import dev.zacsweers.metro.Inject
 import kotlin.uuid.Uuid
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.Converter
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.MutableStore

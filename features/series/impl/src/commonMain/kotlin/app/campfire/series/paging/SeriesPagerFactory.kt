@@ -15,7 +15,7 @@ import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.model.mapToLibraryItemWithProgress
 import app.campfire.db.paging.QueryPagingSource
 import app.cash.sqldelight.async.coroutines.awaitAsList
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class SeriesPagerFactory(

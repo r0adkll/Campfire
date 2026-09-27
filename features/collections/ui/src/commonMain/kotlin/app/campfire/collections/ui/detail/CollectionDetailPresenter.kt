@@ -22,23 +22,22 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.user
 import app.campfire.libraries.api.screen.LibraryItemScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(CollectionDetailScreen::class, UserScope::class)
 @Inject
 class CollectionDetailPresenter(
-  @Assisted private val screen: CollectionDetailScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: CollectionDetailScreen,
+  private val navigator: Navigator,
   private val currentSession: UserSession,
   private val collectionsRepository: CollectionsRepository,
   private val offlineDownloadManager: OfflineDownloadManager,

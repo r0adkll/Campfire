@@ -38,6 +38,7 @@ import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.BookmarkRepository
 import app.campfire.user.api.MediaProgressRepository
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
@@ -49,7 +50,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import me.tatarka.inject.annotations.Inject
 
 typealias PlaybackPresenterFactory = () -> PlaybackPresenter
 

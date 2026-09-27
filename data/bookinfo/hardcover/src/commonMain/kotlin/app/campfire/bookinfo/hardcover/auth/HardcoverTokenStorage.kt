@@ -7,15 +7,15 @@ import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.hardcover.di.HardcoverSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.model.UserId
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.coroutines.toSuspendSettings
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Encrypted storage for Hardcover personal access tokens, keyed by the ABS

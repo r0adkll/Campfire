@@ -21,19 +21,18 @@ import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(PlaylistsScreen::class, UserScope::class)
 @Inject
 class PlaylistsPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val playlistsRepository: PlaylistsRepository,
   private val settings: CampfireSettings,
   private val analytics: Analytics,

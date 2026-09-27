@@ -6,7 +6,6 @@ package app.campfire.audioplayer.impl.session
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.core.coroutines.DispatcherProvider
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
@@ -16,9 +15,10 @@ import app.campfire.core.model.loggableId
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressRepository
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

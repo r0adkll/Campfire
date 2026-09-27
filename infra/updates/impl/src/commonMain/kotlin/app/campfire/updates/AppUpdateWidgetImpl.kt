@@ -56,13 +56,13 @@ import app.campfire.settings.api.CampfireSettings
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

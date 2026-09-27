@@ -20,21 +20,20 @@ import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 internal const val INVALID_AUTHOR_COUNT = -1
 
 @CircuitInject(AuthorsScreen::class, UserScope::class)
 @Inject
 class AuthorsPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val authorRepository: AuthorRepository,
   private val settings: CampfireSettings,

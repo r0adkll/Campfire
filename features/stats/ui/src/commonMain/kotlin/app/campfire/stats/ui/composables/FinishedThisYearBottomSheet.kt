@@ -48,9 +48,9 @@ import campfire.features.stats.ui.generated.resources.finished_books_sheet_title
 import campfire.features.stats.ui.generated.resources.finished_episodes_sheet_title
 import campfire.features.stats.ui.generated.resources.finished_sheet_empty
 import campfire.features.stats.ui.generated.resources.user_stats_error_message
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Instant
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList

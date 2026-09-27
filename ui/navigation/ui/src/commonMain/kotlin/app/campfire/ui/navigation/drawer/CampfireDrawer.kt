@@ -69,9 +69,9 @@ import app.campfire.whatsnew.api.screen.ChangelogScreen
 import campfire.ui.navigation.ui.generated.resources.Res
 import campfire.ui.navigation.ui.generated.resources.action_change_theme
 import campfire.ui.navigation.ui.generated.resources.action_change_theme_mode
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.screen.Screen
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 

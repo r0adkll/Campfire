@@ -5,11 +5,11 @@ package app.campfire.bookinfo.hardcover.settings
 
 import app.campfire.bookinfo.hardcover.di.HardcoverSettings
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.russhwolf.settings.ExperimentalSettingsImplementation
 import com.russhwolf.settings.KeychainSettings
 import com.russhwolf.settings.Settings
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 actual interface PlatformHardcoverSettingsComponent {
 

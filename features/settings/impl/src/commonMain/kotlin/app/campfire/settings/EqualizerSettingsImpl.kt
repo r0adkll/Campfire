@@ -6,20 +6,21 @@ package app.campfire.settings
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = EqualizerSettings::class)
+@ContributesBinding(AppScope::class, binding = binding<EqualizerSettings>())
 @Inject
 class EqualizerSettingsImpl(
   override val settings: ObservableSettings,

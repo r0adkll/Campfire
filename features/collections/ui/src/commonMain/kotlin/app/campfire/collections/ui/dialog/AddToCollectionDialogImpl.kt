@@ -72,14 +72,14 @@ import campfire.features.collections.ui.generated.resources.dialog_add_collectio
 import campfire.features.collections.ui.generated.resources.dialog_add_collection_text
 import campfire.features.collections.ui.generated.resources.dialog_add_collection_title
 import coil3.compose.rememberAsyncImagePainter
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesBinding(UserScope::class)
 @Inject
 class AddToCollectionDialogImpl(
-  private val presenterFactory: (LibraryItem, OnDismissListener) -> AddToCollectionDialogPresenter,
+  private val presenterFactory: AddToCollectionDialogPresenterFactory,
 ) : AddToCollectionDialog {
 
   @Composable

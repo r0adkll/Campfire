@@ -11,9 +11,9 @@ import app.campfire.data.mapping.asDatabaseModel
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.models.ServerSettings
 import app.campfire.network.models.User
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @NewUser
 @ContributesBinding(AppScope::class)

@@ -52,9 +52,9 @@ import app.campfire.whatsnew.api.WhatsNewWidgetProvider
 import campfire.infra.whats_new.ui.generated.resources.Res
 import campfire.infra.whats_new.ui.generated.resources.action_dismiss_whats_new
 import campfire.infra.whats_new.ui.generated.resources.whatsnew_widget_title
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 import org.jetbrains.compose.resources.stringResource
 
 @Inject

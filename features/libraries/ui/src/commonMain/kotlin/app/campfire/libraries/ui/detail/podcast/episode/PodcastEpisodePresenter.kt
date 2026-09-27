@@ -29,6 +29,9 @@ import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.overlay.OverlayNavigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -37,14 +40,18 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias PodcastEpisodePresenterFactory =
-  (LibraryItem, PodcastEpisode, OverlayNavigator<Unit>) -> PodcastEpisodePresenter
+@AssistedFactory
+fun interface PodcastEpisodePresenterFactory {
+  operator fun invoke(
+    libraryItem: LibraryItem,
+    episode: PodcastEpisode,
+    navigator: OverlayNavigator<Unit>,
+  ): PodcastEpisodePresenter
+}
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@Inject
+@AssistedInject
 class PodcastEpisodePresenter(
   @Assisted private val libraryItem: LibraryItem,
   @Assisted private val episode: PodcastEpisode,

@@ -5,7 +5,6 @@ package app.campfire.ui.theming.cache
 
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.Theme as DbTheme
 import app.campfire.ui.theming.db.mapping.asDbModel
@@ -14,8 +13,9 @@ import app.campfire.ui.theming.theme.ComputedTheme
 import app.cash.sqldelight.SuspendingTransactionWithoutReturn
 import app.cash.sqldelight.async.coroutines.awaitAsList
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(AppScope::class)
 @Inject

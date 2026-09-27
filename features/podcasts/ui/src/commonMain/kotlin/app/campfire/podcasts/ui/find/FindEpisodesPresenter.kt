@@ -26,23 +26,22 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.RemotePodcastEpisode
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlin.collections.orEmpty
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(FindEpisodesScreen::class, UserScope::class)
 @Inject
 class FindEpisodesPresenter(
-  @Assisted private val screen: FindEpisodesScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: FindEpisodesScreen,
+  private val navigator: Navigator,
   private val analytics: Analytics,
   private val libraryItemRepository: LibraryItemRepository,
   private val podcastsRepository: PodcastsRepository,

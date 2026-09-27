@@ -10,7 +10,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Cork
 import app.campfire.network.AudioBookShelfApi
 import kotlin.time.Duration.Companion.minutes
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder

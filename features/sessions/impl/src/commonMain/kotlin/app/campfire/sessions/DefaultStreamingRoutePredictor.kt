@@ -3,7 +3,6 @@
 
 package app.campfire.sessions
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisodeId
@@ -12,11 +11,12 @@ import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.StreamingMethod
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

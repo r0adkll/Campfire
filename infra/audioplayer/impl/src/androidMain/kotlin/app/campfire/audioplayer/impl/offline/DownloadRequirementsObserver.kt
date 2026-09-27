@@ -14,11 +14,11 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.settings.api.MobileDataSettings
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 /**
  * The network downloads may use: any, or only unmetered (Wi-Fi) when [wifiOnly]. With the latter,
@@ -34,7 +34,7 @@ internal fun downloadRequirements(wifiOnly: Boolean): Requirements = Requirement
  * set when the manager is created; changes only come from Settings, i.e. with the app in the
  * foreground, where starting the download service to deliver them is allowed.
  */
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class DownloadRequirementsObserver(
   private val application: Application,

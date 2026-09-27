@@ -25,12 +25,13 @@ import app.campfire.bookinfo.store.SeriesInfoStore
 import app.campfire.bookinfo.store.isStale
 import app.campfire.bookinfo.store.mergeSeriesEntries
 import app.campfire.core.coroutines.LoadState
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Clock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -42,7 +43,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.StoreReadResponse
 import org.mobilenativefoundation.store.store5.StoreReadResponseOrigin
 

@@ -7,6 +7,7 @@ import app.campfire.bookinfo.hardcover.auth.HardcoverTokenStorage
 import app.campfire.bookinfo.hardcover.di.HardcoverClient
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
+import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -30,7 +31,6 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
-import me.tatarka.inject.annotations.Inject
 
 internal const val HARDCOVER_GRAPHQL_ENDPOINT = "https://api.hardcover.app/v1/graphql"
 

@@ -13,20 +13,20 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import app.campfire.core.coroutines.CoroutineScopeHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.discover.api.DiscoverScanState
 import app.campfire.discover.api.DiscoverScanTracker
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import me.tatarka.inject.annotations.Inject
 
 /**
  * [DiscoverScanTracker] backed by WorkManager: scans run as unique background

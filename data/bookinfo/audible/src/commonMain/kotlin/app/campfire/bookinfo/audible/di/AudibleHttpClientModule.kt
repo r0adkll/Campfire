@@ -4,12 +4,12 @@
 package app.campfire.bookinfo.audible.di
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.network.di.BaseClient
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.Qualifier
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
-import me.tatarka.inject.annotations.Provides
-import me.tatarka.inject.annotations.Qualifier
 
 /** Qualifies the [HttpClient] configured for the Audible catalog API. */
 @Qualifier

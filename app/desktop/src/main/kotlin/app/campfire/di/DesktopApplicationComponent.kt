@@ -10,14 +10,13 @@ import app.campfire.config.FileSystemPreferences
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.app.Flavor
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.MergeComponent
+import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import java.util.prefs.Preferences
-import me.tatarka.inject.annotations.Provides
 
-@SingleIn(AppScope::class)
-@MergeComponent(AppScope::class)
-abstract class DesktopApplicationComponent : SharedAppComponent {
+@DependencyGraph(AppScope::class)
+interface DesktopApplicationComponent : SharedAppComponent {
 
   @SingleIn(AppScope::class)
   @Provides
@@ -42,6 +41,4 @@ abstract class DesktopApplicationComponent : SharedAppComponent {
 
   @Provides
   fun provideDensity(): Density = Density(density = 1f) // FIXME
-
-  companion object
 }

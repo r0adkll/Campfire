@@ -7,10 +7,10 @@ import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.ui.theming.DefaultAppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class ThemeManagerInitializer(
   private val themeManager: Lazy<ThemeManager>,

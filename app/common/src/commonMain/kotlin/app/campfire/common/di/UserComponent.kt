@@ -12,27 +12,24 @@ import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import me.tatarka.inject.annotations.Provides
 
-@SingleIn(UserScope::class)
-@ContributesSubcomponent(
-  scope = UserScope::class,
-  parentScope = AppScope::class,
-)
+@GraphExtension(UserScope::class)
 interface UserComponent {
   val scopedDependencies: Lazy<Set<Scoped>>
 
@@ -42,10 +39,10 @@ interface UserComponent {
   val circuit: Circuit
   val navigationEventListeners: ImmutableList<NavigationEventListener>
 
-  @get:RootScreen
+  @RootScreen
   val rootScreen: () -> BaseScreen
 
-  @get:ForScope(UserScope::class)
+  @ForScope(UserScope::class)
   val coroutineScopeHolder: CoroutineScopeHolder
 
   val sessionsRepository: SessionsRepository
@@ -74,8 +71,9 @@ interface UserComponent {
     }
   }
 
-  @ContributesSubcomponent.Factory
+  @ContributesTo(AppScope::class)
+  @GraphExtension.Factory
   interface Factory {
-    fun create(userSession: UserSession): UserComponent
+    fun create(@Provides userSession: UserSession): UserComponent
   }
 }

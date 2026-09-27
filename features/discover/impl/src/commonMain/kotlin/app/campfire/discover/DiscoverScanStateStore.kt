@@ -3,7 +3,6 @@
 
 package app.campfire.discover
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
@@ -12,11 +11,12 @@ import app.campfire.discover.api.DiscoverScanState
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.coroutines.getLongOrNullFlow
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Inject
 
 /**
  * How long a completed scan counts as fresh for

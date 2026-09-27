@@ -12,17 +12,21 @@ import app.campfire.core.model.FilterData
 import app.campfire.filters.AllowedFilterCategories
 import app.campfire.filters.FilteringRepository
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.collections.immutable.toPersistentList
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias ContentFilterPresenterFactory = (
-  filter: ContentFilter?,
-  allowedCategories: AllowedFilterCategories?,
-  onFilterSelected: (ContentFilter?) -> Unit,
-) -> ContentFilterPresenter
+@AssistedFactory
+fun interface ContentFilterPresenterFactory {
+  operator fun invoke(
+    previousFilter: ContentFilter?,
+    allowedCategories: AllowedFilterCategories?,
+    onFilterSelected: (ContentFilter?) -> Unit,
+  ): ContentFilterPresenter
+}
 
-@Inject
+@AssistedInject
 class ContentFilterPresenter(
   @Assisted private val previousFilter: ContentFilter?,
   @Assisted private val allowedCategories: AllowedFilterCategories?,

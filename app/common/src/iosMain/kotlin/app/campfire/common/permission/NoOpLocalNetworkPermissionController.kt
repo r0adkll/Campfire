@@ -4,10 +4,10 @@
 package app.campfire.common.permission
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.permission.LocalNetworkPermissionController
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 
 /**
  * iOS surfaces its own local-network prompt automatically on first LAN access (driven by

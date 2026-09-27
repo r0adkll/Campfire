@@ -5,17 +5,19 @@ package app.campfire.ios.di
 
 import app.campfire.common.di.SharedAppComponent
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.MergeComponent
+import dev.zacsweers.metro.DependencyGraph
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.createGraph
 import kotlin.experimental.ExperimentalNativeApi
-import me.tatarka.inject.annotations.Provides
 import platform.Foundation.NSBundle
 import platform.Foundation.NSUserDefaults
 import platform.UIKit.UIDevice
 
-@SingleIn(AppScope::class)
-@MergeComponent(AppScope::class)
-abstract class IosApplicationComponent() : SharedAppComponent {
+@DependencyGraph(AppScope::class)
+interface IosApplicationComponent :
+  SharedAppComponent,
+  HomeUiControllerComponent.Factory {
 
   @OptIn(ExperimentalNativeApi::class)
   @SingleIn(AppScope::class)
@@ -39,6 +41,7 @@ abstract class IosApplicationComponent() : SharedAppComponent {
 
   @Provides
   fun provideNsUserDefaults(): NSUserDefaults = NSUserDefaults.standardUserDefaults
-
-  companion object
 }
+
+/** Creates the application graph; called from Swift (`iOSApp.swift`). */
+fun createIosApplicationComponent(): IosApplicationComponent = createGraph<IosApplicationComponent>()

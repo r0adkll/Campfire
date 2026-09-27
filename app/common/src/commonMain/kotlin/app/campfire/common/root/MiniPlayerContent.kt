@@ -30,16 +30,7 @@ import app.campfire.ui.theming.api.colorScheme
 import com.slack.circuit.foundation.CircuitCompositionLocals
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
-
-typealias MiniPlayerContent = @Composable (
-  onItemClick: (LibraryItemId) -> Unit,
-  onReturnToWindow: () -> Unit,
-  onUnavailable: () -> Unit,
-  topBarDecorator: @Composable (content: @Composable () -> Unit) -> Unit,
-  modifier: Modifier,
-) -> Unit
+import dev.zacsweers.metro.Inject
 
 /**
  * Everything the mini-player window needs around the player: the window's own size class and
@@ -48,16 +39,40 @@ typealias MiniPlayerContent = @Composable (
  * for, so the host can take the window down rather than leave it blank.
  */
 @Inject
+class MiniPlayerContent(
+  private val settings: CampfireSettings,
+  private val userSessionManager: UserSessionManager,
+  private val themeRepository: AppThemeRepository,
+) {
+  @Composable
+  operator fun invoke(
+    onItemClick: (LibraryItemId) -> Unit,
+    onReturnToWindow: () -> Unit,
+    onUnavailable: () -> Unit,
+    topBarDecorator: @Composable (content: @Composable () -> Unit) -> Unit,
+    modifier: Modifier = Modifier,
+  ) = MiniPlayerRoot(
+    onItemClick = onItemClick,
+    onReturnToWindow = onReturnToWindow,
+    onUnavailable = onUnavailable,
+    topBarDecorator = topBarDecorator,
+    settings = settings,
+    userSessionManager = userSessionManager,
+    themeRepository = themeRepository,
+    modifier = modifier,
+  )
+}
+
 @Composable
-fun MiniPlayerContent(
-  @Assisted onItemClick: (LibraryItemId) -> Unit,
-  @Assisted onReturnToWindow: () -> Unit,
-  @Assisted onUnavailable: () -> Unit,
-  @Assisted topBarDecorator: @Composable (content: @Composable () -> Unit) -> Unit,
+private fun MiniPlayerRoot(
+  onItemClick: (LibraryItemId) -> Unit,
+  onReturnToWindow: () -> Unit,
+  onUnavailable: () -> Unit,
+  topBarDecorator: @Composable (content: @Composable () -> Unit) -> Unit,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeRepository: AppThemeRepository,
-  @Assisted modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
     LocalWindowSizeClass provides currentWindowSizeClass(),

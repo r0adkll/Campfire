@@ -4,13 +4,13 @@
 package app.campfire.network.di
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.network.reachability.NetworkMonitor
-import com.r0adkll.kimchi.annotations.ContributesTo
 import dev.jordond.connectivity.Connectivity
 import dev.jordond.connectivity.asProvider
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Provides
 
 @ContributesTo(AppScope::class)
 interface ConnectivityModule {

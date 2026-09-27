@@ -27,21 +27,22 @@ import app.campfire.bookinfo.hardcover.graphql.bookByIdentifiersQuery
 import app.campfire.bookinfo.hardcover.graphql.parseCoverUrl
 import app.campfire.bookinfo.hardcover.graphql.parseRatingsDistribution
 import app.campfire.bookinfo.hardcover.graphql.parseUsername
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import me.tatarka.inject.annotations.Inject
 
 class InvalidHardcoverTokenException : Exception("Hardcover rejected the token")
 
 @SingleIn(UserScope::class)
-@ContributesMultibinding(UserScope::class, boundType = BookInfoProvider::class)
+@ContributesIntoSet(UserScope::class, binding = binding<BookInfoProvider>())
 @Inject
 class HardcoverBookInfoProvider(
   private val graphQl: HardcoverGraphQl,

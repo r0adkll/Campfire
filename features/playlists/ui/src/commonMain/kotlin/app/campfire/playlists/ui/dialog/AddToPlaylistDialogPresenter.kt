@@ -17,15 +17,25 @@ import app.campfire.core.model.PodcastEpisode
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 typealias OnDismissListener = (PlaylistDialogResult) -> Unit
 
-@Inject
+@AssistedFactory
+fun interface AddToPlaylistDialogPresenterFactory {
+  operator fun invoke(
+    libraryItemId: LibraryItemId,
+    episode: PodcastEpisode?,
+    onDismiss: OnDismissListener,
+  ): AddToPlaylistDialogPresenter
+}
+
+@AssistedInject
 class AddToPlaylistDialogPresenter(
   @Assisted private val libraryItemId: LibraryItemId,
   @Assisted private val episode: PodcastEpisode?,

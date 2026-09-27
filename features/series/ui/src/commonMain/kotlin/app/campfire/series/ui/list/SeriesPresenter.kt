@@ -24,22 +24,21 @@ import app.campfire.core.filter.ContentFilter
 import app.campfire.series.api.SeriesRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 internal const val INVALID_SERIES_COUNT = -1
 
 @CircuitInject(SeriesScreen::class, UserScope::class)
 @Inject
 class SeriesPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val seriesRepository: SeriesRepository,
   private val settings: CampfireSettings,

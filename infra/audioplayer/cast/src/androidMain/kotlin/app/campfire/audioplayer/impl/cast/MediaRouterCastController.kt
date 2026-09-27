@@ -21,7 +21,6 @@ import app.campfire.audioplayer.cast.CastState
 import app.campfire.audioplayer.cast.ConnectionAttempt
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.core.permission.LocalNetworkPermissionController
@@ -33,7 +32,10 @@ import com.google.android.gms.cast.framework.CastSession
 import com.google.android.gms.cast.framework.CastState as GoogleCastState
 import com.google.android.gms.cast.framework.CastStateListener
 import com.google.android.gms.cast.framework.SessionManagerListener
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -42,7 +44,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Discovers Google Cast (and system output) routes and exposes them to the shared cast UI.
@@ -62,7 +63,7 @@ import me.tatarka.inject.annotations.Inject
 @SingleIn(AppScope::class)
 @ContributesBinding(
   scope = AppScope::class,
-  boundType = CastController::class,
+  binding = binding<CastController>(),
   replaces = [NoOpCastController::class],
 )
 @Inject
