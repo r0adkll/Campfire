@@ -23,6 +23,7 @@ class DiConventionPlugin : Plugin<Project> {
 
     extensions.configure<MetroPluginExtension> {
       enableCircuitCodegen.set(true)
+      enableSwitchingProviders.set(true)
 
       if (providers.gradleProperty("campfire.metro.reports").orNull == "true") {
         reportsDestination.set(layout.buildDirectory.dir("reports/metro"))
