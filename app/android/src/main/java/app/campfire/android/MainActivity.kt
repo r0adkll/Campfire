@@ -29,6 +29,7 @@ import app.campfire.core.logging.bark
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.serverUrl
 import app.campfire.core.toast.GlobalToaster
+import app.campfire.tracing.DiTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
 import com.r0adkll.kimchi.annotations.ContributesBinding
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     bark { "MainActivity::onCreate()" }
 
-    component = Trace.trace("MainActivity.inject") {
+    component = Trace.trace(DiTraceSections.ACTIVITY_GRAPH) {
       ComponentHolder.component<ActivityComponent.Factory>()
         .create(this)
         .also {

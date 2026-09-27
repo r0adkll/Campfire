@@ -11,6 +11,9 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
+import app.campfire.tracing.DiTraceSections
+import app.campfire.tracing.Trace
+import app.campfire.tracing.trace
 import com.r0adkll.kimchi.annotations.ContributesBinding
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +37,9 @@ class UserComponentManager(
   }
 
   override fun create(userSession: UserSession) {
-    val newUserComponent = userComponentFactory.create(userSession)
+    val newUserComponent = Trace.trace(DiTraceSections.USER_GRAPH) {
+      userComponentFactory.create(userSession)
+    }
     ComponentHolder.updateComponent(applicationScope, newUserComponent)
 
     newUserComponent.scopedDependencies.value.forEach { scoped ->

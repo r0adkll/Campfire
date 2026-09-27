@@ -11,6 +11,7 @@ import app.campfire.android.logging.AndroidBark
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Heartwood
 import app.campfire.core.logging.LogRedaction
+import app.campfire.tracing.DiTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
 import kimchi.merge.app.campfire.android.di.createAndroidAppComponent
@@ -26,7 +27,7 @@ class CampfireApplication : Application() {
     }
 
     // Create application component
-    val component = Trace.trace("AppComponent") {
+    val component = Trace.trace(DiTraceSections.APP_GRAPH) {
       AndroidAppComponent.createAndroidAppComponent(this).also {
         ComponentHolder.components += it
       }

@@ -125,6 +125,10 @@ android {
 
     create("benchmarkRelease") {
       signingConfig = signingConfigs.findByName("release") ?: signingConfigs["debug"]
+      // Minified like release so benchmarks measure the code users run.
+      isMinifyEnabled = true
+      // Installs alongside a real Campfire install instead of replacing it.
+      applicationIdSuffix = ".benchmark"
       setProguardFiles(
         listOf(
           getDefaultProguardFile("proguard-android-optimize.txt"),
