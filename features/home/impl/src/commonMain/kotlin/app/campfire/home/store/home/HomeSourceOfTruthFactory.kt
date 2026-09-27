@@ -13,6 +13,7 @@ import app.campfire.data.SeriesBookJoin
 import app.campfire.data.ShelfJoin
 import app.campfire.data.mapping.asDbModel
 import app.campfire.home.api.model.Shelf
+import app.campfire.home.api.model.ShelfId
 import app.campfire.home.mapping.asDbModel
 import app.campfire.home.mapping.asDomainModel
 import app.campfire.network.models.Author
@@ -28,13 +29,23 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.mobilenativefoundation.store.store5.SourceOfTruth
 
-// Hack to prevent other libraries/accounts from overwriting their shelves
-fun NetworkShelf.uniqueId(
+/**
+ * Shelves are stored under an id scoped to the user and library, since the server reuses the
+ * same shelf ids for every library and account. It never leaves the data layer: the domain
+ * [Shelf] carries the server's id.
+ */
+fun shelfStorageId(
+  shelfId: ShelfId,
   userId: UserId,
   libraryId: LibraryId,
 ): String {
-  return "${id}_${userId}_$libraryId"
+  return "${shelfId}_${userId}_$libraryId"
 }
+
+fun NetworkShelf.uniqueId(
+  userId: UserId,
+  libraryId: LibraryId,
+): String = shelfStorageId(id, userId, libraryId)
 
 class HomeSourceOfTruthFactory(
   private val db: CampfireDatabase,

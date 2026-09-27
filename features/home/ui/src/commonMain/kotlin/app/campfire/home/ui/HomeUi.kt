@@ -4,31 +4,43 @@
 package app.campfire.home.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import app.campfire.audioplayer.offline.asWidgetStatus
 import app.campfire.common.compose.CampfireWindowInsets
+import app.campfire.common.compose.icons.CampfireIcons
+import app.campfire.common.compose.icons.rounded.Edit
 import app.campfire.common.compose.tracing.TraceEffect
 import app.campfire.common.compose.widgets.CampfireLoadingIndicator
 import app.campfire.common.compose.widgets.EmptyState
 import app.campfire.common.compose.widgets.ErrorListState
 import app.campfire.common.compose.widgets.LoadingListState
-import app.campfire.common.compose.widgets.randomEmptyMessage
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
@@ -45,6 +57,8 @@ import app.campfire.ui.appbar.CampfireAppBar
 import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import app.campfire.user.api.MediaProgressKey
 import campfire.features.home.ui.generated.resources.Res
+import campfire.features.home.ui.generated.resources.home_customize
+import campfire.features.home.ui.generated.resources.home_empty_message
 import campfire.features.home.ui.generated.resources.home_feed_load_error
 import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
@@ -108,7 +122,10 @@ fun HomeScreen(
         }
 
         is FeedResponse.Success -> if (state.homeFeed.data.isEmpty()) {
-          EmptyState(randomEmptyMessage())
+          EmptyHomeState(
+            onCustomizeClick = { state.eventSink(HomeUiEvent.CustomizeHome) },
+            modifier = Modifier.padding(paddingValues),
+          )
         } else {
           LoadedState(
             shelves = state.homeFeed.data,
@@ -121,6 +138,7 @@ fun HomeScreen(
             contentPadding = paddingValues,
             modifier = Modifier.fillMaxSize(),
             onViewAllUpcomingClick = { state.eventSink(HomeUiEvent.OpenUpcomingScreen) },
+            onCustomizeClick = { state.eventSink(HomeUiEvent.CustomizeHome) },
             onItemClick = { shelf, item ->
               when (item) {
                 is LibraryItem -> state.eventSink(
@@ -158,6 +176,7 @@ private fun LoadedState(
   progressStatus: (LibraryItemId, PodcastEpisodeId?) -> MediaProgress?,
   onItemClick: (UiShelf<*>, Any) -> Unit,
   onViewAllUpcomingClick: () -> Unit,
+  onCustomizeClick: () -> Unit,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   state: LazyListState = rememberLazyListState(),
@@ -168,7 +187,7 @@ private fun LoadedState(
     contentPadding = contentPadding,
     verticalArrangement = Arrangement.spacedBy(8.dp),
   ) {
-    items(shelves) { shelf ->
+    items(shelves, key = { it.id }) { shelf ->
       ShelfListItem(
         shelf = shelf,
         onItemClick = { onItemClick(shelf, it) },
@@ -177,5 +196,59 @@ private fun LoadedState(
         progressStatus = progressStatus,
       )
     }
+
+    item(key = CustomizeFooterKey) {
+      Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(vertical = 16.dp),
+      ) {
+        CustomizeHomeButton(onClick = onCustomizeClick)
+      }
+    }
   }
 }
+
+@Composable
+private fun EmptyHomeState(
+  onCustomizeClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  EmptyState(
+    message = {
+      Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+      ) {
+        Text(
+          text = stringResource(Res.string.home_empty_message),
+          textAlign = TextAlign.Center,
+        )
+        CustomizeHomeButton(onClick = onCustomizeClick)
+      }
+    },
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun CustomizeHomeButton(
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  FilledTonalButton(
+    onClick = onClick,
+    modifier = modifier,
+  ) {
+    Icon(
+      CampfireIcons.Rounded.Edit,
+      contentDescription = null,
+      modifier = Modifier.size(ButtonDefaults.IconSize),
+    )
+    Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+    Text(stringResource(Res.string.home_customize))
+  }
+}
+
+private const val CustomizeFooterKey = "customize-home"

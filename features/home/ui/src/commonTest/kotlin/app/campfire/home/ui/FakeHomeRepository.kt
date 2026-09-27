@@ -23,7 +23,7 @@ class FakeHomeRepository(
   var refreshCount = 0
     private set
 
-  override fun observeHomeFeed(): Flow<FeedResponse<List<Shelf>>> {
+  override fun observeHomeFeed(refresh: Boolean): Flow<FeedResponse<List<Shelf>>> {
     return homeFeedFlowFactory()
   }
 

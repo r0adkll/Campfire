@@ -166,6 +166,18 @@ class SettingsAnalyticUiEventHandler(
 
     is SettingsUiEvent.DeveloperSettingEvent -> Unit
 
+    is SettingsUiEvent.HomeLayoutSettingEvent -> when (event) {
+      is SettingsUiEvent.HomeLayoutSettingEvent.MoveShown,
+      is SettingsUiEvent.HomeLayoutSettingEvent.MoveShownBy,
+      -> send("home_layout_reorder", Updated)
+      is SettingsUiEvent.HomeLayoutSettingEvent.SetShelfVisible -> send(
+        "home_layout_shelf_visible",
+        Updated,
+        "${event.shelfId}=${event.visible}",
+      )
+      SettingsUiEvent.HomeLayoutSettingEvent.Reset -> send("home_layout_reset", Click)
+    }
+
     is SettingsUiEvent.AndroidAutoSettingEvent -> when (event) {
       SettingsUiEvent.AndroidAutoSettingEvent.OpenAndroidAutoSettings -> send("open_android_auto_settings", Click)
       is SettingsUiEvent.AndroidAutoSettingEvent.SetCategoryVisible -> send(

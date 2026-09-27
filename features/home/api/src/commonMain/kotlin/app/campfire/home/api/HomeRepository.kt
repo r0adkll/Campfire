@@ -15,8 +15,11 @@ interface HomeRepository {
 
   /**
    * Observe a flow of the users personalized home feed
+   *
+   * @param refresh whether to also fetch a fresh feed from the server; false reads the cached
+   *  feed, only fetching when nothing is cached yet
    */
-  fun observeHomeFeed(): Flow<FeedResponse<List<Shelf>>>
+  fun observeHomeFeed(refresh: Boolean = true): Flow<FeedResponse<List<Shelf>>>
 
   /**
    * Re-fetch the current user's home feed from the server, suspending until it lands. The fresh

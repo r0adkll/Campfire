@@ -42,6 +42,7 @@ import app.campfire.common.compose.icons.rounded.AccountCircle
 import app.campfire.common.compose.icons.rounded.DeveloperMode
 import app.campfire.common.compose.icons.rounded.DirectionsCar
 import app.campfire.common.compose.icons.rounded.Download
+import app.campfire.common.compose.icons.rounded.Home
 import app.campfire.common.compose.icons.rounded.Info
 import app.campfire.common.compose.icons.rounded.NotificationsPaused
 import app.campfire.common.compose.icons.rounded.Palette
@@ -64,6 +65,7 @@ import app.campfire.ui.settings.panes.AppearancePane
 import app.campfire.ui.settings.panes.ConnectionPane
 import app.campfire.ui.settings.panes.DeveloperPane
 import app.campfire.ui.settings.panes.DownloadsPane
+import app.campfire.ui.settings.panes.HomeLayoutPane
 import app.campfire.ui.settings.panes.LocalPaneState
 import app.campfire.ui.settings.panes.PaneState
 import app.campfire.ui.settings.panes.PlaybackPane
@@ -83,6 +85,8 @@ import campfire.features.settings.ui.generated.resources.setting_developer_subti
 import campfire.features.settings.ui.generated.resources.setting_developer_title
 import campfire.features.settings.ui.generated.resources.setting_downloads_subtitle
 import campfire.features.settings.ui.generated.resources.setting_downloads_title
+import campfire.features.settings.ui.generated.resources.setting_home_subtitle
+import campfire.features.settings.ui.generated.resources.setting_home_title
 import campfire.features.settings.ui.generated.resources.setting_playback_subtitle
 import campfire.features.settings.ui.generated.resources.setting_playback_title
 import campfire.features.settings.ui.generated.resources.setting_providers_subtitle
@@ -115,6 +119,7 @@ fun SettingsUi(
         SettingsScreen.Page.Account -> SettingsPane.Account
         SettingsScreen.Page.Connection -> SettingsPane.Connection
         SettingsScreen.Page.Appearance -> SettingsPane.Appearance
+        SettingsScreen.Page.Home -> SettingsPane.Home
         SettingsScreen.Page.Downloads -> SettingsPane.Downloads
         SettingsScreen.Page.Playback -> SettingsPane.Playback
         SettingsScreen.Page.Sleep -> SettingsPane.Sleep
@@ -339,6 +344,23 @@ private fun SettingsRootPane(
         shape = SettingsPaneDefaults.middleShape(),
       )
 
+      // Home
+      SettingPaneListItem(
+        selected = pane == SettingsPane.Home && isTwoPane,
+        icon = {
+          Icon(
+            CampfireIcons.Rounded.Home,
+            contentDescription = null,
+          )
+        },
+        title = { Text(stringResource(Res.string.setting_home_title)) },
+        subtitle = { Text(stringResource(Res.string.setting_home_subtitle)) },
+        onClick = {
+          onPaneClick(SettingsPane.Home)
+        },
+        shape = SettingsPaneDefaults.middleShape(),
+      )
+
       // Connected book info providers (standalone screen)
       SettingPaneListItem(
         selected = false,
@@ -495,6 +517,12 @@ private fun SettingPaneContent(
     )
 
     SettingsPane.Appearance -> AppearancePane(
+      state = state,
+      onBackClick = onBackClick,
+      modifier = modifier,
+    )
+
+    SettingsPane.Home -> HomeLayoutPane(
       state = state,
       onBackClick = onBackClick,
       modifier = modifier,

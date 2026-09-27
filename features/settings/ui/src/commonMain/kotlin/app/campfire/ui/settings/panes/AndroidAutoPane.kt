@@ -320,7 +320,8 @@ private val AndroidAutoCategory.label: StringResource
     AndroidAutoCategory.Downloads -> Res.string.android_auto_category_downloads
   }
 
-private fun rowShape(index: Int, total: Int): Shape {
+/** The shape of row [index] in a grouped list of [total] cards. */
+internal fun rowShape(index: Int, total: Int): Shape {
   val large = 16.dp
   val small = 4.dp
   return when {

@@ -29,13 +29,21 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.currentPlatform
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.bark
+import app.campfire.core.model.Library
 import app.campfire.core.model.Media
 import app.campfire.core.model.Server
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUser
 import app.campfire.core.session.user
+import app.campfire.home.api.FeedResponse
+import app.campfire.home.api.HomeLayoutSettings
+import app.campfire.home.api.HomeRepository
+import app.campfire.home.api.model.HomeLayoutEntry
+import app.campfire.home.api.model.defaultAvailableShelves
+import app.campfire.home.api.model.resolveHomeLayout
 import app.campfire.libraries.api.LibraryItemRepository
+import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
@@ -64,6 +72,7 @@ import app.campfire.ui.settings.SettingsUiEvent.AppearanceSettingEvent.Theme
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DeleteDownload
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.DownloadClicked
 import app.campfire.ui.settings.SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation
+import app.campfire.ui.settings.SettingsUiEvent.HomeLayoutSettingEvent
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindOnResumeEnabled
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoRewindStopAtChapterBoundary
 import app.campfire.ui.settings.SettingsUiEvent.PlaybackSettingEvent.AutoSyncEnabled
@@ -94,6 +103,11 @@ import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeSensitivi
 import app.campfire.ui.settings.SettingsUiEvent.SleepSettingEvent.ShakeToReset
 import app.campfire.ui.settings.analytics.SettingsAnalyticUiEventHandler
 import app.campfire.ui.settings.auto.AndroidAuto
+import app.campfire.ui.settings.home.hiddenShelves
+import app.campfire.ui.settings.home.moveShown
+import app.campfire.ui.settings.home.moveShownBy
+import app.campfire.ui.settings.home.setVisible
+import app.campfire.ui.settings.home.shownShelves
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.updates.source.AppUpdateSource
@@ -132,6 +146,9 @@ class SettingsPresenter(
   private val serverRepository: ServerRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val libraryItemRepository: LibraryItemRepository,
+  private val libraryRepository: LibraryRepository,
+  private val homeRepository: HomeRepository,
+  private val homeLayoutSettings: HomeLayoutSettings,
   private val accountManager: AccountManager,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
@@ -187,6 +204,22 @@ class SettingsPresenter(
     val bookTimeInPlaybackUi by remember { playbackSettings.observeBookTimeInPlaybackUi() }.collectAsState()
     val playbackWavyScrubber by remember { playbackSettings.observePlaybackWavyScrubber() }.collectAsState()
     val scrollingTitles by remember { playbackSettings.observeScrollingTitles() }.collectAsState()
+
+    // Home Layout Settings
+    val currentLibrary by remember {
+      libraryRepository.observeCurrentLibrary(refresh = false)
+        .map<Library, Library?> { it }
+        .catch { emit(null) }
+    }.collectAsState(null)
+    val homeFeed by remember { homeRepository.observeHomeFeed(refresh = false) }
+      .collectAsState(FeedResponse.Loading)
+    val savedHomeLayout by remember(currentLibrary?.id) {
+      currentLibrary?.id?.let(homeLayoutSettings::observeLayout) ?: flowOf(null)
+    }.collectAsState(null)
+    val homeLayout = remember(savedHomeLayout, homeFeed) {
+      resolveHomeLayout(savedHomeLayout, defaultAvailableShelves(homeFeed.dataOrNull.orEmpty()))
+    }
+    val homeShelves = homeLayout.shelves.shownShelves + homeLayout.shelves.hiddenShelves
 
     // Downloads Settings
     val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
@@ -294,6 +327,11 @@ class SettingsPresenter(
         dynamicItemDetailTheming = dynamicItemDetailTheming,
         dynamicPlaybackTheming = dynamicPlaybackTheming,
         itemCardMarqueeEnabled = itemCardMarqueeEnabled,
+      ),
+      homeLayoutSettings = HomeLayoutSettingsInfo(
+        libraryName = currentLibrary?.name,
+        shelves = homeShelves,
+        isCustomized = homeLayout.isCustomized,
       ),
       downloadsSettings = DownloadsSettingsInfo(
         showDownloadConfirmation = showDownloadConfirmation,
@@ -431,6 +469,24 @@ class SettingsPresenter(
           is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
           is ItemCardMarqueeEnabled -> settings.libraryItemMarqueeEnabled = event.enabled
           SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> navigator.goTo(ThemePickerScreen)
+        }
+
+        is HomeLayoutSettingEvent -> {
+          val libraryId = currentLibrary?.id ?: return@SettingsUiState
+          val edited = when (event) {
+            is HomeLayoutSettingEvent.MoveShown -> homeShelves.moveShown(event.from, event.to)
+            is HomeLayoutSettingEvent.MoveShownBy -> homeShelves.moveShownBy(event.shelfId, event.offset)
+            is HomeLayoutSettingEvent.SetShelfVisible -> homeShelves.setVisible(event.shelfId, event.visible)
+            HomeLayoutSettingEvent.Reset -> null
+          }
+          if (edited == null) {
+            homeLayoutSettings.resetLayout(libraryId)
+          } else {
+            homeLayoutSettings.setLayout(
+              libraryId,
+              edited.map { HomeLayoutEntry(it.id, it.visible, it.label) },
+            )
+          }
         }
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {

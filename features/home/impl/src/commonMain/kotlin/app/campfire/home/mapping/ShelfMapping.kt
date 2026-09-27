@@ -8,12 +8,13 @@ import app.campfire.core.model.ShelfType
 import app.campfire.core.model.UserId
 import app.campfire.data.Shelf as DbShelf
 import app.campfire.home.api.model.Shelf as DomainShelf
+import app.campfire.home.store.home.shelfStorageId
 import app.campfire.home.store.home.uniqueId
 import app.campfire.network.models.Shelf as NetworkShelf
 
 fun DbShelf.asDomainModel(): DomainShelf {
   return DomainShelf(
-    id = id,
+    id = id.removeSuffix(shelfStorageId(shelfId = "", userId = userId, libraryId = libraryId)),
     label = label,
     total = total,
     type = type,

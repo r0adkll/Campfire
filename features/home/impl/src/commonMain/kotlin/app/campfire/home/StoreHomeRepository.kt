@@ -17,6 +17,7 @@ import app.campfire.home.api.model.Shelf
 import app.campfire.home.api.model.ShelfId
 import app.campfire.home.progress.MediaProgressDataSource
 import app.campfire.home.store.home.HomeStore
+import app.campfire.home.store.home.shelfStorageId
 import app.campfire.home.store.shelf.ShelfStore
 import app.campfire.user.api.UserRepository
 import dev.zacsweers.metro.ContributesBinding
@@ -25,8 +26,10 @@ import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse
@@ -48,11 +51,11 @@ class StoreHomeRepository(
 
   @Suppress("UNCHECKED_CAST")
   @OptIn(ExperimentalCoroutinesApi::class)
-  override fun observeHomeFeed(): Flow<FeedResponse<List<Shelf>>> {
+  override fun observeHomeFeed(refresh: Boolean): Flow<FeedResponse<List<Shelf>>> {
     return userRepository.observeCurrentUser()
       .flatMapLatest { user ->
         val key = HomeStore.Key(user.id, user.selectedLibraryId)
-        val request = StoreReadRequest.cached(key, refresh = true)
+        val request = StoreReadRequest.cached(key, refresh = refresh)
         homeStore.stream(request)
           .debugLogging(HomeStore.tag, enabled = HomeStore.enabled)
           .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
@@ -98,9 +101,15 @@ class StoreHomeRepository(
     return mediaProgressDataSource.observeMediaProgress(libraryItemIds)
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   override fun observeShelf(shelfId: ShelfId, shelfType: ShelfType): Flow<List<ShelfEntity>> {
-    val request = StoreReadRequest.cached(ShelfStore.Key(shelfId, shelfType), refresh = false)
-    return shelfStore.stream(request)
+    return userRepository.observeCurrentUser()
+      .map { user -> shelfStorageId(shelfId, user.id, user.selectedLibraryId) }
+      .distinctUntilChanged()
+      .flatMapLatest { storageId ->
+        val request = StoreReadRequest.cached(ShelfStore.Key(storageId, shelfType), refresh = false)
+        shelfStore.stream(request)
+      }
       .debugLogging(ShelfStore.tag, enabled = ShelfStore.enabled)
       .filterNot { it is StoreReadResponse.NoNewData || it is StoreReadResponse.Loading }
       .mapNotNull { response ->

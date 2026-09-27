@@ -133,6 +133,7 @@ data class SettingsScreen(
     Account,
     Connection,
     Appearance,
+    Home,
     Downloads,
     Playback,
     Sleep,

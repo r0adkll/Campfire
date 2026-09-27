@@ -42,7 +42,6 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.ShelfType
 import app.campfire.core.navigation.DeepLinkKeys
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.user
 import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.sessions.api.SessionQueue
@@ -256,7 +255,7 @@ class PlayerWidget : GlanceAppWidget() {
       val continueListeningShelf by remember(component, widgetSizeClass) {
         component?.homeRepository
           ?.observeShelf(
-            "${ShelfIds.ContinueListening}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfIds.ContinueListening,
             ShelfType.BOOK,
           )
           ?.map { shelfEntities ->
@@ -270,7 +269,7 @@ class PlayerWidget : GlanceAppWidget() {
       val discoverShelf by remember(component, widgetSizeClass) {
         component?.homeRepository
           ?.observeShelf(
-            "${ShelfIds.Discover}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfIds.Discover,
             ShelfType.BOOK,
           )
           ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }
@@ -280,7 +279,7 @@ class PlayerWidget : GlanceAppWidget() {
       val recentlyAddedShelf by remember(component, widgetSizeClass) {
         component?.homeRepository
           ?.observeShelf(
-            "${ShelfIds.RecentlyAdded}_${userSession.user?.id}_${userSession.user?.selectedLibraryId}",
+            ShelfIds.RecentlyAdded,
             ShelfType.BOOK,
           )
           ?.map { shelfEntities -> shelfEntities.map { it as LibraryItem } }

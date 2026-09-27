@@ -70,6 +70,25 @@ class StoreHomeRepositoryTest {
   }
 
   @Test
+  fun `the feed carries the server's shelf ids`() = homeTest { db ->
+    val repository = repository(db)
+    api.personalizedHomeResult = {
+      Result.success(listOf(shelf("newest-authors", "Newest Authors"), shelf("recent-series", "Recent Series")))
+    }
+
+    repository.observeHomeFeed().test {
+      while (true) {
+        val shelves = awaitItem().dataOrNull ?: continue
+        if (shelves.size == 2) {
+          assertThat(shelves.map { it.id }).containsExactly("newest-authors", "recent-series")
+          break
+        }
+      }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `a failed refresh keeps the cached shelves`() = homeTest { db ->
     val repository = repository(db)
     api.personalizedHomeResult = { Result.success(listOf(shelf("authors", "Newest Authors"))) }

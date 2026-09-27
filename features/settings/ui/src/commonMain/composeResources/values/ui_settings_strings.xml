@@ -8,6 +8,21 @@
   <string name="setting_connection_subtitle">Live updates, your home server, and custom headers</string>
   <string name="setting_appearance_title">Appearance</string>
   <string name="setting_appearance_subtitle">Theme, look and feel</string>
+  <string name="setting_home_title">Home</string>
+  <string name="setting_home_subtitle">Arrange and hide your home shelves</string>
+
+  <string name="home_layout_library">Home layout for %1$s</string>
+  <string name="home_layout_description">Drag to reorder the shelves on your home screen, or hide the ones you don't use. Each library keeps its own layout on this device.</string>
+  <string name="home_layout_header_shown">Shown</string>
+  <string name="home_layout_header_hidden">Hidden</string>
+  <string name="home_layout_shown_empty">No shelves are shown on your home screen.</string>
+  <string name="home_layout_unavailable">Nothing here right now</string>
+  <string name="home_layout_shelf_upcoming">Upcoming releases</string>
+  <string name="home_layout_reset">Reset to server default</string>
+  <string name="home_layout_reset_description">Show every shelf in the order your server sends them</string>
+  <string name="home_layout_drag_handle_description">Drag to reorder</string>
+  <string name="home_layout_move_up">Move up</string>
+  <string name="home_layout_move_down">Move down</string>
   <string name="setting_downloads_title">Downloads</string>
   <string name="setting_downloads_subtitle">Storage, location, and settings</string>
   <string name="setting_playback_title">Playback</string>

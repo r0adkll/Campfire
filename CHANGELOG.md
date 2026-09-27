@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Customize your home screen: reorder or hide its shelves for each library (Settings → Home)
 - [Desktop] Install and update on macOS with Homebrew: `brew install r0adkll/tap/campfire`
 - Campfire doesn't try to reach a server on your home network over mobile data, and retries less and less often while your server can't be reached (Settings → Connection)
 - [Android] Download on Wi-Fi only: downloads wait for Wi-Fi and pause on mobile data (Settings → Downloads)

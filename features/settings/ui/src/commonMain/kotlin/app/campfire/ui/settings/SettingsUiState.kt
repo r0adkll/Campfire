@@ -13,6 +13,8 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.Server
+import app.campfire.home.api.model.HomeLayoutShelf
+import app.campfire.home.api.model.ShelfId
 import app.campfire.network.reachability.NetworkSnapshot
 import app.campfire.network.reachability.Reachability
 import app.campfire.settings.api.AndroidAutoCategory
@@ -43,6 +45,7 @@ data class SettingsUiState(
   val localNetworkAccess: LocalNetworkAccess?,
   val homeServerSettings: HomeServerSettingsInfo,
   val appearanceSettings: AppearanceSettingsInfo,
+  val homeLayoutSettings: HomeLayoutSettingsInfo,
   val downloadsSettings: DownloadsSettingsInfo,
   val playbackSettings: PlaybackSettingsInfo,
   val sleepSettings: SleepSettingsInfo,
@@ -77,6 +80,18 @@ data class AppearanceSettingsInfo(
   val dynamicItemDetailTheming: Boolean,
   val dynamicPlaybackTheming: Boolean,
   val itemCardMarqueeEnabled: Boolean,
+)
+
+/**
+ * The home layout of the current library.
+ *
+ * @param shelves shown shelves in order, then hidden ones
+ */
+@Immutable
+data class HomeLayoutSettingsInfo(
+  val libraryName: String?,
+  val shelves: List<HomeLayoutShelf>,
+  val isCustomized: Boolean,
 )
 
 @Immutable
@@ -191,6 +206,7 @@ enum class SettingsPane {
   Account,
   Connection,
   Appearance,
+  Home,
   Downloads,
   Playback,
   Sleep,
@@ -203,6 +219,7 @@ enum class SettingsPane {
     Account -> SettingsScreen.Page.Account
     Connection -> SettingsScreen.Page.Connection
     Appearance -> SettingsScreen.Page.Appearance
+    Home -> SettingsScreen.Page.Home
     Downloads -> SettingsScreen.Page.Downloads
     Playback -> SettingsScreen.Page.Playback
     Sleep -> SettingsScreen.Page.Sleep
@@ -241,6 +258,15 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
     data class DynamicPlaybackTheming(val enabled: Boolean) : AppearanceSettingEvent
     data class ItemCardMarqueeEnabled(val enabled: Boolean) : AppearanceSettingEvent
     data object OpenThemeBuilder : AppearanceSettingEvent
+  }
+
+  // Home Pane Events
+  sealed interface HomeLayoutSettingEvent : SettingsUiEvent {
+    /** Move a shown shelf; [from] and [to] index the shown shelves. */
+    data class MoveShown(val from: Int, val to: Int) : HomeLayoutSettingEvent
+    data class MoveShownBy(val shelfId: ShelfId, val offset: Int) : HomeLayoutSettingEvent
+    data class SetShelfVisible(val shelfId: ShelfId, val visible: Boolean) : HomeLayoutSettingEvent
+    data object Reset : HomeLayoutSettingEvent
   }
 
   // Downloads Pane Events

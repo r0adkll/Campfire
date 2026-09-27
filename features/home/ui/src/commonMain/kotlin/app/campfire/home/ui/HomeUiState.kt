@@ -62,5 +62,6 @@ sealed interface HomeUiEvent : CircuitUiEvent {
   data class OpenAuthor(val author: Author) : HomeUiEvent
   data class OpenUpcomingBook(val url: String) : HomeUiEvent
   data object OpenUpcomingScreen : HomeUiEvent
+  data object CustomizeHome : HomeUiEvent
   data object Refresh : HomeUiEvent
 }

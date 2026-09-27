@@ -22,6 +22,8 @@ kotlin {
         implementation(projects.features.user.api)
 
         implementation(libs.store)
+        implementation(libs.kotlinx.serialization.json)
+        implementation(libs.multiplatformsettings.coroutines)
 
         api(projects.features.home.api)
       }
@@ -36,6 +38,7 @@ kotlin {
         implementation(projects.features.user.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
+        implementation(libs.multiplatformsettings.test)
       }
     }
   }

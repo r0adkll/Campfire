@@ -14,6 +14,7 @@ import app.campfire.bookinfo.test.FakeBookInfoRegistry
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.common.screens.SeriesDetailScreen
+import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.test.mediaProgress
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
@@ -21,11 +22,14 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.ShelfEntity
 import app.campfire.core.model.ShelfType
 import app.campfire.home.api.FeedResponse
+import app.campfire.home.api.model.HomeLayoutEntry
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.test.FakeMediaProgressRepository
+import app.campfire.user.test.FakeUserRepository
+import app.campfire.user.test.fixtures.user
 import assertk.Assert
 import assertk.all
 import assertk.assertThat
@@ -56,6 +60,75 @@ class HomePresenterTest {
   val analytics = FakeAnalytics()
   val offlineDownloadManager = FakeOfflineDownloadManager()
   val mediaProgressRepository = FakeMediaProgressRepository()
+  val homeLayoutSettings = FakeHomeLayoutSettings()
+  val testUser = user("user")
+  val userRepository = FakeUserRepository().apply {
+    currentUserFlow.tryEmit(testUser)
+  }
+
+  @Test
+  fun present_SavedLayout_ordersAndHidesShelves() = runTest {
+    val shelves = listOf(
+      shelf("one", "Shelf 1", 1),
+      shelf("two", "Shelf 2", 1),
+      shelf("three", "Shelf 3", 1),
+    )
+    homeLayoutSettings.setLayout(
+      testUser.selectedLibraryId,
+      listOf(
+        HomeLayoutEntry("two", visible = true, label = "Shelf 2"),
+        HomeLayoutEntry("one", visible = false, label = "Shelf 1"),
+      ),
+    )
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { flowOf(FeedResponse.Success(shelves)) },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
+      analytics = analytics,
+    )
+
+    presenter.test {
+      // "three" is new to the saved layout, so it follows its server neighbor "two"
+      var state = awaitItem()
+      while (state.homeFeed !is FeedResponse.Success) state = awaitItem()
+      assertThat(state).homeFeed.isSuccess().transform { list -> list.map { it.id } }
+        .containsExactly("two", "three")
+    }
+  }
+
+  @Test
+  fun eventSink_CustomizeHome_navigatesToHomeSettings() = runTest {
+    val repository = FakeHomeRepository(
+      homeFeedFlowFactory = { emptyFlow() },
+      mediaProgressFlowFactory = { emptyFlow() },
+      shelfEntityFlowFactory = { _, _ -> emptyFlow() },
+    )
+    val presenter = HomePresenter(
+      navigator = navigator,
+      homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
+      mediaProgressRepository = mediaProgressRepository,
+      offlineDownloadManager = offlineDownloadManager,
+      bookInfoRegistry = FakeBookInfoRegistry(),
+      analytics = analytics,
+    )
+
+    presenter.test {
+      awaitItem().eventSink(HomeUiEvent.CustomizeHome)
+
+      assertThat(navigator.awaitNextScreen()).isEqualTo(SettingsScreen(SettingsScreen.Page.Home))
+    }
+  }
 
   @Test
   fun present_LoadingState() = runTest {
@@ -67,6 +140,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -97,6 +172,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -163,6 +240,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = registry,
@@ -225,6 +304,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = registry,
@@ -264,6 +345,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -338,6 +421,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -386,6 +471,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -418,6 +505,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -447,6 +536,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -476,6 +567,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),
@@ -507,6 +600,8 @@ class HomePresenterTest {
     val presenter = HomePresenter(
       navigator = navigator,
       homeRepository = repository,
+      homeLayoutSettings = homeLayoutSettings,
+      userRepository = userRepository,
       mediaProgressRepository = mediaProgressRepository,
       offlineDownloadManager = offlineDownloadManager,
       bookInfoRegistry = FakeBookInfoRegistry(),

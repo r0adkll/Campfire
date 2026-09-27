@@ -1,5 +1,7 @@
 <resources>
   <string name="home_feed_load_error">Unable to load your home feed.\n%1$s</string>
+  <string name="home_empty_message">Nothing to show on your home screen right now.</string>
+  <string name="home_customize">Customize home</string>
   <string name="shelf_content_error_message">Unable to load content for "%1$s"</string>
 
   <string name="upcoming_shelf_title">Upcoming releases</string>

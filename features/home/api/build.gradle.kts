@@ -13,5 +13,11 @@ kotlin {
         implementation(projects.core)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.bundles.test.common)
+      }
+    }
   }
 }
