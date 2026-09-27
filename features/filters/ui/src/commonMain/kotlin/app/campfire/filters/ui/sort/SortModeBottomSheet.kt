@@ -41,10 +41,10 @@ import campfire.features.filters.ui.generated.resources.sort_mode_sheet_title
 import campfire.features.filters.ui.generated.resources.sort_mode_size
 import campfire.features.filters.ui.generated.resources.sort_mode_title
 import campfire.features.filters.ui.generated.resources.sort_mode_updatedat
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface SortModeResult {

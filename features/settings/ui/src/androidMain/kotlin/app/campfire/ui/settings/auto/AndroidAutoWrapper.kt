@@ -10,8 +10,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.core.net.toUri
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

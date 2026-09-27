@@ -19,8 +19,7 @@ This document provides an overview of the architecture decisions used in this pr
   * [SQLDelight][sql-delight]
   * [Store5][store]
 * Dependency Injection
-  * [kotlin-inject][kinject]
-  * [kimchi][kimchi]
+  * [Metro][metro]
 * Analytics
   * [MixPanel][mix-panel]
   * [Firebase][firebase]
@@ -31,8 +30,7 @@ This document provides an overview of the architecture decisions used in this pr
 [ktor]: https://ktor.io/docs/welcome.html
 [sql-delight]: https://cashapp.github.io/sqldelight/2.0.0/multiplatform_sqlite/
 [store]: https://github.com/MobileNativeFoundation/Store
-[kinject]: https://github.com/evant/kotlin-inject
-[kimchi]: https://github.com/r0adkll/kimchi
+[metro]: https://github.com/ZacSweers/metro
 [mix-panel]: https://docs.mixpanel.com/docs/tracking-methods/sdks/android
 [firebase]: https://firebase.google.com/
 

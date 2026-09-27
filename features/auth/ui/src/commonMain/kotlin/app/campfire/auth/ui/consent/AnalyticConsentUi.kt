@@ -64,7 +64,7 @@ import app.campfire.common.compose.layout.isWidthAtLeastLarge
 import app.campfire.core.di.UserScope
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_finish_analytics_consent
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(AnalyticConsentScreen::class, UserScope::class)

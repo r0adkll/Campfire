@@ -27,20 +27,19 @@ import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(PlaylistDetailScreen::class, UserScope::class)
 @Inject
 class PlaylistDetailPresenter(
-  @Assisted private val screen: PlaylistDetailScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: PlaylistDetailScreen,
+  private val navigator: Navigator,
   private val analytics: Analytics,
   private val playlistsRepository: PlaylistsRepository,
   private val playbackController: PlaybackController,

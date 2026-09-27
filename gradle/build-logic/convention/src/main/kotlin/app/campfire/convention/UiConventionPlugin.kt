@@ -21,7 +21,7 @@ class UiConventionPlugin : Plugin<Project> {
       apply("app.campfire.android.library")
       apply("app.campfire.multiplatform")
       apply("app.campfire.compose")
-      libs.findPlugin("ksp").ifPresent { apply(it.get().pluginId) }
+      apply("app.campfire.di")
     }
 
     extensions.configure<KotlinMultiplatformExtension> {
@@ -53,10 +53,6 @@ class UiConventionPlugin : Plugin<Project> {
         // Add Circuit Dependencies
         libs.findLibrary("circuit-runtime").ifPresent { implementation(it) }
         libs.findLibrary("circuit-foundation").ifPresent { implementation(it) }
-
-        // Add DI / Kimchi Dependencies
-        libs.findLibrary("kimchi-annotations").ifPresent { implementation(it) }
-        libs.findLibrary("kimchi-circuit-annotations").ifPresent { implementation(it) }
       }
 
       sourceSets["commonTest"].dependencies {
@@ -70,10 +66,6 @@ class UiConventionPlugin : Plugin<Project> {
         implementation(compose.desktop.currentOs)
       }
     }
-
-    // Add DI / Kimchi KSP compilers
-    libs.findLibrary("kimchi-compiler").ifPresent { addKspDependencyForAllTargets(it) }
-    libs.findLibrary("kimchi-circuit-compiler").ifPresent { addKspDependencyForAllTargets(it) }
 
     // Setup Android instrumentation test and tooling dependencies
     dependencies {

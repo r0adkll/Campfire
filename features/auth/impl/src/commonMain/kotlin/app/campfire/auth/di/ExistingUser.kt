@@ -3,7 +3,7 @@
 
 package app.campfire.auth.di
 
-import me.tatarka.inject.annotations.Qualifier
+import dev.zacsweers.metro.Qualifier
 
 @Qualifier
 annotation class ExistingUser

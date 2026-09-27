@@ -1,12 +1,9 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
-
-import app.campfire.convention.addKspDependencyForAllTargets
-
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
 }
 
 kotlin {
@@ -22,7 +19,7 @@ kotlin {
         implementation(projects.features.settings.api)
 
         // `api` because MediaRouterCastController's supertypes (CastStateListener,
-        // MediaRouter.Callback) must be visible to the kimchi-generated component in the
+        // MediaRouter.Callback) must be visible to the Metro-generated graph in the
         // consuming app module. mediarouter is also declared explicitly rather than
         // relying on it arriving transitively through the cast framework.
         api(libs.androidx.mediarouter)
@@ -33,5 +30,3 @@ kotlin {
     }
   }
 }
-
-addKspDependencyForAllTargets(libs.kimchi.compiler)

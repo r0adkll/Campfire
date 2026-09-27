@@ -18,7 +18,7 @@ import app.campfire.core.model.User
 import app.campfire.data.SelectEpisodesWithLimitOffset
 import app.campfire.db.paging.QueryPagingSource
 import app.campfire.podcasts.api.LatestEpisode
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class RecentEpisodesPagerFactory(

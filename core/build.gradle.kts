@@ -15,9 +15,8 @@ kotlin {
     commonMain {
       dependencies {
         api(libs.about.libraries.core)
-        api(libs.kimchi.annotations)
         api(libs.kotlinx.coroutines.core)
-        api(libs.kotlininject.runtime)
+        api(libs.metro.runtime)
         api(libs.kotlinx.datetime)
         api(libs.kotlinx.immutable)
         api(libs.stately.concurrent.collections)

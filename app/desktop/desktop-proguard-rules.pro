@@ -146,6 +146,14 @@
 -dontwarn org.conscrypt.**
 -dontwarn org.openjsse.**
 
+# --- Circuit codegen annotations ----------------------------------------------------------------
+#
+# @CircuitInject is meta-annotated for every DI framework Circuit's codegen supports. Campfire uses
+# Metro, so the kotlin-inject-anvil and Hilt annotations it references are never on the classpath.
+
+-dontwarn software.amazon.lastmile.kotlin.inject.anvil.**
+-dontwarn dagger.hilt.**
+
 # --- Logging ------------------------------------------------------------------------------------
 
 -dontwarn org.slf4j.**

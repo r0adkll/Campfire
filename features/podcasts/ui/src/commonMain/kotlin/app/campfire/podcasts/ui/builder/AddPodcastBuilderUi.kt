@@ -42,7 +42,7 @@ import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_fie
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_field_description
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_field_title
 import campfire.features.podcasts.ui.generated.resources.add_podcast_builder_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import org.jetbrains.compose.resources.stringResource
 

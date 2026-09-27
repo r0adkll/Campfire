@@ -15,11 +15,11 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.socket.SocketManager
 import com.livewire.client.LivewireClient
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class LivewireInitializer(
   private val livewireClient: LivewireClient,

@@ -7,9 +7,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import app.campfire.core.ActivityResultFlowLauncher
 import app.campfire.core.ComponentActivityPlugin
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 
 /**
  * Activity-scoped launcher for the runtime `ACCESS_LOCAL_NETWORK` permission request. Registered
@@ -19,7 +20,7 @@ import me.tatarka.inject.annotations.Inject
  */
 @SingleIn(AppScope::class)
 @Inject
-@ContributesMultibinding(AppScope::class, boundType = ComponentActivityPlugin::class)
+@ContributesIntoSet(AppScope::class, binding = binding<ComponentActivityPlugin>())
 class LocalNetworkPermissionLauncher : ActivityResultFlowLauncher<String, Boolean>(
   ActivityResultContracts.RequestPermission(),
 )

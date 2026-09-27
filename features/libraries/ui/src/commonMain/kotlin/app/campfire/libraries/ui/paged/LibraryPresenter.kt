@@ -29,15 +29,14 @@ import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.podcasts.api.screen.AddPodcastScreen
 import app.campfire.settings.api.CampfireSettings
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 internal const val INVALID_ITEM_COUNT = -1
 
@@ -45,8 +44,8 @@ internal const val INVALID_ITEM_COUNT = -1
 @CircuitInject(LibraryScreen::class, UserScope::class)
 @Inject
 class LibraryPresenter(
-  @Assisted private val screen: LibraryScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: LibraryScreen,
+  private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val repository: LibraryRepository,
   private val offlineDownloadManager: OfflineDownloadManager,

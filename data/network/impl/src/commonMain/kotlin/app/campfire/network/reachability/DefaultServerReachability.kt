@@ -4,14 +4,16 @@
 package app.campfire.network.reachability
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.api.MobileDataSettings
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import dev.jordond.connectivity.Connectivity
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.http.Url
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -22,7 +24,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Tracks whether the signed-in user's server can be reached, per network connection.
@@ -38,8 +39,8 @@ import me.tatarka.inject.annotations.Inject
  * attempted on them ([Reachability.OutOfRange]).
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = ServerReachability::class)
-@ContributesBinding(AppScope::class, boundType = ReachabilityGate::class)
+@ContributesBinding(AppScope::class, binding = binding<ServerReachability>())
+@ContributesBinding(AppScope::class, binding = binding<ReachabilityGate>())
 @Inject
 class DefaultServerReachability(
   private val connectivity: Connectivity,

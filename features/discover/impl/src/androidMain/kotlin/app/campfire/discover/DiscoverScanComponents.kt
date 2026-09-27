@@ -9,7 +9,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.UserScope
 import app.campfire.core.lifecycle.AppLifecycleObserver
 import app.campfire.core.session.UserSession
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 
 /**
  * Accessors for [DiscoverScanWorker], which is constructed by WorkManager and

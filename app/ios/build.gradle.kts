@@ -1,12 +1,9 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
-
-import app.campfire.convention.addKspDependencyForAllTargets
-
 plugins {
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
   alias(libs.plugins.about.libraries)
 }
 
@@ -19,22 +16,11 @@ kotlin {
     commonMain {
       dependencies {
         implementation(projects.app.common)
-
-        implementation(libs.kimchi.annotations)
-        implementation(libs.kotlininject.runtime)
-
         implementation(libs.compose.components.resources)
       }
     }
   }
 }
-
-ksp {
-  arg("me.tatarka.inject.generateCompanionExtensions", "true")
-}
-
-addKspDependencyForAllTargets(libs.kotlininject.ksp)
-addKspDependencyForAllTargets(libs.kimchi.compiler)
 
 aboutLibraries {
   export.prettyPrint = true

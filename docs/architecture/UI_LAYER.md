@@ -55,8 +55,8 @@ Circuit uses a powerful composition based approach to generating and updating vi
 @CircuitInject(LibraryItemScreen::class, UserScope::class)
 @Inject
 class LibraryItemPresenter(
-  @Assisted private val screen: LibraryItemScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: LibraryItemScreen,
+  private val navigator: Navigator,
   private val repository: LibraryItemRepository,
   //…
 ) : Presenter<LibraryItemUiState> {

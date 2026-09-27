@@ -64,8 +64,8 @@ import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.speed_bottomsheet_title
 import campfire.features.sessions.ui.generated.resources.speed_custom_open
 import campfire.features.sessions.ui.generated.resources.speed_per_book_toggle
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
+import dev.zacsweers.metro.ContributesTo
 import ir.mahozad.multiplatform.wavyslider.WaveDirection
 import ir.mahozad.multiplatform.wavyslider.material3.WavySlider
 import kotlinx.coroutines.ExperimentalCoroutinesApi

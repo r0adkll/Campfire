@@ -12,13 +12,9 @@ plugins {
   id("app.campfire.android.application")
   id("app.campfire.kotlin.android")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
   alias(libs.plugins.about.libraries)
   alias(libs.plugins.baselineprofile)
-}
-
-ksp {
-  arg("me.tatarka.inject.generateCompanionExtensions", "true")
 }
 
 kotlin {
@@ -254,7 +250,4 @@ dependencies {
 
   debugImplementation(libs.androidx.lifecycle.process)
   debugImplementation(libs.media3.session)
-
-  ksp(libs.kimchi.compiler)
-  ksp(libs.kotlininject.ksp)
 }

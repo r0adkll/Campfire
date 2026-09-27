@@ -49,7 +49,7 @@ import campfire.features.podcasts.ui.generated.resources.find_episodes_error
 import campfire.features.podcasts.ui.generated.resources.find_episodes_forbidden
 import campfire.features.podcasts.ui.generated.resources.find_episodes_no_feed_url
 import campfire.features.podcasts.ui.generated.resources.find_episodes_retry
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import app.campfire.common.compose.di.rememberComponent
 import app.campfire.core.di.AppScope
 import app.campfire.ui.theming.api.widgets.ThemeIconContent
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
 @ContributesTo(AppScope::class)

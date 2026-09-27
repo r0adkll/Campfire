@@ -8,6 +8,7 @@ import app.campfire.bookinfo.api.SeriesFetchResult
 import app.campfire.bookinfo.api.seriesMatch
 import app.campfire.core.model.Series
 import app.campfire.series.api.SeriesRepository
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -18,7 +19,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Providers resolve a cold series in a few catalog requests, so keep the

@@ -24,16 +24,23 @@ import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.nextPage
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import dev.zacsweers.metro.Assisted
+import dev.zacsweers.metro.AssistedFactory
+import dev.zacsweers.metro.AssistedInject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
-typealias SeriesRemoteMediatorFactory = (User, SeriesPagingInput) -> SeriesRemoteMediator
+@AssistedFactory
+fun interface SeriesRemoteMediatorFactory {
+  operator fun invoke(
+    user: User,
+    input: SeriesPagingInput,
+  ): SeriesRemoteMediator
+}
 
 private const val MAX_CACHE_TIME_MS = 24L * 60L * 60 * 1000L
 
 @OptIn(ExperimentalPagingApi::class)
-@Inject
+@AssistedInject
 class SeriesRemoteMediator(
   @Assisted private val user: User,
   @Assisted private val input: SeriesPagingInput,

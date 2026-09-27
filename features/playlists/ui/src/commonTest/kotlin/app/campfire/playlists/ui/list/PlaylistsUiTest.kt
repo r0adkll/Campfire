@@ -15,6 +15,7 @@ import app.campfire.common.compose.layout.ContentLayout
 import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.settings.GroupDisplayState
+import app.campfire.ui.appbar.CampfireAppBar
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.overlay.rememberOverlayHost
 import com.slack.circuit.test.TestEventSink
@@ -41,7 +42,7 @@ class PlaylistsUiTest {
             isRefreshing = false,
             eventSink = events::invoke,
           ),
-          campfireAppBar = { _, _ -> },
+          campfireAppBar = CampfireAppBar { _, _ -> },
         )
       }
     }

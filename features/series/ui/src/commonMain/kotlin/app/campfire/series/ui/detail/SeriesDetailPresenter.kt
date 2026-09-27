@@ -25,9 +25,10 @@ import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -35,14 +36,12 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(SeriesDetailScreen::class, UserScope::class)
 @Inject
 class SeriesDetailPresenter(
-  @Assisted private val screen: SeriesDetailScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: SeriesDetailScreen,
+  private val navigator: Navigator,
   private val repository: SeriesRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val bookInfoRegistry: BookInfoRegistry,

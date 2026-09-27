@@ -13,19 +13,18 @@ import app.campfire.common.screens.UrlScreen
 import app.campfire.core.di.UserScope
 import app.campfire.discover.api.DiscoverScanTracker
 import app.campfire.discover.api.screen.UpcomingScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(UpcomingScreen::class, UserScope::class)
 @Inject
 class UpcomingPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val tracker: DiscoverScanTracker,
   private val bookInfoRegistry: BookInfoRegistry,
 ) : NonPausablePresenter<UpcomingUiState> {

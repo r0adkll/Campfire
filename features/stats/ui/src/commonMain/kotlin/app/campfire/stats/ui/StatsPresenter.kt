@@ -26,9 +26,10 @@ import app.campfire.user.api.MediaProgressRepository
 import campfire.features.stats.ui.generated.resources.Res
 import campfire.features.stats.ui.generated.resources.user_stats_activity_header
 import campfire.features.stats.ui.generated.resources.user_stats_recent_sessions_header
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.collections.immutable.toImmutableList
@@ -45,8 +46,6 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(StatisticsScreen::class, UserScope::class)
 @Inject
@@ -55,7 +54,7 @@ class StatsPresenter(
   private val mediaProgressRepository: MediaProgressRepository,
   private val fatherTime: FatherTime,
   private val dispatcherProvider: DispatcherProvider,
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
 ) : Presenter<StatsUiState> {
 
   @Composable

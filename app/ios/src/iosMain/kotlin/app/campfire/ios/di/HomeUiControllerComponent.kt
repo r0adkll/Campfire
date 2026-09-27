@@ -3,27 +3,24 @@
 
 package app.campfire.ios.di
 
-import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UiScope
 import app.campfire.ios.CampfireUiViewController
-import com.r0adkll.kimchi.annotations.ContributesSubcomponent
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.GraphExtension
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import platform.UIKit.UIViewController
 
-@SingleIn(UiScope::class)
-@ContributesSubcomponent(
-  scope = UiScope::class,
-  parentScope = AppScope::class,
-)
+@GraphExtension(UiScope::class)
 interface HomeUiControllerComponent {
   val uiViewControllerFactory: () -> UIViewController
 
   @Provides
   @SingleIn(UiScope::class)
-  fun uiViewController(bind: CampfireUiViewController): UIViewController = bind()
+  fun uiViewController(campfireUiViewController: CampfireUiViewController): UIViewController =
+    campfireUiViewController()
 
-  @ContributesSubcomponent.Factory
+  // Implemented directly by IosApplicationComponent, so Swift sees the factory function.
+  @GraphExtension.Factory
   interface Factory {
     fun createHomeUiControllerComponent(): HomeUiControllerComponent
   }

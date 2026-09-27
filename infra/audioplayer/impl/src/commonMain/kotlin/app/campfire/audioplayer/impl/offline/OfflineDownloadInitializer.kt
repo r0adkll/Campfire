@@ -10,7 +10,7 @@ import app.campfire.core.app.AppInitializer
 //  cause ForegroundService from Background errors on newer Android API versions.
 //  We should bake in some sort of background/foreground state mechanisms into the
 //  app initializer re-write. See (#471)
-// @ContributesMultibinding(AppScope::class)
+// @ContributesIntoSet(AppScope::class)
 // @Inject
 class OfflineDownloadInitializer(
   private val offlineDownloadManager: OfflineDownloadManager,

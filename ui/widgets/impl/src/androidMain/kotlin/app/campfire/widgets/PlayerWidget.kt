@@ -57,7 +57,7 @@ import app.campfire.widgets.composables.WidgetHeightClass
 import app.campfire.widgets.composables.WidgetSizeClass
 import app.campfire.widgets.composables.WidgetWidthClass
 import app.campfire.widgets.theme.asColorProviders
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

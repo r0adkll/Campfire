@@ -46,8 +46,8 @@ import campfire.ui.navigation.ui.generated.resources.nav_statistics_content_desc
 import campfire.ui.navigation.ui.generated.resources.nav_statistics_label
 import campfire.ui.navigation.ui.generated.resources.nav_upcoming_content_description
 import campfire.ui.navigation.ui.generated.resources.nav_upcoming_label
-import com.r0adkll.kimchi.annotations.ContributesTo
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
 import org.jetbrains.compose.resources.stringResource
 
 typealias NavigationPresenterFactory = () -> NavigationPresenter

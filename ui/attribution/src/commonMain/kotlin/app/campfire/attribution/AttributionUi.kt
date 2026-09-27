@@ -24,7 +24,7 @@ import campfire.ui.attribution.generated.resources.attributions_error_message
 import campfire.ui.attribution.generated.resources.attributions_title
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(AttributionScreen::class, UserScope::class)

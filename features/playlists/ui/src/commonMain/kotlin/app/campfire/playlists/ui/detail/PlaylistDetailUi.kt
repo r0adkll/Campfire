@@ -74,7 +74,7 @@ import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_title
 import campfire.features.playlists.ui.generated.resources.empty_playlist_detail_message
 import campfire.features.playlists.ui.generated.resources.error_playlist_detail_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
 import kotlinx.coroutines.launch

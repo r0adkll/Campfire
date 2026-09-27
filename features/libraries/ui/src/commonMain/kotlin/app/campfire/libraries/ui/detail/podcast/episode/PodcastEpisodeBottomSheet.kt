@@ -62,9 +62,9 @@ import app.campfire.playlists.api.dialog.PlaylistDialogResult
 import com.mohamedrejeb.richeditor.annotation.ExperimentalRichTextApi
 import com.mohamedrejeb.richeditor.model.TokenClickHandler
 import com.mohamedrejeb.richeditor.ui.material3.RichText
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.DurationUnit
 
 @ContributesTo(UserScope::class)

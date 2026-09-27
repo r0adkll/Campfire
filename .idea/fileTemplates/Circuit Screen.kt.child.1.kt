@@ -11,17 +11,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import app.campfire.common.screens.${NAME}Screen
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @CircuitInject(${NAME}Screen::class, UserScope::class)
 @Inject
 class ${NAME}Presenter(
-  @Assisted private val screen: ${NAME}Screen,
-  @Assisted private val navigator: Navigator,
+  private val screen: ${NAME}Screen,
+  private val navigator: Navigator,
 ) : Presenter<${NAME}UiState> {
 
   @Composable

@@ -11,8 +11,8 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.UserId
 import app.campfire.home.api.model.Shelf
 import app.campfire.network.AudioBookShelfApi
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration.Companion.minutes
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.MemoryPolicy
 import org.mobilenativefoundation.store.store5.Store
 import org.mobilenativefoundation.store.store5.StoreBuilder

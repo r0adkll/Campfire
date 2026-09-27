@@ -64,7 +64,7 @@ import app.campfire.ui.theming.api.HalogenStyle
 import app.campfire.ui.theming.api.colorScheme
 import app.campfire.ui.theming.api.screen.AiThemeBuilderScreen
 import app.campfire.ui.theming.ui.builder.composables.IconPicker
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlin.time.Duration.Companion.nanoseconds
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

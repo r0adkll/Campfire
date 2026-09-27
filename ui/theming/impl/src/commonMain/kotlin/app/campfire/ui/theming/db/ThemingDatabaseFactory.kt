@@ -9,7 +9,7 @@ import app.campfire.themes.CustomAppTheme
 import app.campfire.themes.Swatch
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.db.SqlDriver
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @Inject
 class ThemingDatabaseFactory(

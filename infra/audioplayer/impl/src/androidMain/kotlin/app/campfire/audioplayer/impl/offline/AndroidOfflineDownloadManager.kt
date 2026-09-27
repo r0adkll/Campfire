@@ -13,13 +13,14 @@ import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.audioplayer.offline.OfflineDownloadPayload
 import app.campfire.audioplayer.offline.offlineDownloadUrl
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PodcastEpisode
 import app.campfire.core.model.PodcastEpisodeId
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
@@ -27,7 +28,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.isActive
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Downloads fetch from the server's download route ([offlineDownloadUrl]), which refuses users

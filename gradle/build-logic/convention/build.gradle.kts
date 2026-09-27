@@ -16,6 +16,7 @@ dependencies {
   compileOnly(libs.kotlin.gradlePlugin)
   compileOnly(libs.compose.gradlePlugin)
   compileOnly(libs.composeCompiler.gradlePlugin)
+  implementation(libs.metro.gradlePlugin)
 
   // The proprietary Firebase plugins live in the sibling :firebase module, which F-Droid
   // scandeletes for FOSS builds. Depend on it (so `app.campfire.firebase` is resolvable when
@@ -84,6 +85,11 @@ gradlePlugin {
     register("androidTest") {
       id = "app.campfire.android.test"
       implementationClass = "app.campfire.convention.AndroidTestConventionPlugin"
+    }
+
+    register("di") {
+      id = "app.campfire.di"
+      implementationClass = "app.campfire.convention.DiConventionPlugin"
     }
 
     register("parcelize") {

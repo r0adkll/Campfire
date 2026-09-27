@@ -17,7 +17,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
 import app.campfire.core.logging.Corked
 import app.campfire.infra.audioplayer.impl.R
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 
 @OptIn(UnstableApi::class)
 @ContributesTo(AppScope::class)

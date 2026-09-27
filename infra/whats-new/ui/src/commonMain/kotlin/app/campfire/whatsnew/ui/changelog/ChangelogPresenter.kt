@@ -21,18 +21,17 @@ import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Bottom
 import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Middle
 import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Only
 import app.campfire.whatsnew.ui.changelog.ChangeUi.Change.Position.Top
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.flow
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @CircuitInject(ChangelogScreen::class, UserScope::class)
 @Inject
 class ChangelogPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val applicationInfo: ApplicationInfo,
   private val repository: WhatsNewRepository,
 ) : Presenter<ChangelogUiState> {

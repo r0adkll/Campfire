@@ -7,19 +7,19 @@ import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
 import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.Uuid
-import me.tatarka.inject.annotations.Inject
 
 @ContributesTo(UserScope::class)
 interface LocalSessionComponent {
@@ -29,7 +29,7 @@ interface LocalSessionComponent {
 
 @Inject
 @SingleIn(AppScope::class)
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 class LocalSessionUpdateSynchronizer(
   private val fatherTime: FatherTime,
 ) : PlaybackSynchronizer {

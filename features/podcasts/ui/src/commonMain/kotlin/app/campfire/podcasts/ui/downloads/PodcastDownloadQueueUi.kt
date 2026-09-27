@@ -48,7 +48,7 @@ import campfire.features.podcasts.ui.generated.resources.download_queue_clear_di
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_confirm
 import campfire.features.podcasts.ui.generated.resources.download_queue_clear_dialog_title
 import campfire.features.podcasts.ui.generated.resources.download_queue_empty
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -160,7 +160,7 @@ private fun ClearQueueConfirmDialog(
 
 // region — Previews —
 
-private val NoOpAppBar: CampfireAppBar = { _, _ -> }
+private val NoOpAppBar = CampfireAppBar { _, _ -> }
 
 @Composable
 private fun PreviewWrapper(

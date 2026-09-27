@@ -4,10 +4,12 @@
 package app.campfire.network.reachability
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import java.net.DatagramSocket
 import java.net.Inet4Address
 import java.net.InetAddress
@@ -21,7 +23,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Describes the desktop's default network from its local interfaces, polled on a short interval.
@@ -33,7 +34,7 @@ import me.tatarka.inject.annotations.Inject
  * behavior), never that a reachable server is skipped.
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = NetworkMonitor::class, replaces = [UnknownNetworkMonitor::class])
+@ContributesBinding(AppScope::class, binding = binding<NetworkMonitor>(), replaces = [UnknownNetworkMonitor::class])
 @Inject
 class DesktopNetworkMonitor(
   @ForScope(AppScope::class) scope: CoroutineScope,

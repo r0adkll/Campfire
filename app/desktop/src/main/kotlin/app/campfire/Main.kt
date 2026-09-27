@@ -40,6 +40,7 @@ import app.campfire.di.DesktopApplicationComponent
 import app.campfire.di.WindowComponent
 import app.campfire.sessions.ui.player.LocalMiniPlayerHost
 import app.campfire.sessions.ui.player.MiniPlayerHost
+import dev.zacsweers.metro.createGraph
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
@@ -47,7 +48,6 @@ import java.awt.Taskbar
 import java.awt.image.BufferedImage
 import java.net.URI
 import javax.imageio.ImageIO
-import kimchi.merge.app.campfire.di.createDesktopApplicationComponent
 import kotlinx.coroutines.launch
 
 @Suppress("CAST_NEVER_SUCCEEDS", "UNCHECKED_CAST", "USELESS_CAST", "KotlinRedundantDiagnosticSuppress")
@@ -63,7 +63,7 @@ fun main() = application {
   )
 
   val applicationComponent = remember {
-    DesktopApplicationComponent.createDesktopApplicationComponent().also { component ->
+    createGraph<DesktopApplicationComponent>().also { component ->
       ComponentHolder.components += component
       component.startupInitializer.initialize()
     }

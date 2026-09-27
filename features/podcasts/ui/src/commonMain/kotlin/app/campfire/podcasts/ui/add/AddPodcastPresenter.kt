@@ -23,10 +23,11 @@ import app.campfire.podcasts.api.screen.AddPodcastBuilderScreen
 import app.campfire.podcasts.api.screen.AddPodcastScreen
 import app.campfire.podcasts.api.toDraft
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -35,8 +36,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.shareIn
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 private const val DEBOUNCE_MS = 300L
 private val URL_REGEX = Regex("^https?://\\S+", RegexOption.IGNORE_CASE)
@@ -44,8 +43,8 @@ private val URL_REGEX = Regex("^https?://\\S+", RegexOption.IGNORE_CASE)
 @CircuitInject(AddPodcastScreen::class, UserScope::class)
 @Inject
 class AddPodcastPresenter(
-  @Assisted private val screen: AddPodcastScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: AddPodcastScreen,
+  private val navigator: Navigator,
   private val analytics: Analytics,
   private val podcastsRepository: PodcastsRepository,
   private val libraryRepository: LibraryRepository,

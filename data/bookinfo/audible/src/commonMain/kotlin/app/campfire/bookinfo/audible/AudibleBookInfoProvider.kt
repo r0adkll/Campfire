@@ -14,16 +14,17 @@ import app.campfire.bookinfo.api.ProviderLinkState
 import app.campfire.bookinfo.api.ProviderSeries
 import app.campfire.bookinfo.api.SeriesMatch
 import app.campfire.bookinfo.audible.di.AudibleClient
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import io.ktor.client.HttpClient
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Keyless audiobook-native source backed by Audible's public catalog API — the
@@ -35,7 +36,7 @@ import me.tatarka.inject.annotations.Inject
  * live on per-region hosts and can become a setting later.
  */
 @SingleIn(UserScope::class)
-@ContributesMultibinding(UserScope::class, boundType = BookInfoProvider::class)
+@ContributesIntoSet(UserScope::class, binding = binding<BookInfoProvider>())
 @Inject
 class AudibleBookInfoProvider(
   @AudibleClient private val client: HttpClient,

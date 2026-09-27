@@ -8,9 +8,9 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.User
 import app.campfire.network.models.User as NetworkUser
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Handles `UserUpdated` socket events by writing through to the local DB. Mirrors the existing

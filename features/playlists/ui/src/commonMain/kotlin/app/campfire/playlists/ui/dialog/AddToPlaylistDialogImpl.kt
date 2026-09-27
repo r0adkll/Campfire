@@ -80,14 +80,14 @@ import campfire.features.playlists.ui.generated.resources.dialog_add_playlist_na
 import campfire.features.playlists.ui.generated.resources.dialog_add_playlist_text
 import campfire.features.playlists.ui.generated.resources.dialog_add_playlist_title
 import coil3.compose.rememberAsyncImagePainter
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import org.jetbrains.compose.resources.stringResource
 
 @ContributesBinding(UserScope::class)
 @Inject
 class AddToPlaylistDialogImpl(
-  private val presenterFactory: (LibraryItemId, PodcastEpisode?, OnDismissListener) -> AddToPlaylistDialogPresenter,
+  private val presenterFactory: AddToPlaylistDialogPresenterFactory,
 ) : AddToPlaylistDialog {
 
   @Composable

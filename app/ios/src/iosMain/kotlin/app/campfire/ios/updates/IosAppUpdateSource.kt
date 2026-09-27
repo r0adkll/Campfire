@@ -7,10 +7,10 @@ import app.campfire.core.di.AppScope
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Update this with a TestFlight based implementation?

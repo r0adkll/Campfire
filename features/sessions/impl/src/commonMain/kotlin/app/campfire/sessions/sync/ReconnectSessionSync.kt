@@ -12,8 +12,10 @@ import app.campfire.core.session.UserSession
 import app.campfire.core.session.user
 import app.campfire.network.reachability.Reachability
 import app.campfire.network.reachability.ServerReachability
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
 import dev.jordond.connectivity.Connectivity
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -26,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Uploads listening recorded while the server was out of reach as soon as it can be reached
@@ -40,7 +41,7 @@ import me.tatarka.inject.annotations.Inject
  * periodic and pause syncs already do — the server upserts it by id, so a repeat is one idempotent
  * request per reconnect.
  */
-@ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+@ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class ReconnectSessionSync(
   private val userSession: UserSession,

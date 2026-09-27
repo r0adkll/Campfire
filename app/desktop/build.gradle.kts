@@ -8,7 +8,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 plugins {
   id("app.campfire.kotlin.jvm")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
   alias(libs.plugins.about.libraries)
   alias(libs.plugins.buildConfig)
   alias(libs.plugins.conveyor)
@@ -62,12 +62,6 @@ dependencies {
   if (desktopAudioEngine != "vlc") {
     implementation(projects.infra.audioplayer.engineFfmpeg)
   }
-
-  implementation(libs.kimchi.annotations)
-  implementation(libs.kotlininject.runtime)
-
-  ksp(libs.kotlininject.ksp)
-  ksp(libs.kimchi.compiler)
 }
 
 /**

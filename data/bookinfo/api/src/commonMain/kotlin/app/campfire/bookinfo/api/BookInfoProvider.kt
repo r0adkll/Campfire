@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
  * contribute themselves to the user graph with:
  *
  * ```
- * @ContributesMultibinding(UserScope::class, boundType = BookInfoProvider::class)
+ * @ContributesIntoSet(UserScope::class, binding = binding<BookInfoProvider>())
  * ```
  *
  * Consumers never call providers directly; they go through [BookInfoRegistry],

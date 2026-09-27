@@ -102,7 +102,7 @@ import campfire.data.bookinfo.ui.generated.resources.provider_preferred_title
 import campfire.data.bookinfo.ui.generated.resources.provider_token_hint
 import campfire.data.bookinfo.ui.generated.resources.series_missing_toggle_subtitle
 import campfire.data.bookinfo.ui.generated.resources.series_missing_toggle_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(ConnectedProvidersScreen::class, UserScope::class)

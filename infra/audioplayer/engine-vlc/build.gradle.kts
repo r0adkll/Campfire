@@ -3,7 +3,7 @@
 
 plugins {
   id("app.campfire.kotlin.jvm")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
 }
 
 dependencies {
@@ -12,9 +12,4 @@ dependencies {
 
   implementation(libs.vlcj)
   implementation(libs.kotlinx.coroutines.core)
-
-  implementation(libs.kimchi.annotations)
-  implementation(libs.kotlininject.runtime)
-  ksp(libs.kotlininject.ksp)
-  ksp(libs.kimchi.compiler)
 }

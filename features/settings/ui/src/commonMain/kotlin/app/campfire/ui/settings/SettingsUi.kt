@@ -90,7 +90,7 @@ import campfire.features.settings.ui.generated.resources.setting_providers_title
 import campfire.features.settings.ui.generated.resources.setting_sleep_subtitle
 import campfire.features.settings.ui.generated.resources.setting_sleep_title
 import campfire.features.settings.ui.generated.resources.settings_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(SettingsScreen::class, UserScope::class)

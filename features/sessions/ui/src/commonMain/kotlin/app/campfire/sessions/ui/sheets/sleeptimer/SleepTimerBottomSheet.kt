@@ -97,8 +97,8 @@ import campfire.features.sessions.ui.generated.resources.action_set_timer
 import campfire.features.sessions.ui.generated.resources.option_shake_to_reset_subtitle
 import campfire.features.sessions.ui.generated.resources.option_shake_to_reset_title
 import campfire.features.sessions.ui.generated.resources.timer_bottomsheet_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
+import dev.zacsweers.metro.ContributesTo
 import kotlin.math.roundToInt
 import kotlin.time.Clock
 import kotlin.time.Duration

@@ -18,7 +18,6 @@ import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemeBuilderScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpec.SpecVersion
 import com.r0adkll.swatchbuckler.color.dynamiccolor.ColorSpecs
@@ -27,12 +26,12 @@ import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import com.r0adkll.swatchbuckler.color.hct.Hct
 import com.r0adkll.swatchbuckler.color.palettes.TonalPalette
 import com.r0adkll.swatchbuckler.compose.util.asColorScheme
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 internal val ColorStyles = mapOf(
   SpecVersion.SPEC_2025 to listOf(
@@ -58,8 +57,8 @@ internal val AppTheme.Fixed.Custom.isNew: Boolean get() = id == NEW_THEME_ID
 @Inject
 class ThemeBuilderPresenter(
   private val themeRepository: AppThemeRepository,
-  @Assisted private val screen: ThemeBuilderScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: ThemeBuilderScreen,
+  private val navigator: Navigator,
 ) : Presenter<ThemeBuilderUiState> {
 
   @Composable

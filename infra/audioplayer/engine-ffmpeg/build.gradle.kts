@@ -3,7 +3,7 @@
 
 plugins {
   id("app.campfire.kotlin.jvm")
-  alias(libs.plugins.ksp)
+  id("app.campfire.di")
 }
 
 dependencies {
@@ -13,12 +13,6 @@ dependencies {
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.bytedeco.ffmpeg)
   implementation(libs.bytedeco.javacpp)
-
-  implementation(libs.kimchi.annotations)
-  implementation(libs.kotlininject.runtime)
-  ksp(libs.kotlininject.ksp)
-  ksp(libs.kimchi.compiler)
-
   testImplementation(libs.bundles.test.common)
   testRuntimeOnly(variantOf(libs.bytedeco.ffmpeg) { classifier(javacppPlatform) })
   testRuntimeOnly(variantOf(libs.bytedeco.javacpp) { classifier(javacppPlatform) })

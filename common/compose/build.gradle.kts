@@ -1,13 +1,9 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
-
-import app.campfire.convention.addKspDependencyForCommon
-
 plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   id("app.campfire.compose")
-  alias(libs.plugins.ksp)
 }
 
 kotlin {
@@ -95,5 +91,3 @@ kotlin {
 dependencies {
   "androidRuntimeClasspath"(libs.compose.ui.tooling)
 }
-
-addKspDependencyForCommon(libs.kimchi.compiler)

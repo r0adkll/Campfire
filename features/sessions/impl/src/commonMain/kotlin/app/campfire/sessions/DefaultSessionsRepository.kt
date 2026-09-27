@@ -4,7 +4,6 @@
 package app.campfire.sessions
 
 import app.campfire.audioplayer.offline.OfflineDownloadManager
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlayMethod
@@ -17,10 +16,11 @@ import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.sessions.db.SessionDataSource
 import app.campfire.sessions.sync.ServerSessionAttacher
 import app.campfire.user.api.MediaProgressRepository
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
-import me.tatarka.inject.annotations.Inject
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)

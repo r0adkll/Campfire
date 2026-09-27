@@ -56,6 +56,7 @@ import app.campfire.crashreporting.CrashReporter
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -71,7 +72,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
-import me.tatarka.inject.annotations.Inject
 
 // The remote cast player surfaces no PlaybackException for receiver-side failures, so dead
 // handoffs and vanished receivers are detected by deadline instead (see armCastWatchdog).

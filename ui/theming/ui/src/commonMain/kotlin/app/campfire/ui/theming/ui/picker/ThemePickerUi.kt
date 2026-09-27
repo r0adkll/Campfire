@@ -77,7 +77,7 @@ import campfire.ui.theming.ui.generated.resources.theme_name_mountain
 import campfire.ui.theming.ui.generated.resources.theme_name_rucksack
 import campfire.ui.theming.ui.generated.resources.theme_name_tent
 import campfire.ui.theming.ui.generated.resources.theme_name_water_bottle
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)

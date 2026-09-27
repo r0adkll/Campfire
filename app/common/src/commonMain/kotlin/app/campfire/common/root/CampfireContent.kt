@@ -26,28 +26,76 @@ import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.retained.LocalRetainedStateRegistry
 import com.slack.circuit.retained.lifecycleRetainedStateRegistry
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
-typealias CampfireContentWithInsets = @Composable (
+/** The app's root content, drawn inside the given window insets (desktop windows). */
+@Inject
+class CampfireContentWithInsets(
+  private val settings: CampfireSettings,
+  private val userSessionManager: UserSessionManager,
+  private val themeManager: ThemeManager,
+  private val themeRepository: AppThemeRepository,
+  private val automationDeepLinks: AutomationDeepLinks,
+) {
+  @Composable
+  operator fun invoke(
+    onRootPop: () -> Unit,
+    windowInsets: WindowInsets,
+    deepLink: DeepLink,
+    modifier: Modifier = Modifier,
+  ) = CampfireRoot(
+    onRootPop = onRootPop,
+    windowInsets = windowInsets,
+    deepLink = deepLink,
+    settings = settings,
+    userSessionManager = userSessionManager,
+    themeManager = themeManager,
+    themeRepository = themeRepository,
+    automationDeepLinks = automationDeepLinks,
+    modifier = modifier,
+  )
+}
+
+/** The app's root content, inset by the system bars (Android and iOS). */
+@Inject
+class CampfireContent(
+  private val settings: CampfireSettings,
+  private val userSessionManager: UserSessionManager,
+  private val themeManager: ThemeManager,
+  private val themeRepository: AppThemeRepository,
+  private val automationDeepLinks: AutomationDeepLinks,
+) {
+  @Composable
+  operator fun invoke(
+    onRootPop: () -> Unit,
+    deepLink: DeepLink,
+    modifier: Modifier = Modifier,
+  ) = CampfireRoot(
+    onRootPop = onRootPop,
+    windowInsets = WindowInsets.systemBars
+      .exclude(WindowInsets.statusBars)
+      .exclude(WindowInsets.navigationBars),
+    deepLink = deepLink,
+    settings = settings,
+    userSessionManager = userSessionManager,
+    themeManager = themeManager,
+    themeRepository = themeRepository,
+    automationDeepLinks = automationDeepLinks,
+    modifier = modifier,
+  )
+}
+
+@Composable
+private fun CampfireRoot(
   onRootPop: () -> Unit,
   windowInsets: WindowInsets,
   deepLink: DeepLink,
-  modifier: Modifier,
-) -> Unit
-
-@Inject
-@Composable
-fun CampfireContentWithInsets(
-  @Assisted onRootPop: () -> Unit,
-  @Assisted windowInsets: WindowInsets,
-  @Assisted deepLink: DeepLink,
   settings: CampfireSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
   automationDeepLinks: AutomationDeepLinks,
-  @Assisted modifier: Modifier = Modifier,
+  modifier: Modifier = Modifier,
 ) {
   CompositionLocalProvider(
     LocalWindowSizeClass provides currentWindowSizeClass(),
@@ -88,37 +136,4 @@ fun CampfireContentWithInsets(
       }
     }
   }
-}
-
-typealias CampfireContent = @Composable (
-  onRootPop: () -> Unit,
-  deepLink: DeepLink,
-  modifier: Modifier,
-) -> Unit
-
-@Inject
-@Composable
-fun CampfireContent(
-  @Assisted onRootPop: () -> Unit,
-  @Assisted deepLink: DeepLink,
-  settings: CampfireSettings,
-  userSessionManager: UserSessionManager,
-  themeManager: ThemeManager,
-  themeRepository: AppThemeRepository,
-  automationDeepLinks: AutomationDeepLinks,
-  @Assisted modifier: Modifier = Modifier,
-) {
-  CampfireContentWithInsets(
-    onRootPop = onRootPop,
-    settings = settings,
-    userSessionManager = userSessionManager,
-    themeManager = themeManager,
-    themeRepository = themeRepository,
-    automationDeepLinks = automationDeepLinks,
-    windowInsets = WindowInsets.systemBars
-      .exclude(WindowInsets.statusBars)
-      .exclude(WindowInsets.navigationBars),
-    deepLink = deepLink,
-    modifier = modifier,
-  )
 }

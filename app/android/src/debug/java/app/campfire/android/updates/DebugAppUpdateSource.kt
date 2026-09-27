@@ -6,8 +6,8 @@ package app.campfire.android.updates
 import app.campfire.core.di.AppScope
 import app.campfire.updates.source.AppUpdateSource
 import app.campfire.updates.source.FakeAppUpdateSource
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 /**
  * Debug builds use the developer-settings driven [FakeAppUpdateSource] so the app

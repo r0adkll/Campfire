@@ -12,11 +12,10 @@ import app.campfire.core.di.UserScope
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.ui.theming.api.AppThemeRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.Inject
 
 @CircuitInject(WelcomeScreen::class, UserScope::class)
 @Inject
@@ -25,7 +24,7 @@ class WelcomePresenter(
   private val oauthAuthorizationFlow: AuthorizationFlow,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val appThemeRepository: AppThemeRepository,
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
   private val loginPresenter = LoginPresenter(

@@ -21,21 +21,20 @@ import app.campfire.sessions.api.SessionsRepository
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(LatestEpisodesScreen::class, UserScope::class)
 @Inject
 class LatestEpisodesPresenter(
-  @Assisted private val navigator: Navigator,
+  private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val podcastsRepository: PodcastsRepository,
   private val sessionsRepository: SessionsRepository,

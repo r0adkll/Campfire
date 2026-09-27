@@ -9,10 +9,11 @@ import app.campfire.socket.events.PlaylistRemoved
 import app.campfire.socket.events.PlaylistUpdated
 import app.campfire.socket.events.SocketEvent
 import app.campfire.socket.events.SocketEventListener
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 
-@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)
+@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())
 @Inject
 class PlaylistCacheInvalidationListener(
   private val handler: PlaylistEventHandler,

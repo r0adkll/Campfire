@@ -10,9 +10,9 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
 import app.campfire.settings.api.PlaybackSettings
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Wires the macOS media integrations on startup: Now Playing + media keys and Dock transport
@@ -20,7 +20,7 @@ import me.tatarka.inject.annotations.Inject
  *
  * Every native piece is optional — a failure to load a framework logs and leaves playback alone.
  */
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class MacMediaIntegrationInitializer(
   private val holder: AudioPlayerHolder,

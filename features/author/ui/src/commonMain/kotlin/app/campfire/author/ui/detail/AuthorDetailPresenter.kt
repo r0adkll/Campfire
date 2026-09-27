@@ -17,23 +17,22 @@ import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.libraries.api.screen.LibraryItemScreen
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @CircuitInject(AuthorDetailScreen::class, UserScope::class)
 @Inject
 class AuthorDetailPresenter(
-  @Assisted private val screen: AuthorDetailScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: AuthorDetailScreen,
+  private val navigator: Navigator,
   private val authorRepository: AuthorRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val analytics: Analytics,

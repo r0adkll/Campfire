@@ -1,6 +1,6 @@
 ---
 name: socket-event-listener
-description: Enforce the Campfire pattern for feature modules to react to Audiobookshelf socket events. Feature impl modules contribute a `SocketEventListener` via `@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)` — no `Scoped`, no `CoroutineScopeHolder` injection, no flow collection, no edits to `:infra:socket:impl`. Trigger when authoring or reviewing a class that reacts to socket events, or when asked to "wire X to socket events" / "add a socket listener for Y".
+description: Enforce the Campfire pattern for feature modules to react to Audiobookshelf socket events. Feature impl modules contribute a `SocketEventListener` via `@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())` — no `Scoped`, no `CoroutineScopeHolder` injection, no flow collection, no edits to `:infra:socket:impl`. Trigger when authoring or reviewing a class that reacts to socket events, or when asked to "wire X to socket events" / "add a socket listener for Y".
 ---
 
 ## Rule
@@ -9,7 +9,7 @@ description: Enforce the Campfire pattern for feature modules to react to Audiob
 
 ```kotlin
 // :features:user:impl/.../MediaProgressSocketListener.kt
-@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)
+@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())
 @Inject
 class MediaProgressSocketListener(
   private val mediaProgressRepository: MediaProgressRepository,
@@ -52,7 +52,7 @@ A feature that touches multiple event families is fine — one listener class ca
 
 ## Implementation rules
 
-1. **Annotate** with `@ContributesMultibinding(UserScope::class, boundType = SocketEventListener::class)` and `@Inject`. Without the annotation kimchi won't register the binding and the dispatcher silently won't call it.
+1. **Annotate** with `@ContributesIntoSet(UserScope::class, binding = binding<SocketEventListener>())` and `@Inject`. Without the annotation Metro won't register the binding and the dispatcher silently won't call it.
 2. **Inject only domain dependencies** (the repos / stores / sync services you'll write to). Do NOT inject `SocketManager`, `CoroutineScopeHolder`, or anything socket-related.
 3. **Narrow via `when` or early-return `if !is`.** Every listener gets every event — that's intentional. Return `Unit` for events you don't care about (or omit the `else` branch if your `when` is exhaustive over the events you handle).
 4. **Keep `handle()` fast.** It runs sequentially per listener — a 500ms `handle` delays the next event for that listener. For genuinely slow work, dispatch to a separate component or coroutine (rare in practice; repo upserts are sub-millisecond).
@@ -107,7 +107,7 @@ rg -l ': NetworkModel\(\)|: Envelope\(\)' data/network/api --type kt
 
   ```kotlin
   // ❌ DON'T
-  @ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+  @ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
   class MyFeatureListener(
     private val socketManager: SocketManager,
     @ForScope(UserScope::class) private val scopeHolder: CoroutineScopeHolder,

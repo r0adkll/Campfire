@@ -12,7 +12,6 @@ import app.campfire.common.screens.SeriesScreen
 import app.campfire.common.screens.SettingsScreen
 import app.campfire.common.screens.StatisticsScreen
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
@@ -30,8 +29,9 @@ import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
 import app.campfire.whatsnew.api.WhatsNewRepository
 import com.slack.circuit.runtime.screen.Screen
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.first
-import me.tatarka.inject.annotations.Inject
 
 /**
  * App-scoped handler for the debug-only automation deep links. These exist so the store screenshot

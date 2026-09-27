@@ -8,8 +8,8 @@ import app.campfire.core.model.LibraryItemId
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.libraries.api.LibraryItemPurger
 import app.campfire.network.models.LibraryItemExpanded
-import com.r0adkll.kimchi.annotations.ContributesBinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 
 /**
  * Handles library-item-scoped socket events by writing through to the local DB.

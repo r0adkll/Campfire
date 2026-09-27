@@ -79,8 +79,8 @@ import campfire.features.sessions.ui.generated.resources.equalizer_preset_treble
 import campfire.features.sessions.ui.generated.resources.equalizer_preset_voice_boost
 import campfire.features.sessions.ui.generated.resources.equalizer_preset_warm
 import campfire.features.sessions.ui.generated.resources.equalizer_unavailable_casting
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
+import dev.zacsweers.metro.ContributesTo
 import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow

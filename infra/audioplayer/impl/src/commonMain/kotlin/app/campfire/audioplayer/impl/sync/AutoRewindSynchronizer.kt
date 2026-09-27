@@ -14,12 +14,13 @@ import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.rewindForPause
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * A [PlaybackSynchronizer] that rewinds playback when it resumes after having been paused, by an amount that
@@ -38,7 +39,7 @@ import me.tatarka.inject.annotations.Inject
  * [audioPlayerHolder] is injected lazily to break the dependency cycle between the holder (which owns the
  * synchronizers) and this synchronizer (which needs the holder's current player to issue the seek).
  */
-@ContributesMultibinding(AppScope::class, boundType = PlaybackSynchronizer::class)
+@ContributesIntoSet(AppScope::class, binding = binding<PlaybackSynchronizer>())
 @Inject
 class AutoRewindSynchronizer(
   private val playbackSettings: PlaybackSettings,

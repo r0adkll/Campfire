@@ -4,11 +4,11 @@
 package app.campfire.bookinfo.db
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.cash.sqldelight.async.coroutines.synchronous
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import java.io.File
-import me.tatarka.inject.annotations.Provides
 
 actual interface BookInfoDatabasePlatformComponent {
 

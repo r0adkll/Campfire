@@ -5,10 +5,10 @@ package app.campfire.audioplayer.impl.volume
 
 import app.campfire.audioplayer.AudioOutputController
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.MutableStateFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * The binding on platforms with no app-level volume — Android and iOS, where volume belongs to

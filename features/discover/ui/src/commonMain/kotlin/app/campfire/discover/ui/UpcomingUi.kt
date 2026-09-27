@@ -72,7 +72,7 @@ import campfire.features.discover.ui.generated.resources.discover_scan_progress
 import campfire.features.discover.ui.generated.resources.discover_scan_rate_limited
 import campfire.features.discover.ui.generated.resources.discover_scanning_title
 import campfire.features.discover.ui.generated.resources.upcoming_title
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlin.time.Instant
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList

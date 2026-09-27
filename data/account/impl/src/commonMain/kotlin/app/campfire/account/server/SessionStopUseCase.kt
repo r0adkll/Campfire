@@ -7,16 +7,17 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.UserScope
 import app.campfire.sessions.api.SessionsRepository
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.flow.timeout
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+@ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class SessionStopUseCase(
   private val sessionRepository: SessionsRepository,

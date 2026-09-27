@@ -51,7 +51,7 @@ import campfire.infra.whats_new.ui.generated.resources.Res
 import campfire.infra.whats_new.ui.generated.resources.action_back
 import campfire.infra.whats_new.ui.generated.resources.changelog_title
 import campfire.infra.whats_new.ui.generated.resources.error_changelog_message
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @CircuitInject(ChangelogScreen::class, UserScope::class)

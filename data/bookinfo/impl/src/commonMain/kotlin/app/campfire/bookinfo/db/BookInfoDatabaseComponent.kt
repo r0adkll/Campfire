@@ -4,7 +4,7 @@
 package app.campfire.bookinfo.db
 
 import app.campfire.core.di.AppScope
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
 
 /**
  * Platform components provide the [BookInfoDatabase] directly. This database is

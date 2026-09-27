@@ -63,7 +63,7 @@ import campfire.features.podcasts.ui.generated.resources.action_mark_episode_fin
 import campfire.features.podcasts.ui.generated.resources.action_mark_episode_not_finished
 import campfire.features.podcasts.ui.generated.resources.latest_episodes_empty
 import campfire.features.podcasts.ui.generated.resources.latest_episodes_image_content_description
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone

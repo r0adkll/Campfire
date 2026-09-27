@@ -3,7 +3,6 @@
 
 package app.campfire.user.bookmarks
 
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Bookmark
 import app.campfire.core.model.LibraryItemId
@@ -14,14 +13,15 @@ import app.campfire.user.api.BookmarkRepository
 import app.campfire.user.bookmarks.store.BookmarkStore
 import app.campfire.user.bookmarks.store.BookmarkStore.Operation.Mutation.Create
 import app.campfire.user.bookmarks.store.BookmarkStore.Operation.Mutation.Delete
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNot
 import kotlinx.coroutines.flow.map
-import me.tatarka.inject.annotations.Inject
 import org.mobilenativefoundation.store.store5.ExperimentalStoreApi
 import org.mobilenativefoundation.store.store5.StoreReadRequest
 import org.mobilenativefoundation.store.store5.StoreReadResponse

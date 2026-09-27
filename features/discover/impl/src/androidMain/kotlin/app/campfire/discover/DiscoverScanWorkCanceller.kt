@@ -7,14 +7,15 @@ import android.app.Application
 import androidx.work.WorkManager
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.UserScope
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.binding
 
 /**
  * Cancels the unique scan work when the user scope tears down (logout or
  * account switch), so [DiscoverScanWorker] never races a torn-down user graph.
  */
-@ContributesMultibinding(UserScope::class, boundType = Scoped::class)
+@ContributesIntoSet(UserScope::class, binding = binding<Scoped>())
 @Inject
 class DiscoverScanWorkCanceller(
   private val application: Application,

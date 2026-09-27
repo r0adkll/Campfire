@@ -9,14 +9,15 @@ import android.net.LinkProperties
 import android.net.Network
 import android.net.NetworkCapabilities
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import java.net.Inet4Address
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Tracks the default network through a single [ConnectivityManager] callback. It is also the
@@ -27,7 +28,7 @@ import me.tatarka.inject.annotations.Inject
  * nothing beyond ACCESS_NETWORK_STATE — never the Wi-Fi name, which requires location.
  */
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = NetworkMonitor::class, replaces = [UnknownNetworkMonitor::class])
+@ContributesBinding(AppScope::class, binding = binding<NetworkMonitor>(), replaces = [UnknownNetworkMonitor::class])
 @Inject
 class AndroidNetworkMonitor(
   application: Application,

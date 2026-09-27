@@ -4,9 +4,11 @@
 package app.campfire.network.reachability
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.Cork
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
+import dev.zacsweers.metro.binding
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
@@ -18,7 +20,6 @@ import kotlinx.cinterop.value
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import me.tatarka.inject.annotations.Inject
 import platform.Network.nw_endpoint_get_address
 import platform.Network.nw_interface_get_name
 import platform.Network.nw_interface_get_type
@@ -53,7 +54,7 @@ import platform.posix.sockaddr_in
  */
 @OptIn(ExperimentalForeignApi::class)
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, boundType = NetworkMonitor::class, replaces = [UnknownNetworkMonitor::class])
+@ContributesBinding(AppScope::class, binding = binding<NetworkMonitor>(), replaces = [UnknownNetworkMonitor::class])
 @Inject
 class IosNetworkMonitor : NetworkMonitor, Cork {
 

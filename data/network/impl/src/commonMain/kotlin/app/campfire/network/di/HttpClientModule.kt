@@ -7,7 +7,6 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.user
@@ -19,7 +18,9 @@ import app.campfire.network.plugins.suspendingDefaultHeaders
 import app.campfire.network.reachability.ReachabilityGate
 import app.campfire.network.reachability.serverReachabilityPlugin
 import com.livewire.plugin.network.ktor.LivewireNetworkPlugin
-import com.r0adkll.kimchi.annotations.ContributesTo
+import dev.zacsweers.metro.ContributesTo
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
@@ -42,7 +43,6 @@ import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Provides
 
 private val RESPONSE_CODE_REGEX = "RESPONSE: (\\d+)".toRegex(RegexOption.MULTILINE)
 
@@ -146,7 +146,7 @@ interface HttpClientModule {
   @UserClient
   @SingleIn(AppScope::class)
   @Provides
-  fun provideHttpClient(
+  fun provideUserHttpClient(
     @BaseClient baseClient: HttpClient,
     userSessionManager: UserSessionManager,
     accountManager: AccountManager,

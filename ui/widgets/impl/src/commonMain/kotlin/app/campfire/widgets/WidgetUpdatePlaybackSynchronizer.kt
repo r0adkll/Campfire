@@ -9,12 +9,12 @@ import app.campfire.audioplayer.sync.PlaybackSynchronizer
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.time.FatherTime
-import com.r0adkll.kimchi.annotations.ContributesMultibinding
+import dev.zacsweers.metro.ContributesIntoSet
+import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.uuid.Uuid
-import me.tatarka.inject.annotations.Inject
 
-@ContributesMultibinding(AppScope::class)
+@ContributesIntoSet(AppScope::class)
 @Inject
 class WidgetUpdatePlaybackSynchronizer(
   private val widgetUpdater: WidgetUpdater,

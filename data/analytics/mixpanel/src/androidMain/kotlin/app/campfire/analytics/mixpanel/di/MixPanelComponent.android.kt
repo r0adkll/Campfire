@@ -8,9 +8,9 @@ import app.campfire.analytics.mixpanel.BuildConfig
 import app.campfire.analytics.mixpanel.MixPanelFacade
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import com.mixpanel.android.mpmetrics.MixpanelAPI
-import me.tatarka.inject.annotations.Provides
+import dev.zacsweers.metro.Provides
+import dev.zacsweers.metro.SingleIn
 
 actual interface PlatformMixPanelComponent {
 

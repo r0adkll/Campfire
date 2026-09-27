@@ -119,9 +119,9 @@ import campfire.features.sessions.ui.generated.resources.bottom_bar_chapter_rema
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing
 import campfire.features.sessions.ui.generated.resources.bottom_bar_nothing_playing_hint
 import campfire.features.sessions.ui.generated.resources.label_end_of_chapter_short
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.LocalOverlayHost
 import com.slack.circuit.retained.rememberRetained
+import dev.zacsweers.metro.ContributesTo
 import kotlin.time.Duration
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

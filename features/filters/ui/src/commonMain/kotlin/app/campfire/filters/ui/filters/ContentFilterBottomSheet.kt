@@ -87,10 +87,10 @@ import campfire.features.filters.ui.generated.resources.filter_value_progress_no
 import campfire.features.filters.ui.generated.resources.filter_value_progress_not_started
 import campfire.features.filters.ui.generated.resources.filter_value_tracks_multi
 import campfire.features.filters.ui.generated.resources.filter_value_tracks_single
-import com.r0adkll.kimchi.annotations.ContributesBinding
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
-import me.tatarka.inject.annotations.Inject
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import org.jetbrains.compose.resources.stringResource
 
 private sealed interface ItemFilter {

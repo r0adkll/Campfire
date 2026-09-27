@@ -53,7 +53,7 @@ import app.campfire.ui.navigation.bar.AttachScrollBehaviorToLocalNavigationBar
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.empty_series_items_message
 import campfire.features.series.ui.generated.resources.filter_bar_series_count
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.overlay.LocalOverlayHost
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.pluralStringResource

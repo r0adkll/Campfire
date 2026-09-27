@@ -48,7 +48,7 @@ import campfire.features.podcasts.ui.generated.resources.add_podcast_forbidden
 import campfire.features.podcasts.ui.generated.resources.add_podcast_idle
 import campfire.features.podcasts.ui.generated.resources.add_podcast_retry
 import campfire.features.podcasts.ui.generated.resources.add_podcast_search_error
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)

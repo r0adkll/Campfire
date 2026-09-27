@@ -8,18 +8,18 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.TokenRefresher
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.UserClient
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.http.isSuccess
 import kotlinx.io.IOException
-import me.tatarka.inject.annotations.Inject
 
 /**
  * A [TokenRefresher] that deliberately does NOT call `/auth/refresh` itself. Ktor's Auth plugin

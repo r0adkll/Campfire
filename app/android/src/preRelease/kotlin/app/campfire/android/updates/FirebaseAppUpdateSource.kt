@@ -17,12 +17,12 @@ import com.google.firebase.FirebaseException
 import com.google.firebase.appdistribution.FirebaseAppDistribution
 import com.google.firebase.appdistribution.FirebaseAppDistributionException
 import com.google.firebase.appdistribution.UpdateStatus
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class, replaces = [NoOpUpdateSource::class])
 @Inject

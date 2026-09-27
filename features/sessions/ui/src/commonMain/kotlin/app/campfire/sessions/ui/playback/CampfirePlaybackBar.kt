@@ -43,9 +43,9 @@ import app.campfire.sessions.ui.playback.PlaybackBarState.Hidden
 import app.campfire.sessions.ui.playback.collapsed.CollapsedPlaybackBar
 import app.campfire.sessions.ui.playback.expanded.ExpandedPlaybackBar
 import app.campfire.sessions.ui.playback.expanded.SmallExpandedPlaybackBar
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
+import dev.zacsweers.metro.ContributesTo
 
 @ContributesTo(UserScope::class)
 interface CampfirePlaybackBarComponent {

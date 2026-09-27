@@ -6,14 +6,15 @@ package app.campfire.ui.theming.ai.halogen
 import app.campfire.common.compose.theme.ColorPalette
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.SingleIn
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.ui.theming.ai.HalogenResolveResult
 import app.campfire.ui.theming.ai.HalogenThemeManager
 import app.campfire.ui.theming.api.HalogenStyle
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metro.SingleIn
 import halogen.HalogenConfig
 import halogen.HalogenDefaults
 import halogen.HalogenLlmAvailability
@@ -31,7 +32,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 private val POLL_INTERVAL = 5.seconds
 private const val MAX_POLL_ATTEMPTS = 60 // ~5 min total before backing off

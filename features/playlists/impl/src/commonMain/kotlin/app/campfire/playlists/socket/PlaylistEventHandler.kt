@@ -11,9 +11,9 @@ import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.data.mapping.asDbModel
 import app.campfire.network.models.PlaylistExpanded
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 /**
  * Handles `Playlist*` socket events by writing through to the local DB.

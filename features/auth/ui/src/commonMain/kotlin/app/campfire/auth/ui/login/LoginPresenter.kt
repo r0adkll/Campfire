@@ -33,20 +33,19 @@ import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import coil3.toUri
-import com.r0adkll.kimchi.circuit.annotations.CircuitInject
+import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Assisted
-import me.tatarka.inject.annotations.Inject
 import okio.IOException
 
 @CircuitInject(LoginScreen::class, UserScope::class)
 @Inject
 class LoginPresenter(
-  @Assisted private val screen: LoginScreen,
-  @Assisted private val navigator: Navigator,
+  private val screen: LoginScreen,
+  private val navigator: Navigator,
   private val authRepository: AuthRepository,
   private val oauthAuthorizationFlow: AuthorizationFlow,
   private val localNetworkPermission: LocalNetworkPermissionController,

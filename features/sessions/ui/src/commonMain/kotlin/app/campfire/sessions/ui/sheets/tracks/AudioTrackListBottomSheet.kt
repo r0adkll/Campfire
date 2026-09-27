@@ -51,8 +51,8 @@ import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
 import app.campfire.settings.api.CampfireSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.audio_tracks_bottomsheet_title
-import com.r0adkll.kimchi.annotations.ContributesTo
 import com.slack.circuit.overlay.OverlayHost
+import dev.zacsweers.metro.ContributesTo
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface AudioTrackResult {

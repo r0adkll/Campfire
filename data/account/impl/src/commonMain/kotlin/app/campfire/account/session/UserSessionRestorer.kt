@@ -12,10 +12,10 @@ import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
 import app.campfire.settings.api.CampfireSettings
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.withContext
-import me.tatarka.inject.annotations.Inject
 
 interface UserSessionRestorer {
 

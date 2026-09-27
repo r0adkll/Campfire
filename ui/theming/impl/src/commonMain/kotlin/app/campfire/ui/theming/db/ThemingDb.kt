@@ -3,7 +3,7 @@
 
 package app.campfire.ui.theming.db
 
-import me.tatarka.inject.annotations.Qualifier
+import dev.zacsweers.metro.Qualifier
 
 /**
  * Qualifier for all things theming db related to not class with existing main

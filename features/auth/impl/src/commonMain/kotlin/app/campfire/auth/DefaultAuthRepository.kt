@@ -18,9 +18,9 @@ import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.envelopes.LoginResponse
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.io.IOException
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject

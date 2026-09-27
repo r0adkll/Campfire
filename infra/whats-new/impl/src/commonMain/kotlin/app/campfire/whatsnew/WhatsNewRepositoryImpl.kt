@@ -13,12 +13,12 @@ import app.campfire.settings.api.CampfireSettings
 import app.campfire.whatsnew.api.Changelog
 import app.campfire.whatsnew.api.WhatsNewRepository
 import campfire.infra.whats_new.impl.generated.resources.Res
-import com.r0adkll.kimchi.annotations.ContributesBinding
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Inject
 
 @ContributesBinding(AppScope::class)
 @Inject
