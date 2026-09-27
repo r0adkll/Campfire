@@ -113,3 +113,6 @@ test_output
 
 # fastlane runtime output (Gemfile.lock is intentionally committed once generated)
 vendor/bundle/
+
+# Benchmark results (tools/benchmark)
+tools/benchmark/.results

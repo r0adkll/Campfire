@@ -19,12 +19,16 @@ plugins {
 // Gradle managed device; it needs EW_API_TOKEN in the environment.
 val useEmulatorWtf = providers.gradleProperty("campfire.config.useEmulatorWtf").orNull == "true"
 
+// The app flavor the benchmarks and generators run against. tools/benchmark/run.py passes foss,
+// which carries no Firebase and so starts without a google-services.json.
+val targetFlavor = providers.gradleProperty("campfire.benchmark.flavor").orNull ?: "standard"
+
 android {
   namespace = "app.campfire.baselineprofile"
 
   defaultConfig {
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    missingDimensionStrategy("default", "standard")
+    missingDimensionStrategy("default", targetFlavor)
   }
 
   targetProjectPath = ":app:android"

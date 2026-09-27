@@ -1,0 +1,80 @@
+# Gradle Profiler scenarios for measuring build performance, mainly the cost of dependency
+# injection code generation. Run through `tools/benchmark/run.py build`, which archives results
+# per label so two branches can be compared.
+#
+# Incremental scenarios keep the build cache and configuration cache on, as a developer build
+# would; the clean scenarios turn the build cache off so every compile task actually runs.
+
+default-scenarios = [
+  "android_clean",
+  "android_abi_leaf_impl",
+  "android_abi_presenter",
+  "android_non_abi_presenter",
+  "desktop_clean",
+  "desktop_abi_presenter",
+]
+
+# Full compile of the Android app, as after a dependency bump or a fresh checkout.
+android_clean {
+  title = "Android: clean assemble"
+  tasks = [":app:android:assembleStandardDebug"]
+  cleanup-tasks = ["clean"]
+  gradle-args = ["--no-build-cache"]
+  warm-ups = 2
+  iterations = 5
+}
+
+# ABI change in a data-layer implementation that contributes bindings.
+android_abi_leaf_impl {
+  title = "Android: ABI change in :features:home:impl"
+  tasks = [":app:android:assembleStandardDebug"]
+  apply-abi-change-to = "features/home/impl/src/commonMain/kotlin/app/campfire/home/StoreHomeRepository.kt"
+  warm-ups = 3
+  iterations = 10
+}
+
+# ABI change in a Circuit presenter, which regenerates its factory and the merged graph.
+android_abi_presenter {
+  title = "Android: ABI change in a Circuit presenter"
+  tasks = [":app:android:assembleStandardDebug"]
+  apply-abi-change-to = "features/home/ui/src/commonMain/kotlin/app/campfire/home/ui/HomePresenter.kt"
+  warm-ups = 3
+  iterations = 10
+}
+
+# Body-only change in the same presenter; downstream modules should not recompile.
+android_non_abi_presenter {
+  title = "Android: non-ABI change in a Circuit presenter"
+  tasks = [":app:android:assembleStandardDebug"]
+  apply-non-abi-change-to = "features/home/ui/src/commonMain/kotlin/app/campfire/home/ui/HomePresenter.kt"
+  warm-ups = 3
+  iterations = 10
+}
+
+desktop_clean {
+  title = "Desktop: clean compile"
+  tasks = [":app:desktop:compileKotlin"]
+  cleanup-tasks = ["clean"]
+  gradle-args = ["--no-build-cache"]
+  warm-ups = 2
+  iterations = 5
+}
+
+desktop_abi_presenter {
+  title = "Desktop: ABI change in a Circuit presenter"
+  tasks = [":app:desktop:compileKotlin"]
+  apply-abi-change-to = "features/home/ui/src/commonMain/kotlin/app/campfire/home/ui/HomePresenter.kt"
+  warm-ups = 3
+  iterations = 10
+}
+
+# Not in the defaults: Kotlin/Native compiles are slow and memory hungry. Run by name with
+# `tools/benchmark/run.py build --label X ios_clean`.
+ios_clean {
+  title = "iOS: clean compile (simulator arm64)"
+  tasks = [":app:ios:compileKotlinIosSimulatorArm64"]
+  cleanup-tasks = ["clean"]
+  gradle-args = ["--no-build-cache"]
+  warm-ups = 1
+  iterations = 3
+}
