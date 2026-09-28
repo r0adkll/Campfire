@@ -80,7 +80,7 @@ if (file("gradle/emulatorwtf-repo.gradle.kts").exists()) {
 }
 
 plugins {
-  id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.9"
+  id("org.jetbrains.kotlinx.kover.aggregation") version "0.9.10"
 }
 
 extensions.configure<KoverSettingsExtension> {
