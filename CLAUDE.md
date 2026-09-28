@@ -28,7 +28,8 @@ Campfire is an unofficial Kotlin Multiplatform native client for [Audiobookshelf
 tools/screenshots/run.py --class phone
 
 # End-to-end testing against a throwaway local ABS server + emulator (see tools/testbed/README.md;
-# the campfire-device-tester agent drives it). Never test against a real server.
+# the campfire-device-tester agent drives it). Never test against a real server. Screenshots and
+# screen recordings (`record start|stop`) land in the run's captures dir, printed by `status`/`down`.
 tools/testbed/testbed.py up
 
 # Guided release of `campfire.version` (gradle.properties): baseline profiles (local GMD or

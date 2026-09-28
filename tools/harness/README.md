@@ -8,6 +8,7 @@ Shared Python automation for the tools that need a real Audiobookshelf server an
 | `campfire_harness/server.py` | Runs the local Audiobookshelf checkout with a fresh data dir (`Server`), talks to its API (`AbsClient`), creates and scans the Sample Library libraries and seeds progress, sessions and playlists (`Fixture`) |
 | `campfire_harness/emulator.py` | Creates pinned AVDs directly in `~/.android/avd`, boots and stops them, applies automation settings |
 | `campfire_harness/app.py` | Builds and installs the app, sends the debug-only `campfire_action` intents, reads and taps the UI through uiautomator |
+| `campfire_harness/recording.py` | Records the screen across separate processes (any length, in 3-minute segments) and extracts per-change frames and a contact sheet from a recording |
 | `campfire_harness/proc.py` | Subprocess helpers, logging, `HarnessError` |
 
 Users:
