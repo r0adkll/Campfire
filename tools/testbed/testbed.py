@@ -2,7 +2,8 @@
 """A throwaway Audiobookshelf server + emulator for testing Campfire end to end. See tools/testbed/README.md.
 
 State lives in tools/testbed/.work/state.json so separate invocations (an agent's successive shell
-commands) share one running server and emulator until `down`.
+commands) share one running server and emulator until `down`. Screenshots and screen recordings of a
+run go to its captures directory, .work/captures/<started-at>/, which outlives `down`.
 """
 import argparse
 import json
@@ -16,9 +17,10 @@ from pathlib import Path
 TOOL_DIR = Path(__file__).resolve().parent
 WORK_DIR = TOOL_DIR / ".work"
 STATE_PATH = WORK_DIR / "state.json"
+CAPTURES_ROOT = WORK_DIR / "captures"
 sys.path.insert(0, str(TOOL_DIR.parent / "harness"))
 
-from campfire_harness import emulator  # noqa: E402
+from campfire_harness import emulator, recording  # noqa: E402
 from campfire_harness.app import App  # noqa: E402
 from campfire_harness.config import load_app, load_device, load_fixture, load_server  # noqa: E402
 from campfire_harness.proc import HarnessError, log, set_log_prefix  # noqa: E402
@@ -64,6 +66,30 @@ class Testbed:
             raise HarnessError("No testbed server is running; start one with `testbed.py up`")
         self.fixture.attach()
 
+    def captures_dir(self) -> Path:
+        """This run's captures directory, created on first use (so screenshots taken without an
+        `up` in this state still land somewhere findable)."""
+        state = self.load_state()
+        if state.get("captures"):
+            path = Path(state["captures"])
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+        return self.new_captures_dir(state)
+
+    def new_captures_dir(self, state: dict) -> Path:
+        path = CAPTURES_ROOT / time.strftime("%Y%m%d-%H%M%S")
+        path.mkdir(parents=True, exist_ok=True)
+        state["captures"] = str(path)
+        self.save_state(state)
+        return path
+
+    def capture_path(self, name: str, suffix: str) -> Path:
+        """A bare name goes into the captures directory; anything with a directory is used as is."""
+        if "/" in name:
+            return Path(name).expanduser().resolve()
+        name = re.sub(r"[^\w.-]+", "-", name).strip("-") or "capture"
+        return self.captures_dir() / (name if name.endswith(suffix) else name + suffix)
+
     def adb(self) -> emulator.Adb:
         serial = emulator.find_running(self.device)
         if not serial:
@@ -86,6 +112,8 @@ class Testbed:
                 "pid": state.get("server_pid") if running else None,
                 "log": str(self.server.log_path),
             },
+            "captures": state.get("captures"),
+            "recording": state.get("recording"),
             "emulator": {"avd": AVD_NAME, "serial": emulator.find_running(self.device)},
             "app": {"package": self.app_cfg.package, "variant": self.app_cfg.variant},
         }
@@ -97,6 +125,8 @@ class Testbed:
     # -- lifecycle -----------------------------------------------------------------------
     def up(self, args) -> None:
         state = self.load_state()
+        if not (args.keep_captures and state.get("captures")):
+            self.new_captures_dir(state)
         if self.server_running(state) and not args.fresh:
             log(f"Reusing running server (pid {state['server_pid']})")
             self.fixture.attach()
@@ -128,6 +158,10 @@ class Testbed:
 
     def down(self, args) -> None:
         state = self.load_state()
+        if state.get("recording") and emulator.find_running(self.device):
+            log("Saving the recording still in progress")
+            print_json(self.record_stop())
+            state = self.load_state()
         if state.get("server_pid"):
             log("Stopping Audiobookshelf")
             self.server.stop_pid(state["server_pid"])
@@ -135,6 +169,33 @@ class Testbed:
         if serial and not args.keep_emulator:
             emulator.stop(emulator.Adb(serial))
         STATE_PATH.unlink(missing_ok=True)
+        if state.get("captures"):
+            log(f"Captures kept in {state['captures']}")
+
+    # -- recording -----------------------------------------------------------------------
+    def record_start(self, name: str | None) -> dict:
+        state = self.load_state()
+        if state.get("recording"):
+            raise HarnessError(f"Already recording '{state['recording']['name']}'; `record stop` first")
+        name = name or time.strftime("recording-%H%M%S")
+        dest = self.capture_path(name, ".mp4")
+        recording.start(self.adb())
+        state = self.load_state()
+        state["recording"] = {"name": name, "path": str(dest), "started": time.time()}
+        self.save_state(state)
+        return {"recording": str(dest)}
+
+    def record_stop(self) -> dict:
+        state = self.load_state()
+        current = state.pop("recording", None)
+        if not current:
+            raise HarnessError("Nothing is being recorded")
+        self.save_state(state)
+        video = recording.stop(self.adb(), Path(current["path"]))
+        if video is None:
+            raise HarnessError("The recording produced no video")
+        return {"video": str(video), "seconds": round(time.time() - current["started"], 1),
+                **recording.previews(video)}
 
 
 def print_json(value) -> None:
@@ -153,11 +214,21 @@ def parse_args(argv):
     up.add_argument("--keep-data", action="store_true", help="Don't clear app data on install")
     up.add_argument("--window", action="store_true", help="Show the emulator window (default: headless)")
     up.add_argument("--cold", action="store_true", help="Cold-boot the emulator")
+    up.add_argument("--keep-captures", action="store_true",
+                    help="Keep adding to the current captures directory instead of starting a new one")
 
     down = sub.add_parser("down", help="Stop the server and the emulator")
     down.add_argument("--keep-emulator", action="store_true")
 
-    sub.add_parser("status", help="Print URLs, credentials, library ids, emulator serial (JSON)")
+    sub.add_parser("status", help="Print URLs, credentials, library ids, emulator serial, captures (JSON)")
+
+    record = sub.add_parser("record", help="Record the emulator screen into the captures directory")
+    record_sub = record.add_subparsers(dest="action", required=True)
+    record_start = record_sub.add_parser("start", help="Start recording (runs until `record stop`, any length)")
+    record_start.add_argument("name", nargs="?", help="File name in the captures directory, or a path")
+    record_sub.add_parser("stop", help="Stop and save the video, its changed frames and a contact sheet (JSON)")
+
+    sub.add_parser("captures", help="List this run's captures directory")
 
     api = sub.add_parser("api", help="Authenticated request to the server, e.g. `api GET /api/libraries`")
     api.add_argument("method")
@@ -200,8 +271,8 @@ def parse_args(argv):
     swipe.add_argument("direction", choices=["up", "down"])
     swipe.add_argument("--times", type=int, default=1)
     app_sub.add_parser("back")
-    shot = app_sub.add_parser("screencap", help="Save a PNG of the screen")
-    shot.add_argument("path", type=Path)
+    shot = app_sub.add_parser("screencap", help="Save a PNG of the screen into the captures directory")
+    shot.add_argument("name", help="File name in the captures directory, or a path")
     logcat = app_sub.add_parser("logcat", help="Recent log lines from the app process")
     logcat.add_argument("--lines", type=int, default=500)
     logcat.add_argument("--grep", help="Only lines matching this regex")
@@ -245,8 +316,9 @@ def run_app(tb: Testbed, args) -> None:
     elif action == "back":
         app.back()
     elif action == "screencap":
-        app.screencap(args.path)
-        print(args.path.resolve())
+        dest = tb.capture_path(args.name, ".png")
+        app.screencap(dest)
+        print(dest)
     elif action == "logcat":
         rx = re.compile(args.grep, re.IGNORECASE) if args.grep else None
         for line in app.logcat(lines=args.lines).splitlines():
@@ -281,6 +353,14 @@ def main(argv=None) -> int:
         if unknown:
             raise HarnessError(f"Unknown libraries {sorted(unknown)}; known: {list(tb.fixture.library_ids)}")
         tb.fixture.scan([tb.fixture.library_ids[n] for n in names])
+    elif args.command == "record":
+        print_json(tb.record_start(args.name) if args.action == "start" else tb.record_stop())
+    elif args.command == "captures":
+        root = tb.captures_dir()
+        print(root)
+        for path in sorted(root.rglob("*")):
+            if path.is_file():
+                print(f"  {path.relative_to(root)}")
     elif args.command == "app":
         run_app(tb, args)
     return 0

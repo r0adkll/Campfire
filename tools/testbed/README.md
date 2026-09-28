@@ -23,7 +23,7 @@ tools/testbed/testbed.py up                    # server + Fixture, emulator, bui
 tools/testbed/testbed.py up --no-device        # server only
 tools/testbed/testbed.py up --fresh            # restart the server from an empty data dir
 tools/testbed/testbed.py up --skip-build --keep-data   # reinstall the last APK without wiping the app
-tools/testbed/testbed.py status                # URLs, credentials, library ids, emulator serial (JSON)
+tools/testbed/testbed.py status                # URLs, credentials, library ids, emulator serial, captures (JSON)
 tools/testbed/testbed.py down                  # stop everything (--keep-emulator to leave it up)
 ```
 
@@ -50,11 +50,37 @@ tools/testbed/testbed.py app ui --grep Martian               # on-screen labels 
 tools/testbed/testbed.py app tap "Download"                  # regex over text / content-description
 tools/testbed/testbed.py app wait-for "Downloaded" --timeout 60000
 tools/testbed/testbed.py app swipe up --times 2
-tools/testbed/testbed.py app screencap /tmp/screen.png
+tools/testbed/testbed.py app screencap before-delete       # → <captures>/before-delete.png
 tools/testbed/testbed.py app logcat --grep LibraryItemPurger
 ```
 
 For anything else, use `adb -s <serial>` with the serial from `status`.
+
+## Captures
+
+Every `up` starts a captures directory, `.work/captures/<started-at>/` (`--keep-captures` keeps
+adding to the previous one). `status` prints its path, `down` leaves it in place, and screenshots and
+recordings given a bare name land in it; give a path with a `/` to save elsewhere.
+
+```bash
+tools/testbed/testbed.py record start delete-while-away   # records until stopped, any length
+tools/testbed/testbed.py record stop                      # → JSON: video, sheet, frames_dir, sheet_frames_seconds
+tools/testbed/testbed.py captures                         # list this run's captures
+```
+
+`record stop` saves, in the captures directory:
+
+- `<name>.mp4` — the full recording. `screenrecord` caps at 3 minutes, so the device records
+  3-minute segments that are joined back together.
+- `<name>-frames/` — every distinct screen state, one PNG each, named by its time in the video
+  (`0012.40s.png`). A frame is kept when any small area of the screen changed, so a label appearing
+  counts.
+- `<name>-sheet.png` — up to 12 of those frames tiled in time order, left to right;
+  `sheet_frames_seconds` gives their times. The quickest way to review a recording as one image.
+
+The frames and sheet need `ffmpeg` on the `PATH`; without it you get the video only. `down`
+stops and saves a recording that's still running. The captures directories are never cleaned up
+automatically; delete old ones under `.work/captures/` when you no longer need them.
 
 ## Cautions
 
