@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Edit the custom headers sent to your server, such as a reverse-proxy or access-gateway token, in Settings → Connection without signing out; live updates now send them too
 - [Android] Settings → Connection shows when Android's local network permission is blocking your home server, with a shortcut to allow it
 - [Android] Your settings, custom themes and campsites come back when you reinstall or move to a new phone; pick a campsite on the login screen to sign back in
+- [Android] Save your password to your password manager when you sign in, and sign back in with one tap when it's needed again (Android 14 and later)
 
 ### Changed
 
