@@ -4,6 +4,7 @@
 package app.campfire.auth.ui.welcome
 
 import androidx.compose.runtime.Composable
+import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.ui.login.LoginPresenter
 import app.campfire.common.screens.LoginScreen
@@ -24,6 +25,7 @@ class WelcomePresenter(
   private val oauthAuthorizationFlow: AuthorizationFlow,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val appThemeRepository: AppThemeRepository,
+  private val restorableAccountRepository: RestorableAccountRepository,
   private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -34,6 +36,7 @@ class WelcomePresenter(
     oauthAuthorizationFlow = oauthAuthorizationFlow,
     localNetworkPermission = localNetworkPermission,
     appThemeRepository = appThemeRepository,
+    restorableAccountRepository = restorableAccountRepository,
   )
 
   @Composable
@@ -45,6 +48,13 @@ class WelcomePresenter(
     ) { event ->
       when (event) {
         WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen.New)
+        is WelcomeUiEvent.RestoreAccount -> navigator.goTo(
+          LoginScreen.Restore(
+            serverUrl = event.account.serverUrl,
+            serverName = event.account.serverName,
+            userName = event.account.userName,
+          ),
+        )
       }
     }
   }

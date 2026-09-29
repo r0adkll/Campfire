@@ -15,7 +15,10 @@
 
   <application
     android:name=".CampfireApplication"
-    android:allowBackup="false"
+    android:allowBackup="true"
+    android:dataExtractionRules="@xml/data_extraction_rules"
+    android:backupAgent="app.campfire.settings.SettingsBackupAgent"
+    android:fullBackupOnly="true"
     android:supportsRtl="true"
     android:theme="@style/Theme.Campfire"
     android:icon="@mipmap/ic_launcher"

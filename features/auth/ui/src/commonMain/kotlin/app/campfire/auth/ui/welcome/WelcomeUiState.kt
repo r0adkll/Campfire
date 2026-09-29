@@ -3,6 +3,7 @@
 
 package app.campfire.auth.ui.welcome
 
+import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.ui.login.LoginUiState
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
@@ -14,4 +15,5 @@ class WelcomeUiState(
 
 sealed interface WelcomeUiEvent : CircuitUiEvent {
   data object AddCampsite : WelcomeUiEvent
+  data class RestoreAccount(val account: RestorableAccount) : WelcomeUiEvent
 }

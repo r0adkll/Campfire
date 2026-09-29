@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only what's listed here is backed up. Keep it include-only: anything encrypted with an Android
+  Keystore key (tokens, extra headers, Hardcover) can't be decrypted after a restore because the
+  key never leaves the device, and the main database is a cache of the server.
+
+  - Default preferences: app settings and the account restore snapshot (AccountRestoreStore).
+    One entry per applicationId; a path that doesn't exist is ignored.
+  - campfire_themes.db: custom themes. Its -wal holds writes not yet checkpointed.
+-->
+<data-extraction-rules>
+  <cloud-backup>
+    <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
+    <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
+    <include domain="database" path="campfire_themes.db" />
+    <include domain="database" path="campfire_themes.db-wal" />
+  </cloud-backup>
+  <device-transfer>
+    <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
+    <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
+    <include domain="database" path="campfire_themes.db" />
+    <include domain="database" path="campfire_themes.db-wal" />
+  </device-transfer>
+</data-extraction-rules>

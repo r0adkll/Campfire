@@ -4,7 +4,10 @@
 package app.campfire.auth.ui.welcome
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -17,6 +20,8 @@ import app.campfire.auth.ui.composables.SinglePaneLayout
 import app.campfire.auth.ui.composables.TwoPaneLayout
 import app.campfire.auth.ui.login.LoginUiContent
 import app.campfire.auth.ui.login.LoginUiEvent
+import app.campfire.auth.ui.login.composables.RestorableAccounts
+import app.campfire.auth.ui.login.composables.RestorableAccountsTitle
 import app.campfire.auth.ui.login.composables.ServerUrlAssistBar
 import app.campfire.auth.ui.login.composables.rememberServerUrlFieldState
 import app.campfire.auth.ui.shared.AuthSharedTransitionKey
@@ -79,6 +84,30 @@ fun Welcome(
               horizontal = 26.dp,
             ),
         )
+
+        // The login form is a tap away on phones, so offer restored accounts here directly
+        val restorableAccounts = state.loginUiState.restorableAccounts
+        if (restorableAccounts.isNotEmpty()) {
+          Spacer(Modifier.height(8.dp))
+
+          RestorableAccountsTitle(
+            modifier = Modifier
+              .padding(horizontal = 26.dp),
+          )
+
+          Spacer(Modifier.height(4.dp))
+
+          RestorableAccounts(
+            accounts = restorableAccounts,
+            theme = state.loginUiState.restoredTheme,
+            onSelect = { state.eventSink(WelcomeUiEvent.RestoreAccount(it)) },
+            onDismiss = { state.loginUiState.eventSink(LoginUiEvent.DismissRestorableAccount(it)) },
+            contentPadding = PaddingValues(horizontal = 26.dp),
+            modifier = Modifier
+              .widthIn(max = MaxContentWidth)
+              .fillMaxWidth(),
+          )
+        }
       }
     }
   }

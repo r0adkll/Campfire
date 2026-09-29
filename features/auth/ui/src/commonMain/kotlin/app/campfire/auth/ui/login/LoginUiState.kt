@@ -5,6 +5,7 @@ package app.campfire.auth.ui.login
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import app.campfire.account.api.RestorableAccount
 import app.campfire.core.model.NetworkSettings
 import app.campfire.ui.theming.api.AppTheme
 import com.slack.circuit.runtime.CircuitUiEvent
@@ -21,6 +22,13 @@ data class LoginUiState(
   val isAuthenticating: Boolean,
   val authError: AuthError?,
   val networkSettings: NetworkSettings?,
+  val restorableAccounts: List<RestorableAccount> = emptyList(),
+  val restoredTheme: AppTheme = AppTheme.Fixed.Tent,
+  /**
+   * Focus the password field once it appears, instead of the next field. Set while signing back
+   * into a restored account, whose other fields are already filled in.
+   */
+  val focusPassword: Boolean = false,
 
   val eventSink: (LoginUiEvent) -> Unit,
 ) : CircuitUiState
@@ -47,6 +55,8 @@ sealed interface LoginUiEvent : CircuitUiEvent {
   data class ChangeNetworkSettings(val settings: NetworkSettings) : LoginUiEvent
   data object AddCampsite : LoginUiEvent
   data object StartOpenIdAuth : LoginUiEvent
+  data class SelectRestorableAccount(val account: RestorableAccount) : LoginUiEvent
+  data class DismissRestorableAccount(val account: RestorableAccount) : LoginUiEvent
 }
 
 sealed interface AuthError {

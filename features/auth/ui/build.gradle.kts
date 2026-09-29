@@ -17,6 +17,11 @@ buildConfig {
   buildConfigField("String?", "TEST_SERVER_URL", testCredential("campfire_server_url"))
   buildConfigField("String?", "TEST_USERNAME", testCredential("campfire_username"))
   buildConfigField("String?", "TEST_PASSWORD", testCredential("campfire_password"))
+  buildConfigField(
+    "Int",
+    "FAKE_RESTORABLE_ACCOUNTS",
+    testCredential("campfire_fake_restorable_accounts")?.toIntOrNull() ?: 0,
+  )
   useKotlinOutput()
 }
 
@@ -38,6 +43,7 @@ kotlin {
     commonTest {
       dependencies {
         implementation(libs.bundles.test.common)
+        implementation(libs.bundles.test.ui)
       }
     }
   }

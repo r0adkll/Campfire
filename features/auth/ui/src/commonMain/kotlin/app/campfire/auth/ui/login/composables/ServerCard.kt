@@ -136,6 +136,7 @@ internal fun ServerCard(
   isAuthenticating: Boolean,
   modifier: Modifier = Modifier,
   autoFocus: Boolean = false,
+  focusPassword: Boolean = false,
 ) = SharedElementTransitionScope {
   val focusManager = LocalFocusManager.current
   val (serverNameFocus, serverUrlFocus, usernameFocus, passwordFocus) = remember { FocusRequester.createRefs() }
@@ -150,7 +151,8 @@ internal fun ServerCard(
   }
 
   LaunchedEffect(connectionState) {
-    if (connectionState is ConnectionState.Success) {
+    // The password field focuses itself when it appears
+    if (connectionState is ConnectionState.Success && !focusPassword) {
       focusManager.moveFocus(FocusDirection.Next)
     }
   }
@@ -376,6 +378,12 @@ internal fun ServerCard(
                 contentType = ContentType.Password
               },
           )
+
+          if (focusPassword) {
+            LaunchedEffect(Unit) {
+              passwordFocus.requestFocus()
+            }
+          }
         }
 
         if (authError != null) {
