@@ -14,6 +14,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -52,22 +53,24 @@ class DefaultBackedUpAccountRestorer(
   internal suspend fun restoreAll() {
     if (!tokenBackup.isAvailable) return
 
-    val signedIn = serverRepository.getAllServers().mapTo(mutableSetOf()) { it.user.id }
-    val kept = tokenBackup.getAll().filter { it.userId !in signedIn }
+    val kept = tokenBackup.getAll()
     if (kept.isEmpty()) return
+    val signedIn = serverRepository.getAllServers().associateBy { it.user.id }
 
     // Restorable accounts come most recently used first; ones without a card go last
     val order = restorableAccountRepository.observeRestorableAccounts().first().map { it.userId }
     val accounts = kept.sortedBy { account ->
       order.indexOf(account.userId).takeIf { it >= 0 } ?: Int.MAX_VALUE
     }
+    val toRestore = accounts.filter { it.userId !in signedIn }
 
-    restoringUsers.value = accounts.mapTo(mutableSetOf()) { it.userId }
-    var toActivate: UserId? = null
-    for (account in accounts) {
+    restoringUsers.value = toRestore.mapTo(mutableSetOf()) { it.userId }
+    // The user from the sign-in itself: looking it up afterwards could hit a stale server cache
+    var toActivate: User? = null
+    for (account in toRestore) {
       // Switching accounts rebuilds the app's graph, so hold that until they're all back
       authRepository.restore(account, activate = false)
-        .onSuccess { if (toActivate == null) toActivate = account.userId }
+        .onSuccess { user -> if (toActivate == null) toActivate = user }
         .onFailure { e ->
           bark(LogPriority.WARN, throwable = e) { "Couldn't restore a kept account" }
           // The server won't take this token again; a network failure might be gone next launch
@@ -76,10 +79,9 @@ class DefaultBackedUpAccountRestorer(
       restoringUsers.update { it - account.userId }
     }
 
-    toActivate?.let { userId ->
-      serverRepository.getAllServers()
-        .firstOrNull { it.user.id == userId }
-        ?.let { accountManager.switchAccount(it.user) }
-    }
+    // Welcome only shows with no active account, so a kept account that's already signed in was
+    // restored without being switched to, e.g. the app stopped in between
+    val alreadyBack = accounts.firstNotNullOfOrNull { signedIn[it.userId]?.user }
+    (toActivate ?: alreadyBack)?.let { user -> accountManager.switchAccount(user) }
   }
 }

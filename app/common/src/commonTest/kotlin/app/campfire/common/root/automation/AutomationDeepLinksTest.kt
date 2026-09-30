@@ -223,7 +223,7 @@ class AutomationDeepLinksTest {
       networkSettings: NetworkSettings?,
     ): Result<Unit> = Result.failure(UnsupportedOperationException())
 
-    override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit> =
+    override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> =
       Result.failure(IllegalStateException("Unused"))
 
     override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? = null

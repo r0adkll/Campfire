@@ -11,6 +11,7 @@ import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.core.model.NetworkSettings
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
@@ -72,7 +73,7 @@ internal class FakeAuthRepository(
     networkSettings: NetworkSettings?,
   ): Result<Unit> = Result.failure(IllegalStateException("Unreachable"))
 
-  override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit> =
+  override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> =
     Result.failure(IllegalStateException("Unused"))
 
   override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? = null

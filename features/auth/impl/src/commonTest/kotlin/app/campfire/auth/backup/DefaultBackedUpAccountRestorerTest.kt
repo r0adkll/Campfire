@@ -59,6 +59,17 @@ class DefaultBackedUpAccountRestorerTest {
   }
 
   @Test
+  fun `a kept account signed in but never switched to becomes active`() = runTest {
+    tokenBackup.kept += account("alice")
+    servers.all += server("alice")
+
+    restorer().restoreAll()
+
+    assertThat(authRepository.restored).isEmpty()
+    assertThat(accountManager.switchedTo).isEqualTo("alice")
+  }
+
+  @Test
   fun `a rejected token is dropped from the backup`() = runTest {
     tokenBackup.kept += listOf(account("alice"), account("bob"))
     authRepository.failures["alice"] = AuthException.InvalidCredentials()
@@ -130,12 +141,14 @@ class DefaultBackedUpAccountRestorerTest {
     override suspend fun getAll(): List<BackedUpAccount> = kept.toList()
   }
 
+  /** Like the real one, answers from a cache once it has read the servers */
   private class FakeServerRepository : ServerRepository {
     val all = mutableListOf<Server>()
+    private var cached: List<Server>? = null
     override fun observeCurrentServer(): Flow<Server> = emptyFlow()
     override fun observeAllServers(): Flow<List<Server>> = flowOf(all)
     override suspend fun getCurrentServer(): Server? = null
-    override suspend fun getAllServers(): List<Server> = all.toList()
+    override suspend fun getAllServers(): List<Server> = cached ?: all.toList().also { cached = it }
     override suspend fun changeName(newName: String) = Unit
     override suspend fun remove(server: Server) = Unit
   }
@@ -145,11 +158,12 @@ class DefaultBackedUpAccountRestorerTest {
     val restored = mutableListOf<Pair<UserId, Boolean>>()
     val failures = mutableMapOf<UserId, Throwable>()
 
-    override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit> {
+    override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> {
       restored += account.userId to activate
       failures[account.userId]?.let { return Result.failure(it) }
-      servers.all += server(account.userId)
-      return Result.success(Unit)
+      val server = server(account.userId)
+      servers.all += server
+      return Result.success(server.user)
     }
 
     override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
