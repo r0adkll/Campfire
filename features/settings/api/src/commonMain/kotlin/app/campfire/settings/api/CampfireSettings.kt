@@ -21,6 +21,12 @@ interface CampfireSettings {
   var crashReportingEnabled: Boolean
   fun observeCrashReportingEnabled(): StateFlow<Boolean>
 
+  /**
+   * Keep each account's sign-in where it survives a reinstall, where the platform allows it
+   */
+  var keepSignedInAfterReinstall: Boolean
+  fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean>
+
   var analyticReportingEnabled: Boolean
   fun observeAnalyticReportingEnabled(): StateFlow<Boolean>
 

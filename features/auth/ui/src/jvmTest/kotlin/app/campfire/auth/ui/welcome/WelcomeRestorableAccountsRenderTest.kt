@@ -85,6 +85,8 @@ class WelcomeRestorableAccountsRenderTest {
                     restoredTheme = AppTheme.Fixed.Forest,
                     eventSink = {},
                   ),
+                  // Alice is being signed back in on her own
+                  restoringUserIds = setOf("user-alice"),
                   eventSink = {},
                 ),
                 modifier = Modifier,

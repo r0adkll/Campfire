@@ -5,6 +5,7 @@ package app.campfire.auth
 
 import app.campfire.account.api.AbsToken
 import app.campfire.account.api.AccountManager
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.local.UserStorageStrategy
 import app.campfire.core.model.Server
@@ -19,6 +20,8 @@ import app.campfire.network.models.ServerStatus
 import app.campfire.network.models.User as NetworkUser
 import app.campfire.network.models.UserPermissions
 import assertk.assertThat
+import assertk.assertions.containsExactly
+import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
@@ -44,6 +47,55 @@ class DefaultAuthRepositoryTest {
     accountManager = accountManager,
     newUserStorageStrategy = newUserStorage,
     existingUserStorageStrategy = existingUserStorage,
+  )
+
+  @Test
+  fun `restoring trades the kept refresh token for a new sign-in`() = runTest {
+    api.refreshResult = Result.success(loginResponse(userDefaultLibraryId = "lib_1"))
+
+    val result = repository.restore(backedUpAccount(), activate = false)
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(api.refreshes).containsExactly(Triple(SERVER_URL, "refresh-kept", mapOf("X-Gate" to "open")))
+    assertThat(newUserStorage.stored).isTrue()
+    assertThat(accountManager.addedAccount).isTrue()
+    assertThat(accountManager.activated).isEqualTo(false)
+    assertThat(accountManager.addedExtraHeaders).isEqualTo(mapOf("X-Gate" to "open"))
+  }
+
+  @Test
+  fun `restoring with a rejected refresh token fails with InvalidCredentials`() = runTest {
+    api.refreshResult = Result.failure(ApiException(401, "Invalid refresh token"))
+
+    val result = repository.restore(backedUpAccount(), activate = true)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<AuthException.InvalidCredentials>()
+    assertThat(accountManager.addedAccount).isFalse()
+  }
+
+  @Test
+  fun `restoring without a refresh token fails without asking the server`() = runTest {
+    val result = repository.restore(backedUpAccount(refreshToken = null), activate = true)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<AuthException.InvalidCredentials>()
+    assertThat(api.refreshes).isEmpty()
+  }
+
+  @Test
+  fun `restoring while offline fails with Network`() = runTest {
+    api.refreshResult = Result.failure(IOException("connection refused"))
+
+    val result = repository.restore(backedUpAccount(), activate = true)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<AuthException.Network>()
+  }
+
+  private fun backedUpAccount(refreshToken: String? = "refresh-kept") = BackedUpAccount(
+    serverUrl = SERVER_URL,
+    serverName = SERVER_NAME,
+    userId = "user-1",
+    token = AbsToken("access-kept", refreshToken),
+    extraHeaders = mapOf("X-Gate" to "open"),
   )
 
   @Test
@@ -190,6 +242,8 @@ class DefaultAuthRepositoryTest {
   private class FakeAuthApi : AuthAudioBookShelfApi {
     var loginResult: Result<LoginResponse> = Result.failure(IllegalStateException("not stubbed"))
     var oauthResult: Result<LoginResponse> = Result.failure(IllegalStateException("not stubbed"))
+    var refreshResult: Result<LoginResponse> = Result.failure(IllegalStateException("not stubbed"))
+    val refreshes = mutableListOf<Triple<String, String, Map<String, String>?>>()
 
     override suspend fun status(
       serverUrl: String,
@@ -202,6 +256,15 @@ class DefaultAuthRepositoryTest {
       password: String,
       extraHeaders: Map<String, String>?,
     ): Result<LoginResponse> = loginResult
+
+    override suspend fun refresh(
+      serverUrl: String,
+      refreshToken: String,
+      extraHeaders: Map<String, String>?,
+    ): Result<LoginResponse> {
+      refreshes += Triple(serverUrl, refreshToken, extraHeaders)
+      return refreshResult
+    }
 
     override suspend fun authorization(
       serverUrl: String,
@@ -222,6 +285,8 @@ class DefaultAuthRepositoryTest {
 
   private class FakeAccountManager : AccountManager {
     var addedAccount: Boolean = false
+    var activated: Boolean? = null
+    var addedExtraHeaders: Map<String, String>? = null
 
     override suspend fun addAccount(
       serverUrl: String,
@@ -229,8 +294,11 @@ class DefaultAuthRepositoryTest {
       refreshToken: String?,
       extraHeaders: Map<String, String>?,
       user: DomainUser,
+      activate: Boolean,
     ) {
       addedAccount = true
+      activated = activate
+      addedExtraHeaders = extraHeaders
     }
 
     override suspend fun invalidateAccount(user: DomainUser) = Unit

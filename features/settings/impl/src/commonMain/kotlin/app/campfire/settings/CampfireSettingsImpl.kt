@@ -44,6 +44,11 @@ class CampfireSettingsImpl(
   override var crashReportingEnabled: Boolean by crashReportingProperty
   override fun observeCrashReportingEnabled(): StateFlow<Boolean> = crashReportingProperty.observe()
 
+  private val keepSignedInAfterReinstallProperty = booleanSetting(KEY_KEEP_SIGNED_IN_AFTER_REINSTALL, true)
+  override var keepSignedInAfterReinstall: Boolean by keepSignedInAfterReinstallProperty
+  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
+    keepSignedInAfterReinstallProperty.observe()
+
   private val analyticReportingProperty = booleanSetting(KEY_ANALYTIC_REPORTING, false)
   override var analyticReportingEnabled: Boolean by analyticReportingProperty
   override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> = analyticReportingProperty.observe()
@@ -151,6 +156,7 @@ internal const val KEY_DEVICE_ID = "pref_device_id"
 internal const val KEY_ANALYTICS_ID = "pref_analytics_id"
 internal const val KEY_HAS_CONSENTED = "pref_has_consented"
 internal const val KEY_CRASH_REPORTING = "pref_crash_reporting"
+internal const val KEY_KEEP_SIGNED_IN_AFTER_REINSTALL = "pref_keep_signed_in_after_reinstall"
 internal const val KEY_ANALYTIC_REPORTING = "pref_analytic_reporting"
 internal const val KEY_CURRENT_THEME = "pref_current_theme"
 internal const val KEY_THEME = "pref_theme"

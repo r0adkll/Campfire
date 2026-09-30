@@ -3,11 +3,11 @@
 
 package app.campfire.account.restore
 
+import app.campfire.account.FakeServerDao
 import app.campfire.account.api.RestorableAccount
-import app.campfire.account.server.db.ServerDao
+import app.campfire.account.testServer
 import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.core.model.Server
-import app.campfire.core.model.User
 import app.campfire.settings.test.TestCampfireSettings
 import app.cash.turbine.test
 import assertk.assertThat
@@ -15,9 +15,7 @@ import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
 import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
@@ -32,7 +30,7 @@ class AccountRestoreStoreTest {
     // The previous install mirrors its account into the backed-up settings
     val previousInstall = store()
     val mirroring = backgroundScope.launch { previousInstall.mirror() }
-    servers.value = listOf(server(userId = "user-1", userName = "alice"))
+    servers.value = listOf(testServer(url = SERVER_URL, userId = "user-1", userName = "alice"))
     testScheduler.runCurrent()
     mirroring.cancel()
 
@@ -53,7 +51,7 @@ class AccountRestoreStoreTest {
       )
 
       // Signing back in stops offering it
-      servers.value = listOf(server(userId = "user-1", userName = "alice"))
+      servers.value = listOf(testServer(url = SERVER_URL, userId = "user-1", userName = "alice"))
       assertThat(awaitItem()).isEmpty()
     }
   }
@@ -62,7 +60,7 @@ class AccountRestoreStoreTest {
   fun `logging out doesn't offer the account again`() = runTest {
     val store = store()
     backgroundScope.launch { store.mirror() }
-    servers.value = listOf(server(userId = "user-1", userName = "alice"))
+    servers.value = listOf(testServer(url = SERVER_URL, userId = "user-1", userName = "alice"))
     testScheduler.runCurrent()
 
     store.forget("user-1")
@@ -90,64 +88,6 @@ class AccountRestoreStoreTest {
     serverDao = FakeServerDao(servers),
     campfireSettings = TestCampfireSettings(backgroundScope),
     dispatcherProvider = asTestDispatcherProvider(),
-  )
-
-  private class FakeServerDao(private val servers: Flow<List<Server>>) : ServerDao {
-    override fun observeOne(userId: String): Flow<Server> = emptyFlow()
-    override fun observeAll(): Flow<List<Server>> = servers
-    override suspend fun delete(userId: String) = Unit
-  }
-
-  private fun server(userId: String, userName: String) = Server(
-    url = SERVER_URL,
-    name = "Home",
-    user = User(
-      id = userId,
-      name = userName,
-      selectedLibraryId = "library",
-      type = User.Type.User,
-      isActive = true,
-      isLocked = false,
-      lastSeen = 0L,
-      createdAt = 0L,
-      permissions = User.Permissions(
-        download = true,
-        update = false,
-        delete = false,
-        upload = false,
-        accessAllLibraries = true,
-        accessAllTags = true,
-        accessExplicitContent = true,
-      ),
-      serverUrl = SERVER_URL,
-    ),
-    settings = Server.Settings(
-      scannerFindCovers = false,
-      scannerCoverProvider = "",
-      scannerParseSubtitle = false,
-      scannerPreferMatchedMetadata = false,
-      scannerDisableWatcher = false,
-      storeCoverWithItem = false,
-      storeMetadataWithItem = false,
-      metadataFileFormat = "",
-      rateLimitLoginRequests = 0,
-      rateLimitLoginWindow = 0,
-      backupSchedule = "",
-      backupsToKeep = 0,
-      maxBackupSize = 0,
-      loggerDailyLogsToKeep = 0,
-      loggerScannerLogsToKeep = 0,
-      homeBookshelfView = 0,
-      bookshelfView = 0,
-      sortingIgnorePrefix = false,
-      sortingPrefixes = emptyList(),
-      chromecastEnabled = false,
-      dateFormat = "",
-      timeFormat = "",
-      language = "",
-      logLevel = 0,
-      version = "",
-    ),
   )
 
   private companion object {

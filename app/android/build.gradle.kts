@@ -203,6 +203,10 @@ dependencies {
   "alphaImplementation"(projects.infra.audioplayer.cast)
   "betaImplementation"(projects.infra.audioplayer.cast)
 
+  "standardImplementation"(projects.data.account.blockstore)
+  "alphaImplementation"(projects.data.account.blockstore)
+  "betaImplementation"(projects.data.account.blockstore)
+
   // Firebase Crashlytics — release variants only, matching the previous src/release
   // FirebaseInitializer behavior (debug builds never initialize Firebase). These
   // variant-scoped configurations are created late by AGP, so they're added lazily.

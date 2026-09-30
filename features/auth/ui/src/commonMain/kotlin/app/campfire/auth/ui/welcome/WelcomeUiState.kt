@@ -5,11 +5,16 @@ package app.campfire.auth.ui.welcome
 
 import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.ui.login.LoginUiState
+import app.campfire.core.model.UserId
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
 class WelcomeUiState(
   val loginUiState: LoginUiState,
+  /**
+   * Restored accounts being signed back in without a password
+   */
+  val restoringUserIds: Set<UserId> = emptySet(),
   val eventSink: (WelcomeUiEvent) -> Unit,
 ) : CircuitUiState
 

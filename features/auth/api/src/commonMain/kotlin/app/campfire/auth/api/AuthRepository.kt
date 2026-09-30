@@ -3,6 +3,7 @@
 
 package app.campfire.auth.api
 
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.UserId
@@ -32,6 +33,15 @@ interface AuthRepository {
     userId: UserId? = null,
     networkSettings: NetworkSettings? = null,
   ): Result<Unit>
+
+  /**
+   * Sign a kept [account] back in without a password, by trading its refresh token for a new
+   * sign-in. Fails with [AuthException.InvalidCredentials] when the server no longer accepts the
+   * token.
+   *
+   * @param activate whether to switch to the account once it's back
+   */
+  suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit>
 
   suspend fun getNetworkSettings(userId: UserId): NetworkSettings?
 }

@@ -4,6 +4,7 @@
 package app.campfire.auth
 
 import app.campfire.account.api.AccountManager
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
@@ -76,6 +77,24 @@ class DefaultAuthRepository(
     )
   }
 
+  override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit> {
+    val refreshToken = account.token.refreshToken
+      ?: return Result.failure(AuthException.InvalidCredentials())
+    val networkSettings = account.extraHeaders
+      .takeIf { it.isNotEmpty() }
+      ?.let { NetworkSettings(extraHeaders = it) }
+
+    val result = api.refresh(account.serverUrl, refreshToken, networkSettings?.extraHeaders)
+    return processLoginResult(
+      result = result,
+      serverUrl = account.serverUrl,
+      serverName = account.serverName,
+      userId = null,
+      networkSettings = networkSettings,
+      activate = activate,
+    )
+  }
+
   override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? {
     return accountManager.getExtraHeaders(userId)?.let { extraHeaders ->
       NetworkSettings(extraHeaders = extraHeaders)
@@ -88,6 +107,7 @@ class DefaultAuthRepository(
     serverName: String,
     userId: UserId?,
     networkSettings: NetworkSettings?,
+    activate: Boolean = true,
   ): Result<Unit> {
     val response = result.getOrElse { return Result.failure(it.asAuthException()) }
 
@@ -105,6 +125,7 @@ class DefaultAuthRepository(
       defaultLibraryId = defaultLibraryId,
       userId = userId,
       networkSettings = networkSettings,
+      activate = activate,
     )
 
     return Result.success(Unit)
@@ -117,6 +138,7 @@ class DefaultAuthRepository(
     defaultLibraryId: String,
     userId: UserId?,
     networkSettings: NetworkSettings?,
+    activate: Boolean,
   ) {
     // Insert Server & User
     val storageStrategy = if (userId != null) {
@@ -140,6 +162,7 @@ class DefaultAuthRepository(
       refreshToken = response.user.refreshToken,
       extraHeaders = networkSettings?.extraHeaders,
       user = response.user.asDomainModel(serverUrl, defaultLibraryId),
+      activate = activate,
     )
   }
 

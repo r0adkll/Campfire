@@ -3,6 +3,7 @@
 
 package app.campfire.auth.ui.login
 
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.account.api.RestorableAccount
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
@@ -70,6 +71,9 @@ internal class FakeAuthRepository(
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> = Result.failure(IllegalStateException("Unreachable"))
+
+  override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<Unit> =
+    Result.failure(IllegalStateException("Unused"))
 
   override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? = null
 }

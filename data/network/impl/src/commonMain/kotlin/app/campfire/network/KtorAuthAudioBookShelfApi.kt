@@ -8,6 +8,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.network.di.BaseClient
+import app.campfire.network.di.RefreshToken
 import app.campfire.network.di.ReturnTokens
 import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginRequest
@@ -79,6 +80,18 @@ class KtorAuthAudioBookShelfApi(
       maybeHeaders(extraHeaders)
       contentType(ContentType.Application.Json)
       setBody(LoginRequest(username, password))
+    }
+  }
+
+  override suspend fun refresh(
+    serverUrl: String,
+    refreshToken: String,
+    extraHeaders: Map<String, String>?,
+  ): Result<LoginResponse> = trySendRequest {
+    client.post {
+      url("${cleanServerUrl(serverUrl)}/auth/refresh")
+      header(HttpHeaders.RefreshToken, refreshToken)
+      maybeHeaders(extraHeaders)
     }
   }
 

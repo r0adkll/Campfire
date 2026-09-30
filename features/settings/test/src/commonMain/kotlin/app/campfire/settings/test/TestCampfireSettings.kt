@@ -35,6 +35,11 @@ class TestCampfireSettings(
     observeBoolean(::crashReportingEnabled)
       .stateIn(testScope, SharingStarted.Lazily, crashReportingEnabled)
 
+  override var keepSignedInAfterReinstall: Boolean by boolean()
+  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
+    observeBoolean(::keepSignedInAfterReinstall)
+      .stateIn(testScope, SharingStarted.Lazily, keepSignedInAfterReinstall)
+
   override var analyticReportingEnabled: Boolean by boolean()
   override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> =
     observeBoolean(::analyticReportingEnabled)

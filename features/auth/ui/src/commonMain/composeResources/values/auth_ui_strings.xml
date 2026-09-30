@@ -13,6 +13,7 @@
   <string name="action_add_campsite">Add campsite</string>
   <string name="action_login_openid">Login with OpenID</string>
   <string name="login_restorable_accounts_title">RESTORE</string>
+  <string name="label_restoring_account">Signing back in…</string>
   <string name="action_dismiss_restorable_account">Forget campsite</string>
 
   <string name="label_authenticating_loading_message">Logging in…</string>

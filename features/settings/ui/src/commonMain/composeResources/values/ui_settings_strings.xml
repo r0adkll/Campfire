@@ -25,6 +25,9 @@
 
   <!-- Account setting strings -->
   <string name="setting_account_logout">Sign out</string>
+  <string name="setting_account_backup_title">Backup</string>
+  <string name="setting_account_keep_signed_in">Stay signed in after reinstall</string>
+  <string name="setting_account_keep_signed_in_subtitle">Keep your campsites signed in when you reinstall Campfire or move to a new phone. Needs your Google backup to be on, and only leaves this phone end-to-end encrypted.</string>
   <string name="setting_account_server_title">Server</string>
   <string name="setting_account_server_appearance_title">Appearance</string>
   <string name="setting_account_server_url">Server URL</string>

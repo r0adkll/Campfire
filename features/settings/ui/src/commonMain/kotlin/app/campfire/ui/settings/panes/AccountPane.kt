@@ -15,10 +15,14 @@ import app.campfire.ui.settings.SettingsUiEvent
 import app.campfire.ui.settings.SettingsUiState
 import app.campfire.ui.settings.composables.ActionSetting
 import app.campfire.ui.settings.composables.Header
+import app.campfire.ui.settings.composables.SwitchSetting
 import app.campfire.ui.settings.composables.TextFieldSetting
 import campfire.features.settings.ui.generated.resources.Res
+import campfire.features.settings.ui.generated.resources.setting_account_backup_title
 import campfire.features.settings.ui.generated.resources.setting_account_dialog_label
 import campfire.features.settings.ui.generated.resources.setting_account_dialog_title
+import campfire.features.settings.ui.generated.resources.setting_account_keep_signed_in
+import campfire.features.settings.ui.generated.resources.setting_account_keep_signed_in_subtitle
 import campfire.features.settings.ui.generated.resources.setting_account_logout
 import campfire.features.settings.ui.generated.resources.setting_account_name_subtitle
 import campfire.features.settings.ui.generated.resources.setting_account_server_appearance_title
@@ -67,6 +71,21 @@ internal fun AccountPane(
       ActionSetting(
         headlineContent = { Text(stringResource(Res.string.setting_account_server_version)) },
         supportingContent = { Text(server.settings.version) },
+      )
+    }
+
+    state.keepSignedInAfterReinstall?.let { keepSignedIn ->
+      Header(
+        title = { Text(stringResource(Res.string.setting_account_backup_title)) },
+      )
+
+      SwitchSetting(
+        value = keepSignedIn,
+        onValueChange = {
+          state.eventSink(SettingsUiEvent.AccountSettingEvent.KeepSignedInAfterReinstall(it))
+        },
+        headlineContent = { Text(stringResource(Res.string.setting_account_keep_signed_in)) },
+        supportingContent = { Text(stringResource(Res.string.setting_account_keep_signed_in_subtitle)) },
       )
     }
 

@@ -65,6 +65,9 @@ class SettingsAnalyticUiEventHandler(
     is SettingsUiEvent.AccountSettingEvent -> when (event) {
       is ChangeName -> send("account_name", Updated)
       Logout -> send("logout", Click)
+      is SettingsUiEvent.AccountSettingEvent.KeepSignedInAfterReinstall -> {
+        send("keep_signed_in_after_reinstall", Updated, event.enabled)
+      }
     }
 
     is SettingsUiEvent.ConnectionSettingEvent -> when (event) {

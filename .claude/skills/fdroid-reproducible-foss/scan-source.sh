@@ -14,6 +14,7 @@ REF="${1:-HEAD}"
 # The files F-Droid deletes before scanning (must match metadata/app.campfire.android.yml).
 SCANDELETE=(
   "data/crashreporting/firebase/build.gradle.kts"
+  "data/account/blockstore/build.gradle.kts"
   "infra/audioplayer/cast/build.gradle.kts"
   "ui/theming/ai/build.gradle.kts"
   "gradle/build-logic/firebase/build.gradle.kts"

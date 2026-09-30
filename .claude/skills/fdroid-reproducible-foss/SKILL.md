@@ -14,7 +14,7 @@ The MR: `https://gitlab.com/fdroid/fdroiddata/-/merge_requests/46619` (metadata 
 
 ## Invariants you must not break
 
-- **The foss flavor never depends on a proprietary module.** Firebase, Cast, ML Kit, Mixpanel, Play in-app-updates, App Distribution are wired to `standard*` / `alpha*` / `beta*` configurations only — **never `foss*`** (see `app/android/build.gradle.kts`). If you add a proprietary integration, follow the same pattern, and put its build files where F-Droid can `scandelete` them (see below).
+- **The foss flavor never depends on a proprietary module.** Firebase, Cast, Block Store, ML Kit, Mixpanel, Play in-app-updates, App Distribution are wired to `standard*` / `alpha*` / `beta*` configurations only — **never `foss*`** (see `app/android/build.gradle.kts`). If you add a proprietary integration, follow the same pattern, and put its build files where F-Droid can `scandelete` them (see below).
 - **No custom Maven repository literal in any scanned `.gradle`/`.gradle.kts`.** The scanner flags **any** `maven(...)` / `maven { url … }` call whose URL isn't on F-Droid's allow-list — and it captures whatever is inside the parens, so even `maven(someVariable)` is flagged as `unknown maven repo 'someVariable)'`. Reading the URL from a property does **not** help. Custom repos must live in a `scandelete`-able standalone script (see the emulator.wtf pattern).
 - **Reproducibility hooks stay in place:**
   - `Project.normalizeFossReleasePgMapId()` (in `gradle/build-logic/convention/.../Reproducible.kt`), called from `app/android/build.gradle.kts` — zeroes R8's `pg-map-id` in the foss DEX (the one thing that varied per build environment).
@@ -82,7 +82,7 @@ After F-Droid's pipeline runs, the `fdroid build` job log should say *"compared 
 
 ## Updating the fdroiddata metadata
 
-- Keep the `scandelete:` list in sync with `scan-source.sh` (currently 5 files; see `scandelete-metadata-companion.yml` in the session scratchpad for the canonical block).
+- Keep the `scandelete:` list in sync with `scan-source.sh` (currently 6 files; see `scandelete-metadata-companion.yml` in the session scratchpad for the canonical block).
 - Bump `versionName` / `versionCode` / `commit` to the release tag; `AllowedAPKSigningKeys` stays `4a3be90f…`; keep `Binaries`, `AutoUpdateMode: Version`, `UpdateCheckMode: Tags`, `UpdateCheckData`.
 - **Canonicalize with the CI-exact fdroidserver** (debian:trixie-slim + master tarball) before pushing, or `rewritemeta`/`lint` will reformat differently than your local pip install:
   ```bash

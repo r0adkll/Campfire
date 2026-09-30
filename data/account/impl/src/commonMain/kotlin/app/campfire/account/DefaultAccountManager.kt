@@ -8,6 +8,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.UserSessionManager
 import app.campfire.account.api.di.UserGraphManager
+import app.campfire.account.backup.AccountBackups
 import app.campfire.account.server.LogoutUseCase
 import app.campfire.account.storage.ExtraHeaderStorage
 import app.campfire.account.storage.TokenStorage
@@ -28,6 +29,7 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @ContributesBinding(AppScope::class)
@@ -40,6 +42,7 @@ class DefaultAccountManager(
   private val logoutUseCase: LogoutUseCase,
   private val serverRepository: ServerRepository,
   private val userGraphManager: UserGraphManager,
+  private val accountBackups: AccountBackups,
   @ForScope(AppScope::class) val applicationScope: CoroutineScope,
 ) : AccountManager {
 
@@ -57,6 +60,7 @@ class DefaultAccountManager(
     refreshToken: String?,
     extraHeaders: Map<String, String>?,
     user: User,
+    activate: Boolean,
   ) = withContext(accountManagerCoroutineContext) {
     // Store the access token
     tokenStorage.put(user.id, AbsToken(accessToken, refreshToken))
@@ -66,15 +70,20 @@ class DefaultAccountManager(
       extraHeaderStorage.put(user.id, headers)
     }
 
+    accountBackups.backUp(user.id)
+
     // Switch the session over
-    changeSession {
-      UserSession.LoggedIn(user)
+    if (activate) {
+      changeSession {
+        UserSession.LoggedIn(user)
+      }
     }
   }
 
   override suspend fun invalidateAccount(user: User) {
     // Invalidate token storage
     tokenStorage.remove(user.id)
+    applicationScope.launch { accountBackups.forget(user.id) }
 
     // Notify user using the global toaster
     GlobalToaster.show(
@@ -142,6 +151,7 @@ class DefaultAccountManager(
     // Delete the accounts token / data
     tokenStorage.remove(server.user.id)
     extraHeaderStorage.remove(server.user.id)
+    accountBackups.forget(server.user.id)
 
     // Delete the accounts data
     logoutUseCase.execute(server)
@@ -153,6 +163,9 @@ class DefaultAccountManager(
 
   override suspend fun updateToken(userId: UserId, newToken: AbsToken) {
     tokenStorage.put(userId, newToken)
+    // Refresh tokens are single use, so the backup is stale from here on. Don't hold up the
+    // request waiting on the refresh, though.
+    applicationScope.launch { accountBackups.backUp(userId) }
   }
 
   override suspend fun getExtraHeaders(userId: UserId): Map<String, String>? {
@@ -165,6 +178,7 @@ class DefaultAccountManager(
     } else {
       extraHeaderStorage.put(userId, headers)
     }
+    applicationScope.launch { accountBackups.backUp(userId) }
   }
 
   override fun observeExtraHeaders(userId: UserId): Flow<Map<String, String>> =

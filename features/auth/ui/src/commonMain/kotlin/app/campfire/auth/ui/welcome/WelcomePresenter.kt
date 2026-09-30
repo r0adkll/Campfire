@@ -4,6 +4,10 @@
 package app.campfire.auth.ui.welcome
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import app.campfire.account.api.BackedUpAccountRestorer
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.PasswordCredentials
@@ -28,6 +32,7 @@ class WelcomePresenter(
   private val appThemeRepository: AppThemeRepository,
   private val restorableAccountRepository: RestorableAccountRepository,
   private val passwordCredentials: PasswordCredentials,
+  private val backedUpAccountRestorer: BackedUpAccountRestorer,
   private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -46,8 +51,13 @@ class WelcomePresenter(
   override fun present(): WelcomeUiState {
     val loginUiState = loginPresenter.present()
 
+    // Accounts kept across the reinstall sign straight back in, landing on Home
+    LaunchedEffect(Unit) { backedUpAccountRestorer.restore() }
+    val restoringUserIds by backedUpAccountRestorer.restoring.collectAsState(emptySet())
+
     return WelcomeUiState(
       loginUiState = loginUiState,
+      restoringUserIds = restoringUserIds,
     ) { event ->
       when (event) {
         WelcomeUiEvent.AddCampsite -> navigator.goTo(LoginScreen.New)

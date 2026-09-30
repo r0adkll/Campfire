@@ -14,6 +14,7 @@ kotlin {
       dependencies {
         implementation(projects.core)
         implementation(projects.common.screens)
+        api(projects.data.account.api)
       }
     }
   }
