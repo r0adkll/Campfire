@@ -49,6 +49,15 @@ sealed class LoginScreen : BaseScreen(name = "Login") {
   data object Additional : LoginScreen()
 
   /**
+   * Sign back into an account from before the app was reinstalled
+   */
+  data class Restore(
+    val serverUrl: String,
+    val serverName: String,
+    val userName: String,
+  ) : LoginScreen()
+
+  /**
    * Re-authenticate an existing account who's tokens have expired
    */
   data class ReAuthentication(

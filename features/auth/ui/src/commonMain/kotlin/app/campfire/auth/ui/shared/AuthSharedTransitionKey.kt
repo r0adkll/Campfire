@@ -9,11 +9,17 @@ package app.campfire.auth.ui.shared
  */
 data class AuthSharedTransitionKey(
   val type: ElementType,
+  /**
+   * Tells apart elements of the same [type], like each restored account
+   */
+  val id: String? = null,
 ) {
   enum class ElementType {
     Logo,
     Title,
     Card,
     Tent,
+    RestoreTitle,
+    RestoreAccount,
   }
 }

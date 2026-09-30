@@ -5,6 +5,10 @@ package app.campfire.auth.ui.login
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,7 +27,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,10 +41,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.ui.composables.MaxContentWidth
+import app.campfire.auth.ui.composables.TitleDivider
+import app.campfire.auth.ui.login.composables.RestorableAccounts
+import app.campfire.auth.ui.login.composables.RestorableAccountsTitle
 import app.campfire.auth.ui.login.composables.ServerCard
 import app.campfire.auth.ui.login.composables.ServerUrlAssistBar
 import app.campfire.auth.ui.login.composables.ServerUrlFieldState
@@ -113,13 +119,15 @@ private fun LoginContent(
             title = {
               Text(
                 when (screen) {
-                  is LoginScreen.Additional -> stringResource(Res.string.login_add_account_title)
+                  is LoginScreen.Additional,
+                  is LoginScreen.Restore,
+                  -> stringResource(Res.string.login_add_account_title)
                   is LoginScreen.ReAuthentication -> stringResource(Res.string.login_reauth_account_title)
                 },
               )
             },
             navigationIcon = {
-              if (screen is LoginScreen.Additional) {
+              if (screen is LoginScreen.Additional || screen is LoginScreen.Restore) {
                 NavigationBackButton(onClick = { state.eventSink(LoginUiEvent.NavigateBack) })
               }
             },
@@ -175,6 +183,7 @@ internal fun LoginUiContent(
   ) {
     ServerCard(
       autoFocus = autoFocus,
+      focusPassword = state.focusPassword,
       theme = state.theme,
       onThemeChange = { eventSink(LoginUiEvent.ChangeTheme(it)) },
       serverName = state.serverName,
@@ -203,6 +212,33 @@ internal fun LoginUiContent(
         hasFocus = it.hasFocus
       }.widthIn(max = MaxContentWidth),
     )
+
+    // Only offer restored accounts until the form has found a server
+    val isServerFound = state.serverUrl.isNotBlank() && state.connectionState is ConnectionState.Success
+    AnimatedVisibility(
+      visible = state.restorableAccounts.isNotEmpty() && !isServerFound,
+      enter = fadeIn() + expandVertically(),
+      exit = fadeOut() + shrinkVertically(),
+    ) {
+      Column {
+        Spacer(Modifier.height(8.dp))
+
+        RestorableAccountsTitle()
+
+        Spacer(Modifier.height(4.dp))
+
+        RestorableAccounts(
+          accounts = state.restorableAccounts,
+          theme = state.restoredTheme,
+          showTitle = false,
+          onSelect = { eventSink(LoginUiEvent.SelectRestorableAccount(it)) },
+          onDismiss = { eventSink(LoginUiEvent.DismissRestorableAccount(it)) },
+          modifier = Modifier
+            .widthIn(max = MaxContentWidth)
+            .fillMaxWidth(),
+        )
+      }
+    }
 
     Spacer(Modifier.height(16.dp))
 
@@ -282,29 +318,11 @@ private fun OpenIdAuthButton(
     Column {
       // Only show the '----- OR -----' if password auth is also enabled
       if (authMethodState?.passwordAuthEnabled == true) {
-        Row(
+        TitleDivider(
+          title = "OK",
           modifier = Modifier
-            .widthIn(max = 500.dp)
-            .padding(vertical = 16.dp)
-            .fillMaxWidth(),
-          verticalAlignment = Alignment.CenterVertically,
-        ) {
-          HorizontalDivider(
-            Modifier.weight(1f),
-          )
-
-          Text(
-            text = "OR",
-            style = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 16.dp),
-            color = MaterialTheme.colorScheme.outlineVariant,
-          )
-
-          HorizontalDivider(
-            Modifier.weight(1f),
-          )
-        }
+            .widthIn(max = 500.dp),
+        )
       } else {
         Spacer(Modifier.size(8.dp))
       }
@@ -362,6 +380,37 @@ fun LoginUI_Blank() = LoginUiPreview(
     authError = null,
     connectionState = null,
     networkSettings = null,
+    eventSink = {},
+  ),
+)
+
+@Preview
+@Composable
+fun LoginUI_Restorable_Accounts() = LoginUiPreview(
+  state = LoginUiState(
+    theme = AppTheme.Fixed.Tent,
+    serverName = "Home",
+    serverUrl = "https://abs.example.com",
+    userName = "alice",
+    password = "",
+    isAuthenticating = false,
+    authError = null,
+    connectionState = null,
+    networkSettings = null,
+    restorableAccounts = listOf(
+      RestorableAccount(
+        serverUrl = "https://abs.example.com",
+        serverName = "Home",
+        userId = "user-alice",
+        userName = "alice",
+      ),
+      RestorableAccount(
+        serverUrl = "https://books.example.org",
+        serverName = "Neighborhood library",
+        userId = "user-bob",
+        userName = "bob",
+      ),
+    ),
     eventSink = {},
   ),
 )

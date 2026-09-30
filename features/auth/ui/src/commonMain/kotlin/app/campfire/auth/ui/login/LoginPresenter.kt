@@ -5,11 +5,13 @@ package app.campfire.auth.ui.login
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
@@ -18,8 +20,10 @@ import app.campfire.auth.ui.BuildConfig
 import app.campfire.auth.ui.login.LoginUiEvent.AddCampsite
 import app.campfire.auth.ui.login.LoginUiEvent.ChangeNetworkSettings
 import app.campfire.auth.ui.login.LoginUiEvent.ChangeTheme
+import app.campfire.auth.ui.login.LoginUiEvent.DismissRestorableAccount
 import app.campfire.auth.ui.login.LoginUiEvent.NavigateBack
 import app.campfire.auth.ui.login.LoginUiEvent.Password
+import app.campfire.auth.ui.login.LoginUiEvent.SelectRestorableAccount
 import app.campfire.auth.ui.login.LoginUiEvent.ServerName
 import app.campfire.auth.ui.login.LoginUiEvent.ServerUrl
 import app.campfire.auth.ui.login.LoginUiEvent.UserName
@@ -38,6 +42,8 @@ import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import okio.IOException
 
@@ -50,30 +56,41 @@ class LoginPresenter(
   private val oauthAuthorizationFlow: AuthorizationFlow,
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val appThemeRepository: AppThemeRepository,
+  private val restorableAccountRepository: RestorableAccountRepository,
 ) : Presenter<LoginUiState> {
 
   private val initialServerName: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.serverName
+    is LoginScreen.Restore -> screen.serverName
     else -> ""
   }
 
   private val initialServerUrl: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.serverUrl
+    is LoginScreen.Restore -> screen.serverUrl
     is LoginScreen.Additional -> ""
     else -> BuildConfig.TEST_SERVER_URL ?: ""
   }
 
   private val initialUserName: String = when (screen) {
     is LoginScreen.ReAuthentication -> screen.userName
+    is LoginScreen.Restore -> screen.userName
     is LoginScreen.Additional -> ""
     else -> BuildConfig.TEST_USERNAME ?: ""
   }
 
   private val initialPassword: String = when (screen) {
     is LoginScreen.ReAuthentication -> ""
+    is LoginScreen.Restore -> ""
     is LoginScreen.Additional -> ""
     else -> BuildConfig.TEST_PASSWORD ?: ""
   }
+
+  /**
+   * Placeholder accounts appended to the real restorable ones, for trying the UI without a
+   * restore. Set with the `campfire_fake_restorable_accounts` Gradle property.
+   */
+  internal var fakeRestorableAccountCount: Int = BuildConfig.FAKE_RESTORABLE_ACCOUNTS
 
   private val existingUserId: UserId?
     get() = when (screen) {
@@ -94,6 +111,19 @@ class LoginPresenter(
 
     var isAuthenticating by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<AuthError?>(null) }
+    var isRestoringAccount by remember { mutableStateOf(screen is LoginScreen.Restore) }
+
+    // Accounts from before a reinstall, offered to prefill the form. Re-authentication already
+    // knows which account it's for.
+    val restorableAccounts by remember {
+      if (screen is LoginScreen.ReAuthentication) {
+        flowOf(emptyList())
+      } else {
+        restorableAccountRepository.observeRestorableAccounts()
+          .map { it + fakeRestorableAccounts(fakeRestorableAccountCount) }
+      }
+    }.collectAsState(emptyList())
+    val restoredTheme by appThemeRepository.observeCurrentAppTheme().collectAsState()
 
     // If we are re-authenticating, be sure to load the existing extra headers
     // from the account manager.
@@ -134,6 +164,9 @@ class LoginPresenter(
       authError = authError,
       connectionState = connectionState,
       networkSettings = networkSettings,
+      restorableAccounts = restorableAccounts,
+      restoredTheme = restoredTheme,
+      focusPassword = isRestoringAccount && password.isEmpty(),
     ) { event ->
       when (event) {
         NavigateBack -> navigator.pop()
@@ -144,6 +177,18 @@ class LoginPresenter(
         is Password -> password = event.password
         is ServerName -> serverName = event.serverName
         is ServerUrl -> serverUrl = event.url
+
+        is SelectRestorableAccount -> {
+          serverName = event.account.serverName
+          serverUrl = event.account.serverUrl
+          username = event.account.userName
+          password = ""
+          isRestoringAccount = true
+        }
+
+        is DismissRestorableAccount -> coroutineScope.launch {
+          restorableAccountRepository.dismiss(event.account)
+        }
 
         is AddCampsite -> {
           // Validate that we can actually add a campsite
@@ -166,7 +211,7 @@ class LoginPresenter(
               userId = existingUserId,
               networkSettings = networkSettings,
             ).onSuccess {
-              applySelectedTheme(theme)
+              applySelectedTheme(theme, isRestoringAccount)
             }.onFailure {
               isAuthenticating = false
               authError = it.asAuthError()
@@ -189,7 +234,7 @@ class LoginPresenter(
                   userId = existingUserId,
                   networkSettings = networkSettings,
                 ).onSuccess {
-                  applySelectedTheme(theme)
+                  applySelectedTheme(theme, isRestoringAccount)
                 }.onFailure { e ->
                   isAuthenticating = false
                   authError = e.asAuthError()
@@ -207,10 +252,11 @@ class LoginPresenter(
 
   /**
    * A fresh login treats the picked default theme as the user's starting app theme.
-   * Re-authentication must not clobber whatever theme (possibly custom/AI) they already use.
+   * Re-authentication must not clobber whatever theme (possibly custom/AI) they already use, and
+   * neither must signing back into a restored account, whose theme came back with the backup.
    */
-  private fun applySelectedTheme(theme: AppTheme.Fixed) {
-    if (screen !is LoginScreen.ReAuthentication) {
+  private fun applySelectedTheme(theme: AppTheme.Fixed, isRestoringAccount: Boolean) {
+    if (screen !is LoginScreen.ReAuthentication && !isRestoringAccount) {
       appThemeRepository.setCurrentTheme(theme)
     }
   }

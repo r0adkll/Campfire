@@ -4,6 +4,7 @@ plugins {
   id("app.campfire.android.library")
   id("app.campfire.multiplatform")
   id("app.campfire.di")
+  alias(libs.plugins.kotlin.serialization)
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -23,6 +24,7 @@ kotlin {
         implementation(projects.features.sessions.api)
         implementation(projects.data.crashreporting.api)
         implementation(libs.kotlinx.coroutines.core)
+        implementation(libs.kotlinx.serialization.json)
         implementation(libs.multiplatformsettings.core)
         implementation(libs.multiplatformsettings.coroutines)
         implementation(libs.store)
@@ -36,6 +38,7 @@ kotlin {
         implementation(projects.common.test)
         implementation(libs.bundles.test.impl)
         implementation(libs.multiplatformsettings.test)
+        implementation(projects.features.settings.test)
       }
     }
 
