@@ -5,6 +5,7 @@ package app.campfire.auth.ui.welcome
 
 import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.ui.login.FakeAuthRepository
+import app.campfire.auth.ui.login.FakePasswordCredentials
 import app.campfire.auth.ui.login.FakeRestorableAccountRepository
 import app.campfire.auth.ui.login.GrantedLocalNetworkPermission
 import app.campfire.auth.ui.login.RecordingAppThemeRepository
@@ -28,6 +29,7 @@ class WelcomePresenterTest {
     localNetworkPermission = GrantedLocalNetworkPermission(),
     appThemeRepository = RecordingAppThemeRepository(),
     restorableAccountRepository = FakeRestorableAccountRepository(listOf(ACCOUNT)),
+    passwordCredentials = FakePasswordCredentials(),
     navigator = navigator,
   )
 

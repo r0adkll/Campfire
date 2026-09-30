@@ -4,6 +4,7 @@
 package app.campfire.auth.ui.login
 
 import app.campfire.account.api.RestorableAccount
+import app.campfire.auth.api.model.AUTH_METHOD_OPENID
 import app.campfire.common.screens.LoginScreen
 import app.campfire.ui.theming.api.AppTheme
 import app.cash.turbine.ReceiveTurbine
@@ -21,7 +22,8 @@ import kotlinx.coroutines.test.runTest
 class LoginPresenterTest {
 
   private val restorableAccounts = FakeRestorableAccountRepository(listOf(ALICE, BOB))
-  private val authRepository = FakeAuthRepository()
+  private var authRepository = FakeAuthRepository()
+  private var passwordCredentials = FakePasswordCredentials()
   private val appThemeRepository = RecordingAppThemeRepository()
 
   @Test
@@ -156,6 +158,109 @@ class LoginPresenterTest {
   }
 
   @Test
+  fun `a typed password is offered to the password manager after signing in`() = runTest {
+    signIn(RESTORE_BOB)
+
+    assertThat(passwordCredentials.offeredToSave)
+      .containsExactly(Triple(BOB.serverUrl, BOB.userName, "secret"))
+  }
+
+  @Test
+  fun `a saved password signs a restored account straight back in`() = runTest {
+    passwordCredentials = FakePasswordCredentials(mapOf((BOB.serverUrl to BOB.userName) to "saved"))
+
+    presenter(RESTORE_BOB).test {
+      awaitItemMatching { it.isAuthenticating }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(authRepository.authenticatedPasswords).containsExactly("saved")
+    // It's already in the password manager
+    assertThat(passwordCredentials.offeredToSave).isEmpty()
+  }
+
+  @Test
+  fun `picking a restored account uses its saved password`() = runTest {
+    passwordCredentials = FakePasswordCredentials(mapOf((BOB.serverUrl to BOB.userName) to "saved"))
+
+    presenter(LoginScreen.Additional).test {
+      awaitItemMatching { it.restorableAccounts.isNotEmpty() }
+        .eventSink(LoginUiEvent.SelectRestorableAccount(BOB))
+      awaitItemMatching { it.isAuthenticating }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(authRepository.authenticatedPasswords).containsExactly("saved")
+  }
+
+  @Test
+  fun `re-authentication uses the saved password`() = runTest {
+    passwordCredentials = FakePasswordCredentials(mapOf((BOB.serverUrl to BOB.userName) to "saved"))
+    val screen = LoginScreen.ReAuthentication(
+      userId = BOB.userId,
+      userName = BOB.userName,
+      serverName = BOB.serverName,
+      serverUrl = BOB.serverUrl,
+    )
+
+    presenter(screen).test {
+      awaitItemMatching { it.isAuthenticating }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(authRepository.authenticatedPasswords).containsExactly("saved")
+  }
+
+  @Test
+  fun `without a saved password the form waits for one to be typed`() = runTest {
+    presenter(RESTORE_BOB).test {
+      val found = awaitItemMatching { it.connectionState is ConnectionState.Success }
+      testScheduler.advanceUntilIdle()
+      assertThat(found.password).isEqualTo("")
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(passwordCredentials.lookups).containsExactly(BOB.serverUrl to BOB.userName)
+    assertThat(authRepository.authenticatedUserNames).isEmpty()
+  }
+
+  @Test
+  fun `the password manager is asked once per account`() = runTest {
+    presenter(RESTORE_BOB).test {
+      val found = awaitItemMatching { it.connectionState is ConnectionState.Success }
+      // Leave the server and come back to it
+      found.eventSink(LoginUiEvent.ServerUrl("https://elsewhere.example.com"))
+      awaitItemMatching { it.serverUrl == "https://elsewhere.example.com" }
+        .eventSink(LoginUiEvent.ServerUrl(BOB.serverUrl))
+      awaitItemMatching { it.serverUrl == BOB.serverUrl && it.connectionState is ConnectionState.Success }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    // The other server is another account, so it gets its own lookup
+    assertThat(passwordCredentials.lookups.count { it == BOB.serverUrl to BOB.userName }).isEqualTo(1)
+  }
+
+  @Test
+  fun `a new account doesn't ask the password manager`() = runTest {
+    signIn(LoginScreen.Restore(serverUrl = CAROL_URL, serverName = "Home", userName = "carol"), fresh = true)
+
+    assertThat(passwordCredentials.lookups).isEmpty()
+  }
+
+  @Test
+  fun `a server without password sign in doesn't ask the password manager`() = runTest {
+    authRepository = FakeAuthRepository(authMethods = listOf(AUTH_METHOD_OPENID))
+    passwordCredentials = FakePasswordCredentials(mapOf((BOB.serverUrl to BOB.userName) to "saved"))
+
+    presenter(RESTORE_BOB).test {
+      awaitItemMatching { it.connectionState is ConnectionState.Success }
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    assertThat(passwordCredentials.lookups).isEmpty()
+  }
+
+  @Test
   fun `fake restorable accounts follow the real ones`() = runTest {
     val presenter = presenter(LoginScreen.Additional).apply { fakeRestorableAccountCount = 7 }
     presenter.test {
@@ -176,6 +281,7 @@ class LoginPresenterTest {
     localNetworkPermission = GrantedLocalNetworkPermission(),
     appThemeRepository = appThemeRepository,
     restorableAccountRepository = restorableAccounts,
+    passwordCredentials = passwordCredentials,
   ).apply {
     // Ignore any fakes configured for this machine's builds
     fakeRestorableAccountCount = 0

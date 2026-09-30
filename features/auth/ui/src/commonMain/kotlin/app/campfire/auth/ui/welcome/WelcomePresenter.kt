@@ -6,6 +6,7 @@ package app.campfire.auth.ui.welcome
 import androidx.compose.runtime.Composable
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.ui.login.LoginPresenter
 import app.campfire.common.screens.LoginScreen
 import app.campfire.common.screens.WelcomeScreen
@@ -26,6 +27,7 @@ class WelcomePresenter(
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val appThemeRepository: AppThemeRepository,
   private val restorableAccountRepository: RestorableAccountRepository,
+  private val passwordCredentials: PasswordCredentials,
   private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -37,6 +39,7 @@ class WelcomePresenter(
     localNetworkPermission = localNetworkPermission,
     appThemeRepository = appThemeRepository,
     restorableAccountRepository = restorableAccountRepository,
+    passwordCredentials = passwordCredentials,
   )
 
   @Composable

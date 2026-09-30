@@ -6,6 +6,7 @@ package app.campfire.auth.ui.login
 import app.campfire.account.api.RestorableAccount
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.ServerStatus
 import app.campfire.core.model.NetworkSettings
@@ -31,8 +32,11 @@ internal class FakeRestorableAccountRepository(
   }
 }
 
-internal class FakeAuthRepository : AuthRepository {
+internal class FakeAuthRepository(
+  private val authMethods: List<String> = listOf(AUTH_METHOD_LOCAL),
+) : AuthRepository {
   val authenticatedUserNames = mutableListOf<String>()
+  val authenticatedPasswords = mutableListOf<String>()
 
   override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
     Result.success(
@@ -40,7 +44,7 @@ internal class FakeAuthRepository : AuthRepository {
         serverVersion = "2.30.0",
         isInit = true,
         language = "en-us",
-        authMethods = listOf(AUTH_METHOD_LOCAL),
+        authMethods = authMethods,
       ),
     )
 
@@ -53,6 +57,7 @@ internal class FakeAuthRepository : AuthRepository {
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
     authenticatedUserNames += username
+    authenticatedPasswords += password
     return Result.success(Unit)
   }
 
@@ -67,6 +72,25 @@ internal class FakeAuthRepository : AuthRepository {
   ): Result<Unit> = Result.failure(IllegalStateException("Unreachable"))
 
   override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? = null
+}
+
+/**
+ * A password manager holding [saved] passwords by `serverUrl to userName`
+ */
+internal class FakePasswordCredentials(
+  private val saved: Map<Pair<String, String>, String> = emptyMap(),
+) : PasswordCredentials {
+  val offeredToSave = mutableListOf<Triple<String, String, String>>()
+  val lookups = mutableListOf<Pair<String, String>>()
+
+  override fun offerToSave(serverUrl: String, userName: String, password: String) {
+    offeredToSave += Triple(serverUrl, userName, password)
+  }
+
+  override suspend fun find(serverUrl: String, userName: String): String? {
+    lookups += serverUrl to userName
+    return saved[serverUrl to userName]
+  }
 }
 
 internal class UnusedAuthorizationFlow : AuthorizationFlow {

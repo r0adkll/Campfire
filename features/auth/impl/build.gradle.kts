@@ -25,6 +25,12 @@ kotlin {
       }
     }
 
+    androidMain {
+      dependencies {
+        implementation(libs.androidx.credentials)
+      }
+    }
+
     commonTest {
       dependencies {
         implementation(libs.bundles.test.common)

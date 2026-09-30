@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
 import app.campfire.auth.ui.BuildConfig
@@ -57,6 +58,7 @@ class LoginPresenter(
   private val localNetworkPermission: LocalNetworkPermissionController,
   private val appThemeRepository: AppThemeRepository,
   private val restorableAccountRepository: RestorableAccountRepository,
+  private val passwordCredentials: PasswordCredentials,
 ) : Presenter<LoginUiState> {
 
   private val initialServerName: String = when (screen) {
@@ -112,6 +114,9 @@ class LoginPresenter(
     var isAuthenticating by remember { mutableStateOf(false) }
     var authError by remember { mutableStateOf<AuthError?>(null) }
     var isRestoringAccount by remember { mutableStateOf(screen is LoginScreen.Restore) }
+    // A password from the password manager is already saved there, so don't offer to save it
+    var isSavedPassword by remember { mutableStateOf(false) }
+    val lookedUpAccounts = remember { mutableSetOf<Pair<String, String>>() }
 
     // Accounts from before a reinstall, offered to prefill the form. Re-authentication already
     // knows which account it's for.
@@ -154,6 +159,64 @@ class LoginPresenter(
       }
     }
 
+    val signInWithPassword: () -> Unit = signIn@{
+      // Validate that we can actually add a campsite
+      if (
+        connectionState !is ConnectionState.Success ||
+        username.isBlank() ||
+        password.isBlank()
+      ) {
+        return@signIn
+      }
+
+      isAuthenticating = true
+      authError = null
+      val offerToSave = !isSavedPassword
+      coroutineScope.launch {
+        authRepository.authenticate(
+          serverUrl = serverUrl,
+          serverName = serverName,
+          username = username,
+          password = password,
+          userId = existingUserId,
+          networkSettings = networkSettings,
+        ).onSuccess {
+          applySelectedTheme(theme, isRestoringAccount)
+          if (offerToSave) passwordCredentials.offerToSave(serverUrl, username, password)
+        }.onFailure {
+          isAuthenticating = false
+          authError = it.asAuthError()
+        }
+      }
+    }
+
+    // Signing back into an account we know, once its server is found, offer the password the user
+    // saved for it. Picking one signs in, since everything else is already filled in.
+    val knownAccount = if (isRestoringAccount || screen is LoginScreen.ReAuthentication) {
+      serverUrl to username
+    } else {
+      null
+    }
+    LaunchedEffect(connectionState, knownAccount) {
+      val authMethodState = (connectionState as? ConnectionState.Success)?.authMethodState
+      if (
+        knownAccount == null ||
+        authMethodState?.passwordAuthEnabled != true ||
+        password.isNotEmpty() ||
+        // Ask once per account, not every time the server is found again
+        !lookedUpAccounts.add(knownAccount)
+      ) {
+        return@LaunchedEffect
+      }
+
+      val savedPassword = passwordCredentials.find(knownAccount.first, knownAccount.second)
+      if (savedPassword != null) {
+        password = savedPassword
+        isSavedPassword = true
+        signInWithPassword()
+      }
+    }
+
     return LoginUiState(
       theme = theme,
       serverName = serverName,
@@ -174,7 +237,10 @@ class LoginPresenter(
         is ChangeTheme -> theme = event.theme
         is ChangeNetworkSettings -> networkSettings = event.settings
         is UserName -> username = event.userName
-        is Password -> password = event.password
+        is Password -> {
+          password = event.password
+          isSavedPassword = false
+        }
         is ServerName -> serverName = event.serverName
         is ServerUrl -> serverUrl = event.url
 
@@ -190,34 +256,7 @@ class LoginPresenter(
           restorableAccountRepository.dismiss(event.account)
         }
 
-        is AddCampsite -> {
-          // Validate that we can actually add a campsite
-          if (
-            connectionState !is ConnectionState.Success ||
-            username.isBlank() ||
-            password.isBlank()
-          ) {
-            return@LoginUiState
-          }
-
-          isAuthenticating = true
-          authError = null
-          coroutineScope.launch {
-            authRepository.authenticate(
-              serverUrl = serverUrl,
-              serverName = serverName,
-              username = username,
-              password = password,
-              userId = existingUserId,
-              networkSettings = networkSettings,
-            ).onSuccess {
-              applySelectedTheme(theme, isRestoringAccount)
-            }.onFailure {
-              isAuthenticating = false
-              authError = it.asAuthError()
-            }
-          }
-        }
+        is AddCampsite -> signInWithPassword()
 
         is LoginUiEvent.StartOpenIdAuth -> {
           isAuthenticating = true
