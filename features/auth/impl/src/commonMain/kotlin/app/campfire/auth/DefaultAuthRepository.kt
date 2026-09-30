@@ -4,6 +4,7 @@
 package app.campfire.auth
 
 import app.campfire.account.api.AccountManager
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
@@ -13,6 +14,7 @@ import app.campfire.auth.local.UserStorageStrategy
 import app.campfire.auth.model.asDomainModel
 import app.campfire.core.di.AppScope
 import app.campfire.core.model.NetworkSettings
+import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.ApiException
@@ -54,7 +56,7 @@ class DefaultAuthRepository(
       serverName = serverName,
       userId = userId,
       networkSettings = networkSettings,
-    )
+    ).map { }
   }
 
   override suspend fun authenticate(
@@ -73,6 +75,24 @@ class DefaultAuthRepository(
       serverName = serverName,
       userId = userId,
       networkSettings = networkSettings,
+    ).map { }
+  }
+
+  override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> {
+    val refreshToken = account.token.refreshToken
+      ?: return Result.failure(AuthException.InvalidCredentials())
+    val networkSettings = account.extraHeaders
+      .takeIf { it.isNotEmpty() }
+      ?.let { NetworkSettings(extraHeaders = it) }
+
+    val result = api.refresh(account.serverUrl, refreshToken, networkSettings?.extraHeaders)
+    return processLoginResult(
+      result = result,
+      serverUrl = account.serverUrl,
+      serverName = account.serverName,
+      userId = null,
+      networkSettings = networkSettings,
+      activate = activate,
     )
   }
 
@@ -88,7 +108,8 @@ class DefaultAuthRepository(
     serverName: String,
     userId: UserId?,
     networkSettings: NetworkSettings?,
-  ): Result<Unit> {
+    activate: Boolean = true,
+  ): Result<User> {
     val response = result.getOrElse { return Result.failure(it.asAuthException()) }
 
     if (response.user.accessToken == null) {
@@ -98,16 +119,17 @@ class DefaultAuthRepository(
     val defaultLibraryId = response.userDefaultLibraryId
       ?: return Result.failure(AuthException.NoAccessibleLibraries())
 
-    handleLoginResponse(
+    val user = handleLoginResponse(
       serverUrl = serverUrl,
       serverName = serverName,
       response = response,
       defaultLibraryId = defaultLibraryId,
       userId = userId,
       networkSettings = networkSettings,
+      activate = activate,
     )
 
-    return Result.success(Unit)
+    return Result.success(user)
   }
 
   private suspend fun handleLoginResponse(
@@ -117,7 +139,8 @@ class DefaultAuthRepository(
     defaultLibraryId: String,
     userId: UserId?,
     networkSettings: NetworkSettings?,
-  ) {
+    activate: Boolean,
+  ): User {
     // Insert Server & User
     val storageStrategy = if (userId != null) {
       existingUserStorageStrategy
@@ -134,13 +157,16 @@ class DefaultAuthRepository(
     )
 
     // Add the new account/user and set it as the current session
+    val user = response.user.asDomainModel(serverUrl, defaultLibraryId)
     accountManager.addAccount(
       serverUrl = serverUrl,
       accessToken = requireNotNull(response.user.accessToken),
       refreshToken = response.user.refreshToken,
       extraHeaders = networkSettings?.extraHeaders,
-      user = response.user.asDomainModel(serverUrl, defaultLibraryId),
+      user = user,
+      activate = activate,
     )
+    return user
   }
 
   private fun Throwable.asAuthException(): AuthException = when {

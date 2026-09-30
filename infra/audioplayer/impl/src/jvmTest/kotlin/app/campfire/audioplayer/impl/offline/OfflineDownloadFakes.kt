@@ -47,6 +47,7 @@ internal class FakeAccountManager : AccountManager {
     refreshToken: String?,
     extraHeaders: Map<String, String>?,
     user: User,
+    activate: Boolean,
   ) = Unit
 
   override suspend fun invalidateAccount(user: User) = Unit

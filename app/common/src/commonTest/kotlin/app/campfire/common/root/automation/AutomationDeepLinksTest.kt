@@ -3,6 +3,7 @@
 
 package app.campfire.common.root.automation
 
+import app.campfire.account.api.BackedUpAccount
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
@@ -221,6 +222,9 @@ class AutomationDeepLinksTest {
       userId: UserId?,
       networkSettings: NetworkSettings?,
     ): Result<Unit> = Result.failure(UnsupportedOperationException())
+
+    override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> =
+      Result.failure(IllegalStateException("Unused"))
 
     override suspend fun getNetworkSettings(userId: UserId): NetworkSettings? = null
   }

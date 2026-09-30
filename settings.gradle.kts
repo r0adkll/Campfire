@@ -135,6 +135,7 @@ include(
 )
 include(
   ":data:account:api",
+  ":data:account:blockstore",
   ":data:account:impl",
   ":data:account:ui",
   ":data:account:test",

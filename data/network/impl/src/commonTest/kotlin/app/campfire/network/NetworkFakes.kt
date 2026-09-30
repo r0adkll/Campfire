@@ -47,6 +47,7 @@ internal class FakeAccountManager : AccountManager {
     refreshToken: String?,
     extraHeaders: Map<String, String>?,
     user: User,
+    activate: Boolean,
   ) {
     tokens[user.id] = AbsToken(accessToken, refreshToken)
   }

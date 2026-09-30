@@ -31,6 +31,17 @@ interface AuthAudioBookShelfApi {
   ): Result<LoginResponse>
 
   /**
+   * Sign back in with a [refreshToken] saved from an earlier session, e.g. one restored from a
+   * backup. The server answers like [login], with a new token pair; the old refresh token stops
+   * working.
+   */
+  suspend fun refresh(
+    serverUrl: String,
+    refreshToken: String,
+    extraHeaders: Map<String, String>? = null,
+  ): Result<LoginResponse>
+
+  /**
    * Call /auth/openid to start oauth2 session and receive the authorization URL
    * to display to the user.
    */

@@ -100,6 +100,7 @@ fun Welcome(
           RestorableAccounts(
             accounts = restorableAccounts,
             theme = state.loginUiState.restoredTheme,
+            restoringUserIds = state.restoringUserIds,
             onSelect = { state.eventSink(WelcomeUiEvent.RestoreAccount(it)) },
             onDismiss = { state.loginUiState.eventSink(LoginUiEvent.DismissRestorableAccount(it)) },
             contentPadding = PaddingValues(horizontal = 26.dp),

@@ -14,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.ServerRepository
+import app.campfire.account.api.TokenBackup
 import app.campfire.analytics.Analytics
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.model.PlaybackTimer
@@ -133,6 +134,7 @@ class SettingsPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val libraryItemRepository: LibraryItemRepository,
   private val accountManager: AccountManager,
+  private val tokenBackup: TokenBackup,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val shakeDetector: ShakeDetector,
   private val androidAuto: AndroidAuto,
@@ -236,6 +238,10 @@ class SettingsPresenter(
     val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState()
     val fadeOutDuration by remember { sleepSettings.observeFadeOutDuration() }.collectAsState()
 
+    // Account Settings
+    val keepSignedInAfterReinstall by remember { settings.observeKeepSignedInAfterReinstall() }
+      .collectAsState()
+
     // About Settings
     val crashReportingEnabled by remember { settings.observeCrashReportingEnabled() }
       .collectAsState()
@@ -285,6 +291,7 @@ class SettingsPresenter(
 
     return SettingsUiState(
       server = server,
+      keepSignedInAfterReinstall = keepSignedInAfterReinstall.takeIf { tokenBackup.isAvailable },
       isShakingAvailable = remember { shakeDetector.isAvailable },
       isAndroidAutoPaneVisible = currentPlatform == Platform.ANDROID,
       applicationInfo = applicationInfo,
@@ -389,6 +396,10 @@ class SettingsPresenter(
         is SettingsUiEvent.AccountSettingEvent -> when (event) {
           is ChangeName -> {
             scope.launch { serverRepository.changeName(event.name) }
+          }
+
+          is SettingsUiEvent.AccountSettingEvent.KeepSignedInAfterReinstall -> {
+            settings.keepSignedInAfterReinstall = event.enabled
           }
 
           Logout -> {

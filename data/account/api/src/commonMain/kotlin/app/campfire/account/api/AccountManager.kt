@@ -22,6 +22,7 @@ interface AccountManager {
    * @param accessToken the access token the account will use to access the server
    * @param refreshToken the refresh token the account will use to refresh the access token
    * @param user the user object representing the new account
+   * @param activate whether to switch to the new account, rather than just adding it
    */
   suspend fun addAccount(
     serverUrl: String,
@@ -29,6 +30,7 @@ interface AccountManager {
     refreshToken: String?,
     extraHeaders: Map<String, String>?,
     user: User,
+    activate: Boolean = true,
   )
 
   /**

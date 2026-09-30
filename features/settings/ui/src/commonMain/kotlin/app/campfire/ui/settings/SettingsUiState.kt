@@ -33,6 +33,8 @@ import kotlinx.datetime.LocalTime
 @Stable
 data class SettingsUiState(
   val server: LoadState<out Server>,
+  /** Whether sign-ins are kept across a reinstall, or null where they can't be. */
+  val keepSignedInAfterReinstall: Boolean? = null,
   val isShakingAvailable: Boolean,
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
@@ -221,6 +223,7 @@ sealed interface SettingsUiEvent : CircuitUiEvent {
   sealed interface AccountSettingEvent : SettingsUiEvent {
     data class ChangeName(val name: String) : AccountSettingEvent
     data object Logout : AccountSettingEvent
+    data class KeepSignedInAfterReinstall(val enabled: Boolean) : AccountSettingEvent
   }
 
   // Appearance Pane Events

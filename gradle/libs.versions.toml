@@ -266,6 +266,7 @@ media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-session = { module = "androidx.media3:media3-session", version.ref = "media3" }
 
 # This will force an upgrade in the 'media3-cast' library
+play-services-auth-blockstore = "com.google.android.gms:play-services-auth-blockstore:16.4.0"
 play-services-cast-framework = "com.google.android.gms:play-services-cast-framework:22.3.1"
 # Pinned to the version play-services-cast-framework resolves so behavior is unchanged;
 # declared explicitly because :infra:audioplayer:cast uses mediarouter APIs directly.

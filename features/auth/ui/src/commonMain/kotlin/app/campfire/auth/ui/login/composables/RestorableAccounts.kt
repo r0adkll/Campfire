@@ -6,6 +6,7 @@ package app.campfire.auth.ui.login.composables
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,10 +38,12 @@ import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.Close
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.IconButtonTooltip
+import app.campfire.core.model.UserId
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_dismiss_restorable_account
+import campfire.features.auth.ui.generated.resources.label_restoring_account
 import campfire.features.auth.ui.generated.resources.login_restorable_accounts_title
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import com.slack.circuit.sharedelements.SharedElementTransitionScope
@@ -78,6 +84,7 @@ internal fun RestorableAccounts(
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
   showTitle: Boolean = false,
+  restoringUserIds: Set<UserId> = emptySet(),
 ) = SharedElementTransitionScope {
   Column(modifier) {
     if (showTitle) {
@@ -97,6 +104,7 @@ internal fun RestorableAccounts(
         RestorableAccountCard(
           account = account,
           theme = theme,
+          isRestoring = account.userId in restoringUserIds,
           onClick = { onSelect(account) },
           onDismiss = { onDismiss(account) },
           modifier = Modifier.sharedElement(
@@ -115,12 +123,15 @@ internal fun RestorableAccounts(
 private fun RestorableAccountCard(
   account: RestorableAccount,
   theme: AppTheme,
+  isRestoring: Boolean,
   onClick: () -> Unit,
   onDismiss: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
   Surface(
     onClick = onClick,
+    // Signing back in on its own, so there's nothing to pick or dismiss
+    enabled = !isRestoring,
     // Outlined pills, to set them apart from the filled "Add a campsite" card
     shape = MaterialTheme.shapes.large,
     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -157,14 +168,30 @@ private fun RestorableAccountCard(
           overflow = TextOverflow.Ellipsis,
         )
       }
-      val dismissLabel = stringResource(Res.string.action_dismiss_restorable_account)
-      IconButtonTooltip(text = dismissLabel) {
-        IconButton(onClick = onDismiss) {
-          Icon(
-            CampfireIcons.Rounded.Close,
-            contentDescription = dismissLabel,
+      if (isRestoring) {
+        val restoringLabel = stringResource(Res.string.label_restoring_account)
+        // Sized like the dismiss button it stands in for
+        Box(
+          contentAlignment = Alignment.Center,
+          modifier = Modifier
+            .size(48.dp)
+            .semantics { contentDescription = restoringLabel },
+        ) {
+          CircularProgressIndicator(
+            strokeWidth = 2.dp,
             modifier = Modifier.size(18.dp),
           )
+        }
+      } else {
+        val dismissLabel = stringResource(Res.string.action_dismiss_restorable_account)
+        IconButtonTooltip(text = dismissLabel) {
+          IconButton(onClick = onDismiss) {
+            Icon(
+              CampfireIcons.Rounded.Close,
+              contentDescription = dismissLabel,
+              modifier = Modifier.size(18.dp),
+            )
+          }
         }
       }
     }
