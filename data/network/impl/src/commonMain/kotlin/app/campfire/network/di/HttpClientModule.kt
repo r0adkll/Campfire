@@ -26,7 +26,7 @@ import io.ktor.client.HttpClientConfig
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.bearer
+import io.ktor.client.plugins.auth.providers.BearerAuthProvider
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -37,12 +37,16 @@ import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.url
+import io.ktor.client.statement.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+
+private const val AUDIO_PLAYER_CONNECT_TIMEOUT_MILLIS = 8_000L
+private const val AUDIO_PLAYER_SOCKET_TIMEOUT_MILLIS = 8_000L
 
 private val RESPONSE_CODE_REGEX = "RESPONSE: (\\d+)".toRegex(RegexOption.MULTILINE)
 
@@ -136,12 +140,26 @@ interface HttpClientModule {
     }
   }
 
+  /**
+   * The one bearer provider for the current user, shared by every client that authenticates as
+   * them. The provider owns the cached token and single-flights refreshes, so sharing the
+   * instance (rather than installing `bearer {}` per client) keeps a single refresh authority.
+   */
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideUserBearerAuthProvider(
+    userSessionManager: UserSessionManager,
+    accountManager: AccountManager,
+  ): BearerAuthProvider = userBearerAuthProvider(userSessionManager, accountManager)
+
   @DownloadClient
   @SingleIn(AppScope::class)
   @Provides
   fun provideDownloadHttpClient(
     applicationInfo: ApplicationInfo,
-  ): HttpClient = createDownloadHttpClient(applicationInfo)
+  ): HttpClient = HttpClient {
+    configureDownloadHttpClient(applicationInfo)
+  }
 
   @UserClient
   @SingleIn(AppScope::class)
@@ -150,19 +168,22 @@ interface HttpClientModule {
     @BaseClient baseClient: HttpClient,
     userSessionManager: UserSessionManager,
     accountManager: AccountManager,
-    applicationInfo: ApplicationInfo,
+    bearerAuthProvider: BearerAuthProvider,
     reachabilityGate: ReachabilityGate,
-  ): HttpClient {
-    return baseClient.config {
-      install(serverReachabilityPlugin(reachabilityGate))
+  ): HttpClient = baseClient.config {
+    configureUserHttpClient(userSessionManager, accountManager, bearerAuthProvider, reachabilityGate)
+  }
 
-      install(WebSockets) {
-        pingIntervalMillis = 20_000
-      }
-
-      installUserAuth(userSessionManager, accountManager)
-      installUserExtraHeaders(userSessionManager, accountManager)
-    }
+  @AudioPlayerClient
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideAudioPlayerHttpClient(
+    applicationInfo: ApplicationInfo,
+    userSessionManager: UserSessionManager,
+    accountManager: AccountManager,
+    bearerAuthProvider: BearerAuthProvider,
+  ): HttpClient = HttpClient {
+    configureAudioPlayerClient(applicationInfo, userSessionManager, accountManager, bearerAuthProvider)
   }
 }
 
@@ -172,7 +193,7 @@ interface HttpClientModule {
  * request timeout, since a download legitimately takes minutes; the socket timeout instead
  * abandons a transfer that stops receiving data.
  */
-internal fun createDownloadHttpClient(applicationInfo: ApplicationInfo): HttpClient = HttpClient {
+internal fun HttpClientConfig<*>.configureDownloadHttpClient(applicationInfo: ApplicationInfo) {
   install(HttpTimeout) {
     connectTimeoutMillis = 15_000
     socketTimeoutMillis = 60_000
@@ -181,6 +202,61 @@ internal fun createDownloadHttpClient(applicationInfo: ApplicationInfo): HttpCli
   defaultRequest {
     header(HttpHeaders.UserAgent, applicationInfo.userAgent)
   }
+}
+
+/**
+ * Configures the [UserClient] on top of the [BaseClient]'s config: authenticated as the session
+ * user, with server reachability tracking and websocket support for the socket connection.
+ */
+internal fun HttpClientConfig<*>.configureUserHttpClient(
+  userSessionManager: UserSessionManager,
+  accountManager: AccountManager,
+  bearerAuthProvider: BearerAuthProvider,
+  reachabilityGate: ReachabilityGate,
+) {
+  install(serverReachabilityPlugin(reachabilityGate))
+
+  install(WebSockets) {
+    pingIntervalMillis = 20_000
+  }
+
+  installUserAuth(bearerAuthProvider)
+  installUserExtraHeaders(userSessionManager, accountManager)
+}
+
+/**
+ * Configures the [AudioPlayerClient]: like the [DownloadClient], it skips the base client's
+ * `HttpCache` and debug inspection, which read whole responses into memory, and has no request
+ * timeout so long streams aren't cut off. Its short connect and socket timeouts let a dead
+ * connection fail over to the player's retry and cache handling quickly. `ContentNegotiation`
+ * is installed because a 401 here runs the shared bearer provider's refresh on this client.
+ */
+internal fun HttpClientConfig<*>.configureAudioPlayerClient(
+  applicationInfo: ApplicationInfo,
+  userSessionManager: UserSessionManager,
+  accountManager: AccountManager,
+  bearerAuthProvider: BearerAuthProvider,
+) {
+  install(HttpTimeout) {
+    connectTimeoutMillis = AUDIO_PLAYER_CONNECT_TIMEOUT_MILLIS
+    socketTimeoutMillis = AUDIO_PLAYER_SOCKET_TIMEOUT_MILLIS
+  }
+
+  install(ContentNegotiation) {
+    json(
+      Json {
+        isLenient = true
+        ignoreUnknownKeys = true
+      },
+    )
+  }
+
+  defaultRequest {
+    header(HttpHeaders.UserAgent, applicationInfo.userAgent)
+  }
+
+  installUserAuth(bearerAuthProvider)
+  installUserExtraHeaders(userSessionManager, accountManager)
 }
 
 /**
@@ -201,64 +277,78 @@ internal fun HttpClientConfig<*>.installUserExtraHeaders(
 }
 
 /**
- * Installs bearer auth for the current session's user. This is the ONLY place tokens are
- * refreshed — Ktor's Auth plugin caches the bearer pair internally and single-flights its own
- * refresh, so refreshing anywhere else would rotate the single-use refresh token underneath
- * the plugin's cached copy and orphan it. Anything outside the HTTP client that needs a fresh
- * token (e.g. the socket) must trigger this plugin via an authenticated request instead — see
- * `UserClientTokenRefresher`.
+ * Installs bearer auth backed by [provider]. Every client authenticating as the session user must
+ * install the same [userBearerAuthProvider] instance so they share its cached token and refresh.
  */
-internal fun HttpClientConfig<*>.installUserAuth(
-  userSessionManager: UserSessionManager,
-  accountManager: AccountManager,
-) {
+internal fun HttpClientConfig<*>.installUserAuth(provider: BearerAuthProvider) {
   install(Auth) {
-    bearer {
-      loadTokens {
-        userSessionManager.current.userId?.let { userId ->
-          accountManager.getToken(userId)?.asBearerTokens()
-        }
-      }
-
-      refreshTokens {
-        // Pin the user for the whole refresh: the session can end or switch while the refresh
-        // request is in flight, and the rotated token belongs to the user it was issued for.
-        val user = userSessionManager.current.user ?: return@refreshTokens null
-        val tokens = accountManager.getToken(user.id)
-        val newTokenResponse = client.post {
-          url("${cleanServerUrl(user.serverUrl)}/auth/refresh")
-          tokens?.refreshToken?.let {
-            header(HttpHeaders.RefreshToken, it)
-          }
-          markAsRefreshTokenRequest()
-        }
-
-        return@refreshTokens if (newTokenResponse.status.isSuccess()) {
-          try {
-            val newToken = newTokenResponse.body<RefreshResponse>().asAbsToken()
-            if (newToken != null) {
-              accountManager.updateToken(user.id, newToken)
-              newToken.asBearerTokens()
-            } else {
-              bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
-              accountManager.invalidateAccount(user)
-              null
-            }
-          } catch (e: Exception) {
-            bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
-            null
-          }
-        } else {
-          bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
-          if (
-            newTokenResponse.status == HttpStatusCode.Unauthorized ||
-            newTokenResponse.status == HttpStatusCode.Forbidden
-          ) {
-            accountManager.invalidateAccount(user)
-          }
-          null
-        }
-      }
-    }
+    providers += provider
   }
 }
+
+/**
+ * Bearer auth for the current session's user. This is the ONLY place tokens are refreshed — the
+ * provider caches the bearer pair and single-flights its own refresh, so refreshing anywhere else
+ * would rotate the single-use refresh token underneath the cached copy and orphan it. Anything
+ * outside the HTTP clients that needs a fresh token (e.g. the socket) must trigger this provider
+ * via an authenticated request instead — see `UserClientTokenRefresher`.
+ */
+internal fun userBearerAuthProvider(
+  userSessionManager: UserSessionManager,
+  accountManager: AccountManager,
+): BearerAuthProvider = BearerAuthProvider(
+  loadTokens = {
+    userSessionManager.current.userId?.let { userId ->
+      accountManager.getToken(userId)?.asBearerTokens()
+    }
+  },
+  refreshTokens = refreshTokens@{
+    // Pin the user for the whole refresh: the session can end or switch while the refresh
+    // request is in flight, and the rotated token belongs to the user it was issued for.
+    val user = userSessionManager.current.user ?: return@refreshTokens null
+    val tokens = accountManager.getToken(user.id)
+
+    // Clients sharing this provider keep their own record of which requests predate a
+    // refresh, so one can see a 401 for a token another has already rotated. Retry with the
+    // stored token instead of spending its refresh token on a second rotation.
+    val sentAccessToken = response.request.headers[HttpHeaders.Authorization]?.removePrefix("Bearer ")
+    if (tokens != null && sentAccessToken != null && sentAccessToken != tokens.accessToken) {
+      return@refreshTokens tokens.asBearerTokens()
+    }
+
+    val newTokenResponse = client.post {
+      url("${cleanServerUrl(user.serverUrl)}/auth/refresh")
+      tokens?.refreshToken?.let {
+        header(HttpHeaders.RefreshToken, it)
+      }
+      markAsRefreshTokenRequest()
+    }
+
+    return@refreshTokens if (newTokenResponse.status.isSuccess()) {
+      try {
+        val newToken = newTokenResponse.body<RefreshResponse>().asAbsToken()
+        if (newToken != null) {
+          accountManager.updateToken(user.id, newToken)
+          newToken.asBearerTokens()
+        } else {
+          bark("KtorClient", LogPriority.ERROR) { "No valid tokens in response, requiring authentication…" }
+          accountManager.invalidateAccount(user)
+          null
+        }
+      } catch (e: Exception) {
+        bark("KtorClient", LogPriority.ERROR) { "Something went wrong trying to parse refresh token response" }
+        null
+      }
+    } else {
+      bark("KtorClient", LogPriority.ERROR) { "[${newTokenResponse.status}] Refresh token request failed!" }
+      if (
+        newTokenResponse.status == HttpStatusCode.Unauthorized ||
+        newTokenResponse.status == HttpStatusCode.Forbidden
+      ) {
+        accountManager.invalidateAccount(user)
+      }
+      null
+    }
+  },
+  realm = null,
+)

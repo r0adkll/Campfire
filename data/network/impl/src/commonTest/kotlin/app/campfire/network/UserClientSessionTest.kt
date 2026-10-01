@@ -9,6 +9,7 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.installUserAuth
 import app.campfire.network.di.installUserExtraHeaders
+import app.campfire.network.di.userBearerAuthProvider
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -42,7 +43,7 @@ class UserClientSessionTest {
     install(ContentNegotiation) {
       json(Json { ignoreUnknownKeys = true })
     }
-    installUserAuth(sessionManager, accountManager)
+    installUserAuth(userBearerAuthProvider(sessionManager, accountManager))
     installUserExtraHeaders(sessionManager, accountManager)
   }
 

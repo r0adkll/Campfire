@@ -12,7 +12,7 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy.LoadErrorInfo
 @UnstableApi
 class CampfireLoadErrorHandlingPolicy : DefaultLoadErrorHandlingPolicy() {
   override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorInfo): Long {
-    if (loadErrorInfo.exception is NonRetryableAuthException) {
+    if (loadErrorInfo.isUnauthorized()) {
       return C.TIME_UNSET
     }
     if (loadErrorInfo.isRetryableHlsSegmentMiss()) {
@@ -21,6 +21,13 @@ class CampfireLoadErrorHandlingPolicy : DefaultLoadErrorHandlingPolicy() {
     }
     return super.getRetryDelayMsFor(loadErrorInfo)
   }
+
+  /**
+   * The audio player's HTTP client already refreshes the token and retries a request on a 401,
+   * so one that reaches the player means the refresh failed and retrying can't recover it.
+   */
+  private fun LoadErrorInfo.isUnauthorized(): Boolean =
+    (exception as? InvalidResponseCodeException)?.responseCode == HTTP_UNAUTHORIZED
 
   /**
    * A 404 on an ABS `/hls/` segment usually means ffmpeg hasn't produced it yet — the server
@@ -43,6 +50,7 @@ class CampfireLoadErrorHandlingPolicy : DefaultLoadErrorHandlingPolicy() {
   }
 
   companion object {
+    private const val HTTP_UNAUTHORIZED = 401
     private const val HLS_404_RETRY_BASE_DELAY_MS = 750L
     private const val HLS_404_RETRY_MAX_DELAY_MS = 3_000L
     private const val HLS_404_RETRY_COUNT = 6

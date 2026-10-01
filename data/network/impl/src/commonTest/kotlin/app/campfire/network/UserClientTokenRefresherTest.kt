@@ -8,6 +8,7 @@ import app.campfire.account.api.AccountManager
 import app.campfire.account.api.UserSessionManager
 import app.campfire.core.session.UserSession
 import app.campfire.network.di.installUserAuth
+import app.campfire.network.di.userBearerAuthProvider
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
@@ -78,7 +79,7 @@ class UserClientTokenRefresherTest {
           },
         )
       }
-      installUserAuth(sessionManager, accountManager)
+      installUserAuth(userBearerAuthProvider(sessionManager, accountManager))
     }
     return UserClientTokenRefresher(client, accountManager, sessionManager)
   }
