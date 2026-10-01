@@ -4,13 +4,9 @@
 package app.campfire.account.settings
 
 import android.app.Application
-import android.content.Context
-import android.content.SharedPreferences
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
 import app.campfire.core.di.AppScope
+import app.campfire.securesettings.keystoreSettings
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.SharedPreferencesSettings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 
@@ -25,8 +21,10 @@ actual interface PlatformTokenSettingsComponent {
   @TokenSettings
   fun provideTokenSettings(
     application: Application,
-  ): Settings = SharedPreferencesSettings(
-    delegate = createEncryptedSharedPreferences(application, "token_shared_prefs"),
+  ): Settings = keystoreSettings(
+    context = application,
+    name = "secure_tokens",
+    legacyName = "token_shared_prefs",
   )
 
   @SingleIn(AppScope::class)
@@ -34,24 +32,9 @@ actual interface PlatformTokenSettingsComponent {
   @ExtraHeaderSettings
   fun provideExtraHeaderSettings(
     application: Application,
-  ): Settings = SharedPreferencesSettings(
-    delegate = createEncryptedSharedPreferences(application, "extra_headers"),
-  )
-}
-
-internal fun createEncryptedSharedPreferences(
-  context: Context,
-  name: String,
-): SharedPreferences {
-  val masterKey: MasterKey = MasterKey.Builder(context)
-    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-    .build()
-
-  return EncryptedSharedPreferences.create(
-    context,
-    name,
-    masterKey,
-    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+  ): Settings = keystoreSettings(
+    context = application,
+    name = "secure_extra_headers",
+    legacyName = "extra_headers",
   )
 }

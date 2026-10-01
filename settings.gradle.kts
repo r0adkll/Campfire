@@ -124,6 +124,7 @@ include(
   ":infra:whats-new:test",
   ":infra:whats-new:ui",
   ":infra:tracing",
+  ":infra:securesettings",
   ":infra:socket:api",
   ":infra:socket:impl",
   ":infra:socket:test",
