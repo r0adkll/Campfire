@@ -82,6 +82,9 @@ kotlin {
         implementation(projects.features.search.api)
 
         implementation(libs.media3.exoplayer.hls)
+        implementation(libs.media3.datasource.ktor.get().copy()) {
+          exclude(group = "io.ktor", module = "ktor-client-android")
+        }
         implementation(libs.media3.session)
         implementation(libs.androidx.lifecycle.runtime)
         implementation(libs.androidx.lifecycle.process)

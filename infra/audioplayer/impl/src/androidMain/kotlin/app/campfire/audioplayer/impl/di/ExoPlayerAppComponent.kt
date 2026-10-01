@@ -8,29 +8,22 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.datasource.ktor.KtorDataSource
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
-import app.campfire.account.api.AccountManager
-import app.campfire.account.api.UserSessionManager
-import app.campfire.audioplayer.impl.networking.AuthRefreshingHttpDataSource
 import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
 import app.campfire.audioplayer.impl.offline.downloadRequirements
-import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
-import app.campfire.core.session.UserSession
-import app.campfire.core.session.requiredUserId
-import app.campfire.network.di.UserClient
+import app.campfire.network.di.AudioPlayerClient
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesTo
@@ -39,7 +32,6 @@ import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import java.io.File
 import java.util.concurrent.Executors
-import kotlinx.coroutines.runBlocking
 
 @ContributesTo(AppScope::class)
 interface ExoPlayerAppComponent {
@@ -85,32 +77,34 @@ interface ExoPlayerAppComponent {
     )
   }
 
+  /**
+   * Media requests go through the [AudioPlayerClient], which authenticates with the same bearer
+   * provider as the user client: it attaches the session user's token and extra headers, and a
+   * 401 refreshes the shared token and retries before the player ever sees it.
+   */
+  @OptIn(UnstableApi::class)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideHttpDataSourceFactory(
+    @AudioPlayerClient client: HttpClient,
+  ): HttpDataSource.Factory = KtorDataSource.Factory(client)
+
   @OptIn(UnstableApi::class)
   @SingleIn(AppScope::class)
   @Provides
   fun provideExoPlayerDownloadManager(
     application: Application,
-    sessionManager: UserSessionManager,
-    accountManager: AccountManager,
     databaseProvider: DatabaseProvider,
     @DownloadCache downloadCache: SimpleCache,
-    appInfo: ApplicationInfo,
-    @UserClient userClient: HttpClient,
+    httpDataSourceFactory: HttpDataSource.Factory,
     mobileDataSettings: MobileDataSettings,
   ): DownloadManager {
     val numCpus = Runtime.getRuntime().availableProcessors()
-    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-      .setUserAgent(appInfo.userAgent)
-    val authRetryFactory = AuthRefreshingHttpDataSource.Factory(httpDataSourceFactory, userClient)
     return DownloadManager(
       application,
       databaseProvider,
       downloadCache,
-      createAuthenticatingDataSource(
-        userSessionProvider = { sessionManager.current },
-        accountManager = accountManager,
-        upstreamDataSourceFactory = authRetryFactory,
-      ),
+      httpDataSourceFactory,
       Executors.newFixedThreadPool(numCpus),
     ).apply {
       maxParallelDownloads = numCpus
@@ -126,20 +120,12 @@ interface ExoPlayerAppComponent {
     settings: PlaybackSettings,
     @DownloadCache downloadCache: SimpleCache,
     @StreamingCache streamingCache: SimpleCache,
-    sessionManager: UserSessionManager,
-    accountManager: AccountManager,
-    appInfo: ApplicationInfo,
+    httpDataSourceFactory: HttpDataSource.Factory,
     loadErrorHandlingPolicy: LoadErrorHandlingPolicy,
-    @UserClient userClient: HttpClient,
   ): MediaSource.Factory {
-    val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-      .setUserAgent(appInfo.userAgent)
-
-    val authRetryFactory = AuthRefreshingHttpDataSource.Factory(httpDataSourceFactory, userClient)
-
     val streamingCacheDataSourceFactory = CacheDataSource.Factory()
       .setCache(streamingCache)
-      .setUpstreamDataSourceFactory(authRetryFactory)
+      .setUpstreamDataSourceFactory(httpDataSourceFactory)
 
     val cacheDataSourceFactory = CacheDataSource.Factory()
       .setCache(downloadCache)
@@ -156,43 +142,11 @@ interface ExoPlayerAppComponent {
     }
 
     return DefaultMediaSourceFactory(application, extractorsFactory)
-      .setDataSourceFactory(
-        createAuthenticatingDataSource(
-          userSessionProvider = { sessionManager.current },
-          accountManager = accountManager,
-          upstreamDataSourceFactory = cacheDataSourceFactory,
-        ),
-      )
+      .setDataSourceFactory(cacheDataSourceFactory)
       .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
   }
 
   @OptIn(UnstableApi::class)
   @Provides
   fun provideLoadErrorHandlingPolicy(): LoadErrorHandlingPolicy = CampfireLoadErrorHandlingPolicy()
-}
-
-@OptIn(UnstableApi::class)
-private fun createAuthenticatingDataSource(
-  userSessionProvider: () -> UserSession,
-  accountManager: AccountManager,
-  upstreamDataSourceFactory: DataSource.Factory,
-) = ResolvingDataSource.Factory(upstreamDataSourceFactory) { dataSpec ->
-  // ⚠️🐲 DRAGONS BE HERE! Using runBlocking in production can be prone to foot guns, especially when
-  //  executed in other coroutine contexts. Since this is used internally by ExoPlayer we should be
-  //  safe from that particular issue.
-  val token = runBlocking {
-    accountManager.getToken(userSessionProvider().requiredUserId)
-  }
-
-  val extraHeaders = runBlocking {
-    accountManager.getExtraHeaders(userSessionProvider().requiredUserId)
-  } ?: emptyMap()
-
-  if (token != null) {
-    dataSpec
-      .withAdditionalHeaders(mapOf("Authorization" to "Bearer ${token.accessToken}"))
-      .withAdditionalHeaders(extraHeaders)
-  } else {
-    dataSpec
-  }
 }

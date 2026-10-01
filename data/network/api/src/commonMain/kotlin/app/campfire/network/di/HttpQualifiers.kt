@@ -18,3 +18,11 @@ annotation class UserClient
  */
 @Qualifier
 annotation class DownloadClient
+
+/**
+ * A client for the audio player to stream and download media. It authenticates as the session
+ * user through the same bearer provider as the [UserClient], so a 401 refreshes the shared token
+ * rather than a separate copy, but carries no response cache or body-reading inspection.
+ */
+@Qualifier
+annotation class AudioPlayerClient
