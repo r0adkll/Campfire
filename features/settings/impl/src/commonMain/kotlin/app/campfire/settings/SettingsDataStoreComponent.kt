@@ -54,5 +54,5 @@ interface SettingsDataStoreComponent {
   fun provideSettingsStore(settings: DataStoreSettings): ObservableSettings = settings
 
   @Provides
-  fun provideSettingsLoader(settings: DataStoreSettings): SettingsLoader = SettingsLoader(settings::load)
+  fun provideSettingsLoader(settings: DataStoreSettings): SettingsLoader = settings
 }

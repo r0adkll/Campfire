@@ -71,6 +71,21 @@ class DataStoreSettingsTest {
   }
 
   @Test
+  fun `starting the load early reads the file before load is awaited`() = runTest {
+    val dataStore = FakeDataStore(preferencesOf(booleanPreferencesKey("enabled") to true))
+    val settings = DataStoreSettings(dataStore, backgroundScope)
+
+    settings.startLoading()
+    settings.startLoading()
+    testScheduler.runCurrent()
+    // The read has finished in the background, so changes to the file after it aren't seen
+    dataStore.stored.value = emptyPreferences()
+    settings.load()
+
+    assertThat(settings.getBoolean("enabled", false)).isTrue()
+  }
+
+  @Test
   fun `a value read as another type is missing`() = runTest {
     val settings = loaded(FakeDataStore(preferencesOf(stringPreferencesKey("key") to "text")))
 

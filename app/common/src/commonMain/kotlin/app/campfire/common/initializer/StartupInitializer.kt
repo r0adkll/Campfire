@@ -28,7 +28,7 @@ import kotlinx.coroutines.runBlocking
 @Inject
 class StartupInitializer(
   private val settingsLoader: SettingsLoader,
-  private val userInitializer: UserInitializer,
+  private val userInitializer: Lazy<UserInitializer>,
   private val initializers: Lazy<Set<AppInitializer>>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) {
@@ -36,13 +36,18 @@ class StartupInitializer(
   internal var timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
 
   fun initialize() {
+    // Read the settings in the background while the user initializer's dependencies are created, which is
+    // most of the main thread's work before anything needs a setting
+    settingsLoader.startLoading()
+    val userInitializer = userInitializer.value
+
     // Everything after this reads settings synchronously, starting with the session restore
-    val settingsLoadDuration = Trace.trace(StartupTraceSections.LOAD_SETTINGS) {
+    val settingsWait = Trace.trace(StartupTraceSections.LOAD_SETTINGS) {
       runBlocking {
         measureTime { settingsLoader.load() }
       }
     }
-    dbark { "Settings loaded in $settingsLoadDuration" }
+    dbark { "Waited $settingsWait for settings to load" }
 
     dbark { "--> UserInitializer is starting" }
     val userInitDuration = Trace.trace("UserComponent") {

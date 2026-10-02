@@ -4,9 +4,17 @@
 package app.campfire.settings.api
 
 /**
- * Loads the stored settings into memory. Startup awaits this before anything reads a setting, so the
+ * Loads the stored settings into memory. Startup awaits [load] before anything reads a setting, so the
  * settings can be read synchronously from then on.
  */
-fun interface SettingsLoader {
+interface SettingsLoader {
+
+  /**
+   * Starts reading the stored settings in the background, so [load] has less, or nothing, left to wait for.
+   * Calling it again does nothing.
+   */
+  fun startLoading()
+
+  /** Returns once the settings are in memory, starting the read first if [startLoading] hasn't. */
   suspend fun load()
 }

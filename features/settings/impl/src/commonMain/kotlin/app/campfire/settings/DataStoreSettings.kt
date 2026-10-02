@@ -14,10 +14,14 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
+import app.campfire.settings.api.SettingsLoader
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.SettingsListener
+import kotlin.concurrent.Volatile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -28,7 +32,7 @@ import kotlinx.coroutines.launch
  * [ObservableSettings] backed by a Preferences [DataStore], so the settings delegates keep their synchronous
  * reads.
  *
- * [load] reads the file once; after that every read is served from memory. A write updates memory and the
+ * [startLoading] or [load] reads the file once; after that every read is served from memory. A write updates memory and the
  * key's listeners right away, then persists in the background. This is the only writer of the file, so the
  * background write saves the latest in-memory snapshot: writes that arrive while one is in flight collapse
  * into the next, and they can't land out of order.
@@ -36,19 +40,16 @@ import kotlinx.coroutines.launch
 class DataStoreSettings(
   private val dataStore: DataStore<Preferences>,
   private val scope: CoroutineScope,
-) : ObservableSettings {
+) : ObservableSettings, SettingsLoader {
 
+  @Volatile
   private var snapshot: MutableStateFlow<Preferences>? = null
   private val pendingWrite = Channel<Unit>(Channel.CONFLATED)
   private val listeners = MutableStateFlow<Map<String, List<KeyListener<*>>>>(emptyMap())
 
-  /**
-   * Reads the file, running its migrations, and starts persisting writes. Must finish before any other call.
-   */
-  suspend fun load() {
-    if (snapshot != null) return
+  /** Reads the file, running its migrations, then starts persisting writes. */
+  private val loading = scope.async(start = CoroutineStart.LAZY) {
     val loaded = MutableStateFlow(dataStore.data.first())
-    snapshot = loaded
     scope.launch {
       for (signal in pendingWrite) {
         val latest = loaded.value
@@ -62,6 +63,16 @@ class DataStoreSettings(
         }
       }
     }
+    loaded
+  }
+
+  override fun startLoading() {
+    loading.start()
+  }
+
+  /** Must finish before any other call. */
+  override suspend fun load() {
+    snapshot = loading.await()
   }
 
   private val preferences: Preferences

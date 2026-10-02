@@ -8,5 +8,6 @@ package app.campfire.tracing
  * (`:app:baselineprofile`) measures these by name, so keep them stable.
  */
 object StartupTraceSections {
+  /** The main thread waiting for the settings to finish loading; the read itself starts earlier. */
   const val LOAD_SETTINGS = "startup:loadSettings"
 }
