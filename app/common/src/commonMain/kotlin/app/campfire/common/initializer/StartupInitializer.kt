@@ -8,6 +8,8 @@ import app.campfire.core.app.UserInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
+import app.campfire.settings.api.SettingsLoader
+import app.campfire.tracing.StartupTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
 import dev.zacsweers.metro.Inject
@@ -25,6 +27,7 @@ import kotlinx.coroutines.runBlocking
 @SingleIn(AppScope::class)
 @Inject
 class StartupInitializer(
+  private val settingsLoader: SettingsLoader,
   private val userInitializer: UserInitializer,
   private val initializers: Lazy<Set<AppInitializer>>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
@@ -33,6 +36,14 @@ class StartupInitializer(
   internal var timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
 
   fun initialize() {
+    // Everything after this reads settings synchronously, starting with the session restore
+    val settingsLoadDuration = Trace.trace(StartupTraceSections.LOAD_SETTINGS) {
+      runBlocking {
+        measureTime { settingsLoader.load() }
+      }
+    }
+    dbark { "Settings loaded in $settingsLoadDuration" }
+
     dbark { "--> UserInitializer is starting" }
     val userInitDuration = Trace.trace("UserComponent") {
       runBlocking {

@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesBinding(AppScope::class, binding = binding<DeviceSettings>())
 @Inject
 class DeviceSettingsImpl(
-  override val settings: ObservableSettings,
+  @SettingsStore override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : DeviceSettings, AppSettings() {
 

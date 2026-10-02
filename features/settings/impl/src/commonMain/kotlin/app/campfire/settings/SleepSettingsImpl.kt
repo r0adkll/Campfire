@@ -25,7 +25,7 @@ import kotlinx.datetime.LocalTime
 @ContributesBinding(AppScope::class, binding = binding<SleepSettings>())
 @Inject
 class SleepSettingsImpl(
-  override val settings: ObservableSettings,
+  @SettingsStore override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : SleepSettings, AppSettings() {
 
@@ -104,16 +104,16 @@ class SleepSettingsImpl(
   override fun observeFadeOutDuration(): StateFlow<Duration> = fadeOutDurationProperty.observe()
 }
 
-private const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"
-private const val KEY_SHAKE_TO_RESET = "pref_sleep_shake_to_reset"
-private const val KEY_SHAKE_SENSITIVITY = "pref_sleep_shake_sensitivity"
-private const val KEY_AUTO_SLEEP_TIMER_ENABLED = "pref_sleep_auto_timer_enabled"
-private const val KEY_AUTO_SLEEP_START = "pref_sleep_auto_timer_start"
-private const val KEY_AUTO_SLEEP_END = "pref_sleep_auto_timer_end"
-private const val KEY_AUTO_SLEEP_TIMER = "pref_auto_sleep_timer"
-private const val KEY_AUTO_REWIND_ENABLED = "pref_auto_rewind_enabled"
-private const val KEY_AUTO_REWIND_AMOUNT = "pref_auto_rewind_amount"
-private const val KEY_FADE_OUT_DURATION = "pref_sleep_fade_out_duration"
+internal const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"
+internal const val KEY_SHAKE_TO_RESET = "pref_sleep_shake_to_reset"
+internal const val KEY_SHAKE_SENSITIVITY = "pref_sleep_shake_sensitivity"
+internal const val KEY_AUTO_SLEEP_TIMER_ENABLED = "pref_sleep_auto_timer_enabled"
+internal const val KEY_AUTO_SLEEP_START = "pref_sleep_auto_timer_start"
+internal const val KEY_AUTO_SLEEP_END = "pref_sleep_auto_timer_end"
+internal const val KEY_AUTO_SLEEP_TIMER = "pref_auto_sleep_timer"
+internal const val KEY_AUTO_REWIND_ENABLED = "pref_auto_rewind_enabled"
+internal const val KEY_AUTO_REWIND_AMOUNT = "pref_auto_rewind_amount"
+internal const val KEY_FADE_OUT_DURATION = "pref_sleep_fade_out_duration"
 
 private const val DefaultShakeToResetEnabled = false
 private const val DefaultAutoSleepTimerEnabled = false
