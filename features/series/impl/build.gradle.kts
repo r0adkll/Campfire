@@ -8,7 +8,6 @@ plugins {
   alias(libs.plugins.burst)
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {

@@ -14,7 +14,6 @@ buildConfig {
   useKotlinOutput()
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {

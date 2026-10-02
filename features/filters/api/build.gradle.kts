@@ -7,7 +7,6 @@ plugins {
   id("app.campfire.parcelize")
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {

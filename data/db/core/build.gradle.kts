@@ -6,7 +6,7 @@ plugins {
   alias(libs.plugins.sqldelight)
   id("app.campfire.di")
 }
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
+
 kotlin {
   compilerOptions {
     freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
