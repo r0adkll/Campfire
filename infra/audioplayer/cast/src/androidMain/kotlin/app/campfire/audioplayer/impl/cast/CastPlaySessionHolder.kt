@@ -21,7 +21,7 @@ import app.campfire.core.session.serverUrl
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.DeviceInfo
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -56,7 +56,7 @@ interface CastPlaySessionUserComponent {
 class CastPlaySessionHolder(
   private val serverRepository: ServerRepository,
   private val userSessionManager: UserSessionManager,
-  private val campfireSettings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val applicationInfo: ApplicationInfo,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val dispatcherProvider: DispatcherProvider,
@@ -132,7 +132,7 @@ class CastPlaySessionHolder(
         return
       }
 
-      val deviceId = "${campfireSettings.deviceId}$CAST_DEVICE_ID_SUFFIX"
+      val deviceId = "${deviceSettings.deviceId}$CAST_DEVICE_ID_SUFFIX"
       val playSession = api.startPlaybackSession(
         libraryItemId = session.libraryItem.id,
         episodeId = session.episodeId,

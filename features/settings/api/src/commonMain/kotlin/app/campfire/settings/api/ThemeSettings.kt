@@ -12,4 +12,9 @@ interface ThemeSettings {
 
   var dynamicallyThemePlayback: Boolean
   fun observeDynamicallyThemePlayback(): StateFlow<Boolean>
+
+  var themeId: ThemeKey
+
+  var themeMode: ThemeMode
+  fun observeTheme(): StateFlow<ThemeMode>
 }

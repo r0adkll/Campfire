@@ -3,6 +3,8 @@
 
 package app.campfire.settings.test
 
+import app.campfire.settings.api.ThemeKey
+import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,4 +26,11 @@ class TestThemeSettings(
   override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> =
     observeBoolean(::dynamicallyThemePlayback)
       .stateIn(testScope, SharingStarted.Lazily, dynamicallyThemeItemDetail)
+
+  override var themeId: ThemeKey = ThemeKey.Tent
+
+  override var themeMode: ThemeMode by enum()
+  override fun observeTheme(): StateFlow<ThemeMode> =
+    observeEnum<ThemeMode>(::themeMode)
+      .stateIn(testScope, SharingStarted.Lazily, themeMode)
 }

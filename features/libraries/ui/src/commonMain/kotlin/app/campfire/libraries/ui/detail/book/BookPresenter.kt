@@ -68,7 +68,7 @@ import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.StreamingRoutePredictor
 import app.campfire.sessions.api.observeContains
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
@@ -107,7 +107,7 @@ class BookPresenter(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val userRepository: UserRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
   private val themeManager: ThemeManager,
   private val addToPlaylistDialog: AddToPlaylistDialog,
@@ -217,11 +217,11 @@ class BookPresenter(
     }.collectAsState(false)
 
     val showConfirmDownloadDialog by remember {
-      settings.observeShowConfirmDownload()
+      libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
     val showTimeInBook by remember {
-      settings.observeShowTimeInBook()
+      libraryViewSettings.observeShowTimeInBook()
     }.collectAsState()
 
     var collapseListenedChapters by remember { mutableStateOf(true) }
@@ -369,7 +369,7 @@ class BookPresenter(
         is LibraryItemUiEvent.DownloadClick -> {
           if (libraryItem.isEbookOnly || !canDownload) return@ContentUiState
           analytics.send(ActionEvent("download", Click))
-          settings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
 
           offlineDownloadManager.download(libraryItem)
         }
@@ -387,7 +387,7 @@ class BookPresenter(
 
         is LibraryItemUiEvent.TimeInBookChange -> {
           analytics.send(ActionEvent("time_in_book", Click))
-          settings.showTimeInBook = event.enabled
+          libraryViewSettings.showTimeInBook = event.enabled
         }
 
         is LibraryItemUiEvent.OpenPlaylist -> {

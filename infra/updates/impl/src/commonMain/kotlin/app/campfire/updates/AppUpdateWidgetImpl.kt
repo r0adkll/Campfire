@@ -52,7 +52,7 @@ import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.common.compose.widgets.IconButtonTooltip
 import app.campfire.core.di.AppScope
 import app.campfire.core.extensions.asReadableBytes
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.AppStateSettings
 import app.campfire.updates.source.AppUpdate
 import app.campfire.updates.source.AppUpdateProgress
 import app.campfire.updates.source.AppUpdateSource
@@ -68,7 +68,7 @@ import kotlinx.coroutines.launch
 @Inject
 class AppUpdateWidgetImpl(
   private val appUpdateSource: AppUpdateSource,
-  private val campfireSettings: CampfireSettings,
+  private val appStateSettings: AppStateSettings,
 ) : AppUpdateWidget {
 
   private var invalidator by mutableIntStateOf(0)
@@ -95,8 +95,8 @@ class AppUpdateWidgetImpl(
         )
       }
     }.collectAsState(null)
-    val signInDismissed by campfireSettings.observeAppUpdateSignInDismissed().collectAsState()
-    val dismissedVersionCode by campfireSettings.observeAppUpdateDismissedVersionCode().collectAsState()
+    val signInDismissed by appStateSettings.observeAppUpdateSignInDismissed().collectAsState()
+    val dismissedVersionCode by appStateSettings.observeAppUpdateDismissedVersionCode().collectAsState()
 
     val currentState = state
     val availableUpdate = currentState?.appUpdate?.takeIf { it.versionCode != dismissedVersionCode }
@@ -133,7 +133,7 @@ class AppUpdateWidgetImpl(
             }
           },
           onDismiss = {
-            campfireSettings.appUpdateDismissedVersionCode = m.update.versionCode
+            appStateSettings.appUpdateDismissedVersionCode = m.update.versionCode
           },
           modifier = Modifier
             .fillMaxWidth()
@@ -151,7 +151,7 @@ class AppUpdateWidgetImpl(
             }
           },
           onDismiss = {
-            campfireSettings.appUpdateSignInDismissed = true
+            appStateSettings.appUpdateSignInDismissed = true
           },
           modifier = Modifier
             .fillMaxWidth()

@@ -27,7 +27,7 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.podcasts.api.screen.AddPodcastScreen
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -49,7 +49,7 @@ class LibraryPresenter(
   private val userRepository: UserRepository,
   private val repository: LibraryRepository,
   private val offlineDownloadManager: OfflineDownloadManager,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<LibraryUiState> {
 
@@ -69,11 +69,11 @@ class LibraryPresenter(
     }
 
     val sortMode by remember {
-      settings.observeLibrarySortMode()
+      libraryViewSettings.observeLibrarySortMode()
     }.collectAsState()
 
     val sortDirection by remember {
-      settings.observeLibrarySortDirection()
+      libraryViewSettings.observeLibrarySortDirection()
     }.collectAsState()
 
     val currentUser by userRepository.userFlow.collectAsState()
@@ -101,7 +101,7 @@ class LibraryPresenter(
       ).map { it ?: INVALID_ITEM_COUNT }
     }.collectAsState(INVALID_ITEM_COUNT)
 
-    val itemDisplayState by settings.observeLibraryItemDisplayState()
+    val itemDisplayState by libraryViewSettings.observeLibraryItemDisplayState()
       .collectAsState()
 
     val offlineDownloads by remember {
@@ -133,7 +133,7 @@ class LibraryPresenter(
     ) { event ->
       when (event) {
         LibraryUiEvent.ToggleItemDisplayState -> {
-          settings.libraryItemDisplayState = when (itemDisplayState) {
+          libraryViewSettings.libraryItemDisplayState = when (itemDisplayState) {
             ItemDisplayState.List -> ItemDisplayState.Grid
             ItemDisplayState.Grid -> ItemDisplayState.GridDense
             ItemDisplayState.GridDense -> ItemDisplayState.List
@@ -145,9 +145,9 @@ class LibraryPresenter(
         is LibraryUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            settings.librarySortDirection = sortDirection.flip()
+            libraryViewSettings.librarySortDirection = sortDirection.flip()
           }
-          settings.librarySortMode = event.mode
+          libraryViewSettings.librarySortMode = event.mode
         }
 
         is LibraryUiEvent.ItemFilterSelected -> {

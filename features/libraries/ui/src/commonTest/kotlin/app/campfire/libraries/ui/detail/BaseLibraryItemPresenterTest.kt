@@ -27,7 +27,7 @@ import app.campfire.series.test.FakeSeriesRepository
 import app.campfire.sessions.test.FakeSessionQueue
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.sessions.test.FakeStreamingRoutePredictor
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestLibraryViewSettings
 import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.test.FakeThemeManager
 import app.campfire.user.test.FakeMediaProgressRepository
@@ -59,7 +59,7 @@ abstract class BaseLibraryItemPresenterTest {
   internal val offlineDownloadManager = FakeOfflineDownloadManager()
   internal val themeManager = FakeThemeManager()
   internal val themeSettings = TestThemeSettings()
-  internal val settings = TestCampfireSettings()
+  internal val libraryViewSettings = TestLibraryViewSettings()
   internal val analytics = FakeAnalytics()
   internal val dispatcherProvider = TestDispatcherProvider()
   internal val bookInfoRegistry = FakeBookInfoRegistry()
@@ -77,7 +77,7 @@ abstract class BaseLibraryItemPresenterTest {
     audioPlayerHolder = audioPlayerHolder,
     offlineDownloadManager = offlineDownloadManager,
     userRepository = userRepository,
-    settings = settings,
+    libraryViewSettings = libraryViewSettings,
     analytics = analytics,
     themeManager = themeManager,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
@@ -95,7 +95,7 @@ abstract class BaseLibraryItemPresenterTest {
     playbackHistoryRepository = playbackHistoryRepository,
     playbackController = playbackController,
     offlineDownloadManager = offlineDownloadManager,
-    settings = settings,
+    libraryViewSettings = libraryViewSettings,
     addToPlaylistDialog = AddToPlaylistDialog.NoOp,
     remoteEpisodeDownloadTracker = remoteEpisodeDownloadTracker,
   )

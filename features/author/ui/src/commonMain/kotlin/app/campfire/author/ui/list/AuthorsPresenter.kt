@@ -18,7 +18,7 @@ import app.campfire.common.compose.util.rememberRetainedCoroutineScope
 import app.campfire.common.screens.AuthorDetailScreen
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.di.UserScope
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -36,7 +36,7 @@ class AuthorsPresenter(
   private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val authorRepository: AuthorRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<AuthorsUiState> {
 
@@ -49,11 +49,11 @@ class AuthorsPresenter(
     val scope = rememberRetainedCoroutineScope()
 
     val sortMode by remember {
-      settings.observeAuthorsSortMode()
+      libraryViewSettings.observeAuthorsSortMode()
     }.collectAsState()
 
     val sortDirection by remember {
-      settings.observeAuthorsSortDirection()
+      libraryViewSettings.observeAuthorsSortDirection()
     }.collectAsState()
 
     val currentUser by userRepository.userFlow.collectAsState()
@@ -93,9 +93,9 @@ class AuthorsPresenter(
         is AuthorsUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("author_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            settings.authorsSortDirection = sortDirection.flip()
+            libraryViewSettings.authorsSortDirection = sortDirection.flip()
           }
-          settings.authorsSortMode = event.mode
+          libraryViewSettings.authorsSortMode = event.mode
         }
       }
     }

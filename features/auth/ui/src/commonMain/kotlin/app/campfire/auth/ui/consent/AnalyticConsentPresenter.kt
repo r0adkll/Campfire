@@ -13,7 +13,7 @@ import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.common.screens.HomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.session.UserSession
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.PrivacySettings
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
 import com.slack.circuit.runtime.presenter.Presenter
@@ -25,14 +25,14 @@ class AnalyticConsentPresenter(
   private val screen: AnalyticConsentScreen,
   private val navigator: Navigator,
   private val userSession: UserSession,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
   private val userSessionManager: UserSessionManager,
 ) : Presenter<AnalyticConsentUiState> {
 
   @Composable
   override fun present(): AnalyticConsentUiState {
-    var crashReportingEnabled by remember { mutableStateOf(settings.crashReportingEnabled) }
-    var analyticReportingEnabled by remember { mutableStateOf(settings.analyticReportingEnabled) }
+    var crashReportingEnabled by remember { mutableStateOf(privacySettings.crashReportingEnabled) }
+    var analyticReportingEnabled by remember { mutableStateOf(privacySettings.analyticReportingEnabled) }
 
     return AnalyticConsentUiState(
       crashReportingEnabled = crashReportingEnabled,
@@ -46,9 +46,9 @@ class AnalyticConsentPresenter(
           analyticReportingEnabled = event.enabled
         }
         is AnalyticConsentUiEvent.ApplyConsent -> {
-          settings.hasEverConsented = true
-          settings.crashReportingEnabled = crashReportingEnabled
-          settings.analyticReportingEnabled = analyticReportingEnabled
+          privacySettings.hasEverConsented = true
+          privacySettings.crashReportingEnabled = crashReportingEnabled
+          privacySettings.analyticReportingEnabled = analyticReportingEnabled
           if (userSession is UserSession.LoggedIn) {
             navigator.resetRoot(HomeScreen)
           } else {

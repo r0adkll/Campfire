@@ -5,7 +5,7 @@ package app.campfire.playlists.ui.list
 
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.playlists.api.screen.PlaylistsScreen
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestLibraryViewSettings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -25,7 +25,7 @@ class PlaylistsPresenterTest {
     val presenter = PlaylistsPresenter(
       navigator = FakeNavigator(PlaylistsScreen),
       playlistsRepository = repository,
-      settings = TestCampfireSettings(),
+      libraryViewSettings = TestLibraryViewSettings(),
       analytics = FakeAnalytics(),
     )
 
