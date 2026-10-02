@@ -20,7 +20,7 @@ import app.campfire.common.screens.CollectionsScreen
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Collection
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 class CollectionsPresenter(
   private val navigator: Navigator,
   private val repository: CollectionsRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<CollectionsUiState> {
 
@@ -51,7 +51,7 @@ class CollectionsPresenter(
     }.collectAsState(LoadState.Loading)
 
     val displayState by remember {
-      settings.observeCollectionsDisplayState()
+      libraryViewSettings.observeCollectionsDisplayState()
     }.collectAsState()
 
     return CollectionsUiState(
@@ -75,7 +75,7 @@ class CollectionsPresenter(
 
         CollectionsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("collections_display_state", "toggle"))
-          settings.collectionsDisplayState = displayState.next()
+          libraryViewSettings.collectionsDisplayState = displayState.next()
         }
 
         is CollectionsUiEvent.CollectionClick -> {

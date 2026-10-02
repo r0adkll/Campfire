@@ -23,7 +23,7 @@ import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.core.toast.GlobalToaster
 import app.campfire.core.toast.Toast
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -35,7 +35,7 @@ import kotlinx.coroutines.withContext
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAccountManager(
-  private val settings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val userSessionManager: UserSessionManager,
   private val tokenStorage: TokenStorage,
   private val extraHeaderStorage: ExtraHeaderStorage,
@@ -117,7 +117,7 @@ class DefaultAccountManager(
 
   override suspend fun switchAccount(user: User) = withContext(accountManagerCoroutineContext) {
     // If we are switching to the current account, just ignore the action
-    if (user.id == settings.currentUserId) return@withContext
+    if (user.id == deviceSettings.currentUserId) return@withContext
 
     // Validate that we have a stored token for this user
     checkNotNull(tokenStorage.get(user.id)) { "There is no account for ${user.name}" }
@@ -129,7 +129,7 @@ class DefaultAccountManager(
   }
 
   override suspend fun logout(server: Server) = withContext(accountManagerCoroutineContext) {
-    val isCurrent = settings.currentUserId == server.user.id
+    val isCurrent = deviceSettings.currentUserId == server.user.id
     if (isCurrent) {
       // Change the session over to a new one
       changeSession {
@@ -197,7 +197,7 @@ class DefaultAccountManager(
     userGraphManager.create(newSession)
 
     // Update persisted settings and observers
-    settings.currentUserId = newSession.userId
+    deviceSettings.currentUserId = newSession.userId
     userSessionManager.current = newSession
   }
 }

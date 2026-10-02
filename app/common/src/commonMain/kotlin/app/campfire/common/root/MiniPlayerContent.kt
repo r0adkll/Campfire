@@ -24,7 +24,7 @@ import app.campfire.core.session.requiredUserId
 import app.campfire.sessions.ui.player.DedicatedPlayer
 import app.campfire.sessions.ui.player.MiniPlayerAction
 import app.campfire.sessions.ui.player.WideChromePlacement
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.colorScheme
 import com.slack.circuit.foundation.CircuitCompositionLocals
@@ -40,7 +40,7 @@ import dev.zacsweers.metro.Inject
  */
 @Inject
 class MiniPlayerContent(
-  private val settings: CampfireSettings,
+  private val themeSettings: ThemeSettings,
   private val userSessionManager: UserSessionManager,
   private val themeRepository: AppThemeRepository,
 ) {
@@ -56,7 +56,7 @@ class MiniPlayerContent(
     onReturnToWindow = onReturnToWindow,
     onUnavailable = onUnavailable,
     topBarDecorator = topBarDecorator,
-    settings = settings,
+    themeSettings = themeSettings,
     userSessionManager = userSessionManager,
     themeRepository = themeRepository,
     modifier = modifier,
@@ -69,7 +69,7 @@ private fun MiniPlayerRoot(
   onReturnToWindow: () -> Unit,
   onUnavailable: () -> Unit,
   topBarDecorator: @Composable (content: @Composable () -> Unit) -> Unit,
-  settings: CampfireSettings,
+  themeSettings: ThemeSettings,
   userSessionManager: UserSessionManager,
   themeRepository: AppThemeRepository,
   modifier: Modifier = Modifier,
@@ -92,7 +92,7 @@ private fun MiniPlayerRoot(
       CircuitCompositionLocals(userComponent.circuit) {
         CampfireTheme(
           colorScheme = { colorScheme(appTheme) },
-          useDarkColors = settings.shouldUseDarkColors(),
+          useDarkColors = themeSettings.shouldUseDarkColors(),
         ) {
           key(session.requiredUserId) {
             DedicatedPlayer(

@@ -25,7 +25,7 @@ import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -47,7 +47,7 @@ class PlaylistDetailPresenter(
   private val sessionQueue: SessionQueue,
   private val downloadManager: OfflineDownloadManager,
   private val userRepository: UserRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
 ) : Presenter<PlaylistDetailUiState> {
 
   @Composable
@@ -107,7 +107,7 @@ class PlaylistDetailPresenter(
     }
 
     val showConfirmDownloadDialog by remember {
-      settings.observeShowConfirmDownload()
+      libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
     // Live from the user row, which the socket updates when an admin changes permissions
@@ -204,7 +204,7 @@ class PlaylistDetailPresenter(
         is PlaylistDetailUiEvent.DownloadAll -> {
           if (!currentUser.canDownload) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "download"))
-          settings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
           // Offline downloads are item-scoped, not episode-scoped; de-dupe podcast
           // entries that share a library item.
           val uniqueLibraryItems = playlistItems

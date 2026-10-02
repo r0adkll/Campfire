@@ -25,7 +25,8 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.di.UserComponent
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.colorScheme
 import com.slack.circuit.backstack.SaveableBackStack
@@ -46,7 +47,8 @@ internal fun LoggedOutWindow(
   userComponent: UserComponent,
   onRootPop: () -> Unit,
   windowInsets: WindowInsets,
-  settings: CampfireSettings,
+  themeSettings: ThemeSettings,
+  libraryViewSettings: LibraryViewSettings,
   modifier: Modifier = Modifier,
 ) {
   val backStack = key(userComponent.currentUserSession) {
@@ -62,12 +64,12 @@ internal fun LoggedOutWindow(
   CircuitCompositionLocals(userComponent.circuit) {
     CampfireTheme(
       colorScheme = { colorScheme(AppTheme.Fixed.Tent) },
-      useDarkColors = settings.shouldUseDarkColors(),
+      useDarkColors = themeSettings.shouldUseDarkColors(),
     ) {
       // Observe here and wire as composition local to avoid N-number of parameter
       // burials to wire all usages of this component
       val itemCardMarqueeEnabled by remember {
-        settings.observeLibraryItemMarqueeEnabled()
+        libraryViewSettings.observeLibraryItemMarqueeEnabled()
       }.collectAsState()
 
       CompositionLocalProvider(

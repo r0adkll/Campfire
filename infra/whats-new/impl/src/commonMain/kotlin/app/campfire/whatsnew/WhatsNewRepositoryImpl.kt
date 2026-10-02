@@ -9,7 +9,7 @@ import app.campfire.core.currentPlatform
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.AppStateSettings
 import app.campfire.whatsnew.api.Changelog
 import app.campfire.whatsnew.api.WhatsNewRepository
 import campfire.infra.whats_new.impl.generated.resources.Res
@@ -24,7 +24,7 @@ import kotlinx.serialization.json.Json
 @Inject
 class WhatsNewRepositoryImpl(
   private val applicationInfo: ApplicationInfo,
-  private val settings: CampfireSettings,
+  private val appStateSettings: AppStateSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : WhatsNewRepository {
 
@@ -33,7 +33,7 @@ class WhatsNewRepositoryImpl(
   }
 
   override fun observeShouldShowWhatsNew(): Flow<Boolean> {
-    return settings.observeLastSeenVersion()
+    return appStateSettings.observeLastSeenVersion()
       .map { lastSeenVersion ->
         lastSeenVersion != applicationInfo.versionName &&
           loadFromDisk().hasChangesFor(applicationInfo.versionName, currentPlatform)
@@ -41,7 +41,7 @@ class WhatsNewRepositoryImpl(
   }
 
   override suspend fun dismissWhatsNew() {
-    settings.lastSeenVersion = applicationInfo.versionName
+    appStateSettings.lastSeenVersion = applicationInfo.versionName
   }
 
   private suspend fun loadFromDisk(): List<VersionEntry> = withContext(dispatcherProvider.io) {

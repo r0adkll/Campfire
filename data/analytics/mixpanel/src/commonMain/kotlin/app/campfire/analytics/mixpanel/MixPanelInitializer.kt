@@ -9,7 +9,8 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
+import app.campfire.settings.api.PrivacySettings
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -21,7 +22,8 @@ import kotlinx.coroutines.plus
 @ContributesIntoSet(AppScope::class)
 @Inject
 class MixPanelInitializer(
-  private val settings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
+  private val privacySettings: PrivacySettings,
   private val mixPanelFacadeLazy: Lazy<MixPanelFacade>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {
@@ -37,7 +39,7 @@ class MixPanelInitializer(
     if (BuildConfig.MIXPANEL_TOKEN == null) return
 
     mixPanelFacadeLazy.value.identify(
-      distinctId = settings.analyticsId,
+      distinctId = deviceSettings.analyticsId,
     )
 
     observeAnalyticsSetting()
@@ -49,7 +51,7 @@ class MixPanelInitializer(
       val mixPanelFacade = mixPanelFacadeLazy.value
       val mixPanelAnalytics = MixPanelAnalytics(mixPanelFacade)
 
-      settings
+      privacySettings
         .observeAnalyticReportingEnabled()
         .collect { analyticReportingEnabled ->
           bark("MixPanel") { "Analytic Reporting - Enabled[$analyticReportingEnabled]" }

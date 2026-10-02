@@ -7,7 +7,7 @@ import android.app.Application
 import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import app.campfire.core.di.AppScope
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.AppStateSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
@@ -15,15 +15,15 @@ import dev.zacsweers.metro.Inject
 @Inject
 class AndroidWidgetPinRequester(
   private val application: Application,
-  private val settings: CampfireSettings,
+  private val appStateSettings: AppStateSettings,
 ) : WidgetPinRequester {
 
   override fun requestPinWidget() {
     val appWidgetManager = AppWidgetManager.getInstance(application)
-    if (appWidgetManager.isRequestPinAppWidgetSupported && !settings.hasShownWidgetPinning) {
+    if (appWidgetManager.isRequestPinAppWidgetSupported && !appStateSettings.hasShownWidgetPinning) {
       val playerWidgetComponent = ComponentName(application, PlayerWidgetReceiver::class.java)
       appWidgetManager.requestPinAppWidget(playerWidgetComponent, null, null)
-      settings.hasShownWidgetPinning = true
+      appStateSettings.hasShownWidgetPinning = true
     }
   }
 }

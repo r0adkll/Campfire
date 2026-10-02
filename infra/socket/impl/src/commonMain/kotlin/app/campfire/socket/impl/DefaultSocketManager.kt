@@ -15,7 +15,7 @@ import app.campfire.core.logging.Corked
 import app.campfire.core.session.UserSession
 import app.campfire.network.RequestOrigin
 import app.campfire.network.reachability.ServerReachability
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.ConnectionSettings
 import app.campfire.settings.api.DevSettings
 import app.campfire.socket.SocketManager
 import app.campfire.socket.SocketState
@@ -91,7 +91,7 @@ class DefaultSocketManager(
   private val accountManager: AccountManager,
   private val tokenRefresher: TokenRefresher,
   private val appLifecycleObserver: AppLifecycleObserver,
-  private val settings: CampfireSettings,
+  private val connectionSettings: ConnectionSettings,
   private val connectivity: Connectivity,
   private val serverReachability: ServerReachability,
   private val devSettings: DevSettings,
@@ -335,7 +335,7 @@ class DefaultSocketManager(
         ).collect { demanded ->
           socketDemanded = demanded
           if (demanded) {
-            if (!settings.socketEnabled) return@collect
+            if (!connectionSettings.socketEnabled) return@collect
             if (!newSocket.connected) {
               ibark { "Socket demanded (foreground + network in range); opening with a fresh backoff" }
               _state.value = SocketState.Connecting
@@ -376,7 +376,7 @@ class DefaultSocketManager(
         ReachabilitySignal.Fast -> socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
         ReachabilitySignal.Reconnect -> {
           socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
-          if (socketDemanded && settings.socketEnabled && !socket.connected) {
+          if (socketDemanded && connectionSettings.socketEnabled && !socket.connected) {
             ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
             _state.value = SocketState.Connecting
             socket.close()
@@ -412,7 +412,7 @@ class DefaultSocketManager(
   }
 
   override fun retryConnection() {
-    if (!settings.socketEnabled) {
+    if (!connectionSettings.socketEnabled) {
       ibark { "retryConnection called while socket is disabled; ignoring" }
       return
     }
@@ -461,7 +461,7 @@ class DefaultSocketManager(
       // the custom headers restarts it too, so the new headers reach the WebSocket handshake.
       observerJob = socketManager.coroutineScope.launch {
         combine(
-          socketManager.settings.observeSocketEnabled(),
+          socketManager.connectionSettings.observeSocketEnabled(),
           socketManager.accountManager.observeExtraHeaders(session.user.id),
         ) { enabled, headers -> enabled to headers }
           .distinctUntilChanged()

@@ -5,7 +5,7 @@ package app.campfire.collections.ui.list
 
 import app.campfire.analytics.test.FakeAnalytics
 import app.campfire.common.screens.CollectionsScreen
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestLibraryViewSettings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
@@ -25,7 +25,7 @@ class CollectionsPresenterTest {
     val presenter = CollectionsPresenter(
       navigator = FakeNavigator(CollectionsScreen),
       repository = repository,
-      settings = TestCampfireSettings(),
+      libraryViewSettings = TestLibraryViewSettings(),
       analytics = FakeAnalytics(),
     )
 
