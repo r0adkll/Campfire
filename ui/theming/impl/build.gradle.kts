@@ -8,7 +8,6 @@ plugins {
   id("app.campfire.di")
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sqldelight {
     databases {

@@ -8,7 +8,6 @@ plugins {
   alias(libs.plugins.sqldelight)
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sqldelight {
     databases {
