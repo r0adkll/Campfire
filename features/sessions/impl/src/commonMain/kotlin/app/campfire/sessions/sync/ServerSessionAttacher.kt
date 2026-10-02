@@ -19,7 +19,7 @@ import app.campfire.core.model.Session
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.DeviceInfo
 import app.campfire.sessions.db.SessionDataSource
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -75,7 +75,7 @@ interface ServerSessionAttacher {
 class DefaultServerSessionAttacher(
   private val api: AudioBookShelfApi,
   private val sessionDataSource: SessionDataSource,
-  private val campfireSettings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val applicationInfo: ApplicationInfo,
   private val dispatcherProvider: DispatcherProvider,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
@@ -204,7 +204,7 @@ class DefaultServerSessionAttacher(
 
   /** Always the complete object: the server nulls stored device fields missing from a payload. */
   private fun deviceInfo(session: Session): DeviceInfo {
-    val deviceId = campfireSettings.deviceId
+    val deviceId = deviceSettings.deviceId
     return DeviceInfo(
       id = deviceId,
       userId = session.userId,

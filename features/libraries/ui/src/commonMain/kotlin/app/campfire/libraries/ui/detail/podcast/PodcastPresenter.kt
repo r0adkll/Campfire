@@ -46,7 +46,7 @@ import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
 import app.campfire.podcasts.api.screen.FindEpisodesScreen
 import app.campfire.podcasts.api.screen.PodcastDownloadQueueScreen
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
@@ -69,7 +69,7 @@ class PodcastPresenter(
   private val playbackHistoryRepository: PlaybackHistoryRepository,
   private val playbackController: PlaybackController,
   private val offlineDownloadManager: OfflineDownloadManager,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
 ) : AbstractLibraryItemPresenter {
@@ -109,7 +109,7 @@ class PodcastPresenter(
     }.collectAsState(0)
 
     val showConfirmDownloadDialog by remember {
-      settings.observeShowConfirmDownload()
+      libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
     val slots = buildSlots(
@@ -202,7 +202,7 @@ class PodcastPresenter(
           is LibraryItemUiEvent.DownloadEpisodeClick -> {
             if (!currentUser.canDownload) return@ContentUiState
             analytics.send(ActionEvent("download_episode", Click))
-            settings.showConfirmDownload = !event.doNotShowAgain
+            libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
             offlineDownloadManager.downloadEpisode(libraryItem, event.episode)
           }
 

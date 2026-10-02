@@ -22,7 +22,7 @@ import app.campfire.core.coroutines.map
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.series.api.SeriesRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
@@ -41,7 +41,7 @@ class SeriesPresenter(
   private val navigator: Navigator,
   private val userRepository: UserRepository,
   private val seriesRepository: SeriesRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesUiState> {
 
@@ -58,15 +58,15 @@ class SeriesPresenter(
     }
 
     val sortMode by remember {
-      settings.observeSeriesSortMode()
+      libraryViewSettings.observeSeriesSortMode()
     }.collectAsState()
 
     val sortDirection by remember {
-      settings.observeSeriesSortDirection()
+      libraryViewSettings.observeSeriesSortDirection()
     }.collectAsState()
 
     val displayState by remember {
-      settings.observeSeriesDisplayState()
+      libraryViewSettings.observeSeriesDisplayState()
     }.collectAsState()
 
     val currentUser by userRepository.userFlow.collectAsState()
@@ -116,14 +116,14 @@ class SeriesPresenter(
         is SeriesUiEvent.SortModeChanged -> {
           analytics.send(ActionEvent("series_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            settings.seriesSortDirection = sortDirection.flip()
+            libraryViewSettings.seriesSortDirection = sortDirection.flip()
           }
-          settings.seriesSortMode = event.mode
+          libraryViewSettings.seriesSortMode = event.mode
         }
 
         SeriesUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("series_display_state", "toggle"))
-          settings.seriesDisplayState = displayState.next()
+          libraryViewSettings.seriesDisplayState = displayState.next()
         }
       }
     }

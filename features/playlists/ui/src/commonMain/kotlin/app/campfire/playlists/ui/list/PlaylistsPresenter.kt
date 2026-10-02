@@ -20,7 +20,7 @@ import app.campfire.core.model.Playlist
 import app.campfire.playlists.api.PlaylistsRepository
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
 class PlaylistsPresenter(
   private val navigator: Navigator,
   private val playlistsRepository: PlaylistsRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val analytics: Analytics,
 ) : NonPausablePresenter<PlaylistsUiState> {
 
@@ -50,7 +50,7 @@ class PlaylistsPresenter(
     }.collectAsState(LoadState.Loading)
 
     val displayState by remember {
-      settings.observePlaylistsDisplayState()
+      libraryViewSettings.observePlaylistsDisplayState()
     }.collectAsState()
 
     return PlaylistsUiState(
@@ -74,7 +74,7 @@ class PlaylistsPresenter(
 
         PlaylistsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("playlists_display_state", "toggle"))
-          settings.playlistsDisplayState = displayState.next()
+          libraryViewSettings.playlistsDisplayState = displayState.next()
         }
 
         is PlaylistsUiEvent.PlaylistClick -> {

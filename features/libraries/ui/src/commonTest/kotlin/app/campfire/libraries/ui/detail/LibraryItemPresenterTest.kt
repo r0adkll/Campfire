@@ -179,7 +179,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
   @Test
   fun present_showTimeInBook_UpdatesChapterHeaderSlot() = runTest {
     val libraryItem = emptyLibraryItem(numOfChapters = 1)
-    settings.showTimeInBook = false
+    libraryViewSettings.showTimeInBook = false
     libraryItemRepository.libraryItemFlow.emit(libraryItem)
 
     presenter.test {
@@ -189,7 +189,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         .prop(ChapterHeaderSlot::showTimeInBook)
         .isEqualTo(false)
 
-      settings.showTimeInBook = true
+      libraryViewSettings.showTimeInBook = true
 
       assertThat(awaitItemMatching { it.firstChapterHeader()?.showTimeInBook == true })
         .loadedSlots
@@ -216,7 +216,7 @@ class LibraryItemPresenterTest : BaseLibraryItemPresenterTest() {
         .prop(ExpressiveControlSlot::showConfirmDownloadDialogSetting)
         .isEqualTo(false)
 
-      settings.showConfirmDownload = true
+      libraryViewSettings.showConfirmDownload = true
 
       assertThat(
         awaitItemMatching {

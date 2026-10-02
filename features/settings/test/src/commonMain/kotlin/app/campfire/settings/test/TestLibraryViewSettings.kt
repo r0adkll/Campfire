@@ -3,14 +3,11 @@
 
 package app.campfire.settings.test
 
-import app.campfire.core.model.UserId
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import app.campfire.settings.api.CampfireSettings
-import app.campfire.settings.api.ThemeKey
-import app.campfire.settings.api.ThemeMode
+import app.campfire.settings.api.LibraryViewSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,40 +17,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class TestCampfireSettings(
+class TestLibraryViewSettings(
   private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), CampfireSettings {
-
-  override var deviceId: String by string()
-  override var analyticsId: String by string()
-  override var hasEverConsented: Boolean by boolean()
-  override var crashReportingEnabled: Boolean by boolean()
-
-  override var themeId: ThemeKey = ThemeKey.Tent
-
-  override fun observeCrashReportingEnabled(): StateFlow<Boolean> =
-    observeBoolean(::crashReportingEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, crashReportingEnabled)
-
-  override var keepSignedInAfterReinstall: Boolean by boolean()
-  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
-    observeBoolean(::keepSignedInAfterReinstall)
-      .stateIn(testScope, SharingStarted.Lazily, keepSignedInAfterReinstall)
-
-  override var analyticReportingEnabled: Boolean by boolean()
-  override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> =
-    observeBoolean(::analyticReportingEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, analyticReportingEnabled)
-
-  override var socketEnabled: Boolean by boolean()
-  override fun observeSocketEnabled(): StateFlow<Boolean> =
-    observeBoolean(::socketEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, socketEnabled)
-
-  override var themeMode: ThemeMode by enum()
-  override fun observeTheme(): StateFlow<ThemeMode> =
-    observeEnum<ThemeMode>(::themeMode)
-      .stateIn(testScope, SharingStarted.Lazily, themeMode)
+) : TestSettings(), LibraryViewSettings {
 
   override var libraryItemDisplayState: ItemDisplayState by enum()
   override fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState> =
@@ -110,48 +76,13 @@ class TestCampfireSettings(
     observeEnum<GroupDisplayState>(::playlistsDisplayState)
       .stateIn(testScope, SharingStarted.Lazily, playlistsDisplayState)
 
-  override var currentUserId: UserId? by stringOrNull()
-  override fun observeCurrentUserId(): StateFlow<UserId?> =
-    observeStringOrNull(::currentUserId)
-      .stateIn(testScope, SharingStarted.Lazily, currentUserId)
-
   override var showConfirmDownload: Boolean by boolean()
   override fun observeShowConfirmDownload(): StateFlow<Boolean> =
     observeBoolean(::showConfirmDownload)
       .stateIn(testScope, SharingStarted.Lazily, showConfirmDownload)
 
-  override var hasShownWidgetPinning: Boolean by boolean()
-  override fun observeHasShownWidgetPinning(): StateFlow<Boolean> =
-    observeBoolean(::hasShownWidgetPinning)
-      .stateIn(testScope, SharingStarted.Lazily, hasShownWidgetPinning)
-
   override var showTimeInBook: Boolean by boolean()
   override fun observeShowTimeInBook(): StateFlow<Boolean> =
     observeBoolean(::showTimeInBook)
       .stateIn(testScope, SharingStarted.Lazily, showTimeInBook)
-
-  override var wideNavigationRailExpanded: Boolean by boolean()
-  override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> =
-    observeBoolean(::wideNavigationRailExpanded)
-      .stateIn(testScope, SharingStarted.Lazily, wideNavigationRailExpanded)
-
-  override var supportingPaneWidth: Float by float()
-  override fun observeSupportingPaneWidth(): StateFlow<Float> =
-    observeFloat(::supportingPaneWidth)
-      .stateIn(testScope, SharingStarted.Lazily, supportingPaneWidth)
-
-  override var lastSeenVersion: String? by stringOrNull()
-  override fun observeLastSeenVersion(): StateFlow<String?> =
-    observeStringOrNull(::lastSeenVersion)
-      .stateIn(testScope, SharingStarted.Lazily, lastSeenVersion)
-
-  override var appUpdateSignInDismissed: Boolean by boolean()
-  override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> =
-    observeBoolean(::appUpdateSignInDismissed)
-      .stateIn(testScope, SharingStarted.Lazily, appUpdateSignInDismissed)
-
-  override var appUpdateDismissedVersionCode: Long by long()
-  override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
-    observeLong(::appUpdateDismissedVersionCode)
-      .stateIn(testScope, SharingStarted.Lazily, appUpdateDismissedVersionCode)
 }

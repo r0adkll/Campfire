@@ -42,10 +42,13 @@ import app.campfire.network.reachability.NetworkMonitor
 import app.campfire.network.reachability.ServerReachability
 import app.campfire.sessions.api.HlsPlaybackSupport
 import app.campfire.settings.api.AndroidAutoSettings
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.AppStateSettings
+import app.campfire.settings.api.ConnectionSettings
 import app.campfire.settings.api.DevSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.PrivacySettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.settings.api.tiers
@@ -122,7 +125,10 @@ class SettingsPresenter(
   private val analyticUiEventHandler: SettingsAnalyticUiEventHandler,
   private val applicationInfo: ApplicationInfo,
   private val applicationUrls: ApplicationUrls,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
+  private val appStateSettings: AppStateSettings,
+  private val connectionSettings: ConnectionSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val themeSettings: ThemeSettings,
   private val themeRepository: AppThemeRepository,
   private val playbackSettings: PlaybackSettings,
@@ -158,11 +164,11 @@ class SettingsPresenter(
 
     // Appearance Settings
     val appTheme by remember { themeRepository.observeCurrentAppTheme() }.collectAsState()
-    val themeMode by remember { settings.observeTheme() }.collectAsState()
+    val themeMode by remember { themeSettings.observeTheme() }.collectAsState()
     val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
     val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
     val itemCardMarqueeEnabled by remember {
-      settings.observeLibraryItemMarqueeEnabled()
+      libraryViewSettings.observeLibraryItemMarqueeEnabled()
     }.collectAsState()
 
     // Playback Settings
@@ -191,7 +197,7 @@ class SettingsPresenter(
     val scrollingTitles by remember { playbackSettings.observeScrollingTitles() }.collectAsState()
 
     // Downloads Settings
-    val showDownloadConfirmation by remember { settings.observeShowConfirmDownload() }
+    val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
       .collectAsState()
 
     val downloads by remember {
@@ -239,15 +245,15 @@ class SettingsPresenter(
     val fadeOutDuration by remember { sleepSettings.observeFadeOutDuration() }.collectAsState()
 
     // Account Settings
-    val keepSignedInAfterReinstall by remember { settings.observeKeepSignedInAfterReinstall() }
+    val keepSignedInAfterReinstall by remember { privacySettings.observeKeepSignedInAfterReinstall() }
       .collectAsState()
 
     // About Settings
-    val crashReportingEnabled by remember { settings.observeCrashReportingEnabled() }
+    val crashReportingEnabled by remember { privacySettings.observeCrashReportingEnabled() }
       .collectAsState()
-    val analyticReportingEnabled by remember { settings.observeAnalyticReportingEnabled() }
+    val analyticReportingEnabled by remember { privacySettings.observeAnalyticReportingEnabled() }
       .collectAsState()
-    val socketSyncEnabled by remember { settings.observeSocketEnabled() }
+    val socketSyncEnabled by remember { connectionSettings.observeSocketEnabled() }
       .collectAsState()
 
     // Connection Settings
@@ -262,7 +268,7 @@ class SettingsPresenter(
     val localNetworkMissing by remember { localNetworkPermission.observePermissionMissing() }
       .collectAsState(false)
     var localNetworkDenied by remember { mutableStateOf(false) }
-    val appUpdateSignInDismissed by remember { settings.observeAppUpdateSignInDismissed() }
+    val appUpdateSignInDismissed by remember { appStateSettings.observeAppUpdateSignInDismissed() }
       .collectAsState()
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
     val appUpdateSignedIn = remember(appUpdateInvalidator) { appUpdateSource.isSignedIn() }
@@ -277,7 +283,7 @@ class SettingsPresenter(
     val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
     val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
     val hlsLargeItemThreshold by remember { devSettings.observeHlsLargeItemThreshold() }.collectAsState()
-    val showWidgetPinningPrompt by remember { settings.observeHasShownWidgetPinning() }.collectAsState()
+    val showWidgetPinningPrompt by remember { appStateSettings.observeHasShownWidgetPinning() }.collectAsState()
     val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState()
     val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState()
     val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState()
@@ -399,7 +405,7 @@ class SettingsPresenter(
           }
 
           is SettingsUiEvent.AccountSettingEvent.KeepSignedInAfterReinstall -> {
-            settings.keepSignedInAfterReinstall = event.enabled
+            privacySettings.keepSignedInAfterReinstall = event.enabled
           }
 
           Logout -> {
@@ -409,7 +415,7 @@ class SettingsPresenter(
 
         is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
           is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
-            settings.socketEnabled = event.enabled
+            connectionSettings.socketEnabled = event.enabled
           }
 
           is SettingsUiEvent.ConnectionSettingEvent.HomeServerOnMobileData -> {
@@ -437,15 +443,15 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
-          is Theme -> settings.themeMode = event.themeMode
+          is Theme -> themeSettings.themeMode = event.themeMode
           is DynamicItemDetailTheming -> themeSettings.dynamicallyThemeItemDetail = event.enabled
           is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
-          is ItemCardMarqueeEnabled -> settings.libraryItemMarqueeEnabled = event.enabled
+          is ItemCardMarqueeEnabled -> libraryViewSettings.libraryItemMarqueeEnabled = event.enabled
           SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> navigator.goTo(ThemePickerScreen)
         }
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
-          is ShowDownloadConfirmation -> settings.showConfirmDownload = event.enabled
+          is ShowDownloadConfirmation -> libraryViewSettings.showConfirmDownload = event.enabled
           is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
             mobileDataSettings.downloadOnWifiOnly = event.enabled
           }
@@ -531,16 +537,16 @@ class SettingsPresenter(
           PrivacyPolicyClick -> navigator.goTo(UrlScreen(applicationUrls.privacyPolicy))
           TermsOfServiceClick -> navigator.goTo(UrlScreen(applicationUrls.termsOfService))
           is SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled -> {
-            settings.analyticReportingEnabled = event.enabled
+            privacySettings.analyticReportingEnabled = event.enabled
           }
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
-            settings.crashReportingEnabled = event.enabled
+            privacySettings.crashReportingEnabled = event.enabled
           }
           SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick -> {
             scope.launch {
               appUpdateSource.signIn()
               if (appUpdateSource.isSignedIn()) {
-                settings.appUpdateSignInDismissed = false
+                appStateSettings.appUpdateSignInDismissed = false
               }
               appUpdateInvalidator++
             }
@@ -554,7 +560,7 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.AdaptToUnreachableServer ->
             devSettings.adaptToUnreachableServer = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
-            settings.hasShownWidgetPinning = event.enabled
+            appStateSettings.hasShownWidgetPinning = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
           is SettingsUiEvent.DeveloperSettingEvent.ClearMediaButtonPackages -> devSettings.clearMediaButtonPackages()
           is SettingsUiEvent.DeveloperSettingEvent.InvalidateCurrentAccount -> {
@@ -569,8 +575,8 @@ class SettingsPresenter(
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateFailDownload ->
             devSettings.fakeAppUpdateFailDownload = event.enabled
           is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateDismissals -> {
-            settings.appUpdateSignInDismissed = false
-            settings.appUpdateDismissedVersionCode = 0L
+            appStateSettings.appUpdateSignInDismissed = false
+            appStateSettings.appUpdateDismissedVersionCode = 0L
             appUpdateInvalidator++
           }
         }
