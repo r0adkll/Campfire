@@ -87,6 +87,11 @@ gradlePlugin {
       implementationClass = "app.campfire.convention.AndroidTestConventionPlugin"
     }
 
+    register("androidBenchmark") {
+      id = "app.campfire.android.benchmark"
+      implementationClass = "app.campfire.convention.AndroidBenchmarkConventionPlugin"
+    }
+
     register("di") {
       id = "app.campfire.di"
       implementationClass = "app.campfire.convention.DiConventionPlugin"

@@ -224,6 +224,7 @@ include(
   ":features:settings:impl",
   ":features:settings:ui",
   ":features:settings:test",
+  ":features:settings:benchmark",
 )
 include(
   ":features:stats:api",
