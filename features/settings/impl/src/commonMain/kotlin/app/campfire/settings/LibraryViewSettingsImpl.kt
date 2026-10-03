@@ -3,7 +3,8 @@
 
 package app.campfire.settings
 
-import app.campfire.core.di.AppScope
+import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
@@ -20,13 +21,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalSettingsApi::class)
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, binding = binding<LibraryViewSettings>())
+/** Kept per account, in the signed-in account's settings. */
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class, binding = binding<LibraryViewSettings>())
 @Inject
 class LibraryViewSettingsImpl(
-  @SettingsStore override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @UserSettingsStore override val settings: ObservableSettings,
+  @ForScope(UserScope::class) private val scopeHolder: CoroutineScopeHolder,
 ) : LibraryViewSettings, AppSettings() {
+
+  override val scope: CoroutineScope get() = scopeHolder.get()
 
   private val libraryItemDisplayStateProperty = enumSetting(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
   override var libraryItemDisplayState: ItemDisplayState by libraryItemDisplayStateProperty

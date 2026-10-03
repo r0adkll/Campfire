@@ -7,6 +7,6 @@ import app.campfire.core.session.UserSession
 
 interface UserGraphManager {
 
-  fun create(userSession: UserSession)
+  suspend fun create(userSession: UserSession)
   suspend fun destroy()
 }

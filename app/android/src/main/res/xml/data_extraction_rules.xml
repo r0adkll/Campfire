@@ -6,6 +6,7 @@
 
   - datastore/settings.preferences_pb: app settings. SettingsBackupAgent clears its device-bound keys
     after a restore.
+  - datastore/users/: each account's own settings, one file per account.
   - Default preferences: the account restore snapshot (AccountRestoreStore), plus app settings from
     before DataStore, which are migrated when restored. One entry per applicationId; a path that
     doesn't exist is ignored.
@@ -14,6 +15,7 @@
 <data-extraction-rules>
   <cloud-backup>
     <include domain="file" path="datastore/settings.preferences_pb" />
+    <include domain="file" path="datastore/users/" />
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />
@@ -21,6 +23,7 @@
   </cloud-backup>
   <device-transfer>
     <include domain="file" path="datastore/settings.preferences_pb" />
+    <include domain="file" path="datastore/users/" />
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />

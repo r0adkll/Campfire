@@ -22,7 +22,6 @@ import app.campfire.common.root.ui.LoggedOutWindow
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.UserSession
 import app.campfire.settings.api.LayoutSettings
-import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
@@ -34,7 +33,6 @@ import dev.zacsweers.metro.Inject
 @Inject
 class CampfireContentWithInsets(
   private val themeSettings: ThemeSettings,
-  private val libraryViewSettings: LibraryViewSettings,
   private val layoutSettings: LayoutSettings,
   private val userSessionManager: UserSessionManager,
   private val themeManager: ThemeManager,
@@ -52,7 +50,6 @@ class CampfireContentWithInsets(
     windowInsets = windowInsets,
     deepLink = deepLink,
     themeSettings = themeSettings,
-    libraryViewSettings = libraryViewSettings,
     layoutSettings = layoutSettings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
@@ -66,7 +63,6 @@ class CampfireContentWithInsets(
 @Inject
 class CampfireContent(
   private val themeSettings: ThemeSettings,
-  private val libraryViewSettings: LibraryViewSettings,
   private val layoutSettings: LayoutSettings,
   private val userSessionManager: UserSessionManager,
   private val themeManager: ThemeManager,
@@ -85,7 +81,6 @@ class CampfireContent(
       .exclude(WindowInsets.navigationBars),
     deepLink = deepLink,
     themeSettings = themeSettings,
-    libraryViewSettings = libraryViewSettings,
     layoutSettings = layoutSettings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
@@ -101,7 +96,6 @@ private fun CampfireRoot(
   windowInsets: WindowInsets,
   deepLink: DeepLink,
   themeSettings: ThemeSettings,
-  libraryViewSettings: LibraryViewSettings,
   layoutSettings: LayoutSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
@@ -133,7 +127,7 @@ private fun CampfireRoot(
           onRootPop = onRootPop,
           windowInsets = windowInsets,
           themeSettings = themeSettings,
-          libraryViewSettings = libraryViewSettings,
+          libraryViewSettings = userComponent.libraryViewSettings,
         )
 
         is UserSession.LoggedIn -> LoggedInWindow(
@@ -141,7 +135,7 @@ private fun CampfireRoot(
           onRootPop = onRootPop,
           deepLink = deepLink,
           themeSettings = themeSettings,
-          libraryViewSettings = libraryViewSettings,
+          libraryViewSettings = userComponent.libraryViewSettings,
           layoutSettings = layoutSettings,
           themeManager = themeManager,
           themeRepository = themeRepository,

@@ -8,7 +8,9 @@ import app.campfire.core.app.UserInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
+import app.campfire.settings.api.DeviceSettings
 import app.campfire.settings.api.SettingsLoader
+import app.campfire.settings.api.UserSettingsStores
 import app.campfire.tracing.StartupTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
@@ -28,6 +30,8 @@ import kotlinx.coroutines.runBlocking
 @Inject
 class StartupInitializer(
   private val settingsLoader: SettingsLoader,
+  private val deviceSettings: DeviceSettings,
+  private val userSettingsStores: UserSettingsStores,
   private val userInitializer: Lazy<UserInitializer>,
   private val initializers: Lazy<Set<AppInitializer>>,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
@@ -48,6 +52,9 @@ class StartupInitializer(
       }
     }
     dbark { "Waited $settingsWait for settings to load" }
+
+    // The account being restored usually signed in last time; read its settings while the session restores
+    deviceSettings.currentUserId?.let(userSettingsStores::startLoading)
 
     dbark { "--> UserInitializer is starting" }
     val userInitDuration = Trace.trace("UserComponent") {
