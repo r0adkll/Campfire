@@ -90,6 +90,7 @@ firebase-crashlytics = "com.google.firebase.crashlytics:3.0.8"
 firebase-appdistribution = "com.google.firebase.appdistribution:5.3.0"
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "baselineprofile" }
+androidx-benchmark = { id = "androidx.benchmark", version.ref = "benchmark-macro-junit4" }
 emulatorwtf = { id = "wtf.emulator.gradle", version.ref = "emulatorwtf" }
 modulegraph = { id = "dev.iurysouza.modulegraph", version = "0.15.0" }
 
@@ -111,6 +112,7 @@ androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version
 androidx-archCoreTesting = "androidx.arch.core:core-testing:2.2.0"
 androidx-browser = "androidx.browser:browser:1.10.0"
 androidx-credentials = "androidx.credentials:credentials:1.6.0"
+androidx-datastore-preferences-core = "androidx.datastore:datastore-preferences-core:1.2.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
 androidx-compose-runtime-tracing = { module = "androidx.compose.runtime:runtime-tracing", version.ref = "androidxcomposeui" }
@@ -304,6 +306,7 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3",
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
 androidx-uiautomator = { group = "androidx.test.uiautomator", name = "uiautomator", version.ref = "uiautomator" }
 androidx-benchmark-macro-junit4 = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "benchmark-macro-junit4" }
+androidx-benchmark-junit4 = { group = "androidx.benchmark", name = "benchmark-junit4", version.ref = "benchmark-macro-junit4" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "profileinstaller" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 

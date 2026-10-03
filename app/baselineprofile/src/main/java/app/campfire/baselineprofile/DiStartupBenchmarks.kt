@@ -61,6 +61,7 @@ class DiStartupBenchmarks {
         TraceSectionMetric(APP_GRAPH, TraceSectionMetric.Mode.First),
         TraceSectionMetric(ACTIVITY_GRAPH, TraceSectionMetric.Mode.First),
         TraceSectionMetric(USER_GRAPH, TraceSectionMetric.Mode.First),
+        TraceSectionMetric(LOAD_SETTINGS, TraceSectionMetric.Mode.First),
       ),
       compilationMode = CompilationMode.Full(),
       startupMode = StartupMode.COLD,
@@ -93,6 +94,7 @@ class DiStartupBenchmarks {
     const val APP_GRAPH = "di:createAppGraph"
     const val ACTIVITY_GRAPH = "di:createActivityGraph"
     const val USER_GRAPH = "di:createUserGraph"
+    const val LOAD_SETTINGS = "startup:loadSettings"
 
     const val HOME_TIMEOUT_MS = 30_000L
   }
