@@ -10,6 +10,8 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
+import app.campfire.core.session.userId
+import app.campfire.settings.api.UserSettingsStores
 import app.campfire.tracing.DiTraceSections
 import app.campfire.tracing.Trace
 import app.campfire.tracing.trace
@@ -29,6 +31,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 @Inject
 class UserComponentManager(
   private val userComponentFactory: UserComponent.Factory,
+  private val userSettingsStores: UserSettingsStores,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : UserGraphManager {
 
@@ -36,7 +39,10 @@ class UserComponentManager(
     bark(LogPriority.ERROR, throwable = throwable) { "Coroutine Exception in UserComponentManager" }
   }
 
-  override fun create(userSession: UserSession) {
+  override suspend fun create(userSession: UserSession) {
+    // The user graph reads the account's settings synchronously, so have them in memory first
+    userSettingsStores.load(userSession.userId)
+
     val newUserComponent = Trace.trace(DiTraceSections.USER_GRAPH) {
       userComponentFactory.create(userSession)
     }
