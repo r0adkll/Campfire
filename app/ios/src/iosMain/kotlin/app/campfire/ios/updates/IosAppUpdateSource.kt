@@ -21,7 +21,7 @@ class IosAppUpdateSource : AppUpdateSource {
 
   override val isSupported: Boolean = false
 
-  override fun isSignedIn(): Boolean = true
+  override suspend fun isSignedIn(): Boolean = true
 
   override suspend fun signIn() {
   }

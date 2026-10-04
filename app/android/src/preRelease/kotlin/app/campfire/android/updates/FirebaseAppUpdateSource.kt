@@ -38,7 +38,7 @@ class FirebaseAppUpdateSource(
 
   override val isSupported: Boolean = true
 
-  override fun isSignedIn(): Boolean {
+  override suspend fun isSignedIn(): Boolean {
     return appDistribution.isTesterSignedIn
   }
 

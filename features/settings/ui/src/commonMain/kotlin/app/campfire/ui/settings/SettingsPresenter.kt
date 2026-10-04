@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -271,7 +272,10 @@ class SettingsPresenter(
     val appUpdateSignInDismissed by remember { appStateSettings.observeAppUpdateSignInDismissed() }
       .collectAsState()
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
-    val appUpdateSignedIn = remember(appUpdateInvalidator) { appUpdateSource.isSignedIn() }
+    // Assume signed in until known, so the sign-in prompt doesn't flash
+    val appUpdateSignedIn by produceState(initialValue = true, appUpdateInvalidator) {
+      value = appUpdateSource.isSignedIn()
+    }
 
     // Android Auto Settings
     val androidAutoCategories by remember {

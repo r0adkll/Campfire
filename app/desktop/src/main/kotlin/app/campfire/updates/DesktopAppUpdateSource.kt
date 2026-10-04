@@ -33,7 +33,7 @@ class DesktopAppUpdateSource(
 
   override fun changes(): Flow<Unit> = delegate?.changes() ?: emptyFlow()
 
-  override fun isSignedIn(): Boolean = delegate?.isSignedIn() ?: true
+  override suspend fun isSignedIn(): Boolean = delegate?.isSignedIn() ?: true
 
   override suspend fun signIn() {
     delegate?.signIn()

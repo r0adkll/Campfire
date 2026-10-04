@@ -3,12 +3,8 @@
 
 package app.campfire.common.di
 
-import app.campfire.auth.api.screen.AnalyticConsentScreen
 import app.campfire.common.root.automation.UserAutomationDeepLinks
 import app.campfire.common.screens.BaseScreen
-import app.campfire.common.screens.HomeScreen
-import app.campfire.common.screens.LoginScreen
-import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
@@ -17,7 +13,6 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.PrivacySettings
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
 import dev.zacsweers.metro.ContributesTo
@@ -50,18 +45,6 @@ interface UserComponent {
   /** Debug-only automation deep links that need user-scoped dependencies */
   val automationDeepLinks: UserAutomationDeepLinks
 
-  @Provides @RootScreen
-  fun provideRootScreen(
-    userSession: UserSession,
-    privacySettings: PrivacySettings,
-  ): BaseScreen {
-    return when (userSession) {
-      is UserSession.NeedsAuthentication -> LoginScreen.ReAuthentication(userSession.server)
-      is UserSession.LoggedIn -> if (!privacySettings.hasEverConsented) AnalyticConsentScreen else HomeScreen
-      else -> WelcomeScreen
-    }
-  }
-
   @Provides
   @ForScope(UserScope::class)
   @SingleIn(UserScope::class)
@@ -74,6 +57,9 @@ interface UserComponent {
   @ContributesTo(AppScope::class)
   @GraphExtension.Factory
   interface Factory {
-    fun create(@Provides userSession: UserSession): UserComponent
+    fun create(
+      @Provides userSession: UserSession,
+      @Provides @RootScreen rootScreen: BaseScreen,
+    ): UserComponent
   }
 }

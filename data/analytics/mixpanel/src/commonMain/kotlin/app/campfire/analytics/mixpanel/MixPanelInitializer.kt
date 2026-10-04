@@ -39,7 +39,7 @@ class MixPanelInitializer(
     if (BuildConfig.MIXPANEL_TOKEN == null) return
 
     mixPanelFacadeLazy.value.identify(
-      distinctId = deviceSettings.analyticsId,
+      distinctId = deviceSettings.analyticsId(),
     )
 
     observeAnalyticsSetting()

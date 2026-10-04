@@ -10,6 +10,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.settings.api.AppStateSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.first
 
 @ContributesBinding(AppScope::class)
 @Inject
@@ -18,9 +19,9 @@ class AndroidWidgetPinRequester(
   private val appStateSettings: AppStateSettings,
 ) : WidgetPinRequester {
 
-  override fun requestPinWidget() {
+  override suspend fun requestPinWidget() {
     val appWidgetManager = AppWidgetManager.getInstance(application)
-    if (appWidgetManager.isRequestPinAppWidgetSupported && !appStateSettings.hasShownWidgetPinning) {
+    if (appWidgetManager.isRequestPinAppWidgetSupported && !appStateSettings.observeHasShownWidgetPinning().first()) {
       val playerWidgetComponent = ComponentName(application, PlayerWidgetReceiver::class.java)
       appWidgetManager.requestPinAppWidget(playerWidgetComponent, null, null)
       appStateSettings.setHasShownWidgetPinning(true)

@@ -28,6 +28,7 @@ import kotlin.time.measureTime
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
@@ -46,7 +47,7 @@ class DefaultAppThemeRepository(
   private val currentAppTheme = MutableStateFlow<AppTheme>(AppTheme.Fixed.Tent)
 
   suspend fun initialize() = measureTime {
-    val theme = when (val key = themeSettings.themeId) {
+    val theme = when (val key = themeSettings.observeThemeId().first()) {
       ThemeKey.Tent -> AppTheme.Fixed.Tent
       ThemeKey.WaterBottle -> AppTheme.Fixed.WaterBottle
       ThemeKey.Forest -> AppTheme.Fixed.Forest
@@ -135,7 +136,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -187,7 +188,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -240,7 +241,7 @@ class DefaultAppThemeRepository(
     themingDb.customAppThemeQueries.delete(id)
     themingDb.themeQueries.deleteTheme(id)
 
-    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == id
+    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == id
     if (isCurrentTheme) {
       setCurrentTheme(AppTheme.Fixed.Tent)
     }

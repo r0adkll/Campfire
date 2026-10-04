@@ -47,7 +47,7 @@ class GooglePlayAppUpdateSource(
   override val isSupported: Boolean = true
 
   // Play updates are delivered to every install; there is no tester sign-in.
-  override fun isSignedIn(): Boolean = true
+  override suspend fun isSignedIn(): Boolean = true
 
   override suspend fun signIn() = Unit
 

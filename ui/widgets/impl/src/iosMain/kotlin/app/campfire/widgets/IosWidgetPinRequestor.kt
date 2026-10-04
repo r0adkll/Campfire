@@ -10,6 +10,6 @@ import dev.zacsweers.metro.Inject
 @ContributesBinding(AppScope::class)
 @Inject
 class IosWidgetPinRequestor : WidgetPinRequester {
-  override fun requestPinWidget() {
+  override suspend fun requestPinWidget() {
   }
 }

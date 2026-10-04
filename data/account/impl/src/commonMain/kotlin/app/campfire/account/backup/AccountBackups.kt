@@ -39,15 +39,15 @@ class AccountBackups(
 
   private val mutex = Mutex()
 
-  private val isEnabled: Boolean
-    get() = tokenBackup.isAvailable && privacySettings.keepSignedInAfterReinstall
+  private suspend fun isEnabled(): Boolean =
+    tokenBackup.isAvailable && privacySettings.observeKeepSignedInAfterReinstall().first()
 
   /**
    * Keep the current sign-in of [userId]. It's read when this runs rather than passed in, so
    * back-to-back token rotations can't leave an older one kept.
    */
   suspend fun backUp(userId: UserId) = mutex.withLock {
-    if (isEnabled) backUpLocked(userId)
+    if (isEnabled()) backUpLocked(userId)
   }
 
   suspend fun forget(userId: UserId) = mutex.withLock {
@@ -59,7 +59,7 @@ class AccountBackups(
    */
   suspend fun sync() = mutex.withLock {
     if (!tokenBackup.isAvailable) return@withLock
-    if (privacySettings.keepSignedInAfterReinstall) {
+    if (privacySettings.observeKeepSignedInAfterReinstall().first()) {
       serverDao.observeAll().first().forEach { backUpLocked(it.user.id) }
     } else {
       tokenBackup.clear()

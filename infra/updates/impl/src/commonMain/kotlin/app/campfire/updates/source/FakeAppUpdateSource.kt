@@ -9,6 +9,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
@@ -35,17 +36,17 @@ class FakeAppUpdateSource(
     .drop(1)
     .map { }
 
-  override fun isSignedIn(): Boolean = devSettings.fakeAppUpdateSignedIn
+  override suspend fun isSignedIn(): Boolean = devSettings.observeFakeAppUpdateSignedIn().first()
 
   override suspend fun signIn() {
     delay(SIGN_IN_DELAY_MS)
     devSettings.setFakeAppUpdateSignedIn(true)
   }
 
-  override suspend fun isUpdateAvailable(): Boolean = devSettings.fakeAppUpdateAvailable
+  override suspend fun isUpdateAvailable(): Boolean = devSettings.observeFakeAppUpdateAvailable().first()
 
   override suspend fun getAvailableUpdate(): AppUpdate? {
-    return if (devSettings.fakeAppUpdateAvailable) FAKE_UPDATE else null
+    return if (devSettings.observeFakeAppUpdateAvailable().first()) FAKE_UPDATE else null
   }
 
   override suspend fun installUpdate(): Flow<AppUpdateProgress> = flow {
@@ -55,7 +56,7 @@ class FakeAppUpdateSource(
     repeat(DOWNLOAD_STEPS) { step ->
       delay(DOWNLOAD_STEP_DELAY_MS)
 
-      if (devSettings.fakeAppUpdateFailDownload && step == DOWNLOAD_STEPS / 2) {
+      if (devSettings.observeFakeAppUpdateFailDownload().first() && step == DOWNLOAD_STEPS / 2) {
         emit(
           AppUpdateProgress(
             bytes = TOTAL_BYTES * step / DOWNLOAD_STEPS,
