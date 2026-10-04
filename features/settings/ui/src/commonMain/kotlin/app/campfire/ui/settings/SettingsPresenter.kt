@@ -476,7 +476,7 @@ class SettingsPresenter(
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
           is PlaybackRateChanged -> {
-            val rates = playbackSettings.playbackRates.toMutableList()
+            val rates = playbackRates.toMutableList()
             if (event.index in rates.indices) {
               rates[event.index] = event.rate
               playbackSettings.setPlaybackRates(rates)
@@ -502,12 +502,12 @@ class SettingsPresenter(
           is AutoRewindOnResumeEnabled -> playbackSettings.setAutoRewindOnResumeEnabled(event.enabled)
           is MinPauseThreshold -> {
             playbackSettings.setResumeRewindConfig(
-              playbackSettings.resumeRewindConfig.copy(minPauseThreshold = event.threshold),
+              resumeRewindConfig.copy(minPauseThreshold = event.threshold),
             )
           }
           is ResumeRewindRange -> {
             playbackSettings.setResumeRewindConfig(
-              playbackSettings.resumeRewindConfig.copy(
+              resumeRewindConfig.copy(
                 minRewind = event.minRewind,
                 maxRewind = event.maxRewind,
               ),

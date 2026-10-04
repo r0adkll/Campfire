@@ -150,6 +150,9 @@ private fun EqualizerBottomSheet(
     component.equalizerSettings.observeItemEqualizerProfiles()
   }.collectAsState()
 
+  val customBandGains by remember { component.equalizerSettings.observeCustomBandGains() }.collectAsState()
+  val globalProfile by remember { component.equalizerSettings.observeEqualizerProfile() }.collectAsState()
+
   val profile = equalizerState?.profileOrNull ?: EqualizerProfile()
 
   val pushProfile: (EqualizerProfile) -> Unit = { updated ->
@@ -169,7 +172,7 @@ private fun EqualizerBottomSheet(
     onPresetSelected = { presetId ->
       Analytics.send(PlaybackActionEvent(Equalizer, Changed, extras = mapOf("preset" to presetId)))
       val gains = if (presetId == EqualizerPresets.CUSTOM_ID) {
-        component.equalizerSettings.customBandGains
+        customBandGains
       } else {
         EqualizerPresets.forId(presetId)?.bandGainsDb ?: profile.bandGainsDb
       }
@@ -190,16 +193,12 @@ private fun EqualizerBottomSheet(
     onPerBookChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Equalizer, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.equalizerSettings.setItemEqualizerProfiles(
-          component.equalizerSettings.itemEqualizerProfiles + (input.itemId to profile),
-        )
+        component.equalizerSettings.setItemEqualizerProfiles(itemEqualizerProfiles + (input.itemId to profile))
       } else {
-        component.equalizerSettings.setItemEqualizerProfiles(
-          component.equalizerSettings.itemEqualizerProfiles - input.itemId,
-        )
+        component.equalizerSettings.setItemEqualizerProfiles(itemEqualizerProfiles - input.itemId)
         // Snap active playback back to the global profile the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
-          ?.setEqualizer(component.equalizerSettings.equalizerProfile)
+          ?.setEqualizer(globalProfile)
       }
     },
     modifier = modifier,

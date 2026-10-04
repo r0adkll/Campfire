@@ -49,6 +49,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -110,6 +111,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
@@ -236,6 +238,12 @@ private fun InactiveTimerSheetContent(
 ) {
   val isSideSheet = LocalSheetPresentation.current == SheetPresentation.Side
 
+  // The pickers start from the last timer, so wait for it before showing them
+  val lastSetSleepTimer by produceState<Duration?>(null) {
+    value = component.sleepSettings.observeLastSetSleepTimer().first()
+  }
+  val initialTimer = lastSetSleepTimer ?: return
+
   Column(modifier) {
     var isEpochTimeSelection by remember { mutableStateOf(true) }
 
@@ -248,8 +256,8 @@ private fun InactiveTimerSheetContent(
     Spacer(Modifier.height(if (isSideSheet) 16.dp else 24.dp))
 
     val timerInputState = rememberTimePickerState(
-      initialHour = component.sleepSettings.lastSetSleepTimer.inWholeHours.toInt(),
-      initialMinute = (component.sleepSettings.lastSetSleepTimer.inWholeMinutes % 60).toInt(),
+      initialHour = initialTimer.inWholeHours.toInt(),
+      initialMinute = (initialTimer.inWholeMinutes % 60).toInt(),
       is24Hour = true,
     )
 
@@ -275,7 +283,7 @@ private fun InactiveTimerSheetContent(
     ) { isTimeSelection ->
       if (isTimeSelection) {
         EpochTimerContent(
-          initialTime = component.sleepSettings.lastSetSleepTimer,
+          initialTime = initialTimer,
           timeInputState = timerInputState,
           shakeToReset = shakeToReset,
           onShakeToResetChange = {

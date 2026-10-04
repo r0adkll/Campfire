@@ -4,6 +4,7 @@
 package app.campfire.auth.ui.consent
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,8 +32,13 @@ class AnalyticConsentPresenter(
 
   @Composable
   override fun present(): AnalyticConsentUiState {
-    var crashReportingEnabled by remember { mutableStateOf(privacySettings.crashReportingEnabled) }
-    var analyticReportingEnabled by remember { mutableStateOf(privacySettings.analyticReportingEnabled) }
+    // Start from the stored choices; the user's toggles here override them until applied
+    val storedCrashReporting by remember { privacySettings.observeCrashReportingEnabled() }.collectAsState()
+    val storedAnalyticReporting by remember { privacySettings.observeAnalyticReportingEnabled() }.collectAsState()
+    var crashReportingChoice by remember { mutableStateOf<Boolean?>(null) }
+    var analyticReportingChoice by remember { mutableStateOf<Boolean?>(null) }
+    val crashReportingEnabled = crashReportingChoice ?: storedCrashReporting
+    val analyticReportingEnabled = analyticReportingChoice ?: storedAnalyticReporting
 
     return AnalyticConsentUiState(
       crashReportingEnabled = crashReportingEnabled,
@@ -40,10 +46,10 @@ class AnalyticConsentPresenter(
     ) { event ->
       when (event) {
         is AnalyticConsentUiEvent.CrashReporting -> {
-          crashReportingEnabled = event.enabled
+          crashReportingChoice = event.enabled
         }
         is AnalyticConsentUiEvent.AnalyticReporting -> {
-          analyticReportingEnabled = event.enabled
+          analyticReportingChoice = event.enabled
         }
         is AnalyticConsentUiEvent.ApplyConsent -> {
           privacySettings.setHasEverConsented(true)

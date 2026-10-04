@@ -131,7 +131,9 @@ private fun PlaybackSpeedBottomSheet(
       }
   }.collectAsState(input.speed)
 
-  val speedOptions = remember { component.playbackSettings.playbackRates.distinct().sorted() }
+  val playbackRates by remember { component.playbackSettings.observePlaybackRates() }.collectAsState()
+  val speedOptions = remember(playbackRates) { playbackRates.distinct().sorted() }
+  val globalSpeed by remember { component.playbackSettings.observePlaybackSpeed() }.collectAsState()
 
   val itemPlaybackSpeeds by remember {
     component.playbackSettings.observeItemPlaybackSpeeds()
@@ -149,14 +151,12 @@ private fun PlaybackSpeedBottomSheet(
     onPerBookSpeedChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.playbackSettings.setItemPlaybackSpeeds(
-          component.playbackSettings.itemPlaybackSpeeds + (input.itemId to currentSpeed),
-        )
+        component.playbackSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds + (input.itemId to currentSpeed))
       } else {
-        component.playbackSettings.setItemPlaybackSpeeds(component.playbackSettings.itemPlaybackSpeeds - input.itemId)
+        component.playbackSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds - input.itemId)
         // Snap active playback back to the global speed the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
-          ?.setPlaybackSpeed(component.playbackSettings.playbackSpeed)
+          ?.setPlaybackSpeed(globalSpeed)
       }
     },
     modifier = modifier,
