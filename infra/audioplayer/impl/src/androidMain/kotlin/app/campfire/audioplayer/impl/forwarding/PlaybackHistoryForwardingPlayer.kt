@@ -8,18 +8,18 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import app.campfire.audioplayer.history.PlaybackHistoryRecorder
 import app.campfire.audioplayer.impl.overallPosition
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.model.Session
-import app.campfire.settings.api.PlaybackSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 @UnstableApi
 class PlaybackHistoryForwardingPlayer(
   player: Player,
-  private val playbackSettings: PlaybackSettings,
+  private val playerSettings: PlayerSettingsSnapshot,
   private val recorder: PlaybackHistoryRecorder,
   private val session: () -> Session?,
 ) : ForwardingPlayer(player) {
@@ -60,7 +60,7 @@ class PlaybackHistoryForwardingPlayer(
     val fromPosition = overallPosition.milliseconds
     super.seekForward()
     libraryItemId?.let {
-      val seekForwardAmount = playbackSettings.forwardTimeMs.milliseconds
+      val seekForwardAmount = playerSettings.forwardTime.value
       recorder.record(
         libraryItemId = it,
         episodeId = episodeId,
@@ -75,13 +75,13 @@ class PlaybackHistoryForwardingPlayer(
     val fromPosition = overallPosition.milliseconds
     super.seekBack()
     libraryItemId?.let {
-      val seekForwardAmount = playbackSettings.forwardTimeMs.milliseconds
+      val seekBackwardAmount = playerSettings.backwardTime.value
       recorder.record(
         libraryItemId = it,
         episodeId = episodeId,
         type = PlaybackActionType.SeekBackward,
         fromPosition = fromPosition,
-        toPosition = fromPosition - seekForwardAmount,
+        toPosition = fromPosition - seekBackwardAmount,
       )
     }
   }

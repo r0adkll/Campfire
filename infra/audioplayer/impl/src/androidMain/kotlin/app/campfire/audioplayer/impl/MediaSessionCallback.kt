@@ -98,7 +98,7 @@ internal class MediaSessionCallback(
 
     when (customCommand.customAction) {
       WidgetSessionCommand.CYCLE_SPEED -> {
-        val rates = component.playbackSettings.playbackRates
+        val rates = component.playerSettings.playbackRates.value
         val currentSpeed = player.playbackSpeed.value
         val currentIndex = rates.indexOfFirst { it == currentSpeed }
         val nextIndex = if (currentIndex < 0) 0 else (currentIndex + 1) % rates.size
@@ -176,7 +176,7 @@ internal class MediaSessionCallback(
     // Media3 routes Bluetooth key events through this callback before processing them,
     // allowing us to intercept and redirect next/prev to seek when the setting is disabled.
     if (controllerInfo.packageName in BLUETOOTH_PACKAGE_NAMES &&
-      !component.playbackSettings.remoteNextPrevSkipsChapters
+      !component.playerSettings.remoteNextPrevSkipsChapters.value
     ) {
       if (keyEvent?.action == KeyEvent.ACTION_DOWN) {
         when (keyEvent.keyCode) {
@@ -318,14 +318,14 @@ internal class MediaSessionCallback(
   }
 
   private fun createCustomLayoutCommandButtons(): List<CommandButton> {
-    val skipBackIcon = when (component.playbackSettings.backwardTimeMs) {
+    val skipBackIcon = when (component.playerSettings.backwardTime.value.inWholeMilliseconds) {
       5_000L -> CommandButton.ICON_SKIP_BACK_5
       10_000L -> CommandButton.ICON_SKIP_BACK_10
       15_000L -> CommandButton.ICON_SKIP_BACK_15
       30_000L -> CommandButton.ICON_SKIP_BACK_30
       else -> CommandButton.ICON_SKIP_BACK
     }
-    val skipForwardIcon = when (component.playbackSettings.forwardTimeMs) {
+    val skipForwardIcon = when (component.playerSettings.forwardTime.value.inWholeMilliseconds) {
       5_000L -> CommandButton.ICON_SKIP_FORWARD_5
       10_000L -> CommandButton.ICON_SKIP_FORWARD_10
       15_000L -> CommandButton.ICON_SKIP_FORWARD_15

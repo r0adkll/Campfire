@@ -72,6 +72,7 @@ class DesktopAudioPlayerTest {
   ) = DesktopAudioPlayer(
     settings = settings,
     equalizerSettings = equalizerSettings,
+    playerSettings = testPlayerSettings(settings, equalizerSettings),
     sleepTimerManagerFactory = sleepTimer.factory,
     engineFactory = factory,
     accessTokenProvider = { accessToken },

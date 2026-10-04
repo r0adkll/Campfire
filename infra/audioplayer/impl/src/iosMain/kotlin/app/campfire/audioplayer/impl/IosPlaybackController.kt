@@ -8,6 +8,7 @@ import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.impl.mediaitem.ArtworkLoader
 import app.campfire.audioplayer.impl.player.NowPlaying
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.di.UserScope
@@ -35,6 +36,7 @@ import platform.AVFAudio.setActive
 class IosPlaybackController(
   private val playbackSessionManager: PlaybackSessionManager,
   private val playbackSettings: PlaybackSettings,
+  private val playerSettings: PlayerSettingsSnapshot,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
@@ -98,6 +100,7 @@ class IosPlaybackController(
       audioPlayerHolder.setCurrentPlayer(
         IosAudioPlayer(
           settings = playbackSettings,
+          playerSettings = playerSettings,
           fatherTime = fatherTime,
           artworkLoader = artworkLoader,
           sleepTimerManagerFactory = sleepTimerManagerFactory,

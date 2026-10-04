@@ -83,8 +83,8 @@ import com.slack.circuit.overlay.OverlayHost
 import dev.zacsweers.metro.ContributesTo
 import kotlin.math.roundToInt
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import org.jetbrains.compose.resources.stringResource
 
 data class EqualizerInput(
@@ -138,16 +138,19 @@ private fun EqualizerBottomSheet(
 ) {
   val equalizerState by remember {
     component.audioPlayerHolder.currentPlayer
-      .flatMapLatest {
-        it?.equalizer ?: emptyFlow()
+      .flatMapLatest { player ->
+        // Without a player, show the profile the item would play with
+        player?.equalizer ?: flow {
+          emit(EqualizerState.Available(component.equalizerSettings.equalizerProfileFor(input.itemId)))
+        }
       }
-  }.collectAsState(EqualizerState.Available(component.equalizerSettings.equalizerProfileFor(input.itemId)))
+  }.collectAsState(null)
 
   val itemEqualizerProfiles by remember {
     component.equalizerSettings.observeItemEqualizerProfiles()
   }.collectAsState()
 
-  val profile = equalizerState.profileOrNull ?: EqualizerProfile()
+  val profile = equalizerState?.profileOrNull ?: EqualizerProfile()
 
   val pushProfile: (EqualizerProfile) -> Unit = { updated ->
     component.audioPlayerHolder.currentPlayer.value

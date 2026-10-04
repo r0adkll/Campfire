@@ -83,6 +83,13 @@ interface SleepSettings {
   }
 
   companion object {
+    const val DEFAULT_SHAKE_TO_RESET_ENABLED = false
+    const val DEFAULT_AUTO_SLEEP_TIMER_ENABLED = false
+    const val DEFAULT_AUTO_REWIND_ENABLED = false
+    val DefaultLastSetSleepTimer: Duration get() = 10.minutes
+    val DefaultAutoRewindAmount: Duration get() = 5.minutes
+    val DefaultAutoSleepStart: LocalTime get() = LocalTime(22, 0)
+    val DefaultAutoSleepEnd: LocalTime get() = LocalTime(6, 0)
     val DefaultFadeOutDuration: Duration get() = 5.seconds
     val FadeOutDurationRange: ClosedRange<Duration> get() = Duration.ZERO..60.seconds
   }

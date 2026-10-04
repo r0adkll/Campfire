@@ -6,6 +6,7 @@
 package app.campfire.audioplayer.impl.sleep
 
 import app.campfire.audioplayer.AudioPlayer.State
+import app.campfire.audioplayer.impl.testPlayerSettings
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayer.Invocation
@@ -44,7 +45,7 @@ class CoroutineSleepTimerManagerTest {
     val dispatcher = UnconfinedTestDispatcher(testScheduler)
     return CoroutineSleepTimerManager(
       player = player,
-      sleepSettings = settings,
+      settings = testPlayerSettings(sleep = settings),
       shakeDetector = ShakeDetector(),
       dispatcherProvider = DispatcherProvider(
         io = dispatcher,

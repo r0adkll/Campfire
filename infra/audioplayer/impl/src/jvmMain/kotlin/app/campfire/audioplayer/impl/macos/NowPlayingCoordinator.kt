@@ -5,9 +5,8 @@ package app.campfire.audioplayer.impl.macos
 
 import app.campfire.audioplayer.AudioPlayer
 import app.campfire.audioplayer.AudioPlayerHolder
-import app.campfire.settings.api.PlaybackSettings
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -31,7 +30,7 @@ import kotlinx.coroutines.launch
  */
 class NowPlayingCoordinator(
   private val holder: AudioPlayerHolder,
-  private val settings: PlaybackSettings,
+  private val settings: PlayerSettingsSnapshot,
   private val bridge: NowPlayingBridge,
   private val artworkLoader: ArtworkLoader,
   private val scope: CoroutineScope,
@@ -53,8 +52,8 @@ class NowPlayingCoordinator(
   private suspend fun observe(player: AudioPlayer) = coroutineScope {
     bridge.setCommandHandler(
       PlayerCommands(player),
-      skipForward = settings.forwardTimeMs.milliseconds,
-      skipBackward = settings.backwardTimeMs.milliseconds,
+      skipForward = settings.forwardTime.value,
+      skipBackward = settings.backwardTime.value,
     )
 
     // Cover bytes for the artwork URL they were fetched from; published once loaded

@@ -4,6 +4,7 @@
 package app.campfire.audioplayer.impl.sleep
 
 import app.campfire.audioplayer.AudioPlayer
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.audioplayer.model.PlaybackTimer
 import app.campfire.audioplayer.model.RunningTimer
 import app.campfire.core.coroutines.DispatcherProvider
@@ -31,7 +32,7 @@ import kotlinx.datetime.LocalTime
 @AssistedInject
 class CoroutineSleepTimerManager(
   @Assisted private val player: AudioPlayer,
-  private val sleepSettings: SleepSettings,
+  private val settings: PlayerSettingsSnapshot,
   private val shakeDetector: ShakeDetector,
   private val dispatcherProvider: DispatcherProvider,
   private val fatherTime: FatherTime,
@@ -71,10 +72,10 @@ class CoroutineSleepTimerManager(
   private var countdownResumedAt: Long? = null
 
   override fun onSessionStart() {
-    if (sleepSettings.autoSleepTimerEnabled && playbackTimer == null) {
+    if (settings.autoSleepTimerEnabled.value && playbackTimer == null) {
       if (isNowAnAutoSleepZone()) {
         ibark { "Starting auto sleep timer" }
-        val newTimer = when (val sleepTimer = sleepSettings.autoSleepTimer) {
+        val newTimer = when (val sleepTimer = settings.autoSleepTimer.value) {
           is SleepSettings.AutoSleepTimer.Epoch -> PlaybackTimer.Epoch(sleepTimer.millis, true)
           SleepSettings.AutoSleepTimer.EndOfChapter -> PlaybackTimer.EndOfChapter(true)
         }
@@ -85,8 +86,8 @@ class CoroutineSleepTimerManager(
 
   private fun isNowAnAutoSleepZone(): Boolean {
     val now = fatherTime.now().time
-    val start = sleepSettings.autoSleepStart
-    val end = sleepSettings.autoSleepEnd
+    val start = settings.autoSleepStart.value
+    val end = settings.autoSleepEnd.value
 
     if (end > start) {
       return now in start..end
@@ -109,18 +110,18 @@ class CoroutineSleepTimerManager(
     lastPlaybackTimer = timer
     startTimer(timer)
 
-    if (sleepSettings.shakeToResetEnabled && !shakeDetector.isRunning) {
+    if (settings.shakeToResetEnabled.value && !shakeDetector.isRunning) {
       ibark { "Shake to reset enabled, starting shake detector" }
       shakeDetector.start(
-        sensitivity = sleepSettings.shakeSensitivity.asShakeSensitivity(),
+        sensitivity = settings.shakeSensitivity.value.asShakeSensitivity(),
         listener = {
           dbark { "<~> Shake Detected!" }
           resetTimer()
         },
       )
-    } else if (sleepSettings.shakeToResetEnabled && shakeDetector.isRunning) {
+    } else if (settings.shakeToResetEnabled.value && shakeDetector.isRunning) {
       dbark { "Shake detector already running, skipping" }
-    } else if (!sleepSettings.shakeToResetEnabled && shakeDetector.isRunning) {
+    } else if (!settings.shakeToResetEnabled.value && shakeDetector.isRunning) {
       dbark { "Shake detector running, and not enabled. Stopping" }
       stopShakeDetector()
     }
@@ -182,10 +183,10 @@ class CoroutineSleepTimerManager(
     val onPauseComplete: () -> Unit = {
       if (
         endedTimer.isAutoSleepTimer &&
-        sleepSettings.autoRewindEnabled &&
-        sleepSettings.autoSleepTimerEnabled
+        settings.autoRewindEnabled.value &&
+        settings.autoSleepTimerEnabled.value
       ) {
-        val newTime = player.overallTime.value - sleepSettings.autoRewindAmount
+        val newTime = player.overallTime.value - settings.autoRewindAmount.value
         player.seekTo(newTime)
         dbark { "Auto-sleep timer ended with rewind enabled, seeking to $newTime" }
       }
@@ -200,7 +201,7 @@ class CoroutineSleepTimerManager(
     } else {
       // Fade playback out over the configured duration, then pause
       cancelFade()
-      val fade = player.fadeToPause(duration = sleepSettings.fadeOutDuration)
+      val fade = player.fadeToPause(duration = settings.fadeOutDuration.value)
       fadeJob = fade
       fade.invokeOnCompletion { cause ->
         // Only a fade that ran to completion actually put the listener to sleep
@@ -268,7 +269,7 @@ class CoroutineSleepTimerManager(
 
   private fun startTimer(timer: PlaybackTimer) {
     if (timer !is PlaybackTimer.Epoch) {
-      runningTimer.value = RunningTimer(timer, fatherTime.nowInEpochMillis(), sleepSettings.shakeToResetEnabled)
+      runningTimer.value = RunningTimer(timer, fatherTime.nowInEpochMillis(), settings.shakeToResetEnabled.value)
       return
     }
 
@@ -323,7 +324,7 @@ class CoroutineSleepTimerManager(
     runningTimer.value = RunningTimer(
       timer = timer,
       startedAt = reference - (timer.epochMillis - remainingMillis),
-      isShakeToRestartEnabled = sleepSettings.shakeToResetEnabled,
+      isShakeToRestartEnabled = settings.shakeToResetEnabled.value,
       pausedAt = pausedAt,
     )
   }

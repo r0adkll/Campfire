@@ -20,6 +20,7 @@ import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 /**
@@ -58,7 +59,7 @@ class AutoRewindSynchronizer(
       // Only record a pause that interrupts active playback. A freshly prepared session that starts paused
       // (Initializing/Buffering -> Paused) should not later be treated as a resume-with-rewind.
       AudioPlayer.State.Paused -> {
-        if (previousState == AudioPlayer.State.Playing && playbackSettings.autoRewindOnResumeEnabled) {
+        if (previousState == AudioPlayer.State.Playing && playbackSettings.observeAutoRewindOnResumeEnabled().first()) {
           playbackSettings.setPendingResumeRewind(
             PendingResumeRewind(
               pausedAtEpochMillis = fatherTime.nowInEpochMillis(),
@@ -70,7 +71,7 @@ class AutoRewindSynchronizer(
 
       // Resuming — rewind if there is a pending pause for THIS item, then consume the marker.
       AudioPlayer.State.Playing -> {
-        val pending = playbackSettings.pendingResumeRewind ?: return
+        val pending = playbackSettings.observePendingResumeRewind().first() ?: return
         if (pending.libraryItemId != libraryItemId) return
         playbackSettings.setPendingResumeRewind(null)
         rewindOnResume(pending.pausedAtEpochMillis)
@@ -87,17 +88,17 @@ class AutoRewindSynchronizer(
   }
 
   private suspend fun rewindOnResume(pausedAtEpochMillis: Long) {
-    if (!playbackSettings.autoRewindOnResumeEnabled) return
+    if (!playbackSettings.observeAutoRewindOnResumeEnabled().first()) return
     val player = audioPlayerHolder.value.currentPlayer.value ?: return
 
     val pauseDuration = (fatherTime.nowInEpochMillis() - pausedAtEpochMillis).milliseconds
-    var rewindAmount = playbackSettings.resumeRewindConfig.rewindForPause(pauseDuration)
+    var rewindAmount = playbackSettings.observeResumeRewindConfig().first().rewindForPause(pauseDuration)
     if (rewindAmount <= Duration.ZERO) return
 
     // Optionally keep the rewind within the current chapter. Chapters are the player's media items, so
     // [AudioPlayer.currentTime] is the position within the current chapter — capping the rewind at it stops
     // playback from crossing back into the previous chapter.
-    if (playbackSettings.autoRewindStopAtChapterBoundary) {
+    if (playbackSettings.observeAutoRewindStopAtChapterBoundary().first()) {
       rewindAmount = rewindAmount.coerceAtMost(player.currentTime.value)
     }
     if (rewindAmount <= Duration.ZERO) return

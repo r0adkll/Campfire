@@ -35,24 +35,27 @@ class PlaybackSettingsImpl(
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : PlaybackSettings, AppSettings() {
 
-  private val enableMp3IndexSeekingProperty = booleanSetting(PREF_MP3_SEEKING)
+  private val enableMp3IndexSeekingProperty =
+    booleanSetting(PREF_MP3_SEEKING, PlaybackSettings.DEFAULT_MP3_INDEX_SEEKING)
   override val enableMp3IndexSeeking: Boolean by enableMp3IndexSeekingProperty
   override fun setEnableMp3IndexSeeking(value: Boolean) = enableMp3IndexSeekingProperty.set(value)
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = enableMp3IndexSeekingProperty.observe()
 
-  private val forwardTimeMsProperty = longSetting(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
+  private val forwardTimeMsProperty =
+    longSetting(PREF_FORWARD_TIME_MS, PlaybackSettings.DefaultForwardTime.inWholeMilliseconds)
   override val forwardTimeMs: Long by forwardTimeMsProperty
   override fun setForwardTimeMs(value: Long) = forwardTimeMsProperty.set(value)
   override fun observeForwardTimeMs(): StateFlow<Long> = forwardTimeMsProperty.observe()
 
-  private val backwardTimeMsProperty = longSetting(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
+  private val backwardTimeMsProperty =
+    longSetting(PREF_BACKWARD_TIME_MS, PlaybackSettings.DefaultBackwardTime.inWholeMilliseconds)
   override val backwardTimeMs: Long by backwardTimeMsProperty
   override fun setBackwardTimeMs(value: Long) = backwardTimeMsProperty.set(value)
   override fun observeBackwardTimeMs(): StateFlow<Long> = backwardTimeMsProperty.observe()
 
   private val trackResetThresholdProperty = durationSetting(
     key = PREF_TRACK_RESET_THRESHOLD,
-    defaultValue = DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds,
+    defaultValue = PlaybackSettings.DefaultTrackResetThreshold,
   )
   override val trackResetThreshold: Duration by trackResetThresholdProperty
   override fun setTrackResetThreshold(value: Duration) = trackResetThresholdProperty.set(value)
@@ -60,7 +63,7 @@ class PlaybackSettingsImpl(
 
   private val playbackRatesProperty = customSetting(
     key = PREF_PLAYBACK_RATES,
-    defaultValue = DEFAULT_PLAYBACK_RATES,
+    defaultValue = PlaybackSettings.DefaultPlaybackRates,
     getter = { it.asFloatList() },
     setter = { rates -> rates.joinToString(PLAYBACK_RATES_SEPARATOR) },
   )
@@ -68,7 +71,7 @@ class PlaybackSettingsImpl(
   override fun setPlaybackRates(value: List<Float>) = playbackRatesProperty.set(value)
   override fun observePlaybackRates(): StateFlow<List<Float>> = playbackRatesProperty.observe()
 
-  private val playbackSpeedProperty = floatSetting(PREF_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+  private val playbackSpeedProperty = floatSetting(PREF_PLAYBACK_SPEED, PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
   override val playbackSpeed: Float by playbackSpeedProperty
   override fun setPlaybackSpeed(value: Float) = playbackSpeedProperty.set(value)
   override fun observePlaybackSpeed(): StateFlow<Float> = playbackSpeedProperty.observe()
@@ -90,7 +93,7 @@ class PlaybackSettingsImpl(
 
   private val remoteNextPrevSkipsChaptersProperty = booleanSetting(
     PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
-    DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
+    PlaybackSettings.DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
   )
   override val remoteNextPrevSkipsChapters: Boolean by remoteNextPrevSkipsChaptersProperty
   override fun setRemoteNextPrevSkipsChapters(value: Boolean) = remoteNextPrevSkipsChaptersProperty.set(value)
@@ -262,12 +265,6 @@ internal const val PREF_SCROLLING_TITLES = "pref_scrolling_titles"
 
 internal const val PLAYBACK_RATES_SEPARATOR = "::"
 
-internal const val DEFAULT_FORWARD_TIME_MS = 30L * 1000L // 30s
-internal const val DEFAULT_BACKWARD_TIME_MS = 10L * 1000L // 15s
-internal const val DEFAULT_TRACK_RESET_THRESHOLD_SECONDS = 5.0 // 5s
-internal val DEFAULT_PLAYBACK_RATES = listOf(1f, 1.1f, 1.25f, 1.5f, 2f)
-internal const val DEFAULT_PLAYBACK_SPEED = 1f
-internal const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = false
 internal const val DEFAULT_AUTO_SYNC = true
 internal const val DEFAULT_PLAYBACK_HISTORY = true
 internal val DEFAULT_SYNC_INTERVAL_UNMETERED = 15.seconds

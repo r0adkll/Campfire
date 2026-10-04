@@ -13,6 +13,7 @@ import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.test.runTest
 
 class EqualizerSettingsTest {
 
@@ -70,7 +71,7 @@ class EqualizerSettingsTest {
   }
 
   @Test
-  fun `equalizerProfileFor falls back to the global profile without an override`() {
+  fun `equalizerProfileFor falls back to the global profile without an override`() = runTest {
     val settings = equalizerSettings()
     val global = EqualizerProfile(enabled = true, presetId = EqualizerPresets.WARM_ID)
     val override = EqualizerProfile(enabled = true, presetId = EqualizerPresets.VOICE_BOOST_ID)

@@ -16,7 +16,6 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.LocalTime
@@ -30,12 +29,14 @@ class SleepSettingsImpl(
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : SleepSettings, AppSettings() {
 
-  private val lastSetSleepTimerProperty = durationSetting(KEY_LAST_SET_SLEEP_TIMER, 10.minutes)
+  private val lastSetSleepTimerProperty =
+    durationSetting(KEY_LAST_SET_SLEEP_TIMER, SleepSettings.DefaultLastSetSleepTimer)
   override val lastSetSleepTimer: Duration by lastSetSleepTimerProperty
   override fun setLastSetSleepTimer(value: Duration) = lastSetSleepTimerProperty.set(value)
   override fun observeLastSetSleepTimer(): StateFlow<Duration> = lastSetSleepTimerProperty.observe()
 
-  private val shakeToResetEnabledProperty = booleanSetting(KEY_SHAKE_TO_RESET, DefaultShakeToResetEnabled)
+  private val shakeToResetEnabledProperty =
+    booleanSetting(KEY_SHAKE_TO_RESET, SleepSettings.DEFAULT_SHAKE_TO_RESET_ENABLED)
   override val shakeToResetEnabled: Boolean by shakeToResetEnabledProperty
   override fun setShakeToResetEnabled(value: Boolean) = shakeToResetEnabledProperty.set(value)
   override fun observeShakeToResetEnabled(): StateFlow<Boolean> = shakeToResetEnabledProperty.observe()
@@ -47,26 +48,18 @@ class SleepSettingsImpl(
 
   private val autoSleepTimerEnabledProperty = booleanSetting(
     KEY_AUTO_SLEEP_TIMER_ENABLED,
-    DefaultAutoSleepTimerEnabled,
+    SleepSettings.DEFAULT_AUTO_SLEEP_TIMER_ENABLED,
   )
   override val autoSleepTimerEnabled: Boolean by autoSleepTimerEnabledProperty
   override fun setAutoSleepTimerEnabled(value: Boolean) = autoSleepTimerEnabledProperty.set(value)
   override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> = autoSleepTimerEnabledProperty.observe()
 
-  // 10:00 PM
-  private val defaultStartTime: LocalTime
-    get() = LocalTime(22, 0)
-
-  private val autoSleepStartProperty = localTimeSetting(KEY_AUTO_SLEEP_START, defaultStartTime)
+  private val autoSleepStartProperty = localTimeSetting(KEY_AUTO_SLEEP_START, SleepSettings.DefaultAutoSleepStart)
   override val autoSleepStart: LocalTime by autoSleepStartProperty
   override fun setAutoSleepStart(value: LocalTime) = autoSleepStartProperty.set(value)
   override fun observeAutoSleepStart(): StateFlow<LocalTime> = autoSleepStartProperty.observe()
 
-  // 6:00 AM
-  private val defaultEndTime: LocalTime
-    get() = LocalTime(6, 0)
-
-  private val autoSleepEndProperty = localTimeSetting(KEY_AUTO_SLEEP_END, defaultEndTime)
+  private val autoSleepEndProperty = localTimeSetting(KEY_AUTO_SLEEP_END, SleepSettings.DefaultAutoSleepEnd)
   override val autoSleepEnd: LocalTime by autoSleepEndProperty
   override fun setAutoSleepEnd(value: LocalTime) = autoSleepEndProperty.set(value)
   override fun observeAutoSleepEnd(): StateFlow<LocalTime> = autoSleepEndProperty.observe()
@@ -99,12 +92,13 @@ class SleepSettingsImpl(
   override fun setAutoSleepTimer(value: AutoSleepTimer) = autoSleepTimerProperty.set(value)
   override fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer> = autoSleepTimerProperty.observe()
 
-  private val autoRewindEnabledProperty = booleanSetting(KEY_AUTO_REWIND_ENABLED, DefaultAutoRewindEnabled)
+  private val autoRewindEnabledProperty =
+    booleanSetting(KEY_AUTO_REWIND_ENABLED, SleepSettings.DEFAULT_AUTO_REWIND_ENABLED)
   override val autoRewindEnabled: Boolean by autoRewindEnabledProperty
   override fun setAutoRewindEnabled(value: Boolean) = autoRewindEnabledProperty.set(value)
   override fun observeAutoRewindEnabled(): StateFlow<Boolean> = autoRewindEnabledProperty.observe()
 
-  private val autoRewindAmountProperty = durationSetting(KEY_AUTO_REWIND_AMOUNT, DefaultAutoRewindAmount)
+  private val autoRewindAmountProperty = durationSetting(KEY_AUTO_REWIND_AMOUNT, SleepSettings.DefaultAutoRewindAmount)
   override val autoRewindAmount: Duration by autoRewindAmountProperty
   override fun setAutoRewindAmount(value: Duration) = autoRewindAmountProperty.set(value)
   override fun observeAutoRewindAmount(): StateFlow<Duration> = autoRewindAmountProperty.observe()
@@ -125,8 +119,3 @@ private const val KEY_AUTO_SLEEP_TIMER = "pref_auto_sleep_timer"
 private const val KEY_AUTO_REWIND_ENABLED = "pref_auto_rewind_enabled"
 private const val KEY_AUTO_REWIND_AMOUNT = "pref_auto_rewind_amount"
 private const val KEY_FADE_OUT_DURATION = "pref_sleep_fade_out_duration"
-
-private const val DefaultShakeToResetEnabled = false
-private const val DefaultAutoSleepTimerEnabled = false
-private const val DefaultAutoRewindEnabled = false
-private val DefaultAutoRewindAmount = 5.minutes

@@ -111,6 +111,7 @@ class DesktopAudioPlayerServerIntegrationTest {
     val player = DesktopAudioPlayer(
       settings = settings,
       equalizerSettings = FakeEqualizerSettings(),
+      playerSettings = testPlayerSettings(settings),
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
       engineFactory = engineFactory,
       accessTokenProvider = { token },

@@ -19,6 +19,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -41,7 +42,7 @@ class PlaybackHistoryRecorderImpl(
     episodeId: PodcastEpisodeId?,
   ) {
     coroutineScope.launch {
-      if (!playbackSettings.playbackHistoryEnabled) return@launch
+      if (!playbackSettings.observePlaybackHistoryEnabled().first()) return@launch
       val userId = userSessionManager.current.userId ?: return@launch
       write {
         database.playbackActionQueries.insert(

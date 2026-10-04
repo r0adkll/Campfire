@@ -9,9 +9,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
-import app.campfire.settings.api.PlaybackSettings
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import kotlin.time.Duration
@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @UnstableApi
 class ChapterWindowForwardingPlayer(
   player: Player,
-  private val settings: PlaybackSettings,
+  private val settings: PlayerSettingsSnapshot,
   private val appPackageName: String,
   private val host: Host,
 ) : ForwardingSimpleBasePlayer(player) {
@@ -148,7 +148,7 @@ class ChapterWindowForwardingPlayer(
   }
 
   private fun remoteJumpPreferred(): Boolean {
-    return session.isRemoteControllerRequest(appPackageName) && !settings.remoteNextPrevSkipsChapters
+    return session.isRemoteControllerRequest(appPackageName) && !settings.remoteNextPrevSkipsChapters.value
   }
 
   private fun chapterPlaylist(chapters: List<Chapter>, baseItem: MediaItem): List<MediaItemData> {

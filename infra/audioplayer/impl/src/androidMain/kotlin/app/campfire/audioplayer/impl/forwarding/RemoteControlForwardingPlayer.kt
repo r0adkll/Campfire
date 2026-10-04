@@ -7,7 +7,7 @@ import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaSession
-import app.campfire.settings.api.PlaybackSettings
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 
 /**
  * A [androidx.media3.common.ForwardingPlayer] that intercepts next/previous media item commands from external controllers
@@ -24,7 +24,7 @@ import app.campfire.settings.api.PlaybackSettings
 @UnstableApi
 class RemoteControlForwardingPlayer(
   player: Player,
-  private val settings: PlaybackSettings,
+  private val settings: PlayerSettingsSnapshot,
   private val appPackageName: String,
 ) : ForwardingPlayer(player) {
 
@@ -52,7 +52,7 @@ class RemoteControlForwardingPlayer(
    * Returns true if we handled the command (seek forward/back), false if default behavior should be used.
    */
   private inline fun handleRemoteNextPrevCommand(seekAction: () -> Unit): Boolean {
-    if (isRemoteController() && !settings.remoteNextPrevSkipsChapters) {
+    if (isRemoteController() && !settings.remoteNextPrevSkipsChapters.value) {
       seekAction()
       return true
     }

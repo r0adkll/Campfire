@@ -7,6 +7,7 @@ import android.content.Context
 import androidx.glance.GlanceId
 import androidx.glance.action.ActionParameters
 import app.campfire.widgets.di.AudioPlayerActionCallback
+import kotlinx.coroutines.flow.first
 
 class SleepTimerActionCallback : AudioPlayerActionCallback() {
 
@@ -17,7 +18,7 @@ class SleepTimerActionCallback : AudioPlayerActionCallback() {
   ) {
     if (audioPlayer == null) return
     val minutes = parameters[KEY_MINUTES]
-      ?: component.sleepSettings.lastSetSleepTimer.inWholeMinutes.toInt()
+      ?: component.sleepSettings.observeLastSetSleepTimer().first().inWholeMinutes.toInt()
     commandSender.setSleepTimer(minutes)
   }
 

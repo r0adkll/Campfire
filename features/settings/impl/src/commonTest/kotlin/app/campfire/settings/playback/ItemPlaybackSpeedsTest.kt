@@ -11,6 +11,7 @@ import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.test.runTest
 
 class ItemPlaybackSpeedsTest {
 
@@ -30,7 +31,7 @@ class ItemPlaybackSpeedsTest {
   }
 
   @Test
-  fun `playbackSpeedFor falls back to the global speed without an override`() {
+  fun `playbackSpeedFor falls back to the global speed without an override`() = runTest {
     val settings = playbackSettings()
     settings.setPlaybackSpeed(1.25f)
     settings.setItemPlaybackSpeeds(mapOf("li_abc123" to 2f))

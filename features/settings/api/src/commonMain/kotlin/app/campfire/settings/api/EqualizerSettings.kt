@@ -6,6 +6,7 @@ package app.campfire.settings.api
 import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 
 interface EqualizerSettings {
 
@@ -37,8 +38,8 @@ interface EqualizerSettings {
    * The effective equalizer profile for [itemId] — its per-item override if one is enabled,
    * otherwise the global [equalizerProfile].
    */
-  fun equalizerProfileFor(itemId: LibraryItemId?): EqualizerProfile {
-    return itemId?.let { itemEqualizerProfiles[it] } ?: equalizerProfile
+  suspend fun equalizerProfileFor(itemId: LibraryItemId?): EqualizerProfile {
+    return itemId?.let { observeItemEqualizerProfiles().first()[it] } ?: observeEqualizerProfile().first()
   }
 
   /**

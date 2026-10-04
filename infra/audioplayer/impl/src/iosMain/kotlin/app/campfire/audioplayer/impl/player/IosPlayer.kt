@@ -73,7 +73,7 @@ import platform.Foundation.NSNotificationCenter
 @OptIn(ExperimentalForeignApi::class)
 class IosPlayer(
   private val scope: CoroutineScope,
-  private val skipToPreviousResetThreshold: Duration,
+  private val skipToPreviousResetThreshold: () -> Duration,
   private val onFinished: () -> Unit,
 ) : AutoCloseable {
 
@@ -407,7 +407,7 @@ class IosPlayer(
       ?: throw IllegalStateException("Unable to determine current track in player")
 
     if (index > 0) {
-      if (currentTimeInItem > skipToPreviousResetThreshold) {
+      if (currentTimeInItem > skipToPreviousResetThreshold()) {
         val trackStartTimeInItem = (track.startMs - currentMediaItem.startOffset.inWholeMilliseconds)
           .coerceAtLeast(0L)
         // If we are well into the playback for the current track, just seek to the start of the track
@@ -422,7 +422,7 @@ class IosPlayer(
         }
       }
     } else if (currentItemIndex > 0) {
-      if (currentTimeInItem > skipToPreviousResetThreshold) {
+      if (currentTimeInItem > skipToPreviousResetThreshold()) {
         avPlayer.seekToTime(ZERO_CM_TIME) { completed ->
           if (completed && avPlayer.isPaused) avPlayer.playIfReady()
         }

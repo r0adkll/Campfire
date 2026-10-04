@@ -6,6 +6,7 @@
 package app.campfire.audioplayer.impl.macos
 
 import app.campfire.audioplayer.AudioPlayer.State
+import app.campfire.audioplayer.impl.testPlayerSettings
 import app.campfire.audioplayer.model.Metadata
 import app.campfire.audioplayer.test.FakeAudioPlayer
 import app.campfire.audioplayer.test.FakeAudioPlayer.Invocation
@@ -72,7 +73,14 @@ class NowPlayingCoordinatorTest {
 
   private fun TestScope.start(): Job {
     val scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + Job())
-    return NowPlayingCoordinator(holder, settings, bridge, artworkLoader, scope, testTimeSource).start()
+    return NowPlayingCoordinator(
+      holder,
+      testPlayerSettings(settings),
+      bridge,
+      artworkLoader,
+      scope,
+      testTimeSource,
+    ).start()
   }
 
   /** A player mid-way through chapter 1 of a two-track book, playing at 1.25x. */
@@ -227,7 +235,7 @@ class NowPlayingCoordinatorTest {
   @Test
   fun `the coordinator stops with its scope`() = runTest {
     val scope = CoroutineScope(UnconfinedTestDispatcher(testScheduler) + Job())
-    NowPlayingCoordinator(holder, settings, bridge, artworkLoader, scope, testTimeSource).start()
+    NowPlayingCoordinator(holder, testPlayerSettings(settings), bridge, artworkLoader, scope, testTimeSource).start()
     scope.cancel()
     holder.setCurrentPlayer(playingPlayer())
     assertThat(bridge.handler).isNull()

@@ -20,6 +20,7 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.AudioPlayerHolder
 import app.campfire.audioplayer.impl.browse.MediaTree
 import app.campfire.audioplayer.impl.session.PlaybackSessionManager
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.core.ActivityIntentProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
@@ -32,7 +33,6 @@ import app.campfire.libraries.api.LibraryRepository
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.api.DevSettings
-import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesTo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -51,7 +51,7 @@ import kotlinx.coroutines.withContext
 @ContributesTo(AppScope::class)
 interface AudioPlayerComponent {
   val audioPlayerHolder: AudioPlayerHolder // AppScope
-  val playbackSettings: PlaybackSettings // AppScope
+  val playerSettings: PlayerSettingsSnapshot // AppScope
   val devSettings: DevSettings // AppScope
   val activityIntentProvider: ActivityIntentProvider // AppScope
   val exoPlayerFactory: ExoPlayerAudioPlayer.Factory // AppScope

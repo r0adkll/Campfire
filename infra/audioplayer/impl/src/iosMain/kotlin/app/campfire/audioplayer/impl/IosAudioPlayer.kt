@@ -13,6 +13,7 @@ import app.campfire.audioplayer.impl.player.enable
 import app.campfire.audioplayer.impl.player.getPreferredIntervals
 import app.campfire.audioplayer.impl.player.preferredIntervals
 import app.campfire.audioplayer.impl.player.supportedPlaybackRates
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.model.EqualizerState
@@ -53,6 +54,7 @@ import platform.UIKit.endReceivingRemoteControlEvents
 
 class IosAudioPlayer(
   private val settings: PlaybackSettings,
+  private val playerSettings: PlayerSettingsSnapshot,
   private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
@@ -66,7 +68,7 @@ class IosAudioPlayer(
   private var finishedListener: OnFinishedListener? = null
 
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
+  override val playbackSpeed = MutableStateFlow(PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
 
   // AVPlayer offers no equalizer hook; a future phase can add one via an
   // MTAudioProcessingTap or an AVAudioEngine pipeline.
@@ -77,7 +79,7 @@ class IosAudioPlayer(
 
   private val player = IosPlayer(
     scope = scope,
-    skipToPreviousResetThreshold = settings.trackResetThreshold,
+    skipToPreviousResetThreshold = { playerSettings.trackResetThreshold.value },
     onFinished = {
       scope.launch {
         finishedListener?.invoke(
@@ -328,11 +330,11 @@ class IosAudioPlayer(
   }
 
   override fun seekForward() {
-    player.seekForward(settings.forwardTimeMs)
+    player.seekForward(playerSettings.forwardTime.value.inWholeMilliseconds)
   }
 
   override fun seekBackward() {
-    player.seekBackward(settings.backwardTimeMs)
+    player.seekBackward(playerSettings.backwardTime.value.inWholeMilliseconds)
   }
 
   override fun setPlaybackSpeed(speed: Float) {
@@ -370,7 +372,7 @@ class IosAudioPlayer(
     commandCenter.togglePlayPauseCommand.enable(action = playPauseHandler)
 
     commandCenter.skipForwardCommand.enable(
-      setup = { preferredIntervals(settings.forwardTimeMs) },
+      setup = { preferredIntervals(playerSettings.forwardTime.value.inWholeMilliseconds) },
       action = { event ->
         when (val command = event.command) {
           is MPSkipIntervalCommand -> {
@@ -385,7 +387,7 @@ class IosAudioPlayer(
     )
 
     commandCenter.skipBackwardCommand.enable(
-      setup = { preferredIntervals(settings.backwardTimeMs) },
+      setup = { preferredIntervals(playerSettings.backwardTime.value.inWholeMilliseconds) },
       action = { event ->
         when (val command = event.command) {
           is MPSkipIntervalCommand -> {
@@ -400,7 +402,7 @@ class IosAudioPlayer(
     )
 
     commandCenter.nextTrackCommand.enable {
-      if (settings.remoteNextPrevSkipsChapters) {
+      if (playerSettings.remoteNextPrevSkipsChapters.value) {
         skipToNext()
       } else {
         seekForward()
@@ -409,7 +411,7 @@ class IosAudioPlayer(
     }
 
     commandCenter.previousTrackCommand.enable {
-      if (settings.remoteNextPrevSkipsChapters) {
+      if (playerSettings.remoteNextPrevSkipsChapters.value) {
         skipToPrevious()
       } else {
         seekBackward()
@@ -426,7 +428,7 @@ class IosAudioPlayer(
     }
 
     commandCenter.changePlaybackRateCommand.enable(
-      setup = { supportedPlaybackRates(settings.playbackRates) },
+      setup = { supportedPlaybackRates(playerSettings.playbackRates.value) },
       action = { event ->
         val playbackRateEvent = event as? MPChangePlaybackRateCommandEvent
           ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent

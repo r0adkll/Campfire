@@ -4,8 +4,10 @@
 package app.campfire.audioplayer.impl.di
 
 import android.app.Application
+import android.os.Handler
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSource
@@ -26,19 +28,23 @@ import app.campfire.account.api.UserSessionManager
 import app.campfire.audioplayer.impl.networking.AuthRefreshingHttpDataSource
 import app.campfire.audioplayer.impl.networking.CampfireLoadErrorHandlingPolicy
 import app.campfire.audioplayer.impl.offline.downloadRequirements
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.requiredUserId
 import app.campfire.network.di.UserClient
 import app.campfire.settings.api.MobileDataSettings
-import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import io.ktor.client.HttpClient
 import java.io.File
 import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @ContributesTo(AppScope::class)
@@ -97,6 +103,7 @@ interface ExoPlayerAppComponent {
     appInfo: ApplicationInfo,
     @UserClient userClient: HttpClient,
     mobileDataSettings: MobileDataSettings,
+    @ForScope(AppScope::class) applicationScope: CoroutineScope,
   ): DownloadManager {
     val numCpus = Runtime.getRuntime().availableProcessors()
     val httpDataSourceFactory = DefaultHttpDataSource.Factory()
@@ -114,8 +121,14 @@ interface ExoPlayerAppComponent {
       Executors.newFixedThreadPool(numCpus),
     ).apply {
       maxParallelDownloads = numCpus
-      // Set on the manager's own thread; later changes go through DownloadRequirementsObserver
-      requirements = downloadRequirements(wifiOnly = mobileDataSettings.downloadOnWifiOnly)
+      // Hold downloads to Wi-Fi until the setting is read, then apply it on the manager's own thread; later
+      // changes go through DownloadRequirementsObserver
+      requirements = downloadRequirements(wifiOnly = true)
+      val managerLooper = Util.getCurrentOrMainLooper()
+      applicationScope.launch {
+        val wifiOnly = mobileDataSettings.observeDownloadOnWifiOnly().first()
+        Handler(managerLooper).post { requirements = downloadRequirements(wifiOnly) }
+      }
     }
   }
 
@@ -123,7 +136,7 @@ interface ExoPlayerAppComponent {
   @Provides
   fun provideMediaSourceFactory(
     application: Application,
-    settings: PlaybackSettings,
+    playerSettings: PlayerSettingsSnapshot,
     @DownloadCache downloadCache: SimpleCache,
     @StreamingCache streamingCache: SimpleCache,
     sessionManager: UserSessionManager,
@@ -150,7 +163,7 @@ interface ExoPlayerAppComponent {
 
     val extractorsFactory = DefaultExtractorsFactory()
 
-    if (settings.enableMp3IndexSeeking) {
+    if (playerSettings.mp3IndexSeeking.value) {
       // https://exoplayer.dev/troubleshooting.html#why-is-seeking-inaccurate-in-some-mp3-files
       extractorsFactory.setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_INDEX_SEEKING)
     }

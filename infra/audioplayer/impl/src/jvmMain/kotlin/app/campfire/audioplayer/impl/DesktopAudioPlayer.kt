@@ -13,6 +13,7 @@ import app.campfire.audioplayer.impl.engine.PlaybackEngine
 import app.campfire.audioplayer.impl.engine.PlaybackEngineEvent
 import app.campfire.audioplayer.impl.mediaitem.MediaItem
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.volume.AudioDeviceResolution
@@ -79,6 +80,7 @@ import kotlinx.coroutines.withContext
 class DesktopAudioPlayer(
   private val settings: PlaybackSettings,
   private val equalizerSettings: EqualizerSettings,
+  private val playerSettings: PlayerSettingsSnapshot,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
@@ -114,9 +116,9 @@ class DesktopAudioPlayer(
   override val currentTime = MutableStateFlow(Duration.ZERO)
   override val currentDuration = MutableStateFlow(Duration.ZERO)
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
+  override val playbackSpeed = MutableStateFlow(PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
   override val equalizer = MutableStateFlow<EqualizerState>(
-    EqualizerState.Available(equalizerSettings.equalizerProfile),
+    EqualizerState.Available(playerSettings.equalizerProfile.value),
   )
 
   override val runningTimer: StateFlow<RunningTimer?>
@@ -356,18 +358,18 @@ class DesktopAudioPlayer(
 
   override fun skipToPrevious() = onEngine {
     val timeline = timeline ?: return@onEngine
-    val threshold = settings.trackResetThreshold
+    val threshold = playerSettings.trackResetThreshold.value
     val target = timeline.previousChapterTarget(overallTime.value, threshold)
       ?: previousTrackTarget(timeline, threshold)
     seekAbsolute(target, play = false)
   }
 
   override fun seekForward() = onEngine {
-    seekAbsolute(overallTime.value + settings.forwardTimeMs.milliseconds, play = false)
+    seekAbsolute(overallTime.value + playerSettings.forwardTime.value, play = false)
   }
 
   override fun seekBackward() = onEngine {
-    seekAbsolute(overallTime.value - settings.backwardTimeMs.milliseconds, play = false)
+    seekAbsolute(overallTime.value - playerSettings.backwardTime.value, play = false)
   }
 
   override fun setPlaybackSpeed(speed: Float) {
@@ -446,7 +448,7 @@ class DesktopAudioPlayer(
       engineFactory.create().also { created ->
         engine = created
         created.setRate(playbackSpeed.value)
-        created.apply(equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile)
+        created.apply(equalizer.value.profileOrNull ?: playerSettings.equalizerProfile.value)
         // A new engine starts at unity on the system default; both live in settings, not in here
         applyOutputGain()
         applyOutputDevice()

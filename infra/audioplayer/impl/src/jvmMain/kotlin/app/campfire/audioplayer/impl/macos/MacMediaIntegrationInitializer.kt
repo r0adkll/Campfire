@@ -5,11 +5,11 @@ package app.campfire.audioplayer.impl.macos
 
 import app.campfire.account.api.AccountManager
 import app.campfire.audioplayer.AudioPlayerHolder
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.Cork
-import app.campfire.settings.api.PlaybackSettings
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
@@ -24,7 +24,7 @@ import kotlinx.coroutines.CoroutineScope
 @Inject
 class MacMediaIntegrationInitializer(
   private val holder: AudioPlayerHolder,
-  private val settings: PlaybackSettings,
+  private val settings: PlayerSettingsSnapshot,
   private val accountManager: AccountManager,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {

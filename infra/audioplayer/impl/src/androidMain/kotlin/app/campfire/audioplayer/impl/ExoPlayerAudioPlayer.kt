@@ -33,6 +33,7 @@ import app.campfire.audioplayer.impl.forwarding.ChapterWindowForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.PlaybackHistoryForwardingPlayer
 import app.campfire.audioplayer.impl.forwarding.RemoteControlForwardingPlayer
 import app.campfire.audioplayer.impl.mediaitem.MediaItemBuilder
+import app.campfire.audioplayer.impl.settings.PlayerSettingsSnapshot
 import app.campfire.audioplayer.impl.sleep.SleepTimerManager
 import app.campfire.audioplayer.impl.sleep.VolumeFadeController
 import app.campfire.audioplayer.impl.util.AUDIO_TAG
@@ -84,6 +85,7 @@ class ExoPlayerAudioPlayer(
   private val context: Context,
   private val settings: PlaybackSettings,
   private val equalizerSettings: EqualizerSettings,
+  private val playerSettings: PlayerSettingsSnapshot,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val castController: CastController,
@@ -102,6 +104,7 @@ class ExoPlayerAudioPlayer(
   class Factory(
     private val settings: PlaybackSettings,
     private val equalizerSettings: EqualizerSettings,
+    private val playerSettings: PlayerSettingsSnapshot,
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
@@ -115,6 +118,7 @@ class ExoPlayerAudioPlayer(
         context = context,
         settings = settings,
         equalizerSettings = equalizerSettings,
+        playerSettings = playerSettings,
         mediaSourceFactory = mediaSourceFactory,
         playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
@@ -130,8 +134,8 @@ class ExoPlayerAudioPlayer(
 
   private val exoPlayer = ExoPlayer.Builder(context)
     .setRenderersFactory(CampfireRenderersFactory(context))
-    .setSeekForwardIncrementMs(settings.forwardTimeMs)
-    .setSeekBackIncrementMs(settings.backwardTimeMs)
+    .setSeekForwardIncrementMs(playerSettings.forwardTime.value.inWholeMilliseconds)
+    .setSeekBackIncrementMs(playerSettings.backwardTime.value.inWholeMilliseconds)
     .setHandleAudioBecomingNoisy(true)
     .setAudioAttributes(
       AudioAttributes.Builder()
@@ -176,7 +180,7 @@ class ExoPlayerAudioPlayer(
    */
   private val remoteControlForwardingPlayer = RemoteControlForwardingPlayer(
     player = internalPlayer,
-    settings = settings,
+    settings = playerSettings,
     appPackageName = context.packageName,
   )
 
@@ -186,7 +190,7 @@ class ExoPlayerAudioPlayer(
    */
   private val playbackHistoryForwardingPlayer = PlaybackHistoryForwardingPlayer(
     player = remoteControlForwardingPlayer,
-    playbackSettings = settings,
+    playerSettings = playerSettings,
     recorder = playbackHistoryRecorder,
     session = { preparedSession },
   )
@@ -203,7 +207,7 @@ class ExoPlayerAudioPlayer(
    */
   internal val sessionPlayer: ChapterWindowForwardingPlayer = ChapterWindowForwardingPlayer(
     player = playbackHistoryForwardingPlayer,
-    settings = settings,
+    settings = playerSettings,
     appPackageName = context.packageName,
     host = object : ChapterWindowForwardingPlayer.Host {
       override fun activeChapters(): List<Chapter>? = chapterTimeline
@@ -270,15 +274,15 @@ class ExoPlayerAudioPlayer(
   override val currentTime = MutableStateFlow(0.seconds)
   override val currentDuration = MutableStateFlow(0.seconds)
   override val currentMetadata = MutableStateFlow(Metadata())
-  override val playbackSpeed = MutableStateFlow(settings.playbackSpeed)
+  override val playbackSpeed = MutableStateFlow(PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
 
   private val audioEffects = AudioEffectsController()
   override val equalizer = MutableStateFlow<EqualizerState>(
-    EqualizerState.Available(equalizerSettings.equalizerProfile),
+    EqualizerState.Available(playerSettings.equalizerProfile.value),
   )
 
   private val currentEqualizerProfile: EqualizerProfile
-    get() = equalizer.value.profileOrNull ?: equalizerSettings.equalizerProfile
+    get() = equalizer.value.profileOrNull ?: playerSettings.equalizerProfile.value
 
   init {
     // Audio effects bind to the local audio session id, which only the underlying ExoPlayer
@@ -602,13 +606,13 @@ class ExoPlayerAudioPlayer(
 
   override fun skipToPrevious() {
     if (queueShape != QueueShape.CHAPTERS) {
-      val target = chapterTimeline?.previousChapterTarget(overallTime.value, settings.trackResetThreshold)
+      val target = chapterTimeline?.previousChapterTarget(overallTime.value, playerSettings.trackResetThreshold.value)
       if (target != null) {
         coarseSeekTo(target, play = false)
         return
       }
     }
-    if (player.currentPosition.milliseconds > settings.trackResetThreshold) {
+    if (player.currentPosition.milliseconds > playerSettings.trackResetThreshold.value) {
       player.seekToDefaultPosition()
       player.play()
     } else {

@@ -8,6 +8,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 
 interface PlaybackSettings {
 
@@ -47,8 +48,8 @@ interface PlaybackSettings {
    * The effective playback speed for [itemId] — its per-item override if one is enabled,
    * otherwise the global [playbackSpeed].
    */
-  fun playbackSpeedFor(itemId: LibraryItemId?): Float {
-    return itemId?.let { itemPlaybackSpeeds[it] } ?: playbackSpeed
+  suspend fun playbackSpeedFor(itemId: LibraryItemId?): Float {
+    return itemId?.let { observeItemPlaybackSpeeds().first()[it] } ?: observePlaybackSpeed().first()
   }
 
   /**
@@ -173,6 +174,16 @@ interface PlaybackSettings {
   val scrollingTitles: Boolean
   fun setScrollingTitles(value: Boolean)
   fun observeScrollingTitles(): StateFlow<Boolean>
+
+  companion object {
+    val DefaultForwardTime: Duration = 30.seconds
+    val DefaultBackwardTime: Duration = 10.seconds
+    val DefaultTrackResetThreshold: Duration = 5.seconds
+    val DefaultPlaybackRates: List<Float> = listOf(1f, 1.1f, 1.25f, 1.5f, 2f)
+    const val DEFAULT_PLAYBACK_SPEED: Float = 1f
+    const val DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS: Boolean = false
+    const val DEFAULT_MP3_INDEX_SEEKING: Boolean = false
+  }
 }
 
 /** The configurable bounds for the metered/unmetered listening-sync intervals. */
