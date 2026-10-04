@@ -405,7 +405,7 @@ class SettingsPresenter(
           }
 
           is SettingsUiEvent.AccountSettingEvent.KeepSignedInAfterReinstall -> {
-            privacySettings.keepSignedInAfterReinstall = event.enabled
+            privacySettings.setKeepSignedInAfterReinstall(event.enabled)
           }
 
           Logout -> {
@@ -415,11 +415,11 @@ class SettingsPresenter(
 
         is SettingsUiEvent.ConnectionSettingEvent -> when (event) {
           is SettingsUiEvent.ConnectionSettingEvent.SocketSyncEnabled -> {
-            connectionSettings.socketEnabled = event.enabled
+            connectionSettings.setSocketEnabled(event.enabled)
           }
 
           is SettingsUiEvent.ConnectionSettingEvent.HomeServerOnMobileData -> {
-            mobileDataSettings.homeServerOnMobileData = event.enabled
+            mobileDataSettings.setHomeServerOnMobileData(event.enabled)
           }
 
           is SettingsUiEvent.ConnectionSettingEvent.SaveHeader -> {
@@ -443,17 +443,17 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.AppearanceSettingEvent -> when (event) {
-          is Theme -> themeSettings.themeMode = event.themeMode
-          is DynamicItemDetailTheming -> themeSettings.dynamicallyThemeItemDetail = event.enabled
-          is DynamicPlaybackTheming -> themeSettings.dynamicallyThemePlayback = event.enabled
-          is ItemCardMarqueeEnabled -> libraryViewSettings.libraryItemMarqueeEnabled = event.enabled
+          is Theme -> themeSettings.setThemeMode(event.themeMode)
+          is DynamicItemDetailTheming -> themeSettings.setDynamicallyThemeItemDetail(event.enabled)
+          is DynamicPlaybackTheming -> themeSettings.setDynamicallyThemePlayback(event.enabled)
+          is ItemCardMarqueeEnabled -> libraryViewSettings.setLibraryItemMarqueeEnabled(event.enabled)
           SettingsUiEvent.AppearanceSettingEvent.OpenThemeBuilder -> navigator.goTo(ThemePickerScreen)
         }
 
         is SettingsUiEvent.DownloadsSettingEvent -> when (event) {
-          is ShowDownloadConfirmation -> libraryViewSettings.showConfirmDownload = event.enabled
+          is ShowDownloadConfirmation -> libraryViewSettings.setShowConfirmDownload(event.enabled)
           is SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly -> {
-            mobileDataSettings.downloadOnWifiOnly = event.enabled
+            mobileDataSettings.setDownloadOnWifiOnly(event.enabled)
           }
           is DownloadClicked -> navigator.goTo(
             LibraryItemScreen(
@@ -475,58 +475,63 @@ class SettingsPresenter(
             val rates = playbackSettings.playbackRates.toMutableList()
             if (event.index in rates.indices) {
               rates[event.index] = event.rate
-              playbackSettings.playbackRates = rates
+              playbackSettings.setPlaybackRates(rates)
             }
           }
-          is ForwardTime -> playbackSettings.forwardTimeMs = event.forwardTime.inWholeMilliseconds
-          is BackwardTime -> playbackSettings.backwardTimeMs = event.backwardTime.inWholeMilliseconds
-          is TrackResetThreshold -> playbackSettings.trackResetThreshold = event.trackResetThreshold
-          is Mp3IndexSeeking -> playbackSettings.enableMp3IndexSeeking = event.mp3IndexSeeking
+          is ForwardTime -> playbackSettings.setForwardTimeMs(event.forwardTime.inWholeMilliseconds)
+          is BackwardTime -> playbackSettings.setBackwardTimeMs(event.backwardTime.inWholeMilliseconds)
+          is TrackResetThreshold -> playbackSettings.setTrackResetThreshold(event.trackResetThreshold)
+          is Mp3IndexSeeking -> playbackSettings.setEnableMp3IndexSeeking(event.mp3IndexSeeking)
           is RemoteNextPrevSkipsChapters ->
-            playbackSettings.remoteNextPrevSkipsChapters = event.remoteNextPrevSkipsChapters
-          is SyncEnabled -> playbackSettings.syncEnabled = event.enabled
-          is AutoSyncEnabled -> playbackSettings.autoSyncEnabled = event.enabled
-          is StreamingMethodChanged -> playbackSettings.streamingMethod = event.method
-          is SyncIntervalUnmetered -> playbackSettings.syncIntervalUnmetered = event.interval
-          is SyncIntervalMetered -> playbackSettings.syncIntervalMetered = event.interval
+            playbackSettings.setRemoteNextPrevSkipsChapters(event.remoteNextPrevSkipsChapters)
+          is SyncEnabled -> playbackSettings.setSyncEnabled(event.enabled)
+          is AutoSyncEnabled -> playbackSettings.setAutoSyncEnabled(event.enabled)
+          is StreamingMethodChanged -> playbackSettings.setStreamingMethod(event.method)
+          is SyncIntervalUnmetered -> playbackSettings.setSyncIntervalUnmetered(event.interval)
+          is SyncIntervalMetered -> playbackSettings.setSyncIntervalMetered(event.interval)
           is PlaybackHistoryEnabled -> {
-            playbackSettings.playbackHistoryEnabled = event.enabled
+            playbackSettings.setPlaybackHistoryEnabled(event.enabled)
             if (!event.enabled) {
               scope.launch { playbackHistoryRepository.clearAll() }
             }
           }
-          is AutoRewindOnResumeEnabled -> playbackSettings.autoRewindOnResumeEnabled = event.enabled
+          is AutoRewindOnResumeEnabled -> playbackSettings.setAutoRewindOnResumeEnabled(event.enabled)
           is MinPauseThreshold -> {
-            playbackSettings.resumeRewindConfig =
-              playbackSettings.resumeRewindConfig.copy(minPauseThreshold = event.threshold)
+            playbackSettings.setResumeRewindConfig(
+              playbackSettings.resumeRewindConfig.copy(minPauseThreshold = event.threshold),
+            )
           }
           is ResumeRewindRange -> {
-            playbackSettings.resumeRewindConfig = playbackSettings.resumeRewindConfig.copy(
-              minRewind = event.minRewind,
-              maxRewind = event.maxRewind,
+            playbackSettings.setResumeRewindConfig(
+              playbackSettings.resumeRewindConfig.copy(
+                minRewind = event.minRewind,
+                maxRewind = event.maxRewind,
+              ),
             )
           }
           is AutoRewindStopAtChapterBoundary ->
-            playbackSettings.autoRewindStopAtChapterBoundary = event.enabled
-          is BookTimeInPlaybackUi -> playbackSettings.bookTimeInPlaybackUi = event.enabled
-          is PlaybackWavyScrubber -> playbackSettings.playbackWavyScrubber = event.enabled
-          is ScrollingTitles -> playbackSettings.scrollingTitles = event.enabled
+            playbackSettings.setAutoRewindStopAtChapterBoundary(event.enabled)
+          is BookTimeInPlaybackUi -> playbackSettings.setBookTimeInPlaybackUi(event.enabled)
+          is PlaybackWavyScrubber -> playbackSettings.setPlaybackWavyScrubber(event.enabled)
+          is ScrollingTitles -> playbackSettings.setScrollingTitles(event.enabled)
         }
 
         is SettingsUiEvent.SleepSettingEvent -> when (event) {
-          is ShakeToReset -> sleepSettings.shakeToResetEnabled = event.enabled
-          is ShakeSensitivity -> sleepSettings.shakeSensitivity = event.sensitivity
-          is AutoSleepTimerEnabled -> sleepSettings.autoSleepTimerEnabled = event.enabled
-          is AutoSleepTimerStart -> sleepSettings.autoSleepStart = event.time
-          is AutoSleepTimerEnd -> sleepSettings.autoSleepEnd = event.time
-          is AutoSleepTimer -> sleepSettings.autoSleepTimer = when (val timer = event.timer) {
-            is PlaybackTimer.EndOfChapter -> SleepSettings.AutoSleepTimer.EndOfChapter
-            is PlaybackTimer.Epoch -> SleepSettings.AutoSleepTimer.Epoch(timer.epochMillis)
-          }
+          is ShakeToReset -> sleepSettings.setShakeToResetEnabled(event.enabled)
+          is ShakeSensitivity -> sleepSettings.setShakeSensitivity(event.sensitivity)
+          is AutoSleepTimerEnabled -> sleepSettings.setAutoSleepTimerEnabled(event.enabled)
+          is AutoSleepTimerStart -> sleepSettings.setAutoSleepStart(event.time)
+          is AutoSleepTimerEnd -> sleepSettings.setAutoSleepEnd(event.time)
+          is AutoSleepTimer -> sleepSettings.setAutoSleepTimer(
+            when (val timer = event.timer) {
+              is PlaybackTimer.EndOfChapter -> SleepSettings.AutoSleepTimer.EndOfChapter
+              is PlaybackTimer.Epoch -> SleepSettings.AutoSleepTimer.Epoch(timer.epochMillis)
+            },
+          )
 
-          is AutoSleepRewindEnabled -> sleepSettings.autoRewindEnabled = event.enabled
-          is AutoSleepRewindAmount -> sleepSettings.autoRewindAmount = event.amount
-          is FadeOutDuration -> sleepSettings.fadeOutDuration = event.duration
+          is AutoSleepRewindEnabled -> sleepSettings.setAutoRewindEnabled(event.enabled)
+          is AutoSleepRewindAmount -> sleepSettings.setAutoRewindAmount(event.amount)
+          is FadeOutDuration -> sleepSettings.setFadeOutDuration(event.duration)
         }
 
         is SettingsUiEvent.AboutSettingEvent -> when (event) {
@@ -537,16 +542,16 @@ class SettingsPresenter(
           PrivacyPolicyClick -> navigator.goTo(UrlScreen(applicationUrls.privacyPolicy))
           TermsOfServiceClick -> navigator.goTo(UrlScreen(applicationUrls.termsOfService))
           is SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled -> {
-            privacySettings.analyticReportingEnabled = event.enabled
+            privacySettings.setAnalyticReportingEnabled(event.enabled)
           }
           is SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled -> {
-            privacySettings.crashReportingEnabled = event.enabled
+            privacySettings.setCrashReportingEnabled(event.enabled)
           }
           SettingsUiEvent.AboutSettingEvent.AppUpdateSignInClick -> {
             scope.launch {
               appUpdateSource.signIn()
               if (appUpdateSource.isSignedIn()) {
-                appStateSettings.appUpdateSignInDismissed = false
+                appStateSettings.setAppUpdateSignInDismissed(false)
               }
               appUpdateInvalidator++
             }
@@ -554,14 +559,14 @@ class SettingsPresenter(
         }
 
         is SettingsUiEvent.DeveloperSettingEvent -> when (event) {
-          is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.sessionAge = event.sessionAge
+          is SettingsUiEvent.DeveloperSettingEvent.SessionAge -> devSettings.setSessionAge(event.sessionAge)
           is SettingsUiEvent.DeveloperSettingEvent.HlsLargeItemThreshold ->
-            devSettings.hlsLargeItemThreshold = event.threshold
+            devSettings.setHlsLargeItemThreshold(event.threshold)
           is SettingsUiEvent.DeveloperSettingEvent.AdaptToUnreachableServer ->
-            devSettings.adaptToUnreachableServer = event.enabled
+            devSettings.setAdaptToUnreachableServer(event.enabled)
           is SettingsUiEvent.DeveloperSettingEvent.ShowWidgetPinningChange ->
-            appStateSettings.hasShownWidgetPinning = event.enabled
-          is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.developerModeEnabled = true
+            appStateSettings.setHasShownWidgetPinning(event.enabled)
+          is SettingsUiEvent.DeveloperSettingEvent.EnableDeveloperMode -> devSettings.setDeveloperModeEnabled(true)
           is SettingsUiEvent.DeveloperSettingEvent.ClearMediaButtonPackages -> devSettings.clearMediaButtonPackages()
           is SettingsUiEvent.DeveloperSettingEvent.InvalidateCurrentAccount -> {
             scope.launch {
@@ -569,14 +574,14 @@ class SettingsPresenter(
             }
           }
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateSignedIn ->
-            devSettings.fakeAppUpdateSignedIn = event.enabled
+            devSettings.setFakeAppUpdateSignedIn(event.enabled)
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateAvailable ->
-            devSettings.fakeAppUpdateAvailable = event.enabled
+            devSettings.setFakeAppUpdateAvailable(event.enabled)
           is SettingsUiEvent.DeveloperSettingEvent.FakeAppUpdateFailDownload ->
-            devSettings.fakeAppUpdateFailDownload = event.enabled
+            devSettings.setFakeAppUpdateFailDownload(event.enabled)
           is SettingsUiEvent.DeveloperSettingEvent.ResetAppUpdateDismissals -> {
-            appStateSettings.appUpdateSignInDismissed = false
-            appStateSettings.appUpdateDismissedVersionCode = 0L
+            appStateSettings.setAppUpdateSignInDismissed(false)
+            appStateSettings.setAppUpdateDismissedVersionCode(0L)
             appUpdateInvalidator++
           }
         }

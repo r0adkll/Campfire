@@ -30,7 +30,7 @@ class EqualizerSettingsTest {
       loudnessGainDb = 6.5f,
       bassBoost = 0.25f,
     )
-    settings.equalizerProfile = profile
+    settings.setEqualizerProfile(profile)
     assertThat(settings.equalizerProfile).isEqualTo(profile)
   }
 
@@ -62,10 +62,10 @@ class EqualizerSettingsTest {
       "li_abc123" to EqualizerProfile(enabled = true, presetId = EqualizerPresets.BASS_BOOST_ID),
       "li_def456" to EqualizerProfile(bandGainsDb = listOf(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f)),
     )
-    settings.itemEqualizerProfiles = profiles
+    settings.setItemEqualizerProfiles(profiles)
     assertThat(settings.itemEqualizerProfiles).isEqualTo(profiles)
 
-    settings.itemEqualizerProfiles = emptyMap()
+    settings.setItemEqualizerProfiles(emptyMap())
     assertThat(settings.itemEqualizerProfiles).isEmpty()
   }
 
@@ -74,8 +74,8 @@ class EqualizerSettingsTest {
     val settings = equalizerSettings()
     val global = EqualizerProfile(enabled = true, presetId = EqualizerPresets.WARM_ID)
     val override = EqualizerProfile(enabled = true, presetId = EqualizerPresets.VOICE_BOOST_ID)
-    settings.equalizerProfile = global
-    settings.itemEqualizerProfiles = mapOf("li_abc123" to override)
+    settings.setEqualizerProfile(global)
+    settings.setItemEqualizerProfiles(mapOf("li_abc123" to override))
 
     assertThat(settings.equalizerProfileFor("li_abc123")).isEqualTo(override)
     assertThat(settings.equalizerProfileFor("li_other")).isEqualTo(global)
@@ -86,7 +86,7 @@ class EqualizerSettingsTest {
   fun `setEqualizerProfileFor writes the override when enabled and the global otherwise`() {
     val settings = equalizerSettings()
     val initial = EqualizerProfile(enabled = true)
-    settings.itemEqualizerProfiles = mapOf("li_abc123" to initial)
+    settings.setItemEqualizerProfiles(mapOf("li_abc123" to initial))
 
     val updated = initial.copy(loudnessGainDb = 3f)
     settings.setEqualizerProfileFor("li_abc123", updated)

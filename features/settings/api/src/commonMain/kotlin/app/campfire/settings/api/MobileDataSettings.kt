@@ -13,13 +13,15 @@ interface MobileDataSettings {
    * VPN (which is always allowed), so by default Campfire waits for Wi-Fi.
    * Default: `false`
    */
-  var homeServerOnMobileData: Boolean
+  val homeServerOnMobileData: Boolean
+  fun setHomeServerOnMobileData(value: Boolean)
   fun observeHomeServerOnMobileData(): StateFlow<Boolean>
 
   /**
    * Whether downloads wait for Wi-Fi (an unmetered connection) instead of using mobile data.
    * Default: `false`
    */
-  var downloadOnWifiOnly: Boolean
+  val downloadOnWifiOnly: Boolean
+  fun setDownloadOnWifiOnly(value: Boolean)
   fun observeDownloadOnWifiOnly(): StateFlow<Boolean>
 }

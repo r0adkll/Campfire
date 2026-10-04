@@ -86,9 +86,9 @@ class AutomationDeepLinksTest {
   @Test
   fun `applySetup silences first-run prompts, applies theme, and authenticates when logged out`() = runTest {
     val auth = FakeAuthRepository()
-    val privacySettings = TestPrivacySettings(this)
-    val appStateSettings = TestAppStateSettings(this)
-    val themeSettings = TestThemeSettings(this)
+    val privacySettings = TestPrivacySettings()
+    val appStateSettings = TestAppStateSettings()
+    val themeSettings = TestThemeSettings()
     val themes = FakeAppThemeRepository()
     val whatsNew = FakeWhatsNewRepository()
 
@@ -112,9 +112,9 @@ class AutomationDeepLinksTest {
 
     AutomationDeepLinks(
       auth,
-      TestPrivacySettings(this),
-      TestAppStateSettings(this),
-      TestThemeSettings(this),
+      TestPrivacySettings(),
+      TestAppStateSettings(),
+      TestThemeSettings(),
       themes,
       FakeWhatsNewRepository(),
     ).applySetup(

@@ -11,28 +11,36 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface PlaybackSettings {
 
-  var enableMp3IndexSeeking: Boolean
+  val enableMp3IndexSeeking: Boolean
+  fun setEnableMp3IndexSeeking(value: Boolean)
   fun observeMp3IndexSeeking(): StateFlow<Boolean>
 
-  var forwardTimeMs: Long
-  var backwardTimeMs: Long
+  val forwardTimeMs: Long
+  fun setForwardTimeMs(value: Long)
+  val backwardTimeMs: Long
+  fun setBackwardTimeMs(value: Long)
   fun observeForwardTimeMs(): StateFlow<Long>
   fun observeBackwardTimeMs(): StateFlow<Long>
 
-  var trackResetThreshold: Duration
+  val trackResetThreshold: Duration
+  fun setTrackResetThreshold(value: Duration)
   fun observeTrackResetThreshold(): StateFlow<Duration>
 
-  var playbackRates: List<Float>
+  val playbackRates: List<Float>
+  fun setPlaybackRates(value: List<Float>)
   fun observePlaybackRates(): StateFlow<List<Float>>
 
-  var playbackSpeed: Float
+  val playbackSpeed: Float
+  fun observePlaybackSpeed(): StateFlow<Float>
+  fun setPlaybackSpeed(value: Float)
 
   /**
    * Per-item playback speed overrides, keyed by library item id. The presence of an entry means the
    * item has a per-item speed enabled, and its value is that item's saved speed. Items without an
    * entry use the global [playbackSpeed].
    */
-  var itemPlaybackSpeeds: Map<LibraryItemId, Float>
+  val itemPlaybackSpeeds: Map<LibraryItemId, Float>
+  fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>)
   fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>>
 
   /**
@@ -49,9 +57,9 @@ interface PlaybackSettings {
    */
   fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) {
     if (itemId != null && itemId in itemPlaybackSpeeds) {
-      itemPlaybackSpeeds = itemPlaybackSpeeds + (itemId to speed)
+      setItemPlaybackSpeeds(itemPlaybackSpeeds + (itemId to speed))
     } else {
-      playbackSpeed = speed
+      setPlaybackSpeed(speed)
     }
   }
 
@@ -59,41 +67,47 @@ interface PlaybackSettings {
    * When true, remote control next/previous buttons skip to next/previous chapter.
    * When false, they seek forward/backward by the configured time.
    */
-  var remoteNextPrevSkipsChapters: Boolean
+  val remoteNextPrevSkipsChapters: Boolean
+  fun setRemoteNextPrevSkipsChapters(value: Boolean)
   fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean>
 
   /**
    * When true, we will show sync opportunities to the user (or allow auto-sync if enabled)
    */
-  var syncEnabled: Boolean
+  val syncEnabled: Boolean
+  fun setSyncEnabled(value: Boolean)
   fun observeSyncEnabled(): StateFlow<Boolean>
 
   /**
    * When true, a new session will use the media progress if it is newer than the previous session when resuming playback.
    * When false, it will continue to use the local session progress
    */
-  var autoSyncEnabled: Boolean
+  val autoSyncEnabled: Boolean
+  fun setAutoSyncEnabled(value: Boolean)
   fun observeAutoSyncEnabled(): StateFlow<Boolean>
 
   /**
    * When true, playback actions (play, pause, seek, etc.) will be recorded to a local history.
    * When false, playback history is disabled and all existing history is cleared.
    */
-  var playbackHistoryEnabled: Boolean
+  val playbackHistoryEnabled: Boolean
+  fun setPlaybackHistoryEnabled(value: Boolean)
   fun observePlaybackHistoryEnabled(): StateFlow<Boolean>
 
   /**
    * The minimum interval between listening syncs to the server while on an unmetered
    * connection (Wi-Fi). Constrained to [SyncIntervalRange].
    */
-  var syncIntervalUnmetered: Duration
+  val syncIntervalUnmetered: Duration
+  fun setSyncIntervalUnmetered(value: Duration)
   fun observeSyncIntervalUnmetered(): StateFlow<Duration>
 
   /**
    * The minimum interval between listening syncs to the server while on a metered
    * connection (mobile data). Constrained to [SyncIntervalRange].
    */
-  var syncIntervalMetered: Duration
+  val syncIntervalMetered: Duration
+  fun setSyncIntervalMetered(value: Duration)
   fun observeSyncIntervalMetered(): StateFlow<Duration>
 
   /**
@@ -101,54 +115,63 @@ interface PlaybackSettings {
    * [StreamingMethod.DIRECT_PLAY_ONLY] for now; intended to default to [StreamingMethod.AUTO]
    * once the HLS route has proven itself in the wild.
    */
-  var streamingMethod: StreamingMethod
+  val streamingMethod: StreamingMethod
+  fun setStreamingMethod(value: StreamingMethod)
   fun observeStreamingMethod(): StateFlow<StreamingMethod>
 
   /**
    * When true, resuming playback after a pause rewinds by an amount that scales with how long playback was
    * paused, per the sliding window derived from [resumeRewindConfig].
    */
-  var autoRewindOnResumeEnabled: Boolean
+  val autoRewindOnResumeEnabled: Boolean
+  fun setAutoRewindOnResumeEnabled(value: Boolean)
   fun observeAutoRewindOnResumeEnabled(): StateFlow<Boolean>
 
   /**
    * The configuration (min pause floor + rewind range) from which the auto-rewind sliding window is derived.
    * See [ResumeRewindConfig], [ResumeRewindConfig.tiers], and [rewindForPause].
    */
-  var resumeRewindConfig: ResumeRewindConfig
+  val resumeRewindConfig: ResumeRewindConfig
+  fun setResumeRewindConfig(value: ResumeRewindConfig)
   fun observeResumeRewindConfig(): StateFlow<ResumeRewindConfig>
 
   /**
    * When true, an auto-rewind on resume never crosses back past the start of the current chapter — if the
    * rewind would go before the chapter boundary, it stops at the boundary instead.
    */
-  var autoRewindStopAtChapterBoundary: Boolean
+  val autoRewindStopAtChapterBoundary: Boolean
+  fun setAutoRewindStopAtChapterBoundary(value: Boolean)
   fun observeAutoRewindStopAtChapterBoundary(): StateFlow<Boolean>
 
   /**
    * Transient, persisted marker for a pause that may still owe a rewind on resume. Persisted so that a pause
    * interrupted by the app being killed still rewinds when playback resumes. Null when no pause is pending.
    */
-  var pendingResumeRewind: PendingResumeRewind?
+  val pendingResumeRewind: PendingResumeRewind?
+  fun observePendingResumeRewind(): StateFlow<PendingResumeRewind?>
+  fun setPendingResumeRewind(value: PendingResumeRewind?)
 
   /**
    * When true, the book's overall time will display in a progress bar in
    * in the playback ui.
    */
-  var bookTimeInPlaybackUi: Boolean
+  val bookTimeInPlaybackUi: Boolean
+  fun setBookTimeInPlaybackUi(value: Boolean)
   fun observeBookTimeInPlaybackUi(): StateFlow<Boolean>
 
   /**
    * When true, the playback slider will be wavy
    */
-  var playbackWavyScrubber: Boolean
+  val playbackWavyScrubber: Boolean
+  fun setPlaybackWavyScrubber(value: Boolean)
   fun observePlaybackWavyScrubber(): StateFlow<Boolean>
 
   /**
    * When true, chapter and book titles too long for the player scroll a few times; otherwise they
    * are ellipsized.
    */
-  var scrollingTitles: Boolean
+  val scrollingTitles: Boolean
+  fun setScrollingTitles(value: Boolean)
   fun observeScrollingTitles(): StateFlow<Boolean>
 }
 

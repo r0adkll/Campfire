@@ -456,7 +456,7 @@ private val ChapterClickWithDifferentSessionAndPlayer = EventTest(
 
 private val DownloadClick = EventTest(
   event = LibraryItemUiEvent.DownloadClick(doNotShowAgain = true),
-  setup = { libraryViewSettings.showConfirmDownload = true },
+  setup = { libraryViewSettings.setShowConfirmDownload(true) },
   assert = {
     assertThat(analytics.events)
       .single()
@@ -503,7 +503,7 @@ private val StopDownloadClick = EventTest(
 
 private val TimeInBookChange = EventTest(
   event = LibraryItemUiEvent.TimeInBookChange(enabled = true),
-  setup = { libraryViewSettings.showTimeInBook = false },
+  setup = { libraryViewSettings.setShowTimeInBook(false) },
   assert = {
     assertThat(analytics.events)
       .single()

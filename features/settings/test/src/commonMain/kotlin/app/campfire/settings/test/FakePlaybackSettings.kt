@@ -15,132 +15,155 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A simple in-memory [PlaybackSettings] fake backed by [MutableStateFlow]s for use in tests.
+ * An in-memory [PlaybackSettings] fake backed by [MutableStateFlow]s for use in tests.
  */
 class FakePlaybackSettings : PlaybackSettings {
 
-  private val _enableMp3IndexSeeking = MutableStateFlow(false)
-  override var enableMp3IndexSeeking: Boolean
-    get() = _enableMp3IndexSeeking.value
-    set(value) { _enableMp3IndexSeeking.value = value }
+  private val _enableMp3IndexSeeking = MutableStateFlow<Boolean>(false)
+  override val enableMp3IndexSeeking: Boolean get() = _enableMp3IndexSeeking.value
+  override fun setEnableMp3IndexSeeking(value: Boolean) {
+    _enableMp3IndexSeeking.value = value
+  }
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = _enableMp3IndexSeeking.asStateFlow()
 
-  private val _forwardTimeMs = MutableStateFlow(30_000L)
-  override var forwardTimeMs: Long
-    get() = _forwardTimeMs.value
-    set(value) { _forwardTimeMs.value = value }
+  private val _forwardTimeMs = MutableStateFlow<Long>(30_000L)
+  override val forwardTimeMs: Long get() = _forwardTimeMs.value
+  override fun setForwardTimeMs(value: Long) {
+    _forwardTimeMs.value = value
+  }
   override fun observeForwardTimeMs(): StateFlow<Long> = _forwardTimeMs.asStateFlow()
 
-  private val _backwardTimeMs = MutableStateFlow(10_000L)
-  override var backwardTimeMs: Long
-    get() = _backwardTimeMs.value
-    set(value) { _backwardTimeMs.value = value }
+  private val _backwardTimeMs = MutableStateFlow<Long>(10_000L)
+  override val backwardTimeMs: Long get() = _backwardTimeMs.value
+  override fun setBackwardTimeMs(value: Long) {
+    _backwardTimeMs.value = value
+  }
   override fun observeBackwardTimeMs(): StateFlow<Long> = _backwardTimeMs.asStateFlow()
 
-  private val _trackResetThreshold = MutableStateFlow(5.seconds)
-  override var trackResetThreshold: Duration
-    get() = _trackResetThreshold.value
-    set(value) { _trackResetThreshold.value = value }
+  private val _trackResetThreshold = MutableStateFlow<Duration>(5.seconds)
+  override val trackResetThreshold: Duration get() = _trackResetThreshold.value
+  override fun setTrackResetThreshold(value: Duration) {
+    _trackResetThreshold.value = value
+  }
   override fun observeTrackResetThreshold(): StateFlow<Duration> = _trackResetThreshold.asStateFlow()
 
-  private val _playbackRates = MutableStateFlow(listOf(1f, 1.1f, 1.25f, 1.5f, 2f))
-  override var playbackRates: List<Float>
-    get() = _playbackRates.value
-    set(value) { _playbackRates.value = value }
+  private val _playbackRates = MutableStateFlow<List<Float>>(listOf(1f, 1.1f, 1.25f, 1.5f, 2f))
+  override val playbackRates: List<Float> get() = _playbackRates.value
+  override fun setPlaybackRates(value: List<Float>) {
+    _playbackRates.value = value
+  }
   override fun observePlaybackRates(): StateFlow<List<Float>> = _playbackRates.asStateFlow()
 
-  override var playbackSpeed: Float = 1f
+  private val _playbackSpeed = MutableStateFlow<Float>(1f)
+  override val playbackSpeed: Float get() = _playbackSpeed.value
+  override fun setPlaybackSpeed(value: Float) {
+    _playbackSpeed.value = value
+  }
+  override fun observePlaybackSpeed(): StateFlow<Float> = _playbackSpeed.asStateFlow()
 
-  private val _itemPlaybackSpeeds = MutableStateFlow(emptyMap<LibraryItemId, Float>())
-  override var itemPlaybackSpeeds: Map<LibraryItemId, Float>
-    get() = _itemPlaybackSpeeds.value
-    set(value) { _itemPlaybackSpeeds.value = value }
-  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> =
-    _itemPlaybackSpeeds.asStateFlow()
+  private val _itemPlaybackSpeeds = MutableStateFlow<Map<LibraryItemId, Float>>(emptyMap<LibraryItemId, Float>())
+  override val itemPlaybackSpeeds: Map<LibraryItemId, Float> get() = _itemPlaybackSpeeds.value
+  override fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>) {
+    _itemPlaybackSpeeds.value = value
+  }
+  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> = _itemPlaybackSpeeds.asStateFlow()
 
-  private val _remoteNextPrevSkipsChapters = MutableStateFlow(true)
-  override var remoteNextPrevSkipsChapters: Boolean
-    get() = _remoteNextPrevSkipsChapters.value
-    set(value) { _remoteNextPrevSkipsChapters.value = value }
+  private val _remoteNextPrevSkipsChapters = MutableStateFlow<Boolean>(true)
+  override val remoteNextPrevSkipsChapters: Boolean get() = _remoteNextPrevSkipsChapters.value
+  override fun setRemoteNextPrevSkipsChapters(value: Boolean) {
+    _remoteNextPrevSkipsChapters.value = value
+  }
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = _remoteNextPrevSkipsChapters.asStateFlow()
 
-  private val _syncEnabled = MutableStateFlow(true)
-  override var syncEnabled: Boolean
-    get() = _syncEnabled.value
-    set(value) { _syncEnabled.value = value }
+  private val _syncEnabled = MutableStateFlow<Boolean>(true)
+  override val syncEnabled: Boolean get() = _syncEnabled.value
+  override fun setSyncEnabled(value: Boolean) {
+    _syncEnabled.value = value
+  }
   override fun observeSyncEnabled(): StateFlow<Boolean> = _syncEnabled.asStateFlow()
 
-  private val _autoSyncEnabled = MutableStateFlow(true)
-  override var autoSyncEnabled: Boolean
-    get() = _autoSyncEnabled.value
-    set(value) { _autoSyncEnabled.value = value }
+  private val _autoSyncEnabled = MutableStateFlow<Boolean>(true)
+  override val autoSyncEnabled: Boolean get() = _autoSyncEnabled.value
+  override fun setAutoSyncEnabled(value: Boolean) {
+    _autoSyncEnabled.value = value
+  }
   override fun observeAutoSyncEnabled(): StateFlow<Boolean> = _autoSyncEnabled.asStateFlow()
 
-  private val _playbackHistoryEnabled = MutableStateFlow(true)
-  override var playbackHistoryEnabled: Boolean
-    get() = _playbackHistoryEnabled.value
-    set(value) { _playbackHistoryEnabled.value = value }
+  private val _playbackHistoryEnabled = MutableStateFlow<Boolean>(true)
+  override val playbackHistoryEnabled: Boolean get() = _playbackHistoryEnabled.value
+  override fun setPlaybackHistoryEnabled(value: Boolean) {
+    _playbackHistoryEnabled.value = value
+  }
   override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = _playbackHistoryEnabled.asStateFlow()
 
-  private val _syncIntervalUnmetered = MutableStateFlow(15.seconds)
-  override var syncIntervalUnmetered: Duration
-    get() = _syncIntervalUnmetered.value
-    set(value) { _syncIntervalUnmetered.value = value }
+  private val _syncIntervalUnmetered = MutableStateFlow<Duration>(15.seconds)
+  override val syncIntervalUnmetered: Duration get() = _syncIntervalUnmetered.value
+  override fun setSyncIntervalUnmetered(value: Duration) {
+    _syncIntervalUnmetered.value = value
+  }
   override fun observeSyncIntervalUnmetered(): StateFlow<Duration> = _syncIntervalUnmetered.asStateFlow()
 
-  private val _syncIntervalMetered = MutableStateFlow(60.seconds)
-  override var syncIntervalMetered: Duration
-    get() = _syncIntervalMetered.value
-    set(value) { _syncIntervalMetered.value = value }
+  private val _syncIntervalMetered = MutableStateFlow<Duration>(60.seconds)
+  override val syncIntervalMetered: Duration get() = _syncIntervalMetered.value
+  override fun setSyncIntervalMetered(value: Duration) {
+    _syncIntervalMetered.value = value
+  }
   override fun observeSyncIntervalMetered(): StateFlow<Duration> = _syncIntervalMetered.asStateFlow()
 
-  private val _streamingMethod = MutableStateFlow(StreamingMethod.DIRECT_PLAY_ONLY)
-  override var streamingMethod: StreamingMethod
-    get() = _streamingMethod.value
-    set(value) { _streamingMethod.value = value }
+  private val _streamingMethod = MutableStateFlow<StreamingMethod>(StreamingMethod.DIRECT_PLAY_ONLY)
+  override val streamingMethod: StreamingMethod get() = _streamingMethod.value
+  override fun setStreamingMethod(value: StreamingMethod) {
+    _streamingMethod.value = value
+  }
   override fun observeStreamingMethod(): StateFlow<StreamingMethod> = _streamingMethod.asStateFlow()
 
-  private val _autoRewindOnResumeEnabled = MutableStateFlow(false)
-  override var autoRewindOnResumeEnabled: Boolean
-    get() = _autoRewindOnResumeEnabled.value
-    set(value) { _autoRewindOnResumeEnabled.value = value }
+  private val _autoRewindOnResumeEnabled = MutableStateFlow<Boolean>(false)
+  override val autoRewindOnResumeEnabled: Boolean get() = _autoRewindOnResumeEnabled.value
+  override fun setAutoRewindOnResumeEnabled(value: Boolean) {
+    _autoRewindOnResumeEnabled.value = value
+  }
   override fun observeAutoRewindOnResumeEnabled(): StateFlow<Boolean> = _autoRewindOnResumeEnabled.asStateFlow()
 
-  private val _resumeRewindConfig = MutableStateFlow(ResumeRewindConfig.Default)
-  override var resumeRewindConfig: ResumeRewindConfig
-    get() = _resumeRewindConfig.value
-    set(value) { _resumeRewindConfig.value = value }
+  private val _resumeRewindConfig = MutableStateFlow<ResumeRewindConfig>(ResumeRewindConfig.Default)
+  override val resumeRewindConfig: ResumeRewindConfig get() = _resumeRewindConfig.value
+  override fun setResumeRewindConfig(value: ResumeRewindConfig) {
+    _resumeRewindConfig.value = value
+  }
   override fun observeResumeRewindConfig(): StateFlow<ResumeRewindConfig> = _resumeRewindConfig.asStateFlow()
 
-  private val _autoRewindStopAtChapterBoundary = MutableStateFlow(true)
-  override var autoRewindStopAtChapterBoundary: Boolean
-    get() = _autoRewindStopAtChapterBoundary.value
-    set(value) { _autoRewindStopAtChapterBoundary.value = value }
+  private val _autoRewindStopAtChapterBoundary = MutableStateFlow<Boolean>(true)
+  override val autoRewindStopAtChapterBoundary: Boolean get() = _autoRewindStopAtChapterBoundary.value
+  override fun setAutoRewindStopAtChapterBoundary(value: Boolean) {
+    _autoRewindStopAtChapterBoundary.value = value
+  }
   override fun observeAutoRewindStopAtChapterBoundary(): StateFlow<Boolean> =
     _autoRewindStopAtChapterBoundary.asStateFlow()
 
-  override var pendingResumeRewind: PendingResumeRewind? = null
+  private val _pendingResumeRewind = MutableStateFlow<PendingResumeRewind?>(null)
+  override val pendingResumeRewind: PendingResumeRewind? get() = _pendingResumeRewind.value
+  override fun setPendingResumeRewind(value: PendingResumeRewind?) {
+    _pendingResumeRewind.value = value
+  }
+  override fun observePendingResumeRewind(): StateFlow<PendingResumeRewind?> = _pendingResumeRewind.asStateFlow()
 
-  private val _bookTimeInPlaybackUi = MutableStateFlow(false)
-  override var bookTimeInPlaybackUi: Boolean
-    get() = _bookTimeInPlaybackUi.value
-    set(value) { _bookTimeInPlaybackUi.value = value }
-  override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> =
-    _bookTimeInPlaybackUi.asStateFlow()
+  private val _bookTimeInPlaybackUi = MutableStateFlow<Boolean>(false)
+  override val bookTimeInPlaybackUi: Boolean get() = _bookTimeInPlaybackUi.value
+  override fun setBookTimeInPlaybackUi(value: Boolean) {
+    _bookTimeInPlaybackUi.value = value
+  }
+  override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> = _bookTimeInPlaybackUi.asStateFlow()
 
-  private val _playbackWavyScrubber = MutableStateFlow(true)
-  override var playbackWavyScrubber: Boolean
-    get() = _playbackWavyScrubber.value
-    set(value) { _playbackWavyScrubber.value = value }
+  private val _playbackWavyScrubber = MutableStateFlow<Boolean>(true)
+  override val playbackWavyScrubber: Boolean get() = _playbackWavyScrubber.value
+  override fun setPlaybackWavyScrubber(value: Boolean) {
+    _playbackWavyScrubber.value = value
+  }
+  override fun observePlaybackWavyScrubber(): StateFlow<Boolean> = _playbackWavyScrubber.asStateFlow()
 
-  override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
-    _playbackWavyScrubber.asStateFlow()
-
-  private val _scrollingTitles = MutableStateFlow(true)
-  override var scrollingTitles: Boolean
-    get() = _scrollingTitles.value
-    set(value) { _scrollingTitles.value = value }
-
-  override fun observeScrollingTitles(): StateFlow<Boolean> =
-    _scrollingTitles.asStateFlow()
+  private val _scrollingTitles = MutableStateFlow<Boolean>(true)
+  override val scrollingTitles: Boolean get() = _scrollingTitles.value
+  override fun setScrollingTitles(value: Boolean) {
+    _scrollingTitles.value = value
+  }
+  override fun observeScrollingTitles(): StateFlow<Boolean> = _scrollingTitles.asStateFlow()
 }

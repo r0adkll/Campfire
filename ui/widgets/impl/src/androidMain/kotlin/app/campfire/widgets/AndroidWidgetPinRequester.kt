@@ -23,7 +23,7 @@ class AndroidWidgetPinRequester(
     if (appWidgetManager.isRequestPinAppWidgetSupported && !appStateSettings.hasShownWidgetPinning) {
       val playerWidgetComponent = ComponentName(application, PlayerWidgetReceiver::class.java)
       appWidgetManager.requestPinAppWidget(playerWidgetComponent, null, null)
-      appStateSettings.hasShownWidgetPinning = true
+      appStateSettings.setHasShownWidgetPinning(true)
     }
   }
 }

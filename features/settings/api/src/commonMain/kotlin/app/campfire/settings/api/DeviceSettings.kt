@@ -11,10 +11,17 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface DeviceSettings {
 
-  var deviceId: String
+  val deviceId: String
 
-  var analyticsId: String
+  /** This device's id, created the first time it's asked for. */
+  suspend fun deviceId(): String = deviceId
 
-  var currentUserId: UserId?
+  val analyticsId: String
+
+  /** This install's analytics id, created the first time it's asked for. */
+  suspend fun analyticsId(): String = analyticsId
+
+  val currentUserId: UserId?
+  fun setCurrentUserId(value: UserId?)
   fun observeCurrentUserId(): StateFlow<UserId?>
 }

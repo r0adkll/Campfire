@@ -48,7 +48,7 @@ class DesktopAudioOutputController(
 
   override fun setVolume(volume: Float) {
     val clamped = volume.coerceIn(0f, 1f)
-    settings.volume = clamped
+    settings.setVolume(clamped)
     // Dragging up off zero is how people expect to undo a mute, and leaving it muted would look
     // like a broken slider.
     if (clamped > 0f) _isMuted.value = false
@@ -67,7 +67,7 @@ class DesktopAudioOutputController(
   override val selectedDeviceName: StateFlow<String?> = settings.observeOutputDeviceName()
 
   override fun selectDevice(device: AudioDevice?) {
-    settings.outputDeviceName = device?.name
+    settings.setOutputDeviceName(device?.name)
   }
 
   override fun refreshDevices() {

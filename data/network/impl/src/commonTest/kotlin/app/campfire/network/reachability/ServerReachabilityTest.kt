@@ -126,7 +126,7 @@ class ServerReachabilityTest {
 
   @Test
   fun `the developer switch turns fail fast off`() {
-    devSettings.adaptToUnreachableServer = false
+    devSettings.setAdaptToUnreachableServer(false)
 
     reachability.unreachable(server)
 

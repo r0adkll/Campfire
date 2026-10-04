@@ -133,21 +133,23 @@ class LibraryPresenter(
     ) { event ->
       when (event) {
         LibraryUiEvent.ToggleItemDisplayState -> {
-          libraryViewSettings.libraryItemDisplayState = when (itemDisplayState) {
-            ItemDisplayState.List -> ItemDisplayState.Grid
-            ItemDisplayState.Grid -> ItemDisplayState.GridDense
-            ItemDisplayState.GridDense -> ItemDisplayState.List
-          }.also {
-            analytics.send(ActionEvent("item_display", "toggled", it.storageKey))
-          }
+          libraryViewSettings.setLibraryItemDisplayState(
+            when (itemDisplayState) {
+              ItemDisplayState.List -> ItemDisplayState.Grid
+              ItemDisplayState.Grid -> ItemDisplayState.GridDense
+              ItemDisplayState.GridDense -> ItemDisplayState.List
+            }.also {
+              analytics.send(ActionEvent("item_display", "toggled", it.storageKey))
+            },
+          )
         }
 
         is LibraryUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            libraryViewSettings.librarySortDirection = sortDirection.flip()
+            libraryViewSettings.setLibrarySortDirection(sortDirection.flip())
           }
-          libraryViewSettings.librarySortMode = event.mode
+          libraryViewSettings.setLibrarySortMode(event.mode)
         }
 
         is LibraryUiEvent.ItemFilterSelected -> {

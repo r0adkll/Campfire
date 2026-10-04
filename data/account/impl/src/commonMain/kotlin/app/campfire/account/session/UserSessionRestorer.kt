@@ -41,7 +41,7 @@ class DatabaseUserSessionRestorer(
     }
 
     if (server == null) {
-      deviceSettings.currentUserId = null
+      deviceSettings.setCurrentUserId(null)
       return@measureTimedValue UserSession.LoggedOut
     }
 

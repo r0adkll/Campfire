@@ -254,7 +254,7 @@ private fun InactiveTimerSheetContent(
     )
 
     LaunchedEffect(timerInputState.hour, timerInputState.minute) {
-      component.sleepSettings.lastSetSleepTimer = timerInputState.hour.hours + timerInputState.minute.minutes
+      component.sleepSettings.setLastSetSleepTimer(timerInputState.hour.hours + timerInputState.minute.minutes)
     }
 
     val shakeToReset by remember {
@@ -279,7 +279,7 @@ private fun InactiveTimerSheetContent(
           timeInputState = timerInputState,
           shakeToReset = shakeToReset,
           onShakeToResetChange = {
-            component.sleepSettings.shakeToResetEnabled = it
+            component.sleepSettings.setShakeToResetEnabled(it)
           },
         )
       } else {
@@ -639,9 +639,11 @@ fun TimerBottomSheetV2Preview() {
         },
         component = object : SleepTimerBottomSheetComponent {
           override val sleepSettings: SleepSettings = object : SleepSettings {
-            override var lastSetSleepTimer: Duration
+            override val lastSetSleepTimer: Duration
               get() = mutableLastSetSleepTimer.value
-              set(value) { mutableLastSetSleepTimer.value = value }
+            override fun setLastSetSleepTimer(value: Duration) {
+              mutableLastSetSleepTimer.value = value
+            }
 
             val mutableLastSetSleepTimer = MutableStateFlow(lastSetSleepTimer)
             override fun observeLastSetSleepTimer(): StateFlow<Duration> {
@@ -649,73 +651,75 @@ fun TimerBottomSheetV2Preview() {
             }
 
             val mutableShakeToReset = MutableStateFlow(true)
-            override var shakeToResetEnabled: Boolean
+            override val shakeToResetEnabled: Boolean
               get() = mutableShakeToReset.value
-              set(value) { mutableShakeToReset.value = value }
+            override fun setShakeToResetEnabled(value: Boolean) {
+              mutableShakeToReset.value = value
+            }
 
             override fun observeShakeToResetEnabled(): StateFlow<Boolean> {
               return mutableShakeToReset
             }
 
-            override var shakeSensitivity: SleepSettings.ShakeSensitivity
+            override val shakeSensitivity: SleepSettings.ShakeSensitivity
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setShakeSensitivity(value: SleepSettings.ShakeSensitivity) = Unit
 
             override fun observeShakeSensitivity(): StateFlow<SleepSettings.ShakeSensitivity> {
               TODO("Not yet implemented")
             }
 
-            override var autoSleepTimerEnabled: Boolean
+            override val autoSleepTimerEnabled: Boolean
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoSleepTimerEnabled(value: Boolean) = Unit
 
             override fun observeAutoSleepTimerEnabled(): StateFlow<Boolean> {
               TODO("Not yet implemented")
             }
 
-            override var autoSleepStart: LocalTime
+            override val autoSleepStart: LocalTime
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoSleepStart(value: LocalTime) = Unit
 
             override fun observeAutoSleepStart(): StateFlow<LocalTime> {
               TODO("Not yet implemented")
             }
 
-            override var autoSleepEnd: LocalTime
+            override val autoSleepEnd: LocalTime
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoSleepEnd(value: LocalTime) = Unit
 
             override fun observeAutoSleepEnd(): StateFlow<LocalTime> {
               TODO("Not yet implemented")
             }
 
-            override var autoSleepTimer: SleepSettings.AutoSleepTimer
+            override val autoSleepTimer: SleepSettings.AutoSleepTimer
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoSleepTimer(value: SleepSettings.AutoSleepTimer) = Unit
 
             override fun observeAutoSleepTimer(): StateFlow<SleepSettings.AutoSleepTimer> {
               TODO("Not yet implemented")
             }
 
-            override var autoRewindEnabled: Boolean
+            override val autoRewindEnabled: Boolean
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoRewindEnabled(value: Boolean) = Unit
 
             override fun observeAutoRewindEnabled(): StateFlow<Boolean> {
               TODO("Not yet implemented")
             }
 
-            override var autoRewindAmount: Duration
+            override val autoRewindAmount: Duration
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setAutoRewindAmount(value: Duration) = Unit
 
             override fun observeAutoRewindAmount(): StateFlow<Duration> {
               TODO("Not yet implemented")
             }
 
-            override var fadeOutDuration: Duration
+            override val fadeOutDuration: Duration
               get() = TODO("Not yet implemented")
-              set(value) {}
+            override fun setFadeOutDuration(value: Duration) = Unit
 
             override fun observeFadeOutDuration(): StateFlow<Duration> {
               TODO("Not yet implemented")

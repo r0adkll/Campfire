@@ -21,7 +21,8 @@ interface AudioOutputSettings {
    * because hearing is logarithmic; the mapping lives with the player. Storing the position
    * means the curve can change without migrating what users have saved.
    */
-  var volume: Float
+  val volume: Float
+  fun setVolume(value: Float)
   fun observeVolume(): StateFlow<Float>
 
   /**
@@ -30,6 +31,7 @@ interface AudioOutputSettings {
    * A name rather than an identifier because Java Sound offers nothing else durable, and the pin
    * is kept even when that device is absent so replugging it restores the choice.
    */
-  var outputDeviceName: String?
+  val outputDeviceName: String?
+  fun setOutputDeviceName(value: String?)
   fun observeOutputDeviceName(): StateFlow<String?>
 }

@@ -10,17 +10,22 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface PrivacySettings {
 
-  var hasEverConsented: Boolean
+  val hasEverConsented: Boolean
+  fun observeHasEverConsented(): StateFlow<Boolean>
+  fun setHasEverConsented(value: Boolean)
 
-  var crashReportingEnabled: Boolean
+  val crashReportingEnabled: Boolean
+  fun setCrashReportingEnabled(value: Boolean)
   fun observeCrashReportingEnabled(): StateFlow<Boolean>
 
   /**
    * Keep each account's sign-in where it survives a reinstall, where the platform allows it
    */
-  var keepSignedInAfterReinstall: Boolean
+  val keepSignedInAfterReinstall: Boolean
+  fun setKeepSignedInAfterReinstall(value: Boolean)
   fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean>
 
-  var analyticReportingEnabled: Boolean
+  val analyticReportingEnabled: Boolean
+  fun setAnalyticReportingEnabled(value: Boolean)
   fun observeAnalyticReportingEnabled(): StateFlow<Boolean>
 }

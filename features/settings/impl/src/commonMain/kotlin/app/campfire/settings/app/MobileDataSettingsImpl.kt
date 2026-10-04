@@ -31,11 +31,13 @@ class MobileDataSettingsImpl(
     key = KEY_HOME_SERVER_ON_MOBILE_DATA,
     defaultValue = !settings.getBoolean(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA, true),
   )
-  override var homeServerOnMobileData: Boolean by homeServerOnMobileDataProperty
+  override val homeServerOnMobileData: Boolean by homeServerOnMobileDataProperty
+  override fun setHomeServerOnMobileData(value: Boolean) = homeServerOnMobileDataProperty.set(value)
   override fun observeHomeServerOnMobileData(): StateFlow<Boolean> = homeServerOnMobileDataProperty.observe()
 
   private val downloadOnWifiOnlyProperty = booleanSetting(KEY_DOWNLOAD_ON_WIFI_ONLY, false)
-  override var downloadOnWifiOnly: Boolean by downloadOnWifiOnlyProperty
+  override val downloadOnWifiOnly: Boolean by downloadOnWifiOnlyProperty
+  override fun setDownloadOnWifiOnly(value: Boolean) = downloadOnWifiOnlyProperty.set(value)
   override fun observeDownloadOnWifiOnly(): StateFlow<Boolean> = downloadOnWifiOnlyProperty.observe()
 }
 

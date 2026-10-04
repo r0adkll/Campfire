@@ -4,33 +4,40 @@
 package app.campfire.settings.test
 
 import app.campfire.settings.api.PrivacySettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.asStateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class TestPrivacySettings(
-  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), PrivacySettings {
+/**
+ * An in-memory [PrivacySettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestPrivacySettings : PrivacySettings {
 
-  override var hasEverConsented: Boolean by boolean()
+  private val _hasEverConsented = MutableStateFlow<Boolean>(false)
+  override val hasEverConsented: Boolean get() = _hasEverConsented.value
+  override fun setHasEverConsented(value: Boolean) {
+    _hasEverConsented.value = value
+  }
+  override fun observeHasEverConsented(): StateFlow<Boolean> = _hasEverConsented.asStateFlow()
 
-  override var crashReportingEnabled: Boolean by boolean()
-  override fun observeCrashReportingEnabled(): StateFlow<Boolean> =
-    observeBoolean(::crashReportingEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, crashReportingEnabled)
+  private val _crashReportingEnabled = MutableStateFlow<Boolean>(false)
+  override val crashReportingEnabled: Boolean get() = _crashReportingEnabled.value
+  override fun setCrashReportingEnabled(value: Boolean) {
+    _crashReportingEnabled.value = value
+  }
+  override fun observeCrashReportingEnabled(): StateFlow<Boolean> = _crashReportingEnabled.asStateFlow()
 
-  override var keepSignedInAfterReinstall: Boolean by boolean()
-  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
-    observeBoolean(::keepSignedInAfterReinstall)
-      .stateIn(testScope, SharingStarted.Lazily, keepSignedInAfterReinstall)
+  private val _keepSignedInAfterReinstall = MutableStateFlow<Boolean>(false)
+  override val keepSignedInAfterReinstall: Boolean get() = _keepSignedInAfterReinstall.value
+  override fun setKeepSignedInAfterReinstall(value: Boolean) {
+    _keepSignedInAfterReinstall.value = value
+  }
+  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> = _keepSignedInAfterReinstall.asStateFlow()
 
-  override var analyticReportingEnabled: Boolean by boolean()
-  override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> =
-    observeBoolean(::analyticReportingEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, analyticReportingEnabled)
+  private val _analyticReportingEnabled = MutableStateFlow<Boolean>(false)
+  override val analyticReportingEnabled: Boolean get() = _analyticReportingEnabled.value
+  override fun setAnalyticReportingEnabled(value: Boolean) {
+    _analyticReportingEnabled.value = value
+  }
+  override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> = _analyticReportingEnabled.asStateFlow()
 }

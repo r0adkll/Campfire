@@ -26,19 +26,23 @@ class AppStateSettingsImpl(
 ) : AppStateSettings, AppSettings() {
 
   private val hasShownWidgetPinningProperty = booleanSetting(KEY_SHOW_WIDGET_PINNING, false)
-  override var hasShownWidgetPinning: Boolean by hasShownWidgetPinningProperty
+  override val hasShownWidgetPinning: Boolean by hasShownWidgetPinningProperty
+  override fun setHasShownWidgetPinning(value: Boolean) = hasShownWidgetPinningProperty.set(value)
   override fun observeHasShownWidgetPinning(): StateFlow<Boolean> = hasShownWidgetPinningProperty.observe()
 
   private val lastSeenVersionProperty = stringOrNullSetting(KEY_LAST_SEEN_WHATS_NEW)
-  override var lastSeenVersion: String? by lastSeenVersionProperty
+  override val lastSeenVersion: String? by lastSeenVersionProperty
+  override fun setLastSeenVersion(value: String?) = lastSeenVersionProperty.set(value)
   override fun observeLastSeenVersion(): StateFlow<String?> = lastSeenVersionProperty.observe()
 
   private val appUpdateSignInDismissedProperty = booleanSetting(KEY_APP_UPDATE_SIGN_IN_DISMISSED, false)
-  override var appUpdateSignInDismissed: Boolean by appUpdateSignInDismissedProperty
+  override val appUpdateSignInDismissed: Boolean by appUpdateSignInDismissedProperty
+  override fun setAppUpdateSignInDismissed(value: Boolean) = appUpdateSignInDismissedProperty.set(value)
   override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> = appUpdateSignInDismissedProperty.observe()
 
   private val appUpdateDismissedVersionCodeProperty = longSetting(KEY_APP_UPDATE_DISMISSED_VERSION_CODE, 0L)
-  override var appUpdateDismissedVersionCode: Long by appUpdateDismissedVersionCodeProperty
+  override val appUpdateDismissedVersionCode: Long by appUpdateDismissedVersionCodeProperty
+  override fun setAppUpdateDismissedVersionCode(value: Long) = appUpdateDismissedVersionCodeProperty.set(value)
   override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
     appUpdateDismissedVersionCodeProperty.observe()
 }

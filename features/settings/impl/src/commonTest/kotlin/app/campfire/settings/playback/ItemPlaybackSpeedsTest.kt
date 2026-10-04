@@ -22,18 +22,18 @@ class ItemPlaybackSpeedsTest {
     assertThat(settings.itemPlaybackSpeeds).isEmpty()
 
     val speeds = mapOf("li_abc123" to 1.5f, "li_def456" to 0.75f)
-    settings.itemPlaybackSpeeds = speeds
+    settings.setItemPlaybackSpeeds(speeds)
     assertThat(settings.itemPlaybackSpeeds).isEqualTo(speeds)
 
-    settings.itemPlaybackSpeeds = emptyMap()
+    settings.setItemPlaybackSpeeds(emptyMap())
     assertThat(settings.itemPlaybackSpeeds).isEmpty()
   }
 
   @Test
   fun `playbackSpeedFor falls back to the global speed without an override`() {
     val settings = playbackSettings()
-    settings.playbackSpeed = 1.25f
-    settings.itemPlaybackSpeeds = mapOf("li_abc123" to 2f)
+    settings.setPlaybackSpeed(1.25f)
+    settings.setItemPlaybackSpeeds(mapOf("li_abc123" to 2f))
 
     assertThat(settings.playbackSpeedFor("li_abc123")).isEqualTo(2f)
     assertThat(settings.playbackSpeedFor("li_other")).isEqualTo(1.25f)
@@ -43,8 +43,8 @@ class ItemPlaybackSpeedsTest {
   @Test
   fun `setPlaybackSpeedFor writes the override when enabled and the global otherwise`() {
     val settings = playbackSettings()
-    settings.playbackSpeed = 1f
-    settings.itemPlaybackSpeeds = mapOf("li_abc123" to 1.5f)
+    settings.setPlaybackSpeed(1f)
+    settings.setItemPlaybackSpeeds(mapOf("li_abc123" to 1.5f))
 
     // Item with an override enabled: only its entry changes
     settings.setPlaybackSpeedFor("li_abc123", 1.75f)

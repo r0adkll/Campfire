@@ -7,14 +7,19 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface ThemeSettings {
 
-  var dynamicallyThemeItemDetail: Boolean
+  val dynamicallyThemeItemDetail: Boolean
+  fun setDynamicallyThemeItemDetail(value: Boolean)
   fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean>
 
-  var dynamicallyThemePlayback: Boolean
+  val dynamicallyThemePlayback: Boolean
+  fun setDynamicallyThemePlayback(value: Boolean)
   fun observeDynamicallyThemePlayback(): StateFlow<Boolean>
 
-  var themeId: ThemeKey
+  val themeId: ThemeKey
+  fun observeThemeId(): StateFlow<ThemeKey>
+  fun setThemeId(value: ThemeKey)
 
-  var themeMode: ThemeMode
+  val themeMode: ThemeMode
+  fun setThemeMode(value: ThemeMode)
   fun observeTheme(): StateFlow<ThemeMode>
 }

@@ -12,22 +12,30 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A simple in-memory [EqualizerSettings] fake backed by [MutableStateFlow]s for use in tests.
+ * An in-memory [EqualizerSettings] fake backed by [MutableStateFlow]s for use in tests.
  */
 class FakeEqualizerSettings : EqualizerSettings {
 
-  private val _equalizerProfile = MutableStateFlow(EqualizerProfile())
-  override var equalizerProfile: EqualizerProfile
-    get() = _equalizerProfile.value
-    set(value) { _equalizerProfile.value = value }
+  private val _equalizerProfile = MutableStateFlow<EqualizerProfile>(EqualizerProfile())
+  override val equalizerProfile: EqualizerProfile get() = _equalizerProfile.value
+  override fun setEqualizerProfile(value: EqualizerProfile) {
+    _equalizerProfile.value = value
+  }
   override fun observeEqualizerProfile(): StateFlow<EqualizerProfile> = _equalizerProfile.asStateFlow()
 
-  override var customBandGains: List<Float> = List(EqualizerBands.BAND_COUNT) { 0f }
+  private val _customBandGains = MutableStateFlow<List<Float>>(List(EqualizerBands.BAND_COUNT) { 0f })
+  override val customBandGains: List<Float> get() = _customBandGains.value
+  override fun setCustomBandGains(value: List<Float>) {
+    _customBandGains.value = value
+  }
+  override fun observeCustomBandGains(): StateFlow<List<Float>> = _customBandGains.asStateFlow()
 
-  private val _itemEqualizerProfiles = MutableStateFlow(emptyMap<LibraryItemId, EqualizerProfile>())
-  override var itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile>
-    get() = _itemEqualizerProfiles.value
-    set(value) { _itemEqualizerProfiles.value = value }
+  private val _itemEqualizerProfiles =
+    MutableStateFlow<Map<LibraryItemId, EqualizerProfile>>(emptyMap<LibraryItemId, EqualizerProfile>())
+  override val itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile> get() = _itemEqualizerProfiles.value
+  override fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>) {
+    _itemEqualizerProfiles.value = value
+  }
   override fun observeItemEqualizerProfiles(): StateFlow<Map<LibraryItemId, EqualizerProfile>> =
     _itemEqualizerProfiles.asStateFlow()
 }

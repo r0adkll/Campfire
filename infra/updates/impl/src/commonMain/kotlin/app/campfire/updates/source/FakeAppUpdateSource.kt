@@ -39,7 +39,7 @@ class FakeAppUpdateSource(
 
   override suspend fun signIn() {
     delay(SIGN_IN_DELAY_MS)
-    devSettings.fakeAppUpdateSignedIn = true
+    devSettings.setFakeAppUpdateSignedIn(true)
   }
 
   override suspend fun isUpdateAvailable(): Boolean = devSettings.fakeAppUpdateAvailable

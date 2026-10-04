@@ -51,10 +51,10 @@ class AutoRewindSynchronizerTest {
 
   private val fatherTime = MutableFatherTime()
   private val settings = FakePlaybackSettings().apply {
-    autoRewindOnResumeEnabled = true
-    resumeRewindConfig = cleanConfig
+    setAutoRewindOnResumeEnabled(true)
+    setResumeRewindConfig(cleanConfig)
     // Most tests exercise the raw rewind; chapter-boundary clamping has its own dedicated tests below.
-    autoRewindStopAtChapterBoundary = false
+    setAutoRewindStopAtChapterBoundary(false)
   }
   private val player = FakeAudioPlayer()
   private val holder = FakeAudioPlayerHolder().apply { setCurrentPlayer(player) }
@@ -95,7 +95,7 @@ class AutoRewindSynchronizerTest {
 
   @Test
   fun `disabled setting never records or rewinds`() = runTest(testDispatcher) {
-    settings.autoRewindOnResumeEnabled = false
+    settings.setAutoRewindOnResumeEnabled(false)
     val sync = synchronizer()
     player.overallTime.value = 100.seconds
 
@@ -140,7 +140,7 @@ class AutoRewindSynchronizerTest {
   @Test
   fun `a pause that survives process death still rewinds on resume`() = runTest(testDispatcher) {
     // Simulate: paused, then the app was killed. The pending marker was persisted.
-    settings.pendingResumeRewind = PendingResumeRewind(pausedAtEpochMillis = 0, libraryItemId = ITEM_A)
+    settings.setPendingResumeRewind(PendingResumeRewind(pausedAtEpochMillis = 0, libraryItemId = ITEM_A))
     player.overallTime.value = 100.seconds
 
     // A brand-new synchronizer instance (no in-memory state) after relaunch
@@ -154,7 +154,7 @@ class AutoRewindSynchronizerTest {
 
   @Test
   fun `chapter boundary clamp stops the rewind at the current chapter start`() = runTest(testDispatcher) {
-    settings.autoRewindStopAtChapterBoundary = true
+    settings.setAutoRewindStopAtChapterBoundary(true)
     val sync = synchronizer()
     player.overallTime.value = 100.seconds
     player.currentTime.value = 10.seconds // only 10s into the current chapter
@@ -169,7 +169,7 @@ class AutoRewindSynchronizerTest {
 
   @Test
   fun `chapter boundary clamp does nothing at the very start of a chapter`() = runTest(testDispatcher) {
-    settings.autoRewindStopAtChapterBoundary = true
+    settings.setAutoRewindStopAtChapterBoundary(true)
     val sync = synchronizer()
     player.overallTime.value = 100.seconds
     player.currentTime.value = Duration.ZERO // exactly at a chapter boundary
@@ -184,7 +184,7 @@ class AutoRewindSynchronizerTest {
 
   @Test
   fun `with the clamp off the rewind crosses the chapter boundary`() = runTest(testDispatcher) {
-    settings.autoRewindStopAtChapterBoundary = false
+    settings.setAutoRewindStopAtChapterBoundary(false)
     val sync = synchronizer()
     player.overallTime.value = 100.seconds
     player.currentTime.value = 10.seconds

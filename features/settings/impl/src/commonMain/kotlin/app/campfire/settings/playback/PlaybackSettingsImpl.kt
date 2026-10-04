@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalSettingsApi::class)
@@ -35,22 +36,26 @@ class PlaybackSettingsImpl(
 ) : PlaybackSettings, AppSettings() {
 
   private val enableMp3IndexSeekingProperty = booleanSetting(PREF_MP3_SEEKING)
-  override var enableMp3IndexSeeking: Boolean by enableMp3IndexSeekingProperty
+  override val enableMp3IndexSeeking: Boolean by enableMp3IndexSeekingProperty
+  override fun setEnableMp3IndexSeeking(value: Boolean) = enableMp3IndexSeekingProperty.set(value)
   override fun observeMp3IndexSeeking(): StateFlow<Boolean> = enableMp3IndexSeekingProperty.observe()
 
   private val forwardTimeMsProperty = longSetting(PREF_FORWARD_TIME_MS, DEFAULT_FORWARD_TIME_MS)
-  override var forwardTimeMs: Long by forwardTimeMsProperty
+  override val forwardTimeMs: Long by forwardTimeMsProperty
+  override fun setForwardTimeMs(value: Long) = forwardTimeMsProperty.set(value)
   override fun observeForwardTimeMs(): StateFlow<Long> = forwardTimeMsProperty.observe()
 
   private val backwardTimeMsProperty = longSetting(PREF_BACKWARD_TIME_MS, DEFAULT_BACKWARD_TIME_MS)
-  override var backwardTimeMs: Long by backwardTimeMsProperty
+  override val backwardTimeMs: Long by backwardTimeMsProperty
+  override fun setBackwardTimeMs(value: Long) = backwardTimeMsProperty.set(value)
   override fun observeBackwardTimeMs(): StateFlow<Long> = backwardTimeMsProperty.observe()
 
   private val trackResetThresholdProperty = durationSetting(
     key = PREF_TRACK_RESET_THRESHOLD,
     defaultValue = DEFAULT_TRACK_RESET_THRESHOLD_SECONDS.seconds,
   )
-  override var trackResetThreshold: Duration by trackResetThresholdProperty
+  override val trackResetThreshold: Duration by trackResetThresholdProperty
+  override fun setTrackResetThreshold(value: Duration) = trackResetThresholdProperty.set(value)
   override fun observeTrackResetThreshold(): StateFlow<Duration> = trackResetThresholdProperty.observe()
 
   private val playbackRatesProperty = customSetting(
@@ -59,10 +64,14 @@ class PlaybackSettingsImpl(
     getter = { it.asFloatList() },
     setter = { rates -> rates.joinToString(PLAYBACK_RATES_SEPARATOR) },
   )
-  override var playbackRates: List<Float> by playbackRatesProperty
+  override val playbackRates: List<Float> by playbackRatesProperty
+  override fun setPlaybackRates(value: List<Float>) = playbackRatesProperty.set(value)
   override fun observePlaybackRates(): StateFlow<List<Float>> = playbackRatesProperty.observe()
 
-  override var playbackSpeed: Float by floatSetting(PREF_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+  private val playbackSpeedProperty = floatSetting(PREF_PLAYBACK_SPEED, DEFAULT_PLAYBACK_SPEED)
+  override val playbackSpeed: Float by playbackSpeedProperty
+  override fun setPlaybackSpeed(value: Float) = playbackSpeedProperty.set(value)
+  override fun observePlaybackSpeed(): StateFlow<Float> = playbackSpeedProperty.observe()
 
   private val itemPlaybackSpeedsProperty = customSetting(
     key = PREF_ITEM_PLAYBACK_SPEEDS,
@@ -74,7 +83,8 @@ class PlaybackSettingsImpl(
       }
     },
   )
-  override var itemPlaybackSpeeds: Map<LibraryItemId, Float> by itemPlaybackSpeedsProperty
+  override val itemPlaybackSpeeds: Map<LibraryItemId, Float> by itemPlaybackSpeedsProperty
+  override fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>) = itemPlaybackSpeedsProperty.set(value)
   override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> =
     itemPlaybackSpeedsProperty.observe()
 
@@ -82,39 +92,47 @@ class PlaybackSettingsImpl(
     PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
     DEFAULT_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
   )
-  override var remoteNextPrevSkipsChapters: Boolean by remoteNextPrevSkipsChaptersProperty
+  override val remoteNextPrevSkipsChapters: Boolean by remoteNextPrevSkipsChaptersProperty
+  override fun setRemoteNextPrevSkipsChapters(value: Boolean) = remoteNextPrevSkipsChaptersProperty.set(value)
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = remoteNextPrevSkipsChaptersProperty.observe()
 
   private val syncEnabledProperty = booleanSetting(PREF_SYNC, DEFAULT_AUTO_SYNC)
-  override var syncEnabled: Boolean by syncEnabledProperty
+  override val syncEnabled: Boolean by syncEnabledProperty
+  override fun setSyncEnabled(value: Boolean) = syncEnabledProperty.set(value)
   override fun observeSyncEnabled(): StateFlow<Boolean> = syncEnabledProperty.observe()
 
   private val autoSyncEnabledProperty = booleanSetting(PREF_AUTO_SYNC, DEFAULT_AUTO_SYNC)
-  override var autoSyncEnabled: Boolean by autoSyncEnabledProperty
+  override val autoSyncEnabled: Boolean by autoSyncEnabledProperty
+  override fun setAutoSyncEnabled(value: Boolean) = autoSyncEnabledProperty.set(value)
   override fun observeAutoSyncEnabled(): StateFlow<Boolean> = autoSyncEnabledProperty.observe()
 
   private val playbackHistoryEnabledProperty = booleanSetting(PREF_PLAYBACK_HISTORY, DEFAULT_PLAYBACK_HISTORY)
-  override var playbackHistoryEnabled: Boolean by playbackHistoryEnabledProperty
+  override val playbackHistoryEnabled: Boolean by playbackHistoryEnabledProperty
+  override fun setPlaybackHistoryEnabled(value: Boolean) = playbackHistoryEnabledProperty.set(value)
   override fun observePlaybackHistoryEnabled(): StateFlow<Boolean> = playbackHistoryEnabledProperty.observe()
 
   private val syncIntervalUnmeteredProperty =
     durationSetting(PREF_SYNC_INTERVAL_UNMETERED, DEFAULT_SYNC_INTERVAL_UNMETERED)
-  override var syncIntervalUnmetered: Duration by syncIntervalUnmeteredProperty
+  override val syncIntervalUnmetered: Duration by syncIntervalUnmeteredProperty
+  override fun setSyncIntervalUnmetered(value: Duration) = syncIntervalUnmeteredProperty.set(value)
   override fun observeSyncIntervalUnmetered(): StateFlow<Duration> = syncIntervalUnmeteredProperty.observe()
 
   private val syncIntervalMeteredProperty = durationSetting(PREF_SYNC_INTERVAL_METERED, DEFAULT_SYNC_INTERVAL_METERED)
-  override var syncIntervalMetered: Duration by syncIntervalMeteredProperty
+  override val syncIntervalMetered: Duration by syncIntervalMeteredProperty
+  override fun setSyncIntervalMetered(value: Duration) = syncIntervalMeteredProperty.set(value)
   override fun observeSyncIntervalMetered(): StateFlow<Duration> = syncIntervalMeteredProperty.observe()
 
   private val streamingMethodProperty = enumSetting(PREF_STREAMING_METHOD, StreamingMethod)
-  override var streamingMethod: StreamingMethod by streamingMethodProperty
+  override val streamingMethod: StreamingMethod by streamingMethodProperty
+  override fun setStreamingMethod(value: StreamingMethod) = streamingMethodProperty.set(value)
   override fun observeStreamingMethod(): StateFlow<StreamingMethod> = streamingMethodProperty.observe()
 
   private val autoRewindOnResumeEnabledProperty = booleanSetting(
     PREF_AUTO_REWIND_ON_RESUME,
     DEFAULT_AUTO_REWIND_ON_RESUME,
   )
-  override var autoRewindOnResumeEnabled: Boolean by autoRewindOnResumeEnabledProperty
+  override val autoRewindOnResumeEnabled: Boolean by autoRewindOnResumeEnabledProperty
+  override fun setAutoRewindOnResumeEnabled(value: Boolean) = autoRewindOnResumeEnabledProperty.set(value)
   override fun observeAutoRewindOnResumeEnabled(): StateFlow<Boolean> = autoRewindOnResumeEnabledProperty.observe()
 
   private val minPauseThresholdProperty = durationSetting(
@@ -129,13 +147,14 @@ class PlaybackSettingsImpl(
   private val maxResumeRewindProperty = durationSetting(PREF_MAX_RESUME_REWIND, ResumeRewindConfig.Default.maxRewind)
   private var maxResumeRewind: Duration by maxResumeRewindProperty
 
-  override var resumeRewindConfig: ResumeRewindConfig
+  override val resumeRewindConfig: ResumeRewindConfig
     get() = ResumeRewindConfig(minPauseThreshold, minResumeRewind, maxResumeRewind)
-    set(value) {
-      minPauseThreshold = value.minPauseThreshold
-      minResumeRewind = value.minRewind
-      maxResumeRewind = value.maxRewind
-    }
+
+  override fun setResumeRewindConfig(value: ResumeRewindConfig) {
+    minPauseThreshold = value.minPauseThreshold
+    minResumeRewind = value.minRewind
+    maxResumeRewind = value.maxRewind
+  }
 
   override fun observeResumeRewindConfig(): StateFlow<ResumeRewindConfig> = combine(
     minPauseThresholdProperty.observe(),
@@ -149,25 +168,28 @@ class PlaybackSettingsImpl(
     PREF_AUTO_REWIND_STOP_AT_CHAPTER,
     DEFAULT_AUTO_REWIND_STOP_AT_CHAPTER,
   )
-  override var autoRewindStopAtChapterBoundary: Boolean by autoRewindStopAtChapterBoundaryProperty
+  override val autoRewindStopAtChapterBoundary: Boolean by autoRewindStopAtChapterBoundaryProperty
+  override fun setAutoRewindStopAtChapterBoundary(value: Boolean) = autoRewindStopAtChapterBoundaryProperty.set(value)
   override fun observeAutoRewindStopAtChapterBoundary(): StateFlow<Boolean> =
     autoRewindStopAtChapterBoundaryProperty.observe()
 
-  override var pendingResumeRewind: PendingResumeRewind?
+  private val pendingResumeRewindProperty = stringOrNullSetting(PREF_PENDING_RESUME_REWIND)
+  override val pendingResumeRewind: PendingResumeRewind?
     get() = settings.getStringOrNull(PREF_PENDING_RESUME_REWIND)?.toPendingResumeRewind()
-    set(value) {
-      if (value == null) {
-        settings.remove(PREF_PENDING_RESUME_REWIND)
-      } else {
-        settings.putString(PREF_PENDING_RESUME_REWIND, value.serialize())
-      }
-    }
+
+  override fun setPendingResumeRewind(value: PendingResumeRewind?) =
+    pendingResumeRewindProperty.set(value?.serialize())
+  override fun observePendingResumeRewind(): StateFlow<PendingResumeRewind?> =
+    pendingResumeRewindProperty.observe()
+      .map { it?.toPendingResumeRewind() }
+      .stateIn(scope, SharingStarted.Lazily, pendingResumeRewind)
 
   private val bookTimeInPlaybackUiProperty = booleanSetting(
     PREF_BOOK_TIME_UI,
     false,
   )
-  override var bookTimeInPlaybackUi: Boolean by bookTimeInPlaybackUiProperty
+  override val bookTimeInPlaybackUi: Boolean by bookTimeInPlaybackUiProperty
+  override fun setBookTimeInPlaybackUi(value: Boolean) = bookTimeInPlaybackUiProperty.set(value)
   override fun observeBookTimeInPlaybackUi(): StateFlow<Boolean> =
     bookTimeInPlaybackUiProperty.observe()
 
@@ -175,7 +197,8 @@ class PlaybackSettingsImpl(
     PREF_WAVY_SLIDER,
     true,
   )
-  override var playbackWavyScrubber: Boolean by playbackWavyScrubberProperty
+  override val playbackWavyScrubber: Boolean by playbackWavyScrubberProperty
+  override fun setPlaybackWavyScrubber(value: Boolean) = playbackWavyScrubberProperty.set(value)
   override fun observePlaybackWavyScrubber(): StateFlow<Boolean> =
     playbackWavyScrubberProperty.observe()
 
@@ -183,7 +206,8 @@ class PlaybackSettingsImpl(
     PREF_SCROLLING_TITLES,
     true,
   )
-  override var scrollingTitles: Boolean by scrollingTitlesProperty
+  override val scrollingTitles: Boolean by scrollingTitlesProperty
+  override fun setScrollingTitles(value: Boolean) = scrollingTitlesProperty.set(value)
   override fun observeScrollingTitles(): StateFlow<Boolean> =
     scrollingTitlesProperty.observe()
 

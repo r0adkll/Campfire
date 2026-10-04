@@ -41,7 +41,7 @@ class WhatsNewRepositoryImpl(
   }
 
   override suspend fun dismissWhatsNew() {
-    appStateSettings.lastSeenVersion = applicationInfo.versionName
+    appStateSettings.setLastSeenVersion(applicationInfo.versionName)
   }
 
   private suspend fun loadFromDisk(): List<VersionEntry> = withContext(dispatcherProvider.io) {

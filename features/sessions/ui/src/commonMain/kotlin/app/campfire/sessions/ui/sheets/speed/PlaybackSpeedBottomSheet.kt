@@ -149,9 +149,11 @@ private fun PlaybackSpeedBottomSheet(
     onPerBookSpeedChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.playbackSettings.itemPlaybackSpeeds += (input.itemId to currentSpeed)
+        component.playbackSettings.setItemPlaybackSpeeds(
+          component.playbackSettings.itemPlaybackSpeeds + (input.itemId to currentSpeed),
+        )
       } else {
-        component.playbackSettings.itemPlaybackSpeeds -= input.itemId
+        component.playbackSettings.setItemPlaybackSpeeds(component.playbackSettings.itemPlaybackSpeeds - input.itemId)
         // Snap active playback back to the global speed the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
           ?.setPlaybackSpeed(component.playbackSettings.playbackSpeed)

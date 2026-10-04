@@ -36,7 +36,7 @@ import kotlinx.datetime.LocalDateTime
 class CoroutineSleepTimerManagerTest {
 
   private val settings = FakeSleepSettings().apply {
-    fadeOutDuration = 5.seconds
+    setFadeOutDuration(5.seconds)
   }
   private val player = FakeAudioPlayer()
 
@@ -159,9 +159,9 @@ class CoroutineSleepTimerManagerTest {
 
   @Test
   fun `auto rewind applies once the fade of an auto sleep timer completes`() = runTest {
-    settings.autoSleepTimerEnabled = true
-    settings.autoRewindEnabled = true
-    settings.autoRewindAmount = 5.minutes
+    settings.setAutoSleepTimerEnabled(true)
+    settings.setAutoRewindEnabled(true)
+    settings.setAutoRewindAmount(5.minutes)
     val manager = manager()
     player.state.value = State.Playing
     player.overallTime.value = 30.minutes
@@ -177,8 +177,8 @@ class CoroutineSleepTimerManagerTest {
 
   @Test
   fun `auto rewind is skipped when the fade is cancelled`() = runTest {
-    settings.autoSleepTimerEnabled = true
-    settings.autoRewindEnabled = true
+    settings.setAutoSleepTimerEnabled(true)
+    settings.setAutoRewindEnabled(true)
     val manager = manager()
     player.state.value = State.Playing
 

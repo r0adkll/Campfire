@@ -93,9 +93,9 @@ class AuthorsPresenter(
         is AuthorsUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("author_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            libraryViewSettings.authorsSortDirection = sortDirection.flip()
+            libraryViewSettings.setAuthorsSortDirection(sortDirection.flip())
           }
-          libraryViewSettings.authorsSortMode = event.mode
+          libraryViewSettings.setAuthorsSortMode(event.mode)
         }
       }
     }

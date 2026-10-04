@@ -46,9 +46,9 @@ class AnalyticConsentPresenter(
           analyticReportingEnabled = event.enabled
         }
         is AnalyticConsentUiEvent.ApplyConsent -> {
-          privacySettings.hasEverConsented = true
-          privacySettings.crashReportingEnabled = crashReportingEnabled
-          privacySettings.analyticReportingEnabled = analyticReportingEnabled
+          privacySettings.setHasEverConsented(true)
+          privacySettings.setCrashReportingEnabled(crashReportingEnabled)
+          privacySettings.setAnalyticReportingEnabled(analyticReportingEnabled)
           if (userSession is UserSession.LoggedIn) {
             navigator.resetRoot(HomeScreen)
           } else {

@@ -70,7 +70,7 @@ class ResumeRewindTierTest {
       minRewind = 10.seconds,
       maxRewind = 90.seconds,
     )
-    settings.resumeRewindConfig = custom
+    settings.setResumeRewindConfig(custom)
     assertThat(settings.resumeRewindConfig).isEqualTo(custom)
   }
 
@@ -80,10 +80,10 @@ class ResumeRewindTierTest {
     assertThat(settings.pendingResumeRewind).isNull()
 
     val pending = PendingResumeRewind(pausedAtEpochMillis = 1_700_000_000_000L, libraryItemId = "li_abc123")
-    settings.pendingResumeRewind = pending
+    settings.setPendingResumeRewind(pending)
     assertThat(settings.pendingResumeRewind).isEqualTo(pending)
 
-    settings.pendingResumeRewind = null
+    settings.setPendingResumeRewind(null)
     assertThat(settings.pendingResumeRewind).isNull()
   }
 

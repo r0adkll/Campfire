@@ -8,81 +8,103 @@ import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.LibraryViewSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.asStateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class TestLibraryViewSettings(
-  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), LibraryViewSettings {
+/**
+ * An in-memory [LibraryViewSettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestLibraryViewSettings : LibraryViewSettings {
 
-  override var libraryItemDisplayState: ItemDisplayState by enum()
-  override fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState> =
-    observeEnum<ItemDisplayState>(::libraryItemDisplayState)
-      .stateIn(testScope, SharingStarted.Lazily, libraryItemDisplayState)
+  private val _libraryItemDisplayState = MutableStateFlow<ItemDisplayState>(ItemDisplayState.entries.first())
+  override val libraryItemDisplayState: ItemDisplayState get() = _libraryItemDisplayState.value
+  override fun setLibraryItemDisplayState(value: ItemDisplayState) {
+    _libraryItemDisplayState.value = value
+  }
+  override fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState> = _libraryItemDisplayState.asStateFlow()
 
-  override var libraryItemMarqueeEnabled: Boolean by boolean()
-  override fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean> =
-    observeBoolean(::libraryItemMarqueeEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, libraryItemMarqueeEnabled)
+  private val _libraryItemMarqueeEnabled = MutableStateFlow<Boolean>(false)
+  override val libraryItemMarqueeEnabled: Boolean get() = _libraryItemMarqueeEnabled.value
+  override fun setLibraryItemMarqueeEnabled(value: Boolean) {
+    _libraryItemMarqueeEnabled.value = value
+  }
+  override fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean> = _libraryItemMarqueeEnabled.asStateFlow()
 
-  override var librarySortMode: ContentSortMode by enum()
-  override fun observeLibrarySortMode(): StateFlow<ContentSortMode> =
-    observeEnum<ContentSortMode>(::librarySortMode)
-      .stateIn(testScope, SharingStarted.Lazily, librarySortMode)
+  private val _librarySortMode = MutableStateFlow<ContentSortMode>(ContentSortMode.entries.first())
+  override val librarySortMode: ContentSortMode get() = _librarySortMode.value
+  override fun setLibrarySortMode(value: ContentSortMode) {
+    _librarySortMode.value = value
+  }
+  override fun observeLibrarySortMode(): StateFlow<ContentSortMode> = _librarySortMode.asStateFlow()
 
-  override var librarySortDirection: SortDirection by enum()
-  override fun observeLibrarySortDirection(): StateFlow<SortDirection> =
-    observeEnum<SortDirection>(::librarySortDirection)
-      .stateIn(testScope, SharingStarted.Lazily, librarySortDirection)
+  private val _librarySortDirection = MutableStateFlow<SortDirection>(SortDirection.entries.first())
+  override val librarySortDirection: SortDirection get() = _librarySortDirection.value
+  override fun setLibrarySortDirection(value: SortDirection) {
+    _librarySortDirection.value = value
+  }
+  override fun observeLibrarySortDirection(): StateFlow<SortDirection> = _librarySortDirection.asStateFlow()
 
-  override var authorsSortMode: ContentSortMode by enum()
-  override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> =
-    observeEnum<ContentSortMode>(::authorsSortMode)
-      .stateIn(testScope, SharingStarted.Lazily, authorsSortMode)
+  private val _authorsSortMode = MutableStateFlow<ContentSortMode>(ContentSortMode.entries.first())
+  override val authorsSortMode: ContentSortMode get() = _authorsSortMode.value
+  override fun setAuthorsSortMode(value: ContentSortMode) {
+    _authorsSortMode.value = value
+  }
+  override fun observeAuthorsSortMode(): StateFlow<ContentSortMode> = _authorsSortMode.asStateFlow()
 
-  override var authorsSortDirection: SortDirection by enum()
-  override fun observeAuthorsSortDirection(): StateFlow<SortDirection> =
-    observeEnum<SortDirection>(::authorsSortDirection)
-      .stateIn(testScope, SharingStarted.Lazily, authorsSortDirection)
+  private val _authorsSortDirection = MutableStateFlow<SortDirection>(SortDirection.entries.first())
+  override val authorsSortDirection: SortDirection get() = _authorsSortDirection.value
+  override fun setAuthorsSortDirection(value: SortDirection) {
+    _authorsSortDirection.value = value
+  }
+  override fun observeAuthorsSortDirection(): StateFlow<SortDirection> = _authorsSortDirection.asStateFlow()
 
-  override var seriesSortMode: ContentSortMode by enum()
-  override fun observeSeriesSortMode(): StateFlow<ContentSortMode> =
-    observeEnum<ContentSortMode>(::seriesSortMode)
-      .stateIn(testScope, SharingStarted.Lazily, seriesSortMode)
+  private val _seriesSortMode = MutableStateFlow<ContentSortMode>(ContentSortMode.entries.first())
+  override val seriesSortMode: ContentSortMode get() = _seriesSortMode.value
+  override fun setSeriesSortMode(value: ContentSortMode) {
+    _seriesSortMode.value = value
+  }
+  override fun observeSeriesSortMode(): StateFlow<ContentSortMode> = _seriesSortMode.asStateFlow()
 
-  override var seriesSortDirection: SortDirection by enum()
-  override fun observeSeriesSortDirection(): StateFlow<SortDirection> =
-    observeEnum<SortDirection>(::seriesSortDirection)
-      .stateIn(testScope, SharingStarted.Lazily, seriesSortDirection)
+  private val _seriesSortDirection = MutableStateFlow<SortDirection>(SortDirection.entries.first())
+  override val seriesSortDirection: SortDirection get() = _seriesSortDirection.value
+  override fun setSeriesSortDirection(value: SortDirection) {
+    _seriesSortDirection.value = value
+  }
+  override fun observeSeriesSortDirection(): StateFlow<SortDirection> = _seriesSortDirection.asStateFlow()
 
-  override var seriesDisplayState: GroupDisplayState by enum()
-  override fun observeSeriesDisplayState(): StateFlow<GroupDisplayState> =
-    observeEnum<GroupDisplayState>(::seriesDisplayState)
-      .stateIn(testScope, SharingStarted.Lazily, seriesDisplayState)
+  private val _seriesDisplayState = MutableStateFlow<GroupDisplayState>(GroupDisplayState.entries.first())
+  override val seriesDisplayState: GroupDisplayState get() = _seriesDisplayState.value
+  override fun setSeriesDisplayState(value: GroupDisplayState) {
+    _seriesDisplayState.value = value
+  }
+  override fun observeSeriesDisplayState(): StateFlow<GroupDisplayState> = _seriesDisplayState.asStateFlow()
 
-  override var collectionsDisplayState: GroupDisplayState by enum()
-  override fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState> =
-    observeEnum<GroupDisplayState>(::collectionsDisplayState)
-      .stateIn(testScope, SharingStarted.Lazily, collectionsDisplayState)
+  private val _collectionsDisplayState = MutableStateFlow<GroupDisplayState>(GroupDisplayState.entries.first())
+  override val collectionsDisplayState: GroupDisplayState get() = _collectionsDisplayState.value
+  override fun setCollectionsDisplayState(value: GroupDisplayState) {
+    _collectionsDisplayState.value = value
+  }
+  override fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState> = _collectionsDisplayState.asStateFlow()
 
-  override var playlistsDisplayState: GroupDisplayState by enum()
-  override fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState> =
-    observeEnum<GroupDisplayState>(::playlistsDisplayState)
-      .stateIn(testScope, SharingStarted.Lazily, playlistsDisplayState)
+  private val _playlistsDisplayState = MutableStateFlow<GroupDisplayState>(GroupDisplayState.entries.first())
+  override val playlistsDisplayState: GroupDisplayState get() = _playlistsDisplayState.value
+  override fun setPlaylistsDisplayState(value: GroupDisplayState) {
+    _playlistsDisplayState.value = value
+  }
+  override fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState> = _playlistsDisplayState.asStateFlow()
 
-  override var showConfirmDownload: Boolean by boolean()
-  override fun observeShowConfirmDownload(): StateFlow<Boolean> =
-    observeBoolean(::showConfirmDownload)
-      .stateIn(testScope, SharingStarted.Lazily, showConfirmDownload)
+  private val _showConfirmDownload = MutableStateFlow<Boolean>(false)
+  override val showConfirmDownload: Boolean get() = _showConfirmDownload.value
+  override fun setShowConfirmDownload(value: Boolean) {
+    _showConfirmDownload.value = value
+  }
+  override fun observeShowConfirmDownload(): StateFlow<Boolean> = _showConfirmDownload.asStateFlow()
 
-  override var showTimeInBook: Boolean by boolean()
-  override fun observeShowTimeInBook(): StateFlow<Boolean> =
-    observeBoolean(::showTimeInBook)
-      .stateIn(testScope, SharingStarted.Lazily, showTimeInBook)
+  private val _showTimeInBook = MutableStateFlow<Boolean>(false)
+  override val showTimeInBook: Boolean get() = _showTimeInBook.value
+  override fun setShowTimeInBook(value: Boolean) {
+    _showTimeInBook.value = value
+  }
+  override fun observeShowTimeInBook(): StateFlow<Boolean> = _showTimeInBook.asStateFlow()
 }

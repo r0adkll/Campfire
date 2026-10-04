@@ -26,19 +26,25 @@ class PrivacySettingsImpl(
 ) : PrivacySettings, AppSettings() {
 
   // These are user opt-in, so default false
-  override var hasEverConsented: Boolean by booleanSetting(KEY_HAS_CONSENTED, false)
+  private val hasEverConsentedProperty = booleanSetting(KEY_HAS_CONSENTED, false)
+  override val hasEverConsented: Boolean by hasEverConsentedProperty
+  override fun setHasEverConsented(value: Boolean) = hasEverConsentedProperty.set(value)
+  override fun observeHasEverConsented(): StateFlow<Boolean> = hasEverConsentedProperty.observe()
 
   private val crashReportingProperty = booleanSetting(KEY_CRASH_REPORTING, true)
-  override var crashReportingEnabled: Boolean by crashReportingProperty
+  override val crashReportingEnabled: Boolean by crashReportingProperty
+  override fun setCrashReportingEnabled(value: Boolean) = crashReportingProperty.set(value)
   override fun observeCrashReportingEnabled(): StateFlow<Boolean> = crashReportingProperty.observe()
 
   private val keepSignedInAfterReinstallProperty = booleanSetting(KEY_KEEP_SIGNED_IN_AFTER_REINSTALL, true)
-  override var keepSignedInAfterReinstall: Boolean by keepSignedInAfterReinstallProperty
+  override val keepSignedInAfterReinstall: Boolean by keepSignedInAfterReinstallProperty
+  override fun setKeepSignedInAfterReinstall(value: Boolean) = keepSignedInAfterReinstallProperty.set(value)
   override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
     keepSignedInAfterReinstallProperty.observe()
 
   private val analyticReportingProperty = booleanSetting(KEY_ANALYTIC_REPORTING, false)
-  override var analyticReportingEnabled: Boolean by analyticReportingProperty
+  override val analyticReportingEnabled: Boolean by analyticReportingProperty
+  override fun setAnalyticReportingEnabled(value: Boolean) = analyticReportingProperty.set(value)
   override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> = analyticReportingProperty.observe()
 }
 

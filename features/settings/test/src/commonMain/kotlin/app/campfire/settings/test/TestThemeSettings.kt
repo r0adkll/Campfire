@@ -6,31 +6,40 @@ package app.campfire.settings.test
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.flow.asStateFlow
 
-class TestThemeSettings(
-  private val testScope: CoroutineScope = TestScope(StandardTestDispatcher()),
-) : TestSettings(), ThemeSettings {
+/**
+ * An in-memory [ThemeSettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestThemeSettings : ThemeSettings {
 
-  override var dynamicallyThemeItemDetail: Boolean by boolean()
-  override fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean> =
-    observeBoolean(::dynamicallyThemeItemDetail)
-      .stateIn(testScope, SharingStarted.Lazily, dynamicallyThemePlayback)
+  private val _dynamicallyThemeItemDetail = MutableStateFlow<Boolean>(false)
+  override val dynamicallyThemeItemDetail: Boolean get() = _dynamicallyThemeItemDetail.value
+  override fun setDynamicallyThemeItemDetail(value: Boolean) {
+    _dynamicallyThemeItemDetail.value = value
+  }
+  override fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean> = _dynamicallyThemeItemDetail.asStateFlow()
 
-  override var dynamicallyThemePlayback: Boolean by boolean()
-  override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> =
-    observeBoolean(::dynamicallyThemePlayback)
-      .stateIn(testScope, SharingStarted.Lazily, dynamicallyThemeItemDetail)
+  private val _dynamicallyThemePlayback = MutableStateFlow<Boolean>(false)
+  override val dynamicallyThemePlayback: Boolean get() = _dynamicallyThemePlayback.value
+  override fun setDynamicallyThemePlayback(value: Boolean) {
+    _dynamicallyThemePlayback.value = value
+  }
+  override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> = _dynamicallyThemePlayback.asStateFlow()
 
-  override var themeId: ThemeKey = ThemeKey.Tent
+  private val _themeId = MutableStateFlow<ThemeKey>(ThemeKey.Tent)
+  override val themeId: ThemeKey get() = _themeId.value
+  override fun setThemeId(value: ThemeKey) {
+    _themeId.value = value
+  }
+  override fun observeThemeId(): StateFlow<ThemeKey> = _themeId.asStateFlow()
 
-  override var themeMode: ThemeMode by enum()
-  override fun observeTheme(): StateFlow<ThemeMode> =
-    observeEnum<ThemeMode>(::themeMode)
-      .stateIn(testScope, SharingStarted.Lazily, themeMode)
+  private val _themeMode = MutableStateFlow<ThemeMode>(ThemeMode.entries.first())
+  override val themeMode: ThemeMode get() = _themeMode.value
+  override fun setThemeMode(value: ThemeMode) {
+    _themeMode.value = value
+  }
+  override fun observeTheme(): StateFlow<ThemeMode> = _themeMode.asStateFlow()
 }

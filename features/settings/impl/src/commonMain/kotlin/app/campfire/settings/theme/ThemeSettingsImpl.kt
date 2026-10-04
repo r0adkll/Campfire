@@ -28,22 +28,28 @@ class ThemeSettingsImpl(
 ) : ThemeSettings, AppSettings() {
 
   private val dynamicallyThemeItemDetailProperty = booleanSetting(KEY_ITEM_DETAIL_THEMING, true)
-  override var dynamicallyThemeItemDetail: Boolean by dynamicallyThemeItemDetailProperty
+  override val dynamicallyThemeItemDetail: Boolean by dynamicallyThemeItemDetailProperty
+  override fun setDynamicallyThemeItemDetail(value: Boolean) = dynamicallyThemeItemDetailProperty.set(value)
   override fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean> = dynamicallyThemeItemDetailProperty.observe()
 
   private val dynamicallyThemePlaybackProperty = booleanSetting(KEY_PLAYBACK_THEMING, true)
-  override var dynamicallyThemePlayback: Boolean by dynamicallyThemePlaybackProperty
+  override val dynamicallyThemePlayback: Boolean by dynamicallyThemePlaybackProperty
+  override fun setDynamicallyThemePlayback(value: Boolean) = dynamicallyThemePlaybackProperty.set(value)
   override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> = dynamicallyThemePlaybackProperty.observe()
 
-  override var themeId: ThemeKey by customSetting(
+  private val themeIdProperty = customSetting(
     key = KEY_CURRENT_THEME,
     defaultValue = ThemeKey.Tent,
     getter = { ThemeKey.from(it) },
     setter = { it.storageKey },
   )
+  override val themeId: ThemeKey by themeIdProperty
+  override fun setThemeId(value: ThemeKey) = themeIdProperty.set(value)
+  override fun observeThemeId(): StateFlow<ThemeKey> = themeIdProperty.observe()
 
   private val themeModeProperty = enumSetting(KEY_THEME, ThemeMode)
-  override var themeMode: ThemeMode by themeModeProperty
+  override val themeMode: ThemeMode by themeModeProperty
+  override fun setThemeMode(value: ThemeMode) = themeModeProperty.set(value)
   override fun observeTheme(): StateFlow<ThemeMode> = themeModeProperty.observe()
 }
 

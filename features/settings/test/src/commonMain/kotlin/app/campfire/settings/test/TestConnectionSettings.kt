@@ -4,21 +4,19 @@
 package app.campfire.settings.test
 
 import app.campfire.settings.api.ConnectionSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.asStateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class TestConnectionSettings(
-  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), ConnectionSettings {
+/**
+ * An in-memory [ConnectionSettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestConnectionSettings : ConnectionSettings {
 
-  override var socketEnabled: Boolean by boolean()
-  override fun observeSocketEnabled(): StateFlow<Boolean> =
-    observeBoolean(::socketEnabled)
-      .stateIn(testScope, SharingStarted.Lazily, socketEnabled)
+  private val _socketEnabled = MutableStateFlow<Boolean>(false)
+  override val socketEnabled: Boolean get() = _socketEnabled.value
+  override fun setSocketEnabled(value: Boolean) {
+    _socketEnabled.value = value
+  }
+  override fun observeSocketEnabled(): StateFlow<Boolean> = _socketEnabled.asStateFlow()
 }

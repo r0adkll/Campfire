@@ -75,7 +75,7 @@ class CollectionsPresenter(
 
         CollectionsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("collections_display_state", "toggle"))
-          libraryViewSettings.collectionsDisplayState = displayState.next()
+          libraryViewSettings.setCollectionsDisplayState(displayState.next())
         }
 
         is CollectionsUiEvent.CollectionClick -> {

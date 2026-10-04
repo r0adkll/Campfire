@@ -10,17 +10,20 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface AppStateSettings {
 
-  var hasShownWidgetPinning: Boolean
+  val hasShownWidgetPinning: Boolean
+  fun setHasShownWidgetPinning(value: Boolean)
   fun observeHasShownWidgetPinning(): StateFlow<Boolean>
 
-  var lastSeenVersion: String?
+  val lastSeenVersion: String?
+  fun setLastSeenVersion(value: String?)
   fun observeLastSeenVersion(): StateFlow<String?>
 
   /**
    * When `true`, the user has dismissed the app update sign-in prompt and it should
    * no longer be shown.
    */
-  var appUpdateSignInDismissed: Boolean
+  val appUpdateSignInDismissed: Boolean
+  fun setAppUpdateSignInDismissed(value: Boolean)
   fun observeAppUpdateSignInDismissed(): StateFlow<Boolean>
 
   /**
@@ -28,6 +31,7 @@ interface AppStateSettings {
    * The widget stays hidden for that release but shows again for a different one.
    * `0` when no update has been dismissed.
    */
-  var appUpdateDismissedVersionCode: Long
+  val appUpdateDismissedVersionCode: Long
+  fun setAppUpdateDismissedVersionCode(value: Long)
   fun observeAppUpdateDismissedVersionCode(): StateFlow<Long>
 }

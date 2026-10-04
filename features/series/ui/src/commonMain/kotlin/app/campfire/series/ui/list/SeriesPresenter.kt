@@ -116,14 +116,14 @@ class SeriesPresenter(
         is SeriesUiEvent.SortModeChanged -> {
           analytics.send(ActionEvent("series_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            libraryViewSettings.seriesSortDirection = sortDirection.flip()
+            libraryViewSettings.setSeriesSortDirection(sortDirection.flip())
           }
-          libraryViewSettings.seriesSortMode = event.mode
+          libraryViewSettings.setSeriesSortMode(event.mode)
         }
 
         SeriesUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("series_display_state", "toggle"))
-          libraryViewSettings.seriesDisplayState = displayState.next()
+          libraryViewSettings.setSeriesDisplayState(displayState.next())
         }
       }
     }

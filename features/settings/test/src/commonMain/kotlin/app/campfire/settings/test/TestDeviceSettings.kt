@@ -5,25 +5,23 @@ package app.campfire.settings.test
 
 import app.campfire.core.model.UserId
 import app.campfire.settings.api.DeviceSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.asStateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class TestDeviceSettings(
-  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), DeviceSettings {
+/**
+ * An in-memory [DeviceSettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestDeviceSettings : DeviceSettings {
 
-  override var deviceId: String by string()
+  override val deviceId: String = "test-deviceId"
 
-  override var analyticsId: String by string()
+  override val analyticsId: String = "test-analyticsId"
 
-  override var currentUserId: UserId? by stringOrNull()
-  override fun observeCurrentUserId(): StateFlow<UserId?> =
-    observeStringOrNull(::currentUserId)
-      .stateIn(testScope, SharingStarted.Lazily, currentUserId)
+  private val _currentUserId = MutableStateFlow<UserId?>(null)
+  override val currentUserId: UserId? get() = _currentUserId.value
+  override fun setCurrentUserId(value: UserId?) {
+    _currentUserId.value = value
+  }
+  override fun observeCurrentUserId(): StateFlow<UserId?> = _currentUserId.asStateFlow()
 }

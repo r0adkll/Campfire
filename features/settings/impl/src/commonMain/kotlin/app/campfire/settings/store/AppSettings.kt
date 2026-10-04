@@ -37,7 +37,7 @@ abstract class AppSettings {
       return settings.getBoolean(key, defaultValue)
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Boolean) {
+    override fun set(value: Boolean) {
       settings.putBoolean(key, value)
     }
 
@@ -52,7 +52,7 @@ abstract class AppSettings {
       return settings.getLong(key, defaultValue)
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Long) {
+    override fun set(value: Long) {
       settings.putLong(key, value)
     }
 
@@ -67,7 +67,7 @@ abstract class AppSettings {
       return settings.getFloat(key, defaultValue)
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Float) {
+    override fun set(value: Float) {
       settings.putFloat(key, value)
     }
 
@@ -82,7 +82,7 @@ abstract class AppSettings {
       return settings.getDoubleOrNull(key)?.seconds ?: defaultValue
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: Duration) {
+    override fun set(value: Duration) {
       settings.putDouble(key, value.toDouble(DurationUnit.SECONDS))
     }
 
@@ -99,7 +99,7 @@ abstract class AppSettings {
       return settings.getString(key, defaultValue)
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: String) {
+    override fun set(value: String) {
       settings.putString(key, value)
     }
 
@@ -118,7 +118,7 @@ abstract class AppSettings {
         ?: throw IllegalStateException("This value should have been initialized")
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: String) {
+    override fun set(value: String) {
       settings.putString(key, value)
     }
 
@@ -141,7 +141,7 @@ abstract class AppSettings {
       return settings.getStringOrNull(key)
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: String?) {
+    override fun set(value: String?) {
       if (value == null) {
         settings.remove(key)
       } else {
@@ -165,7 +165,7 @@ abstract class AppSettings {
         ?: defaultValue
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: LocalTime) {
+    override fun set(value: LocalTime) {
       settings.putString(key, value.toString())
     }
 
@@ -187,7 +187,7 @@ abstract class AppSettings {
         ?: defaultValue
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: LocalDateTime) {
+    override fun set(value: LocalDateTime) {
       settings.putString(key, value.toString())
     }
 
@@ -209,7 +209,7 @@ abstract class AppSettings {
       }
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: T) {
+    override fun set(value: T) {
       settings.putString(key, value.storageKey)
     }
 
@@ -231,7 +231,7 @@ abstract class AppSettings {
       return settings.getStringOrNull(key)?.let(getter) ?: defaultValue
     }
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: T) {
+    override fun set(value: T) {
       settings.putString(key, setter(value))
     }
 
@@ -245,5 +245,9 @@ abstract class AppSettings {
 
   interface SettingsProperty<V> : ReadWriteProperty<AppSettings, V> {
     fun observe(): StateFlow<V>
+
+    fun set(value: V)
+
+    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: V) = set(value)
   }
 }

@@ -18,6 +18,7 @@ interface ConnectionSettings {
    *
    * Defaults to `true`.
    */
-  var socketEnabled: Boolean
+  val socketEnabled: Boolean
+  fun setSocketEnabled(value: Boolean)
   fun observeSocketEnabled(): StateFlow<Boolean>
 }

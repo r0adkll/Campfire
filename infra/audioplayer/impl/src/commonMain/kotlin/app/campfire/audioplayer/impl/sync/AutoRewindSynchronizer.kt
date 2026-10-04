@@ -59,9 +59,11 @@ class AutoRewindSynchronizer(
       // (Initializing/Buffering -> Paused) should not later be treated as a resume-with-rewind.
       AudioPlayer.State.Paused -> {
         if (previousState == AudioPlayer.State.Playing && playbackSettings.autoRewindOnResumeEnabled) {
-          playbackSettings.pendingResumeRewind = PendingResumeRewind(
-            pausedAtEpochMillis = fatherTime.nowInEpochMillis(),
-            libraryItemId = libraryItemId,
+          playbackSettings.setPendingResumeRewind(
+            PendingResumeRewind(
+              pausedAtEpochMillis = fatherTime.nowInEpochMillis(),
+              libraryItemId = libraryItemId,
+            ),
           )
         }
       }
@@ -70,7 +72,7 @@ class AutoRewindSynchronizer(
       AudioPlayer.State.Playing -> {
         val pending = playbackSettings.pendingResumeRewind ?: return
         if (pending.libraryItemId != libraryItemId) return
-        playbackSettings.pendingResumeRewind = null
+        playbackSettings.setPendingResumeRewind(null)
         rewindOnResume(pending.pausedAtEpochMillis)
       }
 

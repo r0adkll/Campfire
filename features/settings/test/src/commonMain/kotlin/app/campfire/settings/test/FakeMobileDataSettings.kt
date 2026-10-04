@@ -9,19 +9,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A simple in-memory [MobileDataSettings] fake backed by [MutableStateFlow]s for use in tests.
+ * An in-memory [MobileDataSettings] fake backed by [MutableStateFlow]s for use in tests.
  */
 class FakeMobileDataSettings : MobileDataSettings {
 
-  private val _homeServerOnMobileData = MutableStateFlow(false)
-  override var homeServerOnMobileData: Boolean
-    get() = _homeServerOnMobileData.value
-    set(value) { _homeServerOnMobileData.value = value }
+  private val _homeServerOnMobileData = MutableStateFlow<Boolean>(false)
+  override val homeServerOnMobileData: Boolean get() = _homeServerOnMobileData.value
+  override fun setHomeServerOnMobileData(value: Boolean) {
+    _homeServerOnMobileData.value = value
+  }
   override fun observeHomeServerOnMobileData(): StateFlow<Boolean> = _homeServerOnMobileData.asStateFlow()
 
-  private val _downloadOnWifiOnly = MutableStateFlow(false)
-  override var downloadOnWifiOnly: Boolean
-    get() = _downloadOnWifiOnly.value
-    set(value) { _downloadOnWifiOnly.value = value }
+  private val _downloadOnWifiOnly = MutableStateFlow<Boolean>(false)
+  override val downloadOnWifiOnly: Boolean get() = _downloadOnWifiOnly.value
+  override fun setDownloadOnWifiOnly(value: Boolean) {
+    _downloadOnWifiOnly.value = value
+  }
   override fun observeDownloadOnWifiOnly(): StateFlow<Boolean> = _downloadOnWifiOnly.asStateFlow()
 }

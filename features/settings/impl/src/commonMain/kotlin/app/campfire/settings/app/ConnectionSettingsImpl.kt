@@ -26,7 +26,8 @@ class ConnectionSettingsImpl(
 ) : ConnectionSettings, AppSettings() {
 
   private val socketEnabledProperty = booleanSetting(KEY_SOCKET_ENABLED, true)
-  override var socketEnabled: Boolean by socketEnabledProperty
+  override val socketEnabled: Boolean by socketEnabledProperty
+  override fun setSocketEnabled(value: Boolean) = socketEnabledProperty.set(value)
   override fun observeSocketEnabled(): StateFlow<Boolean> = socketEnabledProperty.observe()
 }
 

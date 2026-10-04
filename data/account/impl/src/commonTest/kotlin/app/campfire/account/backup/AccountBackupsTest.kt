@@ -103,7 +103,7 @@ class AccountBackupsTest {
     tokenStorage = tokens(),
     extraHeaderStorage = headers(),
     serverDao = FakeServerDao(servers),
-    privacySettings = TestPrivacySettings(backgroundScope).apply { keepSignedInAfterReinstall = keepSignedIn },
+    privacySettings = TestPrivacySettings().apply { setKeepSignedInAfterReinstall(keepSignedIn) },
   )
 
   private class FakeTokenBackup : TokenBackup {

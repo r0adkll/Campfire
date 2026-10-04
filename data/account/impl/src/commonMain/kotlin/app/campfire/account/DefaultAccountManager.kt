@@ -197,7 +197,7 @@ class DefaultAccountManager(
     userGraphManager.create(newSession)
 
     // Update persisted settings and observers
-    deviceSettings.currentUserId = newSession.userId
+    deviceSettings.setCurrentUserId(newSession.userId)
     userSessionManager.current = newSession
   }
 }

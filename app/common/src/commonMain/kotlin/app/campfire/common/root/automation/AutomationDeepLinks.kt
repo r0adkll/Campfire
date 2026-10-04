@@ -56,11 +56,11 @@ class AutomationDeepLinks(
    * Safe to call when already signed in: only the settings are re-applied.
    */
   suspend fun applySetup(setup: DeepLink.Setup, isLoggedIn: Boolean) {
-    privacySettings.hasEverConsented = true
-    appStateSettings.hasShownWidgetPinning = true
+    privacySettings.setHasEverConsented(true)
+    appStateSettings.setHasShownWidgetPinning(true)
     whatsNewRepository.dismissWhatsNew()
 
-    setup.themeMode?.let { themeSettings.themeMode = ThemeMode.fromStorageKey(it) }
+    setup.themeMode?.let { themeSettings.setThemeMode(ThemeMode.fromStorageKey(it)) }
     setup.theme?.let { name ->
       fixedThemes.firstOrNull { it.id.equals(name, ignoreCase = true) }
         ?.let(themeRepository::setCurrentTheme)

@@ -260,7 +260,7 @@ class PodcastEpisodePresenter(
         is PodcastEpisodeUiEvent.DownloadClick -> {
           if (!currentUser.canDownload) return@PodcastEpisodeUiState
           analytics.send(ActionEvent("download_episode", Click))
-          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.setShowConfirmDownload(!event.doNotShowAgain)
           offlineDownloadManager.downloadEpisode(libraryItem, episode)
         }
 

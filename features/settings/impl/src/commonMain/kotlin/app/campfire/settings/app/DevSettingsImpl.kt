@@ -30,23 +30,27 @@ class DevSettingsImpl(
 
   private val defaultDeveloperMode get() = false
   private val developerModeProperty = booleanSetting(KEY_DEVELOPER_MODE, defaultDeveloperMode)
-  override var developerModeEnabled: Boolean by developerModeProperty
+  override val developerModeEnabled: Boolean by developerModeProperty
+  override fun setDeveloperModeEnabled(value: Boolean) = developerModeProperty.set(value)
 
   override fun observeDeveloperMode(): StateFlow<Boolean> = developerModeProperty.observe()
 
   private val defaultSessionAge get() = 10.minutes
   private val sessionAgeProperty = durationSetting(KEY_SESSION_AGE, defaultSessionAge)
-  override var sessionAge: Duration by sessionAgeProperty
+  override val sessionAge: Duration by sessionAgeProperty
+  override fun setSessionAge(value: Duration) = sessionAgeProperty.set(value)
 
   override fun observeSessionAge(): StateFlow<Duration> = sessionAgeProperty.observe()
 
   private val hlsLargeItemThresholdProperty = durationSetting(KEY_HLS_LARGE_ITEM_THRESHOLD, 8.hours)
-  override var hlsLargeItemThreshold: Duration by hlsLargeItemThresholdProperty
+  override val hlsLargeItemThreshold: Duration by hlsLargeItemThresholdProperty
+  override fun setHlsLargeItemThreshold(value: Duration) = hlsLargeItemThresholdProperty.set(value)
 
   override fun observeHlsLargeItemThreshold(): StateFlow<Duration> = hlsLargeItemThresholdProperty.observe()
 
   private val adaptToUnreachableServerProperty = booleanSetting(KEY_ADAPT_TO_UNREACHABLE_SERVER, true)
-  override var adaptToUnreachableServer: Boolean by adaptToUnreachableServerProperty
+  override val adaptToUnreachableServer: Boolean by adaptToUnreachableServerProperty
+  override fun setAdaptToUnreachableServer(value: Boolean) = adaptToUnreachableServerProperty.set(value)
 
   override fun observeAdaptToUnreachableServer(): StateFlow<Boolean> = adaptToUnreachableServerProperty.observe()
 
@@ -73,19 +77,22 @@ class DevSettingsImpl(
   }
 
   private val fakeAppUpdateSignedInProperty = booleanSetting(KEY_FAKE_APP_UPDATE_SIGNED_IN, true)
-  override var fakeAppUpdateSignedIn: Boolean by fakeAppUpdateSignedInProperty
+  override val fakeAppUpdateSignedIn: Boolean by fakeAppUpdateSignedInProperty
+  override fun setFakeAppUpdateSignedIn(value: Boolean) = fakeAppUpdateSignedInProperty.set(value)
 
   override fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean> =
     fakeAppUpdateSignedInProperty.observe()
 
   private val fakeAppUpdateAvailableProperty = booleanSetting(KEY_FAKE_APP_UPDATE_AVAILABLE, false)
-  override var fakeAppUpdateAvailable: Boolean by fakeAppUpdateAvailableProperty
+  override val fakeAppUpdateAvailable: Boolean by fakeAppUpdateAvailableProperty
+  override fun setFakeAppUpdateAvailable(value: Boolean) = fakeAppUpdateAvailableProperty.set(value)
 
   override fun observeFakeAppUpdateAvailable(): StateFlow<Boolean> =
     fakeAppUpdateAvailableProperty.observe()
 
   private val fakeAppUpdateFailDownloadProperty = booleanSetting(KEY_FAKE_APP_UPDATE_FAIL_DOWNLOAD, false)
-  override var fakeAppUpdateFailDownload: Boolean by fakeAppUpdateFailDownloadProperty
+  override val fakeAppUpdateFailDownload: Boolean by fakeAppUpdateFailDownloadProperty
+  override fun setFakeAppUpdateFailDownload(value: Boolean) = fakeAppUpdateFailDownloadProperty.set(value)
 
   override fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean> =
     fakeAppUpdateFailDownloadProperty.observe()

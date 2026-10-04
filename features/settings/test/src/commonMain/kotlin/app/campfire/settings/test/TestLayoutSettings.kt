@@ -4,26 +4,26 @@
 package app.campfire.settings.test
 
 import app.campfire.settings.api.LayoutSettings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.flow.asStateFlow
 
-@OptIn(ExperimentalCoroutinesApi::class)
-class TestLayoutSettings(
-  private val testScope: CoroutineScope = TestScope(UnconfinedTestDispatcher()),
-) : TestSettings(), LayoutSettings {
+/**
+ * An in-memory [LayoutSettings] fake backed by [MutableStateFlow]s for use in tests.
+ */
+class TestLayoutSettings : LayoutSettings {
 
-  override var wideNavigationRailExpanded: Boolean by boolean()
-  override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> =
-    observeBoolean(::wideNavigationRailExpanded)
-      .stateIn(testScope, SharingStarted.Lazily, wideNavigationRailExpanded)
+  private val _wideNavigationRailExpanded = MutableStateFlow<Boolean>(false)
+  override val wideNavigationRailExpanded: Boolean get() = _wideNavigationRailExpanded.value
+  override fun setWideNavigationRailExpanded(value: Boolean) {
+    _wideNavigationRailExpanded.value = value
+  }
+  override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> = _wideNavigationRailExpanded.asStateFlow()
 
-  override var supportingPaneWidth: Float by float()
-  override fun observeSupportingPaneWidth(): StateFlow<Float> =
-    observeFloat(::supportingPaneWidth)
-      .stateIn(testScope, SharingStarted.Lazily, supportingPaneWidth)
+  private val _supportingPaneWidth = MutableStateFlow<Float>(0f)
+  override val supportingPaneWidth: Float get() = _supportingPaneWidth.value
+  override fun setSupportingPaneWidth(value: Float) {
+    _supportingPaneWidth.value = value
+  }
+  override fun observeSupportingPaneWidth(): StateFlow<Float> = _supportingPaneWidth.asStateFlow()
 }

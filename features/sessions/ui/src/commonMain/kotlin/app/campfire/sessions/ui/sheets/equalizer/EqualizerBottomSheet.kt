@@ -175,7 +175,7 @@ private fun EqualizerBottomSheet(
     onBandGainChange = { index, gainDb ->
       val gains = profile.bandGainsDb.toMutableList().also { it[index] = gainDb }
       // Touching any fader turns the profile into the persisted "Custom" curve
-      component.equalizerSettings.customBandGains = gains
+      component.equalizerSettings.setCustomBandGains(gains)
       pushProfile(profile.copy(presetId = EqualizerPresets.CUSTOM_ID, bandGainsDb = gains))
     },
     onLoudnessChange = { loudnessGainDb ->
@@ -187,9 +187,13 @@ private fun EqualizerBottomSheet(
     onPerBookChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Equalizer, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.equalizerSettings.itemEqualizerProfiles += (input.itemId to profile)
+        component.equalizerSettings.setItemEqualizerProfiles(
+          component.equalizerSettings.itemEqualizerProfiles + (input.itemId to profile),
+        )
       } else {
-        component.equalizerSettings.itemEqualizerProfiles -= input.itemId
+        component.equalizerSettings.setItemEqualizerProfiles(
+          component.equalizerSettings.itemEqualizerProfiles - input.itemId,
+        )
         // Snap active playback back to the global profile the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
           ?.setEqualizer(component.equalizerSettings.equalizerProfile)

@@ -89,17 +89,19 @@ class DefaultAppThemeRepository(
 
   override fun setCurrentTheme(theme: AppTheme) {
     currentAppTheme.value = theme
-    themeSettings.themeId = when (theme) {
-      AppTheme.Dynamic -> ThemeKey.Dynamic
-      AppTheme.Fixed.Forest -> ThemeKey.Forest
-      AppTheme.Fixed.LifeFloat -> ThemeKey.LifeFloat
-      AppTheme.Fixed.Mountain -> ThemeKey.Mountain
-      AppTheme.Fixed.Rucksack -> ThemeKey.Rucksack
-      AppTheme.Fixed.Tent -> ThemeKey.Tent
-      AppTheme.Fixed.WaterBottle -> ThemeKey.WaterBottle
-      is AppTheme.Fixed.Custom -> ThemeKey.Custom(theme.id)
-      is AppTheme.Fixed.Ai -> ThemeKey.Custom(theme.id)
-    }
+    themeSettings.setThemeId(
+      when (theme) {
+        AppTheme.Dynamic -> ThemeKey.Dynamic
+        AppTheme.Fixed.Forest -> ThemeKey.Forest
+        AppTheme.Fixed.LifeFloat -> ThemeKey.LifeFloat
+        AppTheme.Fixed.Mountain -> ThemeKey.Mountain
+        AppTheme.Fixed.Rucksack -> ThemeKey.Rucksack
+        AppTheme.Fixed.Tent -> ThemeKey.Tent
+        AppTheme.Fixed.WaterBottle -> ThemeKey.WaterBottle
+        is AppTheme.Fixed.Custom -> ThemeKey.Custom(theme.id)
+        is AppTheme.Fixed.Ai -> ThemeKey.Custom(theme.id)
+      },
+    )
   }
 
   override suspend fun getCustomTheme(id: String): Result<AppTheme.Fixed> {

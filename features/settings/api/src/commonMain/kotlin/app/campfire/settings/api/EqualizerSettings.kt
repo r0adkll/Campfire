@@ -12,21 +12,25 @@ interface EqualizerSettings {
   /**
    * The global equalizer profile applied to items without a per-item override.
    */
-  var equalizerProfile: EqualizerProfile
+  val equalizerProfile: EqualizerProfile
+  fun setEqualizerProfile(value: EqualizerProfile)
   fun observeEqualizerProfile(): StateFlow<EqualizerProfile>
 
   /**
    * The band gains last used for the "Custom" preset, persisted so that switching to a
    * built-in preset and back restores the user's custom curve.
    */
-  var customBandGains: List<Float>
+  val customBandGains: List<Float>
+  fun observeCustomBandGains(): StateFlow<List<Float>>
+  fun setCustomBandGains(value: List<Float>)
 
   /**
    * Per-item equalizer overrides, keyed by library item id. The presence of an entry means the
    * item has a per-item equalizer enabled, and its value is that item's saved profile. Items
    * without an entry use the global [equalizerProfile].
    */
-  var itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile>
+  val itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile>
+  fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>)
   fun observeItemEqualizerProfiles(): StateFlow<Map<LibraryItemId, EqualizerProfile>>
 
   /**
@@ -43,9 +47,9 @@ interface EqualizerSettings {
    */
   fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) {
     if (itemId != null && itemId in itemEqualizerProfiles) {
-      itemEqualizerProfiles = itemEqualizerProfiles + (itemId to profile)
+      setItemEqualizerProfiles(itemEqualizerProfiles + (itemId to profile))
     } else {
-      equalizerProfile = profile
+      setEqualizerProfile(profile)
     }
   }
 }

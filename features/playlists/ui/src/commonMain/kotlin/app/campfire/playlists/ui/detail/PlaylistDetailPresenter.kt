@@ -204,7 +204,7 @@ class PlaylistDetailPresenter(
         is PlaylistDetailUiEvent.DownloadAll -> {
           if (!currentUser.canDownload) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "download"))
-          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.setShowConfirmDownload(!event.doNotShowAgain)
           // Offline downloads are item-scoped, not episode-scoped; de-dupe podcast
           // entries that share a library item.
           val uniqueLibraryItems = playlistItems

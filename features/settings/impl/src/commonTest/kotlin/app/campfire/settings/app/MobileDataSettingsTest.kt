@@ -47,7 +47,7 @@ class MobileDataSettingsTest {
     settings.observeHomeServerOnMobileData().test {
       assertThat(awaitItem()).isFalse()
 
-      settings.homeServerOnMobileData = true
+      settings.setHomeServerOnMobileData(true)
       assertThat(awaitItem()).isTrue()
     }
   }

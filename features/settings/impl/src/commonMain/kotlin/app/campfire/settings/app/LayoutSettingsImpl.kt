@@ -26,11 +26,13 @@ class LayoutSettingsImpl(
 ) : LayoutSettings, AppSettings() {
 
   private val wideNavigationRailExpandedProperty = booleanSetting(KEY_WIDE_NAVIGATION_RAIL_EXPANDED, true)
-  override var wideNavigationRailExpanded: Boolean by wideNavigationRailExpandedProperty
+  override val wideNavigationRailExpanded: Boolean by wideNavigationRailExpandedProperty
+  override fun setWideNavigationRailExpanded(value: Boolean) = wideNavigationRailExpandedProperty.set(value)
   override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> = wideNavigationRailExpandedProperty.observe()
 
   private val supportingPaneWidthProperty = floatSetting(KEY_SUPPORTING_PANE_WIDTH, 0f)
-  override var supportingPaneWidth: Float by supportingPaneWidthProperty
+  override val supportingPaneWidth: Float by supportingPaneWidthProperty
+  override fun setSupportingPaneWidth(value: Float) = supportingPaneWidthProperty.set(value)
   override fun observeSupportingPaneWidth(): StateFlow<Float> = supportingPaneWidthProperty.observe()
 }
 

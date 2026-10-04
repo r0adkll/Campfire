@@ -34,15 +34,19 @@ class EqualizerSettingsImpl(
     getter = { it.asEqualizerProfile() ?: EqualizerProfile() },
     setter = { profile -> profile.serialize() },
   )
-  override var equalizerProfile: EqualizerProfile by equalizerProfileProperty
+  override val equalizerProfile: EqualizerProfile by equalizerProfileProperty
+  override fun setEqualizerProfile(value: EqualizerProfile) = equalizerProfileProperty.set(value)
   override fun observeEqualizerProfile(): StateFlow<EqualizerProfile> = equalizerProfileProperty.observe()
 
-  override var customBandGains: List<Float> by customSetting(
+  private val customBandGainsProperty = customSetting(
     key = PREF_EQUALIZER_CUSTOM_GAINS,
     defaultValue = List(EqualizerBands.BAND_COUNT) { 0f },
     getter = { it.asBandGains() ?: List(EqualizerBands.BAND_COUNT) { 0f } },
     setter = { gains -> gains.joinToString(EQUALIZER_GAINS_SEPARATOR) },
   )
+  override val customBandGains: List<Float> by customBandGainsProperty
+  override fun setCustomBandGains(value: List<Float>) = customBandGainsProperty.set(value)
+  override fun observeCustomBandGains(): StateFlow<List<Float>> = customBandGainsProperty.observe()
 
   private val itemEqualizerProfilesProperty = customSetting(
     key = PREF_ITEM_EQUALIZER_PROFILES,
@@ -54,7 +58,9 @@ class EqualizerSettingsImpl(
       }
     },
   )
-  override var itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile> by itemEqualizerProfilesProperty
+  override val itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile> by itemEqualizerProfilesProperty
+  override fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>) =
+    itemEqualizerProfilesProperty.set(value)
   override fun observeItemEqualizerProfiles(): StateFlow<Map<LibraryItemId, EqualizerProfile>> =
     itemEqualizerProfilesProperty.observe()
 

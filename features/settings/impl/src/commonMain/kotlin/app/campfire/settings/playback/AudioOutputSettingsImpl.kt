@@ -26,11 +26,13 @@ class AudioOutputSettingsImpl(
 ) : AudioOutputSettings, AppSettings() {
 
   private val volumeProperty = floatSetting(PREF_OUTPUT_VOLUME, DEFAULT_OUTPUT_VOLUME)
-  override var volume: Float by volumeProperty
+  override val volume: Float by volumeProperty
+  override fun setVolume(value: Float) = volumeProperty.set(value)
   override fun observeVolume(): StateFlow<Float> = volumeProperty.observe()
 
   private val outputDeviceNameProperty = stringOrNullSetting(PREF_OUTPUT_DEVICE)
-  override var outputDeviceName: String? by outputDeviceNameProperty
+  override val outputDeviceName: String? by outputDeviceNameProperty
+  override fun setOutputDeviceName(value: String?) = outputDeviceNameProperty.set(value)
   override fun observeOutputDeviceName(): StateFlow<String?> = outputDeviceNameProperty.observe()
 }
 

@@ -133,7 +133,7 @@ class AppUpdateWidgetImpl(
             }
           },
           onDismiss = {
-            appStateSettings.appUpdateDismissedVersionCode = m.update.versionCode
+            appStateSettings.setAppUpdateDismissedVersionCode(m.update.versionCode)
           },
           modifier = Modifier
             .fillMaxWidth()
@@ -151,7 +151,7 @@ class AppUpdateWidgetImpl(
             }
           },
           onDismiss = {
-            appStateSettings.appUpdateSignInDismissed = true
+            appStateSettings.setAppUpdateSignInDismissed(true)
           },
           modifier = Modifier
             .fillMaxWidth()

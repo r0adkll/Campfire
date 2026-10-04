@@ -126,7 +126,7 @@ class ConnectionReachabilityTest {
   @Test
   fun `turning the setting off allows mobile data`() {
     monitor.snapshot.value = cellular()
-    settings.homeServerOnMobileData = true
+    settings.setHomeServerOnMobileData(true)
 
     assertThat(reachability.shouldFailFast(local)).isFalse()
   }

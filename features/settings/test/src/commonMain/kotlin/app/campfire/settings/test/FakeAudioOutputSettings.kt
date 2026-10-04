@@ -9,19 +9,21 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * A simple in-memory [AudioOutputSettings] fake backed by [MutableStateFlow]s for use in tests.
+ * An in-memory [AudioOutputSettings] fake backed by [MutableStateFlow]s for use in tests.
  */
 class FakeAudioOutputSettings(volume: Float = 1f) : AudioOutputSettings {
 
-  private val _volume = MutableStateFlow(volume)
-  override var volume: Float
-    get() = _volume.value
-    set(value) { _volume.value = value }
+  private val _volume = MutableStateFlow<Float>(volume)
+  override val volume: Float get() = _volume.value
+  override fun setVolume(value: Float) {
+    _volume.value = value
+  }
   override fun observeVolume(): StateFlow<Float> = _volume.asStateFlow()
 
   private val _outputDeviceName = MutableStateFlow<String?>(null)
-  override var outputDeviceName: String?
-    get() = _outputDeviceName.value
-    set(value) { _outputDeviceName.value = value }
+  override val outputDeviceName: String? get() = _outputDeviceName.value
+  override fun setOutputDeviceName(value: String?) {
+    _outputDeviceName.value = value
+  }
   override fun observeOutputDeviceName(): StateFlow<String?> = _outputDeviceName.asStateFlow()
 }

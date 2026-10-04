@@ -13,37 +13,47 @@ import kotlinx.datetime.LocalTime
 
 interface SleepSettings {
 
-  var lastSetSleepTimer: Duration
+  val lastSetSleepTimer: Duration
+  fun setLastSetSleepTimer(value: Duration)
   fun observeLastSetSleepTimer(): StateFlow<Duration>
 
-  var shakeToResetEnabled: Boolean
+  val shakeToResetEnabled: Boolean
+  fun setShakeToResetEnabled(value: Boolean)
   fun observeShakeToResetEnabled(): StateFlow<Boolean>
 
-  var shakeSensitivity: ShakeSensitivity
+  val shakeSensitivity: ShakeSensitivity
+  fun setShakeSensitivity(value: ShakeSensitivity)
   fun observeShakeSensitivity(): StateFlow<ShakeSensitivity>
 
-  var autoSleepTimerEnabled: Boolean
+  val autoSleepTimerEnabled: Boolean
+  fun setAutoSleepTimerEnabled(value: Boolean)
   fun observeAutoSleepTimerEnabled(): StateFlow<Boolean>
 
-  var autoSleepStart: LocalTime
+  val autoSleepStart: LocalTime
+  fun setAutoSleepStart(value: LocalTime)
   fun observeAutoSleepStart(): StateFlow<LocalTime>
 
-  var autoSleepEnd: LocalTime
+  val autoSleepEnd: LocalTime
+  fun setAutoSleepEnd(value: LocalTime)
   fun observeAutoSleepEnd(): StateFlow<LocalTime>
 
-  var autoSleepTimer: AutoSleepTimer
+  val autoSleepTimer: AutoSleepTimer
+  fun setAutoSleepTimer(value: AutoSleepTimer)
   fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer>
 
-  var autoRewindEnabled: Boolean
+  val autoRewindEnabled: Boolean
+  fun setAutoRewindEnabled(value: Boolean)
   fun observeAutoRewindEnabled(): StateFlow<Boolean>
 
-  var autoRewindAmount: Duration
+  val autoRewindAmount: Duration
+  fun setAutoRewindAmount(value: Duration)
   fun observeAutoRewindAmount(): StateFlow<Duration>
 
   /**
    * How long the volume fades out before a sleep timer pauses playback. [Duration.ZERO] pauses immediately.
    */
-  var fadeOutDuration: Duration
+  val fadeOutDuration: Duration
+  fun setFadeOutDuration(value: Duration)
   fun observeFadeOutDuration(): StateFlow<Duration>
 
   sealed class AutoSleepTimer {

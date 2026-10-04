@@ -204,7 +204,7 @@ internal fun LoggedInWindow(
               navigationEventListeners = userComponent.navigationEventListeners,
               deepLink = deepLink,
               supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
-              onSupportingPaneWidthChange = { layoutSettings.supportingPaneWidth = it.value },
+              onSupportingPaneWidthChange = { layoutSettings.setSupportingPaneWidth(it.value) },
               tabletopSplit = tabletopSplit,
               modifier = modifier,
             )

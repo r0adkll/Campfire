@@ -14,42 +14,55 @@ import kotlinx.coroutines.flow.StateFlow
  */
 interface LibraryViewSettings {
 
-  var libraryItemDisplayState: ItemDisplayState
+  val libraryItemDisplayState: ItemDisplayState
+  fun setLibraryItemDisplayState(value: ItemDisplayState)
   fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState>
 
-  var libraryItemMarqueeEnabled: Boolean
+  val libraryItemMarqueeEnabled: Boolean
+  fun setLibraryItemMarqueeEnabled(value: Boolean)
   fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean>
 
-  var librarySortMode: ContentSortMode
+  val librarySortMode: ContentSortMode
+  fun setLibrarySortMode(value: ContentSortMode)
   fun observeLibrarySortMode(): StateFlow<ContentSortMode>
 
-  var librarySortDirection: SortDirection
+  val librarySortDirection: SortDirection
+  fun setLibrarySortDirection(value: SortDirection)
   fun observeLibrarySortDirection(): StateFlow<SortDirection>
 
-  var authorsSortMode: ContentSortMode
+  val authorsSortMode: ContentSortMode
+  fun setAuthorsSortMode(value: ContentSortMode)
   fun observeAuthorsSortMode(): StateFlow<ContentSortMode>
 
-  var authorsSortDirection: SortDirection
+  val authorsSortDirection: SortDirection
+  fun setAuthorsSortDirection(value: SortDirection)
   fun observeAuthorsSortDirection(): StateFlow<SortDirection>
 
-  var seriesSortMode: ContentSortMode
+  val seriesSortMode: ContentSortMode
+  fun setSeriesSortMode(value: ContentSortMode)
   fun observeSeriesSortMode(): StateFlow<ContentSortMode>
 
-  var seriesSortDirection: SortDirection
+  val seriesSortDirection: SortDirection
+  fun setSeriesSortDirection(value: SortDirection)
   fun observeSeriesSortDirection(): StateFlow<SortDirection>
 
-  var seriesDisplayState: GroupDisplayState
+  val seriesDisplayState: GroupDisplayState
+  fun setSeriesDisplayState(value: GroupDisplayState)
   fun observeSeriesDisplayState(): StateFlow<GroupDisplayState>
 
-  var collectionsDisplayState: GroupDisplayState
+  val collectionsDisplayState: GroupDisplayState
+  fun setCollectionsDisplayState(value: GroupDisplayState)
   fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState>
 
-  var playlistsDisplayState: GroupDisplayState
+  val playlistsDisplayState: GroupDisplayState
+  fun setPlaylistsDisplayState(value: GroupDisplayState)
   fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState>
 
-  var showConfirmDownload: Boolean
+  val showConfirmDownload: Boolean
+  fun setShowConfirmDownload(value: Boolean)
   fun observeShowConfirmDownload(): StateFlow<Boolean>
 
-  var showTimeInBook: Boolean
+  val showTimeInBook: Boolean
+  fun setShowTimeInBook(value: Boolean)
   fun observeShowTimeInBook(): StateFlow<Boolean>
 }

@@ -137,7 +137,7 @@ private fun AudioTrackListBottomSheet(
     trailingContent = {
       Switch(
         checked = showTimeInBook,
-        onCheckedChange = { component.libraryViewSettings.showTimeInBook = it },
+        onCheckedChange = { component.libraryViewSettings.setShowTimeInBook(it) },
         thumbContent = {
           Icon(
             if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else CampfireIcons.Rounded.Timer,

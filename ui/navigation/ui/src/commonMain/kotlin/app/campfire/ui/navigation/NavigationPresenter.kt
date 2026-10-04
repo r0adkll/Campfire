@@ -89,7 +89,7 @@ class NavigationPresenter(
     ) { event ->
       when (event) {
         WideNavigationRailUiEvent.ToggleExpanded -> {
-          layoutSettings.wideNavigationRailExpanded = !expanded
+          layoutSettings.setWideNavigationRailExpanded(!expanded)
         }
       }
     }
@@ -116,7 +116,7 @@ class NavigationPresenter(
     ) { event ->
       when (event) {
         DrawerUiEvent.CycleThemeMode -> {
-          themeSettings.themeMode = themeMode.next()
+          themeSettings.setThemeMode(themeMode.next())
         }
       }
     }

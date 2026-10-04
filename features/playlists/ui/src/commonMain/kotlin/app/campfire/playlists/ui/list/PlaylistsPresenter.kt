@@ -74,7 +74,7 @@ class PlaylistsPresenter(
 
         PlaylistsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("playlists_display_state", "toggle"))
-          libraryViewSettings.playlistsDisplayState = displayState.next()
+          libraryViewSettings.setPlaylistsDisplayState(displayState.next())
         }
 
         is PlaylistsUiEvent.PlaylistClick -> {

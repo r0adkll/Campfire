@@ -369,7 +369,7 @@ class BookPresenter(
         is LibraryItemUiEvent.DownloadClick -> {
           if (libraryItem.isEbookOnly || !canDownload) return@ContentUiState
           analytics.send(ActionEvent("download", Click))
-          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.setShowConfirmDownload(!event.doNotShowAgain)
 
           offlineDownloadManager.download(libraryItem)
         }
@@ -387,7 +387,7 @@ class BookPresenter(
 
         is LibraryItemUiEvent.TimeInBookChange -> {
           analytics.send(ActionEvent("time_in_book", Click))
-          libraryViewSettings.showTimeInBook = event.enabled
+          libraryViewSettings.setShowTimeInBook(event.enabled)
         }
 
         is LibraryItemUiEvent.OpenPlaylist -> {

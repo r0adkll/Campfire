@@ -29,12 +29,13 @@ class DeviceSettingsImpl(
 ) : DeviceSettings, AppSettings() {
 
   @OptIn(ExperimentalUuidApi::class)
-  override var deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString() }
+  override val deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString() }
 
-  override var analyticsId: String by stringSetting(KEY_ANALYTICS_ID) { Uuid.random().toString() }
+  override val analyticsId: String by stringSetting(KEY_ANALYTICS_ID) { Uuid.random().toString() }
 
   private val currentUserIdProperty = stringOrNullSetting(KEY_CURRENT_USER_ID)
-  override var currentUserId: UserId? by currentUserIdProperty
+  override val currentUserId: UserId? by currentUserIdProperty
+  override fun setCurrentUserId(value: UserId?) = currentUserIdProperty.set(value)
   override fun observeCurrentUserId(): StateFlow<UserId?> = currentUserIdProperty.observe()
 }
 

@@ -86,7 +86,7 @@ class AccountRestoreStoreTest {
   private fun TestScope.store() = AccountRestoreStore(
     settings = settings,
     serverDao = FakeServerDao(servers),
-    deviceSettings = TestDeviceSettings(backgroundScope),
+    deviceSettings = TestDeviceSettings(),
     dispatcherProvider = asTestDispatcherProvider(),
   )
 

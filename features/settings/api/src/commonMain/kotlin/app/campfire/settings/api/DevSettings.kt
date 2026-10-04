@@ -11,7 +11,8 @@ interface DevSettings {
   /**
    * Whether or not the developer mode has been enabled
    */
-  var developerModeEnabled: Boolean
+  val developerModeEnabled: Boolean
+  fun setDeveloperModeEnabled(value: Boolean)
 
   fun observeDeveloperMode(): StateFlow<Boolean>
 
@@ -20,7 +21,8 @@ interface DevSettings {
    * one. [Duration.ZERO] will result in a new session everytime.
    * Default: `10 minutes`
    */
-  var sessionAge: Duration
+  val sessionAge: Duration
+  fun setSessionAge(value: Duration)
 
   fun observeSessionAge(): StateFlow<Duration>
 
@@ -29,7 +31,8 @@ interface DevSettings {
    * a single-file streamed book. Tunable while the heuristic is calibrated against real
    * servers. Default: `8 hours`
    */
-  var hlsLargeItemThreshold: Duration
+  val hlsLargeItemThreshold: Duration
+  fun setHlsLargeItemThreshold(value: Duration)
 
   fun observeHlsLargeItemThreshold(): StateFlow<Duration>
 
@@ -39,7 +42,8 @@ interface DevSettings {
    * Turning it off restores plain network behavior for debugging.
    * Default: `true`
    */
-  var adaptToUnreachableServer: Boolean
+  val adaptToUnreachableServer: Boolean
+  fun setAdaptToUnreachableServer(value: Boolean)
 
   fun observeAdaptToUnreachableServer(): StateFlow<Boolean>
 
@@ -66,7 +70,8 @@ interface DevSettings {
    * source to test the update widget and flows.
    * Default: `true` so debug builds behave like a signed-in production build.
    */
-  var fakeAppUpdateSignedIn: Boolean
+  val fakeAppUpdateSignedIn: Boolean
+  fun setFakeAppUpdateSignedIn(value: Boolean)
 
   fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean>
 
@@ -74,7 +79,8 @@ interface DevSettings {
    * Debug-build only: when `true`, the fake app update source reports a faked
    * available release to test the update widget and details sheet.
    */
-  var fakeAppUpdateAvailable: Boolean
+  val fakeAppUpdateAvailable: Boolean
+  fun setFakeAppUpdateAvailable(value: Boolean)
 
   fun observeFakeAppUpdateAvailable(): StateFlow<Boolean>
 
@@ -82,7 +88,8 @@ interface DevSettings {
    * Debug-build only: when `true`, simulated update downloads fail partway through
    * to test the failure/retry UX.
    */
-  var fakeAppUpdateFailDownload: Boolean
+  val fakeAppUpdateFailDownload: Boolean
+  fun setFakeAppUpdateFailDownload(value: Boolean)
 
   fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean>
 }
