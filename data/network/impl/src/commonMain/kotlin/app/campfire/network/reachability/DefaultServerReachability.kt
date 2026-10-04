@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 
 /**
  * Tracks whether the signed-in user's server can be reached, per network connection.
@@ -111,21 +112,21 @@ class DefaultServerReachability(
     wbark { "Server unreachable ($failures in a row); next attempt in ${retryDelay(failures)}" }
   }
 
-  override fun shouldFailFast(origin: String): Boolean {
+  override suspend fun shouldFailFast(origin: String): Boolean {
     return when (verdict(origin)) {
       RouteVerdict.Skip -> {
         markOutOfRange(origin)
         true
       }
-      RouteVerdict.Allow -> devSettings.adaptToUnreachableServer && failFastWhileUnreachable(origin)
+      RouteVerdict.Allow -> devSettings.observeAdaptToUnreachableServer().first() && failFastWhileUnreachable(origin)
     }
   }
 
-  private fun verdict(origin: String): RouteVerdict = routeVerdict(
+  private suspend fun verdict(origin: String): RouteVerdict = routeVerdict(
     locality = ServerLocality.of(origin),
     network = networkMonitor.snapshot.value,
     isSupported = networkMonitor.isSupported,
-    avoidMobileData = !mobileDataSettings.homeServerOnMobileData,
+    avoidMobileData = !mobileDataSettings.observeHomeServerOnMobileData().first(),
     localNetworkBlocked = localNetworkPermission.isPermissionMissing(),
   )
 

@@ -17,6 +17,7 @@ import dev.zacsweers.metro.SingleIn
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 
 @SingleIn(UserScope::class)
 @ContributesBinding(UserScope::class)
@@ -34,14 +35,8 @@ class DefaultStreamingRoutePredictor(
     )
   }
 
-  override fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
-    return decideHlsRoute(
-      libraryItem = libraryItem,
-      episodeId = episodeId,
-      hlsSupported = hlsPlaybackSupport.supportsHls,
-      method = playbackSettings.streamingMethod,
-      largeItemThreshold = devSettings.hlsLargeItemThreshold,
-    )
+  override suspend fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
+    return observeWouldStreamHls(libraryItem, episodeId).first()
   }
 
   override fun observeWouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Flow<Boolean> {

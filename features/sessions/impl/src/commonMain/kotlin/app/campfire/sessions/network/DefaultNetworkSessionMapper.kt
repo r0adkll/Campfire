@@ -98,9 +98,9 @@ class DefaultNetworkSessionMapper(
       duration = session.duration.toDouble(DurationUnit.SECONDS),
       playMethod = session.playMethod.serverValue,
       deviceInfo = DeviceInfo(
-        id = deviceSettings.deviceId,
+        id = deviceSettings.deviceId(),
         userId = currentUser.id,
-        deviceId = deviceSettings.deviceId,
+        deviceId = deviceSettings.deviceId(),
         osName = applicationInfo.osName,
         osVersion = applicationInfo.osVersion,
         clientName = "Campfire",

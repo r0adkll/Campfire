@@ -34,7 +34,7 @@ class ServerReachabilityTest {
   private val server = "https://abs.example.com:443"
 
   @Test
-  fun `unknown and reachable servers never fail fast`() {
+  fun `unknown and reachable servers never fail fast`() = runTest {
     assertThat(reachability.shouldFailFast(server)).isFalse()
 
     reachability.reachable(server)
@@ -44,7 +44,7 @@ class ServerReachabilityTest {
   }
 
   @Test
-  fun `an unreachable server fails fast until a probe is due`() {
+  fun `an unreachable server fails fast until a probe is due`() = runTest {
     reachability.unreachable(server)
     assertThat(reachability.status.value).isEqualTo(Reachability.Unreachable)
     assertThat(reachability.shouldFailFast(server)).isTrue()
@@ -54,7 +54,7 @@ class ServerReachabilityTest {
   }
 
   @Test
-  fun `a due probe lets exactly one request through`() {
+  fun `a due probe lets exactly one request through`() = runTest {
     reachability.unreachable(server)
     time.nowMillis += DefaultServerReachability.retryDelay(1).inWholeMilliseconds
 
@@ -63,7 +63,7 @@ class ServerReachabilityTest {
   }
 
   @Test
-  fun `a network change clears the unreachable belief`() {
+  fun `a network change clears the unreachable belief`() = runTest {
     reachability.unreachable(server)
 
     connectivity.update(Connectivity.Status.Connected(metered = true))
@@ -73,14 +73,14 @@ class ServerReachabilityTest {
   }
 
   @Test
-  fun `another server is unaffected`() {
+  fun `another server is unaffected`() = runTest {
     reachability.unreachable(server)
 
     assertThat(reachability.shouldFailFast("https://other.example.com:443")).isFalse()
   }
 
   @Test
-  fun `a reported socket handshake lifts fail fast`() {
+  fun `a reported socket handshake lifts fail fast`() = runTest {
     reachability.unreachable(server)
 
     reachability.reportReachable("https://abs.example.com")
@@ -125,7 +125,7 @@ class ServerReachabilityTest {
   }
 
   @Test
-  fun `the developer switch turns fail fast off`() {
+  fun `the developer switch turns fail fast off`() = runTest {
     devSettings.setAdaptToUnreachableServer(false)
 
     reachability.unreachable(server)

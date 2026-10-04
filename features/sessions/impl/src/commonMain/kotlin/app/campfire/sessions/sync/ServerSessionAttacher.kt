@@ -203,8 +203,8 @@ class DefaultServerSessionAttacher(
   }
 
   /** Always the complete object: the server nulls stored device fields missing from a payload. */
-  private fun deviceInfo(session: Session): DeviceInfo {
-    val deviceId = deviceSettings.deviceId
+  private suspend fun deviceInfo(session: Session): DeviceInfo {
+    val deviceId = deviceSettings.deviceId()
     return DeviceInfo(
       id = deviceId,
       userId = session.userId,

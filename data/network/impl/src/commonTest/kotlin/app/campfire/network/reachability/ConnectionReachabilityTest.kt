@@ -90,7 +90,7 @@ class ConnectionReachabilityTest {
   }
 
   @Test
-  fun `rejoining a network starts fresh`() {
+  fun `rejoining a network starts fresh`() = runTest {
     reachability.unreachable(local)
     assertThat(reachability.shouldFailFast(local)).isTrue()
 
@@ -102,7 +102,7 @@ class ConnectionReachabilityTest {
   }
 
   @Test
-  fun `the failure count restarts on a new connection`() {
+  fun `the failure count restarts on a new connection`() = runTest {
     repeat(4) { reachability.unreachable(local) }
     monitor.snapshot.value = wifi(id = 2)
     assertThat(reachability.shouldFailFast(local)).isFalse()
@@ -124,7 +124,7 @@ class ConnectionReachabilityTest {
   }
 
   @Test
-  fun `turning the setting off allows mobile data`() {
+  fun `turning the setting off allows mobile data`() = runTest {
     monitor.snapshot.value = cellular()
     settings.setHomeServerOnMobileData(true)
 

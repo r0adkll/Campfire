@@ -22,7 +22,7 @@ interface StreamingRoutePredictor {
   fun canStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Boolean
 
   /** The decision as of the current settings. */
-  fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Boolean
+  suspend fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Boolean
 
   /** The decision, re-emitted as the underlying settings change. */
   fun observeWouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId? = null): Flow<Boolean>

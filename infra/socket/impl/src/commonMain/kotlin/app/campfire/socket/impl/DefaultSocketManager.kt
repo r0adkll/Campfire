@@ -75,6 +75,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -335,7 +336,7 @@ class DefaultSocketManager(
         ).collect { demanded ->
           socketDemanded = demanded
           if (demanded) {
-            if (!connectionSettings.socketEnabled) return@collect
+            if (!connectionSettings.observeSocketEnabled().first()) return@collect
             if (!newSocket.connected) {
               ibark { "Socket demanded (foreground + network in range); opening with a fresh backoff" }
               _state.value = SocketState.Connecting
@@ -376,7 +377,7 @@ class DefaultSocketManager(
         ReachabilitySignal.Fast -> socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
         ReachabilitySignal.Reconnect -> {
           socket.io.setDelays(RECONNECTION_DELAY_MS, RECONNECTION_DELAY_MAX_MS)
-          if (socketDemanded && connectionSettings.socketEnabled && !socket.connected) {
+          if (socketDemanded && connectionSettings.observeSocketEnabled().first() && !socket.connected) {
             ibark { "Server reachable again; reconnecting socket with a fresh backoff" }
             _state.value = SocketState.Connecting
             socket.close()
@@ -412,11 +413,11 @@ class DefaultSocketManager(
   }
 
   override fun retryConnection() {
-    if (!connectionSettings.socketEnabled) {
-      ibark { "retryConnection called while socket is disabled; ignoring" }
-      return
-    }
     coroutineScope.launch {
+      if (!connectionSettings.observeSocketEnabled().first()) {
+        ibark { "retryConnection called while socket is disabled; ignoring" }
+        return@launch
+      }
       stop()
       val session = userSessionManager.current as? UserSession.LoggedIn
       if (session == null) {

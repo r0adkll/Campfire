@@ -15,6 +15,7 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlin.time.measureTimedValue
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 interface UserSessionRestorer {
@@ -32,7 +33,7 @@ class DatabaseUserSessionRestorer(
 ) : UserSessionRestorer {
 
   override suspend fun restore(): UserSession = measureTimedValue {
-    val currentUserId = deviceSettings.currentUserId ?: return@measureTimedValue UserSession.LoggedOut
+    val currentUserId = deviceSettings.observeCurrentUserId().first() ?: return@measureTimedValue UserSession.LoggedOut
 
     val server = withContext(dispatcherProvider.databaseRead) {
       db.serversQueries.selectByUserId(currentUserId, ::ServerWithUser)

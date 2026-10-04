@@ -41,6 +41,7 @@ import kotlin.uuid.Uuid
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
@@ -137,11 +138,12 @@ class SqlDelightSessionDataSource(
     // If an existing session has been updated withing allowed time interval,
     // just re-use the session
     if (existingSession != null && !existingSession.isDeleted && !forceNew) {
+      val sessionAge = devSettings.observeSessionAge().first()
       val now = fatherTime.now()
       val elapsed = now.epochMilliseconds - existingSession.updatedAt.epochMilliseconds
-      if (elapsed <= devSettings.sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
+      if (elapsed <= sessionAge.inWholeMilliseconds && now.date == existingSession.updatedAt.date) {
         ibark {
-          "Existing session is still young enough[${elapsed.milliseconds} < ${devSettings.sessionAge}], " +
+          "Existing session is still young enough[${elapsed.milliseconds} < $sessionAge], " +
             "returning it."
         }
         write {
@@ -158,7 +160,7 @@ class SqlDelightSessionDataSource(
       } else {
         ibark {
           "Existing session is too old, creating new. Age [${elapsed.milliseconds}], " +
-            "Session Age [${devSettings.sessionAge}]"
+            "Session Age [$sessionAge]"
         }
       }
     }
@@ -169,8 +171,8 @@ class SqlDelightSessionDataSource(
       (existingSession.lastPlayedAt?.epochMilliseconds ?: 0L) < progress.lastUpdate &&
       existingSession.currentTime.inWholeSeconds != progress.currentTime.seconds.inWholeSeconds
     val autoSync = hasSync &&
-      playbackSettings.syncEnabled &&
-      playbackSettings.autoSyncEnabled
+      playbackSettings.observeSyncEnabled().first() &&
+      playbackSettings.observeAutoSyncEnabled().first()
 
     // If we DID have an old session, we'll want to re-use its time stamps instead of the passed, media progress,
     // timestamps.

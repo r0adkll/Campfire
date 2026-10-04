@@ -132,7 +132,7 @@ class CastPlaySessionHolder(
         return
       }
 
-      val deviceId = "${deviceSettings.deviceId}$CAST_DEVICE_ID_SUFFIX"
+      val deviceId = "${deviceSettings.deviceId()}$CAST_DEVICE_ID_SUFFIX"
       val playSession = api.startPlaybackSession(
         libraryItemId = session.libraryItem.id,
         episodeId = session.episodeId,

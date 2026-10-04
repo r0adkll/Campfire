@@ -18,7 +18,7 @@ class FakeStreamingRoutePredictor : StreamingRoutePredictor {
     return canStreamHls
   }
 
-  override fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
+  override suspend fun wouldStreamHls(libraryItem: LibraryItem, episodeId: PodcastEpisodeId?): Boolean {
     return wouldStreamHlsFlow.value
   }
 

@@ -17,7 +17,7 @@ interface ReachabilityGate {
    * server isn't known to be unreachable, the device changed networks since it was, or a probe is
    * due — in which case exactly one caller claims the probe and the rest keep failing fast.
    */
-  fun shouldFailFast(origin: String): Boolean
+  suspend fun shouldFailFast(origin: String): Boolean
 
   /** The server at [origin] answered a request. */
   fun reachable(origin: String)

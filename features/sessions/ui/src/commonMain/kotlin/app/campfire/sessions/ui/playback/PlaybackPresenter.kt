@@ -44,6 +44,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.measureTimedValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -153,7 +154,7 @@ class PlaybackPresenter(
 
           // Since we want to auto-sync listening session progress let's make sure to refresh the current
           // sessions libraryItem media progress, if possible and enabled
-          if (playbackSettings.syncEnabled && playbackSettings.autoSyncEnabled) {
+          if (playbackSettings.observeSyncEnabled().first() && playbackSettings.observeAutoSyncEnabled().first()) {
             dbark { "~~> Refreshing media progress…" }
             val (progress, duration) = measureTimedValue {
               // Since this is a network operation we want to timebox refreshing the current progress

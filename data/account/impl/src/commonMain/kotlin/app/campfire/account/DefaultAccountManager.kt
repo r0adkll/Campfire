@@ -29,6 +29,7 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -117,7 +118,7 @@ class DefaultAccountManager(
 
   override suspend fun switchAccount(user: User) = withContext(accountManagerCoroutineContext) {
     // If we are switching to the current account, just ignore the action
-    if (user.id == deviceSettings.currentUserId) return@withContext
+    if (user.id == deviceSettings.observeCurrentUserId().first()) return@withContext
 
     // Validate that we have a stored token for this user
     checkNotNull(tokenStorage.get(user.id)) { "There is no account for ${user.name}" }

@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
@@ -249,8 +250,9 @@ class CachingThemeManager(
   /**
    * Check if the user settings for dynamic content theming are enabled.
    */
-  private fun isDynamicThemingEnabled(): Boolean {
-    return themeSettings.dynamicallyThemePlayback || themeSettings.dynamicallyThemeItemDetail
+  private suspend fun isDynamicThemingEnabled(): Boolean {
+    return themeSettings.observeDynamicallyThemePlayback().first() ||
+      themeSettings.observeDynamicallyThemeItemDetail().first()
   }
 
   companion object : Corked("CachingThemeManager")

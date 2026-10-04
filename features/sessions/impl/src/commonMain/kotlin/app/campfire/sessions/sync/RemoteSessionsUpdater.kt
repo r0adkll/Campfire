@@ -23,6 +23,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 
 interface RemoteSessionsUpdater {
@@ -55,8 +56,8 @@ class NetworkRemoteSessionsUpdater(
       return@withContext
     }
 
-    val unmeteredIntervalMs = playbackSettings.syncIntervalUnmetered.inWholeMilliseconds
-    val meteredIntervalMs = playbackSettings.syncIntervalMetered.inWholeMilliseconds
+    val unmeteredIntervalMs = playbackSettings.observeSyncIntervalUnmetered().first().inWholeMilliseconds
+    val meteredIntervalMs = playbackSettings.observeSyncIntervalMetered().first().inWholeMilliseconds
 
     // Cheap throttle first: this is called from the 500ms playback tick, so bail on the
     // shorter of the two intervals before touching platform connectivity. The final
