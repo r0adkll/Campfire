@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.settings
+package app.campfire.settings.playback
 
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.ResumeRewindConfig

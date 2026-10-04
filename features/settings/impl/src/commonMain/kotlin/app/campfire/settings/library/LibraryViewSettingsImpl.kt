@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.settings
+package app.campfire.settings.library
 
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
@@ -10,6 +10,7 @@ import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.store.AppSettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding

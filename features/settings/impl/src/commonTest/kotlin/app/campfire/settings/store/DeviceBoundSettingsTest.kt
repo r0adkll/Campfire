@@ -1,8 +1,15 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.settings
+package app.campfire.settings.store
 
+import app.campfire.settings.app.KEY_ANALYTICS_ID
+import app.campfire.settings.app.KEY_CURRENT_USER_ID
+import app.campfire.settings.app.KEY_DEVICE_ID
+import app.campfire.settings.playback.PREF_OUTPUT_DEVICE
+import app.campfire.settings.playback.PREF_PENDING_RESUME_REWIND
+import app.campfire.settings.playback.PREF_PLAYBACK_SPEED
+import app.campfire.settings.theme.KEY_THEME
 import assertk.assertThat
 import assertk.assertions.containsOnly
 import com.russhwolf.settings.MapSettings

@@ -1,7 +1,7 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.settings
+package app.campfire.settings.playback
 
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
@@ -9,6 +9,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
+import app.campfire.settings.store.AppSettings
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding

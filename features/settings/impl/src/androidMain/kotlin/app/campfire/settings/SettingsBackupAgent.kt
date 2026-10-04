@@ -8,6 +8,7 @@ import android.app.backup.BackupDataInput
 import android.app.backup.BackupDataOutput
 import android.os.ParcelFileDescriptor
 import androidx.preference.PreferenceManager
+import app.campfire.settings.store.clearDeviceBoundSettings
 import com.russhwolf.settings.SharedPreferencesSettings
 
 /**

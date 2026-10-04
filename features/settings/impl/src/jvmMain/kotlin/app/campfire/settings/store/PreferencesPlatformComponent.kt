@@ -1,19 +1,18 @@
 // Copyright 2026, Drew Heavner and the Campfire project contributors
 // SPDX-License-Identifier: GPL-3.0-only
 
-package app.campfire.settings
+package app.campfire.settings.store
 
 import app.campfire.core.di.AppScope
-import com.russhwolf.settings.NSUserDefaultsSettings
 import com.russhwolf.settings.ObservableSettings
+import com.russhwolf.settings.PreferencesSettings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
-import platform.Foundation.NSUserDefaults
+import java.util.prefs.Preferences
 
 actual interface PreferencesPlatformComponent {
 
   @SingleIn(AppScope::class)
   @Provides
-  fun provideSettings(delegate: NSUserDefaults): ObservableSettings =
-    NSUserDefaultsSettings(delegate)
+  fun provideSettings(delegate: Preferences): ObservableSettings = PreferencesSettings(delegate)
 }
