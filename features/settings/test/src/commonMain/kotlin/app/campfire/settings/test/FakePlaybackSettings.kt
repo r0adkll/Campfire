@@ -3,7 +3,6 @@
 
 package app.campfire.settings.test
 
-import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
@@ -60,13 +59,6 @@ class FakePlaybackSettings : PlaybackSettings {
     _playbackSpeed.value = value
   }
   override fun observePlaybackSpeed(): StateFlow<Float> = _playbackSpeed.asStateFlow()
-
-  private val _itemPlaybackSpeeds = MutableStateFlow<Map<LibraryItemId, Float>>(emptyMap<LibraryItemId, Float>())
-  val itemPlaybackSpeeds: Map<LibraryItemId, Float> get() = _itemPlaybackSpeeds.value
-  override fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>) {
-    _itemPlaybackSpeeds.value = value
-  }
-  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> = _itemPlaybackSpeeds.asStateFlow()
 
   private val _remoteNextPrevSkipsChapters = MutableStateFlow<Boolean>(true)
   val remoteNextPrevSkipsChapters: Boolean get() = _remoteNextPrevSkipsChapters.value
@@ -166,12 +158,4 @@ class FakePlaybackSettings : PlaybackSettings {
     _scrollingTitles.value = value
   }
   override fun observeScrollingTitles(): StateFlow<Boolean> = _scrollingTitles.asStateFlow()
-
-  override fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) {
-    if (itemId != null && itemId in itemPlaybackSpeeds) {
-      setItemPlaybackSpeeds(itemPlaybackSpeeds + (itemId to speed))
-    } else {
-      setPlaybackSpeed(speed)
-    }
-  }
 }

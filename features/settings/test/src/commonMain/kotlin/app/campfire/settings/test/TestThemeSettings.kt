@@ -3,7 +3,6 @@
 
 package app.campfire.settings.test
 
-import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,13 +27,6 @@ class TestThemeSettings : ThemeSettings {
     _dynamicallyThemePlayback.value = value
   }
   override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> = _dynamicallyThemePlayback.asStateFlow()
-
-  private val _themeId = MutableStateFlow<ThemeKey>(ThemeKey.Tent)
-  val themeId: ThemeKey get() = _themeId.value
-  override fun setThemeId(value: ThemeKey) {
-    _themeId.value = value
-  }
-  override fun observeThemeId(): StateFlow<ThemeKey> = _themeId.asStateFlow()
 
   private val _themeMode = MutableStateFlow<ThemeMode>(ThemeMode.entries.first())
   val themeMode: ThemeMode get() = _themeMode.value

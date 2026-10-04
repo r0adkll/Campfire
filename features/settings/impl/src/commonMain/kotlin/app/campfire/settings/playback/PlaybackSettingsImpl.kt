@@ -5,7 +5,6 @@ package app.campfire.settings.playback
 
 import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.core.di.AppScope
-import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
@@ -62,29 +61,6 @@ class PlaybackSettingsImpl(
   private val playbackSpeedProperty = floatSetting(PREF_PLAYBACK_SPEED, PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
   override fun setPlaybackSpeed(value: Float) = playbackSpeedProperty.set(value)
   override fun observePlaybackSpeed(): Flow<Float> = playbackSpeedProperty.observe()
-
-  private val itemPlaybackSpeedsProperty = customSetting(
-    key = PREF_ITEM_PLAYBACK_SPEEDS,
-    defaultValue = emptyMap<LibraryItemId, Float>(),
-    getter = { it.asItemSpeedMap() },
-    setter = { speeds ->
-      speeds.entries.joinToString(ITEM_SPEED_ENTRY_SEPARATOR) {
-        "${it.key}$ITEM_SPEED_VALUE_SEPARATOR${it.value}"
-      }
-    },
-  )
-  override fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>) = itemPlaybackSpeedsProperty.set(value)
-  override fun observeItemPlaybackSpeeds(): Flow<Map<LibraryItemId, Float>> =
-    itemPlaybackSpeedsProperty.observe()
-
-  override fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) = edit { preferences ->
-    val speeds = itemPlaybackSpeedsProperty.readFrom(preferences)
-    if (itemId != null && itemId in speeds) {
-      itemPlaybackSpeedsProperty.writeTo(preferences, speeds + (itemId to speed))
-    } else {
-      playbackSpeedProperty.writeTo(preferences, speed)
-    }
-  }
 
   private val remoteNextPrevSkipsChaptersProperty = booleanSetting(
     PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS,
@@ -196,16 +172,6 @@ class PlaybackSettingsImpl(
 
   private fun String.asFloatList(): List<Float> = split(PLAYBACK_RATES_SEPARATOR).mapNotNull { it.toFloatOrNull() }
 
-  private fun String.asItemSpeedMap(): Map<LibraryItemId, Float> {
-    return split(ITEM_SPEED_ENTRY_SEPARATOR)
-      .mapNotNull { entry ->
-        val itemId = entry.substringBefore(ITEM_SPEED_VALUE_SEPARATOR)
-        val speed = entry.substringAfter(ITEM_SPEED_VALUE_SEPARATOR, "").toFloatOrNull()
-        if (itemId.isEmpty() || speed == null) null else itemId to speed
-      }
-      .toMap()
-  }
-
   private fun PendingResumeRewind.serialize(): String =
     "$pausedAtEpochMillis$PENDING_RESUME_REWIND_SEPARATOR$libraryItemId"
 
@@ -222,9 +188,6 @@ internal const val PREF_BACKWARD_TIME_MS = "pref_playback_backward_time_ms"
 internal const val PREF_TRACK_RESET_THRESHOLD = "pref_playback_track_reset_threshold"
 internal const val PREF_PLAYBACK_RATES = "pref_playback_rates"
 internal const val PREF_PLAYBACK_SPEED = "pref_playback_speed"
-internal const val PREF_ITEM_PLAYBACK_SPEEDS = "pref_item_playback_speeds"
-internal const val ITEM_SPEED_ENTRY_SEPARATOR = "::"
-internal const val ITEM_SPEED_VALUE_SEPARATOR = "|"
 internal const val PREF_SYNC = "pref_synchronization"
 internal const val PREF_AUTO_SYNC = "pref_auto_sync"
 internal const val PREF_REMOTE_NEXT_PREV_SKIPS_CHAPTERS = "pref_playback_remote_next_prev_skips_chapters"

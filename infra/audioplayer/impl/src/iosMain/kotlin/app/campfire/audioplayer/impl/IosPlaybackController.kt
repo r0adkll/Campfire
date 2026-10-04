@@ -20,6 +20,7 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.core.time.FatherTime
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.SignedInSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -37,6 +38,7 @@ class IosPlaybackController(
   private val playbackSessionManager: PlaybackSessionManager,
   private val playbackSettings: PlaybackSettings,
   private val playerSettings: PlayerSettingsSnapshot,
+  private val signedInSettings: SignedInSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
@@ -101,6 +103,7 @@ class IosPlaybackController(
         IosAudioPlayer(
           settings = playbackSettings,
           playerSettings = playerSettings,
+          signedInSettings = signedInSettings,
           fatherTime = fatherTime,
           artworkLoader = artworkLoader,
           sleepTimerManagerFactory = sleepTimerManagerFactory,

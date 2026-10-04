@@ -5,6 +5,7 @@ package app.campfire.settings.api
 
 import kotlinx.coroutines.flow.Flow
 
+/** App-wide appearance settings. The app theme each account picks is in [UserThemeSettings]. */
 interface ThemeSettings {
 
   fun setDynamicallyThemeItemDetail(value: Boolean)
@@ -12,9 +13,6 @@ interface ThemeSettings {
 
   fun setDynamicallyThemePlayback(value: Boolean)
   fun observeDynamicallyThemePlayback(): Flow<Boolean>
-
-  fun observeThemeId(): Flow<ThemeKey>
-  fun setThemeId(value: ThemeKey)
 
   fun setThemeMode(value: ThemeMode)
   fun observeTheme(): Flow<ThemeMode>

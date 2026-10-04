@@ -37,6 +37,7 @@ import app.campfire.core.model.loggableId
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.SignedInSettings
 import java.util.concurrent.Executors
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -81,6 +82,7 @@ class DesktopAudioPlayer(
   private val settings: PlaybackSettings,
   private val equalizerSettings: EqualizerSettings,
   private val playerSettings: PlayerSettingsSnapshot,
+  private val signedInSettings: SignedInSettings,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val engineFactory: PlaybackEngine.Factory,
   private val accessTokenProvider: AccessTokenProvider,
@@ -220,8 +222,8 @@ class DesktopAudioPlayer(
     preparedSession = session
     finishedListener = onFinished
     error.value = null
-    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
-    equalizer.value = EqualizerState.Available(equalizerSettings.equalizerProfileFor(session.libraryItem.id))
+    playbackSpeed.value = signedInSettings.perBook().playbackSpeedFor(session.libraryItem.id)
+    equalizer.value = EqualizerState.Available(signedInSettings.perBook().equalizerProfileFor(session.libraryItem.id))
     state.value = AudioPlayer.State.Initializing
 
     val engine = ensureEngine() ?: return@withContext
@@ -375,7 +377,7 @@ class DesktopAudioPlayer(
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
     onEngine {
-      settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
+      signedInSettings.perBook().setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
       engine?.setRate(speed)
     }
   }
@@ -383,7 +385,7 @@ class DesktopAudioPlayer(
   override fun setEqualizer(profile: EqualizerProfile) {
     equalizer.value = EqualizerState.Available(profile)
     onEngine {
-      equalizerSettings.setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
+      signedInSettings.perBook().setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
       engine?.apply(profile)
     }
   }

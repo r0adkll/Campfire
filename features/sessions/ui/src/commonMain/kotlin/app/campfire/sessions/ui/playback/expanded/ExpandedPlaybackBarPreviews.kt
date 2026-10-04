@@ -693,9 +693,6 @@ internal class PreviewPlaybackSettings : PlaybackSettings {
   private val playbackSpeed = 1f
   override fun observePlaybackSpeed(): StateFlow<Float> = MutableStateFlow(playbackSpeed)
   override fun setPlaybackSpeed(value: Float) = Unit
-  private val itemPlaybackSpeeds = emptyMap<LibraryItemId, Float>()
-  override fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>) = Unit
-  override fun observeItemPlaybackSpeeds(): StateFlow<Map<LibraryItemId, Float>> = MutableStateFlow(itemPlaybackSpeeds)
   private val remoteNextPrevSkipsChapters = true
   override fun setRemoteNextPrevSkipsChapters(value: Boolean) = Unit
   override fun observeRemoteNextPrevSkipsChapters(): StateFlow<Boolean> = MutableStateFlow(remoteNextPrevSkipsChapters)
@@ -739,7 +736,6 @@ internal class PreviewPlaybackSettings : PlaybackSettings {
   private val scrollingTitles = true
   override fun setScrollingTitles(value: Boolean) = Unit
   override fun observeScrollingTitles(): StateFlow<Boolean> = MutableStateFlow(scrollingTitles)
-  override fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) = Unit
 }
 
 // endregion

@@ -23,6 +23,7 @@ import app.campfire.core.model.PlayMethod
 import app.campfire.core.model.PodcastEpisodeId
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.SignedInSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -36,6 +37,7 @@ class DesktopPlaybackController(
   private val playbackSettings: PlaybackSettings,
   private val equalizerSettings: EqualizerSettings,
   private val playerSettings: PlayerSettingsSnapshot,
+  private val signedInSettings: SignedInSettings,
   private val audioPlayerHolder: AudioPlayerHolder,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val accountManager: AccountManager,
@@ -94,6 +96,7 @@ class DesktopPlaybackController(
           settings = playbackSettings,
           equalizerSettings = equalizerSettings,
           playerSettings = playerSettings,
+          signedInSettings = signedInSettings,
           sleepTimerManagerFactory = sleepTimerManagerFactory,
           engineFactory = engineFactory(),
           accessTokenProvider = { userId -> accountManager.getToken(userId)?.accessToken },

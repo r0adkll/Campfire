@@ -58,11 +58,12 @@ import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerPresets
 import app.campfire.core.audio.EqualizerProfile
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.settings.api.EqualizerSettings
+import app.campfire.settings.api.PerBookSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.equalizer_band_gain_cd
 import campfire.features.sessions.ui.generated.resources.equalizer_bass_label
@@ -112,9 +113,10 @@ suspend fun OverlayHost.showEqualizerBottomSheet(
   )
 }
 
-@ContributesTo(AppScope::class)
+@ContributesTo(UserScope::class)
 interface EqualizerBottomSheetComponent {
   val equalizerSettings: EqualizerSettings
+  val perBookSettings: PerBookSettings
   val audioPlayerHolder: AudioPlayerHolder
 }
 
@@ -141,13 +143,13 @@ private fun EqualizerBottomSheet(
       .flatMapLatest { player ->
         // Without a player, show the profile the item would play with
         player?.equalizer ?: flow {
-          emit(EqualizerState.Available(component.equalizerSettings.equalizerProfileFor(input.itemId)))
+          emit(EqualizerState.Available(component.perBookSettings.equalizerProfileFor(input.itemId)))
         }
       }
   }.collectAsState(null)
 
   val itemEqualizerProfiles by remember {
-    component.equalizerSettings.observeItemEqualizerProfiles()
+    component.perBookSettings.observeItemEqualizerProfiles()
   }.collectAsState(emptyMap())
 
   val customBandGains by remember {
@@ -162,7 +164,7 @@ private fun EqualizerBottomSheet(
   val pushProfile: (EqualizerProfile) -> Unit = { updated ->
     component.audioPlayerHolder.currentPlayer.value
       ?.setEqualizer(updated)
-      ?: component.equalizerSettings.setEqualizerProfileFor(input.itemId, updated)
+      ?: component.perBookSettings.setEqualizerProfileFor(input.itemId, updated)
   }
 
   EqualizerSheet(
@@ -197,9 +199,9 @@ private fun EqualizerBottomSheet(
     onPerBookChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Equalizer, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.equalizerSettings.setItemEqualizerProfiles(itemEqualizerProfiles + (input.itemId to profile))
+        component.perBookSettings.setItemEqualizerProfiles(itemEqualizerProfiles + (input.itemId to profile))
       } else {
-        component.equalizerSettings.setItemEqualizerProfiles(itemEqualizerProfiles - input.itemId)
+        component.perBookSettings.setItemEqualizerProfiles(itemEqualizerProfiles - input.itemId)
         // Snap active playback back to the global profile the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
           ?.setEqualizer(globalProfile)

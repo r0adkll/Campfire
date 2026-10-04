@@ -6,9 +6,10 @@ package app.campfire.ui.theming
 import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
+import app.campfire.settings.api.SignedInSettings
 import app.campfire.settings.api.ThemeKey
-import app.campfire.settings.api.ThemeSettings
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.CustomAppTheme
 import app.campfire.themes.Theme
@@ -24,30 +25,44 @@ import com.r0adkll.swatchbuckler.color.dynamiccolor.Variant
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
-import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAppThemeRepository(
-  private val themeSettings: ThemeSettings,
+  private val signedInSettings: SignedInSettings,
   private val themingDb: CampfireThemeDatabase,
   private val dispatcherProvider: DispatcherProvider,
+  @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppThemeRepository {
 
   private val themeCache = mutableMapOf<String, AppTheme.Fixed>()
 
   private val currentAppTheme = MutableStateFlow<AppTheme>(AppTheme.Fixed.Tent)
 
-  suspend fun initialize() = measureTime {
-    val theme = when (val key = themeSettings.observeThemeId().first()) {
+  /** Follows the signed-in account's theme from now on, including when the account changes. */
+  fun initialize() {
+    applicationScope.launch {
+      signedInSettings.observeThemeId().collect { key ->
+        val (theme, duration) = measureTimedValue { themeFor(key) }
+        currentAppTheme.value = theme
+        bark { "Applied the account's theme $key in $duration" }
+      }
+    }
+  }
+
+  private suspend fun themeFor(key: ThemeKey): AppTheme {
+    return when (key) {
       ThemeKey.Tent -> AppTheme.Fixed.Tent
       ThemeKey.WaterBottle -> AppTheme.Fixed.WaterBottle
       ThemeKey.Forest -> AppTheme.Fixed.Forest
@@ -64,10 +79,6 @@ class DefaultAppThemeRepository(
           ?: AppTheme.Fixed.Tent
       }
     }
-
-    currentAppTheme.value = theme
-  }.also { duration ->
-    bark { "ThemeRepository initialized in $duration" }
   }
 
   override fun observeCurrentAppTheme(): StateFlow<AppTheme> {
@@ -90,7 +101,7 @@ class DefaultAppThemeRepository(
 
   override fun setCurrentTheme(theme: AppTheme) {
     currentAppTheme.value = theme
-    themeSettings.setThemeId(
+    signedInSettings.theme().setThemeId(
       when (theme) {
         AppTheme.Dynamic -> ThemeKey.Dynamic
         AppTheme.Fixed.Forest -> ThemeKey.Forest
@@ -136,7 +147,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (signedInSettings.theme().observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -188,7 +199,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (signedInSettings.theme().observeThemeId().first() as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -241,7 +252,7 @@ class DefaultAppThemeRepository(
     themingDb.customAppThemeQueries.delete(id)
     themingDb.themeQueries.deleteTheme(id)
 
-    val isCurrentTheme = (themeSettings.observeThemeId().first() as? ThemeKey.Custom)?.id == id
+    val isCurrentTheme = (signedInSettings.theme().observeThemeId().first() as? ThemeKey.Custom)?.id == id
     if (isCurrentTheme) {
       setCurrentTheme(AppTheme.Fixed.Tent)
     }

@@ -3,12 +3,10 @@
 
 package app.campfire.settings.api
 
-import app.campfire.core.model.LibraryItemId
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 interface PlaybackSettings {
 
@@ -26,30 +24,9 @@ interface PlaybackSettings {
   fun setPlaybackRates(value: List<Float>)
   fun observePlaybackRates(): Flow<List<Float>>
 
+  /** The app-wide playback speed; a book can have its own in [PerBookSettings]. */
   fun observePlaybackSpeed(): Flow<Float>
   fun setPlaybackSpeed(value: Float)
-
-  /**
-   * Per-item playback speed overrides, keyed by library item id. The presence of an entry means the
-   * item has a per-item speed enabled, and its value is that item's saved speed. Items without an
-   * entry use the global playback speed.
-   */
-  fun setItemPlaybackSpeeds(value: Map<LibraryItemId, Float>)
-  fun observeItemPlaybackSpeeds(): Flow<Map<LibraryItemId, Float>>
-
-  /**
-   * The effective playback speed for [itemId] — its per-item override if one is enabled,
-   * otherwise the global playback speed.
-   */
-  suspend fun playbackSpeedFor(itemId: LibraryItemId?): Float {
-    return itemId?.let { observeItemPlaybackSpeeds().first()[it] } ?: observePlaybackSpeed().first()
-  }
-
-  /**
-   * Persist [speed] to [itemId]'s per-item override when one is enabled, otherwise to the
-   * global playback speed.
-   */
-  fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float)
 
   /**
    * When true, remote control next/previous buttons skip to next/previous chapter.

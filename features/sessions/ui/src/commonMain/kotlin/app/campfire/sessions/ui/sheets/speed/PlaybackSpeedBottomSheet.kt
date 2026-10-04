@@ -53,12 +53,13 @@ import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.PlaybackSpeedDialog
 import app.campfire.common.compose.widgets.PlaybackSpeedRange
 import app.campfire.common.compose.widgets.sheets.AdaptiveSheetOverlay
-import app.campfire.core.di.AppScope
 import app.campfire.core.di.ComponentHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.extensions.readableHundredths
 import app.campfire.core.extensions.roundToHundredths
 import app.campfire.core.model.LibraryItemId
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
+import app.campfire.settings.api.PerBookSettings
 import app.campfire.settings.api.PlaybackSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.speed_bottomsheet_title
@@ -100,9 +101,10 @@ suspend fun OverlayHost.showPlaybackSpeedBottomSheet(
   )
 }
 
-@ContributesTo(AppScope::class)
+@ContributesTo(UserScope::class)
 interface PlaybackSpeedBottomSheetComponent {
   val playbackSettings: PlaybackSettings
+  val perBookSettings: PerBookSettings
   val audioPlayerHolder: AudioPlayerHolder
 }
 
@@ -140,7 +142,7 @@ private fun PlaybackSpeedBottomSheet(
   }.collectAsState(PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
 
   val itemPlaybackSpeeds by remember {
-    component.playbackSettings.observeItemPlaybackSpeeds()
+    component.perBookSettings.observeItemPlaybackSpeeds()
   }.collectAsState(emptyMap())
 
   PlaybackSpeedSheet(
@@ -155,9 +157,9 @@ private fun PlaybackSpeedBottomSheet(
     onPerBookSpeedChange = { enabled ->
       Analytics.send(PlaybackActionEvent(Speed, Changed, extras = mapOf("perBook" to enabled)))
       if (enabled) {
-        component.playbackSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds + (input.itemId to currentSpeed))
+        component.perBookSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds + (input.itemId to currentSpeed))
       } else {
-        component.playbackSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds - input.itemId)
+        component.perBookSettings.setItemPlaybackSpeeds(itemPlaybackSpeeds - input.itemId)
         // Snap active playback back to the global speed the item now falls back to
         component.audioPlayerHolder.currentPlayer.value
           ?.setPlaybackSpeed(globalSpeed)

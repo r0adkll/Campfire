@@ -57,6 +57,7 @@ import app.campfire.crashreporting.CrashReporter
 import app.campfire.infra.audioplayer.impl.R
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.SignedInSettings
 import dev.zacsweers.metro.Inject
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -86,6 +87,7 @@ class ExoPlayerAudioPlayer(
   private val settings: PlaybackSettings,
   private val equalizerSettings: EqualizerSettings,
   private val playerSettings: PlayerSettingsSnapshot,
+  private val signedInSettings: SignedInSettings,
   private val sleepTimerManagerFactory: SleepTimerManager.Factory,
   private val playbackHistoryRecorder: PlaybackHistoryRecorder,
   private val castController: CastController,
@@ -105,6 +107,7 @@ class ExoPlayerAudioPlayer(
     private val settings: PlaybackSettings,
     private val equalizerSettings: EqualizerSettings,
     private val playerSettings: PlayerSettingsSnapshot,
+    private val signedInSettings: SignedInSettings,
     private val mediaSourceFactory: MediaSource.Factory,
     private val sleepTimerManagerFactory: SleepTimerManager.Factory,
     private val playbackHistoryRecorder: PlaybackHistoryRecorder,
@@ -119,6 +122,7 @@ class ExoPlayerAudioPlayer(
         settings = settings,
         equalizerSettings = equalizerSettings,
         playerSettings = playerSettings,
+        signedInSettings = signedInSettings,
         mediaSourceFactory = mediaSourceFactory,
         playbackHistoryRecorder = playbackHistoryRecorder,
         sleepTimerManagerFactory = sleepTimerManagerFactory,
@@ -319,8 +323,8 @@ class ExoPlayerAudioPlayer(
     hlsQueueActive = session.episode == null && session.hlsStreamUrl != null
     hlsFallbackAttempted = false
     finishedListener = onFinished
-    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
-    updateEqualizer(equalizerSettings.equalizerProfileFor(session.libraryItem.id))
+    playbackSpeed.value = signedInSettings.perBook().playbackSpeedFor(session.libraryItem.id)
+    updateEqualizer(signedInSettings.perBook().equalizerProfileFor(session.libraryItem.id))
     _error.value = null
     state.value = AudioPlayer.State.Initializing
 
@@ -643,12 +647,12 @@ class ExoPlayerAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
-    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
+    signedInSettings.perBook().setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     player.setPlaybackSpeed(speed)
   }
 
   override fun setEqualizer(profile: EqualizerProfile) {
-    equalizerSettings.setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
+    signedInSettings.perBook().setEqualizerProfileFor(preparedSession?.libraryItem?.id, profile)
     updateEqualizer(profile)
   }
 

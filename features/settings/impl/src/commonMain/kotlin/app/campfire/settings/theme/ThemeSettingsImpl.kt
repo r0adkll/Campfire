@@ -4,7 +4,6 @@
 package app.campfire.settings.theme
 
 import app.campfire.core.di.AppScope
-import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.settings.store.AppSettings
@@ -34,15 +33,6 @@ class ThemeSettingsImpl(
   override fun setDynamicallyThemePlayback(value: Boolean) = dynamicallyThemePlaybackProperty.set(value)
   override fun observeDynamicallyThemePlayback(): Flow<Boolean> = dynamicallyThemePlaybackProperty.observe()
 
-  private val themeIdProperty = customSetting(
-    key = KEY_CURRENT_THEME,
-    defaultValue = ThemeKey.Tent,
-    getter = { ThemeKey.from(it) },
-    setter = { it.storageKey },
-  )
-  override fun setThemeId(value: ThemeKey) = themeIdProperty.set(value)
-  override fun observeThemeId(): Flow<ThemeKey> = themeIdProperty.observe()
-
   private val themeModeProperty = enumSetting(KEY_THEME, ThemeMode)
   override fun setThemeMode(value: ThemeMode) {
     themeModeProperty.set(value)
@@ -58,6 +48,5 @@ class ThemeSettingsImpl(
 
 internal const val KEY_ITEM_DETAIL_THEMING = "pref_dynamically_theme_item_detail"
 internal const val KEY_PLAYBACK_THEMING = "pref_dynamically_theme_playback"
-internal const val KEY_CURRENT_THEME = "pref_current_theme"
 internal const val KEY_THEME = "pref_theme"
 internal const val KEY_USE_DYNAMIC_COLORS = "pref_dynamic_colors"

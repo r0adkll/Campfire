@@ -27,6 +27,7 @@ import app.campfire.core.model.Session
 import app.campfire.core.time.FatherTime
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.settings.api.PlaybackSettings
+import app.campfire.settings.api.SignedInSettings
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
@@ -55,6 +56,7 @@ import platform.UIKit.endReceivingRemoteControlEvents
 class IosAudioPlayer(
   private val settings: PlaybackSettings,
   private val playerSettings: PlayerSettingsSnapshot,
+  private val signedInSettings: SignedInSettings,
   private val fatherTime: FatherTime,
   private val artworkLoader: ArtworkLoader,
   sleepTimerManagerFactory: SleepTimerManager.Factory,
@@ -120,7 +122,7 @@ class IosAudioPlayer(
   ) {
     preparedSession = session
     finishedListener = onFinished
-    playbackSpeed.value = settings.playbackSpeedFor(session.libraryItem.id)
+    playbackSpeed.value = signedInSettings.perBook().playbackSpeedFor(session.libraryItem.id)
     player.prePrepare()
 
     setupRemoteTransportControls()
@@ -339,7 +341,7 @@ class IosAudioPlayer(
 
   override fun setPlaybackSpeed(speed: Float) {
     playbackSpeed.value = speed
-    settings.setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
+    signedInSettings.perBook().setPlaybackSpeedFor(preparedSession?.libraryItem?.id, speed)
     player.setPlaybackSpeed(speed)
   }
 

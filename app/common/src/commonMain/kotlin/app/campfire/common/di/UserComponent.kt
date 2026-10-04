@@ -13,6 +13,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
+import app.campfire.settings.api.LibraryViewSettings
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
 import dev.zacsweers.metro.ContributesTo
@@ -41,6 +42,9 @@ interface UserComponent {
   val coroutineScopeHolder: CoroutineScopeHolder
 
   val sessionsRepository: SessionsRepository
+
+  /** The signed-in account's library view settings, for the root UI that sits above this graph. */
+  val libraryViewSettings: LibraryViewSettings
 
   /** Debug-only automation deep links that need user-scoped dependencies */
   val automationDeepLinks: UserAutomationDeepLinks

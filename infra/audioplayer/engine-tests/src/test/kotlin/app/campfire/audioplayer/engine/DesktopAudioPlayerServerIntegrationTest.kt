@@ -19,7 +19,9 @@ import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
 import app.campfire.core.model.FileMetadata
 import app.campfire.settings.test.FakeEqualizerSettings
+import app.campfire.settings.test.FakePerBookSettings
 import app.campfire.settings.test.FakePlaybackSettings
+import app.campfire.settings.test.FakeSignedInSettings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isGreaterThanOrEqualTo
@@ -112,6 +114,7 @@ class DesktopAudioPlayerServerIntegrationTest {
       settings = settings,
       equalizerSettings = FakeEqualizerSettings(),
       playerSettings = testPlayerSettings(settings),
+      signedInSettings = FakeSignedInSettings(FakePerBookSettings(settings)),
       sleepTimerManagerFactory = FakeSleepTimerManager().factory,
       engineFactory = engineFactory,
       accessTokenProvider = { token },

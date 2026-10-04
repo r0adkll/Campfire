@@ -69,8 +69,6 @@ import app.campfire.settings.playback.PREF_BOOK_TIME_UI
 import app.campfire.settings.playback.PREF_EQUALIZER_CUSTOM_GAINS
 import app.campfire.settings.playback.PREF_EQUALIZER_PROFILE
 import app.campfire.settings.playback.PREF_FORWARD_TIME_MS
-import app.campfire.settings.playback.PREF_ITEM_EQUALIZER_PROFILES
-import app.campfire.settings.playback.PREF_ITEM_PLAYBACK_SPEEDS
 import app.campfire.settings.playback.PREF_MAX_RESUME_REWIND
 import app.campfire.settings.playback.PREF_MIN_PAUSE_THRESHOLD
 import app.campfire.settings.playback.PREF_MIN_RESUME_REWIND
@@ -89,10 +87,12 @@ import app.campfire.settings.playback.PREF_SYNC_INTERVAL_METERED
 import app.campfire.settings.playback.PREF_SYNC_INTERVAL_UNMETERED
 import app.campfire.settings.playback.PREF_TRACK_RESET_THRESHOLD
 import app.campfire.settings.playback.PREF_WAVY_SLIDER
-import app.campfire.settings.theme.KEY_CURRENT_THEME
 import app.campfire.settings.theme.KEY_ITEM_DETAIL_THEMING
 import app.campfire.settings.theme.KEY_PLAYBACK_THEMING
 import app.campfire.settings.theme.KEY_THEME
+import app.campfire.settings.user.KEY_CURRENT_THEME
+import app.campfire.settings.user.PREF_ITEM_EQUALIZER_PROFILES
+import app.campfire.settings.user.PREF_ITEM_PLAYBACK_SPEEDS
 import com.russhwolf.settings.Settings
 
 /**

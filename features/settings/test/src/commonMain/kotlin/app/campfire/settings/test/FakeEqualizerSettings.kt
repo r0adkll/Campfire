@@ -5,7 +5,6 @@ package app.campfire.settings.test
 
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
-import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,21 +28,4 @@ class FakeEqualizerSettings : EqualizerSettings {
     _customBandGains.value = value
   }
   override fun observeCustomBandGains(): StateFlow<List<Float>> = _customBandGains.asStateFlow()
-
-  private val _itemEqualizerProfiles =
-    MutableStateFlow<Map<LibraryItemId, EqualizerProfile>>(emptyMap<LibraryItemId, EqualizerProfile>())
-  val itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile> get() = _itemEqualizerProfiles.value
-  override fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>) {
-    _itemEqualizerProfiles.value = value
-  }
-  override fun observeItemEqualizerProfiles(): StateFlow<Map<LibraryItemId, EqualizerProfile>> =
-    _itemEqualizerProfiles.asStateFlow()
-
-  override fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) {
-    if (itemId != null && itemId in itemEqualizerProfiles) {
-      setItemEqualizerProfiles(itemEqualizerProfiles + (itemId to profile))
-    } else {
-      setEqualizerProfile(profile)
-    }
-  }
 }

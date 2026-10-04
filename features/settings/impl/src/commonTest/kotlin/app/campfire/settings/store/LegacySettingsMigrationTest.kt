@@ -17,9 +17,9 @@ import app.campfire.settings.playback.PREF_FORWARD_TIME_MS
 import app.campfire.settings.playback.PREF_PLAYBACK_SPEED
 import app.campfire.settings.playback.PlaybackSettingsImpl
 import app.campfire.settings.playback.SleepSettingsImpl
-import app.campfire.settings.theme.KEY_CURRENT_THEME
 import app.campfire.settings.theme.KEY_THEME
 import app.campfire.settings.theme.ThemeSettingsImpl
+import app.campfire.settings.user.KEY_CURRENT_THEME
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse

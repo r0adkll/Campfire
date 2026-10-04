@@ -3,10 +3,8 @@
 
 package app.campfire.settings.playback
 
-import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.di.AppScope
-import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.store.AppSettings
 import app.campfire.settings.store.SettingsStore
@@ -40,71 +38,7 @@ class EqualizerSettingsImpl(
   )
   override fun setCustomBandGains(value: List<Float>) = customBandGainsProperty.set(value)
   override fun observeCustomBandGains(): Flow<List<Float>> = customBandGainsProperty.observe()
-
-  private val itemEqualizerProfilesProperty = customSetting(
-    key = PREF_ITEM_EQUALIZER_PROFILES,
-    defaultValue = emptyMap<LibraryItemId, EqualizerProfile>(),
-    getter = { it.asItemProfileMap() },
-    setter = { profiles ->
-      profiles.entries.joinToString(EQUALIZER_ENTRY_SEPARATOR) {
-        "${it.key}$EQUALIZER_FIELD_SEPARATOR${it.value.serialize()}"
-      }
-    },
-  )
-  override fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>) =
-    itemEqualizerProfilesProperty.set(value)
-  override fun observeItemEqualizerProfiles(): Flow<Map<LibraryItemId, EqualizerProfile>> =
-    itemEqualizerProfilesProperty.observe()
-
-  override fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) = edit { preferences ->
-    val profiles = itemEqualizerProfilesProperty.readFrom(preferences)
-    if (itemId != null && itemId in profiles) {
-      itemEqualizerProfilesProperty.writeTo(preferences, profiles + (itemId to profile))
-    } else {
-      equalizerProfileProperty.writeTo(preferences, profile)
-    }
-  }
-
-  private fun EqualizerProfile.serialize(): String = listOf(
-    if (enabled) "1" else "0",
-    presetId,
-    bandGainsDb.joinToString(EQUALIZER_GAINS_SEPARATOR),
-    loudnessGainDb.toString(),
-    bassBoost.toString(),
-  ).joinToString(EQUALIZER_FIELD_SEPARATOR)
-
-  private fun String.asEqualizerProfile(): EqualizerProfile? {
-    val fields = split(EQUALIZER_FIELD_SEPARATOR)
-    if (fields.size != 5) return null
-    val (enabled, presetId, gains, loudness, bass) = fields
-    return EqualizerProfile(
-      enabled = enabled == "1",
-      presetId = presetId.ifEmpty { return null },
-      bandGainsDb = gains.asBandGains() ?: return null,
-      loudnessGainDb = loudness.toFloatOrNull() ?: return null,
-      bassBoost = bass.toFloatOrNull() ?: return null,
-    )
-  }
-
-  private fun String.asBandGains(): List<Float>? {
-    val gains = split(EQUALIZER_GAINS_SEPARATOR).mapNotNull { it.toFloatOrNull() }
-    return gains.takeIf { it.size == EqualizerBands.BAND_COUNT }
-  }
-
-  private fun String.asItemProfileMap(): Map<LibraryItemId, EqualizerProfile> {
-    return split(EQUALIZER_ENTRY_SEPARATOR)
-      .mapNotNull { entry ->
-        val itemId = entry.substringBefore(EQUALIZER_FIELD_SEPARATOR)
-        val profile = entry.substringAfter(EQUALIZER_FIELD_SEPARATOR, "").asEqualizerProfile()
-        if (itemId.isEmpty() || profile == null) null else itemId to profile
-      }
-      .toMap()
-  }
 }
 
 internal const val PREF_EQUALIZER_PROFILE = "pref_equalizer_profile"
 internal const val PREF_EQUALIZER_CUSTOM_GAINS = "pref_equalizer_custom_gains"
-internal const val PREF_ITEM_EQUALIZER_PROFILES = "pref_item_equalizer_profiles"
-internal const val EQUALIZER_ENTRY_SEPARATOR = "::"
-internal const val EQUALIZER_FIELD_SEPARATOR = "|"
-internal const val EQUALIZER_GAINS_SEPARATOR = ","

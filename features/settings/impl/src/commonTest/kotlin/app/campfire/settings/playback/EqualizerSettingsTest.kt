@@ -10,7 +10,6 @@ import app.campfire.core.audio.EqualizerProfile
 import app.campfire.settings.store.InMemoryPreferencesDataStore
 import app.campfire.settings.store.testSettingsStore
 import assertk.assertThat
-import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
 import kotlin.test.Test
 import kotlinx.coroutines.flow.first
@@ -51,51 +50,6 @@ class EqualizerSettingsTest {
       backing.edit { it[stringPreferencesKey(PREF_EQUALIZER_PROFILE)] = corrupt }
       assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
     }
-  }
-
-  @Test
-  fun `itemEqualizerProfiles round-trips and drops corrupt entries`() = runTest {
-    val settings = equalizerSettings()
-    assertThat(settings.observeItemEqualizerProfiles().first()).isEmpty()
-
-    val profiles = mapOf(
-      "li_abc123" to EqualizerProfile(enabled = true, presetId = EqualizerPresets.BASS_BOOST_ID),
-      "li_def456" to EqualizerProfile(bandGainsDb = listOf(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f)),
-    )
-    settings.setItemEqualizerProfiles(profiles)
-    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(profiles)
-
-    settings.setItemEqualizerProfiles(emptyMap())
-    assertThat(settings.observeItemEqualizerProfiles().first()).isEmpty()
-  }
-
-  @Test
-  fun `equalizerProfileFor falls back to the global profile without an override`() = runTest {
-    val settings = equalizerSettings()
-    val global = EqualizerProfile(enabled = true, presetId = EqualizerPresets.WARM_ID)
-    val override = EqualizerProfile(enabled = true, presetId = EqualizerPresets.VOICE_BOOST_ID)
-    settings.setEqualizerProfile(global)
-    settings.setItemEqualizerProfiles(mapOf("li_abc123" to override))
-
-    assertThat(settings.equalizerProfileFor("li_abc123")).isEqualTo(override)
-    assertThat(settings.equalizerProfileFor("li_other")).isEqualTo(global)
-    assertThat(settings.equalizerProfileFor(null)).isEqualTo(global)
-  }
-
-  @Test
-  fun `setEqualizerProfileFor writes the override when enabled and the global otherwise`() = runTest {
-    val settings = equalizerSettings()
-    val initial = EqualizerProfile(enabled = true)
-    settings.setItemEqualizerProfiles(mapOf("li_abc123" to initial))
-
-    val updated = initial.copy(loudnessGainDb = 3f)
-    settings.setEqualizerProfileFor("li_abc123", updated)
-    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(mapOf("li_abc123" to updated))
-    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
-
-    settings.setEqualizerProfileFor("li_other", updated)
-    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(updated)
-    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(mapOf("li_abc123" to updated))
   }
 
   private fun equalizerSettings(): EqualizerSettingsImpl =

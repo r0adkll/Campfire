@@ -5,14 +5,12 @@ package app.campfire.settings.api
 
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
-import app.campfire.core.model.LibraryItemId
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 
 interface EqualizerSettings {
 
   /**
-   * The global equalizer profile applied to items without a per-item override.
+   * The app-wide equalizer profile; a book can have its own in [PerBookSettings].
    */
   fun setEqualizerProfile(value: EqualizerProfile)
   fun observeEqualizerProfile(): Flow<EqualizerProfile>
@@ -23,28 +21,6 @@ interface EqualizerSettings {
    */
   fun observeCustomBandGains(): Flow<List<Float>>
   fun setCustomBandGains(value: List<Float>)
-
-  /**
-   * Per-item equalizer overrides, keyed by library item id. The presence of an entry means the
-   * item has a per-item equalizer enabled, and its value is that item's saved profile. Items
-   * without an entry use the global profile.
-   */
-  fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>)
-  fun observeItemEqualizerProfiles(): Flow<Map<LibraryItemId, EqualizerProfile>>
-
-  /**
-   * The effective equalizer profile for [itemId] — its per-item override if one is enabled,
-   * otherwise the global profile.
-   */
-  suspend fun equalizerProfileFor(itemId: LibraryItemId?): EqualizerProfile {
-    return itemId?.let { observeItemEqualizerProfiles().first()[it] } ?: observeEqualizerProfile().first()
-  }
-
-  /**
-   * Persist [profile] to [itemId]'s per-item override when one is enabled, otherwise to the
-   * global profile.
-   */
-  fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile)
 
   companion object {
     val DefaultCustomBandGains: List<Float> = List(EqualizerBands.BAND_COUNT) { 0f }

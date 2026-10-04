@@ -3,7 +3,7 @@
 
 package app.campfire.settings.library
 
-import app.campfire.core.di.AppScope
+import app.campfire.core.di.UserScope
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
@@ -11,17 +11,18 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.store.AppSettings
 import app.campfire.settings.store.SettingsStore
+import app.campfire.settings.user.UserSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlinx.coroutines.flow.Flow
 
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, binding = binding<LibraryViewSettings>())
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class, binding = binding<LibraryViewSettings>())
 @Inject
 class LibraryViewSettingsImpl(
-  override val store: SettingsStore,
+  @UserSettings override val store: SettingsStore,
 ) : LibraryViewSettings, AppSettings() {
 
   private val libraryItemDisplayStateProperty = enumSetting(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
