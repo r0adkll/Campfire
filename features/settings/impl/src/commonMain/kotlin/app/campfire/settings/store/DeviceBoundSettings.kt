@@ -3,6 +3,8 @@
 
 package app.campfire.settings.store
 
+import androidx.datastore.preferences.core.MutablePreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.settings.app.KEY_ANALYTICS_ID
 import app.campfire.settings.app.KEY_CURRENT_USER_ID
 import app.campfire.settings.app.KEY_DEVICE_ID
@@ -29,4 +31,9 @@ internal val DeviceBoundSettingKeys = setOf(
 
 internal fun Settings.clearDeviceBoundSettings() {
   DeviceBoundSettingKeys.forEach(::remove)
+}
+
+internal fun MutablePreferences.clearDeviceBoundSettings() {
+  // Keys match by name, whatever type the value was stored as; every device-bound setting is a string
+  DeviceBoundSettingKeys.forEach { remove(stringPreferencesKey(it)) }
 }

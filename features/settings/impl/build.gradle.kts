@@ -14,6 +14,7 @@ kotlin {
         api(projects.features.settings.api)
         api(libs.multiplatformsettings.core)
         api(libs.multiplatformsettings.coroutines)
+        implementation(libs.androidx.datastore.preferences.core)
       }
     }
 

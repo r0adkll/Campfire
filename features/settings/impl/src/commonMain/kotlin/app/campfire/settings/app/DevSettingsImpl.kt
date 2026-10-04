@@ -4,11 +4,9 @@
 package app.campfire.settings.app
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
-import com.russhwolf.settings.ObservableSettings
+import app.campfire.settings.store.SettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -16,17 +14,13 @@ import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<DevSettings>())
 @Inject
 class DevSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
 ) : DevSettings, AppSettings() {
 
   private val defaultDeveloperMode get() = false

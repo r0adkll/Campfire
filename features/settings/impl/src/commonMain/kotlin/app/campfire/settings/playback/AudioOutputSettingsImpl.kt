@@ -4,26 +4,20 @@
 package app.campfire.settings.playback
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.AudioOutputSettings
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
-import com.russhwolf.settings.ObservableSettings
+import app.campfire.settings.store.SettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<AudioOutputSettings>())
 @Inject
 class AudioOutputSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
 ) : AudioOutputSettings, AppSettings() {
 
   private val volumeProperty = floatSetting(PREF_OUTPUT_VOLUME, AudioOutputSettings.DEFAULT_VOLUME)

@@ -3,6 +3,9 @@
 
 package app.campfire.settings.store
 
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.settings.app.KEY_ANALYTICS_ID
 import app.campfire.settings.app.KEY_CURRENT_USER_ID
 import app.campfire.settings.app.KEY_DEVICE_ID
@@ -32,5 +35,22 @@ class DeviceBoundSettingsTest {
     settings.clearDeviceBoundSettings()
 
     assertThat(settings.keys).containsOnly(KEY_THEME, PREF_PLAYBACK_SPEED)
+  }
+
+  @Test
+  fun `clearing a restored settings file keeps preferences but drops device bound settings`() {
+    val settings = mutablePreferencesOf(
+      stringPreferencesKey(KEY_DEVICE_ID) to "device",
+      stringPreferencesKey(KEY_ANALYTICS_ID) to "analytics",
+      stringPreferencesKey(KEY_CURRENT_USER_ID) to "user",
+      stringPreferencesKey(PREF_OUTPUT_DEVICE) to "Speakers",
+      stringPreferencesKey(PREF_PENDING_RESUME_REWIND) to "5000|1000",
+      stringPreferencesKey(KEY_THEME) to "dark",
+      floatPreferencesKey(PREF_PLAYBACK_SPEED) to 1.5f,
+    )
+
+    settings.clearDeviceBoundSettings()
+
+    assertThat(settings.asMap().keys.map { it.name }).containsOnly(KEY_THEME, PREF_PLAYBACK_SPEED)
   }
 }

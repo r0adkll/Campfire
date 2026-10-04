@@ -3,24 +3,21 @@
 
 package app.campfire.settings.playback
 
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.PlaybackSettings
 import app.campfire.settings.api.ResumeRewindConfig
 import app.campfire.settings.api.StreamingMethod
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
-import com.russhwolf.settings.ObservableSettings
+import app.campfire.settings.store.SettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -28,9 +25,7 @@ import kotlinx.coroutines.flow.combine
 @ContributesBinding(AppScope::class, binding = binding<PlaybackSettings>())
 @Inject
 class PlaybackSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
 ) : PlaybackSettings, AppSettings() {
 
   private val enableMp3IndexSeekingProperty =
@@ -82,12 +77,12 @@ class PlaybackSettingsImpl(
   override fun observeItemPlaybackSpeeds(): Flow<Map<LibraryItemId, Float>> =
     itemPlaybackSpeedsProperty.observe()
 
-  override fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) = edit {
-    val speeds = itemPlaybackSpeedsProperty.readInEdit()
+  override fun setPlaybackSpeedFor(itemId: LibraryItemId?, speed: Float) = edit { preferences ->
+    val speeds = itemPlaybackSpeedsProperty.readFrom(preferences)
     if (itemId != null && itemId in speeds) {
-      itemPlaybackSpeedsProperty.writeInEdit(speeds + (itemId to speed))
+      itemPlaybackSpeedsProperty.writeTo(preferences, speeds + (itemId to speed))
     } else {
-      playbackSpeedProperty.writeInEdit(speed)
+      playbackSpeedProperty.writeTo(preferences, speed)
     }
   }
 
@@ -140,10 +135,10 @@ class PlaybackSettingsImpl(
 
   private val maxResumeRewindProperty = durationSetting(PREF_MAX_RESUME_REWIND, ResumeRewindConfig.Default.maxRewind)
 
-  override fun setResumeRewindConfig(value: ResumeRewindConfig) = edit {
-    minPauseThresholdProperty.writeInEdit(value.minPauseThreshold)
-    minResumeRewindProperty.writeInEdit(value.minRewind)
-    maxResumeRewindProperty.writeInEdit(value.maxRewind)
+  override fun setResumeRewindConfig(value: ResumeRewindConfig) = edit { preferences ->
+    minPauseThresholdProperty.writeTo(preferences, value.minPauseThreshold)
+    minResumeRewindProperty.writeTo(preferences, value.minRewind)
+    maxResumeRewindProperty.writeTo(preferences, value.maxRewind)
   }
 
   override fun observeResumeRewindConfig(): Flow<ResumeRewindConfig> = combine(
@@ -163,10 +158,13 @@ class PlaybackSettingsImpl(
     autoRewindStopAtChapterBoundaryProperty.observe()
 
   private val pendingResumeRewindProperty = setting(
-    key = PREF_PENDING_RESUME_REWIND,
-    read = { getStringOrNull(PREF_PENDING_RESUME_REWIND)?.toPendingResumeRewind() },
-    write = {
-      if (it == null) remove(PREF_PENDING_RESUME_REWIND) else putString(PREF_PENDING_RESUME_REWIND, it.serialize())
+    read = { it[PendingResumeRewindKey]?.toPendingResumeRewind() },
+    write = { preferences, value ->
+      if (value == null) {
+        preferences.remove(PendingResumeRewindKey)
+      } else {
+        preferences[PendingResumeRewindKey] = value.serialize()
+      }
     },
   )
   override fun setPendingResumeRewind(value: PendingResumeRewind?) = pendingResumeRewindProperty.set(value)
@@ -237,6 +235,7 @@ internal const val PREF_STREAMING_METHOD = "pref_streaming_method"
 internal const val PREF_MIN_PAUSE_THRESHOLD = "pref_playback_resume_rewind_min_pause_threshold"
 internal const val PREF_MIN_RESUME_REWIND = "pref_playback_resume_rewind_min"
 internal const val PREF_MAX_RESUME_REWIND = "pref_playback_resume_rewind_max"
+private val PendingResumeRewindKey = stringPreferencesKey(PREF_PENDING_RESUME_REWIND)
 internal const val PREF_PENDING_RESUME_REWIND = "pref_playback_pending_resume_rewind"
 internal const val PENDING_RESUME_REWIND_SEPARATOR = "|"
 internal const val PREF_AUTO_REWIND_STOP_AT_CHAPTER = "pref_playback_auto_rewind_stop_at_chapter"

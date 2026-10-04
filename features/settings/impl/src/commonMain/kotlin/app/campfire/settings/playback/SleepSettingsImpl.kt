@@ -4,20 +4,16 @@
 package app.campfire.settings.playback
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.SleepSettings
 import app.campfire.settings.api.SleepSettings.AutoSleepTimer
 import app.campfire.settings.api.SleepSettings.ShakeSensitivity
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
-import com.russhwolf.settings.ObservableSettings
+import app.campfire.settings.store.SettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.time.Duration
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalTime
 
@@ -25,9 +21,7 @@ import kotlinx.datetime.LocalTime
 @ContributesBinding(AppScope::class, binding = binding<SleepSettings>())
 @Inject
 class SleepSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
 ) : SleepSettings, AppSettings() {
 
   private val lastSetSleepTimerProperty =
@@ -100,13 +94,13 @@ class SleepSettingsImpl(
   override fun observeFadeOutDuration(): Flow<Duration> = fadeOutDurationProperty.observe()
 }
 
-private const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"
-private const val KEY_SHAKE_TO_RESET = "pref_sleep_shake_to_reset"
-private const val KEY_SHAKE_SENSITIVITY = "pref_sleep_shake_sensitivity"
-private const val KEY_AUTO_SLEEP_TIMER_ENABLED = "pref_sleep_auto_timer_enabled"
-private const val KEY_AUTO_SLEEP_START = "pref_sleep_auto_timer_start"
-private const val KEY_AUTO_SLEEP_END = "pref_sleep_auto_timer_end"
-private const val KEY_AUTO_SLEEP_TIMER = "pref_auto_sleep_timer"
-private const val KEY_AUTO_REWIND_ENABLED = "pref_auto_rewind_enabled"
-private const val KEY_AUTO_REWIND_AMOUNT = "pref_auto_rewind_amount"
-private const val KEY_FADE_OUT_DURATION = "pref_sleep_fade_out_duration"
+internal const val KEY_LAST_SET_SLEEP_TIMER = "pref_last_set_sleep_timer"
+internal const val KEY_SHAKE_TO_RESET = "pref_sleep_shake_to_reset"
+internal const val KEY_SHAKE_SENSITIVITY = "pref_sleep_shake_sensitivity"
+internal const val KEY_AUTO_SLEEP_TIMER_ENABLED = "pref_sleep_auto_timer_enabled"
+internal const val KEY_AUTO_SLEEP_START = "pref_sleep_auto_timer_start"
+internal const val KEY_AUTO_SLEEP_END = "pref_sleep_auto_timer_end"
+internal const val KEY_AUTO_SLEEP_TIMER = "pref_auto_sleep_timer"
+internal const val KEY_AUTO_REWIND_ENABLED = "pref_auto_rewind_enabled"
+internal const val KEY_AUTO_REWIND_AMOUNT = "pref_auto_rewind_amount"
+internal const val KEY_FADE_OUT_DURATION = "pref_sleep_fade_out_duration"

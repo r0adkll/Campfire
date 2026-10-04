@@ -3,20 +3,15 @@
 
 package app.campfire.settings.playback
 
+import app.campfire.settings.store.testSettingsStore
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 
 class ItemPlaybackSpeedsTest {
-
-  private val settingsScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
   @Test
   fun `itemPlaybackSpeeds defaults to empty and round-trips through storage`() = runTest {
@@ -64,5 +59,5 @@ class ItemPlaybackSpeedsTest {
   }
 
   private fun playbackSettings(): PlaybackSettingsImpl =
-    PlaybackSettingsImpl(MapSettings(), settingsScope, Dispatchers.Unconfined)
+    PlaybackSettingsImpl(testSettingsStore())
 }

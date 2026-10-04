@@ -6,27 +6,21 @@ package app.campfire.settings.playback
 import app.campfire.core.audio.EqualizerBands
 import app.campfire.core.audio.EqualizerProfile
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
-import com.russhwolf.settings.ObservableSettings
+import app.campfire.settings.store.SettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<EqualizerSettings>())
 @Inject
 class EqualizerSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
 ) : EqualizerSettings, AppSettings() {
 
   private val equalizerProfileProperty = customSetting(
@@ -62,12 +56,12 @@ class EqualizerSettingsImpl(
   override fun observeItemEqualizerProfiles(): Flow<Map<LibraryItemId, EqualizerProfile>> =
     itemEqualizerProfilesProperty.observe()
 
-  override fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) = edit {
-    val profiles = itemEqualizerProfilesProperty.readInEdit()
+  override fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) = edit { preferences ->
+    val profiles = itemEqualizerProfilesProperty.readFrom(preferences)
     if (itemId != null && itemId in profiles) {
-      itemEqualizerProfilesProperty.writeInEdit(profiles + (itemId to profile))
+      itemEqualizerProfilesProperty.writeTo(preferences, profiles + (itemId to profile))
     } else {
-      equalizerProfileProperty.writeInEdit(profile)
+      equalizerProfileProperty.writeTo(preferences, profile)
     }
   }
 

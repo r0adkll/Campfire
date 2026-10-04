@@ -3,22 +3,20 @@
 
 package app.campfire.settings.playback
 
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.core.audio.EqualizerPresets
 import app.campfire.core.audio.EqualizerProfile
+import app.campfire.settings.store.InMemoryPreferencesDataStore
+import app.campfire.settings.store.testSettingsStore
 import assertk.assertThat
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 
 class EqualizerSettingsTest {
-
-  private val settingsScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
   @Test
   fun `equalizerProfile defaults and round-trips through storage`() = runTest {
@@ -38,8 +36,8 @@ class EqualizerSettingsTest {
 
   @Test
   fun `corrupt profile strings fall back to the default`() = runTest {
-    val backing = MapSettings()
-    val settings = EqualizerSettingsImpl(backing, settingsScope, Dispatchers.Unconfined)
+    val backing = InMemoryPreferencesDataStore()
+    val settings = EqualizerSettingsImpl(testSettingsStore(backing))
 
     listOf(
       "",
@@ -50,7 +48,7 @@ class EqualizerSettingsTest {
       "1||0,0,0,0,0,0,0,0,0,0|0.0|0.0", // empty preset id
       "1|flat|0,0,0,0,0,0,0,0,0,0|0.0", // missing field
     ).forEach { corrupt ->
-      backing.putString(PREF_EQUALIZER_PROFILE, corrupt)
+      backing.edit { it[stringPreferencesKey(PREF_EQUALIZER_PROFILE)] = corrupt }
       assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
     }
   }
@@ -101,5 +99,5 @@ class EqualizerSettingsTest {
   }
 
   private fun equalizerSettings(): EqualizerSettingsImpl =
-    EqualizerSettingsImpl(MapSettings(), settingsScope, Dispatchers.Unconfined)
+    EqualizerSettingsImpl(testSettingsStore())
 }

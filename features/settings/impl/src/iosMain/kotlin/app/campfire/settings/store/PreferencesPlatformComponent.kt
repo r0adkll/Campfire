@@ -8,7 +8,12 @@ import com.russhwolf.settings.NSUserDefaultsSettings
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
+import kotlinx.cinterop.ExperimentalForeignApi
+import okio.Path.Companion.toPath
+import platform.Foundation.NSApplicationSupportDirectory
+import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDefaults
+import platform.Foundation.NSUserDomainMask
 
 actual interface PreferencesPlatformComponent {
 
@@ -16,4 +21,19 @@ actual interface PreferencesPlatformComponent {
   @Provides
   fun provideSettings(delegate: NSUserDefaults): ObservableSettings =
     NSUserDefaultsSettings(delegate)
+
+  @OptIn(ExperimentalForeignApi::class)
+  @SingleIn(AppScope::class)
+  @Provides
+  fun provideSettingsDataStoreFile(): SettingsDataStoreFile {
+    val applicationSupport = NSFileManager.defaultManager.URLForDirectory(
+      directory = NSApplicationSupportDirectory,
+      inDomain = NSUserDomainMask,
+      appropriateForURL = null,
+      create = true,
+      error = null,
+    )
+    val directory = requireNotNull(applicationSupport?.path) { "Application Support is unavailable" }
+    return SettingsDataStoreFile("$directory/datastore/$SETTINGS_DATASTORE_FILE_NAME".toPath())
+  }
 }

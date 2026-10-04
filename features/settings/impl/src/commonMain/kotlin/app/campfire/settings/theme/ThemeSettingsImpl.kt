@@ -4,28 +4,24 @@
 package app.campfire.settings.theme
 
 import app.campfire.core.di.AppScope
-import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.ThemeKey
 import app.campfire.settings.api.ThemeMode
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.settings.store.AppSettings
-import app.campfire.settings.store.SettingsDispatcher
+import app.campfire.settings.store.SettingsStore
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<ThemeSettings>())
 @Inject
 class ThemeSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
-  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
+  override val store: SettingsStore,
+  private val legacySettings: ObservableSettings,
 ) : ThemeSettings, AppSettings() {
 
   private val dynamicallyThemeItemDetailProperty =
@@ -48,11 +44,16 @@ class ThemeSettingsImpl(
   override fun observeThemeId(): Flow<ThemeKey> = themeIdProperty.observe()
 
   private val themeModeProperty = enumSetting(KEY_THEME, ThemeMode)
-  override fun setThemeMode(value: ThemeMode) = themeModeProperty.set(value)
+  override fun setThemeMode(value: ThemeMode) {
+    themeModeProperty.set(value)
+    // Mirrored where it can be read without waiting, for lastThemeMode()
+    legacySettings.putString(KEY_THEME, value.storageKey)
+  }
   override fun observeTheme(): Flow<ThemeMode> = themeModeProperty.observe()
 
-  // A direct read on the caller's thread: it runs once, to draw the first frame
-  override fun lastThemeMode(): ThemeMode = ThemeMode.fromStorageKey(settings.getStringOrNull(KEY_THEME))
+  // The platform preferences can be read on the caller's thread, which DataStore can't; this runs once, to
+  // draw the first frame. Keep KEY_THEME there when the other legacy values are removed.
+  override fun lastThemeMode(): ThemeMode = ThemeMode.fromStorageKey(legacySettings.getStringOrNull(KEY_THEME))
 }
 
 internal const val KEY_ITEM_DETAIL_THEMING = "pref_dynamically_theme_item_detail"

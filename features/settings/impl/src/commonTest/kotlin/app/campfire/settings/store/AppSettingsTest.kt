@@ -3,22 +3,21 @@
 
 package app.campfire.settings.store
 
+import androidx.datastore.preferences.core.doublePreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
-import com.russhwolf.settings.MapSettings
-import com.russhwolf.settings.ObservableSettings
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
@@ -27,10 +26,13 @@ import kotlinx.datetime.LocalTime
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppSettingsTest {
 
-  private val settings = MapSettings()
+  private val dataStore = InMemoryPreferencesDataStore()
 
-  /** Reads and writes run as soon as they're made, like a settings store with nothing queued. */
-  private fun TestScope.createSettings() = TestAppSettings(backgroundScope, Dispatchers.Unconfined, settings)
+  /** Writes apply as soon as they're made. */
+  private fun createSettings() = TestAppSettings(testSettingsStore(dataStore))
+
+  /** Writes wait in the queue until the test scheduler runs it. */
+  private fun TestScope.queuedSettings() = TestAppSettings(testSettingsStore(dataStore, backgroundScope))
 
   // region booleanSetting
 
@@ -165,16 +167,15 @@ class AppSettingsTest {
   // region stringSetting with initializer
 
   @Test
-  fun test_stringSetting_initializer_generatesAndStoresValueOnFirstRead() = runTest {
+  fun test_generatedStringSetting_generatesAndStoresValueOnFirstRead() = runTest {
     assertThat(createSettings().generatedId.get()).isEqualTo("generated-123")
-    assertThat(settings.getStringOrNull("generatedId")).isEqualTo("generated-123")
+    assertThat(dataStore.data.value[stringPreferencesKey("generatedId")]).isEqualTo("generated-123")
   }
 
   @Test
-  fun test_stringSetting_initializer_preservesSetValue() = runTest {
-    val settings = createSettings()
-    settings.generatedId.set("overridden")
-    assertThat(settings.generatedId.get()).isEqualTo("overridden")
+  fun test_generatedStringSetting_keepsStoredValue() = runTest {
+    dataStore.edit { it[stringPreferencesKey("generatedId")] = "stored" }
+    assertThat(createSettings().generatedId.get()).isEqualTo("stored")
   }
 
   // endregion
@@ -199,7 +200,7 @@ class AppSettingsTest {
     settings.userId.set("user-1")
     settings.userId.set(null)
     assertThat(settings.userId.get()).isNull()
-    assertThat(this@AppSettingsTest.settings.hasKey("userId")).isEqualTo(false)
+    assertThat(dataStore.data.value.contains(stringPreferencesKey("userId"))).isEqualTo(false)
   }
 
   @Test
@@ -326,25 +327,38 @@ class AppSettingsTest {
 
   @Test
   fun test_set_queuesTheWriteOffTheCaller() = runTest {
-    val queued = TestAppSettings(backgroundScope, StandardTestDispatcher(testScheduler), settings)
+    val queued = queuedSettings()
     queued.count.set(7L)
-    assertThat(settings.getLong("count", 42L)).isEqualTo(42L)
+    assertThat(dataStore.data.value[longPreferencesKey("count")]).isNull()
   }
 
   @Test
   fun test_get_seesEarlierWrites() = runTest {
-    val queued = TestAppSettings(backgroundScope, StandardTestDispatcher(testScheduler), settings)
+    val queued = queuedSettings()
     queued.count.set(7L)
     assertThat(queued.count.get()).isEqualTo(7L)
   }
 
   @Test
+  fun test_observe_startsFromEarlierWrites() = runTest {
+    val queued = queuedSettings()
+    queued.count.set(7L)
+    assertThat(queued.count.observe().first()).isEqualTo(7L)
+  }
+
+  @Test
   fun test_update_appliesInOrderAfterEarlierWrites() = runTest {
-    val queued = TestAppSettings(backgroundScope, StandardTestDispatcher(testScheduler), settings)
+    val queued = queuedSettings()
     queued.count.set(1L)
     queued.count.update { it + 10 }
     queued.count.update { it * 2 }
     assertThat(queued.count.get()).isEqualTo(22L)
+  }
+
+  @Test
+  fun test_durationSetting_isStoredAsSeconds() = runTest {
+    createSettings().timeout.set(2.minutes)
+    assertThat(dataStore.data.value[doublePreferencesKey("timeout")]).isEqualTo(120.0)
   }
 
   // endregion
@@ -355,16 +369,14 @@ class AppSettingsTest {
 }
 
 private class TestAppSettings(
-  override val scope: CoroutineScope,
-  override val dispatcher: CoroutineDispatcher,
-  override val settings: ObservableSettings,
+  override val store: SettingsStore,
 ) : AppSettings() {
   val enabled = booleanSetting("enabled")
   val count = longSetting("count", defaultValue = 42L)
   val speed = floatSetting("speed", defaultValue = 1.0f)
   val timeout = durationSetting("timeout", defaultValue = 30.seconds)
   val name = stringSetting("name", defaultValue = "default")
-  val generatedId = stringSetting("generatedId") { "generated-123" }
+  val generatedId = generatedStringSetting("generatedId") { "generated-123" }
   val userId = stringOrNullSetting("userId")
   val alarmTime = localTimeSetting("alarmTime", defaultValue = LocalTime(22, 0))
   val lastSync = localDateTimeSetting("lastSync", defaultValue = LocalDateTime(2024, 1, 1, 0, 0))

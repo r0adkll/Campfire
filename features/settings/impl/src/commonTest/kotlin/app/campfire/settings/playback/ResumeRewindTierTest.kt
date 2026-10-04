@@ -7,25 +7,20 @@ import app.campfire.settings.api.PendingResumeRewind
 import app.campfire.settings.api.ResumeRewindConfig
 import app.campfire.settings.api.rewindForPause
 import app.campfire.settings.api.tiers
+import app.campfire.settings.store.testSettingsStore
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
-import com.russhwolf.settings.MapSettings
 import kotlin.test.Test
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 
 class ResumeRewindTierTest {
-
-  private val settingsScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
   @Test
   fun `tiers span from minRewind to maxRewind and increase monotonically`() = runTest {
@@ -90,5 +85,5 @@ class ResumeRewindTierTest {
   }
 
   private fun playbackSettings(): PlaybackSettingsImpl =
-    PlaybackSettingsImpl(MapSettings(), settingsScope, Dispatchers.Unconfined)
+    PlaybackSettingsImpl(testSettingsStore())
 }
