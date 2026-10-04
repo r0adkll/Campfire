@@ -39,6 +39,8 @@ internal fun AppearancePane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val appearanceSettings = state.appearanceSettings ?: return@SettingPaneLayout
+
     Header(
       title = { Text(stringResource(Res.string.header_appearance_overall)) },
     )
@@ -48,7 +50,7 @@ internal fun AppearancePane(
       supportingContent = { Text("Change or customize the application appearance") },
       trailingContent = {
         AppThemeImage(
-          appTheme = state.appearanceSettings.appTheme,
+          appTheme = appearanceSettings.appTheme,
           modifier = Modifier.size(48.dp),
         )
       },
@@ -58,7 +60,7 @@ internal fun AppearancePane(
     )
 
     ThemeModeSetting(
-      themeMode = state.appearanceSettings.themeMode,
+      themeMode = appearanceSettings.themeMode,
       onThemeChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.Theme(it)) },
     )
 
@@ -67,14 +69,14 @@ internal fun AppearancePane(
     )
 
     SwitchSetting(
-      value = state.appearanceSettings.dynamicItemDetailTheming,
+      value = appearanceSettings.dynamicItemDetailTheming,
       onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.DynamicItemDetailTheming(it)) },
       headlineContent = { Text(stringResource(Res.string.setting_dynamic_item_detail_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_dynamic_item_detail_description)) },
     )
 
     SwitchSetting(
-      value = state.appearanceSettings.dynamicPlaybackTheming,
+      value = appearanceSettings.dynamicPlaybackTheming,
       onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.DynamicPlaybackTheming(it)) },
       headlineContent = { Text(stringResource(Res.string.setting_dynamic_playback_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_dynamic_playback_description)) },
@@ -85,7 +87,7 @@ internal fun AppearancePane(
     )
 
     SwitchSetting(
-      value = state.appearanceSettings.itemCardMarqueeEnabled,
+      value = appearanceSettings.itemCardMarqueeEnabled,
       onValueChange = { state.eventSink(SettingsUiEvent.AppearanceSettingEvent.ItemCardMarqueeEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.setting_item_card_marquee_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_item_card_marquee_subtitle)) },

@@ -14,14 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 class TestLayoutSettings : LayoutSettings {
 
   private val _wideNavigationRailExpanded = MutableStateFlow<Boolean>(false)
-  override val wideNavigationRailExpanded: Boolean get() = _wideNavigationRailExpanded.value
+  val wideNavigationRailExpanded: Boolean get() = _wideNavigationRailExpanded.value
   override fun setWideNavigationRailExpanded(value: Boolean) {
     _wideNavigationRailExpanded.value = value
   }
   override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> = _wideNavigationRailExpanded.asStateFlow()
 
   private val _supportingPaneWidth = MutableStateFlow<Float>(0f)
-  override val supportingPaneWidth: Float get() = _supportingPaneWidth.value
+  val supportingPaneWidth: Float get() = _supportingPaneWidth.value
   override fun setSupportingPaneWidth(value: Float) {
     _supportingPaneWidth.value = value
   }

@@ -3,7 +3,7 @@
 
 package app.campfire.settings.api
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * How Campfire stays connected to the server.
@@ -18,7 +18,6 @@ interface ConnectionSettings {
    *
    * Defaults to `true`.
    */
-  val socketEnabled: Boolean
   fun setSocketEnabled(value: Boolean)
-  fun observeSocketEnabled(): StateFlow<Boolean>
+  fun observeSocketEnabled(): Flow<Boolean>
 }

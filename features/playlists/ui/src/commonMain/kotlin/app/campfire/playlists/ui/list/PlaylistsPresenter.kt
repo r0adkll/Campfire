@@ -51,7 +51,7 @@ class PlaylistsPresenter(
 
     val displayState by remember {
       libraryViewSettings.observePlaylistsDisplayState()
-    }.collectAsState()
+    }.collectAsState(null)
 
     return PlaylistsUiState(
       playlistContentState = playlistContentState,
@@ -74,7 +74,7 @@ class PlaylistsPresenter(
 
         PlaylistsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("playlists_display_state", "toggle"))
-          libraryViewSettings.setPlaylistsDisplayState(displayState.next())
+          displayState?.next()?.let(libraryViewSettings::setPlaylistsDisplayState)
         }
 
         is PlaylistsUiEvent.PlaylistClick -> {

@@ -3,29 +3,30 @@
 
 package app.campfire.settings.api
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * The user's consent and data-sharing choices for this install.
  */
 interface PrivacySettings {
 
-  val hasEverConsented: Boolean
-  fun observeHasEverConsented(): StateFlow<Boolean>
+  fun observeHasEverConsented(): Flow<Boolean>
   fun setHasEverConsented(value: Boolean)
 
-  val crashReportingEnabled: Boolean
   fun setCrashReportingEnabled(value: Boolean)
-  fun observeCrashReportingEnabled(): StateFlow<Boolean>
+  fun observeCrashReportingEnabled(): Flow<Boolean>
 
   /**
    * Keep each account's sign-in where it survives a reinstall, where the platform allows it
    */
-  val keepSignedInAfterReinstall: Boolean
   fun setKeepSignedInAfterReinstall(value: Boolean)
-  fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean>
+  fun observeKeepSignedInAfterReinstall(): Flow<Boolean>
 
-  val analyticReportingEnabled: Boolean
   fun setAnalyticReportingEnabled(value: Boolean)
-  fun observeAnalyticReportingEnabled(): StateFlow<Boolean>
+  fun observeAnalyticReportingEnabled(): Flow<Boolean>
+
+  companion object {
+    const val DEFAULT_CRASH_REPORTING_ENABLED: Boolean = true
+    const val DEFAULT_ANALYTIC_REPORTING_ENABLED: Boolean = false
+  }
 }

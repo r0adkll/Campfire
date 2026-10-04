@@ -18,9 +18,10 @@ data class SeriesUiState(
   val totalCount: Int,
   val lazyPagingItems: LazyPagingItems<Series>,
   val filter: ContentFilter?,
-  val sortMode: ContentSortMode,
-  val sortDirection: SortDirection,
-  val displayState: GroupDisplayState,
+  /** The view settings below are null until they've been read. */
+  val sortMode: ContentSortMode?,
+  val sortDirection: SortDirection?,
+  val displayState: GroupDisplayState?,
   val eventSink: (SeriesUiEvent) -> Unit,
 ) : CircuitUiState
 

@@ -7,7 +7,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.DevSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -16,43 +16,40 @@ import dev.zacsweers.metro.binding
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<DevSettings>())
 @Inject
 class DevSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : DevSettings, AppSettings() {
 
   private val defaultDeveloperMode get() = false
   private val developerModeProperty = booleanSetting(KEY_DEVELOPER_MODE, defaultDeveloperMode)
-  override val developerModeEnabled: Boolean by developerModeProperty
   override fun setDeveloperModeEnabled(value: Boolean) = developerModeProperty.set(value)
 
-  override fun observeDeveloperMode(): StateFlow<Boolean> = developerModeProperty.observe()
+  override fun observeDeveloperMode(): Flow<Boolean> = developerModeProperty.observe()
 
   private val defaultSessionAge get() = 10.minutes
   private val sessionAgeProperty = durationSetting(KEY_SESSION_AGE, defaultSessionAge)
-  override val sessionAge: Duration by sessionAgeProperty
   override fun setSessionAge(value: Duration) = sessionAgeProperty.set(value)
 
-  override fun observeSessionAge(): StateFlow<Duration> = sessionAgeProperty.observe()
+  override fun observeSessionAge(): Flow<Duration> = sessionAgeProperty.observe()
 
   private val hlsLargeItemThresholdProperty = durationSetting(KEY_HLS_LARGE_ITEM_THRESHOLD, 8.hours)
-  override val hlsLargeItemThreshold: Duration by hlsLargeItemThresholdProperty
   override fun setHlsLargeItemThreshold(value: Duration) = hlsLargeItemThresholdProperty.set(value)
 
-  override fun observeHlsLargeItemThreshold(): StateFlow<Duration> = hlsLargeItemThresholdProperty.observe()
+  override fun observeHlsLargeItemThreshold(): Flow<Duration> = hlsLargeItemThresholdProperty.observe()
 
   private val adaptToUnreachableServerProperty = booleanSetting(KEY_ADAPT_TO_UNREACHABLE_SERVER, true)
-  override val adaptToUnreachableServer: Boolean by adaptToUnreachableServerProperty
   override fun setAdaptToUnreachableServer(value: Boolean) = adaptToUnreachableServerProperty.set(value)
 
-  override fun observeAdaptToUnreachableServer(): StateFlow<Boolean> = adaptToUnreachableServerProperty.observe()
+  override fun observeAdaptToUnreachableServer(): Flow<Boolean> = adaptToUnreachableServerProperty.observe()
 
   private val mediaButtonPackagesProperty = customSetting(
     key = KEY_MEDIA_BUTTON_PACKAGES,
@@ -60,41 +57,34 @@ class DevSettingsImpl(
     getter = { raw -> raw.decodePackageSet() },
     setter = { packages -> packages.encodePackageSet() },
   )
-  private var mediaButtonPackages: Set<String> by mediaButtonPackagesProperty
-
-  override fun observeMediaButtonPackages(): StateFlow<Set<String>> =
+  override fun observeMediaButtonPackages(): Flow<Set<String>> =
     mediaButtonPackagesProperty.observe()
 
   override fun recordMediaButtonPackage(packageName: String) {
     if (packageName.isBlank()) return
-    val existing = mediaButtonPackages
-    if (packageName in existing) return
-    mediaButtonPackages = existing + packageName
+    mediaButtonPackagesProperty.update { it + packageName }
   }
 
   override fun clearMediaButtonPackages() {
-    mediaButtonPackages = emptySet()
+    mediaButtonPackagesProperty.set(emptySet())
   }
 
   private val fakeAppUpdateSignedInProperty = booleanSetting(KEY_FAKE_APP_UPDATE_SIGNED_IN, true)
-  override val fakeAppUpdateSignedIn: Boolean by fakeAppUpdateSignedInProperty
   override fun setFakeAppUpdateSignedIn(value: Boolean) = fakeAppUpdateSignedInProperty.set(value)
 
-  override fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean> =
+  override fun observeFakeAppUpdateSignedIn(): Flow<Boolean> =
     fakeAppUpdateSignedInProperty.observe()
 
   private val fakeAppUpdateAvailableProperty = booleanSetting(KEY_FAKE_APP_UPDATE_AVAILABLE, false)
-  override val fakeAppUpdateAvailable: Boolean by fakeAppUpdateAvailableProperty
   override fun setFakeAppUpdateAvailable(value: Boolean) = fakeAppUpdateAvailableProperty.set(value)
 
-  override fun observeFakeAppUpdateAvailable(): StateFlow<Boolean> =
+  override fun observeFakeAppUpdateAvailable(): Flow<Boolean> =
     fakeAppUpdateAvailableProperty.observe()
 
   private val fakeAppUpdateFailDownloadProperty = booleanSetting(KEY_FAKE_APP_UPDATE_FAIL_DOWNLOAD, false)
-  override val fakeAppUpdateFailDownload: Boolean by fakeAppUpdateFailDownloadProperty
   override fun setFakeAppUpdateFailDownload(value: Boolean) = fakeAppUpdateFailDownloadProperty.set(value)
 
-  override fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean> =
+  override fun observeFakeAppUpdateFailDownload(): Flow<Boolean> =
     fakeAppUpdateFailDownloadProperty.observe()
 }
 

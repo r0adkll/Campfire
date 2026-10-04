@@ -73,6 +73,8 @@ internal fun AboutPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val aboutSettings = state.aboutSettings ?: return@SettingPaneLayout
+
     fun sendEvent(event: SettingsUiEvent.AboutSettingEvent) {
       state.eventSink(event)
     }
@@ -100,7 +102,7 @@ internal fun AboutPane(
     )
 
     SwitchSetting(
-      value = state.aboutSettings.crashReportingEnabled,
+      value = aboutSettings.crashReportingEnabled,
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.CrashReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_crash_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_crash_reporting_subtitle)) },
@@ -108,7 +110,7 @@ internal fun AboutPane(
     )
 
     SwitchSetting(
-      value = state.aboutSettings.analyticReportingEnabled,
+      value = aboutSettings.analyticReportingEnabled,
       onValueChange = { sendEvent(SettingsUiEvent.AboutSettingEvent.AnalyticReportingEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.about_data_analytic_reporting_title)) },
       supportingContent = { Text(stringResource(Res.string.about_data_analytic_reporting_subtitle)) },
@@ -171,10 +173,10 @@ internal fun AboutPane(
       onClick = {
         versionClickCount++
         Unit
-      }.takeIf { !state.developerSettings.developerModeEnabled },
+      }.takeIf { state.developerSettings?.developerModeEnabled == false },
     )
 
-    if (state.aboutSettings.showAppUpdateSignIn) {
+    if (aboutSettings.showAppUpdateSignIn) {
       ActionSetting(
         leadingContent = { Icon(CampfireIcons.Rounded.Login, contentDescription = null) },
         headlineContent = { Text(stringResource(Res.string.about_app_update_sign_in_title)) },

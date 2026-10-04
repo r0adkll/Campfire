@@ -8,7 +8,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.UserId
 import app.campfire.settings.api.DeviceSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -16,27 +16,30 @@ import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<DeviceSettings>())
 @Inject
 class DeviceSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : DeviceSettings, AppSettings() {
 
   @OptIn(ExperimentalUuidApi::class)
-  override val deviceId: String by stringSetting(KEY_DEVICE_ID) { Uuid.random().toString() }
+  private val deviceIdProperty = stringSetting(KEY_DEVICE_ID) { Uuid.random().toString() }
+  override suspend fun deviceId(): String = deviceIdProperty.get()
 
-  override val analyticsId: String by stringSetting(KEY_ANALYTICS_ID) { Uuid.random().toString() }
+  @OptIn(ExperimentalUuidApi::class)
+  private val analyticsIdProperty = stringSetting(KEY_ANALYTICS_ID) { Uuid.random().toString() }
+  override suspend fun analyticsId(): String = analyticsIdProperty.get()
 
   private val currentUserIdProperty = stringOrNullSetting(KEY_CURRENT_USER_ID)
-  override val currentUserId: UserId? by currentUserIdProperty
   override fun setCurrentUserId(value: UserId?) = currentUserIdProperty.set(value)
-  override fun observeCurrentUserId(): StateFlow<UserId?> = currentUserIdProperty.observe()
+  override fun observeCurrentUserId(): Flow<UserId?> = currentUserIdProperty.observe()
 }
 
 internal const val KEY_DEVICE_ID = "pref_device_id"

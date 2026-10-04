@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 
 class MobileDataSettingsTest {
@@ -26,18 +27,20 @@ class MobileDataSettingsTest {
   }
 
   private fun settings(vararg initial: Pair<String, Any>) =
-    MobileDataSettingsImpl(MapSettings(initial.toMap().toMutableMap()), scope)
+    MobileDataSettingsImpl(MapSettings(initial.toMap().toMutableMap()), scope, Dispatchers.Unconfined)
 
   @Test
-  fun `defaults keep a home server off mobile data and allow downloads on it`() {
-    assertThat(settings().homeServerOnMobileData).isFalse()
-    assertThat(settings().downloadOnWifiOnly).isFalse()
+  fun `defaults keep a home server off mobile data and allow downloads on it`() = runTest {
+    assertThat(settings().observeHomeServerOnMobileData().first()).isFalse()
+    assertThat(settings().observeDownloadOnWifiOnly().first()).isFalse()
   }
 
   @Test
-  fun `the earlier switch carries over`() {
-    assertThat(settings(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA to false).homeServerOnMobileData).isTrue()
-    assertThat(settings(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA to true).homeServerOnMobileData).isFalse()
+  fun `the earlier switch carries over`() = runTest {
+    val skippedHomeServer = settings(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA to true)
+    val allowedHomeServer = settings(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA to false)
+    assertThat(allowedHomeServer.observeHomeServerOnMobileData().first()).isTrue()
+    assertThat(skippedHomeServer.observeHomeServerOnMobileData().first()).isFalse()
   }
 
   @Test

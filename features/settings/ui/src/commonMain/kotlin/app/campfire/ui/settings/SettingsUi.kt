@@ -165,7 +165,7 @@ private fun TwoPaneLayout(
       onPaneClick = onPaneClick,
       onConnectedProvidersClick = { state.eventSink(SettingsUiEvent.ConnectedProvidersClick) },
       onBackClick = { state.eventSink(SettingsUiEvent.Back) },
-      showDeveloperPane = state.developerSettings.developerModeEnabled,
+      showDeveloperPane = state.developerSettings?.developerModeEnabled == true,
       showAndroidAutoPane = state.isAndroidAutoPaneVisible,
       modifier = Modifier
         .padding(top = 16.dp)
@@ -223,7 +223,7 @@ private fun OnePaneLayout(
     onPaneClick = onPaneClick,
     onConnectedProvidersClick = { state.eventSink(SettingsUiEvent.ConnectedProvidersClick) },
     onBackClick = { state.eventSink(SettingsUiEvent.Back) },
-    showDeveloperPane = state.developerSettings.developerModeEnabled,
+    showDeveloperPane = state.developerSettings?.developerModeEnabled == true,
     showAndroidAutoPane = state.isAndroidAutoPaneVisible,
     modifier = modifier
       .systemBarsPadding()

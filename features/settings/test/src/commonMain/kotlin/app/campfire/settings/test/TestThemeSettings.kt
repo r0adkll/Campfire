@@ -16,30 +16,32 @@ import kotlinx.coroutines.flow.asStateFlow
 class TestThemeSettings : ThemeSettings {
 
   private val _dynamicallyThemeItemDetail = MutableStateFlow<Boolean>(false)
-  override val dynamicallyThemeItemDetail: Boolean get() = _dynamicallyThemeItemDetail.value
+  val dynamicallyThemeItemDetail: Boolean get() = _dynamicallyThemeItemDetail.value
   override fun setDynamicallyThemeItemDetail(value: Boolean) {
     _dynamicallyThemeItemDetail.value = value
   }
   override fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean> = _dynamicallyThemeItemDetail.asStateFlow()
 
   private val _dynamicallyThemePlayback = MutableStateFlow<Boolean>(false)
-  override val dynamicallyThemePlayback: Boolean get() = _dynamicallyThemePlayback.value
+  val dynamicallyThemePlayback: Boolean get() = _dynamicallyThemePlayback.value
   override fun setDynamicallyThemePlayback(value: Boolean) {
     _dynamicallyThemePlayback.value = value
   }
   override fun observeDynamicallyThemePlayback(): StateFlow<Boolean> = _dynamicallyThemePlayback.asStateFlow()
 
   private val _themeId = MutableStateFlow<ThemeKey>(ThemeKey.Tent)
-  override val themeId: ThemeKey get() = _themeId.value
+  val themeId: ThemeKey get() = _themeId.value
   override fun setThemeId(value: ThemeKey) {
     _themeId.value = value
   }
   override fun observeThemeId(): StateFlow<ThemeKey> = _themeId.asStateFlow()
 
   private val _themeMode = MutableStateFlow<ThemeMode>(ThemeMode.entries.first())
-  override val themeMode: ThemeMode get() = _themeMode.value
+  val themeMode: ThemeMode get() = _themeMode.value
   override fun setThemeMode(value: ThemeMode) {
     _themeMode.value = value
   }
   override fun observeTheme(): StateFlow<ThemeMode> = _themeMode.asStateFlow()
+
+  override fun lastThemeMode(): ThemeMode = themeMode
 }

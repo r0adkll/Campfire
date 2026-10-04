@@ -89,7 +89,9 @@ class PlaybackPresenter(
     val syncState = observeSyncState(currentSession, expanded)
     val themeState = observeThemeState(currentSession)
     val itemValidation = observeItemValidation(currentSession)
-    val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
+    val playbackHistoryEnabled by remember {
+      playbackSettings.observePlaybackHistoryEnabled()
+    }.collectAsState(PlaybackSettings.DEFAULT_PLAYBACK_HISTORY_ENABLED)
     val volumeState = observeVolumeState()
     val outputDeviceState = observeOutputDeviceState()
 
@@ -288,15 +290,15 @@ class PlaybackPresenter(
 
     val bookTimeEnabled by remember {
       playbackSettings.observeBookTimeInPlaybackUi()
-    }.collectAsState()
+    }.collectAsState(PlaybackSettings.DEFAULT_BOOK_TIME_IN_PLAYBACK_UI)
 
     val wavySliderEnabled by remember {
       playbackSettings.observePlaybackWavyScrubber()
-    }.collectAsState()
+    }.collectAsState(PlaybackSettings.DEFAULT_PLAYBACK_WAVY_SCRUBBER)
 
     val scrollingTitlesEnabled by remember {
       playbackSettings.observeScrollingTitles()
-    }.collectAsState()
+    }.collectAsState(PlaybackSettings.DEFAULT_SCROLLING_TITLES)
 
     // Until an audio player is prepared for this session (service cold start, resume
     // priming), derive the same display values from the session row the player would seed
@@ -411,7 +413,7 @@ class PlaybackPresenter(
 
     val syncEnabled by remember {
       playbackSettings.observeSyncEnabled()
-    }.collectAsState()
+    }.collectAsState(PlaybackSettings.DEFAULT_SYNC_ENABLED)
 
     val mediaProgress by remember(expanded) {
       snapshotFlow {
@@ -521,7 +523,7 @@ class PlaybackPresenter(
   ): ThemeUiState {
     val isDynamicThemingEnabled by remember {
       themeSettings.observeDynamicallyThemePlayback()
-    }.collectAsState()
+    }.collectAsState(ThemeSettings.DEFAULT_DYNAMICALLY_THEME_PLAYBACK)
 
     val theme by remember {
       snapshotFlow {

@@ -7,43 +7,40 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.AppStateSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<AppStateSettings>())
 @Inject
 class AppStateSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : AppStateSettings, AppSettings() {
 
   private val hasShownWidgetPinningProperty = booleanSetting(KEY_SHOW_WIDGET_PINNING, false)
-  override val hasShownWidgetPinning: Boolean by hasShownWidgetPinningProperty
   override fun setHasShownWidgetPinning(value: Boolean) = hasShownWidgetPinningProperty.set(value)
-  override fun observeHasShownWidgetPinning(): StateFlow<Boolean> = hasShownWidgetPinningProperty.observe()
+  override fun observeHasShownWidgetPinning(): Flow<Boolean> = hasShownWidgetPinningProperty.observe()
 
   private val lastSeenVersionProperty = stringOrNullSetting(KEY_LAST_SEEN_WHATS_NEW)
-  override val lastSeenVersion: String? by lastSeenVersionProperty
   override fun setLastSeenVersion(value: String?) = lastSeenVersionProperty.set(value)
-  override fun observeLastSeenVersion(): StateFlow<String?> = lastSeenVersionProperty.observe()
+  override fun observeLastSeenVersion(): Flow<String?> = lastSeenVersionProperty.observe()
 
   private val appUpdateSignInDismissedProperty = booleanSetting(KEY_APP_UPDATE_SIGN_IN_DISMISSED, false)
-  override val appUpdateSignInDismissed: Boolean by appUpdateSignInDismissedProperty
   override fun setAppUpdateSignInDismissed(value: Boolean) = appUpdateSignInDismissedProperty.set(value)
-  override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> = appUpdateSignInDismissedProperty.observe()
+  override fun observeAppUpdateSignInDismissed(): Flow<Boolean> = appUpdateSignInDismissedProperty.observe()
 
   private val appUpdateDismissedVersionCodeProperty = longSetting(KEY_APP_UPDATE_DISMISSED_VERSION_CODE, 0L)
-  override val appUpdateDismissedVersionCode: Long by appUpdateDismissedVersionCodeProperty
   override fun setAppUpdateDismissedVersionCode(value: Long) = appUpdateDismissedVersionCodeProperty.set(value)
-  override fun observeAppUpdateDismissedVersionCode(): StateFlow<Long> =
+  override fun observeAppUpdateDismissedVersionCode(): Flow<Long> =
     appUpdateDismissedVersionCodeProperty.observe()
 }
 

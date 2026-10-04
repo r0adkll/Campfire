@@ -14,28 +14,28 @@ import kotlinx.coroutines.flow.asStateFlow
 class TestAppStateSettings : AppStateSettings {
 
   private val _hasShownWidgetPinning = MutableStateFlow<Boolean>(false)
-  override val hasShownWidgetPinning: Boolean get() = _hasShownWidgetPinning.value
+  val hasShownWidgetPinning: Boolean get() = _hasShownWidgetPinning.value
   override fun setHasShownWidgetPinning(value: Boolean) {
     _hasShownWidgetPinning.value = value
   }
   override fun observeHasShownWidgetPinning(): StateFlow<Boolean> = _hasShownWidgetPinning.asStateFlow()
 
   private val _lastSeenVersion = MutableStateFlow<String?>(null)
-  override val lastSeenVersion: String? get() = _lastSeenVersion.value
+  val lastSeenVersion: String? get() = _lastSeenVersion.value
   override fun setLastSeenVersion(value: String?) {
     _lastSeenVersion.value = value
   }
   override fun observeLastSeenVersion(): StateFlow<String?> = _lastSeenVersion.asStateFlow()
 
   private val _appUpdateSignInDismissed = MutableStateFlow<Boolean>(false)
-  override val appUpdateSignInDismissed: Boolean get() = _appUpdateSignInDismissed.value
+  val appUpdateSignInDismissed: Boolean get() = _appUpdateSignInDismissed.value
   override fun setAppUpdateSignInDismissed(value: Boolean) {
     _appUpdateSignInDismissed.value = value
   }
   override fun observeAppUpdateSignInDismissed(): StateFlow<Boolean> = _appUpdateSignInDismissed.asStateFlow()
 
   private val _appUpdateDismissedVersionCode = MutableStateFlow<Long>(0L)
-  override val appUpdateDismissedVersionCode: Long get() = _appUpdateDismissedVersionCode.value
+  val appUpdateDismissedVersionCode: Long get() = _appUpdateDismissedVersionCode.value
   override fun setAppUpdateDismissedVersionCode(value: Long) {
     _appUpdateDismissedVersionCode.value = value
   }

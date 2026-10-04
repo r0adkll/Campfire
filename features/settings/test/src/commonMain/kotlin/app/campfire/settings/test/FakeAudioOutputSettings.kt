@@ -14,14 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 class FakeAudioOutputSettings(volume: Float = 1f) : AudioOutputSettings {
 
   private val _volume = MutableStateFlow<Float>(volume)
-  override val volume: Float get() = _volume.value
+  val volume: Float get() = _volume.value
   override fun setVolume(value: Float) {
     _volume.value = value
   }
   override fun observeVolume(): StateFlow<Float> = _volume.asStateFlow()
 
   private val _outputDeviceName = MutableStateFlow<String?>(null)
-  override val outputDeviceName: String? get() = _outputDeviceName.value
+  val outputDeviceName: String? get() = _outputDeviceName.value
   override fun setOutputDeviceName(value: String?) {
     _outputDeviceName.value = value
   }

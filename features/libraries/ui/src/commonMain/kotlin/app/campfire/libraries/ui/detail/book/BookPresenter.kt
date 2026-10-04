@@ -218,11 +218,11 @@ class BookPresenter(
 
     val showConfirmDownloadDialog by remember {
       libraryViewSettings.observeShowConfirmDownload()
-    }.collectAsState()
+    }.collectAsState(LibraryViewSettings.DEFAULT_SHOW_CONFIRM_DOWNLOAD)
 
     val showTimeInBook by remember {
       libraryViewSettings.observeShowTimeInBook()
-    }.collectAsState()
+    }.collectAsState(LibraryViewSettings.DEFAULT_SHOW_TIME_IN_BOOK)
 
     var collapseListenedChapters by remember { mutableStateOf(true) }
 

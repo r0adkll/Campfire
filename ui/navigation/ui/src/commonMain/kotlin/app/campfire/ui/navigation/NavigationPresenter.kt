@@ -81,7 +81,7 @@ class NavigationPresenter(
     val items = primaryNavigationItems() + secondaryNavigationItems()
     val expanded by remember {
       layoutSettings.observeWideNavigationRailExpanded()
-    }.collectAsState()
+    }.collectAsState(null)
 
     return WideNavigationRailUiState(
       navigationItems = items,
@@ -89,7 +89,7 @@ class NavigationPresenter(
     ) { event ->
       when (event) {
         WideNavigationRailUiEvent.ToggleExpanded -> {
-          layoutSettings.setWideNavigationRailExpanded(!expanded)
+          expanded?.let { layoutSettings.setWideNavigationRailExpanded(!it) }
         }
       }
     }
@@ -108,7 +108,7 @@ class NavigationPresenter(
 
     val themeMode by remember {
       themeSettings.observeTheme()
-    }.collectAsState()
+    }.collectAsState(remember { themeSettings.lastThemeMode() })
 
     return DrawerUiState(
       themeMode = themeMode,

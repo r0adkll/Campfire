@@ -3,7 +3,7 @@
 
 package app.campfire.settings.api
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * How the app drives its own audio output, on platforms that let it. Only desktop does today —
@@ -21,9 +21,8 @@ interface AudioOutputSettings {
    * because hearing is logarithmic; the mapping lives with the player. Storing the position
    * means the curve can change without migrating what users have saved.
    */
-  val volume: Float
   fun setVolume(value: Float)
-  fun observeVolume(): StateFlow<Float>
+  fun observeVolume(): Flow<Float>
 
   /**
    * The name of the output device playback is pinned to, or null to follow the system default.
@@ -31,7 +30,10 @@ interface AudioOutputSettings {
    * A name rather than an identifier because Java Sound offers nothing else durable, and the pin
    * is kept even when that device is absent so replugging it restores the choice.
    */
-  val outputDeviceName: String?
   fun setOutputDeviceName(value: String?)
-  fun observeOutputDeviceName(): StateFlow<String?>
+  fun observeOutputDeviceName(): Flow<String?>
+
+  companion object {
+    const val DEFAULT_VOLUME: Float = 1f
+  }
 }

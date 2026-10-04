@@ -20,13 +20,15 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 
 class ResumeRewindTierTest {
 
   private val settingsScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
   @Test
-  fun `tiers span from minRewind to maxRewind and increase monotonically`() {
+  fun `tiers span from minRewind to maxRewind and increase monotonically`() = runTest {
     val config = ResumeRewindConfig(
       minPauseThreshold = 5.seconds,
       minRewind = 5.seconds,
@@ -61,9 +63,9 @@ class ResumeRewindTierTest {
   }
 
   @Test
-  fun `resumeRewindConfig defaults and round-trips through storage`() {
+  fun `resumeRewindConfig defaults and round-trips through storage`() = runTest {
     val settings = playbackSettings()
-    assertThat(settings.resumeRewindConfig).isEqualTo(ResumeRewindConfig.Default)
+    assertThat(settings.observeResumeRewindConfig().first()).isEqualTo(ResumeRewindConfig.Default)
 
     val custom = ResumeRewindConfig(
       minPauseThreshold = 2.seconds,
@@ -71,22 +73,22 @@ class ResumeRewindTierTest {
       maxRewind = 90.seconds,
     )
     settings.setResumeRewindConfig(custom)
-    assertThat(settings.resumeRewindConfig).isEqualTo(custom)
+    assertThat(settings.observeResumeRewindConfig().first()).isEqualTo(custom)
   }
 
   @Test
-  fun `pendingResumeRewind round-trips and can be cleared`() {
+  fun `pendingResumeRewind round-trips and can be cleared`() = runTest {
     val settings = playbackSettings()
-    assertThat(settings.pendingResumeRewind).isNull()
+    assertThat(settings.observePendingResumeRewind().first()).isNull()
 
     val pending = PendingResumeRewind(pausedAtEpochMillis = 1_700_000_000_000L, libraryItemId = "li_abc123")
     settings.setPendingResumeRewind(pending)
-    assertThat(settings.pendingResumeRewind).isEqualTo(pending)
+    assertThat(settings.observePendingResumeRewind().first()).isEqualTo(pending)
 
     settings.setPendingResumeRewind(null)
-    assertThat(settings.pendingResumeRewind).isNull()
+    assertThat(settings.observePendingResumeRewind().first()).isNull()
   }
 
   private fun playbackSettings(): PlaybackSettingsImpl =
-    PlaybackSettingsImpl(MapSettings(), settingsScope)
+    PlaybackSettingsImpl(MapSettings(), settingsScope, Dispatchers.Unconfined)
 }

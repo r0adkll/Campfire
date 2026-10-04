@@ -267,7 +267,7 @@ private fun InactiveTimerSheetContent(
 
     val shakeToReset by remember {
       component.sleepSettings.observeShakeToResetEnabled()
-    }.collectAsState()
+    }.collectAsState(SleepSettings.DEFAULT_SHAKE_TO_RESET_ENABLED)
 
     AnimatedContent(
       targetState = isEpochTimeSelection,
@@ -647,7 +647,7 @@ fun TimerBottomSheetV2Preview() {
         },
         component = object : SleepTimerBottomSheetComponent {
           override val sleepSettings: SleepSettings = object : SleepSettings {
-            override val lastSetSleepTimer: Duration
+            val lastSetSleepTimer: Duration
               get() = mutableLastSetSleepTimer.value
             override fun setLastSetSleepTimer(value: Duration) {
               mutableLastSetSleepTimer.value = value
@@ -659,7 +659,7 @@ fun TimerBottomSheetV2Preview() {
             }
 
             val mutableShakeToReset = MutableStateFlow(true)
-            override val shakeToResetEnabled: Boolean
+            val shakeToResetEnabled: Boolean
               get() = mutableShakeToReset.value
             override fun setShakeToResetEnabled(value: Boolean) {
               mutableShakeToReset.value = value
@@ -669,7 +669,7 @@ fun TimerBottomSheetV2Preview() {
               return mutableShakeToReset
             }
 
-            override val shakeSensitivity: SleepSettings.ShakeSensitivity
+            val shakeSensitivity: SleepSettings.ShakeSensitivity
               get() = TODO("Not yet implemented")
             override fun setShakeSensitivity(value: SleepSettings.ShakeSensitivity) = Unit
 
@@ -677,7 +677,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoSleepTimerEnabled: Boolean
+            val autoSleepTimerEnabled: Boolean
               get() = TODO("Not yet implemented")
             override fun setAutoSleepTimerEnabled(value: Boolean) = Unit
 
@@ -685,7 +685,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoSleepStart: LocalTime
+            val autoSleepStart: LocalTime
               get() = TODO("Not yet implemented")
             override fun setAutoSleepStart(value: LocalTime) = Unit
 
@@ -693,7 +693,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoSleepEnd: LocalTime
+            val autoSleepEnd: LocalTime
               get() = TODO("Not yet implemented")
             override fun setAutoSleepEnd(value: LocalTime) = Unit
 
@@ -701,7 +701,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoSleepTimer: SleepSettings.AutoSleepTimer
+            val autoSleepTimer: SleepSettings.AutoSleepTimer
               get() = TODO("Not yet implemented")
             override fun setAutoSleepTimer(value: SleepSettings.AutoSleepTimer) = Unit
 
@@ -709,7 +709,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoRewindEnabled: Boolean
+            val autoRewindEnabled: Boolean
               get() = TODO("Not yet implemented")
             override fun setAutoRewindEnabled(value: Boolean) = Unit
 
@@ -717,7 +717,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val autoRewindAmount: Duration
+            val autoRewindAmount: Duration
               get() = TODO("Not yet implemented")
             override fun setAutoRewindAmount(value: Duration) = Unit
 
@@ -725,7 +725,7 @@ fun TimerBottomSheetV2Preview() {
               TODO("Not yet implemented")
             }
 
-            override val fadeOutDuration: Duration
+            val fadeOutDuration: Duration
               get() = TODO("Not yet implemented")
             override fun setFadeOutDuration(value: Duration) = Unit
 

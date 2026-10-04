@@ -8,13 +8,17 @@ import app.campfire.audioplayer.AudioOutputController
 import app.campfire.audioplayer.impl.engine.DesktopAudioEngineProvider
 import app.campfire.audioplayer.impl.engine.DesktopEngineSelection
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.AudioOutputSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 
 /**
  * Desktop's app-level volume.
@@ -33,6 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class DesktopAudioOutputController(
   private val settings: AudioOutputSettings,
   private val engineProviders: Set<DesktopAudioEngineProvider>,
+  @ForScope(AppScope::class) scope: CoroutineScope,
 ) : AudioOutputController {
 
   /** The engine that will actually play, so the picker reflects what it can reach. */
@@ -42,6 +47,7 @@ class DesktopAudioOutputController(
   override val isSupported: Boolean = true
 
   override val volume: StateFlow<Float> = settings.observeVolume()
+    .stateIn(scope, SharingStarted.Eagerly, AudioOutputSettings.DEFAULT_VOLUME)
 
   private val _isMuted = MutableStateFlow(false)
   override val isMuted: StateFlow<Boolean> = _isMuted.asStateFlow()
@@ -65,6 +71,7 @@ class DesktopAudioOutputController(
   override val availableDevices: StateFlow<List<AudioDevice>> = _availableDevices.asStateFlow()
 
   override val selectedDeviceName: StateFlow<String?> = settings.observeOutputDeviceName()
+    .stateIn(scope, SharingStarted.Eagerly, null)
 
   override fun selectDevice(device: AudioDevice?) {
     settings.setOutputDeviceName(device?.name)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridItemScope
@@ -36,6 +37,7 @@ import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.ItemCollectionCard
 import app.campfire.common.compose.widgets.ItemCollectionGridCard
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.SeriesScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
@@ -86,13 +88,21 @@ fun Series(
     modifier = modifier.nestedScroll(appBarBehavior.nestedScrollConnection),
     contentWindowInsets = CampfireWindowInsets.exclude(OverlappedNavigationBarInsets),
   ) { paddingValues ->
+    val sortMode = state.sortMode
+    val sortDirection = state.sortDirection
+    val displayState = state.displayState
+    if (sortMode == null || sortDirection == null || displayState == null) {
+      LoadingListState(Modifier.padding(paddingValues))
+      return@Scaffold
+    }
+
     LoadedState(
       totalCount = state.totalCount,
       lazyPagingItems = state.lazyPagingItems,
       filter = state.filter,
-      sortMode = state.sortMode,
-      sortDirection = state.sortDirection,
-      displayState = state.displayState,
+      sortMode = sortMode,
+      sortDirection = sortDirection,
+      displayState = displayState,
       onSeriesClick = { state.eventSink(SeriesUiEvent.SeriesClicked(it)) },
       onFilterClick = {
         scope.launch {
@@ -110,8 +120,8 @@ fun Series(
         scope.launch {
           val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
             overlayHost = overlayHost,
-            current = state.sortMode,
-            currentDirection = state.sortDirection,
+            current = sortMode,
+            currentDirection = sortDirection,
             config = SeriesSortModes,
           )
           if (updatedSortMode != null) {

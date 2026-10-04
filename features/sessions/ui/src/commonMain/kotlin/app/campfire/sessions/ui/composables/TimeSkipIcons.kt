@@ -39,7 +39,7 @@ internal fun ForwardIcon(
 ) {
   val forwardTimeMs by component.playbackSettings
     .observeForwardTimeMs()
-    .collectAsState()
+    .collectAsState(PlaybackSettings.DefaultForwardTime.inWholeMilliseconds)
 
   Icon(
     forwardTimeMs.asForwardImageVector(),
@@ -62,7 +62,7 @@ internal fun RewindIcon(
 ) {
   val backwardTimeMs by component.playbackSettings
     .observeBackwardTimeMs()
-    .collectAsState()
+    .collectAsState(PlaybackSettings.DefaultBackwardTime.inWholeMilliseconds)
 
   Icon(
     backwardTimeMs.asReplayImageVector(),

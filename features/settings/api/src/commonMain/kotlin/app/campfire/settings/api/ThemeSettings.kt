@@ -3,23 +3,30 @@
 
 package app.campfire.settings.api
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface ThemeSettings {
 
-  val dynamicallyThemeItemDetail: Boolean
   fun setDynamicallyThemeItemDetail(value: Boolean)
-  fun observeDynamicallyThemeItemDetail(): StateFlow<Boolean>
+  fun observeDynamicallyThemeItemDetail(): Flow<Boolean>
 
-  val dynamicallyThemePlayback: Boolean
   fun setDynamicallyThemePlayback(value: Boolean)
-  fun observeDynamicallyThemePlayback(): StateFlow<Boolean>
+  fun observeDynamicallyThemePlayback(): Flow<Boolean>
 
-  val themeId: ThemeKey
-  fun observeThemeId(): StateFlow<ThemeKey>
+  fun observeThemeId(): Flow<ThemeKey>
   fun setThemeId(value: ThemeKey)
 
-  val themeMode: ThemeMode
   fun setThemeMode(value: ThemeMode)
-  fun observeTheme(): StateFlow<ThemeMode>
+  fun observeTheme(): Flow<ThemeMode>
+
+  /**
+   * The stored theme mode, read without waiting so the app's first frame is drawn in it. Use
+   * [observeTheme] everywhere else.
+   */
+  fun lastThemeMode(): ThemeMode
+
+  companion object {
+    const val DEFAULT_DYNAMICALLY_THEME_ITEM_DETAIL: Boolean = true
+    const val DEFAULT_DYNAMICALLY_THEME_PLAYBACK: Boolean = true
+  }
 }

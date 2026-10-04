@@ -78,7 +78,7 @@ class LibraryItemPresenter(
 
     val isDynamicThemingEnabled by remember {
       themeSettings.observeDynamicallyThemeItemDetail()
-    }.collectAsState()
+    }.collectAsState(ThemeSettings.DEFAULT_DYNAMICALLY_THEME_ITEM_DETAIL)
 
     val theme by remember(isDynamicThemingEnabled) {
       if (!isDynamicThemingEnabled) {

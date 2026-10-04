@@ -87,7 +87,9 @@ internal fun AndroidAutoPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
-    if (!state.androidAutoSettings.isAndroidAutoAvailable) {
+    val androidAutoSettings = state.androidAutoSettings ?: return@SettingPaneLayout
+
+    if (!androidAutoSettings.isAndroidAutoAvailable) {
       UnavailableWarningCard()
     }
 
@@ -111,7 +113,7 @@ internal fun AndroidAutoPane(
     Spacer(Modifier.height(8.dp))
 
     val haptics = LocalHapticFeedback.current
-    val categories = state.androidAutoSettings.categories
+    val categories = androidAutoSettings.categories
     ReorderableColumn(
       list = categories,
       onSettle = { from, to ->

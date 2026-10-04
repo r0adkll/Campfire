@@ -52,7 +52,7 @@ class CollectionsPresenter(
 
     val displayState by remember {
       libraryViewSettings.observeCollectionsDisplayState()
-    }.collectAsState()
+    }.collectAsState(null)
 
     return CollectionsUiState(
       collectionContentState = collectionContentState,
@@ -75,7 +75,7 @@ class CollectionsPresenter(
 
         CollectionsUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("collections_display_state", "toggle"))
-          libraryViewSettings.setCollectionsDisplayState(displayState.next())
+          displayState?.next()?.let(libraryViewSettings::setCollectionsDisplayState)
         }
 
         is CollectionsUiEvent.CollectionClick -> {

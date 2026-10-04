@@ -7,33 +7,32 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.LayoutSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<LayoutSettings>())
 @Inject
 class LayoutSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : LayoutSettings, AppSettings() {
 
   private val wideNavigationRailExpandedProperty = booleanSetting(KEY_WIDE_NAVIGATION_RAIL_EXPANDED, true)
-  override val wideNavigationRailExpanded: Boolean by wideNavigationRailExpandedProperty
   override fun setWideNavigationRailExpanded(value: Boolean) = wideNavigationRailExpandedProperty.set(value)
-  override fun observeWideNavigationRailExpanded(): StateFlow<Boolean> = wideNavigationRailExpandedProperty.observe()
+  override fun observeWideNavigationRailExpanded(): Flow<Boolean> = wideNavigationRailExpandedProperty.observe()
 
   private val supportingPaneWidthProperty = floatSetting(KEY_SUPPORTING_PANE_WIDTH, 0f)
-  override val supportingPaneWidth: Float by supportingPaneWidthProperty
   override fun setSupportingPaneWidth(value: Float) = supportingPaneWidthProperty.set(value)
-  override fun observeSupportingPaneWidth(): StateFlow<Float> = supportingPaneWidthProperty.observe()
+  override fun observeSupportingPaneWidth(): Flow<Float> = supportingPaneWidthProperty.observe()
 }
 
 internal const val KEY_WIDE_NAVIGATION_RAIL_EXPANDED = "pref_wide_navigation_rail_expanded"

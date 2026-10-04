@@ -7,62 +7,55 @@ import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
 import app.campfire.core.settings.ItemDisplayState
 import app.campfire.core.settings.SortDirection
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * How library content is sorted, laid out and presented.
  */
 interface LibraryViewSettings {
 
-  val libraryItemDisplayState: ItemDisplayState
   fun setLibraryItemDisplayState(value: ItemDisplayState)
-  fun observeLibraryItemDisplayState(): StateFlow<ItemDisplayState>
+  fun observeLibraryItemDisplayState(): Flow<ItemDisplayState>
 
-  val libraryItemMarqueeEnabled: Boolean
   fun setLibraryItemMarqueeEnabled(value: Boolean)
-  fun observeLibraryItemMarqueeEnabled(): StateFlow<Boolean>
+  fun observeLibraryItemMarqueeEnabled(): Flow<Boolean>
 
-  val librarySortMode: ContentSortMode
   fun setLibrarySortMode(value: ContentSortMode)
-  fun observeLibrarySortMode(): StateFlow<ContentSortMode>
+  fun observeLibrarySortMode(): Flow<ContentSortMode>
 
-  val librarySortDirection: SortDirection
   fun setLibrarySortDirection(value: SortDirection)
-  fun observeLibrarySortDirection(): StateFlow<SortDirection>
+  fun observeLibrarySortDirection(): Flow<SortDirection>
 
-  val authorsSortMode: ContentSortMode
   fun setAuthorsSortMode(value: ContentSortMode)
-  fun observeAuthorsSortMode(): StateFlow<ContentSortMode>
+  fun observeAuthorsSortMode(): Flow<ContentSortMode>
 
-  val authorsSortDirection: SortDirection
   fun setAuthorsSortDirection(value: SortDirection)
-  fun observeAuthorsSortDirection(): StateFlow<SortDirection>
+  fun observeAuthorsSortDirection(): Flow<SortDirection>
 
-  val seriesSortMode: ContentSortMode
   fun setSeriesSortMode(value: ContentSortMode)
-  fun observeSeriesSortMode(): StateFlow<ContentSortMode>
+  fun observeSeriesSortMode(): Flow<ContentSortMode>
 
-  val seriesSortDirection: SortDirection
   fun setSeriesSortDirection(value: SortDirection)
-  fun observeSeriesSortDirection(): StateFlow<SortDirection>
+  fun observeSeriesSortDirection(): Flow<SortDirection>
 
-  val seriesDisplayState: GroupDisplayState
   fun setSeriesDisplayState(value: GroupDisplayState)
-  fun observeSeriesDisplayState(): StateFlow<GroupDisplayState>
+  fun observeSeriesDisplayState(): Flow<GroupDisplayState>
 
-  val collectionsDisplayState: GroupDisplayState
   fun setCollectionsDisplayState(value: GroupDisplayState)
-  fun observeCollectionsDisplayState(): StateFlow<GroupDisplayState>
+  fun observeCollectionsDisplayState(): Flow<GroupDisplayState>
 
-  val playlistsDisplayState: GroupDisplayState
   fun setPlaylistsDisplayState(value: GroupDisplayState)
-  fun observePlaylistsDisplayState(): StateFlow<GroupDisplayState>
+  fun observePlaylistsDisplayState(): Flow<GroupDisplayState>
 
-  val showConfirmDownload: Boolean
   fun setShowConfirmDownload(value: Boolean)
-  fun observeShowConfirmDownload(): StateFlow<Boolean>
+  fun observeShowConfirmDownload(): Flow<Boolean>
 
-  val showTimeInBook: Boolean
   fun setShowTimeInBook(value: Boolean)
-  fun observeShowTimeInBook(): StateFlow<Boolean>
+  fun observeShowTimeInBook(): Flow<Boolean>
+
+  companion object {
+    const val DEFAULT_ITEM_MARQUEE_ENABLED: Boolean = true
+    const val DEFAULT_SHOW_CONFIRM_DOWNLOAD: Boolean = true
+    const val DEFAULT_SHOW_TIME_IN_BOOK: Boolean = true
+  }
 }

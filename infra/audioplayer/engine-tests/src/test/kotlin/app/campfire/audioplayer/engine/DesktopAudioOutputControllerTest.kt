@@ -13,6 +13,8 @@ import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
 import kotlin.test.assertTrue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
 /**
  * The controller against the engine that actually ships, so the wiring from provider through to
@@ -25,6 +27,7 @@ class DesktopAudioOutputControllerTest {
   private val controller = DesktopAudioOutputController(
     settings = settings,
     engineProviders = setOf(FfmpegEngineProvider()),
+    scope = CoroutineScope(Dispatchers.Unconfined),
   )
 
   @Test

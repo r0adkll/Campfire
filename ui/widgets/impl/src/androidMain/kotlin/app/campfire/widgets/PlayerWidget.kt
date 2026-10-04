@@ -196,8 +196,8 @@ class PlayerWidget : GlanceAppWidget() {
     }.collectAsState()
 
     val lastSetSleepTimer by remember(component) {
-      component?.sleepSettings?.observeLastSetSleepTimer() ?: MutableStateFlow(Duration.ZERO)
-    }.collectAsState()
+      component?.sleepSettings?.observeLastSetSleepTimer() ?: flowOf(Duration.ZERO)
+    }.collectAsState(SleepSettings.DefaultLastSetSleepTimer)
 
     val runningTimer by remember(audioPlayer) {
       audioPlayer?.runningTimer ?: MutableStateFlow(null)

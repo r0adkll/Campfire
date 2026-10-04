@@ -10,7 +10,8 @@ import com.slack.circuit.runtime.CircuitUiState
 @Stable
 data class WideNavigationRailUiState(
   val navigationItems: List<HomeNavigationItem>,
-  val expanded: Boolean,
+  /** Null until the stored choice has been read. */
+  val expanded: Boolean?,
   val eventSink: (WideNavigationRailUiEvent) -> Unit,
 ) : CircuitUiState
 

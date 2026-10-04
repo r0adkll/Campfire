@@ -4,24 +4,19 @@
 package app.campfire.settings.api
 
 import app.campfire.core.model.UserId
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Identity that belongs to this install on this device.
  */
 interface DeviceSettings {
 
-  val deviceId: String
-
   /** This device's id, created the first time it's asked for. */
-  suspend fun deviceId(): String = deviceId
-
-  val analyticsId: String
+  suspend fun deviceId(): String
 
   /** This install's analytics id, created the first time it's asked for. */
-  suspend fun analyticsId(): String = analyticsId
+  suspend fun analyticsId(): String
 
-  val currentUserId: UserId?
   fun setCurrentUserId(value: UserId?)
-  fun observeCurrentUserId(): StateFlow<UserId?>
+  fun observeCurrentUserId(): Flow<UserId?>
 }

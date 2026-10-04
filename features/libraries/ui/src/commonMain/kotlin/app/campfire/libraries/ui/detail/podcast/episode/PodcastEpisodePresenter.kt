@@ -137,7 +137,7 @@ class PodcastEpisodePresenter(
 
     val showConfirmDownloadDialog by remember {
       libraryViewSettings.observeShowConfirmDownload()
-    }.collectAsState()
+    }.collectAsState(LibraryViewSettings.DEFAULT_SHOW_CONFIRM_DOWNLOAD)
 
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()

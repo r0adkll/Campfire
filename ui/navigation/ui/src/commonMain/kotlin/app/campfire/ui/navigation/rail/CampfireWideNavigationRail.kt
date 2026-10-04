@@ -80,11 +80,13 @@ fun CampfireWideNavigationRailContent(
   accountContent: @Composable WideNavigationRailHeaderScope.() -> Unit,
   modifier: Modifier = Modifier,
 ) {
+  // Start the rail in the stored state rather than animating to it from a default
+  val storedExpanded = state.expanded ?: return
   val railState = rememberWideNavigationRailState(
-    initialValue = if (state.expanded) WideNavigationRailValue.Expanded else WideNavigationRailValue.Collapsed,
+    initialValue = if (storedExpanded) WideNavigationRailValue.Expanded else WideNavigationRailValue.Collapsed,
   )
-  LaunchedEffect(state.expanded) {
-    if (state.expanded) railState.expand() else railState.collapse()
+  LaunchedEffect(storedExpanded) {
+    if (storedExpanded) railState.expand() else railState.collapse()
   }
   val expanded = railState.targetValue == WideNavigationRailValue.Expanded
 

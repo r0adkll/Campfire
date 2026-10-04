@@ -4,7 +4,7 @@
 package app.campfire.settings.api
 
 import app.campfire.core.model.MediaType
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Stable, platform-agnostic identifiers for top-level categories shown in Android Auto.
@@ -52,7 +52,7 @@ interface AndroidAutoSettings {
    * Order, visibility, and grid-layout overrides are merged into this single view.
    * New categories introduced in future app versions appear at the tail with default values.
    */
-  fun observeCategoryConfigs(): StateFlow<List<AndroidAutoCategoryConfig>>
+  fun observeCategoryConfigs(): Flow<List<AndroidAutoCategoryConfig>>
 
   fun setCategoryVisible(category: AndroidAutoCategory, visible: Boolean)
 

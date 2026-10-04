@@ -5,249 +5,162 @@ package app.campfire.settings.store
 
 import app.campfire.core.settings.EnumSetting
 import app.campfire.core.settings.EnumSettingProvider
-import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
-import com.russhwolf.settings.coroutines.getBooleanFlow
-import com.russhwolf.settings.coroutines.getDoubleFlow
-import com.russhwolf.settings.coroutines.getFloatFlow
-import com.russhwolf.settings.coroutines.getLongFlow
-import com.russhwolf.settings.coroutines.getStringFlow
-import com.russhwolf.settings.coroutines.getStringOrNullFlow
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
+import com.russhwolf.settings.SettingsListener
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
-@OptIn(ExperimentalSettingsApi::class)
+/**
+ * Base for the settings implementations: declares typed properties over [settings].
+ *
+ * Every read and write runs on [dispatcher], which runs one task at a time in the order they were
+ * submitted. Writes are fire-and-forget, launched in [scope], and a read submitted after a write
+ * always sees it.
+ */
 abstract class AppSettings {
   abstract val scope: CoroutineScope
   abstract val settings: ObservableSettings
+  abstract val dispatcher: CoroutineDispatcher
 
-  fun booleanSetting(key: String, defaultValue: Boolean = false) = object : SettingsProperty<Boolean> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Boolean {
-      return settings.getBoolean(key, defaultValue)
-    }
-
-    override fun set(value: Boolean) {
-      settings.putBoolean(key, value)
-    }
-
-    override fun observe(): StateFlow<Boolean> {
-      return settings.getBooleanFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getBoolean(key, defaultValue))
-    }
+  /** Run [block] after every write submitted before it, without waiting for it. */
+  protected fun edit(block: () -> Unit) {
+    scope.launch(dispatcher) { block() }
   }
 
-  fun longSetting(key: String, defaultValue: Long = 0L) = object : SettingsProperty<Long> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Long {
-      return settings.getLong(key, defaultValue)
-    }
+  fun booleanSetting(key: String, defaultValue: Boolean = false) = setting(
+    key = key,
+    read = { getBoolean(key, defaultValue) },
+    write = { putBoolean(key, it) },
+    listen = { onChange -> addBooleanOrNullListener(key) { onChange() } },
+  )
 
-    override fun set(value: Long) {
-      settings.putLong(key, value)
-    }
+  fun longSetting(key: String, defaultValue: Long = 0L) = setting(
+    key = key,
+    read = { getLong(key, defaultValue) },
+    write = { putLong(key, it) },
+    listen = { onChange -> addLongOrNullListener(key) { onChange() } },
+  )
 
-    override fun observe(): StateFlow<Long> {
-      return settings.getLongFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getLong(key, defaultValue))
-    }
-  }
+  fun floatSetting(key: String, defaultValue: Float = 0f) = setting(
+    key = key,
+    read = { getFloat(key, defaultValue) },
+    write = { putFloat(key, it) },
+    listen = { onChange -> addFloatOrNullListener(key) { onChange() } },
+  )
 
-  fun floatSetting(key: String, defaultValue: Float = 0f) = object : SettingsProperty<Float> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Float {
-      return settings.getFloat(key, defaultValue)
-    }
+  fun durationSetting(key: String, defaultValue: Duration) = setting(
+    key = key,
+    read = { getDoubleOrNull(key)?.seconds ?: defaultValue },
+    write = { putDouble(key, it.toDouble(DurationUnit.SECONDS)) },
+    listen = { onChange -> addDoubleOrNullListener(key) { onChange() } },
+  )
 
-    override fun set(value: Float) {
-      settings.putFloat(key, value)
-    }
+  fun stringSetting(key: String, defaultValue: String = "") = setting(
+    key = key,
+    read = { getString(key, defaultValue) },
+    write = { putString(key, it) },
+  )
 
-    override fun observe(): StateFlow<Float> {
-      return settings.getFloatFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getFloat(key, defaultValue))
-    }
-  }
+  /** A string created by [initializer] and stored the first time it's read. */
+  fun stringSetting(key: String, initializer: () -> String) = setting(
+    key = key,
+    read = { getStringOrNull(key) ?: initializer().also { putString(key, it) } },
+    write = { putString(key, it) },
+  )
 
-  fun durationSetting(key: String, defaultValue: Duration) = object : SettingsProperty<Duration> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): Duration {
-      return settings.getDoubleOrNull(key)?.seconds ?: defaultValue
-    }
+  fun stringOrNullSetting(key: String) = setting(
+    key = key,
+    read = { getStringOrNull(key) },
+    write = { if (it == null) remove(key) else putString(key, it) },
+  )
 
-    override fun set(value: Duration) {
-      settings.putDouble(key, value.toDouble(DurationUnit.SECONDS))
-    }
+  fun localTimeSetting(key: String, defaultValue: LocalTime) = customSetting(
+    key = key,
+    defaultValue = defaultValue,
+    getter = { LocalTime.parse(it) },
+    setter = { it.toString() },
+  )
 
-    override fun observe(): StateFlow<Duration> {
-      val currentValue = settings.getDoubleOrNull(key)?.seconds ?: defaultValue
-      return settings.getDoubleFlow(key, defaultValue.toDouble(DurationUnit.SECONDS))
-        .map { it.seconds }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
-    }
-  }
-
-  fun stringSetting(key: String, defaultValue: String = "") = object : SettingsProperty<String> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): String {
-      return settings.getString(key, defaultValue)
-    }
-
-    override fun set(value: String) {
-      settings.putString(key, value)
-    }
-
-    override fun observe(): StateFlow<String> {
-      return settings.getStringFlow(key, defaultValue)
-        .stateIn(scope, SharingStarted.Lazily, settings.getString(key, defaultValue))
-    }
-  }
-
-  fun stringSetting(key: String, initializer: () -> String) = object : SettingsProperty<String> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): String {
-      if (!settings.hasKey(key)) {
-        settings.putString(key, initializer())
-      }
-      return settings.getStringOrNull(key)
-        ?: throw IllegalStateException("This value should have been initialized")
-    }
-
-    override fun set(value: String) {
-      settings.putString(key, value)
-    }
-
-    override fun observe(): StateFlow<String> {
-      val defaultValue = if (!settings.hasKey(key)) {
-        val value = initializer()
-        settings.putString(key, value)
-        value
-      } else {
-        settings.getStringOrNull(key)!!
-      }
-      return settings.getStringOrNullFlow(key)
-        .filterNotNull()
-        .stateIn(scope, SharingStarted.Lazily, defaultValue)
-    }
-  }
-
-  fun stringOrNullSetting(key: String) = object : SettingsProperty<String?> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): String? {
-      return settings.getStringOrNull(key)
-    }
-
-    override fun set(value: String?) {
-      if (value == null) {
-        settings.remove(key)
-      } else {
-        settings.putString(key, value)
-      }
-    }
-
-    override fun observe(): StateFlow<String?> {
-      return settings.getStringOrNullFlow(key)
-        .stateIn(scope, SharingStarted.Lazily, settings.getStringOrNull(key))
-    }
-  }
-
-  fun localTimeSetting(
-    key: String,
-    defaultValue: LocalTime,
-  ) = object : SettingsProperty<LocalTime> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): LocalTime {
-      return settings.getStringOrNull(key)
-        ?.let { LocalTime.parse(it) }
-        ?: defaultValue
-    }
-
-    override fun set(value: LocalTime) {
-      settings.putString(key, value.toString())
-    }
-
-    override fun observe(): StateFlow<LocalTime> {
-      val currentValue = settings.getStringOrNull(key)?.let { LocalTime.parse(it) } ?: defaultValue
-      return settings.getStringOrNullFlow(key)
-        .map { raw -> raw?.let { LocalTime.parse(it) } ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
-    }
-  }
-
-  fun localDateTimeSetting(
-    key: String,
-    defaultValue: LocalDateTime,
-  ) = object : SettingsProperty<LocalDateTime> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): LocalDateTime {
-      return settings.getStringOrNull(key)
-        ?.let { LocalDateTime.parse(it) }
-        ?: defaultValue
-    }
-
-    override fun set(value: LocalDateTime) {
-      settings.putString(key, value.toString())
-    }
-
-    override fun observe(): StateFlow<LocalDateTime> {
-      val currentValue = settings.getStringOrNull(key)?.let { LocalDateTime.parse(it) } ?: defaultValue
-      return settings.getStringOrNullFlow(key)
-        .map { raw -> raw?.let { LocalDateTime.parse(it) } ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
-    }
-  }
+  fun localDateTimeSetting(key: String, defaultValue: LocalDateTime) = customSetting(
+    key = key,
+    defaultValue = defaultValue,
+    getter = { LocalDateTime.parse(it) },
+    setter = { it.toString() },
+  )
 
   inline fun <reified T> enumSetting(
     key: String,
     provider: EnumSettingProvider<T>,
-  ) where T : Enum<T>, T : EnumSetting = object : SettingsProperty<T> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): T {
-      return settings.getStringOrNull(key).let { storageKey ->
-        provider.fromStorageKey(storageKey)
-      }
-    }
+  ) where T : Enum<T>, T : EnumSetting = setting(
+    key = key,
+    read = { provider.fromStorageKey(getStringOrNull(key)) },
+    write = { putString(key, it.storageKey) },
+  )
 
-    override fun set(value: T) {
-      settings.putString(key, value.storageKey)
-    }
-
-    override fun observe(): StateFlow<T> {
-      val currentValue = settings.getStringOrNull(key).let(provider::fromStorageKey)
-      return settings.getStringOrNullFlow(key)
-        .map(provider::fromStorageKey)
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
-    }
-  }
-
-  inline fun <reified T> customSetting(
+  inline fun <T> customSetting(
     key: String,
     defaultValue: T,
     crossinline getter: (String) -> T,
     crossinline setter: (T) -> String,
-  ) = object : SettingsProperty<T> {
-    override fun getValue(thisRef: AppSettings, property: KProperty<*>): T {
-      return settings.getStringOrNull(key)?.let(getter) ?: defaultValue
-    }
+  ) = setting(
+    key = key,
+    read = { getStringOrNull(key)?.let(getter) ?: defaultValue },
+    write = { putString(key, setter(it)) },
+  )
 
-    override fun set(value: T) {
-      settings.putString(key, setter(value))
-    }
+  fun <V> setting(
+    key: String,
+    read: ObservableSettings.() -> V,
+    write: ObservableSettings.(V) -> Unit,
+    listen: ObservableSettings.(onChange: () -> Unit) -> SettingsListener = { onChange ->
+      addStringOrNullListener(key) { onChange() }
+    },
+  ): SettingsProperty<V> = object : SettingsProperty<V> {
+    override fun observe(): Flow<V> = callbackFlow {
+      send(settings.read())
+      val listener = settings.listen { trySend(settings.read()) }
+      awaitClose { listener.deactivate() }
+    }.flowOn(dispatcher).distinctUntilChanged()
 
-    override fun observe(): StateFlow<T> {
-      val currentValue = settings.getStringOrNull(key)?.let(getter) ?: defaultValue
-      return settings.getStringOrNullFlow(key)
-        .map { raw -> raw?.let(getter) ?: defaultValue }
-        .stateIn(scope, SharingStarted.Lazily, currentValue)
-    }
+    override suspend fun get(): V = withContext(dispatcher) { settings.read() }
+
+    override fun set(value: V) = edit { settings.write(value) }
+
+    override fun update(transform: (V) -> V) = edit { settings.write(transform(settings.read())) }
+
+    override fun readInEdit(): V = settings.read()
+
+    override fun writeInEdit(value: V) = settings.write(value)
   }
 
-  interface SettingsProperty<V> : ReadWriteProperty<AppSettings, V> {
-    fun observe(): StateFlow<V>
+  interface SettingsProperty<V> {
+    /** The stored value, then every change to it. */
+    fun observe(): Flow<V>
+
+    /** The stored value, after any write submitted before this call. */
+    suspend fun get(): V
 
     fun set(value: V)
 
-    override fun setValue(thisRef: AppSettings, property: KProperty<*>, value: V) = set(value)
+    /** Replace the stored value with [transform] of it, ordered with every other write. */
+    fun update(transform: (V) -> V)
+
+    /** Reads the stored value directly. Only call it inside [AppSettings.edit]. */
+    fun readInEdit(): V
+
+    /** Writes the stored value directly. Only call it inside [AppSettings.edit]. */
+    fun writeInEdit(value: V)
   }
 }

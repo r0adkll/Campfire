@@ -15,8 +15,9 @@ import com.slack.circuit.runtime.CircuitUiState
 data class AuthorsUiState(
   val numAuthors: Int,
   val lazyPagingItems: LazyPagingItems<Author>,
-  val sortMode: ContentSortMode,
-  val sortDirection: SortDirection,
+  /** The sort is null until it's been read. */
+  val sortMode: ContentSortMode?,
+  val sortDirection: SortDirection?,
   val eventSink: (AuthorsUiEvent) -> Unit,
 ) : CircuitUiState
 

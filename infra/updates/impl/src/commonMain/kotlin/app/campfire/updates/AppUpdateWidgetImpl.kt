@@ -95,14 +95,18 @@ class AppUpdateWidgetImpl(
         )
       }
     }.collectAsState(null)
-    val signInDismissed by appStateSettings.observeAppUpdateSignInDismissed().collectAsState()
-    val dismissedVersionCode by appStateSettings.observeAppUpdateDismissedVersionCode().collectAsState()
+    // Nothing shows until the dismissals have been read
+    val signInDismissed by remember { appStateSettings.observeAppUpdateSignInDismissed() }.collectAsState(null)
+    val dismissedVersionCode by remember { appStateSettings.observeAppUpdateDismissedVersionCode() }
+      .collectAsState(null)
 
     val currentState = state
-    val availableUpdate = currentState?.appUpdate?.takeIf { it.versionCode != dismissedVersionCode }
+    val availableUpdate = dismissedVersionCode?.let { dismissed ->
+      currentState?.appUpdate?.takeIf { it.versionCode != dismissed }
+    }
     val mode = when {
       availableUpdate != null -> WidgetMode.UpdateAvailable(availableUpdate)
-      currentState?.isSignedIn == false && !signInDismissed -> WidgetMode.SignIn
+      currentState?.isSignedIn == false && signInDismissed == false -> WidgetMode.SignIn
       else -> null
     }
 

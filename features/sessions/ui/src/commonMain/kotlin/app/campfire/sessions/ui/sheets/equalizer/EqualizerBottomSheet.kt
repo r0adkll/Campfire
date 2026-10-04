@@ -148,10 +148,14 @@ private fun EqualizerBottomSheet(
 
   val itemEqualizerProfiles by remember {
     component.equalizerSettings.observeItemEqualizerProfiles()
-  }.collectAsState()
+  }.collectAsState(emptyMap())
 
-  val customBandGains by remember { component.equalizerSettings.observeCustomBandGains() }.collectAsState()
-  val globalProfile by remember { component.equalizerSettings.observeEqualizerProfile() }.collectAsState()
+  val customBandGains by remember {
+    component.equalizerSettings.observeCustomBandGains()
+  }.collectAsState(EqualizerSettings.DefaultCustomBandGains)
+  val globalProfile by remember {
+    component.equalizerSettings.observeEqualizerProfile()
+  }.collectAsState(EqualizerProfile())
 
   val profile = equalizerState?.profileOrNull ?: EqualizerProfile()
 

@@ -174,11 +174,13 @@ internal fun LoggedInWindow(
       // burials to wire all usages of this component
       val itemCardMarqueeEnabled by remember {
         libraryViewSettings.observeLibraryItemMarqueeEnabled()
-      }.collectAsState()
+      }.collectAsState(LibraryViewSettings.DEFAULT_ITEM_MARQUEE_ENABLED)
 
-      val supportingPaneWidth by remember {
+      // The panes are laid out once their stored width is known
+      val storedPaneWidth by remember {
         layoutSettings.observeSupportingPaneWidth()
-      }.collectAsState()
+      }.collectAsState(null)
+      val supportingPaneWidth = storedPaneWidth ?: return@CampfireTheme
 
       CompositionLocalProvider(
         LocalPlaybackSession provides currentSession,

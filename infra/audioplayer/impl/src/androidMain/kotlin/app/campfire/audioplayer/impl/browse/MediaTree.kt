@@ -58,6 +58,7 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filterNot
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -122,7 +123,7 @@ class MediaTree(
     return when (parentId) {
       ROOT_ID -> {
         val mediaType = currentMediaType()
-        androidAutoSettings.observeCategoryConfigs().value
+        androidAutoSettings.observeCategoryConfigs().first()
           .filter { it.visible && it.category.isAvailableFor(mediaType) }
           .mapNotNull { config ->
             config.category.toTopLevelMediaItem()?.asBrowsableMediaItem(

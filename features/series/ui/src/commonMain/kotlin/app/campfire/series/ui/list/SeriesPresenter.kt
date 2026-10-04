@@ -31,6 +31,8 @@ import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal const val INVALID_SERIES_COUNT = -1
@@ -59,15 +61,15 @@ class SeriesPresenter(
 
     val sortMode by remember {
       libraryViewSettings.observeSeriesSortMode()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val sortDirection by remember {
       libraryViewSettings.observeSeriesSortDirection()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val displayState by remember {
       libraryViewSettings.observeSeriesDisplayState()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val currentUser by userRepository.userFlow.collectAsState()
 
@@ -78,20 +80,33 @@ class SeriesPresenter(
       sortMode,
       sortDirection,
     ) {
-      seriesRepository.createSeriesPager(
-        user = currentUser,
-        filter = filter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).flow.cachedIn(scope)
+      val mode = sortMode
+      val direction = sortDirection
+      // Nothing is listed until the stored sort is known
+      if (mode == null || direction == null) {
+        emptyFlow()
+      } else {
+        seriesRepository.createSeriesPager(
+          user = currentUser,
+          filter = filter,
+          sortMode = mode,
+          sortDirection = direction,
+        ).flow.cachedIn(scope)
+      }
     }.collectAsLazyPagingItems()
 
-    val totalSeriesCount by remember {
-      seriesRepository.observeFilteredSeriesCount(
-        filter = filter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).map { it ?: INVALID_SERIES_COUNT }
+    val totalSeriesCount by remember(filter, sortMode, sortDirection) {
+      val mode = sortMode
+      val direction = sortDirection
+      if (mode == null || direction == null) {
+        flowOf(INVALID_SERIES_COUNT)
+      } else {
+        seriesRepository.observeFilteredSeriesCount(
+          filter = filter,
+          sortMode = mode,
+          sortDirection = direction,
+        ).map { it ?: INVALID_SERIES_COUNT }
+      }
     }.collectAsState(INVALID_SERIES_COUNT)
 
     return SeriesUiState(
@@ -116,14 +131,14 @@ class SeriesPresenter(
         is SeriesUiEvent.SortModeChanged -> {
           analytics.send(ActionEvent("series_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            libraryViewSettings.setSeriesSortDirection(sortDirection.flip())
+            sortDirection?.flip()?.let(libraryViewSettings::setSeriesSortDirection)
           }
           libraryViewSettings.setSeriesSortMode(event.mode)
         }
 
         SeriesUiEvent.ToggleDisplayState -> {
           analytics.send(ActionEvent("series_display_state", "toggle"))
-          libraryViewSettings.setSeriesDisplayState(displayState.next())
+          displayState?.next()?.let(libraryViewSettings::setSeriesDisplayState)
         }
       }
     }

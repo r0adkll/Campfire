@@ -87,16 +87,18 @@ internal fun DownloadsPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val downloadsSettings = state.downloadsSettings ?: return@SettingPaneLayout
+
     SwitchSetting(
-      value = state.downloadsSettings.showDownloadConfirmation,
+      value = downloadsSettings.showDownloadConfirmation,
       onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.ShowDownloadConfirmation(it)) },
       headlineContent = { Text(stringResource(Res.string.setting_show_download_confirmation_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_show_download_confirmation_description)) },
     )
 
-    if (state.downloadsSettings.isWifiOnlyAvailable) {
+    if (downloadsSettings.isWifiOnlyAvailable) {
       SwitchSetting(
-        value = state.downloadsSettings.downloadOnWifiOnly,
+        value = downloadsSettings.downloadOnWifiOnly,
         onValueChange = { state.eventSink(SettingsUiEvent.DownloadsSettingEvent.DownloadOnWifiOnly(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_download_on_wifi_only_description)) },
@@ -105,9 +107,9 @@ internal fun DownloadsPane(
 
     Header(title = { Text(stringResource(Res.string.download_header_downloads)) })
 
-    if (state.downloadsSettings.downloads.isNotEmpty()) {
+    if (downloadsSettings.downloads.isNotEmpty()) {
       var confirmingKey by remember { mutableStateOf<String?>(null) }
-      state.downloadsSettings.downloads.forEach { entry ->
+      downloadsSettings.downloads.forEach { entry ->
         val key = entry.confirmKey
         ConfirmationLayout(
           showConfirmation = confirmingKey == key,
@@ -140,7 +142,7 @@ internal fun DownloadsPane(
       }
     }
 
-    if (state.downloadsSettings.downloads.isEmpty()) {
+    if (downloadsSettings.downloads.isEmpty()) {
       EmptyState(
         message = "No downloads yet!",
         modifier = Modifier

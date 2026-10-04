@@ -18,9 +18,11 @@ import com.slack.circuit.runtime.CircuitUiState
 data class LibraryUiState(
   val canAddPodcasts: Boolean,
   val lazyPagingItems: LazyPagingItems<LibraryItem>,
-  val itemDisplayState: ItemDisplayState,
+  /** Null until the stored display state has been read. */
+  val itemDisplayState: ItemDisplayState?,
   val totalItemCount: Int,
-  val sort: LibrarySort,
+  /** Null until the stored sort has been read. */
+  val sort: LibrarySort?,
   val filter: ContentFilter?,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val eventSink: (LibraryUiEvent) -> Unit,

@@ -54,6 +54,7 @@ import app.campfire.common.compose.widgets.ContentPagingScaffoldScope
 import app.campfire.common.compose.widgets.FilterBar
 import app.campfire.common.compose.widgets.LibraryItemCard
 import app.campfire.common.compose.widgets.LibraryItemListItem
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.core.di.UserScope
 import app.campfire.core.filter.ContentFilter
 import app.campfire.core.model.LibraryItem
@@ -141,12 +142,19 @@ fun LibraryUi(
       .exclude(OverlappedNavigationBarInsets)
       .add(CampfireNavigationBarWindowInsets),
   ) { paddingValues ->
+    val itemDisplayState = state.itemDisplayState
+    val sort = state.sort
+    if (itemDisplayState == null || sort == null) {
+      LoadingListState(Modifier.padding(paddingValues))
+      return@Scaffold
+    }
+
     LoadedContent(
       totalCount = state.totalItemCount,
       lazyPagingItems = state.lazyPagingItems,
       offlineStates = state.offlineStates,
       onItemClick = { state.eventSink(LibraryUiEvent.ItemClick(it)) },
-      itemDisplayState = state.itemDisplayState,
+      itemDisplayState = itemDisplayState,
       onDisplayStateClick = { state.eventSink(LibraryUiEvent.ToggleItemDisplayState) },
       filter = state.filter,
       onFilterClick = {
@@ -161,14 +169,14 @@ fun LibraryUi(
           }
         }
       },
-      sortMode = state.sort.mode,
-      sortDirection = state.sort.direction,
+      sortMode = sort.mode,
+      sortDirection = sort.direction,
       onSortClick = {
         coroutineScope.launch {
           val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
             overlayHost,
-            state.sort.mode,
-            state.sort.direction,
+            sort.mode,
+            sort.direction,
             LibraryItemSortModes,
           )
           if (updatedSortMode != null) {

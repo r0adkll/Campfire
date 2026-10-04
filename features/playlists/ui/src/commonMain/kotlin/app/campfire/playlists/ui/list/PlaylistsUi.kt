@@ -143,14 +143,18 @@ fun Playlists(
           modifier = Modifier.padding(paddingValues),
         )
 
-        is LoadState.Loaded -> LoadedState(
-          items = state.playlistContentState.data,
-          displayState = state.displayState,
-          onPlaylistClick = { state.eventSink(PlaylistsUiEvent.PlaylistClick(it)) },
-          onToggleDisplayState = { state.eventSink(PlaylistsUiEvent.ToggleDisplayState) },
-          contentPadding = paddingValues,
-          state = gridState,
-        )
+        is LoadState.Loaded -> if (state.displayState == null) {
+          LoadingListState(Modifier.padding(paddingValues))
+        } else {
+          LoadedState(
+            items = state.playlistContentState.data,
+            displayState = state.displayState,
+            onPlaylistClick = { state.eventSink(PlaylistsUiEvent.PlaylistClick(it)) },
+            onToggleDisplayState = { state.eventSink(PlaylistsUiEvent.ToggleDisplayState) },
+            contentPadding = paddingValues,
+            state = gridState,
+          )
+        }
       }
     }
   }

@@ -130,7 +130,7 @@ class DefaultAccountManager(
   }
 
   override suspend fun logout(server: Server) = withContext(accountManagerCoroutineContext) {
-    val isCurrent = deviceSettings.currentUserId == server.user.id
+    val isCurrent = deviceSettings.observeCurrentUserId().first() == server.user.id
     if (isCurrent) {
       // Change the session over to a new one
       changeSession {

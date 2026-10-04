@@ -9,25 +9,24 @@ import app.campfire.settings.api.AndroidAutoCategory
 import app.campfire.settings.api.AndroidAutoCategoryConfig
 import app.campfire.settings.api.AndroidAutoSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<AndroidAutoSettings>())
 @Inject
 class AndroidAutoSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : AndroidAutoSettings, AppSettings() {
 
   private val orderProperty = customSetting(
@@ -51,43 +50,27 @@ class AndroidAutoSettingsImpl(
     setter = { overrides -> overrides.encodeGridOverrides() },
   )
 
-  private var storedOrder: List<AndroidAutoCategory> by orderProperty
-  private var hiddenCategories: Set<AndroidAutoCategory> by hiddenProperty
-  private var gridOverrides: Map<AndroidAutoCategory, Boolean> by gridOverridesProperty
-
-  private val categoryConfigsFlow: StateFlow<List<AndroidAutoCategoryConfig>> = combine(
+  override fun observeCategoryConfigs(): Flow<List<AndroidAutoCategoryConfig>> = combine(
     orderProperty.observe(),
     hiddenProperty.observe(),
     gridOverridesProperty.observe(),
   ) { order, hidden, overrides ->
     buildConfigs(order, hidden, overrides)
-  }.stateIn(
-    scope = scope,
-    started = SharingStarted.Lazily,
-    initialValue = buildConfigs(storedOrder, hiddenCategories, gridOverrides),
-  )
-
-  override fun observeCategoryConfigs(): StateFlow<List<AndroidAutoCategoryConfig>> = categoryConfigsFlow
+  }
 
   override fun setCategoryVisible(category: AndroidAutoCategory, visible: Boolean) {
     if (category.alwaysVisible && !visible) return
-    hiddenCategories = if (visible) {
-      hiddenCategories - category
-    } else {
-      hiddenCategories + category
-    }
+    hiddenProperty.update { hidden -> if (visible) hidden - category else hidden + category }
   }
 
   override fun setCategoryGridLayout(category: AndroidAutoCategory, isGrid: Boolean) {
-    gridOverrides = if (isGrid == category.defaultGridLayout) {
-      gridOverrides - category
-    } else {
-      gridOverrides + (category to isGrid)
+    gridOverridesProperty.update { overrides ->
+      if (isGrid == category.defaultGridLayout) overrides - category else overrides + (category to isGrid)
     }
   }
 
   override fun setCategoryOrder(order: List<AndroidAutoCategory>) {
-    storedOrder = normalizeOrder(order)
+    orderProperty.set(normalizeOrder(order))
   }
 
   private fun buildConfigs(

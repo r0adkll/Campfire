@@ -14,14 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
 class FakeMobileDataSettings : MobileDataSettings {
 
   private val _homeServerOnMobileData = MutableStateFlow<Boolean>(false)
-  override val homeServerOnMobileData: Boolean get() = _homeServerOnMobileData.value
+  val homeServerOnMobileData: Boolean get() = _homeServerOnMobileData.value
   override fun setHomeServerOnMobileData(value: Boolean) {
     _homeServerOnMobileData.value = value
   }
   override fun observeHomeServerOnMobileData(): StateFlow<Boolean> = _homeServerOnMobileData.asStateFlow()
 
   private val _downloadOnWifiOnly = MutableStateFlow<Boolean>(false)
-  override val downloadOnWifiOnly: Boolean get() = _downloadOnWifiOnly.value
+  val downloadOnWifiOnly: Boolean get() = _downloadOnWifiOnly.value
   override fun setDownloadOnWifiOnly(value: Boolean) {
     _downloadOnWifiOnly.value = value
   }

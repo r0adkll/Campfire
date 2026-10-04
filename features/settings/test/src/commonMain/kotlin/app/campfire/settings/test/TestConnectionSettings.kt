@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 class TestConnectionSettings : ConnectionSettings {
 
   private val _socketEnabled = MutableStateFlow<Boolean>(false)
-  override val socketEnabled: Boolean get() = _socketEnabled.value
+  val socketEnabled: Boolean get() = _socketEnabled.value
   override fun setSocketEnabled(value: Boolean) {
     _socketEnabled.value = value
   }

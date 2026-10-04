@@ -89,6 +89,8 @@ internal fun SleepPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val sleepSettings = state.sleepSettings ?: return@SettingPaneLayout
+
     Header(
       title = { Text(stringResource(Res.string.header_sleep_fade_out)) },
     )
@@ -97,7 +99,7 @@ internal fun SleepPane(
     DurationSliderSetting(
       title = stringResource(Res.string.setting_sleep_fade_out_duration_title),
       subtitle = stringResource(Res.string.setting_sleep_fade_out_duration_subtitle),
-      value = state.sleepSettings.fadeOutDuration,
+      value = sleepSettings.fadeOutDuration,
       valueRange = SleepSettings.FadeOutDurationRange,
       stepSeconds = 1,
       valueLabel = { if (it == Duration.ZERO) fadeOutOff else it.toString() },
@@ -111,7 +113,7 @@ internal fun SleepPane(
 
       // Shake to Reset
       SwitchSetting(
-        value = state.sleepSettings.shakeToReset,
+        value = sleepSettings.shakeToReset,
         onValueChange = { state.eventSink(ShakeToReset(it)) },
         headlineContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_title)) },
         supportingContent = { Text(stringResource(Res.string.setting_playback_sleep_shake_to_reset_subtitle)) },
@@ -119,10 +121,10 @@ internal fun SleepPane(
 
       // Shake Sensitivity
       AnimatedVisibility(
-        visible = state.sleepSettings.shakeToReset,
+        visible = sleepSettings.shakeToReset,
       ) {
         DropdownSetting(
-          value = state.sleepSettings.shakeSensitivity,
+          value = sleepSettings.shakeSensitivity,
           values = ShakeSensitivity.entries,
           onValueChange = { sensitivity ->
             state.eventSink(SleepSettingEvent.ShakeSensitivity(sensitivity))
@@ -147,24 +149,24 @@ internal fun SleepPane(
 
     // Auto Sleep
     SwitchSetting(
-      value = state.sleepSettings.autoSleepSetting != null,
+      value = sleepSettings.autoSleepSetting != null,
       onValueChange = { state.eventSink(SleepSettingEvent.AutoSleepTimerEnabled(it)) },
       headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_title)) },
       supportingContent = { Text(stringResource(Res.string.setting_auto_sleep_subtitle)) },
     )
 
     AnimatedVisibility(
-      visible = state.sleepSettings.autoSleepSetting != null,
+      visible = sleepSettings.autoSleepSetting != null,
     ) {
       Column {
         LocalTimeSetting(
-          value = state.sleepSettings.autoSleepSetting?.start ?: LocalTime(0, 0),
+          value = sleepSettings.autoSleepSetting?.start ?: LocalTime(0, 0),
           onValueChange = { state.eventSink(SleepSettingEvent.AutoSleepTimerStart(it)) },
           headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_start_title)) },
         )
 
         LocalTimeSetting(
-          value = state.sleepSettings.autoSleepSetting?.end ?: LocalTime(0, 0),
+          value = sleepSettings.autoSleepSetting?.end ?: LocalTime(0, 0),
           onValueChange = { state.eventSink(SleepSettingEvent.AutoSleepTimerEnd(it)) },
           headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_end_title)) },
         )
@@ -175,7 +177,7 @@ internal fun SleepPane(
           headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_timer)) },
           trailingContent = {
             Text(
-              text = when (val timer = state.sleepSettings.autoSleepSetting?.timer) {
+              text = when (val timer = sleepSettings.autoSleepSetting?.timer) {
                 SleepSettings.AutoSleepTimer.EndOfChapter -> stringResource(Res.string.timer_end_of_chapter)
                 is SleepSettings.AutoSleepTimer.Epoch -> timer.millis.milliseconds.thresholdReadoutFormat(
                   thresholds = mapOf(DurationUnit.MINUTES to 120), // 2hrs
@@ -198,17 +200,17 @@ internal fun SleepPane(
         )
 
         SwitchSetting(
-          value = state.sleepSettings.autoSleepSetting?.rewindEnabled == true,
+          value = sleepSettings.autoSleepSetting?.rewindEnabled == true,
           onValueChange = { state.eventSink(SleepSettingEvent.AutoSleepRewindEnabled(it)) },
           headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_auto_rewind_title)) },
           supportingContent = { Text(stringResource(Res.string.setting_auto_sleep_auto_rewind_subtitle)) },
         )
 
         AnimatedVisibility(
-          visible = state.sleepSettings.autoSleepSetting?.rewindEnabled == true,
+          visible = sleepSettings.autoSleepSetting?.rewindEnabled == true,
         ) {
           TimeJumpSetting(
-            time = state.sleepSettings.autoSleepSetting?.rewindAmount ?: AutoRewindJumps.Default,
+            time = sleepSettings.autoSleepSetting?.rewindAmount ?: AutoRewindJumps.Default,
             onTimeChange = { state.eventSink(SleepSettingEvent.AutoSleepRewindAmount(it)) },
             jumps = AutoRewindJumps,
             headlineContent = { Text(stringResource(Res.string.setting_auto_sleep_auto_rewind_amount_title)) },

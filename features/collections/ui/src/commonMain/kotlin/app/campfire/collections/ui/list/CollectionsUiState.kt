@@ -11,7 +11,8 @@ import com.slack.circuit.runtime.CircuitUiState
 
 data class CollectionsUiState(
   val collectionContentState: LoadState<out List<Collection>>,
-  val displayState: GroupDisplayState,
+  /** Null until the stored display state has been read. */
+  val displayState: GroupDisplayState?,
   val isRefreshing: Boolean,
   val eventSink: (CollectionsUiEvent) -> Unit,
 ) : CircuitUiState

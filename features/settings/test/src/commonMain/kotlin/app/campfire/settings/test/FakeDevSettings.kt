@@ -17,49 +17,49 @@ import kotlinx.coroutines.flow.asStateFlow
 class FakeDevSettings : DevSettings {
 
   private val _developerModeEnabled = MutableStateFlow<Boolean>(false)
-  override val developerModeEnabled: Boolean get() = _developerModeEnabled.value
+  val developerModeEnabled: Boolean get() = _developerModeEnabled.value
   override fun setDeveloperModeEnabled(value: Boolean) {
     _developerModeEnabled.value = value
   }
   override fun observeDeveloperMode(): StateFlow<Boolean> = _developerModeEnabled.asStateFlow()
 
   private val _sessionAge = MutableStateFlow<Duration>(10.minutes)
-  override val sessionAge: Duration get() = _sessionAge.value
+  val sessionAge: Duration get() = _sessionAge.value
   override fun setSessionAge(value: Duration) {
     _sessionAge.value = value
   }
   override fun observeSessionAge(): StateFlow<Duration> = _sessionAge.asStateFlow()
 
   private val _hlsLargeItemThreshold = MutableStateFlow<Duration>(8.hours)
-  override val hlsLargeItemThreshold: Duration get() = _hlsLargeItemThreshold.value
+  val hlsLargeItemThreshold: Duration get() = _hlsLargeItemThreshold.value
   override fun setHlsLargeItemThreshold(value: Duration) {
     _hlsLargeItemThreshold.value = value
   }
   override fun observeHlsLargeItemThreshold(): StateFlow<Duration> = _hlsLargeItemThreshold.asStateFlow()
 
   private val _adaptToUnreachableServer = MutableStateFlow<Boolean>(true)
-  override val adaptToUnreachableServer: Boolean get() = _adaptToUnreachableServer.value
+  val adaptToUnreachableServer: Boolean get() = _adaptToUnreachableServer.value
   override fun setAdaptToUnreachableServer(value: Boolean) {
     _adaptToUnreachableServer.value = value
   }
   override fun observeAdaptToUnreachableServer(): StateFlow<Boolean> = _adaptToUnreachableServer.asStateFlow()
 
   private val _fakeAppUpdateSignedIn = MutableStateFlow<Boolean>(true)
-  override val fakeAppUpdateSignedIn: Boolean get() = _fakeAppUpdateSignedIn.value
+  val fakeAppUpdateSignedIn: Boolean get() = _fakeAppUpdateSignedIn.value
   override fun setFakeAppUpdateSignedIn(value: Boolean) {
     _fakeAppUpdateSignedIn.value = value
   }
   override fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean> = _fakeAppUpdateSignedIn.asStateFlow()
 
   private val _fakeAppUpdateAvailable = MutableStateFlow<Boolean>(false)
-  override val fakeAppUpdateAvailable: Boolean get() = _fakeAppUpdateAvailable.value
+  val fakeAppUpdateAvailable: Boolean get() = _fakeAppUpdateAvailable.value
   override fun setFakeAppUpdateAvailable(value: Boolean) {
     _fakeAppUpdateAvailable.value = value
   }
   override fun observeFakeAppUpdateAvailable(): StateFlow<Boolean> = _fakeAppUpdateAvailable.asStateFlow()
 
   private val _fakeAppUpdateFailDownload = MutableStateFlow<Boolean>(false)
-  override val fakeAppUpdateFailDownload: Boolean get() = _fakeAppUpdateFailDownload.value
+  val fakeAppUpdateFailDownload: Boolean get() = _fakeAppUpdateFailDownload.value
   override fun setFakeAppUpdateFailDownload(value: Boolean) {
     _fakeAppUpdateFailDownload.value = value
   }

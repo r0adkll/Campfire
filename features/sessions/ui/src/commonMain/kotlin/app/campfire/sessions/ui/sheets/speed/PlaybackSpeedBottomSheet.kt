@@ -131,13 +131,17 @@ private fun PlaybackSpeedBottomSheet(
       }
   }.collectAsState(input.speed)
 
-  val playbackRates by remember { component.playbackSettings.observePlaybackRates() }.collectAsState()
+  val playbackRates by remember {
+    component.playbackSettings.observePlaybackRates()
+  }.collectAsState(PlaybackSettings.DefaultPlaybackRates)
   val speedOptions = remember(playbackRates) { playbackRates.distinct().sorted() }
-  val globalSpeed by remember { component.playbackSettings.observePlaybackSpeed() }.collectAsState()
+  val globalSpeed by remember {
+    component.playbackSettings.observePlaybackSpeed()
+  }.collectAsState(PlaybackSettings.DEFAULT_PLAYBACK_SPEED)
 
   val itemPlaybackSpeeds by remember {
     component.playbackSettings.observeItemPlaybackSpeeds()
-  }.collectAsState()
+  }.collectAsState(emptyMap())
 
   PlaybackSpeedSheet(
     currentSpeed = currentSpeed,

@@ -116,7 +116,7 @@ private fun AudioTrackListBottomSheet(
 ) {
   val showTimeInBook by remember {
     component.libraryViewSettings.observeShowTimeInBook()
-  }.collectAsState()
+  }.collectAsState(LibraryViewSettings.DEFAULT_SHOW_TIME_IN_BOOK)
 
   val sessionSheetState = rememberSessionSheetTitleState(
     // It is likely that this list will be pre-scrolled when the sheet is open

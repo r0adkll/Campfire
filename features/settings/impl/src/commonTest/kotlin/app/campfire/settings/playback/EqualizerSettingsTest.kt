@@ -13,6 +13,7 @@ import kotlin.test.Test
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 
 class EqualizerSettingsTest {
@@ -20,9 +21,9 @@ class EqualizerSettingsTest {
   private val settingsScope = CoroutineScope(Dispatchers.Unconfined + Job())
 
   @Test
-  fun `equalizerProfile defaults and round-trips through storage`() {
+  fun `equalizerProfile defaults and round-trips through storage`() = runTest {
     val settings = equalizerSettings()
-    assertThat(settings.equalizerProfile).isEqualTo(EqualizerProfile())
+    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
 
     val profile = EqualizerProfile(
       enabled = true,
@@ -32,13 +33,13 @@ class EqualizerSettingsTest {
       bassBoost = 0.25f,
     )
     settings.setEqualizerProfile(profile)
-    assertThat(settings.equalizerProfile).isEqualTo(profile)
+    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(profile)
   }
 
   @Test
-  fun `corrupt profile strings fall back to the default`() {
+  fun `corrupt profile strings fall back to the default`() = runTest {
     val backing = MapSettings()
-    val settings = EqualizerSettingsImpl(backing, settingsScope)
+    val settings = EqualizerSettingsImpl(backing, settingsScope, Dispatchers.Unconfined)
 
     listOf(
       "",
@@ -50,24 +51,24 @@ class EqualizerSettingsTest {
       "1|flat|0,0,0,0,0,0,0,0,0,0|0.0", // missing field
     ).forEach { corrupt ->
       backing.putString(PREF_EQUALIZER_PROFILE, corrupt)
-      assertThat(settings.equalizerProfile).isEqualTo(EqualizerProfile())
+      assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
     }
   }
 
   @Test
-  fun `itemEqualizerProfiles round-trips and drops corrupt entries`() {
+  fun `itemEqualizerProfiles round-trips and drops corrupt entries`() = runTest {
     val settings = equalizerSettings()
-    assertThat(settings.itemEqualizerProfiles).isEmpty()
+    assertThat(settings.observeItemEqualizerProfiles().first()).isEmpty()
 
     val profiles = mapOf(
       "li_abc123" to EqualizerProfile(enabled = true, presetId = EqualizerPresets.BASS_BOOST_ID),
       "li_def456" to EqualizerProfile(bandGainsDb = listOf(1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f)),
     )
     settings.setItemEqualizerProfiles(profiles)
-    assertThat(settings.itemEqualizerProfiles).isEqualTo(profiles)
+    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(profiles)
 
     settings.setItemEqualizerProfiles(emptyMap())
-    assertThat(settings.itemEqualizerProfiles).isEmpty()
+    assertThat(settings.observeItemEqualizerProfiles().first()).isEmpty()
   }
 
   @Test
@@ -84,21 +85,21 @@ class EqualizerSettingsTest {
   }
 
   @Test
-  fun `setEqualizerProfileFor writes the override when enabled and the global otherwise`() {
+  fun `setEqualizerProfileFor writes the override when enabled and the global otherwise`() = runTest {
     val settings = equalizerSettings()
     val initial = EqualizerProfile(enabled = true)
     settings.setItemEqualizerProfiles(mapOf("li_abc123" to initial))
 
     val updated = initial.copy(loudnessGainDb = 3f)
     settings.setEqualizerProfileFor("li_abc123", updated)
-    assertThat(settings.itemEqualizerProfiles).isEqualTo(mapOf("li_abc123" to updated))
-    assertThat(settings.equalizerProfile).isEqualTo(EqualizerProfile())
+    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(mapOf("li_abc123" to updated))
+    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(EqualizerProfile())
 
     settings.setEqualizerProfileFor("li_other", updated)
-    assertThat(settings.equalizerProfile).isEqualTo(updated)
-    assertThat(settings.itemEqualizerProfiles).isEqualTo(mapOf("li_abc123" to updated))
+    assertThat(settings.observeEqualizerProfile().first()).isEqualTo(updated)
+    assertThat(settings.observeItemEqualizerProfiles().first()).isEqualTo(mapOf("li_abc123" to updated))
   }
 
   private fun equalizerSettings(): EqualizerSettingsImpl =
-    EqualizerSettingsImpl(MapSettings(), settingsScope)
+    EqualizerSettingsImpl(MapSettings(), settingsScope, Dispatchers.Unconfined)
 }

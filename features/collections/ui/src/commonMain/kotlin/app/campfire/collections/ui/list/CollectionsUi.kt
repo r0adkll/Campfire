@@ -96,14 +96,18 @@ fun Collections(
           modifier = Modifier.padding(paddingValues),
         )
 
-        is LoadState.Loaded -> LoadedState(
-          items = state.collectionContentState.data,
-          displayState = state.displayState,
-          onCollectionClick = { state.eventSink(CollectionsUiEvent.CollectionClick(it)) },
-          onToggleDisplayState = { state.eventSink(CollectionsUiEvent.ToggleDisplayState) },
-          contentPadding = paddingValues,
-          state = gridState,
-        )
+        is LoadState.Loaded -> if (state.displayState == null) {
+          LoadingListState(Modifier.padding(paddingValues))
+        } else {
+          LoadedState(
+            items = state.collectionContentState.data,
+            displayState = state.displayState,
+            onCollectionClick = { state.eventSink(CollectionsUiEvent.CollectionClick(it)) },
+            onToggleDisplayState = { state.eventSink(CollectionsUiEvent.ToggleDisplayState) },
+            contentPadding = paddingValues,
+            state = gridState,
+          )
+        }
       }
     }
   }

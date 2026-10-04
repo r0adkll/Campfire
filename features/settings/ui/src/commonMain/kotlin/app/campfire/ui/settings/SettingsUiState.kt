@@ -38,19 +38,20 @@ data class SettingsUiState(
   val isShakingAvailable: Boolean,
   val isAndroidAutoPaneVisible: Boolean,
   val applicationInfo: ApplicationInfo,
-  val socketSyncEnabled: Boolean,
+  /** The settings below are null until they've been read. */
+  val socketSyncEnabled: Boolean?,
   /** Extra headers sent with every request to the server, e.g. for reverse-proxy auth. */
   val customHeaders: Map<String, String>,
   /** Set while the OS is blocking the local server for lack of the local network permission. */
   val localNetworkAccess: LocalNetworkAccess?,
-  val homeServerSettings: HomeServerSettingsInfo,
-  val appearanceSettings: AppearanceSettingsInfo,
-  val downloadsSettings: DownloadsSettingsInfo,
-  val playbackSettings: PlaybackSettingsInfo,
-  val sleepSettings: SleepSettingsInfo,
-  val androidAutoSettings: AndroidAutoSettingsInfo,
-  val aboutSettings: AboutSettingsInfo,
-  val developerSettings: DeveloperSettingsInfo,
+  val homeServerSettings: HomeServerSettingsInfo?,
+  val appearanceSettings: AppearanceSettingsInfo?,
+  val downloadsSettings: DownloadsSettingsInfo?,
+  val playbackSettings: PlaybackSettingsInfo?,
+  val sleepSettings: SleepSettingsInfo?,
+  val androidAutoSettings: AndroidAutoSettingsInfo?,
+  val aboutSettings: AboutSettingsInfo?,
+  val developerSettings: DeveloperSettingsInfo?,
   val eventSink: (SettingsUiEvent) -> Unit,
 ) : CircuitUiState
 

@@ -8,53 +8,43 @@ import app.campfire.core.settings.EnumSettingProvider
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalTime
 
 interface SleepSettings {
 
-  val lastSetSleepTimer: Duration
   fun setLastSetSleepTimer(value: Duration)
-  fun observeLastSetSleepTimer(): StateFlow<Duration>
+  fun observeLastSetSleepTimer(): Flow<Duration>
 
-  val shakeToResetEnabled: Boolean
   fun setShakeToResetEnabled(value: Boolean)
-  fun observeShakeToResetEnabled(): StateFlow<Boolean>
+  fun observeShakeToResetEnabled(): Flow<Boolean>
 
-  val shakeSensitivity: ShakeSensitivity
   fun setShakeSensitivity(value: ShakeSensitivity)
-  fun observeShakeSensitivity(): StateFlow<ShakeSensitivity>
+  fun observeShakeSensitivity(): Flow<ShakeSensitivity>
 
-  val autoSleepTimerEnabled: Boolean
   fun setAutoSleepTimerEnabled(value: Boolean)
-  fun observeAutoSleepTimerEnabled(): StateFlow<Boolean>
+  fun observeAutoSleepTimerEnabled(): Flow<Boolean>
 
-  val autoSleepStart: LocalTime
   fun setAutoSleepStart(value: LocalTime)
-  fun observeAutoSleepStart(): StateFlow<LocalTime>
+  fun observeAutoSleepStart(): Flow<LocalTime>
 
-  val autoSleepEnd: LocalTime
   fun setAutoSleepEnd(value: LocalTime)
-  fun observeAutoSleepEnd(): StateFlow<LocalTime>
+  fun observeAutoSleepEnd(): Flow<LocalTime>
 
-  val autoSleepTimer: AutoSleepTimer
   fun setAutoSleepTimer(value: AutoSleepTimer)
-  fun observeAutoSleepTimer(): StateFlow<AutoSleepTimer>
+  fun observeAutoSleepTimer(): Flow<AutoSleepTimer>
 
-  val autoRewindEnabled: Boolean
   fun setAutoRewindEnabled(value: Boolean)
-  fun observeAutoRewindEnabled(): StateFlow<Boolean>
+  fun observeAutoRewindEnabled(): Flow<Boolean>
 
-  val autoRewindAmount: Duration
   fun setAutoRewindAmount(value: Duration)
-  fun observeAutoRewindAmount(): StateFlow<Duration>
+  fun observeAutoRewindAmount(): Flow<Duration>
 
   /**
    * How long the volume fades out before a sleep timer pauses playback. [Duration.ZERO] pauses immediately.
    */
-  val fadeOutDuration: Duration
   fun setFadeOutDuration(value: Duration)
-  fun observeFadeOutDuration(): StateFlow<Duration>
+  fun observeFadeOutDuration(): Flow<Duration>
 
   sealed class AutoSleepTimer {
     data class Epoch(val millis: Long) : AutoSleepTimer()

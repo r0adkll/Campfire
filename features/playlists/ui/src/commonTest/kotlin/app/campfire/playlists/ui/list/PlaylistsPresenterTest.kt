@@ -9,6 +9,7 @@ import app.campfire.settings.test.TestLibraryViewSettings
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
+import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
@@ -30,6 +31,8 @@ class PlaylistsPresenterTest {
     )
 
     presenter.test {
+      // The first state is shown while the display state is read
+      assertThat(awaitItem().displayState).isNull()
       val idle = awaitItem()
       assertThat(idle.isRefreshing).isFalse()
 

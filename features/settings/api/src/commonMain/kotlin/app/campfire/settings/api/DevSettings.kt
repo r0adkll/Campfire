@@ -4,37 +4,34 @@
 package app.campfire.settings.api
 
 import kotlin.time.Duration
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface DevSettings {
 
   /**
    * Whether or not the developer mode has been enabled
    */
-  val developerModeEnabled: Boolean
   fun setDeveloperModeEnabled(value: Boolean)
 
-  fun observeDeveloperMode(): StateFlow<Boolean>
+  fun observeDeveloperMode(): Flow<Boolean>
 
   /**
    * The minimum amount of time that a session can be re-used instead of generating a new
    * one. [Duration.ZERO] will result in a new session everytime.
    * Default: `10 minutes`
    */
-  val sessionAge: Duration
   fun setSessionAge(value: Duration)
 
-  fun observeSessionAge(): StateFlow<Duration>
+  fun observeSessionAge(): Flow<Duration>
 
   /**
    * Minimum item duration for the AUTO streaming method to pick an HLS transcode session for
    * a single-file streamed book. Tunable while the heuristic is calibrated against real
    * servers. Default: `8 hours`
    */
-  val hlsLargeItemThreshold: Duration
   fun setHlsLargeItemThreshold(value: Duration)
 
-  fun observeHlsLargeItemThreshold(): StateFlow<Duration>
+  fun observeHlsLargeItemThreshold(): Flow<Duration>
 
   /**
    * Whether Campfire adapts to an unreachable server: failing requests fast instead of waiting
@@ -42,17 +39,16 @@ interface DevSettings {
    * Turning it off restores plain network behavior for debugging.
    * Default: `true`
    */
-  val adaptToUnreachableServer: Boolean
   fun setAdaptToUnreachableServer(value: Boolean)
 
-  fun observeAdaptToUnreachableServer(): StateFlow<Boolean>
+  fun observeAdaptToUnreachableServer(): Flow<Boolean>
 
   /**
    * Observe the set of package names that have triggered skip-next / skip-previous media button
    * events on Android. Used by developer settings to surface unknown Bluetooth / remote control
    * package names so we can add them to our interception allow-list.
    */
-  fun observeMediaButtonPackages(): StateFlow<Set<String>>
+  fun observeMediaButtonPackages(): Flow<Set<String>>
 
   /**
    * Record that a skip-next / skip-previous media button event was received from the given
@@ -70,26 +66,23 @@ interface DevSettings {
    * source to test the update widget and flows.
    * Default: `true` so debug builds behave like a signed-in production build.
    */
-  val fakeAppUpdateSignedIn: Boolean
   fun setFakeAppUpdateSignedIn(value: Boolean)
 
-  fun observeFakeAppUpdateSignedIn(): StateFlow<Boolean>
+  fun observeFakeAppUpdateSignedIn(): Flow<Boolean>
 
   /**
    * Debug-build only: when `true`, the fake app update source reports a faked
    * available release to test the update widget and details sheet.
    */
-  val fakeAppUpdateAvailable: Boolean
   fun setFakeAppUpdateAvailable(value: Boolean)
 
-  fun observeFakeAppUpdateAvailable(): StateFlow<Boolean>
+  fun observeFakeAppUpdateAvailable(): Flow<Boolean>
 
   /**
    * Debug-build only: when `true`, simulated update downloads fail partway through
    * to test the failure/retry UX.
    */
-  val fakeAppUpdateFailDownload: Boolean
   fun setFakeAppUpdateFailDownload(value: Boolean)
 
-  fun observeFakeAppUpdateFailDownload(): StateFlow<Boolean>
+  fun observeFakeAppUpdateFailDownload(): Flow<Boolean>
 }

@@ -31,6 +31,8 @@ internal fun DeveloperPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val developerSettings = state.developerSettings ?: return@SettingPaneLayout
+
     Header(
       title = { Text("Account") },
     )
@@ -50,7 +52,7 @@ internal fun DeveloperPane(
     )
 
     DurationInputSetting(
-      value = state.developerSettings.sessionAge,
+      value = developerSettings.sessionAge,
       onValueChange = { state.eventSink(DeveloperSettingEvent.SessionAge(it)) },
       headlineContent = { Text(stringResource(Res.string.developer_settings_session_age_title)) },
       supportingContent = { Text(stringResource(Res.string.developer_settings_session_age_subtitle)) },
@@ -58,7 +60,7 @@ internal fun DeveloperPane(
 
     if (currentPlatform == Platform.ANDROID) {
       DurationInputSetting(
-        value = state.developerSettings.hlsLargeItemThreshold,
+        value = developerSettings.hlsLargeItemThreshold,
         onValueChange = { state.eventSink(DeveloperSettingEvent.HlsLargeItemThreshold(it)) },
         headlineContent = { Text("HLS large-item threshold") },
         supportingContent = {
@@ -70,7 +72,7 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = !state.developerSettings.showWidgetPinningPrompt,
+        value = !developerSettings.showWidgetPinningPrompt,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.ShowWidgetPinningChange(!it))
         },
@@ -85,7 +87,7 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = state.developerSettings.adaptToUnreachableServer,
+        value = developerSettings.adaptToUnreachableServer,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.AdaptToUnreachableServer(it))
         },
@@ -98,7 +100,7 @@ internal fun DeveloperPane(
         },
       )
 
-      val diagnostics = state.developerSettings.networkDiagnostics
+      val diagnostics = developerSettings.networkDiagnostics
       ActionSetting(
         headlineContent = { Text("Reachability") },
         supportingContent = {
@@ -137,7 +139,7 @@ internal fun DeveloperPane(
         title = { Text("Media Buttons") },
       )
 
-      val packages = state.developerSettings.mediaButtonPackages
+      val packages = developerSettings.mediaButtonPackages
       ActionSetting(
         headlineContent = { Text("Observed media button packages") },
         supportingContent = {
@@ -167,7 +169,7 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = state.developerSettings.fakeAppUpdateSignedIn,
+        value = developerSettings.fakeAppUpdateSignedIn,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.FakeAppUpdateSignedIn(it))
         },
@@ -178,7 +180,7 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = state.developerSettings.fakeAppUpdateAvailable,
+        value = developerSettings.fakeAppUpdateAvailable,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.FakeAppUpdateAvailable(it))
         },
@@ -189,7 +191,7 @@ internal fun DeveloperPane(
       )
 
       SwitchSetting(
-        value = state.developerSettings.fakeAppUpdateFailDownload,
+        value = developerSettings.fakeAppUpdateFailDownload,
         onValueChange = {
           state.eventSink(DeveloperSettingEvent.FakeAppUpdateFailDownload(it))
         },
@@ -216,7 +218,7 @@ internal fun DeveloperPane(
 
     ActionSetting(
       headlineContent = { Text("Analytics Debug State") },
-      supportingContent = { Text(state.developerSettings.analyticsDebugState) },
+      supportingContent = { Text(developerSettings.analyticsDebugState) },
     )
   }
 }

@@ -26,6 +26,8 @@ import com.slack.circuit.retained.rememberRetained
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal const val INVALID_AUTHOR_COUNT = -1
@@ -50,11 +52,11 @@ class AuthorsPresenter(
 
     val sortMode by remember {
       libraryViewSettings.observeAuthorsSortMode()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val sortDirection by remember {
       libraryViewSettings.observeAuthorsSortDirection()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val currentUser by userRepository.userFlow.collectAsState()
 
@@ -64,18 +66,31 @@ class AuthorsPresenter(
       sortMode,
       sortDirection,
     ) {
-      authorRepository.createAuthorsPager(
-        user = currentUser,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).flow.cachedIn(scope)
+      val mode = sortMode
+      val direction = sortDirection
+      // Nothing is listed until the stored sort is known
+      if (mode == null || direction == null) {
+        emptyFlow()
+      } else {
+        authorRepository.createAuthorsPager(
+          user = currentUser,
+          sortMode = mode,
+          sortDirection = direction,
+        ).flow.cachedIn(scope)
+      }
     }.collectAsLazyPagingItems()
 
     val authorCount by remember(sortMode, sortDirection) {
-      authorRepository.observeFilteredAuthorsCount(
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).map { count -> count ?: INVALID_AUTHOR_COUNT }
+      val mode = sortMode
+      val direction = sortDirection
+      if (mode == null || direction == null) {
+        flowOf(INVALID_AUTHOR_COUNT)
+      } else {
+        authorRepository.observeFilteredAuthorsCount(
+          sortMode = mode,
+          sortDirection = direction,
+        ).map { count -> count ?: INVALID_AUTHOR_COUNT }
+      }
     }.collectAsState(INVALID_AUTHOR_COUNT)
 
     return AuthorsUiState(
@@ -93,7 +108,7 @@ class AuthorsPresenter(
         is AuthorsUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("author_sort_mode", "selected", event.mode.storageKey))
           if (sortMode == event.mode) {
-            libraryViewSettings.setAuthorsSortDirection(sortDirection.flip())
+            sortDirection?.flip()?.let(libraryViewSettings::setAuthorsSortDirection)
           }
           libraryViewSettings.setAuthorsSortMode(event.mode)
         }

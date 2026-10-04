@@ -36,6 +36,8 @@ import com.slack.circuit.retained.rememberRetainedSaveable
 import com.slack.circuit.runtime.Navigator
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal const val INVALID_ITEM_COUNT = -1
@@ -70,39 +72,49 @@ class LibraryPresenter(
 
     val sortMode by remember {
       libraryViewSettings.observeLibrarySortMode()
-    }.collectAsState()
+    }.collectAsState(null)
 
     val sortDirection by remember {
       libraryViewSettings.observeLibrarySortDirection()
-    }.collectAsState()
+    }.collectAsState(null)
+
+    // Nothing is listed until the stored sort is known
+    val sort = sortMode?.let { mode -> sortDirection?.let { direction -> LibrarySort(mode, direction) } }
 
     val currentUser by userRepository.userFlow.collectAsState()
 
     val lazyPagingItems = rememberRetained(
       currentUser.id,
       currentUser.selectedLibraryId,
-      sortMode,
-      sortDirection,
+      sort,
       itemFilter,
     ) {
-      repository.createLibraryItemPager(
-        user = currentUser,
-        filter = itemFilter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).flow.cachedIn(scope)
+      if (sort == null) {
+        emptyFlow()
+      } else {
+        repository.createLibraryItemPager(
+          user = currentUser,
+          filter = itemFilter,
+          sortMode = sort.mode,
+          sortDirection = sort.direction,
+        ).flow.cachedIn(scope)
+      }
     }.collectAsLazyPagingItems()
 
-    val totalItemCount by rememberRetained(sortMode, sortDirection, itemFilter) {
-      repository.observeFilteredLibraryCount(
-        filter = itemFilter,
-        sortMode = sortMode,
-        sortDirection = sortDirection,
-      ).map { it ?: INVALID_ITEM_COUNT }
+    val totalItemCount by rememberRetained(sort, itemFilter) {
+      if (sort == null) {
+        flowOf(INVALID_ITEM_COUNT)
+      } else {
+        repository.observeFilteredLibraryCount(
+          filter = itemFilter,
+          sortMode = sort.mode,
+          sortDirection = sort.direction,
+        ).map { it ?: INVALID_ITEM_COUNT }
+      }
     }.collectAsState(INVALID_ITEM_COUNT)
 
-    val itemDisplayState by libraryViewSettings.observeLibraryItemDisplayState()
-      .collectAsState()
+    val itemDisplayState by remember { libraryViewSettings.observeLibraryItemDisplayState() }
+      .collectAsState(null)
 
     val offlineDownloads by remember {
       offlineDownloadManager.observeAll()
@@ -126,7 +138,7 @@ class LibraryPresenter(
       canAddPodcasts = canAddPodcasts,
       lazyPagingItems = lazyPagingItems,
       totalItemCount = totalItemCount,
-      sort = LibrarySort(sortMode, sortDirection),
+      sort = sort,
       filter = itemFilter,
       offlineStates = offlineDownloads,
       itemDisplayState = itemDisplayState,
@@ -134,7 +146,7 @@ class LibraryPresenter(
       when (event) {
         LibraryUiEvent.ToggleItemDisplayState -> {
           libraryViewSettings.setLibraryItemDisplayState(
-            when (itemDisplayState) {
+            when (itemDisplayState ?: return@LibraryUiState) {
               ItemDisplayState.List -> ItemDisplayState.Grid
               ItemDisplayState.Grid -> ItemDisplayState.GridDense
               ItemDisplayState.GridDense -> ItemDisplayState.List
@@ -146,8 +158,8 @@ class LibraryPresenter(
 
         is LibraryUiEvent.SortModeSelected -> {
           analytics.send(ActionEvent("sort_mode", "selected", event.mode.storageKey))
-          if (sortMode == event.mode) {
-            libraryViewSettings.setLibrarySortDirection(sortDirection.flip())
+          if (sort?.mode == event.mode) {
+            libraryViewSettings.setLibrarySortDirection(sort.direction.flip())
           }
           libraryViewSettings.setLibrarySortMode(event.mode)
         }

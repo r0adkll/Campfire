@@ -14,12 +14,14 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class TestDeviceSettings : DeviceSettings {
 
-  override val deviceId: String = "test-deviceId"
+  val deviceId: String = "test-deviceId"
+  override suspend fun deviceId(): String = deviceId
 
-  override val analyticsId: String = "test-analyticsId"
+  val analyticsId: String = "test-analyticsId"
+  override suspend fun analyticsId(): String = analyticsId
 
   private val _currentUserId = MutableStateFlow<UserId?>(null)
-  override val currentUserId: UserId? get() = _currentUserId.value
+  val currentUserId: UserId? get() = _currentUserId.value
   override fun setCurrentUserId(value: UserId?) {
     _currentUserId.value = value
   }

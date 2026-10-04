@@ -33,8 +33,10 @@ class AnalyticConsentPresenter(
   @Composable
   override fun present(): AnalyticConsentUiState {
     // Start from the stored choices; the user's toggles here override them until applied
-    val storedCrashReporting by remember { privacySettings.observeCrashReportingEnabled() }.collectAsState()
-    val storedAnalyticReporting by remember { privacySettings.observeAnalyticReportingEnabled() }.collectAsState()
+    val storedCrashReporting by remember { privacySettings.observeCrashReportingEnabled() }
+      .collectAsState(PrivacySettings.DEFAULT_CRASH_REPORTING_ENABLED)
+    val storedAnalyticReporting by remember { privacySettings.observeAnalyticReportingEnabled() }
+      .collectAsState(PrivacySettings.DEFAULT_ANALYTIC_REPORTING_ENABLED)
     var crashReportingChoice by remember { mutableStateOf<Boolean?>(null) }
     var analyticReportingChoice by remember { mutableStateOf<Boolean?>(null) }
     val crashReportingEnabled = crashReportingChoice ?: storedCrashReporting

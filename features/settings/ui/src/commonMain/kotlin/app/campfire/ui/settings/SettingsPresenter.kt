@@ -165,41 +165,43 @@ class SettingsPresenter(
 
     // Appearance Settings
     val appTheme by remember { themeRepository.observeCurrentAppTheme() }.collectAsState()
-    val themeMode by remember { themeSettings.observeTheme() }.collectAsState()
-    val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState()
-    val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState()
+    val themeMode by remember { themeSettings.observeTheme() }.collectAsState(null)
+    val dynamicItemDetailTheming by remember { themeSettings.observeDynamicallyThemeItemDetail() }.collectAsState(null)
+    val dynamicPlaybackTheming by remember { themeSettings.observeDynamicallyThemePlayback() }.collectAsState(null)
     val itemCardMarqueeEnabled by remember {
       libraryViewSettings.observeLibraryItemMarqueeEnabled()
-    }.collectAsState()
+    }.collectAsState(null)
 
     // Playback Settings
-    val playbackRates by remember { playbackSettings.observePlaybackRates() }.collectAsState()
-    val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState()
-    val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState()
-    val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState()
-    val mp3IndexSeeking by remember { playbackSettings.observeMp3IndexSeeking() }.collectAsState()
+    val playbackRates by remember { playbackSettings.observePlaybackRates() }.collectAsState(null)
+    val forwardTime by remember { playbackSettings.observeForwardTimeMs() }.collectAsState(null)
+    val backwardTime by remember { playbackSettings.observeBackwardTimeMs() }.collectAsState(null)
+    val trackResetThreshold by remember { playbackSettings.observeTrackResetThreshold() }.collectAsState(null)
+    val mp3IndexSeeking by remember { playbackSettings.observeMp3IndexSeeking() }.collectAsState(null)
     val remoteNextPrevSkipsChapters by remember {
       playbackSettings.observeRemoteNextPrevSkipsChapters()
-    }.collectAsState()
-    val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState()
-    val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState()
-    val streamingMethod by remember { playbackSettings.observeStreamingMethod() }.collectAsState()
-    val syncIntervalUnmetered by remember { playbackSettings.observeSyncIntervalUnmetered() }.collectAsState()
-    val syncIntervalMetered by remember { playbackSettings.observeSyncIntervalMetered() }.collectAsState()
-    val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState()
-    val autoRewindOnResumeEnabled by remember { playbackSettings.observeAutoRewindOnResumeEnabled() }.collectAsState()
-    val resumeRewindConfig by remember { playbackSettings.observeResumeRewindConfig() }.collectAsState()
-    val resumeRewindPreview = remember(resumeRewindConfig) { resumeRewindConfig.tiers() }
+    }.collectAsState(null)
+    val syncEnabled by remember { playbackSettings.observeSyncEnabled() }.collectAsState(null)
+    val autoSyncEnabled by remember { playbackSettings.observeAutoSyncEnabled() }.collectAsState(null)
+    val streamingMethod by remember { playbackSettings.observeStreamingMethod() }.collectAsState(null)
+    val syncIntervalUnmetered by remember { playbackSettings.observeSyncIntervalUnmetered() }.collectAsState(null)
+    val syncIntervalMetered by remember { playbackSettings.observeSyncIntervalMetered() }.collectAsState(null)
+    val playbackHistoryEnabled by remember { playbackSettings.observePlaybackHistoryEnabled() }.collectAsState(null)
+    val autoRewindOnResumeEnabled by remember { playbackSettings.observeAutoRewindOnResumeEnabled() }.collectAsState(
+      null,
+    )
+    val resumeRewindConfig by remember { playbackSettings.observeResumeRewindConfig() }.collectAsState(null)
+    val resumeRewindPreview = remember(resumeRewindConfig) { resumeRewindConfig?.tiers() }
     val autoRewindStopAtChapterBoundary by remember {
       playbackSettings.observeAutoRewindStopAtChapterBoundary()
-    }.collectAsState()
-    val bookTimeInPlaybackUi by remember { playbackSettings.observeBookTimeInPlaybackUi() }.collectAsState()
-    val playbackWavyScrubber by remember { playbackSettings.observePlaybackWavyScrubber() }.collectAsState()
-    val scrollingTitles by remember { playbackSettings.observeScrollingTitles() }.collectAsState()
+    }.collectAsState(null)
+    val bookTimeInPlaybackUi by remember { playbackSettings.observeBookTimeInPlaybackUi() }.collectAsState(null)
+    val playbackWavyScrubber by remember { playbackSettings.observePlaybackWavyScrubber() }.collectAsState(null)
+    val scrollingTitles by remember { playbackSettings.observeScrollingTitles() }.collectAsState(null)
 
     // Downloads Settings
     val showDownloadConfirmation by remember { libraryViewSettings.observeShowConfirmDownload() }
-      .collectAsState()
+      .collectAsState(null)
 
     val downloads by remember {
       offlineDownloadManager.observeAll()
@@ -235,33 +237,33 @@ class SettingsPresenter(
     }.collectAsState(emptyList())
 
     // Sleep Settings
-    val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState()
-    val shakeSensitivity by remember { sleepSettings.observeShakeSensitivity() }.collectAsState()
-    val autoSleepTimerEnabled by remember { sleepSettings.observeAutoSleepTimerEnabled() }.collectAsState()
-    val autoSleepTimerStart by remember { sleepSettings.observeAutoSleepStart() }.collectAsState()
-    val autoSleepTimerEnd by remember { sleepSettings.observeAutoSleepEnd() }.collectAsState()
-    val autoSleepTimer by remember { sleepSettings.observeAutoSleepTimer() }.collectAsState()
-    val autoSleepRewindEnabled by remember { sleepSettings.observeAutoRewindEnabled() }.collectAsState()
-    val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState()
-    val fadeOutDuration by remember { sleepSettings.observeFadeOutDuration() }.collectAsState()
+    val shakeToResetEnabled by remember { sleepSettings.observeShakeToResetEnabled() }.collectAsState(null)
+    val shakeSensitivity by remember { sleepSettings.observeShakeSensitivity() }.collectAsState(null)
+    val autoSleepTimerEnabled by remember { sleepSettings.observeAutoSleepTimerEnabled() }.collectAsState(null)
+    val autoSleepTimerStart by remember { sleepSettings.observeAutoSleepStart() }.collectAsState(null)
+    val autoSleepTimerEnd by remember { sleepSettings.observeAutoSleepEnd() }.collectAsState(null)
+    val autoSleepTimer by remember { sleepSettings.observeAutoSleepTimer() }.collectAsState(null)
+    val autoSleepRewindEnabled by remember { sleepSettings.observeAutoRewindEnabled() }.collectAsState(null)
+    val autoSleepRewindAmount by remember { sleepSettings.observeAutoRewindAmount() }.collectAsState(null)
+    val fadeOutDuration by remember { sleepSettings.observeFadeOutDuration() }.collectAsState(null)
 
     // Account Settings
     val keepSignedInAfterReinstall by remember { privacySettings.observeKeepSignedInAfterReinstall() }
-      .collectAsState()
+      .collectAsState(null)
 
     // About Settings
     val crashReportingEnabled by remember { privacySettings.observeCrashReportingEnabled() }
-      .collectAsState()
+      .collectAsState(null)
     val analyticReportingEnabled by remember { privacySettings.observeAnalyticReportingEnabled() }
-      .collectAsState()
+      .collectAsState(null)
     val socketSyncEnabled by remember { connectionSettings.observeSocketEnabled() }
-      .collectAsState()
+      .collectAsState(null)
 
     // Connection Settings
     val serverUrl = remember { userSession.user?.serverUrl }
     val isLocalServer = remember(serverUrl) { serverUrl?.let(serverReachability::isLocalServer) ?: false }
-    val homeServerOnMobileData by remember { mobileDataSettings.observeHomeServerOnMobileData() }.collectAsState()
-    val downloadOnWifiOnly by remember { mobileDataSettings.observeDownloadOnWifiOnly() }.collectAsState()
+    val homeServerOnMobileData by remember { mobileDataSettings.observeHomeServerOnMobileData() }.collectAsState(null)
+    val downloadOnWifiOnly by remember { mobileDataSettings.observeDownloadOnWifiOnly() }.collectAsState(null)
     val userId = remember { userSession.user?.id }
     val customHeaders by remember(userId) {
       userId?.let(accountManager::observeExtraHeaders) ?: flowOf(emptyMap())
@@ -270,7 +272,7 @@ class SettingsPresenter(
       .collectAsState(false)
     var localNetworkDenied by remember { mutableStateOf(false) }
     val appUpdateSignInDismissed by remember { appStateSettings.observeAppUpdateSignInDismissed() }
-      .collectAsState()
+      .collectAsState(null)
     var appUpdateInvalidator by remember { mutableIntStateOf(0) }
     // Assume signed in until known, so the sign-in prompt doesn't flash
     val appUpdateSignedIn by produceState(initialValue = true, appUpdateInvalidator) {
@@ -280,19 +282,19 @@ class SettingsPresenter(
     // Android Auto Settings
     val androidAutoCategories by remember {
       androidAutoSettings.observeCategoryConfigs()
-    }.collectAsState()
+    }.collectAsState(null)
     val isAndroidAutoAvailable = remember { androidAuto.isAvailable() }
 
     // Developer Settings
-    val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState()
-    val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState()
-    val hlsLargeItemThreshold by remember { devSettings.observeHlsLargeItemThreshold() }.collectAsState()
-    val showWidgetPinningPrompt by remember { appStateSettings.observeHasShownWidgetPinning() }.collectAsState()
-    val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState()
-    val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState()
-    val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState()
-    val fakeAppUpdateFailDownload by remember { devSettings.observeFakeAppUpdateFailDownload() }.collectAsState()
-    val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState()
+    val developerModeEnabled by remember { devSettings.observeDeveloperMode() }.collectAsState(null)
+    val sessionAge by remember { devSettings.observeSessionAge() }.collectAsState(null)
+    val hlsLargeItemThreshold by remember { devSettings.observeHlsLargeItemThreshold() }.collectAsState(null)
+    val showWidgetPinningPrompt by remember { appStateSettings.observeHasShownWidgetPinning() }.collectAsState(null)
+    val mediaButtonPackages by remember { devSettings.observeMediaButtonPackages() }.collectAsState(null)
+    val fakeAppUpdateSignedIn by remember { devSettings.observeFakeAppUpdateSignedIn() }.collectAsState(null)
+    val fakeAppUpdateAvailable by remember { devSettings.observeFakeAppUpdateAvailable() }.collectAsState(null)
+    val fakeAppUpdateFailDownload by remember { devSettings.observeFakeAppUpdateFailDownload() }.collectAsState(null)
+    val adaptToUnreachableServer by remember { devSettings.observeAdaptToUnreachableServer() }.collectAsState(null)
     val reachability by remember { serverReachability.status }.collectAsState()
     val network by remember { networkMonitor.snapshot }.collectAsState()
     val inRange by remember(serverUrl) {
@@ -301,61 +303,70 @@ class SettingsPresenter(
 
     return SettingsUiState(
       server = server,
-      keepSignedInAfterReinstall = keepSignedInAfterReinstall.takeIf { tokenBackup.isAvailable },
+      keepSignedInAfterReinstall = keepSignedInAfterReinstall?.takeIf { tokenBackup.isAvailable },
       isShakingAvailable = remember { shakeDetector.isAvailable },
       isAndroidAutoPaneVisible = currentPlatform == Platform.ANDROID,
       applicationInfo = applicationInfo,
-      appearanceSettings = AppearanceSettingsInfo(
-        appTheme = appTheme,
-        themeMode = themeMode,
-        dynamicItemDetailTheming = dynamicItemDetailTheming,
-        dynamicPlaybackTheming = dynamicPlaybackTheming,
-        itemCardMarqueeEnabled = itemCardMarqueeEnabled,
-      ),
-      downloadsSettings = DownloadsSettingsInfo(
-        showDownloadConfirmation = showDownloadConfirmation,
-        isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
-        downloadOnWifiOnly = downloadOnWifiOnly,
-        downloads = downloadEntries,
-      ),
-      playbackSettings = PlaybackSettingsInfo(
-        playbackRates = playbackRates,
-        forwardTime = forwardTime.milliseconds,
-        backwardTime = backwardTime.milliseconds,
-        trackResetThreshold = trackResetThreshold,
-        mp3IndexSeeking = mp3IndexSeeking,
-        remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters,
-        syncEnabled = syncEnabled,
-        streamingMethod = streamingMethod,
-        hlsAvailable = hlsPlaybackSupport.supportsHls,
-        syncIntervalUnmetered = syncIntervalUnmetered,
-        syncIntervalMetered = syncIntervalMetered,
-        autoSyncEnabled = syncEnabled && autoSyncEnabled,
-        playbackHistoryEnabled = playbackHistoryEnabled,
-        autoRewindOnResumeEnabled = autoRewindOnResumeEnabled,
-        resumeRewindConfig = resumeRewindConfig,
-        resumeRewindPreview = resumeRewindPreview,
-        autoRewindStopAtChapterBoundary = autoRewindStopAtChapterBoundary,
-        bookTimeInPlaybackUi = bookTimeInPlaybackUi,
-        playbackWavyScrubber = playbackWavyScrubber,
-        scrollingTitles = scrollingTitles,
-      ),
-      sleepSettings = SleepSettingsInfo(
-        shakeToReset = shakeToResetEnabled,
-        shakeSensitivity = shakeSensitivity,
-        fadeOutDuration = fadeOutDuration,
-        autoSleepSetting = if (autoSleepTimerEnabled) {
-          SleepSettingsInfo.AutoSleepSetting(
-            start = autoSleepTimerStart,
-            end = autoSleepTimerEnd,
-            timer = autoSleepTimer,
-            rewindEnabled = autoSleepRewindEnabled,
-            rewindAmount = autoSleepRewindAmount,
-          )
-        } else {
-          null
-        },
-      ),
+      appearanceSettings = run {
+        AppearanceSettingsInfo(
+          appTheme = appTheme,
+          themeMode = themeMode ?: return@run null,
+          dynamicItemDetailTheming = dynamicItemDetailTheming ?: return@run null,
+          dynamicPlaybackTheming = dynamicPlaybackTheming ?: return@run null,
+          itemCardMarqueeEnabled = itemCardMarqueeEnabled ?: return@run null,
+        )
+      },
+      downloadsSettings = run {
+        DownloadsSettingsInfo(
+          showDownloadConfirmation = showDownloadConfirmation ?: return@run null,
+          isWifiOnlyAvailable = currentPlatform == Platform.ANDROID,
+          downloadOnWifiOnly = downloadOnWifiOnly ?: return@run null,
+          downloads = downloadEntries,
+        )
+      },
+      playbackSettings = run {
+        val syncEnabled = syncEnabled ?: return@run null
+        PlaybackSettingsInfo(
+          playbackRates = playbackRates ?: return@run null,
+          forwardTime = (forwardTime ?: return@run null).milliseconds,
+          backwardTime = (backwardTime ?: return@run null).milliseconds,
+          trackResetThreshold = trackResetThreshold ?: return@run null,
+          mp3IndexSeeking = mp3IndexSeeking ?: return@run null,
+          remoteNextPrevSkipsChapters = remoteNextPrevSkipsChapters ?: return@run null,
+          syncEnabled = syncEnabled,
+          streamingMethod = streamingMethod ?: return@run null,
+          hlsAvailable = hlsPlaybackSupport.supportsHls,
+          syncIntervalUnmetered = syncIntervalUnmetered ?: return@run null,
+          syncIntervalMetered = syncIntervalMetered ?: return@run null,
+          autoSyncEnabled = syncEnabled && (autoSyncEnabled ?: return@run null),
+          playbackHistoryEnabled = playbackHistoryEnabled ?: return@run null,
+          autoRewindOnResumeEnabled = autoRewindOnResumeEnabled ?: return@run null,
+          resumeRewindConfig = resumeRewindConfig ?: return@run null,
+          resumeRewindPreview = resumeRewindPreview ?: return@run null,
+          autoRewindStopAtChapterBoundary = autoRewindStopAtChapterBoundary ?: return@run null,
+          bookTimeInPlaybackUi = bookTimeInPlaybackUi ?: return@run null,
+          playbackWavyScrubber = playbackWavyScrubber ?: return@run null,
+          scrollingTitles = scrollingTitles ?: return@run null,
+        )
+      },
+      sleepSettings = run {
+        SleepSettingsInfo(
+          shakeToReset = shakeToResetEnabled ?: return@run null,
+          shakeSensitivity = shakeSensitivity ?: return@run null,
+          fadeOutDuration = fadeOutDuration ?: return@run null,
+          autoSleepSetting = if (autoSleepTimerEnabled ?: return@run null) {
+            SleepSettingsInfo.AutoSleepSetting(
+              start = autoSleepTimerStart ?: return@run null,
+              end = autoSleepTimerEnd ?: return@run null,
+              timer = autoSleepTimer ?: return@run null,
+              rewindEnabled = autoSleepRewindEnabled ?: return@run null,
+              rewindAmount = autoSleepRewindAmount ?: return@run null,
+            )
+          } else {
+            null
+          },
+        )
+      },
       socketSyncEnabled = socketSyncEnabled,
       customHeaders = customHeaders,
       localNetworkAccess = when {
@@ -363,39 +374,47 @@ class SettingsPresenter(
         localNetworkDenied -> LocalNetworkAccess.Denied
         else -> LocalNetworkAccess.Missing
       },
-      homeServerSettings = HomeServerSettingsInfo(
-        isVisible = networkMonitor.isSupported && isLocalServer,
-        homeServerOnMobileData = homeServerOnMobileData,
-      ),
-      aboutSettings = AboutSettingsInfo(
-        crashReportingEnabled = crashReportingEnabled,
-        analyticReportingEnabled = analyticReportingEnabled,
-        showAppUpdateSignIn = appUpdateSignInDismissed && !appUpdateSignedIn,
-      ),
-      androidAutoSettings = AndroidAutoSettingsInfo(
-        isAndroidAutoAvailable = isAndroidAutoAvailable,
-        categories = androidAutoCategories,
-      ),
-      developerSettings = DeveloperSettingsInfo(
-        developerModeEnabled = developerModeEnabled || applicationInfo.debugBuild,
-        sessionAge = sessionAge,
-        hlsLargeItemThreshold = hlsLargeItemThreshold,
-        showWidgetPinningPrompt = showWidgetPinningPrompt,
-        analyticsDebugState = analytics.debugState,
-        mediaButtonPackages = mediaButtonPackages,
-        fakeAppUpdateSignedIn = fakeAppUpdateSignedIn,
-        fakeAppUpdateAvailable = fakeAppUpdateAvailable,
-        fakeAppUpdateFailDownload = fakeAppUpdateFailDownload,
-        adaptToUnreachableServer = adaptToUnreachableServer,
-        networkDiagnostics = NetworkDiagnostics(
-          reachability = reachability,
-          inRange = inRange,
-          isLocalServer = isLocalServer,
-          network = network,
-          networkSupported = networkMonitor.isSupported,
-          localNetworkPermissionMissing = localNetworkMissing,
-        ),
-      ),
+      homeServerSettings = run {
+        HomeServerSettingsInfo(
+          isVisible = networkMonitor.isSupported && isLocalServer,
+          homeServerOnMobileData = homeServerOnMobileData ?: return@run null,
+        )
+      },
+      aboutSettings = run {
+        AboutSettingsInfo(
+          crashReportingEnabled = crashReportingEnabled ?: return@run null,
+          analyticReportingEnabled = analyticReportingEnabled ?: return@run null,
+          showAppUpdateSignIn = (appUpdateSignInDismissed ?: return@run null) && !appUpdateSignedIn,
+        )
+      },
+      androidAutoSettings = run {
+        AndroidAutoSettingsInfo(
+          isAndroidAutoAvailable = isAndroidAutoAvailable,
+          categories = androidAutoCategories ?: return@run null,
+        )
+      },
+      developerSettings = run {
+        DeveloperSettingsInfo(
+          developerModeEnabled = (developerModeEnabled ?: return@run null) || applicationInfo.debugBuild,
+          sessionAge = sessionAge ?: return@run null,
+          hlsLargeItemThreshold = hlsLargeItemThreshold ?: return@run null,
+          showWidgetPinningPrompt = showWidgetPinningPrompt ?: return@run null,
+          analyticsDebugState = analytics.debugState,
+          mediaButtonPackages = mediaButtonPackages ?: return@run null,
+          fakeAppUpdateSignedIn = fakeAppUpdateSignedIn ?: return@run null,
+          fakeAppUpdateAvailable = fakeAppUpdateAvailable ?: return@run null,
+          fakeAppUpdateFailDownload = fakeAppUpdateFailDownload ?: return@run null,
+          adaptToUnreachableServer = adaptToUnreachableServer ?: return@run null,
+          networkDiagnostics = NetworkDiagnostics(
+            reachability = reachability,
+            inRange = inRange,
+            isLocalServer = isLocalServer,
+            network = network,
+            networkSupported = networkMonitor.isSupported,
+            localNetworkPermissionMissing = localNetworkMissing,
+          ),
+        )
+      },
     ) { event ->
       analyticUiEventHandler.handle(event)
       when (event) {
@@ -476,7 +495,7 @@ class SettingsPresenter(
 
         is SettingsUiEvent.PlaybackSettingEvent -> when (event) {
           is PlaybackRateChanged -> {
-            val rates = playbackRates.toMutableList()
+            val rates = playbackRates?.toMutableList() ?: return@SettingsUiState
             if (event.index in rates.indices) {
               rates[event.index] = event.rate
               playbackSettings.setPlaybackRates(rates)
@@ -502,12 +521,12 @@ class SettingsPresenter(
           is AutoRewindOnResumeEnabled -> playbackSettings.setAutoRewindOnResumeEnabled(event.enabled)
           is MinPauseThreshold -> {
             playbackSettings.setResumeRewindConfig(
-              resumeRewindConfig.copy(minPauseThreshold = event.threshold),
+              (resumeRewindConfig ?: return@SettingsUiState).copy(minPauseThreshold = event.threshold),
             )
           }
           is ResumeRewindRange -> {
             playbackSettings.setResumeRewindConfig(
-              resumeRewindConfig.copy(
+              (resumeRewindConfig ?: return@SettingsUiState).copy(
                 minRewind = event.minRewind,
                 maxRewind = event.maxRewind,
               ),

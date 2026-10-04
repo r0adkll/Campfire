@@ -86,8 +86,10 @@ internal fun PlaybackPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val playbackSettings = state.playbackSettings ?: return@SettingPaneLayout
+
     TimeJumpSetting(
-      time = state.playbackSettings.forwardTime,
+      time = playbackSettings.forwardTime,
       onTimeChange = {
         state.eventSink(PlaybackSettingEvent.ForwardTime(it))
       },
@@ -97,7 +99,7 @@ internal fun PlaybackPane(
     )
 
     TimeJumpSetting(
-      time = state.playbackSettings.backwardTime,
+      time = playbackSettings.backwardTime,
       onTimeChange = {
         state.eventSink(PlaybackSettingEvent.BackwardTime(it))
       },
@@ -107,7 +109,7 @@ internal fun PlaybackPane(
     )
 
     TimeJumpSetting(
-      time = state.playbackSettings.trackResetThreshold,
+      time = playbackSettings.trackResetThreshold,
       onTimeChange = {
         state.eventSink(PlaybackSettingEvent.TrackResetThreshold(it))
       },
@@ -117,7 +119,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.mp3IndexSeeking,
+      value = playbackSettings.mp3IndexSeeking,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.Mp3IndexSeeking(it))
       },
@@ -126,7 +128,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.remoteNextPrevSkipsChapters,
+      value = playbackSettings.remoteNextPrevSkipsChapters,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.RemoteNextPrevSkipsChapters(it))
       },
@@ -148,7 +150,7 @@ internal fun PlaybackPane(
     Spacer(Modifier.height(8.dp))
 
     PlaybackSpeedOptionsSetting(
-      rates = state.playbackSettings.playbackRates,
+      rates = playbackSettings.playbackRates,
       onRateChange = { index, rate ->
         state.eventSink(PlaybackSettingEvent.PlaybackRateChanged(index, rate))
       },
@@ -161,7 +163,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.bookTimeInPlaybackUi,
+      value = playbackSettings.bookTimeInPlaybackUi,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.BookTimeInPlaybackUi(it))
       },
@@ -170,7 +172,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.playbackWavyScrubber,
+      value = playbackSettings.playbackWavyScrubber,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.PlaybackWavyScrubber(it))
       },
@@ -179,7 +181,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.scrollingTitles,
+      value = playbackSettings.scrollingTitles,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.ScrollingTitles(it))
       },
@@ -192,7 +194,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.autoRewindOnResumeEnabled,
+      value = playbackSettings.autoRewindOnResumeEnabled,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.AutoRewindOnResumeEnabled(it))
       },
@@ -201,10 +203,10 @@ internal fun PlaybackPane(
     )
 
     AnimatedVisibility(
-      visible = state.playbackSettings.autoRewindOnResumeEnabled,
+      visible = playbackSettings.autoRewindOnResumeEnabled,
     ) {
       Column {
-        val config = state.playbackSettings.resumeRewindConfig
+        val config = playbackSettings.resumeRewindConfig
 
         DurationSliderSetting(
           title = stringResource(Res.string.setting_playback_min_pause_title),
@@ -228,7 +230,7 @@ internal fun PlaybackPane(
         )
 
         SwitchSetting(
-          value = state.playbackSettings.autoRewindStopAtChapterBoundary,
+          value = playbackSettings.autoRewindStopAtChapterBoundary,
           onValueChange = {
             state.eventSink(PlaybackSettingEvent.AutoRewindStopAtChapterBoundary(it))
           },
@@ -240,7 +242,7 @@ internal fun PlaybackPane(
           title = { Text(stringResource(Res.string.setting_playback_resume_rewind_preview_header)) },
         )
 
-        state.playbackSettings.resumeRewindPreview.forEach { tier ->
+        playbackSettings.resumeRewindPreview.forEach { tier ->
           ResumeRewindPreviewRow(tier = tier)
         }
       }
@@ -251,7 +253,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.syncEnabled,
+      value = playbackSettings.syncEnabled,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.SyncEnabled(it))
       },
@@ -260,10 +262,10 @@ internal fun PlaybackPane(
     )
 
     AnimatedVisibility(
-      visible = state.playbackSettings.syncEnabled,
+      visible = playbackSettings.syncEnabled,
     ) {
       SwitchSetting(
-        value = state.playbackSettings.autoSyncEnabled,
+        value = playbackSettings.autoSyncEnabled,
         onValueChange = {
           state.eventSink(PlaybackSettingEvent.AutoSyncEnabled(it))
         },
@@ -273,13 +275,13 @@ internal fun PlaybackPane(
     }
 
     AnimatedVisibility(
-      visible = state.playbackSettings.syncEnabled,
+      visible = playbackSettings.syncEnabled,
     ) {
       Column {
         DurationSliderSetting(
           title = stringResource(Res.string.setting_sync_interval_unmetered_title),
           subtitle = stringResource(Res.string.setting_sync_interval_unmetered_subtitle),
-          value = state.playbackSettings.syncIntervalUnmetered,
+          value = playbackSettings.syncIntervalUnmetered,
           valueRange = SyncIntervalRange,
           stepSeconds = 5,
           onValueChange = {
@@ -290,7 +292,7 @@ internal fun PlaybackPane(
         DurationSliderSetting(
           title = stringResource(Res.string.setting_sync_interval_metered_title),
           subtitle = stringResource(Res.string.setting_sync_interval_metered_subtitle),
-          value = state.playbackSettings.syncIntervalMetered,
+          value = playbackSettings.syncIntervalMetered,
           valueRange = SyncIntervalRange,
           stepSeconds = 5,
           onValueChange = {
@@ -301,13 +303,13 @@ internal fun PlaybackPane(
     }
 
     // The chooser only appears where the player can stream HLS
-    if (state.playbackSettings.hlsAvailable) {
+    if (playbackSettings.hlsAvailable) {
       Header(
         title = { Text(stringResource(Res.string.header_streaming)) },
       )
 
       StreamingMethodSetting(
-        method = state.playbackSettings.streamingMethod,
+        method = playbackSettings.streamingMethod,
         onMethodChange = {
           state.eventSink(PlaybackSettingEvent.StreamingMethodChanged(it))
         },
@@ -319,7 +321,7 @@ internal fun PlaybackPane(
     )
 
     SwitchSetting(
-      value = state.playbackSettings.playbackHistoryEnabled,
+      value = playbackSettings.playbackHistoryEnabled,
       onValueChange = {
         state.eventSink(PlaybackSettingEvent.PlaybackHistoryEnabled(it))
       },

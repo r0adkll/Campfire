@@ -5,6 +5,7 @@ package app.campfire.author.ui.list
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -25,6 +26,7 @@ import app.campfire.common.compose.layout.LazyCampfireGrid
 import app.campfire.common.compose.widgets.AuthorCard
 import app.campfire.common.compose.widgets.ContentPagingScaffold
 import app.campfire.common.compose.widgets.FilterBar
+import app.campfire.common.compose.widgets.LoadingListState
 import app.campfire.common.screens.AuthorsScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.Author
@@ -69,18 +71,25 @@ fun Authors(
     contentWindowInsets = CampfireWindowInsets,
   ) { paddingValues ->
     val overlayHost = LocalOverlayHost.current
+    val sortMode = state.sortMode
+    val sortDirection = state.sortDirection
+    if (sortMode == null || sortDirection == null) {
+      LoadingListState(Modifier.padding(paddingValues))
+      return@Scaffold
+    }
+
     LoadedState(
       lazyPagingItems = state.lazyPagingItems,
       numAuthors = state.numAuthors,
-      sortMode = state.sortMode,
-      sortDirection = state.sortDirection,
+      sortMode = sortMode,
+      sortDirection = sortDirection,
       onAuthorClick = { state.eventSink(AuthorsUiEvent.AuthorClick(it)) },
       onSortClick = {
         scope.launch {
           val updatedSortMode = sortModeUi.showContentSortModeBottomSheet(
             overlayHost,
-            state.sortMode,
-            state.sortDirection,
+            sortMode,
+            sortDirection,
             AuthorSortModes,
           )
           if (updatedSortMode != null) {

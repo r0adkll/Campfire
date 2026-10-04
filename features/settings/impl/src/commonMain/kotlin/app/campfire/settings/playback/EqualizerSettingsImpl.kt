@@ -10,22 +10,23 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.LibraryItemId
 import app.campfire.settings.api.EqualizerSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<EqualizerSettings>())
 @Inject
 class EqualizerSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : EqualizerSettings, AppSettings() {
 
   private val equalizerProfileProperty = customSetting(
@@ -34,19 +35,17 @@ class EqualizerSettingsImpl(
     getter = { it.asEqualizerProfile() ?: EqualizerProfile() },
     setter = { profile -> profile.serialize() },
   )
-  override val equalizerProfile: EqualizerProfile by equalizerProfileProperty
   override fun setEqualizerProfile(value: EqualizerProfile) = equalizerProfileProperty.set(value)
-  override fun observeEqualizerProfile(): StateFlow<EqualizerProfile> = equalizerProfileProperty.observe()
+  override fun observeEqualizerProfile(): Flow<EqualizerProfile> = equalizerProfileProperty.observe()
 
   private val customBandGainsProperty = customSetting(
     key = PREF_EQUALIZER_CUSTOM_GAINS,
-    defaultValue = List(EqualizerBands.BAND_COUNT) { 0f },
-    getter = { it.asBandGains() ?: List(EqualizerBands.BAND_COUNT) { 0f } },
+    defaultValue = EqualizerSettings.DefaultCustomBandGains,
+    getter = { it.asBandGains() ?: EqualizerSettings.DefaultCustomBandGains },
     setter = { gains -> gains.joinToString(EQUALIZER_GAINS_SEPARATOR) },
   )
-  override val customBandGains: List<Float> by customBandGainsProperty
   override fun setCustomBandGains(value: List<Float>) = customBandGainsProperty.set(value)
-  override fun observeCustomBandGains(): StateFlow<List<Float>> = customBandGainsProperty.observe()
+  override fun observeCustomBandGains(): Flow<List<Float>> = customBandGainsProperty.observe()
 
   private val itemEqualizerProfilesProperty = customSetting(
     key = PREF_ITEM_EQUALIZER_PROFILES,
@@ -58,11 +57,19 @@ class EqualizerSettingsImpl(
       }
     },
   )
-  override val itemEqualizerProfiles: Map<LibraryItemId, EqualizerProfile> by itemEqualizerProfilesProperty
   override fun setItemEqualizerProfiles(value: Map<LibraryItemId, EqualizerProfile>) =
     itemEqualizerProfilesProperty.set(value)
-  override fun observeItemEqualizerProfiles(): StateFlow<Map<LibraryItemId, EqualizerProfile>> =
+  override fun observeItemEqualizerProfiles(): Flow<Map<LibraryItemId, EqualizerProfile>> =
     itemEqualizerProfilesProperty.observe()
+
+  override fun setEqualizerProfileFor(itemId: LibraryItemId?, profile: EqualizerProfile) = edit {
+    val profiles = itemEqualizerProfilesProperty.readInEdit()
+    if (itemId != null && itemId in profiles) {
+      itemEqualizerProfilesProperty.writeInEdit(profiles + (itemId to profile))
+    } else {
+      equalizerProfileProperty.writeInEdit(profile)
+    }
+  }
 
   private fun EqualizerProfile.serialize(): String = listOf(
     if (enabled) "1" else "0",

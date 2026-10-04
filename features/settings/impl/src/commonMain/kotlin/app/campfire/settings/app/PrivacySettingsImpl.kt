@@ -7,45 +7,44 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.PrivacySettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<PrivacySettings>())
 @Inject
 class PrivacySettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : PrivacySettings, AppSettings() {
 
   // These are user opt-in, so default false
   private val hasEverConsentedProperty = booleanSetting(KEY_HAS_CONSENTED, false)
-  override val hasEverConsented: Boolean by hasEverConsentedProperty
   override fun setHasEverConsented(value: Boolean) = hasEverConsentedProperty.set(value)
-  override fun observeHasEverConsented(): StateFlow<Boolean> = hasEverConsentedProperty.observe()
+  override fun observeHasEverConsented(): Flow<Boolean> = hasEverConsentedProperty.observe()
 
-  private val crashReportingProperty = booleanSetting(KEY_CRASH_REPORTING, true)
-  override val crashReportingEnabled: Boolean by crashReportingProperty
+  private val crashReportingProperty =
+    booleanSetting(KEY_CRASH_REPORTING, PrivacySettings.DEFAULT_CRASH_REPORTING_ENABLED)
   override fun setCrashReportingEnabled(value: Boolean) = crashReportingProperty.set(value)
-  override fun observeCrashReportingEnabled(): StateFlow<Boolean> = crashReportingProperty.observe()
+  override fun observeCrashReportingEnabled(): Flow<Boolean> = crashReportingProperty.observe()
 
   private val keepSignedInAfterReinstallProperty = booleanSetting(KEY_KEEP_SIGNED_IN_AFTER_REINSTALL, true)
-  override val keepSignedInAfterReinstall: Boolean by keepSignedInAfterReinstallProperty
   override fun setKeepSignedInAfterReinstall(value: Boolean) = keepSignedInAfterReinstallProperty.set(value)
-  override fun observeKeepSignedInAfterReinstall(): StateFlow<Boolean> =
+  override fun observeKeepSignedInAfterReinstall(): Flow<Boolean> =
     keepSignedInAfterReinstallProperty.observe()
 
-  private val analyticReportingProperty = booleanSetting(KEY_ANALYTIC_REPORTING, false)
-  override val analyticReportingEnabled: Boolean by analyticReportingProperty
+  private val analyticReportingProperty =
+    booleanSetting(KEY_ANALYTIC_REPORTING, PrivacySettings.DEFAULT_ANALYTIC_REPORTING_ENABLED)
   override fun setAnalyticReportingEnabled(value: Boolean) = analyticReportingProperty.set(value)
-  override fun observeAnalyticReportingEnabled(): StateFlow<Boolean> = analyticReportingProperty.observe()
+  override fun observeAnalyticReportingEnabled(): Flow<Boolean> = analyticReportingProperty.observe()
 }
 
 internal const val KEY_HAS_CONSENTED = "pref_has_consented"

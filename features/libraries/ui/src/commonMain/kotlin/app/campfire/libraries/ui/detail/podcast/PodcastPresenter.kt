@@ -110,7 +110,7 @@ class PodcastPresenter(
 
     val showConfirmDownloadDialog by remember {
       libraryViewSettings.observeShowConfirmDownload()
-    }.collectAsState()
+    }.collectAsState(LibraryViewSettings.DEFAULT_SHOW_CONFIRM_DOWNLOAD)
 
     val slots = buildSlots(
       user = currentUser,

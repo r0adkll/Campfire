@@ -3,7 +3,7 @@
 
 package app.campfire.settings.api
 
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
 interface MobileDataSettings {
 
@@ -13,15 +13,13 @@ interface MobileDataSettings {
    * VPN (which is always allowed), so by default Campfire waits for Wi-Fi.
    * Default: `false`
    */
-  val homeServerOnMobileData: Boolean
   fun setHomeServerOnMobileData(value: Boolean)
-  fun observeHomeServerOnMobileData(): StateFlow<Boolean>
+  fun observeHomeServerOnMobileData(): Flow<Boolean>
 
   /**
    * Whether downloads wait for Wi-Fi (an unmetered connection) instead of using mobile data.
    * Default: `false`
    */
-  val downloadOnWifiOnly: Boolean
   fun setDownloadOnWifiOnly(value: Boolean)
-  fun observeDownloadOnWifiOnly(): StateFlow<Boolean>
+  fun observeDownloadOnWifiOnly(): Flow<Boolean>
 }

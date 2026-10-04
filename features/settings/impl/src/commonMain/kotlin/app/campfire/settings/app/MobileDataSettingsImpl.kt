@@ -7,22 +7,23 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.settings.api.MobileDataSettings
 import app.campfire.settings.store.AppSettings
-import com.russhwolf.settings.ExperimentalSettingsApi
+import app.campfire.settings.store.SettingsDispatcher
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.Flow
 
-@OptIn(ExperimentalSettingsApi::class)
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<MobileDataSettings>())
 @Inject
 class MobileDataSettingsImpl(
   override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @SettingsDispatcher override val dispatcher: CoroutineDispatcher,
 ) : MobileDataSettings, AppSettings() {
 
   // Until a choice is stored, carry over the earlier "skip my home server on mobile data" switch
@@ -31,14 +32,12 @@ class MobileDataSettingsImpl(
     key = KEY_HOME_SERVER_ON_MOBILE_DATA,
     defaultValue = !settings.getBoolean(KEY_LEGACY_SKIP_HOME_SERVER_ON_MOBILE_DATA, true),
   )
-  override val homeServerOnMobileData: Boolean by homeServerOnMobileDataProperty
   override fun setHomeServerOnMobileData(value: Boolean) = homeServerOnMobileDataProperty.set(value)
-  override fun observeHomeServerOnMobileData(): StateFlow<Boolean> = homeServerOnMobileDataProperty.observe()
+  override fun observeHomeServerOnMobileData(): Flow<Boolean> = homeServerOnMobileDataProperty.observe()
 
   private val downloadOnWifiOnlyProperty = booleanSetting(KEY_DOWNLOAD_ON_WIFI_ONLY, false)
-  override val downloadOnWifiOnly: Boolean by downloadOnWifiOnlyProperty
   override fun setDownloadOnWifiOnly(value: Boolean) = downloadOnWifiOnlyProperty.set(value)
-  override fun observeDownloadOnWifiOnly(): StateFlow<Boolean> = downloadOnWifiOnlyProperty.observe()
+  override fun observeDownloadOnWifiOnly(): Flow<Boolean> = downloadOnWifiOnlyProperty.observe()
 }
 
 internal const val KEY_HOME_SERVER_ON_MOBILE_DATA = "pref_home_server_on_mobile_data"

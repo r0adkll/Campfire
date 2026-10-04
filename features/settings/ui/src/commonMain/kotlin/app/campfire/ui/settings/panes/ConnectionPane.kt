@@ -31,6 +31,9 @@ internal fun ConnectionPane(
     onBackClick = onBackClick,
     modifier = modifier,
   ) {
+    val socketSyncEnabled = state.socketSyncEnabled ?: return@SettingPaneLayout
+    val homeServerSettings = state.homeServerSettings ?: return@SettingPaneLayout
+
     state.localNetworkAccess?.let { access ->
       LocalNetworkAccessSetting(
         access = access,
@@ -43,7 +46,7 @@ internal fun ConnectionPane(
     )
 
     SwitchSetting(
-      value = state.socketSyncEnabled,
+      value = socketSyncEnabled,
       onValueChange = {
         state.eventSink(ConnectionSettingEvent.SocketSyncEnabled(it))
       },
@@ -52,9 +55,9 @@ internal fun ConnectionPane(
       leadingContent = { Icon(CampfireIcons.Rounded.Sync, contentDescription = null) },
     )
 
-    if (state.homeServerSettings.isVisible) {
+    if (homeServerSettings.isVisible) {
       HomeServerSettings(
-        homeServerOnMobileData = state.homeServerSettings.homeServerOnMobileData,
+        homeServerOnMobileData = homeServerSettings.homeServerOnMobileData,
         onEvent = state.eventSink,
       )
     }

@@ -70,7 +70,7 @@ internal fun LoggedOutWindow(
       // burials to wire all usages of this component
       val itemCardMarqueeEnabled by remember {
         libraryViewSettings.observeLibraryItemMarqueeEnabled()
-      }.collectAsState()
+      }.collectAsState(LibraryViewSettings.DEFAULT_ITEM_MARQUEE_ENABLED)
 
       CompositionLocalProvider(
         LocalItemCardMarquee provides itemCardMarqueeEnabled,
