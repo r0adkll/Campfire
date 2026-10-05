@@ -7,20 +7,19 @@ import android.app.backup.BackupAgent
 import android.app.backup.BackupDataInput
 import android.app.backup.BackupDataOutput
 import android.os.ParcelFileDescriptor
-import androidx.preference.PreferenceManager
-import com.russhwolf.settings.SharedPreferencesSettings
 
 /**
  * Auto Backup (`android:fullBackupOnly="true"`) does the backing up and restoring, following
  * `data_extraction_rules.xml`; this agent only exists for [onRestoreFinished]. It runs in a
- * restricted process without the app's DI graph, so it edits the preferences directly.
+ * restricted process without the app's DI graph, so it opens the settings store directly.
  */
 class SettingsBackupAgent : BackupAgent() {
 
   override fun onRestoreFinished() {
-    val preferences = PreferenceManager.getDefaultSharedPreferences(this)
-    // Commit synchronously, the process can be killed as soon as this returns
-    SharedPreferencesSettings(preferences, commit = true).clearDeviceBoundSettings()
+    // Opening the store first migrates settings restored from a backup made before FlatPrefs, so
+    // both kinds of backup are cleared here. Commit synchronously, the process can be killed as soon
+    // as this returns.
+    openSettingsStore().commitBlocking { it.clearDeviceBoundSettings() }
   }
 
   // Key/value backup is unused with fullBackupOnly

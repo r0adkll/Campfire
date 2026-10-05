@@ -61,6 +61,14 @@ dependencyResolutionManagement {
       }
     }
 
+    maven("https://central.sonatype.com/repository/maven-snapshots/") {
+      name = "flatprefs-snapshots"
+      mavenContent { snapshotsOnly() }
+      content {
+        includeGroup("com.r0adkll.flatprefs")
+      }
+    }
+
     if (hasProperty("campfire.config.enableMavenLocal")) {
       mavenLocal()
     }

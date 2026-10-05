@@ -25,10 +25,20 @@ kotlin {
       }
     }
 
-    androidMain {
+    // Android and desktop keep settings in FlatPrefs; iOS stays on NSUserDefaults
+    val jvmShared by creating {
+      dependsOn(commonMain.get())
       dependencies {
-        implementation(libs.androidx.preferences)
+        implementation(libs.flatprefs.core)
       }
+    }
+
+    jvmMain {
+      dependsOn(jvmShared)
+    }
+
+    androidMain {
+      dependsOn(jvmShared)
     }
   }
 }

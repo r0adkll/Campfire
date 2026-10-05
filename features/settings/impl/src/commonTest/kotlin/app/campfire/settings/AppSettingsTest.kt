@@ -23,16 +23,14 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
-class AppSettingsTest {
+/** Runs against [MapSettings] here, and against each platform's real storage where it has a subclass. */
+abstract class AppSettingsTest {
 
   private val settingsScope = kotlinx.coroutines.CoroutineScope(Dispatchers.Unconfined + Job())
 
-  private fun createSettings(
-    initial: Map<String, Any> = emptyMap(),
-  ): TestAppSettings {
-    val map = initial.toMutableMap()
-    return TestAppSettings(settingsScope, MapSettings(map))
-  }
+  protected abstract fun createObservableSettings(): ObservableSettings
+
+  private fun createSettings(): TestAppSettings = TestAppSettings(settingsScope, createObservableSettings())
 
   @AfterTest
   fun tearDown() {
@@ -343,6 +341,10 @@ class AppSettingsTest {
   companion object {
     private val DEFAULT_DATE_TIME = LocalDateTime(2024, 1, 1, 0, 0)
   }
+}
+
+class MapSettingsAppSettingsTest : AppSettingsTest() {
+  override fun createObservableSettings(): ObservableSettings = MapSettings()
 }
 
 private class TestAppSettings(

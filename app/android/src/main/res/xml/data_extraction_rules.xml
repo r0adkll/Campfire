@@ -4,18 +4,23 @@
   Keystore key (tokens, extra headers, Hardcover) can't be decrypted after a restore because the
   key never leaves the device, and the main database is a cache of the server.
 
-  - Default preferences: app settings and the account restore snapshot (AccountRestoreStore).
-    One entry per applicationId; a path that doesn't exist is ignored.
+  - flatprefs/settings.fpb: app settings and the account restore snapshot (AccountRestoreStore).
+    Its .tmp sibling is a write in progress and is left out.
+  - Default preferences: where the settings lived before FlatPrefs. Restores only bring back files
+    these rules include, so they stay listed for backups made before then; the app migrates them
+    when it opens the settings. One entry per applicationId; a path that doesn't exist is ignored.
   - campfire_themes.db: custom themes. Its -wal holds writes not yet checkpointed.
 -->
 <data-extraction-rules>
   <cloud-backup>
+    <include domain="file" path="flatprefs/settings.fpb" />
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />
     <include domain="database" path="campfire_themes.db-wal" />
   </cloud-backup>
   <device-transfer>
+    <include domain="file" path="flatprefs/settings.fpb" />
     <include domain="sharedpref" path="app.campfire.android_preferences.xml" />
     <include domain="sharedpref" path="app.campfire.android.alpha_preferences.xml" />
     <include domain="database" path="campfire_themes.db" />
