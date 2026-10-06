@@ -75,13 +75,13 @@ class PlaybackHistoryForwardingPlayer(
     val fromPosition = overallPosition.milliseconds
     super.seekBack()
     libraryItemId?.let {
-      val seekForwardAmount = playbackSettings.forwardTimeMs.milliseconds
+      val seekBackwardAmount = playbackSettings.backwardTimeMs.milliseconds
       recorder.record(
         libraryItemId = it,
         episodeId = episodeId,
         type = PlaybackActionType.SeekBackward,
         fromPosition = fromPosition,
-        toPosition = fromPosition - seekForwardAmount,
+        toPosition = fromPosition - seekBackwardAmount,
       )
     }
   }
