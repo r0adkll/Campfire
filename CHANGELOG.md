@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chapters, bookmarks, speed and the other player controls now open in a panel beside the player when your phone is sideways or your foldable is half-open, instead of a bottom sheet with room for barely two rows
 - Chapter and book titles too long to fit in the player now scroll, fading out at the edges, instead of being cut off (turn off with Scroll long titles in Settings → Playback)
 - [Android] Sign-ins and Hardcover tokens are now encrypted with a key kept in your device's keystore, replacing the deprecated encrypted storage; you stay signed in through the update
+- Each account keeps its own library sorting and layout
 
 ### Deprecated
 
