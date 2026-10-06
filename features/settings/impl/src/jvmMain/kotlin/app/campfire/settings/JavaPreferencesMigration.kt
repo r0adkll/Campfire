@@ -24,6 +24,9 @@ import java.util.prefs.Preferences
  * doesn't list stay in the node: the account tokens, extra headers and Hardcover credentials share
  * it and are still read from there. A value that doesn't parse as its type is dropped, as
  * java.util.prefs already read it as the default.
+ *
+ * A key the store already has keeps the store's value: an earlier run migrated it, and its removal
+ * from the node never reached disk, so the node's copy is older than any change made since.
  */
 internal class JavaPreferencesMigration(
   private val preferences: Preferences,
@@ -36,14 +39,16 @@ internal class JavaPreferencesMigration(
     preferences.keys().any { LegacySettingTypes.typeOf(it) != null }
 
   override fun migrate(prefs: MutableFlatPreferences) {
+    val existing = prefs.toFlatPreferences()
     val migrated = mutableSetOf<String>()
     for (key in preferences.keys()) {
       val type = LegacySettingTypes.typeOf(key) ?: continue
+      migrated += key
+      if (stringKey(key) in existing) continue
       val text = preferences.get(key, null) ?: continue
       if (!prefs.putParsed(key, type, text)) {
         bark(LogPriority.WARN) { "Setting '$key' isn't a valid $type, dropping it" }
       }
-      migrated += key
     }
     migratedKeys = migrated
   }

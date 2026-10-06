@@ -9,13 +9,16 @@ import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isGreaterThan
 import assertk.assertions.isNull
+import com.r0adkll.flatprefs.FlatPreferences
 import com.r0adkll.flatprefs.doubleKey
 import com.r0adkll.flatprefs.floatKey
 import com.r0adkll.flatprefs.intKey
 import com.r0adkll.flatprefs.longKey
+import com.r0adkll.flatprefs.stringKey
 import java.util.prefs.AbstractPreferences
 import kotlin.test.Test
 import kotlinx.coroutines.test.runTest
+import okio.FileSystem
 import okio.Path.Companion.toPath
 
 class JavaPreferencesMigrationTest {
@@ -118,6 +121,21 @@ class JavaPreferencesMigrationTest {
 
     assertThat(settings.getBooleanOrNull(KEY_DEVELOPER_MODE)).isNull()
     assertThat(legacy.values[KEY_DEVELOPER_MODE]).isNull()
+  }
+
+  @Test
+  fun `a key the store already has keeps the store's value`() = runTest {
+    // An earlier run migrated the theme, it was changed since, and the node's removal never reached disk
+    val file = newSettingsFile()
+    val changed = FlatPreferences.EMPTY.toMutable().apply { set(stringKey(KEY_THEME), "light") }.toFlatPreferences()
+    FileSystem.SYSTEM.write(file) { write(changed.encodeToByteArray()) }
+
+    val store = openSettingsStore(file, listOf(JavaPreferencesMigration(legacy)))
+    val settings = FlatPreferencesSettings(store, backgroundScope)
+
+    assertThat(settings.getStringOrNull(KEY_THEME)).isEqualTo("light")
+    assertThat(settings.getLongOrNull(PREF_FORWARD_TIME_MS)).isEqualTo(45_000L)
+    assertThat(legacy.values[KEY_THEME]).isNull()
   }
 
   @Test
