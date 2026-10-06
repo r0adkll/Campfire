@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- [Android] Skipping back being recorded in playback history with the skip-forward amount
 - [Desktop] Campfire no longer contacts Google, GitHub, or Bing to check whether you're online
 - Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
 - The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
