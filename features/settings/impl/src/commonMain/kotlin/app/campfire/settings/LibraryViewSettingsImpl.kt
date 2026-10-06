@@ -3,7 +3,8 @@
 
 package app.campfire.settings
 
-import app.campfire.core.di.AppScope
+import app.campfire.core.coroutines.CoroutineScopeHolder
+import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.settings.ContentSortMode
 import app.campfire.core.settings.GroupDisplayState
@@ -20,13 +21,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalSettingsApi::class)
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class, binding = binding<LibraryViewSettings>())
+@SingleIn(UserScope::class)
+@ContributesBinding(UserScope::class, binding = binding<LibraryViewSettings>())
 @Inject
 class LibraryViewSettingsImpl(
-  override val settings: ObservableSettings,
-  @ForScope(AppScope::class) override val scope: CoroutineScope,
+  @ForScope(UserScope::class) override val settings: ObservableSettings,
+  @ForScope(UserScope::class) private val scopeHolder: CoroutineScopeHolder,
 ) : LibraryViewSettings, AppSettings() {
+
+  // Observers end with the user graph
+  override val scope: CoroutineScope get() = scopeHolder.get()
 
   private val libraryItemDisplayStateProperty = enumSetting(KEY_LIBRARY_ITEM_DISPLAY_STATE, ItemDisplayState)
   override var libraryItemDisplayState: ItemDisplayState by libraryItemDisplayStateProperty
@@ -96,3 +100,24 @@ internal const val KEY_COLLECTIONS_DISPLAY_STATE = "pref_collections_display_sta
 internal const val KEY_PLAYLISTS_DISPLAY_STATE = "pref_playlists_display_state"
 internal const val KEY_SHOW_CONFIRM_DOWNLOAD = "pref_show_confirm_download"
 internal const val KEY_SHOW_TIME_IN_BOOK = "pref_show_time_in_book"
+
+/** The library view settings stored as strings, for copying into a new account's settings. */
+internal val LibraryViewStringKeys = listOf(
+  KEY_LIBRARY_ITEM_DISPLAY_STATE,
+  KEY_SORT_MODE,
+  KEY_SORT_DIRECTION,
+  KEY_AUTHOR_SORT_MODE,
+  KEY_AUTHORS_SORT_DIRECTION,
+  KEY_SERIES_SORT_MODE,
+  KEY_SERIES_SORT_DIRECTION,
+  KEY_SERIES_DISPLAY_STATE,
+  KEY_COLLECTIONS_DISPLAY_STATE,
+  KEY_PLAYLISTS_DISPLAY_STATE,
+)
+
+/** The library view settings stored as booleans. */
+internal val LibraryViewBooleanKeys = listOf(
+  KEY_LIBRARY_ITEM_MARQUEE,
+  KEY_SHOW_CONFIRM_DOWNLOAD,
+  KEY_SHOW_TIME_IN_BOOK,
+)

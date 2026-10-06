@@ -29,7 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 @ContributesBinding(AppScope::class, binding = binding<PlaybackSettings>())
 @Inject
 class PlaybackSettingsImpl(
-  override val settings: ObservableSettings,
+  @ForScope(AppScope::class) override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : PlaybackSettings, AppSettings() {
 

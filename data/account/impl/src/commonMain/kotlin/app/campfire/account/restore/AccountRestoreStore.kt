@@ -8,6 +8,7 @@ import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.account.server.db.ServerDao
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.UserId
@@ -36,7 +37,7 @@ import kotlinx.serialization.json.Json
 @ContributesBinding(AppScope::class)
 @Inject
 class AccountRestoreStore(
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
   private val serverDao: ServerDao,
   private val deviceSettings: DeviceSettings,
   private val dispatcherProvider: DispatcherProvider,

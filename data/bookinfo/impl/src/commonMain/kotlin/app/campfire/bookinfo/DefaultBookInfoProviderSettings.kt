@@ -5,7 +5,9 @@ package app.campfire.bookinfo
 
 import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.ProviderId
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import com.russhwolf.settings.ExperimentalSettingsApi
@@ -23,7 +25,7 @@ import kotlinx.coroutines.flow.map
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultBookInfoProviderSettings(
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
   private val userSession: UserSession,
 ) : BookInfoProviderSettings {
 

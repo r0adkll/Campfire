@@ -3,7 +3,9 @@
 
 package app.campfire.discover
 
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
 import app.campfire.core.time.FatherTime
@@ -36,7 +38,7 @@ private val SCAN_FRESHNESS_TTL = 1.hours
 @SingleIn(UserScope::class)
 @Inject
 class DiscoverScanStateStore(
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
   private val userSession: UserSession,
   private val fatherTime: FatherTime,
 ) {

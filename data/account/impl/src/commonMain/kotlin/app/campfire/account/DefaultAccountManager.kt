@@ -24,6 +24,7 @@ import app.campfire.core.session.userId
 import app.campfire.core.toast.GlobalToaster
 import app.campfire.core.toast.Toast
 import app.campfire.settings.api.DeviceSettings
+import app.campfire.settings.api.UserSettingsStore
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -43,6 +44,7 @@ class DefaultAccountManager(
   private val serverRepository: ServerRepository,
   private val userGraphManager: UserGraphManager,
   private val accountBackups: AccountBackups,
+  private val userSettingsStore: UserSettingsStore,
   @ForScope(AppScope::class) val applicationScope: CoroutineScope,
 ) : AccountManager {
 
@@ -152,6 +154,7 @@ class DefaultAccountManager(
     tokenStorage.remove(server.user.id)
     extraHeaderStorage.remove(server.user.id)
     accountBackups.forget(server.user.id)
+    userSettingsStore.clear(server.user.id)
 
     // Delete the accounts data
     logoutUseCase.execute(server)
