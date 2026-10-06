@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesBinding(AppScope::class, binding = binding<ConnectionSettings>())
 @Inject
 class ConnectionSettingsImpl(
-  override val settings: ObservableSettings,
+  @ForScope(AppScope::class) override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : ConnectionSettings, AppSettings() {
 

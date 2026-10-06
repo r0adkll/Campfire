@@ -5,6 +5,7 @@ package app.campfire.settings
 
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
 import app.campfire.core.session.userId
@@ -14,20 +15,14 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Provides
-import dev.zacsweers.metro.Qualifier
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
-
-/** Qualifies the signed-in account's [ObservableSettings], in the user graph. */
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class UserSettings
 
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class, binding = binding<UserSettingsStore>())
 @Inject
 class DefaultUserSettingsStore(
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
 ) : UserSettingsStore {
 
   /**
@@ -57,7 +52,8 @@ class DefaultUserSettingsStore(
 @ContributesTo(UserScope::class)
 interface UserSettingsComponent {
 
-  @UserSettings
+  /** The signed-in account's settings, or the app-wide ones while signed out. */
+  @ForScope(UserScope::class)
   @SingleIn(UserScope::class)
   @Provides
   fun provideUserSettings(

@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 @ContributesBinding(AppScope::class, binding = binding<AndroidAutoSettings>())
 @Inject
 class AndroidAutoSettingsImpl(
-  override val settings: ObservableSettings,
+  @ForScope(AppScope::class) override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : AndroidAutoSettings, AppSettings() {
 

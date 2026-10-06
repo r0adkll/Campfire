@@ -4,6 +4,7 @@
 package app.campfire.settings
 
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.PreferencesSettings
 import dev.zacsweers.metro.Provides
@@ -14,5 +15,6 @@ actual interface PreferencesPlatformComponent {
 
   @SingleIn(AppScope::class)
   @Provides
+  @ForScope(AppScope::class)
   fun provideSettings(delegate: Preferences): ObservableSettings = PreferencesSettings(delegate)
 }

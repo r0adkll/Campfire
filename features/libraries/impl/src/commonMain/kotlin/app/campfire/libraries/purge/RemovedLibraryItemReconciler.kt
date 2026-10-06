@@ -6,6 +6,7 @@ package app.campfire.libraries.purge
 import app.campfire.CampfireDatabase
 import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.DispatcherProvider
+import app.campfire.core.di.AppScope
 import app.campfire.core.di.Scoped
 import app.campfire.core.di.UserScope
 import app.campfire.core.di.qualifier.ForScope
@@ -44,7 +45,7 @@ class RemovedLibraryItemReconciler(
   private val db: CampfireDatabase,
   private val purger: LibraryItemPurger,
   private val userRepository: UserRepository,
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
   private val fatherTime: FatherTime,
   private val dispatcherProvider: DispatcherProvider,
   @ForScope(UserScope::class) private val coroutineScopeHolder: CoroutineScopeHolder,

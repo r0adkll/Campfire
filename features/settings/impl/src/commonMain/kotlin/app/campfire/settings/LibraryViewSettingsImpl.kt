@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesBinding(UserScope::class, binding = binding<LibraryViewSettings>())
 @Inject
 class LibraryViewSettingsImpl(
-  @UserSettings override val settings: ObservableSettings,
+  @ForScope(UserScope::class) override val settings: ObservableSettings,
   @ForScope(UserScope::class) private val scopeHolder: CoroutineScopeHolder,
 ) : LibraryViewSettings, AppSettings() {
 

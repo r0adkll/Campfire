@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.StateFlow
 @ContributesBinding(AppScope::class, binding = binding<ThemeSettings>())
 @Inject
 class ThemeSettingsImpl(
-  override val settings: ObservableSettings,
+  @ForScope(AppScope::class) override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : ThemeSettings, AppSettings() {
 
