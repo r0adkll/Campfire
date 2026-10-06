@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.Color
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
-import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeKey
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.themes.CampfireThemeDatabase
 import app.campfire.themes.CustomAppTheme
 import app.campfire.themes.Theme
@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 @ContributesBinding(AppScope::class)
 @Inject
 class DefaultAppThemeRepository(
-  private val campfireSettings: CampfireSettings,
+  private val themeSettings: ThemeSettings,
   private val themingDb: CampfireThemeDatabase,
   private val dispatcherProvider: DispatcherProvider,
 ) : AppThemeRepository {
@@ -46,7 +46,7 @@ class DefaultAppThemeRepository(
   private val currentAppTheme = MutableStateFlow<AppTheme>(AppTheme.Fixed.Tent)
 
   suspend fun initialize() = measureTime {
-    val theme = when (val key = campfireSettings.themeId) {
+    val theme = when (val key = themeSettings.themeId) {
       ThemeKey.Tent -> AppTheme.Fixed.Tent
       ThemeKey.WaterBottle -> AppTheme.Fixed.WaterBottle
       ThemeKey.Forest -> AppTheme.Fixed.Forest
@@ -89,7 +89,7 @@ class DefaultAppThemeRepository(
 
   override fun setCurrentTheme(theme: AppTheme) {
     currentAppTheme.value = theme
-    campfireSettings.themeId = when (theme) {
+    themeSettings.themeId = when (theme) {
       AppTheme.Dynamic -> ThemeKey.Dynamic
       AppTheme.Fixed.Forest -> ThemeKey.Forest
       AppTheme.Fixed.LifeFloat -> ThemeKey.LifeFloat
@@ -133,7 +133,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -185,7 +185,7 @@ class DefaultAppThemeRepository(
     // Cache in memory
     themeCache[theme.id] = theme
 
-    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == theme.id
+    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == theme.id
     if (isCurrentTheme) {
       setCurrentTheme(theme)
     }
@@ -238,7 +238,7 @@ class DefaultAppThemeRepository(
     themingDb.customAppThemeQueries.delete(id)
     themingDb.themeQueries.deleteTheme(id)
 
-    val isCurrentTheme = (campfireSettings.themeId as? ThemeKey.Custom)?.id == id
+    val isCurrentTheme = (themeSettings.themeId as? ThemeKey.Custom)?.id == id
     if (isCurrentTheme) {
       setCurrentTheme(AppTheme.Fixed.Tent)
     }

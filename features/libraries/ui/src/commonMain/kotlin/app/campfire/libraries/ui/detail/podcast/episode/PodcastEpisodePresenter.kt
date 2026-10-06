@@ -24,7 +24,7 @@ import app.campfire.playlists.api.dialog.AddToPlaylistDialog
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.sessions.api.observeContains
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.overlay.OverlayNavigator
@@ -65,7 +65,7 @@ class PodcastEpisodePresenter(
   private val audioPlayerHolder: AudioPlayerHolder,
   private val offlineDownloadManager: OfflineDownloadManager,
   private val userRepository: UserRepository,
-  private val settings: CampfireSettings,
+  private val libraryViewSettings: LibraryViewSettings,
   private val addToPlaylistDialog: AddToPlaylistDialog,
 ) : Presenter<PodcastEpisodeUiState> {
 
@@ -136,7 +136,7 @@ class PodcastEpisodePresenter(
     }.collectAsState(null)
 
     val showConfirmDownloadDialog by remember {
-      settings.observeShowConfirmDownload()
+      libraryViewSettings.observeShowConfirmDownload()
     }.collectAsState()
 
     // Live from the user row, which the socket updates when an admin changes permissions
@@ -260,7 +260,7 @@ class PodcastEpisodePresenter(
         is PodcastEpisodeUiEvent.DownloadClick -> {
           if (!currentUser.canDownload) return@PodcastEpisodeUiState
           analytics.send(ActionEvent("download_episode", Click))
-          settings.showConfirmDownload = !event.doNotShowAgain
+          libraryViewSettings.showConfirmDownload = !event.doNotShowAgain
           offlineDownloadManager.downloadEpisode(libraryItem, episode)
         }
 

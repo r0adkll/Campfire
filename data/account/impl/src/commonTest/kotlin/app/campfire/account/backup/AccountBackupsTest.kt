@@ -12,7 +12,7 @@ import app.campfire.account.storage.SecureTokenStorage
 import app.campfire.account.testServer
 import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.core.model.UserId
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestPrivacySettings
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEmpty
@@ -103,7 +103,7 @@ class AccountBackupsTest {
     tokenStorage = tokens(),
     extraHeaderStorage = headers(),
     serverDao = FakeServerDao(servers),
-    settings = TestCampfireSettings(backgroundScope).apply { keepSignedInAfterReinstall = keepSignedIn },
+    privacySettings = TestPrivacySettings(backgroundScope).apply { keepSignedInAfterReinstall = keepSignedIn },
   )
 
   private class FakeTokenBackup : TokenBackup {

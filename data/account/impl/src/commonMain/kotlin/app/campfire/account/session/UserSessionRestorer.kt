@@ -10,7 +10,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
 import app.campfire.core.session.UserSession
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -26,13 +26,13 @@ interface UserSessionRestorer {
 @Inject
 class DatabaseUserSessionRestorer(
   private val accountManager: AccountManager,
-  private val settings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val db: CampfireDatabase,
   private val dispatcherProvider: DispatcherProvider,
 ) : UserSessionRestorer {
 
   override suspend fun restore(): UserSession = measureTimedValue {
-    val currentUserId = settings.currentUserId ?: return@measureTimedValue UserSession.LoggedOut
+    val currentUserId = deviceSettings.currentUserId ?: return@measureTimedValue UserSession.LoggedOut
 
     val server = withContext(dispatcherProvider.databaseRead) {
       db.serversQueries.selectByUserId(currentUserId, ::ServerWithUser)
@@ -41,7 +41,7 @@ class DatabaseUserSessionRestorer(
     }
 
     if (server == null) {
-      settings.currentUserId = null
+      deviceSettings.currentUserId = null
       return@measureTimedValue UserSession.LoggedOut
     }
 

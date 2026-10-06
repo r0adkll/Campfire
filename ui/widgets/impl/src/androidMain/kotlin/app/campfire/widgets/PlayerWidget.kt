@@ -47,7 +47,6 @@ import app.campfire.home.api.HomeRepository
 import app.campfire.home.api.model.ShelfIds
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.SleepSettings
 import app.campfire.ui.theming.api.ThemeManager
 import app.campfire.widgets.composables.ActiveWidgetContent
@@ -76,7 +75,6 @@ interface PlayerWidgetComponent {
   val activityIntentProgression: ActivityIntentProvider
   val homeRepository: HomeRepository
   val sessionQueue: SessionQueue
-  val settings: CampfireSettings
   val sleepSettings: SleepSettings
   val themeManager: ThemeManager
 }

@@ -17,7 +17,7 @@ import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.di.qualifier.RootScreen
 import app.campfire.core.session.UserSession
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.PrivacySettings
 import com.slack.circuit.foundation.Circuit
 import com.slack.circuitx.navigation.intercepting.NavigationEventListener
 import dev.zacsweers.metro.ContributesTo
@@ -53,11 +53,11 @@ interface UserComponent {
   @Provides @RootScreen
   fun provideRootScreen(
     userSession: UserSession,
-    settings: CampfireSettings,
+    privacySettings: PrivacySettings,
   ): BaseScreen {
     return when (userSession) {
       is UserSession.NeedsAuthentication -> LoginScreen.ReAuthentication(userSession.server)
-      is UserSession.LoggedIn -> if (!settings.hasEverConsented) AnalyticConsentScreen else HomeScreen
+      is UserSession.LoggedIn -> if (!privacySettings.hasEverConsented) AnalyticConsentScreen else HomeScreen
       else -> WelcomeScreen
     }
   }

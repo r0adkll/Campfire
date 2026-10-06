@@ -18,7 +18,7 @@ import app.campfire.core.logging.LogPriority.WARN
 import app.campfire.core.logging.bark
 import app.campfire.crashreporting.CrashReporter
 import app.campfire.crashreporting.impl.redactedCopyOrSelf
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.PrivacySettings
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dev.zacsweers.metro.ContributesIntoSet
@@ -33,7 +33,7 @@ import kotlinx.coroutines.plus
 @Inject
 class FirebaseInitializer(
   private val application: Application,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {
 
@@ -82,7 +82,7 @@ class FirebaseInitializer(
 
   private fun observeFirebaseSetting() {
     firebaseScope.launch {
-      settings.observeCrashReportingEnabled().collect { enabled ->
+      privacySettings.observeCrashReportingEnabled().collect { enabled ->
         val crashlytics = FirebaseCrashlytics.getInstance()
         if (enabled && !crashlytics.isCrashlyticsCollectionEnabled) {
           crashlytics.isCrashlyticsCollectionEnabled = true

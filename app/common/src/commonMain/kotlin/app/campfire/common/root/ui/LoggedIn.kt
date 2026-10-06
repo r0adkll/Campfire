@@ -76,7 +76,9 @@ import app.campfire.search.api.ui.goToSearchEvent
 import app.campfire.sessions.ui.PlaybackBottomBar
 import app.campfire.sessions.ui.playback.CampfirePlaybackBar
 import app.campfire.sessions.ui.player.DedicatedPlayer
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LayoutSettings
+import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.bar.CampfireNavigationBar
 import app.campfire.ui.navigation.bar.LocalNavigationBarState
 import app.campfire.ui.navigation.bar.rememberCampfireNavigationBarState
@@ -111,7 +113,9 @@ internal fun LoggedInWindow(
   userComponent: UserComponent,
   onRootPop: () -> Unit,
   deepLink: DeepLink,
-  settings: CampfireSettings,
+  themeSettings: ThemeSettings,
+  libraryViewSettings: LibraryViewSettings,
+  layoutSettings: LayoutSettings,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
   modifier: Modifier = Modifier,
@@ -164,16 +168,16 @@ internal fun LoggedInWindow(
   CircuitCompositionLocals(userComponent.circuit) {
     CampfireTheme(
       colorScheme = { colorScheme(appTheme) },
-      useDarkColors = settings.shouldUseDarkColors(),
+      useDarkColors = themeSettings.shouldUseDarkColors(),
     ) {
       // Observe here and wire as composition local to avoid N-number of parameter
       // burials to wire all usages of this component
       val itemCardMarqueeEnabled by remember {
-        settings.observeLibraryItemMarqueeEnabled()
+        libraryViewSettings.observeLibraryItemMarqueeEnabled()
       }.collectAsState()
 
       val supportingPaneWidth by remember {
-        settings.observeSupportingPaneWidth()
+        layoutSettings.observeSupportingPaneWidth()
       }.collectAsState()
 
       CompositionLocalProvider(
@@ -200,7 +204,7 @@ internal fun LoggedInWindow(
               navigationEventListeners = userComponent.navigationEventListeners,
               deepLink = deepLink,
               supportingPaneWidth = supportingPaneWidth.takeIf { it > 0f }?.dp,
-              onSupportingPaneWidthChange = { settings.supportingPaneWidth = it.value },
+              onSupportingPaneWidthChange = { layoutSettings.supportingPaneWidth = it.value },
               tabletopSplit = tabletopSplit,
               modifier = modifier,
             )

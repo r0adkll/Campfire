@@ -30,7 +30,8 @@ import app.campfire.core.model.MediaType
 import app.campfire.discover.api.screen.UpcomingScreen
 import app.campfire.libraries.api.LibraryRepository
 import app.campfire.podcasts.api.RemoteEpisodeDownloadTracker
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LayoutSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.navigation.drawer.DrawerUiEvent
 import app.campfire.ui.navigation.drawer.DrawerUiState
 import app.campfire.ui.navigation.rail.WideNavigationRailUiEvent
@@ -61,7 +62,8 @@ interface NavigationComponent {
 class NavigationPresenter(
   private val libraryRepository: LibraryRepository,
   private val remoteEpisodeDownloadTracker: RemoteEpisodeDownloadTracker,
-  private val settings: CampfireSettings,
+  private val layoutSettings: LayoutSettings,
+  private val themeSettings: ThemeSettings,
 ) {
 
   /**
@@ -78,7 +80,7 @@ class NavigationPresenter(
   fun presentWideRail(): WideNavigationRailUiState {
     val items = primaryNavigationItems() + secondaryNavigationItems()
     val expanded by remember {
-      settings.observeWideNavigationRailExpanded()
+      layoutSettings.observeWideNavigationRailExpanded()
     }.collectAsState()
 
     return WideNavigationRailUiState(
@@ -87,7 +89,7 @@ class NavigationPresenter(
     ) { event ->
       when (event) {
         WideNavigationRailUiEvent.ToggleExpanded -> {
-          settings.wideNavigationRailExpanded = !expanded
+          layoutSettings.wideNavigationRailExpanded = !expanded
         }
       }
     }
@@ -105,7 +107,7 @@ class NavigationPresenter(
     }
 
     val themeMode by remember {
-      settings.observeTheme()
+      themeSettings.observeTheme()
     }.collectAsState()
 
     return DrawerUiState(
@@ -114,7 +116,7 @@ class NavigationPresenter(
     ) { event ->
       when (event) {
         DrawerUiEvent.CycleThemeMode -> {
-          settings.themeMode = themeMode.next()
+          themeSettings.themeMode = themeMode.next()
         }
       }
     }

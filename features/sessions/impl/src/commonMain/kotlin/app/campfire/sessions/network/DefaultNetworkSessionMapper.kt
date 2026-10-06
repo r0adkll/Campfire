@@ -20,7 +20,7 @@ import app.campfire.network.models.DeviceInfo
 import app.campfire.network.models.ExpandedBookMetadata
 import app.campfire.network.models.PlaybackSession
 import app.campfire.network.models.SeriesSequence
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import app.campfire.user.api.UserRepository
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -31,7 +31,7 @@ import kotlinx.datetime.format
 @ContributesBinding(UserScope::class)
 @Inject
 class DefaultNetworkSessionMapper(
-  private val campfireSettings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val applicationInfo: ApplicationInfo,
   private val userRepository: UserRepository,
   private val serverRepository: ServerRepository,
@@ -98,9 +98,9 @@ class DefaultNetworkSessionMapper(
       duration = session.duration.toDouble(DurationUnit.SECONDS),
       playMethod = session.playMethod.serverValue,
       deviceInfo = DeviceInfo(
-        id = campfireSettings.deviceId,
+        id = deviceSettings.deviceId,
         userId = currentUser.id,
-        deviceId = campfireSettings.deviceId,
+        deviceId = deviceSettings.deviceId,
         osName = applicationInfo.osName,
         osVersion = applicationInfo.osVersion,
         clientName = "Campfire",

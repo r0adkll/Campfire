@@ -22,8 +22,10 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.playlists.api.screen.PlaylistsScreen
 import app.campfire.sessions.api.SessionsRepository
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.AppStateSettings
+import app.campfire.settings.api.PrivacySettings
 import app.campfire.settings.api.ThemeMode
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
@@ -42,7 +44,9 @@ import kotlinx.coroutines.flow.first
 @Inject
 class AutomationDeepLinks(
   private val authRepository: AuthRepository,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
+  private val appStateSettings: AppStateSettings,
+  private val themeSettings: ThemeSettings,
   private val themeRepository: AppThemeRepository,
   private val whatsNewRepository: WhatsNewRepository,
 ) {
@@ -52,11 +56,11 @@ class AutomationDeepLinks(
    * Safe to call when already signed in: only the settings are re-applied.
    */
   suspend fun applySetup(setup: DeepLink.Setup, isLoggedIn: Boolean) {
-    settings.hasEverConsented = true
-    settings.hasShownWidgetPinning = true
+    privacySettings.hasEverConsented = true
+    appStateSettings.hasShownWidgetPinning = true
     whatsNewRepository.dismissWhatsNew()
 
-    setup.themeMode?.let { settings.themeMode = ThemeMode.fromStorageKey(it) }
+    setup.themeMode?.let { themeSettings.themeMode = ThemeMode.fromStorageKey(it) }
     setup.theme?.let { name ->
       fixedThemes.firstOrNull { it.id.equals(name, ignoreCase = true) }
         ?.let(themeRepository::setCurrentTheme)

@@ -7,11 +7,11 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import app.campfire.settings.api.CampfireSettings
 import app.campfire.settings.api.ThemeMode
+import app.campfire.settings.api.ThemeSettings
 
 @Composable
-fun CampfireSettings.shouldUseDarkColors(): Boolean {
+fun ThemeSettings.shouldUseDarkColors(): Boolean {
   val themePreference = remember { observeTheme() }.collectAsState()
   return when (themePreference.value) {
     ThemeMode.LIGHT -> false
