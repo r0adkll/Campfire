@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Chapter and book titles too long to fit in the player now scroll, fading out at the edges, instead of being cut off (turn off with Scroll long titles in Settings → Playback)
 - [Android] Sign-ins and Hardcover tokens are now encrypted with a key kept in your device's keystore, replacing the deprecated encrypted storage; you stay signed in through the update
 - Each account keeps its own library sorting and layout
+- [Android] Slightly faster startup when signed in
 
 ### Deprecated
 

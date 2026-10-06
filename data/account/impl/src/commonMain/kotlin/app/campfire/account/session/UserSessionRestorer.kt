@@ -4,8 +4,8 @@
 package app.campfire.account.session
 
 import app.campfire.CampfireDatabase
-import app.campfire.account.api.AccountManager
 import app.campfire.account.server.db.ServerWithUser
+import app.campfire.account.storage.TokenStorage
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.core.logging.bark
@@ -25,7 +25,7 @@ interface UserSessionRestorer {
 @ContributesBinding(AppScope::class)
 @Inject
 class DatabaseUserSessionRestorer(
-  private val accountManager: AccountManager,
+  private val tokenStorage: TokenStorage,
   private val deviceSettings: DeviceSettings,
   private val db: CampfireDatabase,
   private val dispatcherProvider: DispatcherProvider,
@@ -45,9 +45,11 @@ class DatabaseUserSessionRestorer(
       return@measureTimedValue UserSession.LoggedOut
     }
 
-    // Validate that this account has valid credentials
-    val tokens = accountManager.getToken(server.user.id)
-    if (tokens != null) {
+    // Only check that a token is stored: reading it means decrypting it, which on Android is a
+    // round of Android Keystore calls that would hold up the main thread waiting on this restore.
+    // A stored token that turns out to be unreadable fails its first request, and the refresh
+    // that follows asks the user to sign in again.
+    if (tokenStorage.has(server.user.id)) {
       return@measureTimedValue UserSession.LoggedIn(server.user)
     } else {
       return@measureTimedValue UserSession.NeedsAuthentication(server)
