@@ -19,7 +19,7 @@ internal object LegacySettingTypes {
   fun typeOf(key: String): LegacySettingType? =
     exact[key] ?: prefixes.firstOrNull { (prefix, _) -> key.startsWith(prefix) }?.second
 
-  val doubleKeys: Set<String> get() = exact.filterValues { it == LegacySettingType.Double }.keys
+  val doubleKeys: Set<String> by lazy { exact.filterValues { it == LegacySettingType.Double }.keys }
 
   private val exact: Map<String, LegacySettingType> = buildMap {
     listOf(

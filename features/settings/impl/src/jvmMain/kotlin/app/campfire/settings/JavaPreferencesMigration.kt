@@ -39,12 +39,11 @@ internal class JavaPreferencesMigration(
     preferences.keys().any { LegacySettingTypes.typeOf(it) != null }
 
   override fun migrate(prefs: MutableFlatPreferences) {
-    val existing = prefs.toFlatPreferences()
     val migrated = mutableSetOf<String>()
     for (key in preferences.keys()) {
       val type = LegacySettingTypes.typeOf(key) ?: continue
       migrated += key
-      if (stringKey(key) in existing) continue
+      if (prefs.valueOf(key) != null) continue
       val text = preferences.get(key, null) ?: continue
       if (!prefs.putParsed(key, type, text)) {
         bark(LogPriority.WARN) { "Setting '$key' isn't a valid $type, dropping it" }

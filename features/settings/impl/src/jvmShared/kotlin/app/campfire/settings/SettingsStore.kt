@@ -5,40 +5,54 @@ package app.campfire.settings
 
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
-import com.r0adkll.flatprefs.FileStorage
 import com.r0adkll.flatprefs.FlatPreferences
+import com.r0adkll.flatprefs.FlatPreferencesCorruptionException
 import com.r0adkll.flatprefs.FlatPreferencesMigration
 import com.r0adkll.flatprefs.FlatPreferencesStore
 import com.r0adkll.flatprefs.MutableFlatPreferences
-import com.r0adkll.flatprefs.stringKey
+import com.r0adkll.flatprefs.open
 import okio.Path
 
-/** The settings file's name inside its `flatprefs` directory, as `FlatPreferencesStore.open(context, name)` names it. */
-internal const val SETTINGS_STORE_FILE_NAME = "settings.fpb"
+/** The settings store's name: `files/flatprefs/settings.fpb` on Android, `flatprefs/settings.fpb` on desktop. */
+internal const val SETTINGS_STORE_NAME = "settings"
 
 private const val TAG = "SettingsStore"
 
-/**
- * Opens the settings store kept in [file], running [migrations] on its first load. The Android backup
- * agent opens it here too, without the DI graph.
- */
+/** A damaged file starts over, as a damaged SharedPreferences file does. */
+internal fun replaceDamagedSettings(e: FlatPreferencesCorruptionException): FlatPreferences {
+  bark(TAG, LogPriority.ERROR, throwable = e) { "Settings file is damaged, starting over" }
+  return FlatPreferences.EMPTY
+}
+
+internal fun logSettingsWriteError(e: Throwable) {
+  bark(TAG, LogPriority.ERROR, throwable = e) { "Unable to save settings" }
+}
+
+/** The migrated settings are still served; the old ones are kept and migrated again next launch. */
+internal fun logSettingsMigrationError(e: Throwable) {
+  bark(TAG, LogPriority.ERROR, throwable = e) { "Unable to finish migrating settings" }
+}
+
+/** Opens the settings store kept in [file], running [migrations] on its first load. */
 internal fun openSettingsStore(
   file: Path,
   migrations: List<FlatPreferencesMigration>,
 ): FlatPreferencesStore = FlatPreferencesStore.open(
-  storage = FileStorage(file),
-  // A damaged file starts over, as a damaged SharedPreferences file does
-  onCorruption = { e ->
-    bark(TAG, LogPriority.ERROR, throwable = e) { "Settings file is damaged, starting over" }
-    FlatPreferences.EMPTY
-  },
-  onWriteError = { e ->
-    bark(TAG, LogPriority.ERROR, throwable = e) { "Unable to save settings" }
-  },
+  path = file,
+  onCorruption = ::replaceDamagedSettings,
+  onWriteError = ::logSettingsWriteError,
   migrations = migrations,
+  onMigrationError = ::logSettingsMigrationError,
 )
 
+/**
+ * multiplatform-settings kept each double in SharedPreferences as a long holding its bits, which
+ * `SharedPreferencesMigration` would copy as a long. Turns the settings read as doubles back into
+ * doubles.
+ */
+internal fun restoreLegacyDouble(key: String, value: Any): Any =
+  if (value is Long && key in LegacySettingTypes.doubleKeys) Double.fromBits(value) else value
+
 internal fun MutableFlatPreferences.clearDeviceBoundSettings() {
-  // Keys match by name, whatever type the value was stored as
-  DeviceBoundSettingKeys.forEach { remove(stringKey(it)) }
+  DeviceBoundSettingKeys.forEach(::remove)
 }

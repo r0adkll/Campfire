@@ -10,7 +10,7 @@ import okio.Path
 import okio.Path.Companion.toOkioPath
 
 /** A settings file in a fresh directory. FlatPrefs keeps one store per file per process, so each test needs its own. */
-internal fun newSettingsFile(): Path = createTempDirectory("settings").toOkioPath() / SETTINGS_STORE_FILE_NAME
+internal fun newSettingsFile(): Path = createTempDirectory("settings").toOkioPath() / "$SETTINGS_STORE_NAME.fpb"
 
 /** What's on disk in [file], read independently of the store that wrote it. */
 internal fun readSettingsFile(file: Path): FlatPreferences =

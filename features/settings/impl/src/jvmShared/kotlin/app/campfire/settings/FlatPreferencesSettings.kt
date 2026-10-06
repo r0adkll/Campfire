@@ -7,7 +7,6 @@ import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import com.r0adkll.flatprefs.FlatPreferences
 import com.r0adkll.flatprefs.FlatPreferencesStore
-import com.r0adkll.flatprefs.PrefKey
 import com.r0adkll.flatprefs.booleanKey
 import com.r0adkll.flatprefs.doubleKey
 import com.r0adkll.flatprefs.floatKey
@@ -44,81 +43,79 @@ internal class FlatPreferencesSettings(
   override val size: Int get() = store.current.size
 
   override fun clear() = store.edit { it.clear() }
-
-  // Removing and checking match by name, whatever type the value has
-  override fun remove(key: String) = store.edit { it.remove(stringKey(key)) }
-  override fun hasKey(key: String): Boolean = stringKey(key) in store
+  override fun remove(key: String) = store.edit { it.remove(key) }
+  override fun hasKey(key: String): Boolean = key in store
 
   override fun putInt(key: String, value: Int) = store.edit { it[intKey(key)] = value }
   override fun getInt(key: String, defaultValue: Int): Int = getIntOrNull(key) ?: defaultValue
-  override fun getIntOrNull(key: String): Int? = store.current.read(intKey(key))
+  override fun getIntOrNull(key: String): Int? = store.current.read(key)
 
   override fun putLong(key: String, value: Long) = store.edit { it[longKey(key)] = value }
   override fun getLong(key: String, defaultValue: Long): Long = getLongOrNull(key) ?: defaultValue
-  override fun getLongOrNull(key: String): Long? = store.current.read(longKey(key))
+  override fun getLongOrNull(key: String): Long? = store.current.read(key)
 
   override fun putString(key: String, value: String) = store.edit { it[stringKey(key)] = value }
   override fun getString(key: String, defaultValue: String): String = getStringOrNull(key) ?: defaultValue
-  override fun getStringOrNull(key: String): String? = store.current.read(stringKey(key))
+  override fun getStringOrNull(key: String): String? = store.current.read(key)
 
   override fun putFloat(key: String, value: Float) = store.edit { it[floatKey(key)] = value }
   override fun getFloat(key: String, defaultValue: Float): Float = getFloatOrNull(key) ?: defaultValue
-  override fun getFloatOrNull(key: String): Float? = store.current.read(floatKey(key))
+  override fun getFloatOrNull(key: String): Float? = store.current.read(key)
 
   override fun putDouble(key: String, value: Double) = store.edit { it[doubleKey(key)] = value }
   override fun getDouble(key: String, defaultValue: Double): Double = getDoubleOrNull(key) ?: defaultValue
-  override fun getDoubleOrNull(key: String): Double? = store.current.read(doubleKey(key))
+  override fun getDoubleOrNull(key: String): Double? = store.current.read(key)
 
   override fun putBoolean(key: String, value: Boolean) = store.edit { it[booleanKey(key)] = value }
   override fun getBoolean(key: String, defaultValue: Boolean): Boolean = getBooleanOrNull(key) ?: defaultValue
-  override fun getBooleanOrNull(key: String): Boolean? = store.current.read(booleanKey(key))
+  override fun getBooleanOrNull(key: String): Boolean? = store.current.read(key)
 
   override fun addIntListener(key: String, defaultValue: Int, callback: (Int) -> Unit) =
-    addListener(intKey(key), callback) { it ?: defaultValue }
+    addListener<Int, Int>(key, callback) { it ?: defaultValue }
 
   override fun addLongListener(key: String, defaultValue: Long, callback: (Long) -> Unit) =
-    addListener(longKey(key), callback) { it ?: defaultValue }
+    addListener<Long, Long>(key, callback) { it ?: defaultValue }
 
   override fun addStringListener(key: String, defaultValue: String, callback: (String) -> Unit) =
-    addListener(stringKey(key), callback) { it ?: defaultValue }
+    addListener<String, String>(key, callback) { it ?: defaultValue }
 
   override fun addFloatListener(key: String, defaultValue: Float, callback: (Float) -> Unit) =
-    addListener(floatKey(key), callback) { it ?: defaultValue }
+    addListener<Float, Float>(key, callback) { it ?: defaultValue }
 
   override fun addDoubleListener(key: String, defaultValue: Double, callback: (Double) -> Unit) =
-    addListener(doubleKey(key), callback) { it ?: defaultValue }
+    addListener<Double, Double>(key, callback) { it ?: defaultValue }
 
   override fun addBooleanListener(key: String, defaultValue: Boolean, callback: (Boolean) -> Unit) =
-    addListener(booleanKey(key), callback) { it ?: defaultValue }
+    addListener<Boolean, Boolean>(key, callback) { it ?: defaultValue }
 
   override fun addIntOrNullListener(key: String, callback: (Int?) -> Unit) =
-    addListener(intKey(key), callback) { it }
+    addListener<Int, Int?>(key, callback) { it }
 
   override fun addLongOrNullListener(key: String, callback: (Long?) -> Unit) =
-    addListener(longKey(key), callback) { it }
+    addListener<Long, Long?>(key, callback) { it }
 
   override fun addStringOrNullListener(key: String, callback: (String?) -> Unit) =
-    addListener(stringKey(key), callback) { it }
+    addListener<String, String?>(key, callback) { it }
 
   override fun addFloatOrNullListener(key: String, callback: (Float?) -> Unit) =
-    addListener(floatKey(key), callback) { it }
+    addListener<Float, Float?>(key, callback) { it }
 
   override fun addDoubleOrNullListener(key: String, callback: (Double?) -> Unit) =
-    addListener(doubleKey(key), callback) { it }
+    addListener<Double, Double?>(key, callback) { it }
 
   override fun addBooleanOrNullListener(key: String, callback: (Boolean?) -> Unit) =
-    addListener(booleanKey(key), callback) { it }
+    addListener<Boolean, Boolean?>(key, callback) { it }
 
-  private inline fun <T : Any, V> addListener(
-    key: PrefKey<T>,
+  private inline fun <reified T : Any, V> addListener(
+    key: String,
     noinline callback: (V) -> Unit,
     crossinline value: (T?) -> V,
   ): SettingsListener {
-    var last = value(store.current.read(key))
+    var last = value(store.current.read<T>(key))
     // Undispatched, so the listener is subscribed before this returns
     val job = listenerScope.launch(start = CoroutineStart.UNDISPATCHED) {
       store.data.collect { snapshot ->
-        val current = value(snapshot.read(key))
+        val current = value(snapshot.read<T>(key))
         if (current != last) {
           last = current
           callback(current)
@@ -128,13 +125,15 @@ internal class FlatPreferencesSettings(
     return Listener(job)
   }
 
-  private fun <T : Any> FlatPreferences.read(key: PrefKey<T>): T? = try {
-    get(key)
-  } catch (e: ClassCastException) {
-    if (mismatchedKeys.add(key.name)) {
-      bark(LogPriority.WARN, throwable = e) { "Setting '${key.name}' has the wrong type, reading it as unset" }
+  private inline fun <reified T : Any> FlatPreferences.read(key: String): T? {
+    val value = valueOf(key) ?: return null
+    if (value is T) return value
+    if (mismatchedKeys.add(key)) {
+      this@FlatPreferencesSettings.bark(LogPriority.WARN) {
+        "Setting '$key' is stored as a ${value::class.simpleName}, reading it as unset"
+      }
     }
-    null
+    return null
   }
 
   private class Listener(private val job: Job) : SettingsListener {

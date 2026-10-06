@@ -37,5 +37,5 @@ actual interface PreferencesPlatformComponent {
 /** `~/.config/Campfire/flatprefs/settings.fpb`, beside the java.util.prefs file it replaces. */
 internal fun desktopSettingsFile(): Path {
   val userRoot = System.getProperty("java.util.prefs.userRoot", System.getProperty("user.home"))
-  return userRoot.toPath() / ".config" / "Campfire" / "flatprefs" / SETTINGS_STORE_FILE_NAME
+  return userRoot.toPath() / ".config" / "Campfire" / "flatprefs" / "$SETTINGS_STORE_NAME.fpb"
 }

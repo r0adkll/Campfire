@@ -9,12 +9,12 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import com.r0adkll.flatprefs.FlatPreferencesStore
 import com.r0adkll.flatprefs.SharedPreferencesMigration
+import com.r0adkll.flatprefs.open
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import okio.Path.Companion.toOkioPath
 
 actual interface PreferencesPlatformComponent {
 
@@ -35,10 +35,14 @@ actual interface PreferencesPlatformComponent {
  * The settings store, in `files/flatprefs/settings.fpb`. Its first load moves over the settings
  * kept in the default SharedPreferences before FlatPrefs.
  */
-internal fun Context.openSettingsStore(): FlatPreferencesStore = openSettingsStore(
-  file = filesDir.toOkioPath() / "flatprefs" / SETTINGS_STORE_FILE_NAME,
+internal fun Context.openSettingsStore(): FlatPreferencesStore = FlatPreferencesStore.open(
+  context = this,
+  name = SETTINGS_STORE_NAME,
+  onCorruption = ::replaceDamagedSettings,
+  onWriteError = ::logSettingsWriteError,
   migrations = listOf(
     // The file PreferenceManager.getDefaultSharedPreferences() opens
-    DoubleBitsMigration(SharedPreferencesMigration(this, "${packageName}_preferences")),
+    SharedPreferencesMigration(this, "${packageName}_preferences", transform = ::restoreLegacyDouble),
   ),
+  onMigrationError = ::logSettingsMigrationError,
 )
