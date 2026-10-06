@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
 - The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
 - [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
+- [Android] New skip forward and back times only taking effect after restarting the app
 
 ### Other Notes & Contributions
 
