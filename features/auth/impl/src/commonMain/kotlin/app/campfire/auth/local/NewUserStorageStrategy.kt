@@ -8,7 +8,6 @@ import app.campfire.auth.di.NewUser
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
 import app.campfire.data.mapping.asDatabaseModel
-import app.campfire.data.mapping.asDbModel
 import app.campfire.network.models.ServerSettings
 import app.campfire.network.models.User
 import dev.zacsweers.metro.ContributesBinding
@@ -31,28 +30,21 @@ class NewUserStorageStrategy(
     userDefaultLibraryId: String,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transaction {
-      db.serversQueries.insert(
+      // The account may already be on the device (signed in again from Add account, or restored).
+      // Its rows are then refreshed in place, keeping its data; only the selected library resets,
+      // as on any fresh sign-in.
+      db.serversQueries.insertOrIgnore(
         serverSettings.asDatabaseModel(
           url = serverUrl,
           userId = user.id,
           name = serverName,
         ),
       )
-
-      // Insert User
-      db.usersQueries.insert(
+      db.usersQueries.insertOrIgnore(
         user.asDatabaseModel(serverUrl, userDefaultLibraryId),
       )
-
-      // Insert User MediaProgress
-      user.mediaProgress.forEach { progress ->
-        db.mediaProgressQueries.insert(progress.asDbModel())
-      }
-
-      // Insert User Bookmarks
-      user.bookmarks.forEach { bookmark ->
-        db.bookmarksQueries.insert(bookmark.asDbModel(user.id))
-      }
+      db.usersQueries.updateSelectedLibrary(libraryId = userDefaultLibraryId, userId = user.id)
+      db.updateAccount(serverName, serverUrl, serverSettings, user)
     }
   }
 }

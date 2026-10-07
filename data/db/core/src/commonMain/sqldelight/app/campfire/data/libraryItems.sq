@@ -22,8 +22,9 @@ CREATE TABLE IF NOT EXISTS libraryItem (
   numFiles INTEGER AS Int NOT NULL,
   size INTEGER NOT NULL,
 
-  serverUrl TEXT NOT NULL,
-  FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
+  -- Not a foreign key: several accounts can share a server URL. The server table's
+  -- server_delete_library_items trigger clears a URL's items with its last account.
+  serverUrl TEXT NOT NULL
 );
 
 insert:

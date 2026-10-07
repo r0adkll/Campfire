@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS user (
 
   selectedLibraryId TEXT NOT NULL,
   serverUrl TEXT NOT NULL,
-  FOREIGN KEY (serverUrl) REFERENCES server(url) ON DELETE CASCADE
+  FOREIGN KEY (id) REFERENCES server(userId) ON DELETE CASCADE
 );
 
 selectAll:
@@ -34,12 +34,9 @@ selectById:
 SELECT * FROM user
 WHERE id = ?;
 
-selectForServer:
-SELECT * FROM user
-WHERE serverUrl = ?;
-
-insert:
-INSERT OR REPLACE INTO
+-- See server.insertOrIgnore: an account signing in again is refreshed with `update`.
+insertOrIgnore:
+INSERT OR IGNORE INTO
 user(
   serverUrl,
   id,
@@ -66,6 +63,7 @@ VALUES ?;
 update:
 UPDATE user
 SET
+  serverUrl = ?,
   name = ?,
   type = ?,
   seriesHideFromContinueListening = ?,

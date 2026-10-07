@@ -1,0 +1,132 @@
+import app.campfire.core.model.MediaType;
+import app.campfire.core.model.User.Type;
+import kotlin.Boolean;
+import kotlin.Int;
+import kotlin.String;
+import kotlin.collections.List;
+
+-- Key servers by account instead of by URL, so a second user signing in to the same server adds
+-- an account instead of replacing the first. The user and libraryItem foreign keys pointed at
+-- server(url), which is no longer unique: users now hang off their own account row, and library
+-- items (shared by every account on a URL) are cleared by a trigger when the URL's last account
+-- goes.
+--
+-- Foreign keys are off while this runs (Android enables them once the database is open), so the
+-- DROPs below don't cascade. Only server and user rows that pair up are kept: anything else was
+-- already unreachable, since every lookup joins the two.
+CREATE TABLE server_new (
+  url TEXT NOT NULL,
+  userId TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  scannerFindCovers INTEGER AS Boolean NOT NULL DEFAULT 0,
+  scannerCoverProvider TEXT NOT NULL,
+  scannerParseSubtitle INTEGER AS Boolean NOT NULL DEFAULT 0,
+  scannerPreferMatchedMetadata INTEGER AS Boolean NOT NULL DEFAULT 0,
+  scannerDisableWatcher INTEGER AS Boolean NOT NULL DEFAULT 0,
+  storeCoverWithItem INTEGER AS Boolean NOT NULL DEFAULT 0,
+  storeMetadataWithItem INTEGER AS Boolean NOT NULL DEFAULT 0,
+  metadataFileFormat TEXT NOT NULL,
+  rateLimitLoginRequests INTEGER AS Int NOT NULL DEFAULT 0,
+  rateLimitLoginWindow INTEGER NOT NULL DEFAULT 0,
+  backupSchedule TEXT NOT NULL,
+  backupsToKeep INTEGER AS Int NOT NULL DEFAULT 0,
+  maxBackupSize INTEGER AS Int NOT NULL DEFAULT 0,
+  loggerDailyLogsToKeep INTEGER AS Int NOT NULL DEFAULT 0,
+  loggerScannerLogsToKeep INTEGER AS Int NOT NULL DEFAULT 0,
+  homeBookshelfView INTEGER AS Int NOT NULL DEFAULT 0,
+  bookshelfView INTEGER AS Int NOT NULL DEFAULT 0,
+  sortingIgnorePrefix INTEGER AS Boolean NOT NULL DEFAULT 0,
+  sortingPrefixes TEXT AS List<String> NOT NULL,
+  chromecastEnabled INTEGER AS Boolean NOT NULL DEFAULT 0,
+  dateFormat TEXT NOT NULL,
+  timeFormat TEXT NOT NULL,
+  language TEXT NOT NULL,
+  logLevel INTEGER AS Int NOT NULL DEFAULT 0,
+  version TEXT NOT NULL
+);
+
+INSERT INTO server_new
+SELECT url, userId, name, scannerFindCovers, scannerCoverProvider, scannerParseSubtitle,
+       scannerPreferMatchedMetadata, scannerDisableWatcher, storeCoverWithItem, storeMetadataWithItem,
+       metadataFileFormat, rateLimitLoginRequests, rateLimitLoginWindow, backupSchedule, backupsToKeep,
+       maxBackupSize, loggerDailyLogsToKeep, loggerScannerLogsToKeep, homeBookshelfView, bookshelfView,
+       sortingIgnorePrefix, sortingPrefixes, chromecastEnabled, dateFormat, timeFormat, language,
+       logLevel, version
+FROM server
+WHERE userId IN (SELECT id FROM user);
+
+CREATE TABLE user_new (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  type TEXT AS Type NOT NULL,
+  seriesHideFromContinueListening TEXT AS List<String> NOT NULL,
+  isActive INTEGER AS Boolean DEFAULT 0,
+  isLocked INTEGER AS Boolean DEFAULT 0,
+  lastSeen INTEGER,
+  createdAt INTEGER NOT NULL,
+  permission_download INTEGER AS Boolean DEFAULT 0,
+  permission_update INTEGER AS Boolean DEFAULT 0,
+  permission_delete INTEGER AS Boolean DEFAULT 0,
+  permission_upload INTEGER AS Boolean DEFAULT 0,
+  permission_accessAllLibraries INTEGER AS Boolean DEFAULT 0,
+  permission_accessAllTags INTEGER AS Boolean DEFAULT 0,
+  permission_accessExplicitContent INTEGER AS Boolean DEFAULT 0,
+  librariesAccessible TEXT AS List<String> NOT NULL,
+  itemTagsAccessible TEXT AS List<String> NOT NULL,
+
+  selectedLibraryId TEXT NOT NULL,
+  serverUrl TEXT NOT NULL,
+  FOREIGN KEY (id) REFERENCES server(userId) ON DELETE CASCADE
+);
+
+INSERT INTO user_new
+SELECT id, name, type, seriesHideFromContinueListening, isActive, isLocked, lastSeen, createdAt,
+       permission_download, permission_update, permission_delete, permission_upload,
+       permission_accessAllLibraries, permission_accessAllTags, permission_accessExplicitContent,
+       librariesAccessible, itemTagsAccessible, selectedLibraryId, serverUrl
+FROM user
+WHERE id IN (SELECT userId FROM server_new);
+
+CREATE TABLE libraryItem_new (
+  id TEXT NOT NULL PRIMARY KEY,
+  ino TEXT NOT NULL,
+  libraryId TEXT NOT NULL,
+  oldLibraryItemId TEXT,
+  folderId TEXT NOT NULL,
+  path TEXT NOT NULL,
+  relPath TEXT NOT NULL,
+  isFile INTEGER AS Boolean NOT NULL DEFAULT 0,
+  mtimeMs INTEGER NOT NULL,
+  ctimeMs INTEGER NOT NULL,
+  birthtimeMs INTEGER NOT NULL,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  isMissing INTEGER AS Boolean NOT NULL DEFAULT 0,
+  isInvalid INTEGER AS Boolean NOT NULL DEFAULT 0,
+  mediaType TEXT AS MediaType NOT NULL,
+  numFiles INTEGER AS Int NOT NULL,
+  size INTEGER NOT NULL,
+
+  serverUrl TEXT NOT NULL
+);
+
+INSERT INTO libraryItem_new
+SELECT id, ino, libraryId, oldLibraryItemId, folderId, path, relPath, isFile, mtimeMs, ctimeMs,
+       birthtimeMs, addedAt, updatedAt, isMissing, isInvalid, mediaType, numFiles, size, serverUrl
+FROM libraryItem;
+
+DROP TABLE server;
+ALTER TABLE server_new RENAME TO server;
+
+DROP TABLE user;
+ALTER TABLE user_new RENAME TO user;
+
+DROP TABLE libraryItem;
+ALTER TABLE libraryItem_new RENAME TO libraryItem;
+
+CREATE TRIGGER IF NOT EXISTS server_delete_library_items
+AFTER DELETE ON server
+WHEN NOT EXISTS (SELECT 1 FROM server WHERE url = old.url)
+BEGIN
+  DELETE FROM libraryItem WHERE serverUrl = old.url;
+END;

@@ -42,7 +42,7 @@ class DefaultUserEventHandlerTest {
 
   @Test
   fun onUserUpdated_writesServerFieldsButKeepsLastSeen() = testDb { db ->
-    db.usersQueries.insert(networkUser(download = true, lastSeen = 1_000L).asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insertOrIgnore(networkUser(download = true, lastSeen = 1_000L).asDatabaseModel(serverUrl, "lib-1"))
     val handler = DefaultUserEventHandler(
       db = db,
       dispatcherProvider = DispatcherProvider(
@@ -56,7 +56,7 @@ class DefaultUserEventHandlerTest {
 
     handler.onUserUpdated(networkUser(download = false, lastSeen = 2_000L))
 
-    val row = db.usersQueries.selectForServer(serverUrl).executeAsOne()
+    val row = db.usersQueries.selectById("user-1").executeAsOne()
     assertThat(row.permission_download).isEqualTo(false)
     assertThat(row.lastSeen).isEqualTo(1_000L)
   }

@@ -33,6 +33,7 @@ kotlin {
 
     commonTest {
       dependencies {
+        implementation(projects.data.db.test)
         implementation(libs.bundles.test.common)
         implementation(libs.bundles.test.impl)
         implementation(libs.kotlinx.serialization.json)

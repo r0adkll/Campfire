@@ -16,6 +16,7 @@ import app.campfire.network.test.FakeAudioBookShelfApi
 import app.campfire.user.store.UserStore
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import kotlin.test.Test
@@ -62,7 +63,7 @@ class StoreUserRepositoryTest {
   fun userFlow_picksUpPermissionChangesFromTheServer() = testDb { db ->
     // Signed in while downloads were allowed; an admin has since revoked them
     val signedIn = networkUser(download = true)
-    db.usersQueries.insert(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insertOrIgnore(signedIn.asDatabaseModel(serverUrl, "lib-1"))
     val api = FakeAudioBookShelfApi().apply {
       currentUserResult = { Result.success(networkUser(download = false)) }
     }
@@ -90,7 +91,7 @@ class StoreUserRepositoryTest {
   fun userFlow_doesNotReEmitWhenTheServerOnlyBumpedLastSeen() = testDb { db ->
     // The server bumps lastSeen on every socket connection, so a refresh usually differs only there
     val signedIn = networkUser(download = true, lastSeen = 1_000L)
-    db.usersQueries.insert(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insertOrIgnore(signedIn.asDatabaseModel(serverUrl, "lib-1"))
     val fetched = CompletableDeferred<Unit>()
     val api = FakeAudioBookShelfApi().apply {
       currentUserResult = {
@@ -129,7 +130,7 @@ class StoreUserRepositoryTest {
   @Test
   fun userFlow_keepsTheCachedUserWhenTheServerIsUnreachable() = testDb { db ->
     val signedIn = networkUser(download = true)
-    db.usersQueries.insert(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insertOrIgnore(signedIn.asDatabaseModel(serverUrl, "lib-1"))
     val fetchAttempted = CompletableDeferred<Unit>()
     val api = FakeAudioBookShelfApi().apply {
       currentUserResult = {
@@ -161,5 +162,30 @@ class StoreUserRepositoryTest {
     assertThat(scope.coroutineContext[Job]!!.isActive).isTrue()
     assertThat(repository.userFlow.value.canDownload).isTrue()
     scope.cancel()
+  }
+
+  @Test
+  fun observeCurrentUser_readsTheSessionsAccountWhenAnotherUserSharesTheServer() = testDb { db ->
+    val signedIn = networkUser(download = true)
+    db.usersQueries.insertOrIgnore(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insertOrIgnore(
+      signedIn.copy(id = "user-2", username = "housemate").asDatabaseModel(serverUrl, "lib-1"),
+    )
+    val api = FakeAudioBookShelfApi()
+    val session = UserSession.LoggedIn(signedIn.asDomainModel(serverUrl, "lib-1"))
+    val dispatchers = DispatcherProvider(
+      io = Dispatchers.Default,
+      databaseWrite = Dispatchers.Default,
+      databaseRead = Dispatchers.Default,
+      computation = Dispatchers.Default,
+      main = Dispatchers.Default,
+    )
+    val repository = StoreUserRepository(
+      userSession = session,
+      userStoreFactory = UserStore.Factory(session, db, api, dispatchers),
+      coroutineScopeHolder = CoroutineScopeHolder { CoroutineScope(Job()) },
+    )
+
+    assertThat(repository.observeCurrentUser().first().id).isEqualTo("user-1")
   }
 }

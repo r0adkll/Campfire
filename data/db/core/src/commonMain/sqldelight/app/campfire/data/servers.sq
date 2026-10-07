@@ -3,9 +3,10 @@ import kotlin.Int;
 import kotlin.String;
 import kotlin.collections.List;
 
+-- One row per signed-in account: several users can sign in to the same server URL.
 CREATE TABLE IF NOT EXISTS server (
-  url TEXT NOT NULL PRIMARY KEY,
-  userId TEXT NOT NULL UNIQUE,
+  url TEXT NOT NULL,
+  userId TEXT NOT NULL PRIMARY KEY,
   name TEXT NOT NULL,
   scannerFindCovers INTEGER AS Boolean NOT NULL DEFAULT 0,
   scannerCoverProvider TEXT NOT NULL,
@@ -38,23 +39,22 @@ selectAll:
 SELECT * FROM server
 INNER JOIN user ON user.id = server.userId;
 
-selectByUrl:
-SELECT * FROM server
-INNER JOIN user ON user.id = server.userId
-WHERE url = ?;
-
 selectByUserId:
 SELECT * FROM server
 INNER JOIN user ON user.id = server.userId
 WHERE userId = ?;
 
-insert:
-INSERT OR REPLACE INTO server
+-- Signing in again to an account that's already on the device leaves its row for `update` to
+-- refresh. REPLACE would delete the row first, and the delete cascades through every table that
+-- holds the account's data.
+insertOrIgnore:
+INSERT OR IGNORE INTO server
 VALUES ?;
 
 update:
 UPDATE server
-SET name = :name,
+SET url = :url,
+    name = :name,
     scannerFindCovers = :scannerFindCovers,
     scannerCoverProvider = :scannerCoverProvider,
     scannerParseSubtitle = :scannerParseSubtitle,
@@ -90,3 +90,12 @@ WHERE userId = ?;
 delete:
 DELETE FROM server
 WHERE userId = ?;
+
+-- Library items are server data shared by every account on a URL, so they go when the last
+-- account on that URL does.
+CREATE TRIGGER IF NOT EXISTS server_delete_library_items
+AFTER DELETE ON server
+WHEN NOT EXISTS (SELECT 1 FROM server WHERE url = old.url)
+BEGIN
+  DELETE FROM libraryItem WHERE serverUrl = old.url;
+END;
