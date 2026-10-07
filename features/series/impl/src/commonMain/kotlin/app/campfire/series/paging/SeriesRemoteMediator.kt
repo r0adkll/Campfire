@@ -150,6 +150,7 @@ class SeriesRemoteMediator(
                   SeriesBookJoin(
                     seriesId = series.id,
                     libraryItemId = book.id,
+                    userId = user.id,
                   ),
                 )
               }

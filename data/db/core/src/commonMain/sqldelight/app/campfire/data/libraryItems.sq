@@ -89,6 +89,7 @@ LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
   AND mediaProgress.userId = :userId
 WHERE seriesBookJoin.seriesId = :seriesId
+  AND seriesBookJoin.userId = :userId
 ORDER BY media.metadata_series_sequence ASC;
 
 selectForShelf:
@@ -130,6 +131,7 @@ LEFT JOIN mediaProgress ON mediaProgress.libraryItemId = libraryItem.id
   AND mediaProgress.episodeId = ''
   AND mediaProgress.userId = :userId
 WHERE collectionsBookJoin.collectionsId = :collectionId
+  AND collectionsBookJoin.userId = :userId
 ORDER BY collectionsBookJoin.itemOrder ASC;
 
 selectForAuthorName:

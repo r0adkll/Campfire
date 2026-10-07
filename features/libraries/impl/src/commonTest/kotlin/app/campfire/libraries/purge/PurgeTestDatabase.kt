@@ -42,9 +42,10 @@ class PurgeTestDatabase(private val driver: SqlDriver) {
   }
 
   fun linkEverywhere(itemId: String) {
-    exec("INSERT INTO seriesBookJoin (seriesId, libraryItemId) VALUES ('series', '$itemId')")
+    exec("INSERT INTO seriesBookJoin (seriesId, libraryItemId, userId) VALUES ('series', '$itemId', 'user')")
     exec(
-      "INSERT INTO collectionsBookJoin (collectionsId, libraryItemId, itemOrder) VALUES ('collection', '$itemId', 0)",
+      "INSERT INTO collectionsBookJoin (collectionsId, libraryItemId, itemOrder, userId) " +
+        "VALUES ('collection', '$itemId', 0, 'user')",
     )
     exec("INSERT INTO playlistItemJoin (playlistId, libraryItemId, itemOrder) VALUES ('playlist', '$itemId', 0)")
     exec("INSERT INTO libraryItemPageJoin (pageId, pageIndex, libraryItemId) VALUES (1, 0, '$itemId')")

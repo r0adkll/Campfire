@@ -43,8 +43,9 @@ class DefaultSeriesEventHandler(
   override suspend fun onSeriesUpdated(series: Series) = upsert(series)
 
   override suspend fun onSeriesRemoved(seriesId: SeriesId, libraryId: LibraryId) {
+    val userId = userSession.userId ?: return
     withContext(dispatcherProvider.databaseWrite) {
-      db.seriesQueries.deleteById(id = seriesId, libraryId = libraryId)
+      db.seriesQueries.deleteById(id = seriesId, libraryId = libraryId, userId = userId)
     }
   }
 
@@ -65,6 +66,7 @@ class DefaultSeriesEventHandler(
         firstBookUnreadId = dbModel.firstBookUnreadId,
         libraryId = dbModel.libraryId,
         id = dbModel.id,
+        userId = userId,
       )
       db.seriesQueries.insertOrIgnore(dbModel)
     }

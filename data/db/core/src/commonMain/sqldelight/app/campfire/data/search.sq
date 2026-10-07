@@ -108,7 +108,8 @@ WHERE search_authors.searchKey = ?;
 searchSeries:
 SELECT * FROM search_series
 INNER JOIN series ON series.id = search_series.seriesId
-WHERE search_series.searchKey = ?;
+WHERE search_series.searchKey = ?
+  AND series.userId = (SELECT userId FROM search WHERE search.key = search_series.searchKey);
 
 searchNarrators:
 SELECT narrators FROM search_narrators

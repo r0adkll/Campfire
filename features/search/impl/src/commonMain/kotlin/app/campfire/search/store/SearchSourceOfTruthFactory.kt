@@ -213,6 +213,7 @@ class SearchSourceOfTruthFactory(
               SeriesBookJoin(
                 seriesId = seriesSearchResult.series.id,
                 libraryItemId = libraryItem.id,
+                userId = query.userId,
               ),
             )
           }

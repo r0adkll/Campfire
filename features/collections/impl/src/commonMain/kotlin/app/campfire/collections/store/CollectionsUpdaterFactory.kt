@@ -67,7 +67,7 @@ class CollectionsUpdaterFactory(
     collection: Collection,
   ) {
     val existing = db.collectionsQueries
-      .selectById(creationId.toHexDashString())
+      .selectById(creationId.toHexDashString(), userId)
       .awaitAsOneOrNull()
 
     if (existing != null) {
@@ -78,13 +78,13 @@ class CollectionsUpdaterFactory(
         // Copy over the junction entries
         collection.books.forEachIndexed { index, book ->
           db.collectionsBookJoinQueries.insert(
-            CollectionsBookJoin(collection.id, book.id, index),
+            CollectionsBookJoin(collection.id, book.id, index, userId),
           )
         }
 
         // Delete the old stuff
-        db.collectionsQueries.delete(creationId.toHexDashString())
-        db.collectionsBookJoinQueries.delete(creationId.toHexDashString())
+        db.collectionsQueries.delete(creationId.toHexDashString(), userId)
+        db.collectionsBookJoinQueries.delete(creationId.toHexDashString(), userId)
       }
     }
   }

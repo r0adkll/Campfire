@@ -82,7 +82,7 @@ class StoreLibraryRepository(
     },
     sourceOfTruth = SourceOfTruth.of(
       reader = { request: SingleLibraryRequest ->
-        db.librariesQueries.selectById(request.libraryId)
+        db.librariesQueries.selectById(request.libraryId, request.userId)
           .asFlow()
           .mapToOneOrNull(dispatcherProvider.databaseRead)
           .map { it?.asDomainModel() }
@@ -92,6 +92,7 @@ class StoreLibraryRepository(
         withContext(dispatcherProvider.databaseWrite) {
           db.librariesQueries.update(
             id = request.libraryId,
+            userId = request.userId,
             name = libraryItem.name,
             displayOrder = libraryItem.displayOrder,
             icon = libraryItem.icon,
@@ -107,7 +108,7 @@ class StoreLibraryRepository(
       },
       delete = { request: SingleLibraryRequest ->
         withContext(dispatcherProvider.databaseWrite) {
-          db.librariesQueries.deleteById(request.libraryId)
+          db.librariesQueries.deleteById(request.libraryId, request.userId)
         }
       },
     ),
@@ -133,6 +134,7 @@ class StoreLibraryRepository(
               val libraryItem = library.asDbModel(userId)
               db.librariesQueries.update(
                 id = library.id,
+                userId = userId,
                 name = libraryItem.name,
                 displayOrder = libraryItem.displayOrder,
                 icon = libraryItem.icon,

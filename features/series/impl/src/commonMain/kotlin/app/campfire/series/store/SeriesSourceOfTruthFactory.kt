@@ -33,7 +33,7 @@ internal class SeriesSourceOfTruthFactory(
   @OptIn(ExperimentalCoroutinesApi::class)
   fun create() = SourceOfTruth.of(
     reader = { key: Key ->
-      db.seriesQueries.selectByLibraryId(key.libraryId)
+      db.seriesQueries.selectByLibraryId(key.libraryId, key.userId)
         .asFlow()
         .mapToList(dispatcherProvider.databaseRead)
         .mapLatest { series ->
@@ -84,6 +84,7 @@ internal class SeriesSourceOfTruthFactory(
                 SeriesBookJoin(
                   seriesId = series.id,
                   libraryItemId = book.id,
+                  userId = key.userId,
                 ),
               )
             }
@@ -93,7 +94,7 @@ internal class SeriesSourceOfTruthFactory(
     },
     delete = { key ->
       withContext(dispatcherProvider.databaseWrite) {
-        db.seriesQueries.deleteForLibraryId(key.libraryId)
+        db.seriesQueries.deleteForLibraryId(key.libraryId, key.userId)
       }
     },
   )

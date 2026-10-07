@@ -1,9 +1,10 @@
 CREATE TABLE IF NOT EXISTS seriesBookJoin (
   seriesId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
 
-  PRIMARY KEY (seriesId, libraryItemId),
-  FOREIGN KEY (seriesId) REFERENCES series(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  PRIMARY KEY (seriesId, libraryItemId, userId),
+  FOREIGN KEY (seriesId, userId) REFERENCES series(id, userId) ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
@@ -15,9 +16,11 @@ VALUES ?;
 
 deleteForSeries:
 DELETE FROM seriesBookJoin
-WHERE seriesId = :seriesId;
+WHERE seriesId = :seriesId
+AND userId = :userId;
 
 deleteForSeriesItem:
 DELETE FROM seriesBookJoin
 WHERE seriesId = :seriesId
-AND libraryItemId = :libraryItemId;
+AND libraryItemId = :libraryItemId
+AND userId = :userId;

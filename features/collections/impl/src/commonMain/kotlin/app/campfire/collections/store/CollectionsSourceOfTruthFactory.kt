@@ -82,7 +82,7 @@ class CollectionsSourceOfTruthFactory(
   }
 
   private fun readSingle(userId: UserId, collectionId: CollectionId): Flow<CollectionsStore.Output.Single> {
-    return db.collectionsQueries.selectById(collectionId)
+    return db.collectionsQueries.selectById(collectionId, userId)
       .asFlow()
       .mapToOneOrNull(dispatcherProvider.databaseRead)
       .mapNotNull { collection ->
@@ -124,14 +124,14 @@ class CollectionsSourceOfTruthFactory(
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transaction {
       // Delete any existing entries that no longer exist
-      db.collectionsQueries.deleteOld(collections.map { it.id })
+      db.collectionsQueries.deleteOld(userId, collections.map { it.id })
 
       collections.forEach { collection ->
         // Insert collection
         db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
         // Replace, not add to, the collection's books so removed ones don't linger
-        db.collectionsBookJoinQueries.delete(collection.id)
+        db.collectionsBookJoinQueries.delete(collection.id, userId)
 
         // Insert the collection books
         collection.books.forEachIndexed { index, book ->
@@ -148,6 +148,7 @@ class CollectionsSourceOfTruthFactory(
               collectionsId = collection.id,
               libraryItemId = book.id,
               itemOrder = index,
+              userId = userId,
             ),
           )
         }
@@ -165,7 +166,7 @@ class CollectionsSourceOfTruthFactory(
       db.collectionsQueries.insert(collection.asDbModel(userId, libraryId))
 
       // Replace, not add to, the collection's books so removed ones don't linger
-      db.collectionsBookJoinQueries.delete(collection.id)
+      db.collectionsBookJoinQueries.delete(collection.id, userId)
 
       // Insert the collection books
       collection.books.forEachIndexed { index, book ->
@@ -182,6 +183,7 @@ class CollectionsSourceOfTruthFactory(
             collectionsId = collection.id,
             libraryItemId = book.id,
             itemOrder = index,
+            userId = userId,
           ),
         )
       }
@@ -213,6 +215,7 @@ class CollectionsSourceOfTruthFactory(
             collectionsId = mutation.creationId.toHexDashString(),
             libraryItemId = bookId,
             itemOrder = index,
+            userId = mutation.userId,
           ),
         )
       }
@@ -228,6 +231,7 @@ class CollectionsSourceOfTruthFactory(
           name = mutation.name,
           updatedAt = fatherTime.nowInEpochMillis(),
           id = mutation.id,
+          userId = mutation.userId,
         )
       }
       if (mutation.description != null) {
@@ -235,6 +239,7 @@ class CollectionsSourceOfTruthFactory(
           description = mutation.description,
           updatedAt = fatherTime.nowInEpochMillis(),
           id = mutation.id,
+          userId = mutation.userId,
         )
       }
     }
@@ -244,7 +249,7 @@ class CollectionsSourceOfTruthFactory(
     mutation: CollectionsStore.Operation.Mutation.Add,
   ) = withContext(dispatcherProvider.databaseRead) {
     val collectionCount = db.collectionsBookJoinQueries
-      .countForCollection(mutation.collectionId)
+      .countForCollection(mutation.collectionId, mutation.userId)
       .awaitAsOne()
 
     withContext(dispatcherProvider.databaseWrite) {
@@ -253,6 +258,7 @@ class CollectionsSourceOfTruthFactory(
           collectionsId = mutation.collectionId,
           libraryItemId = mutation.bookId,
           itemOrder = collectionCount.toInt(),
+          userId = mutation.userId,
         ),
       )
     }
@@ -263,6 +269,7 @@ class CollectionsSourceOfTruthFactory(
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.collectionsBookJoinQueries.deleteForItems(
       collectionsId = mutation.collectionId,
+      userId = mutation.userId,
       ids = mutation.bookIds,
     )
   }
@@ -271,8 +278,8 @@ class CollectionsSourceOfTruthFactory(
     mutation: CollectionsStore.Operation.Mutation.Delete,
   ) = withContext(dispatcherProvider.databaseWrite) {
     db.transaction {
-      db.collectionsBookJoinQueries.delete(mutation.id)
-      db.collectionsQueries.delete(mutation.id)
+      db.collectionsBookJoinQueries.delete(mutation.id, mutation.userId)
+      db.collectionsQueries.delete(mutation.id, mutation.userId)
     }
   }
 }

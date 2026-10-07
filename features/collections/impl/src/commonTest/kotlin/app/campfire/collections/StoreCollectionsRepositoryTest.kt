@@ -11,6 +11,7 @@ import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.core.model.Collection
 import app.campfire.core.session.UserSession
 import app.campfire.core.time.GrandFatherTime
+import app.campfire.data.Collections
 import app.campfire.data.mapping.dao.SqlDelightLibraryItemDao
 import app.campfire.db.DatabaseFactory
 import app.campfire.db.test.createDriver
@@ -80,6 +81,29 @@ class StoreCollectionsRepositoryTest {
     assertThat(db.collectionNames()).containsExactly("Classics")
   }
 
+  @Test
+  fun `refresh leaves another account's copy of the same collections alone`() = collectionsTest { db ->
+    db.collectionsQueries.insert(
+      Collections(
+        id = "1",
+        name = "Housemate's Classics",
+        description = null,
+        cover = null,
+        coverFullPath = null,
+        updatedAt = 0,
+        createdAt = 0,
+        libraryId = testUser.selectedLibraryId,
+        userId = HOUSEMATE_ID,
+      ),
+    )
+    api.collectionsResult = { libraryId -> Result.success(listOf(collection("1", "Classics", libraryId))) }
+
+    repository(db).refreshCollections()
+
+    assertThat(db.collectionNames()).containsExactly("Classics")
+    assertThat(db.collectionNames(HOUSEMATE_ID)).containsExactly("Housemate's Classics")
+  }
+
   private fun TestScope.repository(db: CampfireDatabase): StoreCollectionsRepository {
     val dispatcherProvider = asTestDispatcherProvider()
     val urlHydrator = FakeUrlHydrator()
@@ -101,8 +125,8 @@ class StoreCollectionsRepositoryTest {
     )
   }
 
-  private suspend fun CampfireDatabase.collectionNames(): List<String> {
-    return collectionsQueries.selectByLibraryId(testUser.selectedLibraryId, testUser.id).awaitAsList().map { it.name }
+  private suspend fun CampfireDatabase.collectionNames(userId: String = testUser.id): List<String> {
+    return collectionsQueries.selectByLibraryId(testUser.selectedLibraryId, userId).awaitAsList().map { it.name }
   }
 
   /** Skips emissions until the collections are exactly [names], in order. */
@@ -134,6 +158,7 @@ class StoreCollectionsRepositoryTest {
 
   private companion object {
     const val TestUserId = "user"
+    const val HOUSEMATE_ID = "housemate"
 
     fun collection(id: String, name: String, libraryId: String) = NetworkCollection(
       id = id,

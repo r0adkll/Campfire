@@ -233,7 +233,7 @@ class HomeSourceOfTruthFactory(
   ) {
     entities.forEach { series ->
       // Upsert Series
-      val exists = db.seriesQueries.existsById(series.id, libraryId)
+      val exists = db.seriesQueries.existsById(series.id, libraryId, userId)
         .awaitAsOneOrNull() != null
       if (exists) {
         db.seriesQueries.update(
@@ -248,6 +248,7 @@ class HomeSourceOfTruthFactory(
           bookInProgressLastUpdate = series.bookInProgressLastUpdate,
           firstBookUnreadId = series.firstBookUnread?.id,
           libraryId = libraryId,
+          userId = userId,
         )
       } else {
         db.seriesQueries.insertOrIgnore(series.asDbModel(userId, libraryId))
@@ -267,6 +268,7 @@ class HomeSourceOfTruthFactory(
           SeriesBookJoin(
             seriesId = series.id,
             libraryItemId = book.id,
+            userId = userId,
           ),
         )
       }

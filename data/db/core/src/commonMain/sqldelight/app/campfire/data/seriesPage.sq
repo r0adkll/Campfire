@@ -97,6 +97,7 @@ SELECT series.* FROM series
 INNER JOIN seriesPageJoin ON seriesPageJoin.seriesId = series.id
 INNER JOIN seriesPage ON seriesPage.id = seriesPageJoin.pageId
 WHERE seriesPage.userId = :userId
+  AND series.userId = :userId
   AND seriesPage.libraryId = :libraryId
   AND seriesPage.input = :input
 ORDER BY seriesPage.page ASC, seriesPageJoin.pageIndex ASC

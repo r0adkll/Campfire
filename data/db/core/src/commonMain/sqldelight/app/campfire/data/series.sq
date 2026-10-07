@@ -1,7 +1,9 @@
 import kotlin.Boolean;
 
+-- Each account keeps its own copy: accounts on the same server see the same series ids, and
+-- fields like inProgress are from the account's point of view.
 CREATE TABLE IF NOT EXISTS series (
-  id TEXT NOT NULL PRIMARY KEY,
+  id TEXT NOT NULL,
   name TEXT NOT NULL,
   description TEXT,
   addedAt INTEGER NOT NULL,
@@ -16,6 +18,7 @@ CREATE TABLE IF NOT EXISTS series (
   libraryId TEXT NOT NULL,
   userId TEXT NOT NULL,
 
+  PRIMARY KEY (id, userId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
@@ -35,12 +38,14 @@ SET name = :name,
     bookInProgressLastUpdate = :bookInProgressLastUpdate,
     firstBookUnreadId = :firstBookUnreadId
 WHERE libraryId = :libraryId
-  AND id = :id;
+  AND id = :id
+  AND userId = :userId;
 
 existsById:
 SELECT 1 FROM series
 WHERE id = ?
   AND libraryId = ?
+  AND userId = ?
 LIMIT 1;
 
 selectAll:
@@ -48,24 +53,29 @@ SELECT * FROM series;
 
 selectById:
 SELECT * FROM series
-WHERE id = ?;
+WHERE id = ?
+  AND userId = ?;
 
 selectByLibraryId:
 SELECT * FROM series
 WHERE libraryId = ?
+  AND userId = ?
 ORDER BY name ASC;
 
 selectByShelfId:
 SELECT * FROM series
 INNER JOIN shelfJoin ON shelfJoin.entityId = series.id
 WHERE shelfJoin.shelfId = ?
+  AND series.userId = (SELECT userId FROM shelf WHERE shelf.id = shelfJoin.shelfId)
 ORDER BY shelfJoin.shelfOrder ASC;
 
 deleteForLibraryId:
 DELETE FROM series
-WHERE libraryId = ?;
+WHERE libraryId = ?
+  AND userId = ?;
 
 deleteById:
 DELETE FROM series
 WHERE id = ?
-  AND libraryId = ?;
+  AND libraryId = ?
+  AND userId = ?;

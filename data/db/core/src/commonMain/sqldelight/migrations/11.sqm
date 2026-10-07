@@ -11,6 +11,9 @@ import kotlin.collections.List;
 -- items (shared by every account on a URL) are cleared by a trigger when the URL's last account
 -- goes.
 --
+-- The library, series and collections caches get the account in their keys too: accounts on the
+-- same server see the same ids, so each keeps its own copy. Their book joins follow their parent.
+--
 -- Foreign keys are off while this runs (Android enables them once the database is open), so the
 -- DROPs below don't cascade. Only server and user rows that pair up are kept: anything else was
 -- already unreachable, since every lookup joins the two.
@@ -115,6 +118,105 @@ SELECT id, ino, libraryId, oldLibraryItemId, folderId, path, relPath, isFile, mt
        birthtimeMs, addedAt, updatedAt, isMissing, isInvalid, mediaType, numFiles, size, serverUrl
 FROM libraryItem;
 
+CREATE TABLE library_new (
+  id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  displayOrder INTEGER AS Int NOT NULL,
+  icon TEXT NOT NULL,
+  mediaType TEXT NOT NULL,
+  provider TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  lastUpdate INTEGER NOT NULL,
+  coverAspectRatio INTEGER AS Int NOT NULL,
+  audiobooksOnly INTEGER AS Boolean NOT NULL,
+
+  userId TEXT NOT NULL,
+  PRIMARY KEY (id, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO library_new
+SELECT id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate, coverAspectRatio,
+       audiobooksOnly, userId
+FROM library;
+
+CREATE TABLE series_new (
+  id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  addedAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+
+  inProgress INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hasActiveBook INTEGER AS Boolean NOT NULL DEFAULT 0,
+  hideFromContinueListening INTEGER AS Boolean NOT NULL DEFAULT 0,
+  bookInProgressLastUpdate INTEGER,
+  firstBookUnreadId TEXT,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  PRIMARY KEY (id, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO series_new
+SELECT id, name, description, addedAt, updatedAt, inProgress, hasActiveBook,
+       hideFromContinueListening, bookInProgressLastUpdate, firstBookUnreadId, libraryId, userId
+FROM series;
+
+CREATE TABLE seriesBookJoin_new (
+  seriesId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  PRIMARY KEY (seriesId, libraryItemId, userId),
+  FOREIGN KEY (seriesId, userId) REFERENCES series(id, userId) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+INSERT INTO seriesBookJoin_new
+SELECT seriesBookJoin.seriesId, seriesBookJoin.libraryItemId, series.userId
+FROM seriesBookJoin
+INNER JOIN series ON series.id = seriesBookJoin.seriesId;
+
+CREATE TABLE collections_new (
+  id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  cover TEXT,
+  coverFullPath TEXT,
+  updatedAt INTEGER NOT NULL,
+  createdAt INTEGER NOT NULL,
+
+  libraryId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+
+  PRIMARY KEY (id, userId),
+  FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
+);
+
+INSERT INTO collections_new
+SELECT id, name, description, cover, coverFullPath, updatedAt, createdAt, libraryId, userId
+FROM collections;
+
+CREATE TABLE collectionsBookJoin_new (
+  collectionsId TEXT NOT NULL,
+  libraryItemId TEXT NOT NULL,
+  itemOrder INTEGER AS Int NOT NULL,
+  userId TEXT NOT NULL,
+
+  PRIMARY KEY (collectionsId, libraryItemId, userId),
+  FOREIGN KEY (collectionsId, userId) REFERENCES collections(id, userId) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
+);
+
+INSERT INTO collectionsBookJoin_new
+SELECT collectionsBookJoin.collectionsId, collectionsBookJoin.libraryItemId,
+       collectionsBookJoin.itemOrder, collections.userId
+FROM collectionsBookJoin
+INNER JOIN collections ON collections.id = collectionsBookJoin.collectionsId;
+
 DROP TABLE server;
 ALTER TABLE server_new RENAME TO server;
 
@@ -123,6 +225,21 @@ ALTER TABLE user_new RENAME TO user;
 
 DROP TABLE libraryItem;
 ALTER TABLE libraryItem_new RENAME TO libraryItem;
+
+DROP TABLE library;
+ALTER TABLE library_new RENAME TO library;
+
+DROP TABLE seriesBookJoin;
+DROP TABLE series;
+ALTER TABLE series_new RENAME TO series;
+ALTER TABLE seriesBookJoin_new RENAME TO seriesBookJoin;
+CREATE INDEX IF NOT EXISTS index_series_book_join_libraryItemId ON seriesBookJoin(libraryItemId);
+
+DROP TABLE collectionsBookJoin;
+DROP TABLE collections;
+ALTER TABLE collections_new RENAME TO collections;
+ALTER TABLE collectionsBookJoin_new RENAME TO collectionsBookJoin;
+CREATE INDEX IF NOT EXISTS index_collections_book_join_libraryItemId ON collectionsBookJoin(libraryItemId);
 
 CREATE TRIGGER IF NOT EXISTS server_delete_library_items
 AFTER DELETE ON server

@@ -53,6 +53,46 @@ class AccountKeysMigrationTest {
   }
 
   @Test
+  fun `cached libraries, series and collections stay with their account`() {
+    schema.migrate(driver, 1, VERSION_BEFORE).value
+    account("user-1", SERVER_A)
+    libraryItem("item-1", SERVER_A)
+    exec(
+      """
+      INSERT INTO library (id, name, displayOrder, icon, mediaType, provider, createdAt, lastUpdate,
+        coverAspectRatio, audiobooksOnly, userId)
+      VALUES ('library', 'Audiobooks', 0, 'database', 'book', 'audible', 0, 0, 1, 0, 'user-1')
+      """,
+    )
+    exec(
+      """
+      INSERT INTO series (id, name, addedAt, updatedAt, libraryId, userId)
+      VALUES ('series-1', 'Series', 0, 0, 'library', 'user-1')
+      """,
+    )
+    exec("INSERT INTO seriesBookJoin (seriesId, libraryItemId) VALUES ('series-1', 'item-1')")
+    exec(
+      """
+      INSERT INTO collections (id, name, updatedAt, createdAt, libraryId, userId)
+      VALUES ('collection-1', 'Favorites', 0, 0, 'library', 'user-1')
+      """,
+    )
+    exec(
+      "INSERT INTO collectionsBookJoin (collectionsId, libraryItemId, itemOrder) VALUES ('collection-1', 'item-1', 0)",
+    )
+
+    migrateAndEnforce()
+
+    assertThat(strings("SELECT id || ':' || userId FROM library")).containsExactly("library:user-1")
+    assertThat(strings("SELECT id || ':' || userId FROM series")).containsExactly("series-1:user-1")
+    assertThat(strings("SELECT seriesId || ':' || userId FROM seriesBookJoin")).containsExactly("series-1:user-1")
+    assertThat(strings("SELECT id || ':' || userId FROM collections")).containsExactly("collection-1:user-1")
+    assertThat(strings("SELECT collectionsId || ':' || userId FROM collectionsBookJoin"))
+      .containsExactly("collection-1:user-1")
+    assertThat(strings("SELECT \"table\" FROM pragma_foreign_key_check")).isEmpty()
+  }
+
+  @Test
   fun `server and user rows that don't pair up are dropped`() {
     schema.migrate(driver, 1, VERSION_BEFORE).value
     account("user-1", SERVER_A)

@@ -4,9 +4,10 @@ CREATE TABLE IF NOT EXISTS collectionsBookJoin (
   collectionsId TEXT NOT NULL,
   libraryItemId TEXT NOT NULL,
   itemOrder INTEGER AS Int NOT NULL,
+  userId TEXT NOT NULL,
 
-  PRIMARY KEY (collectionsId, libraryItemId),
-  FOREIGN KEY (collectionsId) REFERENCES collections(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  PRIMARY KEY (collectionsId, libraryItemId, userId),
+  FOREIGN KEY (collectionsId, userId) REFERENCES collections(id, userId) ON UPDATE NO ACTION ON DELETE CASCADE,
   FOREIGN KEY (libraryItemId) REFERENCES libraryItem(id) ON UPDATE NO ACTION ON DELETE NO ACTION
 );
 
@@ -18,13 +19,16 @@ VALUES ?;
 
 countForCollection:
 SELECT count(*) FROM collectionsBookJoin
-WHERE collectionsId = ?;
+WHERE collectionsId = ?
+AND userId = ?;
 
 delete:
 DELETE FROM collectionsBookJoin
-WHERE collectionsId = :collectionsId;
+WHERE collectionsId = :collectionsId
+AND userId = :userId;
 
 deleteForItems:
 DELETE FROM collectionsBookJoin
 WHERE collectionsId = :collectionsId
+AND userId = :userId
 AND libraryItemId IN :ids;

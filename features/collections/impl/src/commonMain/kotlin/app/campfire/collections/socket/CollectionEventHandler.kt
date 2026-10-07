@@ -40,8 +40,9 @@ class DefaultCollectionEventHandler(
   override suspend fun onCollectionUpdated(collection: Collection) = upsert(collection)
 
   override suspend fun onCollectionRemoved(collectionId: CollectionId) {
+    val userId = userSession.userId ?: return
     withContext(dispatcherProvider.databaseWrite) {
-      db.collectionsQueries.delete(collectionId)
+      db.collectionsQueries.delete(collectionId, userId)
     }
   }
 

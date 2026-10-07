@@ -156,7 +156,7 @@ class StoreSeriesRepository(
 
             // This is the series' full book list, so replace its links rather than adding to
             // them — books removed from the series (or the server) would otherwise linger.
-            db.seriesBookJoinQueries.deleteForSeries(s.seriesId)
+            db.seriesBookJoinQueries.deleteForSeries(s.seriesId, s.userId)
 
             // Insert the books
             networkResult.books.forEach { item ->
@@ -179,6 +179,7 @@ class StoreSeriesRepository(
                 SeriesBookJoin(
                   seriesId = s.seriesId,
                   libraryItemId = item.id,
+                  userId = s.userId,
                 ),
               )
             }

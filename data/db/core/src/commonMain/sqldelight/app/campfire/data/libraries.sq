@@ -1,8 +1,9 @@
 import kotlin.Boolean;
 import kotlin.Int;
 
+-- Each account keeps its own copy: accounts on the same server see the same library ids.
 CREATE TABLE IF NOT EXISTS library (
-  id TEXT NOT NULL PRIMARY KEY,
+  id TEXT NOT NULL,
   name TEXT NOT NULL,
   displayOrder INTEGER AS Int NOT NULL,
   icon TEXT NOT NULL,
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS library (
   audiobooksOnly INTEGER AS Boolean NOT NULL,
 
   userId TEXT NOT NULL,
+  PRIMARY KEY (id, userId),
   FOREIGN KEY (userId) REFERENCES user(id) ON DELETE CASCADE
 );
 
@@ -32,7 +34,8 @@ SET name = :name,
     lastUpdate = :lastUpdate,
     coverAspectRatio = :coverAspectRatio,
     audiobooksOnly = :audiobooksOnly
-WHERE id = :id;
+WHERE id = :id
+  AND userId = :userId;
 
 selectAll:
 SELECT * FROM library
@@ -40,11 +43,13 @@ WHERE userId = ?;
 
 selectById:
 SELECT * FROM library
-WHERE id = ?;
+WHERE id = ?
+  AND userId = ?;
 
 deleteById:
 DELETE FROM library
-WHERE id = ?;
+WHERE id = ?
+  AND userId = ?;
 
 deleteAll:
 DELETE FROM library

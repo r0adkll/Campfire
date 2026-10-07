@@ -43,8 +43,9 @@ class DefaultLibraryEventHandler(
   }
 
   override suspend fun onLibraryRemoved(libraryId: LibraryId) {
+    val userId = userSession.userId ?: return
     withContext(dispatcherProvider.databaseWrite) {
-      db.librariesQueries.deleteById(libraryId)
+      db.librariesQueries.deleteById(libraryId, userId)
     }
   }
 
@@ -54,6 +55,7 @@ class DefaultLibraryEventHandler(
     withContext(dispatcherProvider.databaseWrite) {
       db.librariesQueries.update(
         id = dbModel.id,
+        userId = userId,
         name = dbModel.name,
         displayOrder = dbModel.displayOrder,
         icon = dbModel.icon,
