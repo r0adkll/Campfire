@@ -12,6 +12,10 @@ kotlin {
     freeCompilerArgs.add("-opt-in=kotlin.uuid.ExperimentalUuidApi")
   }
 
+  android {
+    withHostTest {}
+  }
+
   sqldelight {
     databases {
       create("CampfireDatabase") {
@@ -58,6 +62,14 @@ kotlin {
     jvmTest {
       dependencies {
         implementation(libs.bundles.test.common)
+      }
+    }
+
+    getByName("androidHostTest") {
+      dependencies {
+        implementation(libs.bundles.test.common)
+        implementation(libs.junit)
+        implementation(libs.robolectric)
       }
     }
   }

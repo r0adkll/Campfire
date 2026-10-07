@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
 - [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
 - [Android] New skip forward and back times only taking effect after restarting the app
+- [Android] Updating from a version before 1.0 signing you out and losing listening that hadn't synced yet
 
 ### Other Notes & Contributions
 

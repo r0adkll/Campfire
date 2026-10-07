@@ -125,7 +125,7 @@ jobs:
 
       - name: Run tests and generate coverage report
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
-        run: ./gradlew --quiet jvmTest koverXmlReport
+        run: ./gradlew --quiet jvmTest testAndroidHostTest koverXmlReport
 
       - name: Add coverage report to PR
         if: ${{ steps.label-check.outputs.SKIP_COVERAGE == 'false' }}
