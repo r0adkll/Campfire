@@ -16,6 +16,12 @@ data class SeriesDetailUiState(
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
   /** Provider-listed books the user doesn't own; null until a provider answers with any. */
   val missingSection: MissingSection? = null,
+  /** Owned books [SeriesDetailUiEvent.MarkSeriesFinished] would change. */
+  val unfinishedCount: Int = 0,
+  /** Owned books [SeriesDetailUiEvent.MarkSeriesNotFinished] would change. */
+  val finishedCount: Int = 0,
+  /** A whole-series progress change is still working through the books. */
+  val isUpdatingProgress: Boolean = false,
   val eventSink: (SeriesDetailUiEvent) -> Unit,
 ) : CircuitUiState
 
@@ -28,4 +34,6 @@ sealed interface SeriesDetailUiEvent : CircuitUiEvent {
   data object Back : SeriesDetailUiEvent
   data class LibraryItemClick(val libraryItem: LibraryItem) : SeriesDetailUiEvent
   data class MissingBookClick(val url: String) : SeriesDetailUiEvent
+  data object MarkSeriesFinished : SeriesDetailUiEvent
+  data object MarkSeriesNotFinished : SeriesDetailUiEvent
 }

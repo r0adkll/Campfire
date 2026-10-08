@@ -92,6 +92,9 @@ data class LibraryItemSharedTransitionKey(
 
 val LocalItemCardMarquee = compositionLocalOf { true }
 
+/**
+ * @param subtitle Replaces the author line under the title; null keeps the author.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun LibraryItemCard(
@@ -104,6 +107,7 @@ fun LibraryItemCard(
   isSelectable: Boolean = false,
   selected: Boolean = false,
   showInformation: Boolean = true,
+  subtitle: String? = null,
   marqueeEnabled: Boolean = LocalItemCardMarquee.current,
   offlineStatus: OfflineStatus = OfflineStatus.None,
   progress: MediaProgress? = item.userMediaProgress,
@@ -179,6 +183,7 @@ fun LibraryItemCard(
           } else {
             LibraryItemCardInformation(
               item = item,
+              subtitle = subtitle,
               marqueeEnabled = marqueeEnabled,
               sharedTransitionKey = sharedTransitionKey,
             )
@@ -416,13 +421,15 @@ fun EbookFormatBadge(
 @Composable
 private fun LibraryItemCardInformation(
   item: LibraryItem,
+  subtitle: String?,
   sharedTransitionKey: String,
   modifier: Modifier = Modifier,
   marqueeEnabled: Boolean = true,
 ) {
-  LibraryItemCardInformation(
+  ItemCardInformation(
     title = item.media.metadata.title,
-    subtitle = item.media.metadata.authorName // Books
+    subtitle = subtitle
+      ?: item.media.metadata.authorName // Books
       ?: item.media.metadata.author // Podcasts
       ?: item.media.metadata.authors.firstOrNull()?.name, // Book fallback
     sharedTransitionKey = sharedTransitionKey,
@@ -439,7 +446,7 @@ private fun LibraryItemCardInformation(
   modifier: Modifier = Modifier,
   marqueeEnabled: Boolean = true,
 ) {
-  LibraryItemCardInformation(
+  ItemCardInformation(
     title = episode.title,
     subtitle = item.media.metadata.title,
     sharedTransitionKey = sharedTransitionKey,
@@ -448,13 +455,18 @@ private fun LibraryItemCardInformation(
   )
 }
 
+/**
+ * The title and subtitle lines under an item card's cover; a null [title] or [subtitle] shows
+ * the unknown title/author placeholder. A null [sharedTransitionKey] skips the title's
+ * shared-bounds transition, for cards that don't navigate to an item.
+ */
 @Composable
-private fun LibraryItemCardInformation(
+fun ItemCardInformation(
   title: String?,
   subtitle: String?,
-  sharedTransitionKey: String,
   modifier: Modifier = Modifier,
-  marqueeEnabled: Boolean = true,
+  sharedTransitionKey: String? = null,
+  marqueeEnabled: Boolean = LocalItemCardMarquee.current,
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
 
@@ -478,16 +490,18 @@ private fun LibraryItemCardInformation(
       maxLines = 1,
       overflow = TextOverflow.Ellipsis,
       modifier = Modifier
-        .thenIfNotNull(animationScope) { scope ->
-          sharedBounds(
-            sharedContentState = rememberSharedContentState(
-              LibraryItemSharedTransitionKey(
-                id = sharedTransitionKey,
-                type = LibraryItemSharedTransitionKey.ElementType.Title,
+        .thenIfNotNull(sharedTransitionKey) { key ->
+          thenIfNotNull(animationScope) { scope ->
+            sharedBounds(
+              sharedContentState = rememberSharedContentState(
+                LibraryItemSharedTransitionKey(
+                  id = key,
+                  type = LibraryItemSharedTransitionKey.ElementType.Title,
+                ),
               ),
-            ),
-            animatedVisibilityScope = scope,
-          )
+              animatedVisibilityScope = scope,
+            )
+          }
         }
         .thenIf(marqueeEnabled) {
           basicMarquee(

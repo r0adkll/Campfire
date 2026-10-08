@@ -15,6 +15,7 @@ import app.campfire.core.model.LibraryId
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.Series
 import app.campfire.core.model.SeriesId
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
 import app.campfire.core.session.UserSession
@@ -277,7 +278,10 @@ class StoreSeriesRepository(
           .mapNotNull { response ->
             response.dataOrNull()
           }.mapLatest { items ->
-            items.sortedBy { it.media.metadata.seriesSequence?.sequence }
+            // A book can sit in several series; order by its position in this one.
+            items.sortedBy {
+              it.media.metadata.seriesSequence(seriesId)?.sequence ?: SeriesSequence.UNKNOWN_SEQUENCE
+            }
           }.mapLatest { items ->
             val uniqueIds = items.map { it.id }.toSet()
             if (uniqueIds.size != items.size) {

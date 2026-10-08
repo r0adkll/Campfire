@@ -3,26 +3,22 @@
 
 package app.campfire.series.ui.detail.composables
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import app.campfire.bookinfo.api.ProviderSeriesEntry
 import app.campfire.common.compose.widgets.CoverImage
 import app.campfire.common.compose.widgets.ElevatedContentCard
+import app.campfire.common.compose.widgets.ItemCardInformation
 import app.campfire.common.compose.widgets.placeholderBookPainter
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.cd_book_cover
-import campfire.features.series.ui.generated.resources.missing_book_position
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -56,31 +52,13 @@ internal fun MissingSeriesBookCard(
           drawRoundRect(scrim, cornerRadius = CornerRadius(20.dp.toPx()))
         },
     )
-    Column(
-      modifier = Modifier.padding(vertical = 16.dp),
-    ) {
-      Text(
-        text = entry.title,
-        style = MaterialTheme.typography.titleSmall,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(horizontal = 16.dp),
-      )
-      Text(
-        text = listOfNotNull(
-          entry.position?.let { stringResource(Res.string.missing_book_position, formatPosition(it)) },
-          entry.releaseDate?.take(4),
-        ).joinToString(" · "),
-        style = MaterialTheme.typography.bodySmall,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier.padding(horizontal = 16.dp),
-      )
-    }
+    ItemCardInformation(
+      title = entry.title,
+      // Blank rather than null so the card keeps an empty line instead of "Unknown author".
+      subtitle = seriesBookLabel(
+        position = entry.position,
+        year = entry.releaseDate?.take(4),
+      ).orEmpty(),
+    )
   }
-}
-
-/** "1", "1.5" — reading-order position without a trailing ".0". */
-private fun formatPosition(position: Double): String {
-  return if (position % 1.0 == 0.0) position.toInt().toString() else position.toString()
 }

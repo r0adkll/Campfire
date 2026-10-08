@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Your settings, custom themes and campsites come back when you reinstall or move to a new phone; pick a campsite on the login screen to sign back in
 - [Android] Save your password to your password manager when you sign in, and sign back in with one tap when it's needed again (Android 14 and later)
 - [Android] Stay signed in when you reinstall Campfire or move to a new phone (Google Play version; turn off in Settings → Account)
+- Mark a whole series as finished, or as not finished to start it over, from the menu on the series screen
 
 ### Changed
 
@@ -27,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Sign-ins and Hardcover tokens are now encrypted with a key kept in your device's keystore, replacing the deprecated encrypted storage; you stay signed in through the update
 - Each account keeps its own library sorting and layout
 - [Android] Slightly faster startup when signed in
+- Books on the series screen show their number in the series and release year, matching the books missing from your library
 
 ### Deprecated
 
@@ -38,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Desktop] Campfire no longer contacts Google, GitHub, or Bing to check whether you're online
 - Battery drain and slow screens while your server is unreachable, such as when you're away from your home network
 - The player squashing into the left of the screen when a phone is turned sideways, instead of laying out with the cover beside the controls
+- Books that belong to more than one series being ordered by their number in a different series
+- Marking a book you've started listening to as finished not showing it as finished until Campfire restarts
 - [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
 - [Android] New skip forward and back times only taking effect after restarting the app
 
