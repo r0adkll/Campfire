@@ -16,8 +16,9 @@ concrete ways to resolve it:
                  Gradle output is quiet; it is captured to build/release/*.log
   3. Changelog   roll `## [Unreleased]` into `## [<version>]` and write the Play / F-Droid /
                  IzzyOnDroid changelog (fastlane/.../changelogs/<versionCode>.txt) from the
-                 entries that apply to Android; if it is over the 500-character store limit
-                 you can trim it in $EDITOR on the spot
+                 entries that apply to Android; if it is over the 500-character store limit,
+                 Claude Code (`claude -p`, started in the background right after preflight)
+                 condenses it and you take, edit or redo its draft — or trim it in $EDITOR
   4. Review      show the GitHub release notes (PRs merged since the last tag, bots excluded)
   5. Publish     commit, push main, create the GitHub release (which triggers the Release
                  workflow that builds and attaches the APKs/AAB)
@@ -28,6 +29,8 @@ Usage:
   scripts/release --skip-baseline  # preselect skipping baseline profiles
   scripts/release --yes            # non-interactive: take the defaults, never prompt
   scripts/release --dry-run        # show what would happen; nothing is written or pushed
+  scripts/release --no-claude      # trim an over-limit store changelog by hand
+  scripts/release --notes-model sonnet  # condense the store changelog with another model
   scripts/release set-ew-token     # store the emulator.wtf API token in the macOS Keychain
 
 Needs a test server for baseline generation: campfire_server_url / campfire_username /
@@ -45,6 +48,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 from datetime import datetime
@@ -81,6 +85,53 @@ EMULATOR_WTF_GRADLE_ARG = "-Pcampfire.config.useEmulatorWtf=true"
 EMULATOR_WTF_TOKEN_ENV = "EW_API_TOKEN"
 KEYCHAIN_SERVICE = "emulator.wtf"
 KEYCHAIN_ACCOUNT = "campfire-release"
+
+# Condensing an over-limit store changelog with Claude Code. Opus counts characters reliably and
+# runs while baseline profiles generate, so its extra latency is usually hidden.
+CLAUDE_DEFAULT_MODEL = "opus"
+CLAUDE_ATTEMPTS = 3
+CLAUDE_TIMEOUT_SECONDS = 300
+STORE_NOTES_TARGET = FASTLANE_CHAR_LIMIT - 30
+STORE_NOTES_SCHEMA = {
+    "type": "object",
+    "properties": {"notes": {"type": "string"}},
+    "required": ["notes"],
+    "additionalProperties": False,
+}
+STORE_NOTES_SYSTEM_PROMPT = f"""\
+You condense an Android audiobook app's changelog into the short release notes shown in Google \
+Play's "What's new" field and in F-Droid / IzzyOnDroid. Answer with the notes only, in the \
+requested JSON field.
+
+Hard rules:
+- At most {FASTLANE_CHAR_LIMIT} characters in total, counting spaces, newlines and punctuation. \
+Aim for about {STORE_NOTES_TARGET}.
+- Plain text, no Markdown: every item is a line starting with "- ". When there is more than one \
+kind of change, group lines under the labels "New:", "Improved:" and "Fixed:" on their own lines, \
+in that order, skipping empty groups.
+- Use only what the entries say. Never invent features, numbers, settings or platforms.
+- The same text ships to Google Play, F-Droid and IzzyOnDroid builds, so leave out anything that \
+only one store's build gets (for example an entry marked "Google Play version").
+
+How to condense:
+- Write for listeners deciding whether the update matters to them. Lead with the new features \
+they will notice most, then visible improvements, then fixes.
+- Merge related entries into one line, and fold minor fixes into a single line naming the areas \
+they touch (e.g. "- Landscape layouts, skip times and series order" under "Fixed:").
+- Drop settings paths, parenthetical asides and implementation detail. Short phrases, not \
+sentences; no trailing periods.
+
+A past release's notes, for tone and density:
+New:
+- Sound equalizer with presets and per-book profiles
+- Ratings & reviews from Audible, Open Library, or Hardcover
+- Upcoming releases and missing series books, via Audible
+- Per-book playback speed and custom quick speeds
+- Statistics heatmap and streaks
+Fixed:
+- Chromecast playback and discovery
+- Missing progress on book cards
+- Book title in Android Auto"""
 
 
 # =========================================================================== terminal ui
@@ -161,6 +212,12 @@ class Ui:
                 return default_key
             if answer in keys:
                 return answer
+
+    def ask(self, question):
+        """Free-text answer; empty in --yes mode."""
+        if self.assume_yes:
+            return ""
+        return input(style("  ? ", BLUE) + question + "\n    › ").strip()
 
 
 class Spinner:
@@ -326,6 +383,157 @@ def store_emulator_wtf_token():
     ])
     ok(f"stored in the login Keychain (service '{KEYCHAIN_SERVICE}', account '{KEYCHAIN_ACCOUNT}')")
     info(f"remove with: security delete-generic-password -s {KEYCHAIN_SERVICE} -a {KEYCHAIN_ACCOUNT}")
+
+
+# =========================================================================== claude
+
+
+def claude_model(args):
+    """The model to condense the store changelog with, or None when Claude is off or not installed."""
+    if args.no_claude or not shutil.which("claude"):
+        return None
+    return args.notes_model
+
+
+class StoreNotesDrafter:
+    """Asks Claude Code to condense the store changelog to FASTLANE_CHAR_LIMIT on a background
+    thread. It runs `claude -p` with no tools and hooks off, from a temp dir so the repo's
+    CLAUDE.md stays out, and re-asks with the measured length while a draft is over the limit.
+    `notes` is the shortest draft (possibly still over the limit); `failure` says why there is none."""
+
+    def __init__(self, entries, model, previous=None, guidance=None):
+        self.entries = entries
+        self.model = model
+        self.previous = previous
+        self.guidance = guidance
+        self.notes = None
+        self.failure = None
+        self._process = None
+        self._cancelled = False
+        self._lock = threading.Lock()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        self._thread.start()
+        return self
+
+    def redo(self, guidance):
+        return StoreNotesDrafter(self.entries, self.model, previous=self.notes, guidance=guidance).start()
+
+    def wait(self):
+        if self._thread.is_alive():
+            with Spinner(f"waiting for Claude ({self.model}) to condense the store changelog"):
+                self._thread.join()
+        return self.notes
+
+    def cancel(self):
+        with self._lock:
+            self._cancelled = True
+            if self._process and self._process.poll() is None:
+                self._process.kill()
+
+    def _run(self):
+        request = (
+            f"Condense these changelog entries ({len(self.entries)} characters) to at most "
+            f"{FASTLANE_CHAR_LIMIT} characters:\n\n{self.entries}"
+        )
+        if self.previous:
+            request += f"\n\nYour previous draft was:\n\n{self.previous}"
+        if self.guidance:
+            request += f"\n\nThe release manager asks for a new draft: {self.guidance}"
+        elif self.previous:
+            request += "\n\nThe release manager wants a different take."
+        prompt = request
+        try:
+            for _ in range(CLAUDE_ATTEMPTS):
+                draft = self._ask(prompt)
+                if self.notes is None or len(draft) < len(self.notes):
+                    self.notes = draft
+                if len(draft) <= FASTLANE_CHAR_LIMIT:
+                    return
+                prompt = (
+                    f"{request}\n\nThis draft is {len(draft)} characters, over the {FASTLANE_CHAR_LIMIT} "
+                    f"limit. Cut it to at most {STORE_NOTES_TARGET}:\n\n{draft}"
+                )
+        except Exception as e:  # reported by the changelog step; the release goes on without it
+            self.failure = str(e) or type(e).__name__
+
+    def _ask(self, prompt):
+        command = [
+            "claude", "-p",
+            "--model", self.model,
+            "--system-prompt", STORE_NOTES_SYSTEM_PROMPT,
+            "--output-format", "json",
+            "--json-schema", json.dumps(STORE_NOTES_SCHEMA),
+            "--tools", "",
+            "--strict-mcp-config",
+            "--no-session-persistence",
+            "--settings", json.dumps({"disableAllHooks": True}),
+        ]
+        with tempfile.TemporaryDirectory() as cwd:
+            with self._lock:
+                if self._cancelled:
+                    raise RuntimeError("cancelled")
+                self._process = subprocess.Popen(
+                    command, cwd=cwd, text=True,
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+            try:
+                stdout, stderr = self._process.communicate(prompt, timeout=CLAUDE_TIMEOUT_SECONDS)
+            except subprocess.TimeoutExpired:
+                self._process.kill()
+                self._process.communicate()
+                raise RuntimeError(f"no answer within {CLAUDE_TIMEOUT_SECONDS // 60} min")
+        try:
+            result = json.loads(stdout)
+        except ValueError:
+            result = {}
+        if self._process.returncode != 0 or result.get("is_error"):
+            reason = result.get("result") or (stderr.strip().splitlines() or [""])[-1]
+            raise RuntimeError(reason or f"claude exited with {self._process.returncode}")
+        notes = (result.get("structured_output") or {}).get("notes", "").strip()
+        if not notes:
+            raise RuntimeError("claude answered without notes")
+        return notes + "\n"
+
+
+def start_store_notes_draft(version, model):
+    """Starts Claude on the store changelog when the one step 3 will write is over the limit."""
+    if model is None or fastlane_path(version).exists():
+        return None
+    sections = released_sections(version) or unreleased_sections()
+    try:
+        text = fastlane_text(sections)
+    except Abort:
+        return None  # an unknown platform tag; the changelog step reports it
+    if not sections or len(text) <= FASTLANE_CHAR_LIMIT:
+        return None
+    info(f"Claude ({model}) is condensing the {len(text)}-character store changelog in the background")
+    return StoreNotesDrafter(text, model).start()
+
+
+def review_claude_draft(ui, drafter, fallback):
+    """Waits for Claude's draft and lets the user take it, edit it, or ask for another.
+    Returns (text to write, whether to open it in $EDITOR); fallback when there is no draft."""
+    while True:
+        draft = drafter.wait()
+        if draft is None:
+            warn(f"Claude could not condense the store changelog: {drafter.failure}")
+            return fallback, False
+        report = ok if len(draft) <= FASTLANE_CHAR_LIMIT else warn
+        report(f"Claude's draft is {len(draft)}/{FASTLANE_CHAR_LIMIT} characters:")
+        block(draft)
+        choice = ui.choose(
+            "Use it?",
+            [("y", "use it"), ("e", "use it, then edit it"), ("r", "ask Claude for another draft"),
+             ("n", f"discard it and start from the full {len(fallback)}-character text")],
+            default_key="y",
+        )
+        if choice in ("y", "e"):
+            return draft, choice == "e"
+        if choice == "n":
+            return fallback, False
+        drafter = drafter.redo(ui.ask("What should change? (blank for just a different take)"))
 
 
 # =========================================================================== steps
@@ -506,6 +714,11 @@ def released_sections(version):
     return parse_sections(match.group(1)) if match else None
 
 
+def unreleased_sections():
+    match = re.search(r"^## \[Unreleased\]\n(.*?)(?=^## \[)", CHANGELOG.read_text(), re.MULTILINE | re.DOTALL)
+    return parse_sections(match.group(1)) if match else {}
+
+
 def platform_sections(sections, platform):
     """The entries that apply to platform, with their platform tags stripped."""
     filtered = {}
@@ -540,7 +753,7 @@ def fastlane_text(sections):
     return "\n".join(lines) + "\n"
 
 
-def step_changelog(ui, version, dry_run):
+def step_changelog(ui, version, model, drafter, dry_run):
     header(3, "Changelog")
 
     sections = released_sections(version)
@@ -548,8 +761,7 @@ def step_changelog(ui, version, dry_run):
         ok(f"CHANGELOG.md already has a [{version}] section (prepared earlier)")
     elif dry_run:
         info(f"[dry-run] would roll [Unreleased] into [{version}] in CHANGELOG.md")
-        match = re.search(r"^## \[Unreleased\]\n(.*?)(?=^## \[)", CHANGELOG.read_text(), re.MULTILINE | re.DOTALL)
-        sections = parse_sections(match.group(1)) if match else {}
+        sections = unreleased_sections()
         if not sections:
             raise Abort("the Unreleased section of CHANGELOG.md has no entries — nothing to release")
     else:
@@ -558,33 +770,54 @@ def step_changelog(ui, version, dry_run):
     block("\n\n".join(f"### {c}\n{sections[c]}" for c in CATEGORIES if c in sections))
 
     path = fastlane_path(version)
-    if dry_run:
-        info(f"[dry-run] would write {path.relative_to(REPO_ROOT)} ({len(fastlane_text(sections))} chars)")
-        return
-    if not path.exists():
-        FASTLANE_CHANGELOGS.mkdir(parents=True, exist_ok=True)
-        path.write_text(fastlane_text(sections))
-        ok(f"wrote {path.relative_to(REPO_ROOT)}")
+    name = path.relative_to(REPO_ROOT)
+    reviewed = False
+    if path.exists():
+        ok(f"{name} already exists (keeping your edits)")
     else:
-        ok(f"{path.relative_to(REPO_ROOT)} already exists (keeping your edits)")
+        text, edit = fastlane_text(sections), False
+        if drafter and drafter.entries != text:  # CHANGELOG.md changed while Claude was drafting
+            drafter.cancel()
+            drafter = StoreNotesDrafter(text, model).start()
+        if drafter:
+            text, edit = review_claude_draft(ui, drafter, text)
+            reviewed = True
+        if dry_run:
+            info(f"[dry-run] would write {name} ({len(text)} chars)")
+            return
+        FASTLANE_CHANGELOGS.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        ok(f"wrote {name}")
+        if edit:
+            open_in_editor(path)
+    if dry_run:
+        return
 
+    asked_claude = False
     while True:
         length = len(path.read_text())
         if length <= FASTLANE_CHAR_LIMIT:
             ok(f"store changelog is {length}/{FASTLANE_CHAR_LIMIT} characters")
             break
-        warn(f"store changelog is {length} characters; F-Droid / IzzyOnDroid cap it at {FASTLANE_CHAR_LIMIT}")
-        action = ui.choose(
-            "Trim it?",
-            [("e", f"open in {os.environ.get('VISUAL') or os.environ.get('EDITOR') or 'vi'} (condense to a user-facing summary)"),
-             ("a", "abort and edit by hand")],
-            default_key="e",
-        )
-        if action == "a" or ui.assume_yes:
-            raise Abort(f"trim {path.relative_to(REPO_ROOT)} to {FASTLANE_CHAR_LIMIT} characters and re-run")
+        warn(f"store changelog is {length} characters; Google Play and F-Droid / IzzyOnDroid cap it at {FASTLANE_CHAR_LIMIT}")
+        options = [("e", f"open in {os.environ.get('VISUAL') or os.environ.get('EDITOR') or 'vi'} (condense to a user-facing summary)"),
+                   ("a", "abort and edit by hand")]
+        if model:
+            options.insert(0, ("c", f"ask Claude ({model}) to condense it"))
+        # In --yes mode the default runs once; if Claude's draft is still over, abort.
+        action = ui.choose("Trim it?", options, default_key="c" if model and not asked_claude else "e")
+        if action == "a" or (ui.assume_yes and action != "c"):
+            raise Abort(f"trim {name} to {FASTLANE_CHAR_LIMIT} characters and re-run")
+        if action == "c":
+            asked_claude = reviewed = True
+            current = path.read_text()
+            text, edit = review_claude_draft(ui, StoreNotesDrafter(current, model).start(), current)
+            path.write_text(text)
+            if not edit:
+                continue
         open_in_editor(path)
 
-    if ui.confirm("Review the store changelog text before continuing?", default=False):
+    if not reviewed and ui.confirm("Review the store changelog text before continuing?", default=False):
         block(path.read_text())
         if ui.confirm("Edit it?", default=False):
             open_in_editor(path)
@@ -693,9 +926,13 @@ def main():
     parser.add_argument("--skip-baseline", action="store_true", help="don't regenerate baseline profiles")
     parser.add_argument("--dry-run", action="store_true", help="show what would happen without changing anything")
     parser.add_argument("-y", "--yes", action="store_true", help="non-interactive: accept defaults, never prompt")
+    parser.add_argument("--no-claude", action="store_true", help="don't ask Claude Code to condense the store changelog")
+    parser.add_argument("--notes-model", default=CLAUDE_DEFAULT_MODEL, metavar="MODEL",
+                        help=f"Claude model that condenses the store changelog (default: {CLAUDE_DEFAULT_MODEL})")
     args = parser.parse_args()
 
     ui = Ui(assume_yes=args.yes)
+    drafter = None
     try:
         if args.command == "set-ew-token":
             store_emulator_wtf_token()
@@ -703,9 +940,11 @@ def main():
         if args.dry_run:
             print(style("dry run — nothing will be written, pushed or created", YELLOW))
         version = read_version()
+        model = claude_model(args)
         step_preflight(ui, version, args.dry_run)
+        drafter = start_store_notes_draft(version, model)
         step_baseline(ui, args, args.dry_run)
-        step_changelog(ui, version, args.dry_run)
+        step_changelog(ui, version, model, drafter, args.dry_run)
         notes = step_review(ui, version)
         step_publish(ui, version, notes, args.dry_run)
         print()
@@ -724,6 +963,9 @@ def main():
         if e.stderr:
             block(e.stderr)
         sys.exit(e.returncode)
+    finally:
+        if drafter:
+            drafter.cancel()
 
 
 if __name__ == "__main__":
