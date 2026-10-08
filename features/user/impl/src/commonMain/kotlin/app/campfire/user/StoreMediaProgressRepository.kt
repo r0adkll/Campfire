@@ -19,6 +19,7 @@ import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.store.debugLogging
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.envelopes.MediaProgressUpdatePayload
+import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.mediaprogress.MediaProgressSynchronizer
 import app.campfire.user.mediaprogress.store.MediaProgressStore
@@ -28,9 +29,13 @@ import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -302,6 +307,67 @@ class StoreMediaProgressRepository(
           "Error marking not finished for libraryItemId $libraryItemId"
         }
       }
+    }
+  }
+
+  override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
+    if (keys.isEmpty()) return
+    val finishedAt = fatherTime.nowInEpochMillis()
+    api.batchUpdateMediaProgress(
+      keys.map { key ->
+        MediaProgressUpdatePayload(
+          libraryItemId = key.libraryItemId,
+          episodeId = key.episodeId,
+          isFinished = true,
+          finishedAt = finishedAt,
+        )
+      },
+    ).onSuccess {
+      val currentUserId = userSession.requiredUserId
+      val untracked = withContext(dispatcherProvider.databaseWrite) {
+        db.mediaProgressQueries.transactionWithResult {
+          keys.filter { key ->
+            val tracked = db.mediaProgressQueries.getMediaProgressId(
+              userId = currentUserId,
+              libraryItemId = key.libraryItemId,
+              episodeId = key.episodeId.orEmpty(),
+            ).awaitAsOneOrNull() != null
+            if (tracked) {
+              db.mediaProgressQueries.markFinished(
+                timestamp = finishedAt,
+                userId = currentUserId,
+                libraryItemId = key.libraryItemId,
+                episodeId = key.episodeId.orEmpty(),
+              )
+            }
+            !tracked
+          }
+        }
+      }
+
+      // The server created progress for the items that had none, so pull those rows down
+      // rather than inventing local ones that would lack a server id.
+      untracked.forEach { key ->
+        try {
+          store.fresh(Operation.Query.One(currentUserId, key.libraryItemId, key.episodeId))
+        } catch (e: CancellationException) {
+          throw e
+        } catch (e: Exception) {
+          MediaProgressStore.ebark(throwable = e) { "Failed to fetch new progress for ${key.libraryItemId}" }
+        }
+      }
+    }.onFailure {
+      MediaProgressStore.ebark(throwable = it) { "Error marking ${keys.size} items finished" }
+    }
+  }
+
+  override suspend fun markAllNotFinished(keys: List<MediaProgressKey>) {
+    // The server has no batch delete, and un-finishing through the batch update leaves a
+    // reset row behind instead of removing the progress, so un-finish each item on its own.
+    coroutineScope {
+      keys
+        .map { key -> async { markNotFinished(key.libraryItemId, key.episodeId) } }
+        .awaitAll()
     }
   }
 

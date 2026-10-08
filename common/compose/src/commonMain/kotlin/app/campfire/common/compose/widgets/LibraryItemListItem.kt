@@ -59,6 +59,8 @@ fun LibraryItemListItem(
   titleOverride: String? = null,
   subtitleOverride: String? = null,
   durationOverride: Duration? = null,
+  // An extra line under the subtitle, such as the series the item belongs to
+  supportingText: String? = null,
   interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 ) = SharedElementTransitionScope {
   val animationScope = findAnimatedScope(SharedElementTransitionScope.AnimatedScope.Navigation)
@@ -180,6 +182,16 @@ fun LibraryItemListItem(
           maxLines = 1,
           overflow = TextOverflow.Ellipsis,
         )
+
+        if (supportingText != null) {
+          Text(
+            text = supportingText,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+          )
+        }
 
         Spacer(Modifier.size(4.dp))
 

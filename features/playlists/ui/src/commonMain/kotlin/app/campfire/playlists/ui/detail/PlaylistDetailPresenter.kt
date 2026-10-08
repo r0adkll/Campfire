@@ -16,6 +16,7 @@ import app.campfire.analytics.events.ActionEvent
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
@@ -26,6 +27,8 @@ import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.sessions.api.SessionQueue
 import app.campfire.sessions.api.SessionsRepository
 import app.campfire.settings.api.LibraryViewSettings
+import app.campfire.user.api.MediaProgressKey
+import app.campfire.user.api.MediaProgressRepository
 import app.campfire.user.api.UserRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -48,6 +51,8 @@ class PlaylistDetailPresenter(
   private val downloadManager: OfflineDownloadManager,
   private val userRepository: UserRepository,
   private val libraryViewSettings: LibraryViewSettings,
+  private val mediaProgressRepository: MediaProgressRepository,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
 ) : Presenter<PlaylistDetailUiState> {
 
   @Composable
@@ -61,6 +66,11 @@ class PlaylistDetailPresenter(
     val offlineStates by remember {
       downloadManager.observeAll()
         .map { it.associateBy { item -> item.libraryItemId } }
+    }.collectAsState(emptyMap())
+
+    val progressStates by remember {
+      mediaProgressRepository.observeAllProgress()
+        .map { allProgress -> allProgress.associateBy { MediaProgressKey(it) } }
     }.collectAsState(emptyMap())
 
     val playlistContentState by remember {
@@ -113,6 +123,11 @@ class PlaylistDetailPresenter(
     // Live from the user row, which the socket updates when an admin changes permissions
     val currentUser by userRepository.userFlow.collectAsState()
 
+    // The same item can appear in a playlist more than once, but it only has one progress row
+    val progressKeys = playlistItems.map { it.progressKey }.distinct()
+    val unfinishedKeys = progressKeys.filter { progressStates[it]?.isFinished != true }
+    val finishedKeys = progressKeys.filter { progressStates[it]?.isFinished == true }
+
     return PlaylistDetailUiState(
       name = playlistName,
       description = playlistDescription,
@@ -123,6 +138,9 @@ class PlaylistDetailPresenter(
       playlistContentState = playlistItemsState,
       playlistItems = playlistItems,
       offlineStates = offlineStates,
+      progressStates = progressStates,
+      canMarkAllFinished = unfinishedKeys.isNotEmpty(),
+      canMarkAllNotFinished = finishedKeys.isNotEmpty(),
       reorderSink = { fromKey, toKey ->
         val fromIndex = playlistItems.indexOfFirst { it.key == fromKey }
         val toIndex = playlistItems.indexOfFirst { it.key == toKey }
@@ -211,6 +229,38 @@ class PlaylistDetailPresenter(
             .map { it.libraryItem }
             .distinctBy { it.id }
           downloadManager.downloadAll(uniqueLibraryItems)
+        }
+
+        PlaylistDetailUiEvent.MarkAllFinished -> {
+          if (unfinishedKeys.isEmpty()) return@PlaylistDetailUiState
+          analytics.send(ActionEvent("playlist", "mark_finished"))
+
+          // Stop playback when the current item is one being finished, as marking a single
+          // item finished does, so the session can't write its progress back over it
+          val currentSession = session
+          if (
+            currentSession != null &&
+            MediaProgressKey(currentSession.libraryItem.id, currentSession.episodeId) in unfinishedKeys
+          ) {
+            playbackController.stopSession(
+              itemId = currentSession.libraryItem.id,
+              episodeId = currentSession.episodeId,
+            )
+          }
+
+          scope.launch {
+            unfinishedKeys.forEach { sessionsRepository.markDeleted(it.libraryItemId, it.episodeId) }
+            mediaProgressRepository.markAllFinished(unfinishedKeys)
+            unfinishedKeys.forEach { playbackHistoryRepository.clear(it.libraryItemId, it.episodeId) }
+          }
+        }
+
+        PlaylistDetailUiEvent.MarkAllNotFinished -> {
+          if (finishedKeys.isEmpty()) return@PlaylistDetailUiState
+          analytics.send(ActionEvent("playlist", "mark_not_finished"))
+          scope.launch {
+            mediaProgressRepository.markAllNotFinished(finishedKeys)
+          }
         }
       }
     }

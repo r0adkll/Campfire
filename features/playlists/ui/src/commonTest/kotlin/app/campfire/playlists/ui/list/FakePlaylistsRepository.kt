@@ -8,6 +8,7 @@ import app.campfire.core.model.Playlist
 import app.campfire.core.model.PlaylistId
 import app.campfire.playlists.api.PlaylistsRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 
 class FakePlaylistsRepository(
@@ -24,9 +25,10 @@ class FakePlaylistsRepository(
     onRefreshPlaylists()
   }
 
-  override fun observePlaylist(playlistId: PlaylistId, isCreatedId: Boolean): Flow<Playlist> = TODO()
+  override fun observePlaylist(playlistId: PlaylistId, isCreatedId: Boolean): Flow<Playlist> = emptyFlow()
 
-  override fun observePlaylistItems(playlistId: PlaylistId): Flow<List<Playlist.Item.Expanded>> = TODO()
+  val playlistItemsFlow = MutableStateFlow<List<Playlist.Item.Expanded>>(emptyList())
+  override fun observePlaylistItems(playlistId: PlaylistId): Flow<List<Playlist.Item.Expanded>> = playlistItemsFlow
 
   override suspend fun createPlaylist(
     name: String,

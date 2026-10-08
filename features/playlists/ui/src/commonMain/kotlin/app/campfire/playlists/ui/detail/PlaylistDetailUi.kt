@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
@@ -59,12 +60,14 @@ import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
 import app.campfire.playlists.ui.detail.composables.PlaylistFloatingToolbar
 import app.campfire.playlists.ui.detail.composables.PlaylistHeader
 import app.campfire.playlists.ui.detail.composables.PlaylistListItem
+import app.campfire.playlists.ui.detail.composables.PlaylistOverflowMenu
 import app.campfire.playlists.ui.sheets.EditPlaylistModel
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
 import campfire.features.playlists.ui.generated.resources.Res
@@ -72,6 +75,13 @@ import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_action_delete
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_message
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_title
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_action_cancel
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_action_confirm
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_message
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_title
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_action_confirm
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_message
+import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_title
 import campfire.features.playlists.ui.generated.resources.empty_playlist_detail_message
 import campfire.features.playlists.ui.generated.resources.error_playlist_detail_message
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -101,6 +111,18 @@ fun PlaylistDetail(
       onConfirm = {
         state.eventSink(PlaylistDetailUiEvent.Delete)
         showDeleteConfirmation = false
+      },
+    )
+  }
+
+  var pendingMarkAll by remember { mutableStateOf<PlaylistDetailUiEvent?>(null) }
+  pendingMarkAll?.let { event ->
+    ConfirmMarkAllDialog(
+      finished = event == PlaylistDetailUiEvent.MarkAllFinished,
+      onDismiss = { pendingMarkAll = null },
+      onConfirm = {
+        state.eventSink(event)
+        pendingMarkAll = null
       },
     )
   }
@@ -142,6 +164,16 @@ fun PlaylistDetail(
         name = state.name,
         scrollBehavior = scrollBehavior,
         onBack = { state.eventSink(PlaylistDetailUiEvent.Back) },
+        actions = {
+          if (state.canMarkAllFinished || state.canMarkAllNotFinished) {
+            PlaylistOverflowMenu(
+              canMarkAllFinished = state.canMarkAllFinished,
+              canMarkAllNotFinished = state.canMarkAllNotFinished,
+              onMarkAllFinished = { pendingMarkAll = PlaylistDetailUiEvent.MarkAllFinished },
+              onMarkAllNotFinished = { pendingMarkAll = PlaylistDetailUiEvent.MarkAllNotFinished },
+            )
+          }
+        },
       )
     },
     floatingActionButton = {
@@ -213,6 +245,7 @@ fun PlaylistDetail(
           state.eventSink(PlaylistDetailUiEvent.ReorderStopped)
         },
         offlineStateSelector = { itemId -> state.offlineStates[itemId].asWidgetStatus() },
+        mediaProgressSelector = { item -> state.progressStates[item.progressKey] },
         isPlayingSelector = { item ->
           val session = state.currentSession
           session != null &&
@@ -237,10 +270,12 @@ private fun PlaylistTopBar(
   scrollBehavior: TopAppBarScrollBehavior,
   onBack: () -> Unit,
   modifier: Modifier = Modifier,
+  actions: @Composable RowScope.() -> Unit = {},
 ) {
   CampfireTopAppBar(
     modifier = modifier,
     title = { Text(name) },
+    actions = actions,
     scrollBehavior = scrollBehavior,
     windowInsets = WindowInsets(),
     contentPadding = WindowInsets.statusBars.asPaddingValues(),
@@ -262,6 +297,7 @@ private fun LoadedContent(
   onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
   offlineStateSelector: (LibraryItemId) -> OfflineStatus,
+  mediaProgressSelector: (Playlist.Item.Expanded) -> MediaProgress?,
   isPlayingSelector: (Playlist.Item.Expanded) -> Boolean,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -296,6 +332,7 @@ private fun LoadedContent(
           sharedTransitionKey = item.key + name,
           sharedTransitionZIndex = (items.size - index) + 1f,
           offlineStatus = offlineStateSelector(item.libraryItem.id),
+          mediaProgress = mediaProgressSelector(item),
           isPlaying = isPlayingSelector(item),
           onClick = {
             onItemClick(item)
@@ -368,6 +405,59 @@ private fun ConfirmDeleteDialog(
     dismissButton = {
       TextButton(onClick = onDismiss) {
         Text(stringResource(Res.string.dialog_confirm_delete_action_cancel))
+      }
+    },
+  )
+}
+
+@Composable
+private fun ConfirmMarkAllDialog(
+  finished: Boolean,
+  onDismiss: () -> Unit,
+  onConfirm: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  AlertDialog(
+    modifier = modifier,
+    onDismissRequest = onDismiss,
+    title = {
+      Text(
+        stringResource(
+          if (finished) {
+            Res.string.dialog_mark_all_finished_title
+          } else {
+            Res.string.dialog_mark_all_not_finished_title
+          },
+        ),
+      )
+    },
+    text = {
+      Text(
+        stringResource(
+          if (finished) {
+            Res.string.dialog_mark_all_finished_message
+          } else {
+            Res.string.dialog_mark_all_not_finished_message
+          },
+        ),
+      )
+    },
+    confirmButton = {
+      TextButton(onClick = onConfirm) {
+        Text(
+          stringResource(
+            if (finished) {
+              Res.string.dialog_mark_all_finished_action_confirm
+            } else {
+              Res.string.dialog_mark_all_not_finished_action_confirm
+            },
+          ),
+        )
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) {
+        Text(stringResource(Res.string.dialog_mark_all_action_cancel))
       }
     },
   )

@@ -7,8 +7,10 @@ import androidx.compose.runtime.Stable
 import app.campfire.audioplayer.offline.OfflineDownload
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.model.Session
+import app.campfire.user.api.MediaProgressKey
 import com.slack.circuit.runtime.CircuitUiEvent
 import com.slack.circuit.runtime.CircuitUiState
 
@@ -23,6 +25,9 @@ data class PlaylistDetailUiState(
   val playlistContentState: LoadState<out List<Playlist.Item.Expanded>>,
   val playlistItems: List<Playlist.Item.Expanded>,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
+  val progressStates: Map<MediaProgressKey, MediaProgress>,
+  val canMarkAllFinished: Boolean,
+  val canMarkAllNotFinished: Boolean,
   val reorderSink: suspend (fromKey: String, toKey: String) -> Unit,
   val eventSink: (PlaylistDetailUiEvent) -> Unit,
 ) : CircuitUiState
@@ -37,4 +42,9 @@ sealed interface PlaylistDetailUiEvent : CircuitUiEvent {
 
   data object PlayAll : PlaylistDetailUiEvent
   data object ReorderStopped : PlaylistDetailUiEvent
+  data object MarkAllFinished : PlaylistDetailUiEvent
+  data object MarkAllNotFinished : PlaylistDetailUiEvent
 }
+
+internal val Playlist.Item.progressKey: MediaProgressKey
+  get() = MediaProgressKey(libraryItemId, episodeId)
