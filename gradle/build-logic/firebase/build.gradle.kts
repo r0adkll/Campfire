@@ -13,8 +13,8 @@ java {
 
 // This module isolates the proprietary Firebase Gradle plugins so a 100% FOSS build can drop
 // them entirely: F-Droid `scandelete`s this build.gradle.kts, and the app only applies the
-// `app.campfire.firebase` convention plugin when a google-services.json is present (never in a
-// FOSS build), so the empty project that remains is never referenced.
+// `app.campfire.firebase` convention plugin while this file exists, so the empty project that
+// remains is never referenced.
 dependencies {
   compileOnly(libs.android.gradlePlugin)
   implementation(libs.google.services.gradlePlugin)
