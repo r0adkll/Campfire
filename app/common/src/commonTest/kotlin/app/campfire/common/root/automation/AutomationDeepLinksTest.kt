@@ -212,6 +212,8 @@ class AutomationDeepLinksTest {
     override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
       Result.failure(UnsupportedOperationException())
 
+    override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> = Result.success(Unit)
+
     override suspend fun authenticate(
       serverUrl: String,
       serverName: String,

@@ -16,6 +16,14 @@ interface AuthRepository {
     networkSettings: NetworkSettings? = null,
   ): Result<ServerStatus>
 
+  /**
+   * Check that [serverUrl] can take a new account. Fails with [AuthException.ServerAlreadyAdded]
+   * when an account on that server is already on the device: Campfire keeps one account per
+   * server. Signing in without a `userId`, and [restore], check this themselves; call it to stop
+   * earlier, e.g. before sending the user off to an OpenID provider.
+   */
+  suspend fun checkServerAvailable(serverUrl: String): Result<Unit>
+
   suspend fun authenticate(
     serverUrl: String,
     serverName: String,

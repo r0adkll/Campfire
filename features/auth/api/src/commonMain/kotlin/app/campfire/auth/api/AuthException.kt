@@ -25,6 +25,13 @@ sealed class AuthException(
   class Network(cause: Throwable) :
     AuthException("Network failure during authentication", cause)
 
+  /**
+   * An account on this server is already on the device, signed in as [userName]. Campfire keeps
+   * one account per server.
+   */
+  class ServerAlreadyAdded(val userName: String) :
+    AuthException("An account on this server is already signed in")
+
   /** The server responded in a way the app couldn't understand. */
   class UnexpectedResponse(message: String, cause: Throwable? = null) :
     AuthException(message, cause)

@@ -16,6 +16,7 @@ import app.campfire.network.test.FakeAudioBookShelfApi
 import app.campfire.user.store.UserStore
 import assertk.assertThat
 import assertk.assertions.containsExactly
+import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import kotlin.test.Test
@@ -161,5 +162,30 @@ class StoreUserRepositoryTest {
     assertThat(scope.coroutineContext[Job]!!.isActive).isTrue()
     assertThat(repository.userFlow.value.canDownload).isTrue()
     scope.cancel()
+  }
+
+  @Test
+  fun observeCurrentUser_readsTheSessionsUserWhenAnotherUserRowSharesTheServer() = testDb { db ->
+    // Desktop and iOS don't cascade on logout, so a signed-out user's row stays behind on the same
+    // server when someone else signs in there
+    val signedIn = networkUser(download = true)
+    db.usersQueries.insert(signedIn.copy(id = "user-0", username = "signed-out").asDatabaseModel(serverUrl, "lib-1"))
+    db.usersQueries.insert(signedIn.asDatabaseModel(serverUrl, "lib-1"))
+    val api = FakeAudioBookShelfApi()
+    val session = UserSession.LoggedIn(signedIn.asDomainModel(serverUrl, "lib-1"))
+    val dispatchers = DispatcherProvider(
+      io = Dispatchers.Default,
+      databaseWrite = Dispatchers.Default,
+      databaseRead = Dispatchers.Default,
+      computation = Dispatchers.Default,
+      main = Dispatchers.Default,
+    )
+    val repository = StoreUserRepository(
+      userSession = session,
+      userStoreFactory = UserStore.Factory(session, db, api, dispatchers),
+      coroutineScopeHolder = CoroutineScopeHolder { CoroutineScope(Job()) },
+    )
+
+    assertThat(repository.observeCurrentUser().first().id).isEqualTo("user-1")
   }
 }
