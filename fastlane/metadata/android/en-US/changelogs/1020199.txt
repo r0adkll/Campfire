@@ -1,0 +1,12 @@
+New:
+- Wi-Fi-only downloads
+- Mark whole series or playlists finished or unfinished
+- Settings, themes and campsites restored after a reinstall
+- Password manager sign-in (Android 14+)
+- Edit server headers without signing out
+Improved:
+- Larger player cover, scrolling titles, side panel when sideways
+- Smarter reconnecting; progress syncs once your server is back
+Fixed:
+- Battery drain while your server is unreachable
+- Landscape layouts, skip times, series order and finished status

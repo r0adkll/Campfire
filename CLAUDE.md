@@ -34,8 +34,10 @@ tools/testbed/testbed.py up
 
 # Guided release of `campfire.version` (gradle.properties): baseline profiles (local GMD or
 # emulator.wtf — token from Keychain via `scripts/release set-ew-token`), CHANGELOG.md roll,
-# fastlane changelog (trims over-limit text in $EDITOR), GitHub release. Gradle output goes
-# to build/release/*.log. `--skip-baseline`, `--emulator-wtf`, `--yes`, `--dry-run`.
+# fastlane changelog (over the 500-char store limit, `claude -p` condenses it in the background
+# while baselines run; review/redo/edit the draft, or trim in $EDITOR), GitHub release. Gradle
+# output goes to build/release/*.log. `--skip-baseline`, `--emulator-wtf`, `--yes`, `--dry-run`,
+# `--no-claude`, `--notes-model <model>` (default opus).
 scripts/release
 ```
 
