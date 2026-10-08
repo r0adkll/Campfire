@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Other Notes & Contributions
+
+## [1.2.1]
+
+### Added
+
 - [Desktop] Install and update on macOS with Homebrew: `brew install r0adkll/tap/campfire`
 - Campfire doesn't try to reach a server on your home network over mobile data, and retries less and less often while your server can't be reached (Settings → Connection)
 - [Android] Download on Wi-Fi only: downloads wait for Wi-Fi and pause on mobile data (Settings → Downloads)
@@ -31,10 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Slightly faster startup when signed in
 - Books on the series screen show their number in the series and release year, matching the books missing from your library
 
-### Deprecated
-
-### Removed
-
 ### Fixed
 
 - [Android] Skipping back being recorded in playback history with the skip-forward amount
@@ -46,8 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] The screen shifting up and leaving a band of empty space above the keyboard when typing with a phone turned sideways
 - [Android] New skip forward and back times only taking effect after restarting the app
 - Adding an account for a server you're already signed in to replacing the existing account; Campfire now asks you to sign out of it first
-
-### Other Notes & Contributions
 
 ## [1.2.0]
 
@@ -586,6 +594,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial Alpha Release.
 
+[1.2.1]: https://github.com/r0adkll/Campfire/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/r0adkll/Campfire/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/r0adkll/Campfire/compare/1.0.5...1.1.0
 [1.0.5]: https://github.com/r0adkll/Campfire/compare/1.0.4...1.0.5
