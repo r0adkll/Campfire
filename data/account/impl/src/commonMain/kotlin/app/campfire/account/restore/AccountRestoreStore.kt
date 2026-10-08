@@ -8,10 +8,11 @@ import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.account.server.db.ServerDao
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.model.UserId
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.DeviceSettings
 import com.russhwolf.settings.ObservableSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -36,9 +37,9 @@ import kotlinx.serialization.json.Json
 @ContributesBinding(AppScope::class)
 @Inject
 class AccountRestoreStore(
-  private val settings: ObservableSettings,
+  @ForScope(AppScope::class) private val settings: ObservableSettings,
   private val serverDao: ServerDao,
-  private val campfireSettings: CampfireSettings,
+  private val deviceSettings: DeviceSettings,
   private val dispatcherProvider: DispatcherProvider,
 ) : RestorableAccountRepository {
 
@@ -70,7 +71,7 @@ class AccountRestoreStore(
   suspend fun mirror() {
     combine(
       serverDao.observeAll(),
-      campfireSettings.observeCurrentUserId(),
+      deviceSettings.observeCurrentUserId(),
     ) { servers, currentUserId ->
       servers.map(::RestoreEntry) to currentUserId
     }.collect { (accounts, currentUserId) ->

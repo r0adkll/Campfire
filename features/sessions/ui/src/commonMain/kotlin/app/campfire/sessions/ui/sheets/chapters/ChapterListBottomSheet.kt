@@ -49,7 +49,7 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.model.Chapter
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.chapters_bottomsheet_title
 import com.slack.circuit.overlay.OverlayHost
@@ -63,7 +63,7 @@ sealed interface ChapterResult {
 
 @ContributesTo(UserScope::class)
 interface ChapterListBottomSheetComponent {
-  val settings: CampfireSettings
+  val libraryViewSettings: LibraryViewSettings
 }
 
 data class ChapterSheetModel(
@@ -116,7 +116,7 @@ private fun ChapterListBottomSheet(
   component: ChapterListBottomSheetComponent = rememberComponent(),
 ) {
   val showTimeInBook by remember {
-    component.settings.observeShowTimeInBook()
+    component.libraryViewSettings.observeShowTimeInBook()
   }.collectAsState()
 
   val sessionSheetState = rememberSessionSheetTitleState(
@@ -138,7 +138,7 @@ private fun ChapterListBottomSheet(
     trailingContent = {
       Switch(
         checked = showTimeInBook,
-        onCheckedChange = { component.settings.showTimeInBook = it },
+        onCheckedChange = { component.libraryViewSettings.showTimeInBook = it },
         thumbContent = {
           Icon(
             if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else CampfireIcons.Rounded.Timer,

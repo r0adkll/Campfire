@@ -6,7 +6,6 @@ package app.campfire.analytics
 import app.campfire.core.app.AppInitializer
 import app.campfire.core.app.ApplicationInfo
 import app.campfire.core.di.AppScope
-import app.campfire.settings.api.CampfireSettings
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
 
@@ -14,7 +13,6 @@ import dev.zacsweers.metro.Inject
 @Inject
 class AnalyticsInitializer(
   private val applicationInfo: ApplicationInfo,
-  private val settings: CampfireSettings,
 ) : AppInitializer {
 
   override val priority: Int = AppInitializer.HIGHEST_PRIORITY

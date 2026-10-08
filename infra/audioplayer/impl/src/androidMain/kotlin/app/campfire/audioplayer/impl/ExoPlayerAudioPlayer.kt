@@ -158,6 +158,16 @@ class ExoPlayerAudioPlayer(
     .build()
     .also { AudioPlayerDebugHooks.Holder.hooks.onExoPlayerCreated(it) }
 
+  init {
+    // Follow skip-time changes made while this player is alive, not just the values at creation
+    scope.launch {
+      settings.observeForwardTimeMs().collect { exoPlayer.setSeekForwardIncrementMs(it) }
+    }
+    scope.launch {
+      settings.observeBackwardTimeMs().collect { exoPlayer.setSeekBackIncrementMs(it) }
+    }
+  }
+
   private val remotePlayer: Player? = remotePlayerFactory.create(context, exoPlayer)
 
   /**

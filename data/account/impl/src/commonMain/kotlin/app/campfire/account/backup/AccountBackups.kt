@@ -12,7 +12,7 @@ import app.campfire.core.app.AppInitializer
 import app.campfire.core.di.AppScope
 import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.UserId
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.PrivacySettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.ContributesIntoSet
 import dev.zacsweers.metro.Inject
@@ -34,13 +34,13 @@ class AccountBackups(
   private val tokenStorage: TokenStorage,
   private val extraHeaderStorage: ExtraHeaderStorage,
   private val serverDao: ServerDao,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
 ) {
 
   private val mutex = Mutex()
 
   private val isEnabled: Boolean
-    get() = tokenBackup.isAvailable && settings.keepSignedInAfterReinstall
+    get() = tokenBackup.isAvailable && privacySettings.keepSignedInAfterReinstall
 
   /**
    * Keep the current sign-in of [userId]. It's read when this runs rather than passed in, so
@@ -59,7 +59,7 @@ class AccountBackups(
    */
   suspend fun sync() = mutex.withLock {
     if (!tokenBackup.isAvailable) return@withLock
-    if (settings.keepSignedInAfterReinstall) {
+    if (privacySettings.keepSignedInAfterReinstall) {
       serverDao.observeAll().first().forEach { backUpLocked(it.user.id) }
     } else {
       tokenBackup.clear()
@@ -89,13 +89,13 @@ class AccountBackups(
 @Inject
 class AccountBackupInitializer(
   private val accountBackups: AccountBackups,
-  private val settings: CampfireSettings,
+  private val privacySettings: PrivacySettings,
   @ForScope(AppScope::class) private val applicationScope: CoroutineScope,
 ) : AppInitializer {
 
   override suspend fun onInitialize() {
     applicationScope.launch {
-      settings.observeKeepSignedInAfterReinstall().collect {
+      privacySettings.observeKeepSignedInAfterReinstall().collect {
         accountBackups.sync()
       }
     }

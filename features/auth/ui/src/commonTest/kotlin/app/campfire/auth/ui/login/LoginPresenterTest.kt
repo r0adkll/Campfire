@@ -158,6 +158,47 @@ class LoginPresenterTest {
   }
 
   @Test
+  fun `signing in to a server that already has an account names that account`() = runTest {
+    authRepository = FakeAuthRepository(addedServers = mapOf(CAROL_URL to "alice"))
+
+    presenter(LoginScreen.Additional).test {
+      val state = awaitItem()
+      state.eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+      state.eventSink(LoginUiEvent.UserName("carol"))
+      awaitItemMatching { it.userName == "carol" }
+        .eventSink(LoginUiEvent.Password("secret"))
+      awaitItemMatching { it.password == "secret" && it.connectionState is ConnectionState.Success }
+        .eventSink(LoginUiEvent.AddCampsite)
+
+      val failed = awaitItemMatching { it.authError != null }
+      assertThat(failed.authError).isEqualTo(AuthError.ServerAlreadyAdded("alice"))
+      assertThat(failed.isAuthenticating).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+    assertThat(authRepository.authenticatedUserNames).isEmpty()
+    assertThat(passwordCredentials.offeredToSave).isEmpty()
+  }
+
+  @Test
+  fun `OpenID sign in to a server that already has an account stops before the provider`() = runTest {
+    authRepository = FakeAuthRepository(
+      authMethods = listOf(AUTH_METHOD_OPENID),
+      addedServers = mapOf(CAROL_URL to "alice"),
+    )
+
+    // The authorization flow fails the test if it's reached
+    presenter(LoginScreen.Additional).test {
+      awaitItem().eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+      awaitItemMatching { it.connectionState is ConnectionState.Success }
+        .eventSink(LoginUiEvent.StartOpenIdAuth)
+
+      assertThat(awaitItemMatching { it.authError != null }.authError)
+        .isEqualTo(AuthError.ServerAlreadyAdded("alice"))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `a typed password is offered to the password manager after signing in`() = runTest {
     signIn(RESTORE_BOB)
 

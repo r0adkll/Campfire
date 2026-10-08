@@ -6,6 +6,7 @@ package app.campfire.auth
 import app.campfire.account.api.AbsToken
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.BackedUpAccount
+import app.campfire.account.api.ServerRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.local.UserStorageStrategy
 import app.campfire.core.model.Server
@@ -41,10 +42,12 @@ class DefaultAuthRepositoryTest {
   private val accountManager = FakeAccountManager()
   private val newUserStorage = FakeUserStorageStrategy()
   private val existingUserStorage = FakeUserStorageStrategy()
+  private val serverRepository = FakeServerRepository()
 
   private val repository = DefaultAuthRepository(
     api = api,
     accountManager = accountManager,
+    serverRepository = serverRepository,
     newUserStorageStrategy = newUserStorage,
     existingUserStorageStrategy = existingUserStorage,
   )
@@ -170,6 +173,60 @@ class DefaultAuthRepositoryTest {
   }
 
   @Test
+  fun `signing in to a server that already has an account fails without asking the server`() = runTest {
+    serverRepository.all += server(SERVER_URL, userName = "alice")
+
+    val result = repository.authenticate(SERVER_URL, SERVER_NAME, "bob", "pass")
+
+    val error = result.exceptionOrNull()
+    assertThat(error).isNotNull().isInstanceOf<AuthException.ServerAlreadyAdded>()
+    assertThat((error as AuthException.ServerAlreadyAdded).userName).isEqualTo("alice")
+    assertThat(api.logins).isEmpty()
+    assertThat(newUserStorage.stored).isFalse()
+  }
+
+  @Test
+  fun `a trailing slash or different case still matches the added server`() = runTest {
+    serverRepository.all += server("https://ABS.example.com/", userName = "alice")
+
+    val result = repository.authenticate(SERVER_URL, SERVER_NAME, "verifier", "code", "state")
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<AuthException.ServerAlreadyAdded>()
+  }
+
+  @Test
+  fun `signing in to a different server is allowed`() = runTest {
+    serverRepository.all += server("https://other.example.com", userName = "alice")
+    api.loginResult = Result.success(loginResponse(userDefaultLibraryId = "lib_1"))
+
+    val result = repository.authenticate(SERVER_URL, SERVER_NAME, "user", "pass")
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(newUserStorage.stored).isTrue()
+  }
+
+  @Test
+  fun `re-authenticating the account on a server is allowed`() = runTest {
+    serverRepository.all += server(SERVER_URL, userName = "testuser")
+    api.loginResult = Result.success(loginResponse(userDefaultLibraryId = "lib_1"))
+
+    val result = repository.authenticate(SERVER_URL, SERVER_NAME, "testuser", "pass", userId = "usr_1")
+
+    assertThat(result.isSuccess).isTrue()
+    assertThat(existingUserStorage.stored).isTrue()
+  }
+
+  @Test
+  fun `restoring onto a server that already has an account fails without asking the server`() = runTest {
+    serverRepository.all += server(SERVER_URL, userName = "alice")
+
+    val result = repository.restore(backedUpAccount(), activate = false)
+
+    assertThat(result.exceptionOrNull()).isNotNull().isInstanceOf<AuthException.ServerAlreadyAdded>()
+    assertThat(api.refreshes).isEmpty()
+  }
+
+  @Test
   fun `login response with null userDefaultLibraryId deserializes`() {
     val json = Json { ignoreUnknownKeys = true }
     val response = json.decodeFromString<LoginResponse>(NO_LIBRARY_LOGIN_JSON)
@@ -244,6 +301,7 @@ class DefaultAuthRepositoryTest {
     var oauthResult: Result<LoginResponse> = Result.failure(IllegalStateException("not stubbed"))
     var refreshResult: Result<LoginResponse> = Result.failure(IllegalStateException("not stubbed"))
     val refreshes = mutableListOf<Triple<String, String, Map<String, String>?>>()
+    val logins = mutableListOf<String>()
 
     override suspend fun status(
       serverUrl: String,
@@ -255,7 +313,10 @@ class DefaultAuthRepositoryTest {
       username: String,
       password: String,
       extraHeaders: Map<String, String>?,
-    ): Result<LoginResponse> = loginResult
+    ): Result<LoginResponse> {
+      logins += username
+      return loginResult
+    }
 
     override suspend fun refresh(
       serverUrl: String,
@@ -282,6 +343,68 @@ class DefaultAuthRepositoryTest {
       extraHeaders: Map<String, String>?,
     ): Result<LoginResponse> = oauthResult
   }
+
+  private class FakeServerRepository : ServerRepository {
+    val all = mutableListOf<Server>()
+    override fun observeCurrentServer(): Flow<Server> = emptyFlow()
+    override fun observeAllServers(): Flow<List<Server>> = emptyFlow()
+    override suspend fun getCurrentServer(): Server? = null
+    override suspend fun getAllServers(): List<Server> = all.toList()
+    override suspend fun changeName(newName: String) = Unit
+    override suspend fun remove(server: Server) = Unit
+  }
+
+  private fun server(url: String, userName: String) = Server(
+    url = url,
+    name = "Home",
+    user = DomainUser(
+      id = "user-$userName",
+      name = userName,
+      selectedLibraryId = "library",
+      type = DomainUser.Type.User,
+      isActive = true,
+      isLocked = false,
+      lastSeen = 0L,
+      createdAt = 0L,
+      permissions = DomainUser.Permissions(
+        download = true,
+        update = false,
+        delete = false,
+        upload = false,
+        accessAllLibraries = true,
+        accessAllTags = true,
+        accessExplicitContent = true,
+      ),
+      serverUrl = url,
+    ),
+    settings = Server.Settings(
+      scannerFindCovers = false,
+      scannerCoverProvider = "",
+      scannerParseSubtitle = false,
+      scannerPreferMatchedMetadata = false,
+      scannerDisableWatcher = false,
+      storeCoverWithItem = false,
+      storeMetadataWithItem = false,
+      metadataFileFormat = "",
+      rateLimitLoginRequests = 0,
+      rateLimitLoginWindow = 0,
+      backupSchedule = "",
+      backupsToKeep = 0,
+      maxBackupSize = 0,
+      loggerDailyLogsToKeep = 0,
+      loggerScannerLogsToKeep = 0,
+      homeBookshelfView = 0,
+      bookshelfView = 0,
+      sortingIgnorePrefix = false,
+      sortingPrefixes = emptyList(),
+      chromecastEnabled = false,
+      dateFormat = "",
+      timeFormat = "",
+      language = "",
+      logLevel = 0,
+      version = "",
+    ),
+  )
 
   private class FakeAccountManager : AccountManager {
     var addedAccount: Boolean = false

@@ -180,7 +180,9 @@ class StoreMediaProgressRepository(
       val currentUserId = userSession.requiredUserId
       val operation = Operation.Query.One(currentUserId, libraryItemId, episodeId)
       val existing = store.get(operation).requireSingle()
-      if (existing != null && existing.id != MediaProgress.UNKNOWN_ID) {
+      // Playback writes the local row before the server has issued its id, so a row still
+      // holding the placeholder id is the same progress and is marked finished all the same.
+      if (existing != null) {
         withContext(dispatcherProvider.databaseWrite) {
           db.mediaProgressQueries.markFinished(
             timestamp = fatherTime.nowInEpochMillis(),
@@ -190,7 +192,7 @@ class StoreMediaProgressRepository(
             episodeId = episodeId.orEmpty(),
           )
         }
-      } else if (existing == null) {
+      } else {
         // Use the dao so the lookup dispatches on mediaType — the book-only
         // selectForId joins `media`, which returns nothing for podcast items
         // (their row lives in `podcastMedia`).

@@ -12,6 +12,7 @@ kotlin {
         implementation(projects.data.bookinfo.api)
         implementation(projects.features.series.api)
         implementation(projects.features.filters.api)
+        implementation(projects.features.sessions.api)
         implementation(projects.features.user.api)
         implementation(projects.infra.audioplayer.api)
         implementation(projects.ui.appbar)
@@ -30,6 +31,8 @@ kotlin {
         implementation(projects.data.analytics.test)
         implementation(projects.data.bookinfo.test)
         implementation(projects.features.series.test)
+        implementation(projects.features.sessions.test)
+        implementation(projects.features.user.test)
         implementation(projects.infra.audioplayer.test)
       }
     }

@@ -76,6 +76,11 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set playlistsResult on the fake"))
   }
 
+  val mediaProgressUpdates = mutableListOf<MediaProgressUpdatePayload>()
+  var updateMediaProgressResult: suspend () -> Result<Unit> = {
+    Result.failure(NotImplementedError("Set updateMediaProgressResult on the fake"))
+  }
+
   override suspend fun getCurrentUser(): Result<User> = currentUserResult()
 
   override suspend fun getAllLibraries(): Result<List<Library>> {
@@ -306,7 +311,8 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     update: MediaProgressUpdatePayload,
     episodeId: String?,
   ): Result<Unit> {
-    TODO("Not yet implemented")
+    mediaProgressUpdates += update
+    return updateMediaProgressResult()
   }
 
   override suspend fun batchUpdateMediaProgress(updates: List<MediaProgressUpdatePayload>): Result<Unit> {

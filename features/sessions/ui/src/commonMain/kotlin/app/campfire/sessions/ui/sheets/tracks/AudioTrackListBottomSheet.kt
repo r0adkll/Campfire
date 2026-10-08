@@ -48,7 +48,7 @@ import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioTrack
 import app.campfire.sessions.ui.sheets.SessionSheetLayout
 import app.campfire.sessions.ui.sheets.rememberSessionSheetTitleState
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LibraryViewSettings
 import campfire.features.sessions.ui.generated.resources.Res
 import campfire.features.sessions.ui.generated.resources.audio_tracks_bottomsheet_title
 import com.slack.circuit.overlay.OverlayHost
@@ -62,7 +62,7 @@ sealed interface AudioTrackResult {
 
 @ContributesTo(UserScope::class)
 interface AudioTrackListBottomSheetComponent {
-  val settings: CampfireSettings
+  val libraryViewSettings: LibraryViewSettings
 }
 
 data class AudioTrackSheetModel(
@@ -115,7 +115,7 @@ private fun AudioTrackListBottomSheet(
   component: AudioTrackListBottomSheetComponent = rememberComponent(),
 ) {
   val showTimeInBook by remember {
-    component.settings.observeShowTimeInBook()
+    component.libraryViewSettings.observeShowTimeInBook()
   }.collectAsState()
 
   val sessionSheetState = rememberSessionSheetTitleState(
@@ -137,7 +137,7 @@ private fun AudioTrackListBottomSheet(
     trailingContent = {
       Switch(
         checked = showTimeInBook,
-        onCheckedChange = { component.settings.showTimeInBook = it },
+        onCheckedChange = { component.libraryViewSettings.showTimeInBook = it },
         thumbContent = {
           Icon(
             if (showTimeInBook) CampfireIcons.Rounded.BookRibbon else CampfireIcons.Rounded.Timer,

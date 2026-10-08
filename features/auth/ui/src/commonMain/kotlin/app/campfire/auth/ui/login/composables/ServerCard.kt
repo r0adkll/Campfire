@@ -99,6 +99,7 @@ import campfire.features.auth.ui.generated.resources.label_login_error_network
 import campfire.features.auth.ui.generated.resources.label_login_error_no_libraries
 import campfire.features.auth.ui.generated.resources.label_login_error_oauth
 import campfire.features.auth.ui.generated.resources.label_login_error_oauth_invalid_redirect_uri
+import campfire.features.auth.ui.generated.resources.label_login_error_server_added
 import campfire.features.auth.ui.generated.resources.label_login_error_unexpected_response
 import campfire.features.auth.ui.generated.resources.label_password
 import campfire.features.auth.ui.generated.resources.label_server_name_placeholder
@@ -390,16 +391,17 @@ internal fun ServerCard(
           Spacer(Modifier.height(16.dp))
 
           Text(
-            text = stringResource(
-              when (authError) {
-                AuthError.InvalidCredentials -> Res.string.label_login_error_auth
-                AuthError.NoLibraryAccess -> Res.string.label_login_error_no_libraries
-                AuthError.UnexpectedResponse -> Res.string.label_login_error_unexpected_response
-                AuthError.NetworkError -> Res.string.label_login_error_network
-                AuthError.OAuthError -> Res.string.label_login_error_oauth
-                AuthError.OAuthInvalidRedirectUri -> Res.string.label_login_error_oauth_invalid_redirect_uri
-              },
-            ),
+            text = when (authError) {
+              AuthError.InvalidCredentials -> stringResource(Res.string.label_login_error_auth)
+              AuthError.NoLibraryAccess -> stringResource(Res.string.label_login_error_no_libraries)
+              AuthError.UnexpectedResponse -> stringResource(Res.string.label_login_error_unexpected_response)
+              AuthError.NetworkError -> stringResource(Res.string.label_login_error_network)
+              AuthError.OAuthError -> stringResource(Res.string.label_login_error_oauth)
+              AuthError.OAuthInvalidRedirectUri ->
+                stringResource(Res.string.label_login_error_oauth_invalid_redirect_uri)
+              is AuthError.ServerAlreadyAdded ->
+                stringResource(Res.string.label_login_error_server_added, authError.userName)
+            },
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.error,
           )

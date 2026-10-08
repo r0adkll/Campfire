@@ -26,6 +26,12 @@ actual interface SqlDelightDatabasePlatformComponent {
     callback = object : AndroidSqliteDriver.Callback(CampfireDatabase.Schema.synchronous()) {
       override fun onConfigure(db: SupportSQLiteDatabase) {
         db.enableWriteAheadLogging()
+      }
+
+      // Enforce foreign keys only once migrations have run, as the desktop and iOS drivers never
+      // enforce them. A migration that rebuilds a table drops the old one, and with enforcement
+      // on that drop deletes every row first, cascading through each table that references it.
+      override fun onOpen(db: SupportSQLiteDatabase) {
         db.setForeignKeyConstraintsEnabled(true)
       }
     },

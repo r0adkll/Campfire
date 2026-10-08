@@ -25,7 +25,7 @@ import kotlinx.datetime.LocalTime
 @ContributesBinding(AppScope::class, binding = binding<SleepSettings>())
 @Inject
 class SleepSettingsImpl(
-  override val settings: ObservableSettings,
+  @ForScope(AppScope::class) override val settings: ObservableSettings,
   @ForScope(AppScope::class) override val scope: CoroutineScope,
 ) : SleepSettings, AppSettings() {
 

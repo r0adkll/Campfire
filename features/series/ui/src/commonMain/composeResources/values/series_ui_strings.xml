@@ -11,6 +11,23 @@
   <string name="action_back">Back</string>
 
   <string name="missing_section_title">Missing from your library</string>
-  <string name="missing_book_position">Book %1$s</string>
+  <string name="series_book_position">Book %1$s</string>
   <string name="cd_book_cover">%1$s cover</string>
+
+  <string name="cd_more_actions">More actions</string>
+  <string name="menu_item_mark_series_finished">Mark series as finished</string>
+  <string name="menu_item_mark_series_not_finished">Mark series as not finished</string>
+  <string name="dialog_mark_series_finished_title">Mark series as finished?</string>
+  <plurals name="dialog_mark_series_finished_message">
+    <item quantity="one">%1$d book in this series will be marked as finished.</item>
+    <item quantity="other">%1$d books in this series will be marked as finished.</item>
+  </plurals>
+  <string name="dialog_mark_series_not_finished_title">Mark series as not finished?</string>
+  <plurals name="dialog_mark_series_not_finished_message">
+    <item quantity="one">%1$d finished book in this series will be marked as not finished and start from the beginning.</item>
+    <item quantity="other">%1$d finished books in this series will be marked as not finished and start from the beginning.</item>
+  </plurals>
+  <string name="dialog_action_mark_finished">Mark finished</string>
+  <string name="dialog_action_mark_not_finished">Mark not finished</string>
+  <string name="dialog_action_cancel">Cancel</string>
 </resources>

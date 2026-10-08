@@ -35,6 +35,7 @@ kotlin {
         implementation(libs.kotlin.test)
         implementation(libs.assertk)
         implementation(projects.common.test)
+        implementation(projects.data.db.test)
         implementation(libs.bundles.test.impl)
         implementation(libs.multiplatformsettings.test)
         implementation(projects.features.settings.test)

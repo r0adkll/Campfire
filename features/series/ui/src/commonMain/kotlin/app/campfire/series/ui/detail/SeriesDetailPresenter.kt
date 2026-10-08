@@ -7,24 +7,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import app.campfire.analytics.Analytics
+import app.campfire.analytics.events.ActionEvent
+import app.campfire.analytics.events.Click
 import app.campfire.analytics.events.ContentSelected
 import app.campfire.analytics.events.ContentType
+import app.campfire.audioplayer.PlaybackController
+import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.offline.OfflineDownloadManager
 import app.campfire.bookinfo.api.BookInfoProviderSettings
 import app.campfire.bookinfo.api.BookInfoRegistry
 import app.campfire.bookinfo.api.SeriesEntry
 import app.campfire.common.screens.SeriesDetailScreen
 import app.campfire.common.screens.UrlScreen
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.logging.bark
 import app.campfire.core.model.LibraryItem
+import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.loggableId
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.series.api.SeriesRepository
+import app.campfire.sessions.api.SessionsRepository
+import app.campfire.user.api.MediaProgressRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.foundation.NonPausablePresenter
 import com.slack.circuit.runtime.Navigator
@@ -36,6 +47,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @CircuitInject(SeriesDetailScreen::class, UserScope::class)
 @Inject
@@ -46,6 +58,11 @@ class SeriesDetailPresenter(
   private val offlineDownloadManager: OfflineDownloadManager,
   private val bookInfoRegistry: BookInfoRegistry,
   private val bookInfoSettings: BookInfoProviderSettings,
+  private val mediaProgressRepository: MediaProgressRepository,
+  private val sessionsRepository: SessionsRepository,
+  private val playbackController: PlaybackController,
+  private val playbackHistoryRepository: PlaybackHistoryRepository,
+  @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
   private val analytics: Analytics,
 ) : NonPausablePresenter<SeriesDetailUiState> {
 
@@ -110,13 +127,40 @@ class SeriesDetailPresenter(
         }
     }.collectAsState(null)
 
+    val seriesItems = seriesContentState.dataOrNull.orEmpty()
+    val (finishedItems, unfinishedItems) = remember(seriesItems) {
+      seriesItems.partition { it.userMediaProgress?.isFinished == true }
+    }
+    var isUpdatingProgress by remember { mutableStateOf(false) }
+
     return SeriesDetailUiState(
       seriesContentState = seriesContentState,
       offlineStates = offlineDownloads,
       missingSection = missingSection,
+      unfinishedCount = unfinishedItems.size,
+      finishedCount = finishedItems.size,
+      isUpdatingProgress = isUpdatingProgress,
     ) { event ->
       when (event) {
         SeriesDetailUiEvent.Back -> navigator.pop()
+        SeriesDetailUiEvent.MarkSeriesFinished -> {
+          if (isUpdatingProgress || unfinishedItems.isEmpty()) return@SeriesDetailUiState
+          analytics.send(ActionEvent("mark_series_finished", Click))
+          isUpdatingProgress = true
+          val itemIds = unfinishedItems.map { it.id }
+          launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
+            markFinished(itemIds)
+          }
+        }
+        SeriesDetailUiEvent.MarkSeriesNotFinished -> {
+          if (isUpdatingProgress || finishedItems.isEmpty()) return@SeriesDetailUiState
+          analytics.send(ActionEvent("mark_series_not_finished", Click))
+          isUpdatingProgress = true
+          val itemIds = finishedItems.map { it.id }
+          launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
+            itemIds.forEach { mediaProgressRepository.markNotFinished(it) }
+          }
+        }
         is SeriesDetailUiEvent.MissingBookClick -> navigator.goTo(UrlScreen(event.url))
         is SeriesDetailUiEvent.LibraryItemClick -> {
           analytics.send(ContentSelected(ContentType.LibraryItem))
@@ -128,6 +172,37 @@ class SeriesDetailPresenter(
           )
         }
       }
+    }
+  }
+
+  /**
+   * Runs in the user scope rather than the presenter's, so leaving the screen part way through a
+   * long series doesn't strand it half updated.
+   */
+  private fun launchProgressUpdate(
+    onComplete: () -> Unit,
+    update: suspend () -> Unit,
+  ) {
+    userScopeHolder.get().launch {
+      try {
+        update()
+      } finally {
+        onComplete()
+      }
+    }
+  }
+
+  /** Matches marking a single book finished: playback stops and its session and history go. */
+  private suspend fun markFinished(itemIds: List<LibraryItemId>) {
+    val playingItemId = sessionsRepository.getCurrentSession()?.libraryItem?.id
+    if (playingItemId != null && playingItemId in itemIds) {
+      playbackController.stopSession(playingItemId)
+    }
+
+    itemIds.forEach { itemId ->
+      sessionsRepository.markDeleted(itemId)
+      mediaProgressRepository.markFinished(itemId)
+      playbackHistoryRepository.clear(itemId)
     }
   }
 }

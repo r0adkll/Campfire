@@ -8,7 +8,7 @@ import app.campfire.account.api.RestorableAccount
 import app.campfire.account.testServer
 import app.campfire.common.test.coroutines.asTestDispatcherProvider
 import app.campfire.core.model.Server
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestDeviceSettings
 import app.cash.turbine.test
 import assertk.assertThat
 import assertk.assertions.containsExactly
@@ -86,7 +86,7 @@ class AccountRestoreStoreTest {
   private fun TestScope.store() = AccountRestoreStore(
     settings = settings,
     serverDao = FakeServerDao(servers),
-    campfireSettings = TestCampfireSettings(backgroundScope),
+    deviceSettings = TestDeviceSettings(backgroundScope),
     dispatcherProvider = asTestDispatcherProvider(),
   )
 

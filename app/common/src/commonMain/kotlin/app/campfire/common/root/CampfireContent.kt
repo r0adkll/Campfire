@@ -21,7 +21,8 @@ import app.campfire.common.root.ui.LoggedInWindow
 import app.campfire.common.root.ui.LoggedOutWindow
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.session.UserSession
-import app.campfire.settings.api.CampfireSettings
+import app.campfire.settings.api.LayoutSettings
+import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.ThemeManager
 import com.slack.circuit.retained.LocalRetainedStateRegistry
@@ -31,7 +32,8 @@ import dev.zacsweers.metro.Inject
 /** The app's root content, drawn inside the given window insets (desktop windows). */
 @Inject
 class CampfireContentWithInsets(
-  private val settings: CampfireSettings,
+  private val themeSettings: ThemeSettings,
+  private val layoutSettings: LayoutSettings,
   private val userSessionManager: UserSessionManager,
   private val themeManager: ThemeManager,
   private val themeRepository: AppThemeRepository,
@@ -47,7 +49,8 @@ class CampfireContentWithInsets(
     onRootPop = onRootPop,
     windowInsets = windowInsets,
     deepLink = deepLink,
-    settings = settings,
+    themeSettings = themeSettings,
+    layoutSettings = layoutSettings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     themeRepository = themeRepository,
@@ -59,7 +62,8 @@ class CampfireContentWithInsets(
 /** The app's root content, inset by the system bars (Android and iOS). */
 @Inject
 class CampfireContent(
-  private val settings: CampfireSettings,
+  private val themeSettings: ThemeSettings,
+  private val layoutSettings: LayoutSettings,
   private val userSessionManager: UserSessionManager,
   private val themeManager: ThemeManager,
   private val themeRepository: AppThemeRepository,
@@ -76,7 +80,8 @@ class CampfireContent(
       .exclude(WindowInsets.statusBars)
       .exclude(WindowInsets.navigationBars),
     deepLink = deepLink,
-    settings = settings,
+    themeSettings = themeSettings,
+    layoutSettings = layoutSettings,
     userSessionManager = userSessionManager,
     themeManager = themeManager,
     themeRepository = themeRepository,
@@ -90,7 +95,8 @@ private fun CampfireRoot(
   onRootPop: () -> Unit,
   windowInsets: WindowInsets,
   deepLink: DeepLink,
-  settings: CampfireSettings,
+  themeSettings: ThemeSettings,
+  layoutSettings: LayoutSettings,
   userSessionManager: UserSessionManager,
   themeManager: ThemeManager,
   themeRepository: AppThemeRepository,
@@ -120,14 +126,17 @@ private fun CampfireRoot(
           userComponent = userComponent,
           onRootPop = onRootPop,
           windowInsets = windowInsets,
-          settings = settings,
+          themeSettings = themeSettings,
+          libraryViewSettings = userComponent.libraryViewSettings,
         )
 
         is UserSession.LoggedIn -> LoggedInWindow(
           userComponent = userComponent,
           onRootPop = onRootPop,
           deepLink = deepLink,
-          settings = settings,
+          themeSettings = themeSettings,
+          libraryViewSettings = userComponent.libraryViewSettings,
+          layoutSettings = layoutSettings,
           themeManager = themeManager,
           themeRepository = themeRepository,
         )

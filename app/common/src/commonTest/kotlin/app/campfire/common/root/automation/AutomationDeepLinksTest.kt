@@ -32,7 +32,9 @@ import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.libraries.api.screen.LibraryScreen
 import app.campfire.sessions.test.FakeSessionsRepository
 import app.campfire.settings.api.ThemeMode
-import app.campfire.settings.test.TestCampfireSettings
+import app.campfire.settings.test.TestAppStateSettings
+import app.campfire.settings.test.TestPrivacySettings
+import app.campfire.settings.test.TestThemeSettings
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import app.campfire.ui.theming.api.screen.ThemePickerScreen
@@ -84,18 +86,20 @@ class AutomationDeepLinksTest {
   @Test
   fun `applySetup silences first-run prompts, applies theme, and authenticates when logged out`() = runTest {
     val auth = FakeAuthRepository()
-    val settings = TestCampfireSettings(this)
+    val privacySettings = TestPrivacySettings(this)
+    val appStateSettings = TestAppStateSettings(this)
+    val themeSettings = TestThemeSettings(this)
     val themes = FakeAppThemeRepository()
     val whatsNew = FakeWhatsNewRepository()
 
-    AutomationDeepLinks(auth, settings, themes, whatsNew).applySetup(
+    AutomationDeepLinks(auth, privacySettings, appStateSettings, themeSettings, themes, whatsNew).applySetup(
       setup = DeepLink.Setup("http://h", "Home", "demo", "pw", themeMode = "dark", theme = "forest"),
       isLoggedIn = false,
     )
 
-    assertThat(settings.hasEverConsented).isTrue()
-    assertThat(settings.hasShownWidgetPinning).isTrue()
-    assertThat(settings.themeMode).isEqualTo(ThemeMode.DARK)
+    assertThat(privacySettings.hasEverConsented).isTrue()
+    assertThat(appStateSettings.hasShownWidgetPinning).isTrue()
+    assertThat(themeSettings.themeMode).isEqualTo(ThemeMode.DARK)
     assertThat(whatsNew.dismissed).isTrue()
     assertThat(themes.current).isEqualTo(AppTheme.Fixed.Forest)
     assertThat(auth.calls).isEqualTo(listOf(Triple("http://h", "demo", "pw")))
@@ -106,7 +110,14 @@ class AutomationDeepLinksTest {
     val auth = FakeAuthRepository()
     val themes = FakeAppThemeRepository()
 
-    AutomationDeepLinks(auth, TestCampfireSettings(this), themes, FakeWhatsNewRepository()).applySetup(
+    AutomationDeepLinks(
+      auth,
+      TestPrivacySettings(this),
+      TestAppStateSettings(this),
+      TestThemeSettings(this),
+      themes,
+      FakeWhatsNewRepository(),
+    ).applySetup(
       setup = DeepLink.Setup("http://h", "Home", "demo", "pw", theme = "not-a-theme"),
       isLoggedIn = true,
     )
@@ -200,6 +211,8 @@ class AutomationDeepLinksTest {
 
     override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
       Result.failure(UnsupportedOperationException())
+
+    override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> = Result.success(Unit)
 
     override suspend fun authenticate(
       serverUrl: String,

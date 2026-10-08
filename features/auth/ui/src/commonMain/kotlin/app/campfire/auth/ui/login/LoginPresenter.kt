@@ -262,6 +262,14 @@ class LoginPresenter(
           isAuthenticating = true
           authError = null
           coroutineScope.launch {
+            // Stop before sending the user off to the OpenID provider
+            if (existingUserId == null) {
+              authRepository.checkServerAvailable(serverUrl).onFailure {
+                isAuthenticating = false
+                authError = it.asAuthError()
+                return@launch
+              }
+            }
             oauthAuthorizationFlow.getAuthorization(serverUrl, networkSettings?.extraHeaders)
               .onSuccess { authorization ->
                 authRepository.authenticate(
@@ -388,6 +396,7 @@ private fun Throwable.asAuthError(): AuthError = when (this) {
   is AuthException.NoAccessibleLibraries -> AuthError.NoLibraryAccess
   is AuthException.Network -> AuthError.NetworkError
   is AuthException.UnexpectedResponse -> AuthError.UnexpectedResponse
+  is AuthException.ServerAlreadyAdded -> AuthError.ServerAlreadyAdded(userName)
   // Fallbacks for errors thrown outside of AuthRepository's typed mapping
   is IOException -> AuthError.NetworkError
   else -> if (cause is IOException) AuthError.NetworkError else AuthError.UnexpectedResponse

@@ -24,6 +24,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -44,8 +48,13 @@ import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItem
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.SeriesId
 import app.campfire.core.offline.OfflineStatus
+import app.campfire.series.ui.detail.composables.ConfirmSeriesProgressDialog
 import app.campfire.series.ui.detail.composables.MissingSeriesBookCard
+import app.campfire.series.ui.detail.composables.SeriesProgressAction
+import app.campfire.series.ui.detail.composables.SeriesProgressMenu
+import app.campfire.series.ui.detail.composables.seriesBookLabel
 import campfire.features.series.ui.generated.resources.Res
 import campfire.features.series.ui.generated.resources.error_series_detail_message
 import campfire.features.series.ui.generated.resources.missing_section_title
@@ -62,6 +71,8 @@ fun SeriesDetail(
   modifier: Modifier = Modifier,
 ) = SharedElementTransitionScope {
   val scrollBehavior = adaptiveEnterAlwaysScrollBehavior()
+  var confirmProgressAction by remember { mutableStateOf<SeriesProgressAction?>(null) }
+
   Scaffold(
     topBar = {
       CampfireTopAppBar(
@@ -72,6 +83,16 @@ fun SeriesDetail(
           .asPaddingValues(),
         navigationIcon = {
           NavigationBackButton(onClick = { state.eventSink(SeriesDetailUiEvent.Back) })
+        },
+        actions = {
+          if (state.unfinishedCount > 0 || state.finishedCount > 0) {
+            SeriesProgressMenu(
+              unfinishedCount = state.unfinishedCount,
+              finishedCount = state.finishedCount,
+              enabled = !state.isUpdatingProgress,
+              onActionClick = { confirmProgressAction = it },
+            )
+          }
         },
       )
     },
@@ -97,6 +118,7 @@ fun SeriesDetail(
       )
 
       is LoadState.Loaded -> LoadedState(
+        seriesId = screen.seriesId,
         seriesName = screen.seriesName,
         items = state.seriesContentState.data,
         missingSection = state.missingSection,
@@ -107,10 +129,31 @@ fun SeriesDetail(
       )
     }
   }
+
+  confirmProgressAction?.let { action ->
+    ConfirmSeriesProgressDialog(
+      action = action,
+      bookCount = when (action) {
+        SeriesProgressAction.MarkFinished -> state.unfinishedCount
+        SeriesProgressAction.MarkNotFinished -> state.finishedCount
+      },
+      onConfirm = {
+        confirmProgressAction = null
+        state.eventSink(
+          when (action) {
+            SeriesProgressAction.MarkFinished -> SeriesDetailUiEvent.MarkSeriesFinished
+            SeriesProgressAction.MarkNotFinished -> SeriesDetailUiEvent.MarkSeriesNotFinished
+          },
+        )
+      },
+      onDismiss = { confirmProgressAction = null },
+    )
+  }
 }
 
 @Composable
 private fun LoadedState(
+  seriesId: SeriesId,
   seriesName: String,
   items: List<LibraryItem>,
   missingSection: MissingSection?,
@@ -135,6 +178,11 @@ private fun LoadedState(
     ) { index, item ->
       LibraryItemCard(
         item = item,
+        // Same "Book 2 · 2014" line as the missing books, in place of the author.
+        subtitle = seriesBookLabel(
+          position = item.media.metadata.seriesSequence(seriesId)?.sequence,
+          year = item.media.metadata.publishedYear,
+        ),
         sharedTransitionKey = item.id + seriesName,
         sharedTransitionZIndex = (items.size - index) + 1f,
         offlineStatus = offlineStatus(item.id),
