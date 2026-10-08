@@ -168,6 +168,7 @@ class DefaultBackedUpAccountRestorerTest {
 
     override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
       error("Unused")
+    override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> = error("Unused")
     override suspend fun authenticate(
       serverUrl: String,
       serverName: String,

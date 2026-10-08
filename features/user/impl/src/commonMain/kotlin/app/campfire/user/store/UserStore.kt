@@ -8,7 +8,7 @@ import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.logging.Corked
 import app.campfire.core.model.User
 import app.campfire.core.session.UserSession
-import app.campfire.core.session.serverUrl
+import app.campfire.core.session.userId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.network.AudioBookShelfApi
@@ -37,8 +37,8 @@ object UserStore : Corked("UserStore") {
       fetcher = Fetcher.ofResult { _: Unit -> api.getCurrentUser().asFetcherResult() },
       sourceOfTruth = SourceOfTruth.of(
         reader = {
-          if (userSession.serverUrl == null) return@of flowOf(null)
-          db.usersQueries.selectForServer(userSession.serverUrl!!)
+          val userId = userSession.userId ?: return@of flowOf(null)
+          db.usersQueries.selectById(userId)
             .asFlow()
             .mapToOneOrNull(dispatcherProvider.databaseRead)
             .map { it?.asDomainModel() }

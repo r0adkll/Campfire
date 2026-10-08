@@ -5,6 +5,7 @@ package app.campfire.auth
 
 import app.campfire.account.api.AccountManager
 import app.campfire.account.api.BackedUpAccount
+import app.campfire.account.api.ServerRepository
 import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.model.ServerStatus
@@ -29,6 +30,7 @@ import kotlinx.io.IOException
 class DefaultAuthRepository(
   private val api: AuthAudioBookShelfApi,
   private val accountManager: AccountManager,
+  private val serverRepository: ServerRepository,
   @NewUser private val newUserStorageStrategy: UserStorageStrategy,
   @ExistingUser private val existingUserStorageStrategy: UserStorageStrategy,
 ) : AuthRepository {
@@ -41,6 +43,15 @@ class DefaultAuthRepository(
       .map { it.asDomainModel() }
   }
 
+  override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> {
+    val existing = serverRepository.getAllServers().firstOrNull { it.url.isSameServerAs(serverUrl) }
+    return if (existing == null) {
+      Result.success(Unit)
+    } else {
+      Result.failure(AuthException.ServerAlreadyAdded(existing.user.name))
+    }
+  }
+
   override suspend fun authenticate(
     serverUrl: String,
     serverName: String,
@@ -49,6 +60,7 @@ class DefaultAuthRepository(
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
+    if (userId == null) checkServerAvailable(serverUrl).onFailure { return Result.failure(it) }
     val result = api.login(serverUrl, username, password, networkSettings?.extraHeaders)
     return processLoginResult(
       result = result,
@@ -68,6 +80,7 @@ class DefaultAuthRepository(
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
+    if (userId == null) checkServerAvailable(serverUrl).onFailure { return Result.failure(it) }
     val result = api.oauth(serverUrl, state, code, codeVerifier, networkSettings?.extraHeaders)
     return processLoginResult(
       result = result,
@@ -79,6 +92,7 @@ class DefaultAuthRepository(
   }
 
   override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> {
+    checkServerAvailable(account.serverUrl).onFailure { return Result.failure(it) }
     val refreshToken = account.token.refreshToken
       ?: return Result.failure(AuthException.InvalidCredentials())
     val networkSettings = account.extraHeaders
@@ -167,6 +181,11 @@ class DefaultAuthRepository(
       activate = activate,
     )
     return user
+  }
+
+  // Server URLs are stored as typed or as the login probe resolved them
+  private fun String.isSameServerAs(other: String): Boolean {
+    return trim().trimEnd('/').equals(other.trim().trimEnd('/'), ignoreCase = true)
   }
 
   private fun Throwable.asAuthException(): AuthException = when {

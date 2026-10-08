@@ -6,6 +6,7 @@ package app.campfire.auth.ui.login
 import app.campfire.account.api.BackedUpAccount
 import app.campfire.account.api.RestorableAccount
 import app.campfire.account.api.RestorableAccountRepository
+import app.campfire.auth.api.AuthException
 import app.campfire.auth.api.AuthRepository
 import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
@@ -34,8 +35,13 @@ internal class FakeRestorableAccountRepository(
   }
 }
 
+/**
+ * Like the real one, a sign-in without a `userId` fails when [addedServers] (server URL to the
+ * signed-in user's name) already has an account on that server.
+ */
 internal class FakeAuthRepository(
   private val authMethods: List<String> = listOf(AUTH_METHOD_LOCAL),
+  private val addedServers: Map<String, String> = emptyMap(),
 ) : AuthRepository {
   val authenticatedUserNames = mutableListOf<String>()
   val authenticatedPasswords = mutableListOf<String>()
@@ -58,6 +64,7 @@ internal class FakeAuthRepository(
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> {
+    if (userId == null) checkServerAvailable(serverUrl).onFailure { return Result.failure(it) }
     authenticatedUserNames += username
     authenticatedPasswords += password
     return Result.success(Unit)
@@ -72,6 +79,11 @@ internal class FakeAuthRepository(
     userId: UserId?,
     networkSettings: NetworkSettings?,
   ): Result<Unit> = Result.failure(IllegalStateException("Unreachable"))
+
+  override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> {
+    val userName = addedServers[serverUrl] ?: return Result.success(Unit)
+    return Result.failure(AuthException.ServerAlreadyAdded(userName))
+  }
 
   override suspend fun restore(account: BackedUpAccount, activate: Boolean): Result<User> =
     Result.failure(IllegalStateException("Unused"))

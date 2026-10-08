@@ -66,6 +66,7 @@ sealed interface AuthError {
   data object NetworkError : AuthError
   data object OAuthError : AuthError
   data object OAuthInvalidRedirectUri : AuthError
+  data class ServerAlreadyAdded(val userName: String) : AuthError
 }
 
 sealed interface ConnectionState {
