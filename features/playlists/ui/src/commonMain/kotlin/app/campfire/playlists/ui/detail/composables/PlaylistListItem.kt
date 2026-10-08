@@ -40,12 +40,15 @@ import app.campfire.common.compose.widgets.swipetodismiss.AnimatedRemoveBackgrou
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
 import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
+import app.campfire.core.model.SeriesSequence
 import app.campfire.core.model.preview.libraryItem
 import app.campfire.core.offline.OfflineStatus
 import campfire.features.playlists.ui.generated.resources.Res
 import campfire.features.playlists.ui.generated.resources.action_currently_playing
 import campfire.features.playlists.ui.generated.resources.action_play_item
+import campfire.features.playlists.ui.generated.resources.playlist_item_series_sequence
 import com.slack.circuit.sharedelements.PreviewSharedElementTransitionLayout
 import org.jetbrains.compose.resources.stringResource
 
@@ -61,6 +64,7 @@ internal fun PlaylistListItem(
   sharedTransitionKey: String = item.key,
   sharedTransitionZIndex: Float = 0f,
   offlineStatus: OfflineStatus = OfflineStatus.None,
+  mediaProgress: MediaProgress? = item.libraryItem.userMediaProgress,
   isPlaying: Boolean = false,
   isDragging: Boolean = false,
   isReordering: Boolean = false,
@@ -107,6 +111,7 @@ internal fun PlaylistListItem(
     LibraryItemListItem(
       libraryItem = item.libraryItem,
       onClick = onClick,
+      mediaProgress = mediaProgress,
       offlineStatus = offlineStatus,
       interactionSource = interactionSource,
       sharedTransitionKey = sharedTransitionKey,
@@ -116,6 +121,7 @@ internal fun PlaylistListItem(
       titleOverride = episode?.title,
       subtitleOverride = episode?.let { item.libraryItem.media.metadata.title },
       durationOverride = episode?.duration,
+      supportingText = item.seriesLabel(),
       modifier = Modifier.weight(1f),
       trailingContent = {
         val playLabel = stringResource(
@@ -149,6 +155,27 @@ internal fun PlaylistListItem(
 
     Spacer(Modifier.size(16.dp))
   }
+}
+
+/**
+ * The series a book belongs to, as "Name #2", or null for podcast episodes and books
+ * outside a series.
+ */
+@Composable
+private fun Playlist.Item.Expanded.seriesLabel(): String? {
+  if (episode != null) return null
+  val metadata = libraryItem.media.metadata
+  if (metadata.series.isEmpty()) return metadata.seriesName?.takeIf { it.isNotBlank() }
+  return metadata.series
+    .map { series ->
+      val sequence = series.formattedSequence
+      if (sequence.isEmpty()) {
+        series.name
+      } else {
+        stringResource(Res.string.playlist_item_series_sequence, series.name, sequence)
+      }
+    }
+    .joinToString()
 }
 
 private val ThumbnailSize = 88.dp
@@ -194,7 +221,14 @@ fun PlaylistItemPreview() {
 }
 
 private fun previewExpandedItem(id: String, index: Int): Playlist.Item.Expanded {
-  val item = libraryItem(id)
+  val item = libraryItem(
+    id = id,
+    seriesSequence = SeriesSequence(
+      id = "series_id",
+      name = "Dungeon Crawler Carl",
+      sequence = index + 1.0,
+    ),
+  )
   return Playlist.Item.Expanded(
     index = index,
     libraryItemId = item.id,

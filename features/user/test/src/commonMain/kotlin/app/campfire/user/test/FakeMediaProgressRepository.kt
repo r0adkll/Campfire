@@ -6,6 +6,7 @@ package app.campfire.user.test
 import app.campfire.core.model.LibraryItemId
 import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.PodcastEpisodeId
+import app.campfire.user.api.MediaProgressKey
 import app.campfire.user.api.MediaProgressRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,6 +71,14 @@ class FakeMediaProgressRepository : MediaProgressRepository {
     invocations += Invocation.MarkNotFinished(libraryItemId, episodeId)
   }
 
+  override suspend fun markAllFinished(keys: List<MediaProgressKey>) {
+    invocations += Invocation.MarkAllFinished(keys)
+  }
+
+  override suspend fun markAllNotFinished(keys: List<MediaProgressKey>) {
+    invocations += Invocation.MarkAllNotFinished(keys)
+  }
+
   sealed interface Invocation {
     data class GetProgress(
       val libraryItemId: LibraryItemId,
@@ -97,5 +106,7 @@ class FakeMediaProgressRepository : MediaProgressRepository {
       val libraryItemId: LibraryItemId,
       val episodeId: PodcastEpisodeId? = null,
     ) : Invocation
+    data class MarkAllFinished(val keys: List<MediaProgressKey>) : Invocation
+    data class MarkAllNotFinished(val keys: List<MediaProgressKey>) : Invocation
   }
 }

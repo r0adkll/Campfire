@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.exclude
@@ -59,12 +60,16 @@ import app.campfire.common.compose.widgets.dialog.ConfirmDownloadDialog
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
 import app.campfire.core.model.LibraryItemId
+import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
+import app.campfire.playlists.ui.detail.composables.ConfirmPlaylistProgressDialog
 import app.campfire.playlists.ui.detail.composables.PlaylistFloatingToolbar
 import app.campfire.playlists.ui.detail.composables.PlaylistHeader
 import app.campfire.playlists.ui.detail.composables.PlaylistListItem
+import app.campfire.playlists.ui.detail.composables.PlaylistProgressAction
+import app.campfire.playlists.ui.detail.composables.PlaylistProgressMenu
 import app.campfire.playlists.ui.sheets.EditPlaylistModel
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
 import campfire.features.playlists.ui.generated.resources.Res
@@ -105,6 +110,27 @@ fun PlaylistDetail(
     )
   }
 
+  var confirmProgressAction by remember { mutableStateOf<PlaylistProgressAction?>(null) }
+  confirmProgressAction?.let { action ->
+    ConfirmPlaylistProgressDialog(
+      action = action,
+      itemCount = when (action) {
+        PlaylistProgressAction.MarkFinished -> state.unfinishedCount
+        PlaylistProgressAction.MarkNotFinished -> state.finishedCount
+      },
+      onConfirm = {
+        confirmProgressAction = null
+        state.eventSink(
+          when (action) {
+            PlaylistProgressAction.MarkFinished -> PlaylistDetailUiEvent.MarkAllFinished
+            PlaylistProgressAction.MarkNotFinished -> PlaylistDetailUiEvent.MarkAllNotFinished
+          },
+        )
+      },
+      onDismiss = { confirmProgressAction = null },
+    )
+  }
+
   var showConfirmDownloadDialog by remember { mutableStateOf(false) }
   var doNotShowDownloadConfirmationAgain by remember { mutableStateOf(false) }
   val postNotificationPermissionState = rememberPostNotificationPermissionState {
@@ -142,6 +168,16 @@ fun PlaylistDetail(
         name = state.name,
         scrollBehavior = scrollBehavior,
         onBack = { state.eventSink(PlaylistDetailUiEvent.Back) },
+        actions = {
+          if (state.unfinishedCount > 0 || state.finishedCount > 0) {
+            PlaylistProgressMenu(
+              unfinishedCount = state.unfinishedCount,
+              finishedCount = state.finishedCount,
+              enabled = !state.isUpdatingProgress,
+              onActionClick = { confirmProgressAction = it },
+            )
+          }
+        },
       )
     },
     floatingActionButton = {
@@ -213,6 +249,7 @@ fun PlaylistDetail(
           state.eventSink(PlaylistDetailUiEvent.ReorderStopped)
         },
         offlineStateSelector = { itemId -> state.offlineStates[itemId].asWidgetStatus() },
+        mediaProgressSelector = { item -> state.progressStates[item.progressKey] },
         isPlayingSelector = { item ->
           val session = state.currentSession
           session != null &&
@@ -237,10 +274,12 @@ private fun PlaylistTopBar(
   scrollBehavior: TopAppBarScrollBehavior,
   onBack: () -> Unit,
   modifier: Modifier = Modifier,
+  actions: @Composable RowScope.() -> Unit = {},
 ) {
   CampfireTopAppBar(
     modifier = modifier,
     title = { Text(name) },
+    actions = actions,
     scrollBehavior = scrollBehavior,
     windowInsets = WindowInsets(),
     contentPadding = WindowInsets.statusBars.asPaddingValues(),
@@ -262,6 +301,7 @@ private fun LoadedContent(
   onReorderItem: suspend (fromKey: String, toKey: String) -> Unit,
   onReorderStopped: () -> Unit,
   offlineStateSelector: (LibraryItemId) -> OfflineStatus,
+  mediaProgressSelector: (Playlist.Item.Expanded) -> MediaProgress?,
   isPlayingSelector: (Playlist.Item.Expanded) -> Boolean,
   modifier: Modifier = Modifier,
   contentPadding: PaddingValues = PaddingValues(),
@@ -296,6 +336,7 @@ private fun LoadedContent(
           sharedTransitionKey = item.key + name,
           sharedTransitionZIndex = (items.size - index) + 1f,
           offlineStatus = offlineStateSelector(item.libraryItem.id),
+          mediaProgress = mediaProgressSelector(item),
           isPlaying = isPlayingSelector(item),
           onClick = {
             onItemClick(item)

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Android] Save your password to your password manager when you sign in, and sign back in with one tap when it's needed again (Android 14 and later)
 - [Android] Stay signed in when you reinstall Campfire or move to a new phone (Google Play version; turn off in Settings → Account)
 - Mark a whole series as finished, or as not finished to start it over, from the menu on the series screen
+- Mark a whole playlist as finished or not finished from its ⋮ menu, and see each book's series and number in the playlist
 
 ### Changed
 

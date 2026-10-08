@@ -81,6 +81,20 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
     Result.failure(NotImplementedError("Set updateMediaProgressResult on the fake"))
   }
 
+  var mediaProgressResult: suspend (libraryItemId: String, episodeId: String?) -> Result<MediaProgress> = { _, _ ->
+    Result.failure(NotImplementedError("Set mediaProgressResult on the fake"))
+  }
+
+  val batchMediaProgressUpdates = mutableListOf<List<MediaProgressUpdatePayload>>()
+  var batchUpdateMediaProgressResult: suspend (List<MediaProgressUpdatePayload>) -> Result<Unit> = {
+    Result.failure(NotImplementedError("Set batchUpdateMediaProgressResult on the fake"))
+  }
+
+  val deletedMediaProgressIds = mutableListOf<String>()
+  var deleteMediaProgressResult: suspend (mediaProgressId: String) -> Result<Unit> = {
+    Result.failure(NotImplementedError("Set deleteMediaProgressResult on the fake"))
+  }
+
   override suspend fun getCurrentUser(): Result<User> = currentUserResult()
 
   override suspend fun getAllLibraries(): Result<List<Library>> {
@@ -302,9 +316,7 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   override suspend fun getMediaProgress(
     libraryItemId: String,
     episodeId: String?,
-  ): Result<MediaProgress> {
-    TODO("Not yet implemented")
-  }
+  ): Result<MediaProgress> = mediaProgressResult(libraryItemId, episodeId)
 
   override suspend fun updateMediaProgress(
     libraryItemId: String,
@@ -316,11 +328,13 @@ class FakeAudioBookShelfApi : AudioBookShelfApi {
   }
 
   override suspend fun batchUpdateMediaProgress(updates: List<MediaProgressUpdatePayload>): Result<Unit> {
-    TODO("Not yet implemented")
+    batchMediaProgressUpdates += updates
+    return batchUpdateMediaProgressResult(updates)
   }
 
   override suspend fun deleteMediaProgress(mediaProgressId: String): Result<Unit> {
-    TODO("Not yet implemented")
+    deletedMediaProgressIds += mediaProgressId
+    return deleteMediaProgressResult(mediaProgressId)
   }
 
   override suspend fun createBookmark(

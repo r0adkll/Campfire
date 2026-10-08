@@ -63,4 +63,15 @@ interface MediaProgressRepository {
     libraryItemId: LibraryItemId,
     episodeId: PodcastEpisodeId? = null,
   )
+
+  /**
+   * Mark every item in [keys] finished with a single request to the server.
+   */
+  suspend fun markAllFinished(keys: List<MediaProgressKey>)
+
+  /**
+   * Mark every item in [keys] not finished, removing its progress the same way
+   * [markNotFinished] does for a single item.
+   */
+  suspend fun markAllNotFinished(keys: List<MediaProgressKey>)
 }
