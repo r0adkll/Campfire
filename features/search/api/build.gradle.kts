@@ -7,7 +7,6 @@ plugins {
   alias(libs.plugins.compose.compiler)
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {

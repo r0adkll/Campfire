@@ -7,7 +7,6 @@ plugins {
   alias(libs.plugins.kotlin.serialization)
 }
 
-@OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
 kotlin {
   sourceSets {
     commonMain {
