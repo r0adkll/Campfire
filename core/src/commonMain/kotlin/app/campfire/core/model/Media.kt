@@ -107,6 +107,9 @@ sealed interface Media {
     val series: List<SeriesSequence> get() = emptyList()
     val seriesSequence: SeriesSequence? get() = series.firstOrNull()
     val publishedYear: String? get() = null
+
+    /** This book's entry in the series [seriesId], or null when it isn't part of that series. */
+    fun seriesSequence(seriesId: SeriesId): SeriesSequence? = series.firstOrNull { it.id == seriesId }
     val publishedDate: String? get() = null
     val publisher: String? get() = null
 

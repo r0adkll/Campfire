@@ -3,6 +3,7 @@
 
 package app.campfire.core.model
 
+import app.campfire.core.model.preview.libraryItem
 import assertk.assertThat
 import assertk.assertions.containsExactly
 import assertk.assertions.isEqualTo
@@ -49,5 +50,16 @@ class SeriesSequenceTest {
     assertThat(formatSeriesSequence(1.5)).isEqualTo("1.5")
     assertThat(formatSeriesSequence(SeriesSequence.UNKNOWN_SEQUENCE)).isEqualTo("")
     assertThat(SeriesSequence("id", "name", 2.0).formattedSequence).isEqualTo("2")
+  }
+
+  @Test
+  fun seriesSequenceForSeriesId_picksThatSeriesEntry() {
+    val cosmere = SeriesSequence("cosmere", "Cosmere", 12.0)
+    val stormlight = SeriesSequence("stormlight", "The Stormlight Archive", 2.0)
+    val metadata = (libraryItem().media.metadata as Media.Metadata.Book)
+      .copy(series = listOf(cosmere, stormlight))
+
+    assertThat(metadata.seriesSequence("stormlight")).isEqualTo(stormlight)
+    assertThat(metadata.seriesSequence("mistborn")).isNull()
   }
 }
