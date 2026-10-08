@@ -8,8 +8,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
 import app.campfire.analytics.Analytics
 import app.campfire.analytics.events.ActionEvent
@@ -18,8 +20,10 @@ import app.campfire.analytics.events.ContentType
 import app.campfire.audioplayer.PlaybackController
 import app.campfire.audioplayer.history.PlaybackHistoryRepository
 import app.campfire.audioplayer.offline.OfflineDownloadManager
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.coroutines.LoadState
 import app.campfire.core.di.UserScope
+import app.campfire.core.di.qualifier.ForScope
 import app.campfire.core.model.Playlist
 import app.campfire.libraries.api.screen.LibraryItemScreen
 import app.campfire.playlists.api.PlaylistsRepository
@@ -53,6 +57,7 @@ class PlaylistDetailPresenter(
   private val libraryViewSettings: LibraryViewSettings,
   private val mediaProgressRepository: MediaProgressRepository,
   private val playbackHistoryRepository: PlaybackHistoryRepository,
+  @ForScope(UserScope::class) private val userScopeHolder: CoroutineScopeHolder,
 ) : Presenter<PlaylistDetailUiState> {
 
   @Composable
@@ -127,6 +132,7 @@ class PlaylistDetailPresenter(
     val progressKeys = playlistItems.map { it.progressKey }.distinct()
     val unfinishedKeys = progressKeys.filter { progressStates[it]?.isFinished != true }
     val finishedKeys = progressKeys.filter { progressStates[it]?.isFinished == true }
+    var isUpdatingProgress by remember { mutableStateOf(false) }
 
     return PlaylistDetailUiState(
       name = playlistName,
@@ -139,8 +145,9 @@ class PlaylistDetailPresenter(
       playlistItems = playlistItems,
       offlineStates = offlineStates,
       progressStates = progressStates,
-      canMarkAllFinished = unfinishedKeys.isNotEmpty(),
-      canMarkAllNotFinished = finishedKeys.isNotEmpty(),
+      unfinishedCount = unfinishedKeys.size,
+      finishedCount = finishedKeys.size,
+      isUpdatingProgress = isUpdatingProgress,
       reorderSink = { fromKey, toKey ->
         val fromIndex = playlistItems.indexOfFirst { it.key == fromKey }
         val toIndex = playlistItems.indexOfFirst { it.key == toKey }
@@ -232,8 +239,9 @@ class PlaylistDetailPresenter(
         }
 
         PlaylistDetailUiEvent.MarkAllFinished -> {
-          if (unfinishedKeys.isEmpty()) return@PlaylistDetailUiState
+          if (isUpdatingProgress || unfinishedKeys.isEmpty()) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "mark_finished"))
+          isUpdatingProgress = true
 
           // Stop playback when the current item is one being finished, as marking a single
           // item finished does, so the session can't write its progress back over it
@@ -248,7 +256,7 @@ class PlaylistDetailPresenter(
             )
           }
 
-          scope.launch {
+          launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
             unfinishedKeys.forEach { sessionsRepository.markDeleted(it.libraryItemId, it.episodeId) }
             mediaProgressRepository.markAllFinished(unfinishedKeys)
             unfinishedKeys.forEach { playbackHistoryRepository.clear(it.libraryItemId, it.episodeId) }
@@ -256,12 +264,30 @@ class PlaylistDetailPresenter(
         }
 
         PlaylistDetailUiEvent.MarkAllNotFinished -> {
-          if (finishedKeys.isEmpty()) return@PlaylistDetailUiState
+          if (isUpdatingProgress || finishedKeys.isEmpty()) return@PlaylistDetailUiState
           analytics.send(ActionEvent("playlist", "mark_not_finished"))
-          scope.launch {
+          isUpdatingProgress = true
+          launchProgressUpdate(onComplete = { isUpdatingProgress = false }) {
             mediaProgressRepository.markAllNotFinished(finishedKeys)
           }
         }
+      }
+    }
+  }
+
+  /**
+   * Runs in the user scope rather than the screen's, so leaving the screen part way through
+   * doesn't leave the playlist half updated.
+   */
+  private fun launchProgressUpdate(
+    onComplete: () -> Unit,
+    update: suspend () -> Unit,
+  ) {
+    userScopeHolder.get().launch {
+      try {
+        update()
+      } finally {
+        onComplete()
       }
     }
   }

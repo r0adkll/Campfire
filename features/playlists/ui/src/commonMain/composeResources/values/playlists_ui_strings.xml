@@ -45,12 +45,18 @@
   <string name="menu_item_mark_all_not_finished">Mark all as not finished</string>
 
   <string name="dialog_mark_all_finished_title">Mark all as finished?</string>
-  <string name="dialog_mark_all_finished_message">Every unfinished item in this playlist will be marked as finished, including any you're partway through.</string>
-  <string name="dialog_mark_all_finished_action_confirm">Mark finished</string>
+  <plurals name="dialog_mark_all_finished_message">
+    <item quantity="one">%1$d item in this playlist will be marked as finished.</item>
+    <item quantity="other">%1$d items in this playlist will be marked as finished.</item>
+  </plurals>
   <string name="dialog_mark_all_not_finished_title">Mark all as not finished?</string>
-  <string name="dialog_mark_all_not_finished_message">Every finished item in this playlist will be marked as not finished, so it plays again from the beginning.</string>
-  <string name="dialog_mark_all_not_finished_action_confirm">Mark not finished</string>
-  <string name="dialog_mark_all_action_cancel">Cancel</string>
+  <plurals name="dialog_mark_all_not_finished_message">
+    <item quantity="one">%1$d finished item in this playlist will be marked as not finished and start from the beginning.</item>
+    <item quantity="other">%1$d finished items in this playlist will be marked as not finished and start from the beginning.</item>
+  </plurals>
+  <string name="dialog_action_mark_finished">Mark finished</string>
+  <string name="dialog_action_mark_not_finished">Mark not finished</string>
+  <string name="dialog_action_cancel">Cancel</string>
 
   <string name="playlist_item_series_sequence">%1$s #%2$s</string>
 </resources>

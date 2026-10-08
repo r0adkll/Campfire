@@ -11,6 +11,7 @@ import app.campfire.audioplayer.test.history.FakePlaybackHistoryRepository
 import app.campfire.audioplayer.test.offline.FakeOfflineDownloadManager
 import app.campfire.common.test.mediaProgress
 import app.campfire.common.test.session
+import app.campfire.core.coroutines.CoroutineScopeHolder
 import app.campfire.core.model.PlaybackActionType
 import app.campfire.core.model.Playlist
 import app.campfire.home.ui.libraryItem
@@ -28,12 +29,12 @@ import assertk.assertions.containsExactly
 import assertk.assertions.containsOnly
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFalse
-import assertk.assertions.isTrue
 import com.slack.circuit.test.FakeNavigator
 import com.slack.circuit.test.test
 import kotlin.test.Test
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.LocalDateTime
 
@@ -46,7 +47,7 @@ class PlaylistDetailPresenterTest {
   private val playbackController = FakePlaybackController()
   private val playbackHistoryRepository = FakePlaybackHistoryRepository()
 
-  private val presenter = PlaylistDetailPresenter(
+  private fun presenter(userScope: CoroutineScope) = PlaylistDetailPresenter(
     screen = screen,
     navigator = FakeNavigator(screen),
     analytics = FakeAnalytics(),
@@ -59,7 +60,10 @@ class PlaylistDetailPresenterTest {
     libraryViewSettings = TestLibraryViewSettings(),
     mediaProgressRepository = mediaProgressRepository,
     playbackHistoryRepository = playbackHistoryRepository,
+    userScopeHolder = CoroutineScopeHolder { userScope },
   )
+
+  private val TestScope.presenter get() = presenter(backgroundScope)
 
   @Test
   fun markAllFinished_finishesOnlyTheUnfinishedItems() = runTest {
@@ -81,10 +85,12 @@ class PlaylistDetailPresenterTest {
       listOf(playAction(playing.id))
 
     presenter.test {
-      val state = awaitState { it.playlistItems.size == 5 && it.progressStates.size == 2 }
-      assertThat(state.canMarkAllFinished).isTrue()
+      val state = awaitItemMatching { it.playlistItems.size == 5 && it.progressStates.size == 2 }
+      assertThat(state.unfinishedCount).isEqualTo(4)
 
       state.eventSink(PlaylistDetailUiEvent.MarkAllFinished)
+      awaitItemMatching { it.isUpdatingProgress }
+      awaitItemMatching { !it.isUpdatingProgress }
 
       val finishing = listOf(
         MediaProgressKey(playing.id),
@@ -112,9 +118,11 @@ class PlaylistDetailPresenterTest {
     sessionsRepository.currentSessionFlow.value = session(libraryItem = libraryItem(id = "elsewhere"))
 
     presenter.test {
-      val state = awaitState { it.playlistItems.size == 1 && it.currentSession != null }
+      val state = awaitItemMatching { it.playlistItems.size == 1 && it.currentSession != null }
 
       state.eventSink(PlaylistDetailUiEvent.MarkAllFinished)
+      awaitItemMatching { it.isUpdatingProgress }
+      awaitItemMatching { !it.isUpdatingProgress }
 
       assertThat(mediaProgressRepository.invocations.filterIsInstance<MarkAllFinished>())
         .containsExactly(MarkAllFinished(listOf(MediaProgressKey("unfinished"))))
@@ -137,10 +145,12 @@ class PlaylistDetailPresenterTest {
     )
 
     presenter.test {
-      val state = awaitState { it.playlistItems.size == 3 && it.progressStates.size == 2 }
-      assertThat(state.canMarkAllNotFinished).isTrue()
+      val state = awaitItemMatching { it.playlistItems.size == 3 && it.progressStates.size == 2 }
+      assertThat(state.finishedCount).isEqualTo(1)
 
       state.eventSink(PlaylistDetailUiEvent.MarkAllNotFinished)
+      awaitItemMatching { it.isUpdatingProgress }
+      awaitItemMatching { !it.isUpdatingProgress }
 
       assertThat(mediaProgressRepository.invocations.filterIsInstance<MarkAllNotFinished>())
         .containsOnly(MarkAllNotFinished(listOf(MediaProgressKey("finished"))))
@@ -150,7 +160,7 @@ class PlaylistDetailPresenterTest {
   }
 
   @Test
-  fun markAll_isOnlyOfferedWhenItWouldChangeSomething() = runTest {
+  fun markAll_countsOnlyTheItemsItWouldChange() = runTest {
     playlistsRepository.playlistItemsFlow.value = listOf(item("a", index = 0), item("b", index = 1))
     mediaProgressRepository.allProgressFlow.value = listOf(
       mediaProgress("a", isFinished = true),
@@ -158,24 +168,24 @@ class PlaylistDetailPresenterTest {
     )
 
     presenter.test {
-      val allFinished = awaitState { it.playlistItems.size == 2 && it.progressStates.size == 2 }
-      assertThat(allFinished.canMarkAllFinished).isFalse()
-      assertThat(allFinished.canMarkAllNotFinished).isTrue()
+      val allFinished = awaitItemMatching { it.playlistItems.size == 2 && it.progressStates.size == 2 }
+      assertThat(allFinished.unfinishedCount).isEqualTo(0)
+      assertThat(allFinished.finishedCount).isEqualTo(2)
 
       // Nothing left to finish, so the event is a no-op
       allFinished.eventSink(PlaylistDetailUiEvent.MarkAllFinished)
       assertThat(mediaProgressRepository.invocations.filterIsInstance<MarkAllFinished>()).isEmpty()
 
       mediaProgressRepository.allProgressFlow.value = emptyList()
-      val noneFinished = awaitState { it.progressStates.isEmpty() }
-      assertThat(noneFinished.canMarkAllFinished).isTrue()
-      assertThat(noneFinished.canMarkAllNotFinished).isFalse()
+      val noneFinished = awaitItemMatching { it.progressStates.isEmpty() }
+      assertThat(noneFinished.unfinishedCount).isEqualTo(2)
+      assertThat(noneFinished.finishedCount).isEqualTo(0)
 
       cancelAndIgnoreRemainingEvents()
     }
   }
 
-  private suspend fun ReceiveTurbine<PlaylistDetailUiState>.awaitState(
+  private suspend fun ReceiveTurbine<PlaylistDetailUiState>.awaitItemMatching(
     predicate: (PlaylistDetailUiState) -> Boolean,
   ): PlaylistDetailUiState {
     var state = awaitItem()

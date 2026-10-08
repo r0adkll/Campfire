@@ -64,10 +64,12 @@ import app.campfire.core.model.MediaProgress
 import app.campfire.core.model.Playlist
 import app.campfire.core.offline.OfflineStatus
 import app.campfire.playlists.api.screen.PlaylistDetailScreen
+import app.campfire.playlists.ui.detail.composables.ConfirmPlaylistProgressDialog
 import app.campfire.playlists.ui.detail.composables.PlaylistFloatingToolbar
 import app.campfire.playlists.ui.detail.composables.PlaylistHeader
 import app.campfire.playlists.ui.detail.composables.PlaylistListItem
-import app.campfire.playlists.ui.detail.composables.PlaylistOverflowMenu
+import app.campfire.playlists.ui.detail.composables.PlaylistProgressAction
+import app.campfire.playlists.ui.detail.composables.PlaylistProgressMenu
 import app.campfire.playlists.ui.sheets.EditPlaylistModel
 import app.campfire.playlists.ui.sheets.showEditPlaylistBottomSheet
 import campfire.features.playlists.ui.generated.resources.Res
@@ -75,13 +77,6 @@ import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_action_delete
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_message
 import campfire.features.playlists.ui.generated.resources.dialog_confirm_delete_title
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_action_cancel
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_action_confirm
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_message
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_finished_title
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_action_confirm
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_message
-import campfire.features.playlists.ui.generated.resources.dialog_mark_all_not_finished_title
 import campfire.features.playlists.ui.generated.resources.empty_playlist_detail_message
 import campfire.features.playlists.ui.generated.resources.error_playlist_detail_message
 import com.slack.circuit.codegen.annotations.CircuitInject
@@ -115,15 +110,24 @@ fun PlaylistDetail(
     )
   }
 
-  var pendingMarkAll by remember { mutableStateOf<PlaylistDetailUiEvent?>(null) }
-  pendingMarkAll?.let { event ->
-    ConfirmMarkAllDialog(
-      finished = event == PlaylistDetailUiEvent.MarkAllFinished,
-      onDismiss = { pendingMarkAll = null },
-      onConfirm = {
-        state.eventSink(event)
-        pendingMarkAll = null
+  var confirmProgressAction by remember { mutableStateOf<PlaylistProgressAction?>(null) }
+  confirmProgressAction?.let { action ->
+    ConfirmPlaylistProgressDialog(
+      action = action,
+      itemCount = when (action) {
+        PlaylistProgressAction.MarkFinished -> state.unfinishedCount
+        PlaylistProgressAction.MarkNotFinished -> state.finishedCount
       },
+      onConfirm = {
+        confirmProgressAction = null
+        state.eventSink(
+          when (action) {
+            PlaylistProgressAction.MarkFinished -> PlaylistDetailUiEvent.MarkAllFinished
+            PlaylistProgressAction.MarkNotFinished -> PlaylistDetailUiEvent.MarkAllNotFinished
+          },
+        )
+      },
+      onDismiss = { confirmProgressAction = null },
     )
   }
 
@@ -165,12 +169,12 @@ fun PlaylistDetail(
         scrollBehavior = scrollBehavior,
         onBack = { state.eventSink(PlaylistDetailUiEvent.Back) },
         actions = {
-          if (state.canMarkAllFinished || state.canMarkAllNotFinished) {
-            PlaylistOverflowMenu(
-              canMarkAllFinished = state.canMarkAllFinished,
-              canMarkAllNotFinished = state.canMarkAllNotFinished,
-              onMarkAllFinished = { pendingMarkAll = PlaylistDetailUiEvent.MarkAllFinished },
-              onMarkAllNotFinished = { pendingMarkAll = PlaylistDetailUiEvent.MarkAllNotFinished },
+          if (state.unfinishedCount > 0 || state.finishedCount > 0) {
+            PlaylistProgressMenu(
+              unfinishedCount = state.unfinishedCount,
+              finishedCount = state.finishedCount,
+              enabled = !state.isUpdatingProgress,
+              onActionClick = { confirmProgressAction = it },
             )
           }
         },
@@ -405,59 +409,6 @@ private fun ConfirmDeleteDialog(
     dismissButton = {
       TextButton(onClick = onDismiss) {
         Text(stringResource(Res.string.dialog_confirm_delete_action_cancel))
-      }
-    },
-  )
-}
-
-@Composable
-private fun ConfirmMarkAllDialog(
-  finished: Boolean,
-  onDismiss: () -> Unit,
-  onConfirm: () -> Unit,
-  modifier: Modifier = Modifier,
-) {
-  AlertDialog(
-    modifier = modifier,
-    onDismissRequest = onDismiss,
-    title = {
-      Text(
-        stringResource(
-          if (finished) {
-            Res.string.dialog_mark_all_finished_title
-          } else {
-            Res.string.dialog_mark_all_not_finished_title
-          },
-        ),
-      )
-    },
-    text = {
-      Text(
-        stringResource(
-          if (finished) {
-            Res.string.dialog_mark_all_finished_message
-          } else {
-            Res.string.dialog_mark_all_not_finished_message
-          },
-        ),
-      )
-    },
-    confirmButton = {
-      TextButton(onClick = onConfirm) {
-        Text(
-          stringResource(
-            if (finished) {
-              Res.string.dialog_mark_all_finished_action_confirm
-            } else {
-              Res.string.dialog_mark_all_not_finished_action_confirm
-            },
-          ),
-        )
-      }
-    },
-    dismissButton = {
-      TextButton(onClick = onDismiss) {
-        Text(stringResource(Res.string.dialog_mark_all_action_cancel))
       }
     },
   )

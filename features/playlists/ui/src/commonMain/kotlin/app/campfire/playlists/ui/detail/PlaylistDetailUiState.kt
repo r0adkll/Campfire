@@ -26,8 +26,12 @@ data class PlaylistDetailUiState(
   val playlistItems: List<Playlist.Item.Expanded>,
   val offlineStates: Map<LibraryItemId, OfflineDownload>,
   val progressStates: Map<MediaProgressKey, MediaProgress>,
-  val canMarkAllFinished: Boolean,
-  val canMarkAllNotFinished: Boolean,
+  /** Items that "Mark all as finished" would change. */
+  val unfinishedCount: Int,
+  /** Items that "Mark all as not finished" would change. */
+  val finishedCount: Int,
+  /** A whole-playlist progress change is still working through the items. */
+  val isUpdatingProgress: Boolean,
   val reorderSink: suspend (fromKey: String, toKey: String) -> Unit,
   val eventSink: (PlaylistDetailUiEvent) -> Unit,
 ) : CircuitUiState
