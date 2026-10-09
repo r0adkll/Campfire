@@ -2,8 +2,9 @@
 # lanes only move already-built artifacts and the metadata/ listing into the stores.
 #
 #   fastlane android beta       aab:<path> [mapping:<path>]   rc tags   -> open testing, 100%
-#   fastlane android production aab:<path> [mapping:<path>]   final tag -> production, staged 20%
-#   fastlane android rollout    [fraction:<0..1>]             promote the in-progress production release
+#   fastlane android production aab:<path> [mapping:<path>]   final tag -> production, 100%
+#                               [rollout:<0..1>]              opt into a staged rollout instead
+#   fastlane android rollout    [fraction:<0..1>]             promote an in-progress staged release
 #   fastlane android metadata                                 sync listing text/images (no binaries)
 #
 # iOS lanes (TestFlight / App Store via pilot + deliver) will live under `platform :ios`.
@@ -12,7 +13,6 @@ skip_docs
 default_platform(:android)
 
 ANDROID_METADATA = File.expand_path("metadata/android", __dir__)
-DEFAULT_STAGED_ROLLOUT = "0.2"
 
 platform :android do
   desc "Release-candidate build to the open testing (beta) track"
@@ -20,9 +20,9 @@ platform :android do
     publish(options.merge(track: "beta"))
   end
 
-  desc "Final build to production as a staged rollout (default #{DEFAULT_STAGED_ROLLOUT})"
+  desc "Final build to production for all users, or a staged rollout when `rollout` is passed"
   lane :production do |options|
-    publish(options.merge(track: "production", rollout: options[:rollout] || DEFAULT_STAGED_ROLLOUT))
+    publish(options.merge(track: "production"))
   end
 
   desc "Move the in-progress production release to `fraction` of users (default 1 = complete)"

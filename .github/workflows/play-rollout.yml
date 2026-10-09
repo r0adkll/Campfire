@@ -1,7 +1,8 @@
 name: Play Rollout
 
-# Promotes the in-progress production release on Google Play to a larger share of users.
-# Final releases start at a 20% staged rollout (see release.yml); run this to widen it.
+# Promotes an in-progress staged production release on Google Play to a larger share of users.
+# Final releases ship to 100% by default (see release.yml), so this is only needed after a
+# staged rollout started with `fastlane android production rollout:<fraction>`.
 
 on:
   workflow_dispatch:
