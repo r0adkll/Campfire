@@ -43,8 +43,8 @@ repo root if you want to run a lane by hand).
 | Lane | When | What |
 |---|---|---|
 | `android beta` | pre-release (`-rcN`) GitHub release | AAB to the **open testing** track |
-| `android production` | final GitHub release | AAB to **production** as a 20% staged rollout |
-| `android rollout` | `Play Rollout` workflow (manual) | widen/complete the staged rollout |
+| `android production` | final GitHub release | AAB to **production** for 100% of users (`rollout:<0..1>` stages it instead) |
+| `android rollout` | `Play Rollout` workflow (manual) | widen/complete a staged rollout |
 | `android metadata` | `Play Metadata` workflow (listing changes on `main`, or manual) | descriptions, icon, feature graphic, screenshots |
 
 Release notes for each upload are read from `changelogs/<versionCode>.txt` — the same file
