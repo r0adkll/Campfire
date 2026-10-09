@@ -56,7 +56,7 @@ fun NetworkPodcastEpisode.asDomainModel(
     ?: (audioFile.duration ?: 0f).toDouble().seconds.inWholeMilliseconds
 
   // Size is only present on the expanded shape; fall back to audioFile.metadata.size.
-  val sizeBytes = propertySize?.toLong() ?: audioFile.metadata.size
+  val sizeBytes = this.sizeBytes ?: audioFile.metadata.size
 
   return DomainPodcastEpisode(
     id = id,
@@ -113,7 +113,7 @@ fun NetworkPodcast.asDomainModel(
     tags = tags ?: emptyList(),
     sizeInBytes = propertySize ?: episodeList.sumOf { it.sizeInBytes },
     episodes = episodeList,
-    numEpisodes = numTracks ?: episodeList.size,
+    numEpisodes = numEpisodes ?: numTracks ?: episodeList.size,
     autoDownloadEpisodes = autoDownloadEpisodes ?: false,
     autoDownloadSchedule = autoDownloadSchedule,
     lastEpisodeCheckMillis = lastEpisodeCheck,
@@ -144,7 +144,7 @@ fun NetworkPodcastEpisode.asDbModel(
 ): DbPodcastEpisode {
   val durationMillis = duration?.seconds?.inWholeMilliseconds
     ?: (audioFile.duration ?: 0f).toDouble().seconds.inWholeMilliseconds
-  val sizeBytes = propertySize?.toLong() ?: audioFile.metadata.size
+  val sizeBytes = this.sizeBytes ?: audioFile.metadata.size
 
   return DbPodcastEpisode(
     id = id,

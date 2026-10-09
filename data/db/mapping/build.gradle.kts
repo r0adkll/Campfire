@@ -22,7 +22,9 @@ kotlin {
     commonTest {
       dependencies {
         implementation(projects.data.account.test)
+        implementation(projects.data.db.test)
         implementation(libs.kotlin.test)
+        implementation(libs.kotlinx.coroutines.test)
         implementation(libs.assertk)
       }
     }
