@@ -71,13 +71,17 @@ data class Session(
     get() = episode?.duration ?: libraryItem.media.duration
 
   val timeRemaining: Duration
-    get() = duration - currentTime
+    get() = (duration - currentTime).coerceAtLeast(Duration.ZERO)
 
   val progress: Float
     get() = currentTime.progressOver(duration)
 
+  /**
+   * A zero [duration] means the server couldn't read the file's length, so the session can't
+   * know it has finished.
+   */
   val isFinished: Boolean
-    get() = currentTime >= duration
+    get() = duration > Duration.ZERO && currentTime >= duration
 
   val chapter: Chapter?
     get() = episode?.let { ep ->

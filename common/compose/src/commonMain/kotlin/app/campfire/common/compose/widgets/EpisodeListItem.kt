@@ -265,21 +265,26 @@ private fun EpisodeActionBar(
         contentDescription = "Play episode",
         modifier = Modifier.size(ButtonDefaults.iconSizeFor(playButtonSize)),
       )
-      Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(playButtonSize)))
-
       val timeLeft = mediaProgress?.actualProgress
         ?.let { progress -> (1f - progress).coerceIn(0f, 1f).toDouble() }
         ?.takeIf { !it.isNaN() }
         ?.let { inverseProgress -> inverseProgress * duration }
 
-      Text(
-        text = when {
-          isFinished -> stringResource(Res.string.duration_finished)
-          timeLeft != null -> stringResource(Res.string.duration_remaining, timeLeft.thresholdReadoutFormat())
-          else -> duration.thresholdReadoutFormat()
-        },
-        style = ButtonDefaults.textStyleFor(playButtonSize),
-      )
+      val label = when {
+        isFinished -> stringResource(Res.string.duration_finished)
+        // A zero duration means the server couldn't read the file's length.
+        duration <= Duration.ZERO -> null
+        timeLeft != null -> stringResource(Res.string.duration_remaining, timeLeft.thresholdReadoutFormat())
+        else -> duration.thresholdReadoutFormat()
+      }
+
+      if (label != null) {
+        Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(playButtonSize)))
+        Text(
+          text = label,
+          style = ButtonDefaults.textStyleFor(playButtonSize),
+        )
+      }
     }
   }
 }

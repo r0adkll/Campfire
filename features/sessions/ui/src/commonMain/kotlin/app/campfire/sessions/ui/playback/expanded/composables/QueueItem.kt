@@ -33,6 +33,7 @@ import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBox
 import app.campfire.common.compose.widgets.swipetodismiss.SwipeToDismissBoxValue
 import app.campfire.common.compose.widgets.swipetodismiss.rememberSwipeToDismissBoxState
 import app.campfire.sessions.api.QueuedEntry
+import kotlin.time.Duration
 
 private val ThumbnailSize = 88.dp
 
@@ -128,21 +129,24 @@ private fun QueueItemContent(
           overflow = TextOverflow.Ellipsis,
         )
 
-        Spacer(Modifier.size(4.dp))
+        // A zero duration means the server couldn't read the file's length.
+        if (duration > Duration.ZERO) {
+          Spacer(Modifier.size(4.dp))
 
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Icon(
-            CampfireIcons.Rounded.Schedule,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-          )
-          Text(
-            text = duration.thresholdReadoutFormat(),
-            style = MaterialTheme.typography.labelSmallEmphasized,
-          )
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Icon(
+              CampfireIcons.Rounded.Schedule,
+              contentDescription = null,
+              modifier = Modifier.size(16.dp),
+            )
+            Text(
+              text = duration.thresholdReadoutFormat(),
+              style = MaterialTheme.typography.labelSmallEmphasized,
+            )
+          }
         }
       }
       Spacer(Modifier.size(16.dp))

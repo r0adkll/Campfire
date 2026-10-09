@@ -193,21 +193,25 @@ fun LibraryItemListItem(
           )
         }
 
-        Spacer(Modifier.size(4.dp))
+        // A zero duration means the server couldn't read the file's length.
+        val duration = durationOverride ?: libraryItem.media.duration
+        if (duration > Duration.ZERO) {
+          Spacer(Modifier.size(4.dp))
 
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-          Icon(
-            CampfireIcons.Rounded.Schedule,
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-          )
-          Text(
-            text = (durationOverride ?: libraryItem.media.duration).thresholdReadoutFormat(),
-            style = MaterialTheme.typography.labelSmallEmphasized,
-          )
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+          ) {
+            Icon(
+              CampfireIcons.Rounded.Schedule,
+              contentDescription = null,
+              modifier = Modifier.size(16.dp),
+            )
+            Text(
+              text = duration.thresholdReadoutFormat(),
+              style = MaterialTheme.typography.labelSmallEmphasized,
+            )
+          }
         }
       }
 

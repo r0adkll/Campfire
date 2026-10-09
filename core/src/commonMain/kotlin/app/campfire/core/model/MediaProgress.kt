@@ -56,8 +56,8 @@ data class MediaProgress(
   val actualProgress: Float
     get() = if (isFinished) {
       1f
-    } else duration?.let {
-      currentTime / duration
+    } else duration?.takeIf { it > 0f }?.let {
+      currentTime / it
     } ?: progress
 
   companion object {

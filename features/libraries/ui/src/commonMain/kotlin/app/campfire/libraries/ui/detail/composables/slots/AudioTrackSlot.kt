@@ -17,6 +17,7 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import app.campfire.core.extensions.progressOver
 import app.campfire.core.extensions.seconds
 import app.campfire.core.model.AudioTrack
 import app.campfire.core.model.Chapter
@@ -43,8 +44,8 @@ class AudioTrackSlot(
   @Composable
   override fun Content(modifier: Modifier, eventSink: (LibraryItemUiEvent) -> Unit) {
     val progress = mediaProgress?.let { mediaProgress ->
-      (mediaProgress.currentTime.seconds - track.startOffset.seconds) / track.duration.seconds
-    }?.toFloat() ?: 0f
+      (mediaProgress.currentTime.seconds - track.startOffset.seconds).progressOver(track.duration.seconds)
+    } ?: 0f
 
     val topCornerSize = if (isFirst) CornerSize(20.dp) else CornerSize(4.dp)
     val bottomCornerSize = if (isLast) CornerSize(20.dp) else CornerSize(4.dp)

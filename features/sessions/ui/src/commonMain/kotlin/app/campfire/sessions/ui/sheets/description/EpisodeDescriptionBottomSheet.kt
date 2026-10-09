@@ -117,11 +117,14 @@ private fun EpisodeDescriptionBottomSheet(
         }
       }
 
-      DescriptionMetadataChip {
-        Metadata(
-          icon = CampfireIcons.Rounded.Schedule,
-          label = episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
-        )
+      // A zero duration means the server couldn't read the file's length.
+      if (episode.duration > Duration.ZERO) {
+        DescriptionMetadataChip {
+          Metadata(
+            icon = CampfireIcons.Rounded.Schedule,
+            label = episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
+          )
+        }
       }
 
       DescriptionMetadataChip {

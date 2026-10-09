@@ -420,6 +420,8 @@ class IosAudioPlayer(
     commandCenter.changePlaybackPositionCommand.enable {
       val event = it as? MPChangePlaybackPositionCommandEvent
         ?: return@enable MPRemoteCommandHandlerStatusNoSuchContent
+      // A zero duration means the server couldn't read the file's length; there's nothing to scrub.
+      if (currentDuration.value <= Duration.ZERO) return@enable MPRemoteCommandHandlerStatusCommandFailed
       val newProgress = event.positionTime.seconds / currentDuration.value
       player.seekTo(newProgress.toFloat())
       MPRemoteCommandHandlerStatusSuccess

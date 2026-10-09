@@ -65,6 +65,7 @@ import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.slack.circuit.overlay.OverlayHost
 import com.slack.circuitx.overlays.BottomSheetOverlay
 import dev.zacsweers.metro.ContributesTo
+import kotlin.time.Duration
 import kotlin.time.DurationUnit
 
 @ContributesTo(UserScope::class)
@@ -176,11 +177,14 @@ private fun PodcastEpisodeBottomSheet(
         }
       }
 
-      MetadataChip {
-        Metadata(
-          icon = CampfireIcons.Rounded.Schedule,
-          label = state.episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
-        )
+      // A zero duration means the server couldn't read the file's length.
+      if (state.episode.duration > Duration.ZERO) {
+        MetadataChip {
+          Metadata(
+            icon = CampfireIcons.Rounded.Schedule,
+            label = state.episode.duration.readoutAtMost(atMost = DurationUnit.MINUTES),
+          )
+        }
       }
 
       MetadataChip {
