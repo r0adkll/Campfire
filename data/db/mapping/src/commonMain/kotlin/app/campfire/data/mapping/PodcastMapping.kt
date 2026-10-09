@@ -53,7 +53,7 @@ fun NetworkPodcastEpisode.asDomainModel(
   // Episode duration may be missing on the basic JSON shape — fall back to the
   // underlying audioFile's duration which is always present.
   val durationMillis = duration?.seconds?.inWholeMilliseconds
-    ?: audioFile.duration.toDouble().seconds.inWholeMilliseconds
+    ?: (audioFile.duration ?: 0f).toDouble().seconds.inWholeMilliseconds
 
   // Size is only present on the expanded shape; fall back to audioFile.metadata.size.
   val sizeBytes = propertySize?.toLong() ?: audioFile.metadata.size
@@ -117,8 +117,8 @@ fun NetworkPodcast.asDomainModel(
     autoDownloadEpisodes = autoDownloadEpisodes ?: false,
     autoDownloadSchedule = autoDownloadSchedule,
     lastEpisodeCheckMillis = lastEpisodeCheck,
-    maxEpisodesToKeep = maxEpisodesToKeep ?: 0,
-    maxNewEpisodesToDownload = maxNewEpisodesToDownload ?: 3,
+    maxEpisodesToKeep = maxEpisodesToKeep?.toInt() ?: 0,
+    maxNewEpisodesToDownload = maxNewEpisodesToDownload?.toInt() ?: 3,
     latestEpisodePublishedAtMillis = latestEpisodePublished,
   )
 }
@@ -143,7 +143,7 @@ fun NetworkPodcastEpisode.asDbModel(
   podcastMediaId: String,
 ): DbPodcastEpisode {
   val durationMillis = duration?.seconds?.inWholeMilliseconds
-    ?: audioFile.duration.toDouble().seconds.inWholeMilliseconds
+    ?: (audioFile.duration ?: 0f).toDouble().seconds.inWholeMilliseconds
   val sizeBytes = propertySize?.toLong() ?: audioFile.metadata.size
 
   return DbPodcastEpisode(

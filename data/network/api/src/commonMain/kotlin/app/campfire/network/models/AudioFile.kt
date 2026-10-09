@@ -33,6 +33,9 @@ import kotlinx.serialization.Serializable
  * @param embeddedCoverArt The type of embedded cover art in the audio file. Will be null if none exists.
  * @param metaTags
  * @param mimeType The MIME type of the audio file.
+ *
+ * The probe-derived fields ([duration], [bitRate], [codec], [timeBase], [channels],
+ * [channelLayout]) are null on the server when ffprobe doesn't report them.
  */
 @Serializable
 data class AudioFile(
@@ -50,13 +53,13 @@ data class AudioFile(
   val exclude: Boolean,
   val error: String? = null,
   val format: String,
-  val duration: Float,
-  val bitRate: Int,
+  val duration: Float? = null,
+  val bitRate: Int? = null,
   val language: String? = null,
-  val codec: String,
-  val timeBase: String,
-  val channels: Int,
-  val channelLayout: String,
+  val codec: String? = null,
+  val timeBase: String? = null,
+  val channels: Int? = null,
+  val channelLayout: String? = null,
   val chapters: List<BookChapter>,
   val embeddedCoverArt: String? = null,
   val metaTags: AudioMetaTags,
