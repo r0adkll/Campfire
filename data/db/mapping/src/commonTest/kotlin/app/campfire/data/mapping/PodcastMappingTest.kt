@@ -32,6 +32,15 @@ class PodcastMappingTest {
   }
 
   @Test
+  fun listPodcast_keepsItsEpisodeCount() {
+    // List and shelf items send numEpisodes and no episodes.
+    val podcast = Podcast(id = "pod_1", numEpisodes = 31)
+      .asDomainModel(libraryItemId = "li_1", urlHydrator = FakeUrlHydrator())
+
+    assertThat(podcast.numEpisodes).isEqualTo(31)
+  }
+
+  @Test
   fun fractionalEpisodeLimits_truncate() {
     val podcast = Podcast(id = "pod_1", maxEpisodesToKeep = 2.5, maxNewEpisodesToDownload = 3.9)
       .asDomainModel(libraryItemId = "li_1", urlHydrator = FakeUrlHydrator())

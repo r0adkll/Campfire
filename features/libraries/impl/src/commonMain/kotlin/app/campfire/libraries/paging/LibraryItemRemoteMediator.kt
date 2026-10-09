@@ -17,6 +17,7 @@ import app.campfire.core.settings.SortDirection
 import app.campfire.core.time.FatherTime
 import app.campfire.data.LibraryItemPageJoin
 import app.campfire.data.mapping.asDbModel
+import app.campfire.data.mapping.upsert
 import app.campfire.network.AudioBookShelfApi
 import app.campfire.network.models.LibraryItemFilter
 import app.campfire.network.models.LibraryItemMinified
@@ -133,8 +134,10 @@ class LibraryItemRemoteMediator(
                 is LibraryItemMinified.Podcast -> {
                   val libraryItem = item.asDbModel(user.serverUrl)
                   val podcastMedia = item.media.asDbModel(item.id, urlHydrator)
-                  db.libraryItemsQueries.insertOrIgnore(libraryItem)
-                  db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+                  // Refresh rather than ignore: a podcast first seen in Latest Episodes was
+                  // stored from partial data.
+                  db.libraryItemsQueries.upsert(libraryItem)
+                  db.podcastMediaQueries.upsert(podcastMedia)
                 }
               }
             }

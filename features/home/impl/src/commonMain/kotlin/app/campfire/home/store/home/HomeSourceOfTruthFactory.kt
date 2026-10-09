@@ -12,6 +12,7 @@ import app.campfire.core.model.UserId
 import app.campfire.data.SeriesBookJoin
 import app.campfire.data.ShelfJoin
 import app.campfire.data.mapping.asDbModel
+import app.campfire.data.mapping.upsert
 import app.campfire.home.api.model.Shelf
 import app.campfire.home.mapping.asDbModel
 import app.campfire.home.mapping.asDomainModel
@@ -202,8 +203,10 @@ class HomeSourceOfTruthFactory(
       val libraryItem = item.asDbModel()
       val podcastMedia = item.media.asDbModel(item.id, imageHydrator)
 
-      db.libraryItemsQueries.insertOrIgnore(libraryItem)
-      db.podcastMediaQueries.insertOrIgnore(podcastMedia)
+      // Refresh rather than ignore: a podcast first seen in Latest Episodes was stored from
+      // partial data.
+      db.libraryItemsQueries.upsert(libraryItem)
+      db.podcastMediaQueries.upsert(podcastMedia)
 
       item.recentEpisode?.let { episode ->
         val row = episode.asDbModel(

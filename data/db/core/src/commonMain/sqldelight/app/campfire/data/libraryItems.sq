@@ -34,6 +34,40 @@ insertOrIgnore:
 INSERT OR IGNORE INTO libraryItem
 VALUES ?;
 
+-- Inserts the item, or refreshes an existing row in place. Unlike `insert`, it never deletes
+-- the row, so the media rows that cascade from it survive.
+upsert {
+  UPDATE libraryItem
+  SET ino = :ino,
+    libraryId = :libraryId,
+    oldLibraryItemId = :oldLibraryItemId,
+    folderId = :folderId,
+    path = :path,
+    relPath = :relPath,
+    isFile = :isFile,
+    mtimeMs = :mtimeMs,
+    ctimeMs = :ctimeMs,
+    birthtimeMs = :birthtimeMs,
+    addedAt = :addedAt,
+    updatedAt = :updatedAt,
+    isMissing = :isMissing,
+    isInvalid = :isInvalid,
+    mediaType = :mediaType,
+    numFiles = :numFiles,
+    size = :size,
+    serverUrl = :serverUrl
+  WHERE id = :id;
+
+  INSERT OR IGNORE INTO libraryItem (
+    id, ino, libraryId, oldLibraryItemId, folderId, path, relPath, isFile, mtimeMs, ctimeMs,
+    birthtimeMs, addedAt, updatedAt, isMissing, isInvalid, mediaType, numFiles, size, serverUrl
+  )
+  VALUES (
+    :id, :ino, :libraryId, :oldLibraryItemId, :folderId, :path, :relPath, :isFile, :mtimeMs, :ctimeMs,
+    :birthtimeMs, :addedAt, :updatedAt, :isMissing, :isInvalid, :mediaType, :numFiles, :size, :serverUrl
+  );
+}
+
 selectForId:
 SELECT * FROM libraryItem
 INNER JOIN media ON media.libraryItemId = libraryItem.id

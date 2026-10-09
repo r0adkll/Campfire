@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 package app.campfire.network.models
+
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -28,7 +30,7 @@ import kotlinx.serialization.Serializable
  * @param updatedAt The time (in ms since POSIX epoch) when last updated.
  * @param audioTrack
  * @param duration The total length (in seconds) of the item or file.
- * @param propertySize The total size (in bytes) of the item or file.
+ * @param sizeBytes The total size (in bytes) of the item or file.
  */
 @Serializable
 data class PodcastEpisode(
@@ -55,7 +57,8 @@ data class PodcastEpisode(
   // Expanded
   val audioTrack: AudioTrack? = null,
   val duration: Double? = null,
-  val propertySize: Int? = null,
+  @SerialName("size")
+  val sizeBytes: Long? = null,
 ) {
 
   @Serializable

@@ -77,6 +77,9 @@ data class Podcast(
   /* The number of tracks (episodes) in the podcast. */
   val numTracks: Int? = null,
 
+  /* The number of episodes. Sent on list and shelf items, which carry no [episodes]. */
+  val numEpisodes: Int? = null,
+
   /* The timestamp of the most recently published episode. */
   val latestEpisodePublished: Long? = null,
 )

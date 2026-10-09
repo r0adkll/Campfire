@@ -45,6 +45,15 @@ class PodcastEpisodeTest {
   }
 
   @Test
+  fun expandedEpisode_sizeOver2GiB_decodes() {
+    val json = episodeJson(enclosureLength = "0").removeSuffix("}") + """, "size": 3000000000 }"""
+
+    val episode = TestJson.decodeFromString<PodcastEpisode>(json)
+
+    assertThat(episode.sizeBytes).isEqualTo(3_000_000_000L)
+  }
+
+  @Test
   fun podcast_withFractionalEpisodeLimits_decodes() {
     // The server saves any number an admin enters for these limits.
     val podcast = TestJson.decodeFromString<Podcast>(

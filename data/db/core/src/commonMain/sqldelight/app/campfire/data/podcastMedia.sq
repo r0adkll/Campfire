@@ -43,6 +43,55 @@ insertOrIgnore:
 INSERT OR IGNORE INTO podcastMedia
 VALUES ?;
 
+-- Inserts the row, or refreshes an existing one in place. `insert` replaces the row, which
+-- deletes the podcast's episodes through their foreign key.
+upsert {
+  UPDATE podcastMedia
+  SET libraryItemId = :libraryItemId,
+    coverPath = :coverPath,
+    tags = :tags,
+    sizeInBytes = :sizeInBytes,
+    numEpisodes = :numEpisodes,
+    autoDownloadEpisodes = :autoDownloadEpisodes,
+    autoDownloadSchedule = :autoDownloadSchedule,
+    lastEpisodeCheckMillis = :lastEpisodeCheckMillis,
+    maxEpisodesToKeep = :maxEpisodesToKeep,
+    maxNewEpisodesToDownload = :maxNewEpisodesToDownload,
+    latestEpisodePublishedAtMillis = :latestEpisodePublishedAtMillis,
+    metadata_title = :metadata_title,
+    metadata_titleIgnorePrefix = :metadata_titleIgnorePrefix,
+    metadata_author = :metadata_author,
+    metadata_description = :metadata_description,
+    metadata_releaseDate = :metadata_releaseDate,
+    metadata_genres = :metadata_genres,
+    metadata_feedUrl = :metadata_feedUrl,
+    metadata_imageUrl = :metadata_imageUrl,
+    metadata_itunesPageUrl = :metadata_itunesPageUrl,
+    metadata_itunesId = :metadata_itunesId,
+    metadata_itunesArtistId = :metadata_itunesArtistId,
+    metadata_explicit = :metadata_explicit,
+    metadata_language = :metadata_language,
+    metadata_podcastType = :metadata_podcastType
+  WHERE mediaId = :mediaId;
+
+  INSERT OR IGNORE INTO podcastMedia (
+    mediaId, libraryItemId, coverPath, tags, sizeInBytes, numEpisodes, autoDownloadEpisodes,
+    autoDownloadSchedule, lastEpisodeCheckMillis, maxEpisodesToKeep, maxNewEpisodesToDownload,
+    latestEpisodePublishedAtMillis, metadata_title, metadata_titleIgnorePrefix, metadata_author,
+    metadata_description, metadata_releaseDate, metadata_genres, metadata_feedUrl, metadata_imageUrl,
+    metadata_itunesPageUrl, metadata_itunesId, metadata_itunesArtistId, metadata_explicit,
+    metadata_language, metadata_podcastType
+  )
+  VALUES (
+    :mediaId, :libraryItemId, :coverPath, :tags, :sizeInBytes, :numEpisodes, :autoDownloadEpisodes,
+    :autoDownloadSchedule, :lastEpisodeCheckMillis, :maxEpisodesToKeep, :maxNewEpisodesToDownload,
+    :latestEpisodePublishedAtMillis, :metadata_title, :metadata_titleIgnorePrefix, :metadata_author,
+    :metadata_description, :metadata_releaseDate, :metadata_genres, :metadata_feedUrl, :metadata_imageUrl,
+    :metadata_itunesPageUrl, :metadata_itunesId, :metadata_itunesArtistId, :metadata_explicit,
+    :metadata_language, :metadata_podcastType
+  );
+}
+
 selectForLibraryItem:
 SELECT * FROM podcastMedia
 WHERE libraryItemId = ?;

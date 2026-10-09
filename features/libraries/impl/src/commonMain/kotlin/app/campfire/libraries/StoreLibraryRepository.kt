@@ -23,6 +23,7 @@ import app.campfire.data.mapping.asDomainModel
 import app.campfire.data.mapping.asFetcherResult
 import app.campfire.data.mapping.dao.LibraryItemDao
 import app.campfire.data.mapping.store.debugLogging
+import app.campfire.data.mapping.upsert
 import app.campfire.libraries.api.AddPodcastContext
 import app.campfire.libraries.api.LibraryFolder
 import app.campfire.libraries.api.LibraryRepository
@@ -186,8 +187,10 @@ class StoreLibraryRepository(
                   db.mediaQueries.insertOrIgnore(item.media.asDbModel(item.id))
                 }
                 is LibraryItemMinified.Podcast -> {
-                  db.libraryItemsQueries.insertOrIgnore(item.asDbModel(request.serverUrl))
-                  db.podcastMediaQueries.insertOrIgnore(item.media.asDbModel(item.id, urlHydrator))
+                  // Refresh rather than ignore: a podcast first seen in Latest Episodes was
+                  // stored from partial data.
+                  db.libraryItemsQueries.upsert(item.asDbModel(request.serverUrl))
+                  db.podcastMediaQueries.upsert(item.media.asDbModel(item.id, urlHydrator))
                 }
               }
             }

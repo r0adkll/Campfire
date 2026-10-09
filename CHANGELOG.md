@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
 - Shelves, lists, and book or podcast pages not loading when the server couldn't read an audio file's details, or a podcast has an unusual episode size or download limit
+- Podcast lists showing outdated covers and details until the podcast was opened, and Android Auto showing podcasts with no episodes
 
 ### Other Notes & Contributions
 
