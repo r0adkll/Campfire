@@ -33,7 +33,7 @@ fun NetworkPodcastMetadata.asDomainModel(): Media.Metadata.Podcast {
     titleIgnorePrefix = title,
     author = author,
     description = description,
-    releaseDate = releaseDate?.toString(),
+    releaseDate = releaseDate?.takeIf { it.isNotBlank() },
     genres = genres ?: emptyList(),
     feedUrl = feedUrl,
     imageUrl = imageUrl,

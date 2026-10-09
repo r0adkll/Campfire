@@ -53,9 +53,9 @@ data class PodcastMetadata(
   @SerialName(value = "description")
   val description: kotlin.String? = null,
 
-  /* The release date of the podcast. */
+  /* The release date of the podcast. Free text on the server, often empty, not always ISO-8601. */
   @SerialName(value = "releaseDate")
-  val releaseDate: kotlin.time.Instant? = null,
+  val releaseDate: kotlin.String? = null,
 
   /* The genres of the podcast. */
   @SerialName(value = "genres")

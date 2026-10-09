@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
+
 ### Other Notes & Contributions
 
 ## [1.2.1]

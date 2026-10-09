@@ -18,5 +18,12 @@ kotlin {
         implementation(libs.store)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.kotlin.test)
+        implementation(libs.assertk)
+      }
+    }
   }
 }
