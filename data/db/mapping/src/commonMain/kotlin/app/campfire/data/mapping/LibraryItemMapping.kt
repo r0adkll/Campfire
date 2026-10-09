@@ -167,7 +167,7 @@ fun <T : Media> T.asDbModel(
       // We've hit an odd response from the API, so we need to compute this on the fly
       val computedDuration = (this as? MediaExpanded)?.let {
         it.audioFiles
-          .sumOf { it.duration.toDouble() }
+          .sumOf { (it.duration ?: 0f).toDouble() }
           .seconds
       } ?: (this as? NetworkMediaMinified)?.let {
         it.duration?.seconds

@@ -584,7 +584,12 @@ class DesktopAudioPlayer(
     val timeline = timeline ?: return
     val engine = engine ?: return
     val session = preparedSession ?: return
-    val clamped = target.coerceIn(Duration.ZERO, session.duration)
+    // A zero duration means the server couldn't read the file's length, so there's no upper bound.
+    val clamped = if (session.duration > Duration.ZERO) {
+      target.coerceIn(Duration.ZERO, session.duration)
+    } else {
+      target.coerceAtLeast(Duration.ZERO)
+    }
 
     val (index, offset) = locate(timeline, clamped)
     if (index == currentIndex) {

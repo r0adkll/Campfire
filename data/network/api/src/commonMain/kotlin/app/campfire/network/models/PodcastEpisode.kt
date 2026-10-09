@@ -66,10 +66,13 @@ data class PodcastEpisode(
     val id: Int,
   )
 
+  /**
+   * [length] is the feed's raw `length` attribute, which isn't always a number.
+   */
   @Serializable
   data class Enclosure(
     val url: String,
     val type: String? = null,
-    val length: Long? = null,
+    val length: String? = null,
   )
 }

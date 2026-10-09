@@ -55,11 +55,11 @@ data class Podcast(
   /* The timestamp of the last episode check. */
   val lastEpisodeCheck: Long? = null,
 
-  /* The maximum number of episodes to keep. */
-  val maxEpisodesToKeep: Int? = null,
+  /* The maximum number of episodes to keep. The server saves any number here, fractions included. */
+  val maxEpisodesToKeep: Double? = null,
 
-  /* The maximum number of new episodes to download when automatically downloading epsiodes. */
-  val maxNewEpisodesToDownload: Int? = null,
+  /* The maximum number of new episodes to download when automatically downloading epsiodes. Any number, as above. */
+  val maxNewEpisodesToDownload: Double? = null,
 
   /* The timestamp of the last cover search. */
   val lastCoverSearch: Long? = null,
