@@ -24,5 +24,12 @@ kotlin {
         implementation(libs.androidx.paging.common)
       }
     }
+
+    commonTest {
+      dependencies {
+        implementation(libs.kotlin.test)
+        implementation(libs.assertk)
+      }
+    }
   }
 }

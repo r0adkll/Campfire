@@ -68,16 +68,15 @@ private fun String?.matchesExplicit(): Boolean {
 }
 
 /**
- * Build the create-endpoint metadata payload from a draft. Tries to parse the ISO-8601 release
- * date; falls back to null when the value uses a feed-native format (e.g. RFC 2822 `pubDate`) the
- * server can't ingest as an [Instant].
+ * Build the create-endpoint metadata payload from a draft. Only sends an ISO-8601 release date;
+ * a feed-native format (e.g. RFC 2822 `pubDate`) is dropped rather than stored verbatim.
  */
 internal fun PodcastDraft.asCreateMetadata(): PodcastMetadata {
   return PodcastMetadata(
     title = title,
     author = author,
     description = descriptionPlain ?: descriptionHtml,
-    releaseDate = releaseDateIso?.parseInstantOrNull(),
+    releaseDate = releaseDateIso?.parseInstantOrNull()?.toString(),
     genres = genres,
     feedUrl = feedUrl,
     imageUrl = coverUrl,
