@@ -57,13 +57,34 @@ class KtorAuthAudioBookShelfApi(
     }
   }
 
+  private val nonRedirectClient by lazy {
+    client.config {
+      followRedirects = false
+    }
+  }
+
+  /**
+   * Reads `/status` without following redirects first, so a Cloudflare Access login redirect
+   * surfaces as a [CloudflareAccessException] instead of an unparseable login page. Any other
+   * redirect (e.g. http to https) is followed as before.
+   */
   override suspend fun status(
     serverUrl: String,
     extraHeaders: Map<String, String>?,
   ): Result<ServerStatus> {
+    val statusUrl = "${cleanServerUrl(serverUrl)}/status"
     return trySendRequest {
-      client.get("${cleanServerUrl(serverUrl)}/status") {
+      val response = nonRedirectClient.get(statusUrl) {
         maybeHeaders(extraHeaders)
+      }
+      response.cloudflareAccessChallenge()?.let { throw it }
+
+      if (response.status.value in 300..399) {
+        client.get(statusUrl) {
+          maybeHeaders(extraHeaders)
+        }
+      } else {
+        response
       }
     }
   }

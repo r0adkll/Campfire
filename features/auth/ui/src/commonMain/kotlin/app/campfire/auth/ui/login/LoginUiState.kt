@@ -72,5 +72,11 @@ sealed interface AuthError {
 sealed interface ConnectionState {
   data object Loading : ConnectionState
   data class Error(val cause: Throwable) : ConnectionState
+
+  /**
+   * Cloudflare Access challenged the probe: the server needs a service token, or Access didn't
+   * accept the one sent ([serviceTokenRejected]).
+   */
+  data class AccessProtected(val serviceTokenRejected: Boolean) : ConnectionState
   data class Success(val authMethodState: AuthMethodState) : ConnectionState
 }

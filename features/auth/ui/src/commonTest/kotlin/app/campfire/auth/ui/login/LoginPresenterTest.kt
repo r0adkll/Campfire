@@ -131,6 +131,48 @@ class LoginPresenterTest {
   }
 
   @Test
+  fun `a server behind Cloudflare Access asks for a service token`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = "good.access")
+
+    presenter(LoginScreen.Additional).test {
+      awaitItem().eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+
+      val protected = awaitItemMatching { it.connectionState is ConnectionState.AccessProtected }
+      assertThat(protected.connectionState).isEqualTo(ConnectionState.AccessProtected(serviceTokenRejected = false))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `a rejected service token is reported as rejected`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = "good.access")
+
+    presenter(LoginScreen.Additional).test {
+      val state = awaitItem()
+      state.eventSink(LoginUiEvent.ChangeNetworkSettings(null.withCloudflareServiceToken("wrong.access", "secret")))
+      state.eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+
+      val rejected = awaitItemMatching { it.connectionState is ConnectionState.AccessProtected }
+      assertThat(rejected.connectionState).isEqualTo(ConnectionState.AccessProtected(serviceTokenRejected = true))
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `adding the service token connects to the server`() = runTest {
+    authRepository = FakeAuthRepository(accessClientId = "good.access")
+
+    presenter(LoginScreen.Additional).test {
+      awaitItem().eventSink(LoginUiEvent.ServerUrl(CAROL_URL))
+      awaitItemMatching { it.connectionState is ConnectionState.AccessProtected }
+        .eventSink(LoginUiEvent.ChangeNetworkSettings(null.withCloudflareServiceToken("good.access", "secret")))
+
+      awaitItemMatching { it.connectionState is ConnectionState.Success }
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
   fun `a fresh sign in applies the picked theme`() = runTest {
     signIn(LoginScreen.Restore(serverUrl = CAROL_URL, serverName = "Home", userName = "carol"), fresh = true)
 

@@ -53,6 +53,7 @@ class ServerCardFocusTest {
       urlState = rememberServerUrlFieldState("https://abs.example.com"),
       networkSettings = null,
       onEditNetworkSettingsClick = {},
+      onServiceTokenClick = {},
       username = "alice",
       onUsernameChange = {},
       password = "",

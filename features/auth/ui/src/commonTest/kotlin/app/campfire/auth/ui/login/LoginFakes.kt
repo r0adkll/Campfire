@@ -42,12 +42,17 @@ internal class FakeRestorableAccountRepository(
 internal class FakeAuthRepository(
   private val authMethods: List<String> = listOf(AUTH_METHOD_LOCAL),
   private val addedServers: Map<String, String> = emptyMap(),
+  /** When set, the server sits behind Cloudflare Access and only lets this Client ID through. */
+  private val accessClientId: String? = null,
 ) : AuthRepository {
   val authenticatedUserNames = mutableListOf<String>()
   val authenticatedPasswords = mutableListOf<String>()
 
-  override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> =
-    Result.success(
+  override suspend fun status(serverUrl: String, networkSettings: NetworkSettings?): Result<ServerStatus> {
+    if (accessClientId != null && networkSettings?.extraHeaders?.get("CF-Access-Client-Id") != accessClientId) {
+      return Result.failure(AuthException.CloudflareAccess())
+    }
+    return Result.success(
       ServerStatus(
         serverVersion = "2.30.0",
         isInit = true,
@@ -55,6 +60,7 @@ internal class FakeAuthRepository(
         authMethods = authMethods,
       ),
     )
+  }
 
   override suspend fun authenticate(
     serverUrl: String,
