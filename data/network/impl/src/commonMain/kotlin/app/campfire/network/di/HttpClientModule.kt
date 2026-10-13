@@ -40,6 +40,8 @@ import io.ktor.client.request.url
 import io.ktor.client.statement.request
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLParserException
+import io.ktor.http.Url
 import io.ktor.http.encodedPath
 import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
@@ -220,7 +222,7 @@ internal fun HttpClientConfig<*>.configureUserHttpClient(
     pingIntervalMillis = 20_000
   }
 
-  installUserAuth(bearerAuthProvider)
+  installUserAuth(bearerAuthProvider, userSessionManager)
   installUserExtraHeaders(userSessionManager, accountManager)
 }
 
@@ -255,22 +257,23 @@ internal fun HttpClientConfig<*>.configureAudioPlayerClient(
     header(HttpHeaders.UserAgent, applicationInfo.userAgent)
   }
 
-  installUserAuth(bearerAuthProvider)
+  installUserAuth(bearerAuthProvider, userSessionManager)
   installUserExtraHeaders(userSessionManager, accountManager)
 }
 
 /**
- * Applies the current session user's extra headers (e.g. reverse proxy auth) to every request.
- * Requests can outlive the session that issued them (logout, account switch), so a request made
- * without a logged-in user goes out without extra headers rather than failing the pipeline.
+ * Applies the current session user's extra headers (e.g. reverse proxy auth) to requests for their
+ * server. Requests can outlive the session that issued them (logout, account switch), so a request
+ * made without a logged-in user goes out without extra headers rather than failing the pipeline.
  */
 internal fun HttpClientConfig<*>.installUserExtraHeaders(
   userSessionManager: UserSessionManager,
   accountManager: AccountManager,
 ) {
   suspendingDefaultHeaders {
-    val userId = userSessionManager.current.userId ?: return@suspendingDefaultHeaders
-    accountManager.getExtraHeaders(userId)?.forEach { (name, value) ->
+    val user = userSessionManager.current.user ?: return@suspendingDefaultHeaders
+    if (!url.isOnServer(user.serverUrl)) return@suspendingDefaultHeaders
+    accountManager.getExtraHeaders(user.id)?.forEach { (name, value) ->
       header(name, value)
     }
   }
@@ -279,11 +282,44 @@ internal fun HttpClientConfig<*>.installUserExtraHeaders(
 /**
  * Installs bearer auth backed by [provider]. Every client authenticating as the session user must
  * install the same [userBearerAuthProvider] instance so they share its cached token and refresh.
+ *
+ * Only a 401 from the user's own server re-authorizes: Ktor retries a re-authorized request with
+ * the token attached, so a 401 from any other host would otherwise receive it.
  */
-internal fun HttpClientConfig<*>.installUserAuth(provider: BearerAuthProvider) {
+internal fun HttpClientConfig<*>.installUserAuth(
+  provider: BearerAuthProvider,
+  userSessionManager: UserSessionManager,
+) {
   install(Auth) {
     providers += provider
+    reAuthorizeOnResponse { response ->
+      response.status == HttpStatusCode.Unauthorized &&
+        userSessionManager.isUserServerUrl(response.request.url)
+    }
   }
+}
+
+/**
+ * Whether [url] points at the session user's server. User credentials (the bearer token and the
+ * account's extra headers) only ever go there: the user client also loads images from other
+ * hosts, like book info provider covers and podcast feed artwork.
+ */
+internal fun UserSessionManager.isUserServerUrl(url: Url): Boolean {
+  val serverUrl = current.user?.serverUrl ?: return false
+  return url.isOnServer(serverUrl)
+}
+
+/**
+ * Compares host and port only, so the socket's `ws(s)://` requests match an `http(s)://` server
+ * URL. A server URL that doesn't parse matches nothing.
+ */
+internal fun Url.isOnServer(serverUrl: String): Boolean {
+  val server = try {
+    Url(cleanServerUrl(serverUrl))
+  } catch (e: URLParserException) {
+    return false
+  }
+  return host.equals(server.host, ignoreCase = true) && port == server.port
 }
 
 /**
@@ -297,6 +333,8 @@ internal fun userBearerAuthProvider(
   userSessionManager: UserSessionManager,
   accountManager: AccountManager,
 ): BearerAuthProvider = BearerAuthProvider(
+  // Ktor sends the token with every request by default; only the user's server may receive it.
+  sendWithoutRequestCallback = { request -> userSessionManager.isUserServerUrl(request.url.build()) },
   loadTokens = {
     userSessionManager.current.userId?.let { userId ->
       accountManager.getToken(userId)?.asBearerTokens()
