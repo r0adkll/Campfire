@@ -32,6 +32,13 @@ sealed class AuthException(
   class ServerAlreadyAdded(val userName: String) :
     AuthException("An account on this server is already signed in")
 
+  /**
+   * The server sits behind Cloudflare Access, which challenged the request instead of letting it
+   * through: it needs a service token, or rejected the one sent.
+   */
+  class CloudflareAccess(cause: Throwable? = null) :
+    AuthException("The server is protected by Cloudflare Access", cause)
+
   /** The server responded in a way the app couldn't understand. */
   class UnexpectedResponse(message: String, cause: Throwable? = null) :
     AuthException(message, cause)

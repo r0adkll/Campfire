@@ -14,6 +14,7 @@ import app.campfire.core.model.User as DomainUser
 import app.campfire.core.model.UserId
 import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
+import app.campfire.network.CloudflareAccessException
 import app.campfire.network.envelopes.AuthorizationResponse
 import app.campfire.network.envelopes.LoginResponse
 import app.campfire.network.models.ServerSettings
@@ -51,6 +52,25 @@ class DefaultAuthRepositoryTest {
     newUserStorageStrategy = newUserStorage,
     existingUserStorageStrategy = existingUserStorage,
   )
+
+  @Test
+  fun `a Cloudflare Access challenge on status is a typed failure`() = runTest {
+    val challenge = CloudflareAccessException(teamDomain = "team.cloudflareaccess.com")
+    api.statusResult = Result.failure(challenge)
+
+    val error = repository.status(SERVER_URL, networkSettings = null).exceptionOrNull()
+
+    assertThat(error).isNotNull().isInstanceOf<AuthException.CloudflareAccess>()
+    assertThat(error?.cause).isEqualTo(challenge)
+  }
+
+  @Test
+  fun `other status failures pass through unchanged`() = runTest {
+    val failure = IOException("offline")
+    api.statusResult = Result.failure(failure)
+
+    assertThat(repository.status(SERVER_URL, networkSettings = null).exceptionOrNull()).isEqualTo(failure)
+  }
 
   @Test
   fun `restoring trades the kept refresh token for a new sign-in`() = runTest {
@@ -303,10 +323,12 @@ class DefaultAuthRepositoryTest {
     val refreshes = mutableListOf<Triple<String, String, Map<String, String>?>>()
     val logins = mutableListOf<String>()
 
+    var statusResult: Result<ServerStatus> = Result.failure(IllegalStateException("not stubbed"))
+
     override suspend fun status(
       serverUrl: String,
       extraHeaders: Map<String, String>?,
-    ): Result<ServerStatus> = Result.failure(IllegalStateException("not stubbed"))
+    ): Result<ServerStatus> = statusResult
 
     override suspend fun login(
       serverUrl: String,

@@ -379,12 +379,18 @@ class LoginPresenter(
           }
           return@LaunchedEffect
         }
-        lastError = result.exceptionOrNull()
+        // An Access challenge on one candidate says more than another candidate failing to connect.
+        if (lastError !is AuthException.CloudflareAccess) {
+          lastError = result.exceptionOrNull()
+        }
       }
 
-      connectionState = ConnectionState.Error(
-        lastError ?: IllegalArgumentException("Unable to connect"),
-      )
+      connectionState = when (lastError) {
+        is AuthException.CloudflareAccess -> ConnectionState.AccessProtected(
+          serviceTokenRejected = networkSettings.hasCloudflareServiceToken,
+        )
+        else -> ConnectionState.Error(lastError ?: IllegalArgumentException("Unable to connect"))
+      }
     }
 
     return connectionState

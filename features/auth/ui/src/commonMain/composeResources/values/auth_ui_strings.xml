@@ -8,6 +8,17 @@
   <string name="invalid_server_url">Invalid address</string>
   <string name="valid_server_url">Connected!</string>
   <string name="loading_server_url">Testing…</string>
+  <string name="access_protected_server_url">Protected by Cloudflare Access. Add a service token to connect.</string>
+  <string name="access_rejected_server_url">Cloudflare Access didn't accept this service token</string>
+  <string name="action_add_service_token">Add service token</string>
+  <string name="action_change_service_token">Change service token</string>
+  <string name="cloudflare_access_title">Cloudflare Access service token</string>
+  <string name="cloudflare_access_description">This server only lets in apps that present a Cloudflare Access service token. Ask your server admin for the token's Client ID and Client Secret.</string>
+  <string name="label_access_client_id">Client ID</string>
+  <string name="label_access_client_secret">Client Secret</string>
+  <string name="action_show_client_secret">Show client secret</string>
+  <string name="action_hide_client_secret">Hide client secret</string>
+  <string name="action_save_service_token">Save</string>
   <string name="label_username">Username</string>
   <string name="label_password">Password</string>
   <string name="action_add_campsite">Add campsite</string>

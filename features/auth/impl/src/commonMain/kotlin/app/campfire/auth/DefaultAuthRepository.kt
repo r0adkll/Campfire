@@ -20,6 +20,7 @@ import app.campfire.core.model.UserId
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
+import app.campfire.network.CloudflareAccessException
 import app.campfire.network.envelopes.LoginResponse
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -41,6 +42,7 @@ class DefaultAuthRepository(
   ): Result<ServerStatus> {
     return api.status(serverUrl, networkSettings?.extraHeaders)
       .map { it.asDomainModel() }
+      .recoverCatching { e -> throw if (e is CloudflareAccessException) AuthException.CloudflareAccess(e) else e }
   }
 
   override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> {

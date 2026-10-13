@@ -54,6 +54,7 @@ import app.campfire.auth.ui.login.composables.ServerUrlFieldState
 import app.campfire.auth.ui.login.composables.TitleBanner
 import app.campfire.auth.ui.login.composables.rememberServerUrlFieldState
 import app.campfire.auth.ui.login.settings.NetworkSettingsResult
+import app.campfire.auth.ui.login.settings.showCloudflareAccessBottomSheet
 import app.campfire.auth.ui.login.settings.showNetworkSettingsBottomSheet
 import app.campfire.common.compose.LocalWindowSizeClass
 import app.campfire.common.compose.currentWindowSizeClass
@@ -195,6 +196,14 @@ internal fun LoginUiContent(
       onEditNetworkSettingsClick = {
         scope.launch {
           val result = overlayHost.showNetworkSettingsBottomSheet(state.networkSettings)
+          if (result is NetworkSettingsResult.Success) {
+            eventSink(LoginUiEvent.ChangeNetworkSettings(result.settings))
+          }
+        }
+      },
+      onServiceTokenClick = {
+        scope.launch {
+          val result = overlayHost.showCloudflareAccessBottomSheet(state.networkSettings)
           if (result is NetworkSettingsResult.Success) {
             eventSink(LoginUiEvent.ChangeNetworkSettings(result.settings))
           }

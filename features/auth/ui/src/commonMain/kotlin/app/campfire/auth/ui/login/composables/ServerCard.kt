@@ -82,6 +82,7 @@ import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.icons.rounded.Password
 import app.campfire.common.compose.icons.rounded.Person
 import app.campfire.common.compose.icons.rounded.Settings
+import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.icons.rounded.Visibility
 import app.campfire.common.compose.icons.rounded.VisibilityOff
 import app.campfire.common.compose.theme.PaytoneOneFontFamily
@@ -90,6 +91,10 @@ import app.campfire.core.model.NetworkSettings
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.DefaultAppThemes
 import campfire.features.auth.ui.generated.resources.Res
+import campfire.features.auth.ui.generated.resources.access_protected_server_url
+import campfire.features.auth.ui.generated.resources.access_rejected_server_url
+import campfire.features.auth.ui.generated.resources.action_add_service_token
+import campfire.features.auth.ui.generated.resources.action_change_service_token
 import campfire.features.auth.ui.generated.resources.action_clear_server_url
 import campfire.features.auth.ui.generated.resources.action_hide_password
 import campfire.features.auth.ui.generated.resources.action_show_password
@@ -127,6 +132,7 @@ internal fun ServerCard(
   urlState: ServerUrlFieldState,
   networkSettings: NetworkSettings?,
   onEditNetworkSettingsClick: () -> Unit,
+  onServiceTokenClick: () -> Unit,
   username: String,
   onUsernameChange: (String) -> Unit,
   password: String,
@@ -220,6 +226,13 @@ internal fun ServerCard(
             when (connectionState) {
               ConnectionState.Loading -> stringResource(Res.string.loading_server_url)
               is ConnectionState.Error -> stringResource(Res.string.invalid_server_url)
+              is ConnectionState.AccessProtected -> stringResource(
+                if (connectionState.serviceTokenRejected) {
+                  Res.string.access_rejected_server_url
+                } else {
+                  Res.string.access_protected_server_url
+                },
+              )
               is ConnectionState.Success -> stringResource(Res.string.valid_server_url)
             },
           )
@@ -249,7 +262,8 @@ internal fun ServerCard(
         autoCorrectEnabled = false,
         imeAction = ImeAction.Next,
       ),
-      isError = connectionState is ConnectionState.Error,
+      isError = connectionState is ConnectionState.Error ||
+        (connectionState as? ConnectionState.AccessProtected)?.serviceTokenRejected == true,
       singleLine = true,
       modifier = Modifier
         .fillMaxWidth()
@@ -283,9 +297,12 @@ internal fun ServerCard(
 
         Spacer(Modifier.size(4.dp))
 
+        // A server behind Cloudflare Access needs a service token before anything else works, so
+        // that takes the place of the general network settings until it connects.
+        val accessProtected = connectionState as? ConnectionState.AccessProtected
         Button(
           enabled = !isAuthenticating,
-          onClick = onEditNetworkSettingsClick,
+          onClick = if (accessProtected != null) onServiceTokenClick else onEditNetworkSettingsClick,
           shapes = ButtonDefaults.shapes(
             shape = ButtonDefaults.squareShape,
           ),
@@ -294,13 +311,17 @@ internal fun ServerCard(
             .heightIn(buttonSize),
         ) {
           Icon(
-            CampfireIcons.Rounded.Settings,
+            if (accessProtected != null) CampfireIcons.Rounded.ShieldPerson else CampfireIcons.Rounded.Settings,
             contentDescription = null,
             modifier = Modifier.size(ButtonDefaults.iconSizeFor(buttonSize)),
           )
           Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(buttonSize)))
           Text(
-            text = "Edit network settings",
+            text = when {
+              accessProtected == null -> "Edit network settings"
+              accessProtected.serviceTokenRejected -> stringResource(Res.string.action_change_service_token)
+              else -> stringResource(Res.string.action_add_service_token)
+            },
             style = ButtonDefaults.textStyleFor(buttonSize),
           )
         }
