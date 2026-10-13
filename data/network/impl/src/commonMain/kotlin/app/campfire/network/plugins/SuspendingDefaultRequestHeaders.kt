@@ -10,6 +10,7 @@ import io.ktor.client.request.HttpRequestPipeline
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMessageBuilder
+import io.ktor.http.Url
 import io.ktor.util.AttributeKey
 import io.ktor.util.appendAll
 
@@ -28,7 +29,7 @@ class SuspendingDefaultRequestHeaders private constructor(
       scope: HttpClient,
     ) {
       scope.requestPipeline.intercept(HttpRequestPipeline.Before) {
-        val defaultRequest = SuspendingDefaultRequestHeadersBuilder().apply {
+        val defaultRequest = SuspendingDefaultRequestHeadersBuilder(context.url.build()).apply {
           headers.appendAll(this@intercept.context.headers)
           val userHeaders = headers.build()
 
@@ -60,7 +61,10 @@ class SuspendingDefaultRequestHeaders private constructor(
     }
   }
 
-  class SuspendingDefaultRequestHeadersBuilder internal constructor() : HttpMessageBuilder {
+  /** Builds the default headers for a request to [url]. */
+  class SuspendingDefaultRequestHeadersBuilder internal constructor(
+    val url: Url,
+  ) : HttpMessageBuilder {
     override val headers: HeadersBuilder = HeadersBuilder()
     internal var suspendingBuilder: suspend SuspendingDefaultRequestHeadersBuilder.() -> Unit = {}
   }

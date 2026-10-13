@@ -43,7 +43,7 @@ class UserClientSessionTest {
     install(ContentNegotiation) {
       json(Json { ignoreUnknownKeys = true })
     }
-    installUserAuth(userBearerAuthProvider(sessionManager, accountManager))
+    installUserAuth(userBearerAuthProvider(sessionManager, accountManager), sessionManager)
     installUserExtraHeaders(sessionManager, accountManager)
   }
 

@@ -93,7 +93,7 @@ class AudioPlayerHttpClientTest {
     install(ContentNegotiation) {
       json(Json { ignoreUnknownKeys = true })
     }
-    installUserAuth(bearerAuthProvider)
+    installUserAuth(bearerAuthProvider, sessionManager)
   }
 
   @Test

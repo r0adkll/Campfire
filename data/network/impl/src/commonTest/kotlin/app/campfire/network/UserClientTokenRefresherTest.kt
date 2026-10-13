@@ -79,7 +79,7 @@ class UserClientTokenRefresherTest {
           },
         )
       }
-      installUserAuth(userBearerAuthProvider(sessionManager, accountManager))
+      installUserAuth(userBearerAuthProvider(sessionManager, accountManager), sessionManager)
     }
     return UserClientTokenRefresher(client, accountManager, sessionManager)
   }
