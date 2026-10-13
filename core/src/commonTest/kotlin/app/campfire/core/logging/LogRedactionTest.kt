@@ -85,6 +85,52 @@ class LogRedactionTest {
   }
 
   @Test
+  fun token_query_parameters_are_scrubbed() {
+    val result = LogRedaction.redact(
+      "open https://abs.myserver.net/api/items/li_1/file/2?token=abc.def&start=10 and /oauth?code=xyz&state=s",
+    )
+
+    assertThat(result).isEqualTo(
+      "open https://<redacted>/api/items/li_1/file/2?token=<redacted>&start=10 and /oauth?code=<redacted>&state=s",
+    )
+  }
+
+  @Test
+  fun bearer_tokens_and_jwts_are_scrubbed() {
+    val jwt = "eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJ1MSJ9.c2lnbmF0dXJl"
+
+    assertThat(LogRedaction.redact("Authorization: Bearer opaque-token-123")).isEqualTo(
+      "Authorization: Bearer <redacted>",
+    )
+    assertThat(LogRedaction.redact("refreshed to $jwt")).isEqualTo("refreshed to <jwt>")
+  }
+
+  @Test
+  fun registered_secrets_are_scrubbed_longest_first() {
+    LogRedaction.registerSecret("client-secret")
+    LogRedaction.registerSecret("client-secret-with-suffix")
+
+    assertThat(LogRedaction.redact("headers: client-secret-with-suffix, client-secret"))
+      .isEqualTo("headers: <secret>, <secret>")
+  }
+
+  @Test
+  fun short_secrets_are_ignored() {
+    LogRedaction.registerSecret("on")
+
+    assertThat(LogRedaction.redact("connection on")).isEqualTo("connection on")
+  }
+
+  @Test
+  fun disabled_redaction_leaves_secrets_in_place() {
+    LogRedaction.registerSecret("client-secret")
+    LogRedaction.enabled = false
+
+    val message = "Bearer abc client-secret ?token=t"
+    assertThat(LogRedaction.redact(message)).isEqualTo(message)
+  }
+
+  @Test
   fun message_without_urls_is_unchanged() {
     val message = "Initializing: SessionSyncer"
     assertThat(LogRedaction.redact(message)).isEqualTo(message)

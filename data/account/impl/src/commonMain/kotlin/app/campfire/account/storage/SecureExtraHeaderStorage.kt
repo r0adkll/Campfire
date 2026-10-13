@@ -6,6 +6,7 @@ package app.campfire.account.storage
 import app.campfire.account.settings.ExtraHeaderSettings
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
+import app.campfire.core.logging.LogRedaction
 import app.campfire.core.model.UserId
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.Settings
@@ -36,12 +37,14 @@ class SecureExtraHeaderStorage(
   override suspend fun get(userId: UserId): Map<String, String>? {
     val rawExtraHeaders = settings.getStringOrNull(storageKey(userId))
     return rawExtraHeaders?.let { raw -> deserialize(raw) }
+      ?.also(::registerForRedaction)
   }
 
   override suspend fun put(
     userId: UserId,
     headers: Map<String, String>,
   ) {
+    registerForRedaction(headers)
     settings.putString(storageKey(userId), serialize(headers))
     version.update { it + 1 }
   }
@@ -60,6 +63,11 @@ class SecureExtraHeaderStorage(
     version
       .map { get(userId).orEmpty() }
       .distinctUntilChanged()
+
+  // Header values are often proxy credentials, so keep them out of logs and crash reports.
+  private fun registerForRedaction(headers: Map<String, String>) {
+    headers.values.forEach(LogRedaction::registerSecret)
+  }
 
   private fun serialize(extraHeaders: Map<String, String>): String {
     return extraHeaders
