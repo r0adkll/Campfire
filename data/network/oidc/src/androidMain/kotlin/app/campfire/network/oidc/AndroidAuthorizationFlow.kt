@@ -4,10 +4,8 @@
 package app.campfire.network.oidc
 
 import android.app.Application
-import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
 import app.campfire.network.oidc.crypto.Pkce
-import io.ktor.http.Url
 import org.publicvalue.multiplatform.oidc.encodeForPKCE
 import org.publicvalue.multiplatform.oidc.secureRandomBytes
 
@@ -26,14 +24,8 @@ class AndroidAuthorizationFlow(
 
     // 1) Request the /auth/openid request WITHOUT redirects to fetch the OpenID
     //    authorization URL. Additionally capturing any session cookies in the process.
-    val authorizationResult = authApi.authorization(serverUrl, pkce.codeChallenge, pkce.codeVerifier, state)
-    if (authorizationResult.isFailure) {
-      val cause = authorizationResult.exceptionOrNull()
-      val message = (cause as? ApiException)?.apiMessage?.takeIf { it.isNotBlank() }
-        ?: cause?.message
-        ?: "Unable to fetch authorization URL"
-      return Result.failure(OpenIdException.AuthFailure(message))
-    }
+    val requestUrl = authApi.requestAuthorizationUrl(serverUrl, pkce, state, extraHeaders)
+      .getOrElse { return Result.failure(it) }
 
     // 2) Direct user DIRECTLY to the OpenID authorization page instead. Let them finish,
     //    capturing the re-direct to campfireaudiobooks://oauth.
@@ -42,7 +34,6 @@ class AndroidAuthorizationFlow(
       context = application,
       launcher = launcher,
     )
-    val requestUrl = Url(authorizationResult.getOrThrow().authorizationUrl)
     val result = webFlow.startWebFlow(
       requestUrl = requestUrl,
       redirectUri = requestUrl.parameters["redirect_uri"].orEmpty(),

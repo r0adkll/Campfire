@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Podcast libraries not loading in the Home, Shows, and Latest tabs when a podcast has a blank or hand-typed release date, as podcasts added from an RSS feed or OPML import do
 - Your server sign-in and custom connection headers being sent to other websites when Campfire loaded cover art and podcast artwork from them
+- [Android] OpenID sign-in failing on servers that need custom connection headers
 
 ### Other Notes & Contributions
 
