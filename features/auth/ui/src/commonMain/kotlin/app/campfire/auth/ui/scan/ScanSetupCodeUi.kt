@@ -19,13 +19,17 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
@@ -57,7 +61,8 @@ fun ScanSetupCodeUi(
   Box(
     modifier = modifier
       .fillMaxSize()
-      .background(MaterialTheme.colorScheme.surface),
+      // The camera's view runs edge to edge, and stays dark whatever the app's theme
+      .background(Color.Black),
   ) {
     val haptics = LocalHapticFeedback.current
     LaunchedEffect(state.captured) {
@@ -74,25 +79,28 @@ fun ScanSetupCodeUi(
       modifier = Modifier.fillMaxSize(),
     )
 
-    Row(
-      verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier
-        .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = OverlayAlpha))
-        .statusBarsPadding()
-        .padding(4.dp),
-    ) {
-      val closeLabel = stringResource(Res.string.action_close)
-      IconButtonTooltip(text = closeLabel) {
-        IconButton(onClick = { state.eventSink(ScanSetupCodeUiEvent.Close) }) {
-          Icon(CampfireIcons.Rounded.Close, contentDescription = closeLabel)
+    // Transparent over the camera, with a fade behind it so it reads over a bright view
+    CompositionLocalProvider(LocalContentColor provides Color.White) {
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+          .fillMaxWidth()
+          .background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = TopFadeAlpha), Color.Transparent)))
+          .statusBarsPadding()
+          .padding(start = 4.dp, end = 4.dp, top = 4.dp, bottom = 24.dp),
+      ) {
+        val closeLabel = stringResource(Res.string.action_close)
+        IconButtonTooltip(text = closeLabel) {
+          IconButton(onClick = { state.eventSink(ScanSetupCodeUiEvent.Close) }) {
+            Icon(CampfireIcons.Rounded.Close, contentDescription = closeLabel)
+          }
         }
+        Text(
+          text = stringResource(Res.string.scan_setup_code_title),
+          style = MaterialTheme.typography.titleLarge,
+          modifier = Modifier.padding(start = 8.dp),
+        )
       }
-      Text(
-        text = stringResource(Res.string.scan_setup_code_title),
-        style = MaterialTheme.typography.titleLarge,
-        modifier = Modifier.padding(start = 8.dp),
-      )
     }
   }
 }
@@ -153,4 +161,4 @@ private fun ScanHint(
   }
 }
 
-private const val OverlayAlpha = 0.85f
+private const val TopFadeAlpha = 0.6f
