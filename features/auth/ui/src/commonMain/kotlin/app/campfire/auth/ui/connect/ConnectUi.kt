@@ -41,11 +41,12 @@ import app.campfire.auth.api.screen.ConnectScreen
 import app.campfire.auth.ui.composables.MaxContentWidth
 import app.campfire.common.compose.icons.CampfireIcons
 import app.campfire.common.compose.icons.rounded.CheckCircle
-import app.campfire.common.compose.icons.rounded.Dns
 import app.campfire.common.compose.icons.rounded.Error
 import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.icons.rounded.Policy
 import app.campfire.core.di.UserScope
+import app.campfire.ui.theming.api.AppTheme
+import app.campfire.ui.theming.api.AppThemeImage
 import campfire.features.auth.ui.generated.resources.Res
 import campfire.features.auth.ui.generated.resources.action_cancel
 import campfire.features.auth.ui.generated.resources.action_close
@@ -159,7 +160,10 @@ private fun ConfirmConnect(
       }
     },
   ) {
-    HeroIcon(CampfireIcons.Rounded.Dns)
+    // The same tent a new campsite starts with on the sign-in screen
+    HeroCircle {
+      AppThemeImage(appTheme = AppTheme.Fixed.Tent, modifier = Modifier.size(52.dp))
+    }
     Text(
       text = stringResource(if (isNew) Res.string.connect_title_new else Res.string.connect_title_update),
       style = MaterialTheme.typography.headlineMedium,
@@ -338,6 +342,17 @@ private fun HeroIcon(
   modifier: Modifier = Modifier,
   isError: Boolean = false,
 ) {
+  HeroCircle(modifier = modifier, isError = isError) {
+    Icon(icon, contentDescription = null, modifier = Modifier.size(40.dp))
+  }
+}
+
+@Composable
+private fun HeroCircle(
+  modifier: Modifier = Modifier,
+  isError: Boolean = false,
+  content: @Composable () -> Unit,
+) {
   Surface(
     shape = CircleShape,
     color = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer,
@@ -349,7 +364,7 @@ private fun HeroIcon(
     modifier = modifier.size(80.dp),
   ) {
     Box(contentAlignment = Alignment.Center) {
-      Icon(icon, contentDescription = null, modifier = Modifier.size(40.dp))
+      content()
     }
   }
 }
