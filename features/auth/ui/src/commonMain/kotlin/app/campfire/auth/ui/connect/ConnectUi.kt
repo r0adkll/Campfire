@@ -44,6 +44,7 @@ import app.campfire.common.compose.icons.rounded.CheckCircle
 import app.campfire.common.compose.icons.rounded.Error
 import app.campfire.common.compose.icons.rounded.NewReleases
 import app.campfire.common.compose.icons.rounded.Policy
+import app.campfire.common.compose.theme.PaytoneOneFontFamily
 import app.campfire.core.di.UserScope
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeImage
@@ -167,6 +168,7 @@ private fun ConfirmConnect(
     Text(
       text = stringResource(if (isNew) Res.string.connect_title_new else Res.string.connect_title_update),
       style = MaterialTheme.typography.headlineMedium,
+      fontFamily = PaytoneOneFontFamily,
       textAlign = TextAlign.Center,
       modifier = Modifier.fillMaxWidth(),
     )
@@ -323,6 +325,7 @@ private fun ConnectMessage(
     Text(
       text = title,
       style = MaterialTheme.typography.headlineMedium,
+      fontFamily = PaytoneOneFontFamily,
       textAlign = TextAlign.Center,
       modifier = Modifier.fillMaxWidth(),
     )
