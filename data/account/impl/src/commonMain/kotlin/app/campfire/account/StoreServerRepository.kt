@@ -6,6 +6,7 @@ package app.campfire.account
 import app.campfire.CampfireDatabase
 import app.campfire.account.api.ServerRepository
 import app.campfire.account.api.UserSessionManager
+import app.campfire.account.server.db.ServerDao
 import app.campfire.account.server.store.ServerStore
 import app.campfire.core.coroutines.DispatcherProvider
 import app.campfire.core.di.AppScope
@@ -20,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
@@ -34,6 +36,7 @@ class StoreServerRepository(
   private val db: CampfireDatabase,
   private val userSessionManager: UserSessionManager,
   private val serverStoreFactory: ServerStore.Factory,
+  private val serverDao: ServerDao,
   private val dispatcherProvider: DispatcherProvider,
 ) : ServerRepository {
 
@@ -78,10 +81,9 @@ class StoreServerRepository(
     return output?.server
   }
 
-  override suspend fun getAllServers(): List<Server> {
-    val output = serverStore.get(ServerStore.Operation.All) as ServerStore.Output.Collection
-    return output.servers
-  }
+  // Straight from the database: the store's memory cache keeps the list it last saw, and a
+  // signed-out server would otherwise still look signed in until the app restarts.
+  override suspend fun getAllServers(): List<Server> = serverDao.observeAll().first()
 
   override suspend fun changeName(newName: String) {
     withContext(dispatcherProvider.databaseWrite) {
