@@ -18,6 +18,7 @@ import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
+import app.campfire.auth.api.screen.ScanSetupCodeScreen
 import app.campfire.auth.ui.BuildConfig
 import app.campfire.auth.ui.login.LoginUiEvent.AddCampsite
 import app.campfire.auth.ui.login.LoginUiEvent.ChangeNetworkSettings
@@ -38,6 +39,7 @@ import app.campfire.core.navigation.ConnectLink
 import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
+import app.campfire.qrscanner.QrCodeScanner
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import coil3.toUri
@@ -64,6 +66,7 @@ class LoginPresenter(
   private val restorableAccountRepository: RestorableAccountRepository,
   private val passwordCredentials: PasswordCredentials,
   private val connectLinkInbox: ConnectLinkInbox,
+  private val qrCodeScanner: QrCodeScanner,
 ) : Presenter<LoginUiState> {
 
   /** The setup link this sign-in came from, while it's still held. Gone after process death. */
@@ -293,6 +296,7 @@ class LoginPresenter(
       restorableAccounts = restorableAccounts,
       restoredTheme = restoredTheme,
       focusPassword = isRestoringAccount && password.isEmpty(),
+      canScanSetupCode = qrCodeScanner.isSupported,
     ) { event ->
       when (event) {
         NavigateBack -> {
@@ -325,6 +329,8 @@ class LoginPresenter(
         is AddCampsite -> signInWithPassword()
 
         is LoginUiEvent.StartOpenIdAuth -> signInWithOpenId()
+
+        LoginUiEvent.ScanSetupCode -> navigator.goTo(ScanSetupCodeScreen)
       }
     }
   }

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="camera_permission_title">Allow camera access</string>
+  <string name="camera_permission_message">Campfire uses the camera only to read QR codes while this screen is open. Nothing it sees is saved.</string>
+  <string name="camera_permission_denied_message">Camera access is turned off for Campfire. To scan a QR code, allow the camera in Campfire's app settings.</string>
+  <string name="action_allow_camera">Allow camera</string>
+  <string name="action_open_app_settings">Open settings</string>
+  <string name="camera_unavailable_title">Can't open the camera</string>
+  <string name="camera_unavailable_message">Another app may be using it. Close other camera apps and try again.</string>
+  <string name="action_turn_on_flashlight">Turn on flashlight</string>
+  <string name="action_turn_off_flashlight">Turn off flashlight</string>
+</resources>

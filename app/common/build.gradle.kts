@@ -35,6 +35,7 @@ kotlin {
         api(projects.infra.updates.impl)
         api(projects.infra.whatsNew.impl)
         api(projects.infra.whatsNew.ui)
+        api(projects.infra.qrscanner)
         api(projects.infra.tracing)
         api(projects.infra.socket.impl)
 

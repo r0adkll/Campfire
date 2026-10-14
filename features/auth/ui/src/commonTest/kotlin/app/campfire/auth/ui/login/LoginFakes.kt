@@ -3,6 +3,8 @@
 
 package app.campfire.auth.ui.login
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import app.campfire.account.api.BackedUpAccount
 import app.campfire.account.api.RestorableAccount
 import app.campfire.account.api.RestorableAccountRepository
@@ -19,6 +21,7 @@ import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
 import app.campfire.network.oidc.OpenIdAuthorization
+import app.campfire.qrscanner.QrCodeScanner
 import app.campfire.ui.theming.api.AppTheme
 import app.campfire.ui.theming.api.AppThemeRepository
 import kotlinx.coroutines.flow.Flow
@@ -148,6 +151,11 @@ internal class FakeConnectLinkInbox(
   override fun discard(id: Long) {
     links.remove(id)
   }
+}
+
+internal class FakeQrCodeScanner(override val isSupported: Boolean) : QrCodeScanner {
+  @Composable
+  override fun Viewfinder(onScanned: (String) -> Unit, modifier: Modifier) = Unit
 }
 
 internal class GrantedLocalNetworkPermission : LocalNetworkPermissionController {

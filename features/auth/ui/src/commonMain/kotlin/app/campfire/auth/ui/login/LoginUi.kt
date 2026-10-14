@@ -218,6 +218,11 @@ internal fun LoginUiContent(
       connectionState = state.connectionState,
       authError = state.authError,
       isAuthenticating = state.isAuthenticating,
+      onScanSetupCodeClick = if (state.canScanSetupCode) {
+        { eventSink(LoginUiEvent.ScanSetupCode) }
+      } else {
+        null
+      },
       modifier = Modifier.onFocusChanged {
         hasFocus = it.hasFocus
       }.widthIn(max = MaxContentWidth),

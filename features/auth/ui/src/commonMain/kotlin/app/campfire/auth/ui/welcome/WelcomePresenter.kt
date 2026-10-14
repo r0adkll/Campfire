@@ -18,6 +18,7 @@ import app.campfire.common.screens.WelcomeScreen
 import app.campfire.core.di.UserScope
 import app.campfire.core.permission.LocalNetworkPermissionController
 import app.campfire.network.oidc.AuthorizationFlow
+import app.campfire.qrscanner.QrCodeScanner
 import app.campfire.ui.theming.api.AppThemeRepository
 import com.slack.circuit.codegen.annotations.CircuitInject
 import com.slack.circuit.runtime.Navigator
@@ -35,6 +36,7 @@ class WelcomePresenter(
   private val passwordCredentials: PasswordCredentials,
   private val backedUpAccountRestorer: BackedUpAccountRestorer,
   private val connectLinkInbox: ConnectLinkInbox,
+  private val qrCodeScanner: QrCodeScanner,
   private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -48,6 +50,7 @@ class WelcomePresenter(
     restorableAccountRepository = restorableAccountRepository,
     passwordCredentials = passwordCredentials,
     connectLinkInbox = connectLinkInbox,
+    qrCodeScanner = qrCodeScanner,
   )
 
   @Composable

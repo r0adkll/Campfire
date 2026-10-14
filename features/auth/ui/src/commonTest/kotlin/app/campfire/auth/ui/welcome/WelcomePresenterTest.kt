@@ -8,6 +8,7 @@ import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.ui.login.FakeAuthRepository
 import app.campfire.auth.ui.login.FakeConnectLinkInbox
 import app.campfire.auth.ui.login.FakePasswordCredentials
+import app.campfire.auth.ui.login.FakeQrCodeScanner
 import app.campfire.auth.ui.login.FakeRestorableAccountRepository
 import app.campfire.auth.ui.login.GrantedLocalNetworkPermission
 import app.campfire.auth.ui.login.RecordingAppThemeRepository
@@ -39,6 +40,7 @@ class WelcomePresenterTest {
     passwordCredentials = FakePasswordCredentials(),
     backedUpAccountRestorer = restorer,
     connectLinkInbox = FakeConnectLinkInbox(),
+    qrCodeScanner = FakeQrCodeScanner(isSupported = false),
     navigator = navigator,
   )
 

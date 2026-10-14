@@ -4,6 +4,7 @@ about-libraries = "15.3.0"
 accompanist = "0.37.3"
 androidxlifecycle = "2.11.0"
 androidxactivity = "1.13.0"
+androidxcamera = "1.6.2"
 androidxfragment = "1.9.1"
 androidxcomposeui = "1.12.1"
 androidxtracing = "2.0.4"
@@ -110,6 +111,9 @@ androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", 
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-archCoreTesting = "androidx.arch.core:core-testing:2.2.0"
 androidx-browser = "androidx.browser:browser:1.10.0"
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "androidxcamera" }
+androidx-camera-compose = { module = "androidx.camera:camera-compose", version.ref = "androidxcamera" }
+androidx-camera-lifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "androidxcamera" }
 androidx-credentials = "androidx.credentials:credentials:1.6.0"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 androidx-compose-ui = { module = "androidx.compose.ui:ui", version.ref = "androidxcomposeui" }
@@ -272,6 +276,7 @@ play-services-cast-framework = "com.google.android.gms:play-services-cast-framew
 # Pinned to the version play-services-cast-framework resolves so behavior is unchanged;
 # declared explicitly because :infra:audioplayer:cast uses mediarouter APIs directly.
 androidx-mediarouter = "androidx.mediarouter:mediarouter:1.8.1"
+zxing-core = "com.google.zxing:core:3.5.4"
 vlcj = { module = "uk.co.caprica:vlcj", version.ref = "vlcj" }
 jna = { module = "net.java.dev.jna:jna-jpms", version.ref = "jna" }
 bytedeco-ffmpeg = { module = "org.bytedeco:ffmpeg", version.ref = "bytedeco-ffmpeg" }
