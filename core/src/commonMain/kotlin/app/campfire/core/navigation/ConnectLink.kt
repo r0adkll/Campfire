@@ -4,8 +4,8 @@
 package app.campfire.core.navigation
 
 /**
- * A server and Cloudflare Access service token handed to Campfire by a setup link, e.g. a button
- * in a server's Discord:
+ * A server and Cloudflare Access service token handed to Campfire by a setup link, e.g. from a
+ * server's member page as a link or a QR code:
  *
  * `https://thescavengers.software/campfire/connect#v=1&server=https%3A%2F%2Fabs.example.com&name=Home&auth=openid&id=…&secret=…`
  *
@@ -39,6 +39,14 @@ data class ConnectLink(
     const val HOST = "thescavengers.software"
     const val PATH = "/campfire/connect"
 
+    /**
+     * The custom-scheme form Chrome delivers from the Android fallback link
+     * `intent://connect?…#Intent;scheme=campfireaudiobooks;package=app.campfire.android;end`. An
+     * intent URL's fragment is taken by `#Intent;…`, so here the fields ride in the query.
+     */
+    const val SCHEME = "campfireaudiobooks"
+    const val SCHEME_HOST = "connect"
+
     /** The link format this version of Campfire understands. */
     const val VERSION = "1"
 
@@ -59,6 +67,48 @@ data class ConnectLink(
     private val hostLabel = Regex("[a-z0-9]([a-z0-9-]*[a-z0-9])?")
     private val ipv6Literal = Regex("\\[[0-9a-f:.]+]")
     private val pathChars = Regex("[A-Za-z0-9._~!$'()*+,;=:%/-]*")
+
+    /**
+     * Parse a whole setup link, as it arrives from an intent or a scanned QR code, or `null` when
+     * [url] isn't one. Two forms are setup links, matched exactly apart from the case of the
+     * scheme and host and a trailing slash:
+     *
+     * - `https://thescavengers.software/campfire/connect#<fields>`, the App Link, with no query
+     * - `campfireaudiobooks://connect?<fields>`, the Android fallback, with no fragment
+     *
+     * Anything else (another host, a port, user info, a different path) is not a setup link. A
+     * setup link without its fields is one, but [ConnectLinkResult.Invalid].
+     */
+    fun parseUrl(url: String): ConnectLinkResult? {
+      val text = url.trim()
+      val schemeEnd = text.indexOf("://")
+      if (schemeEnd < 0) return null
+      val scheme = text.substring(0, schemeEnd)
+      val rest = text.substring(schemeEnd + 3)
+
+      return when {
+        scheme.equals("https", ignoreCase = true) -> {
+          val target = rest.substringBefore('#')
+          if ('?' in target || !target.isLocation(HOST, PATH)) return null
+          parse(rest.substringAfter('#', missingDelimiterValue = ""))
+        }
+
+        scheme.equals(SCHEME, ignoreCase = true) -> {
+          val target = rest.substringBefore('?')
+          if ('#' in rest || !target.isLocation(SCHEME_HOST, path = "")) return null
+          parse(rest.substringAfter('?', missingDelimiterValue = ""))
+        }
+
+        else -> null
+      }
+    }
+
+    /** Whether this `host/path` is exactly [host] (any case) followed by [path] or `$path/`. */
+    private fun String.isLocation(host: String, path: String): Boolean {
+      val authority = substringBefore('/')
+      val rawPath = substring(authority.length)
+      return authority.equals(host, ignoreCase = true) && (rawPath == path || rawPath == "$path/")
+    }
 
     /**
      * Parse a setup link's [fragment] (the part after `#`). Unknown keys are ignored; values are

@@ -8,14 +8,16 @@ import android.os.Bundle
 import app.campfire.core.logging.LogPriority
 import app.campfire.core.logging.bark
 import app.campfire.core.navigation.ConnectLink
+import app.campfire.core.navigation.ConnectLinkResult
 import app.campfire.core.navigation.DeepLink
 import app.campfire.core.navigation.DeepLinkKeys
 
 /**
  * Translate an [Intent] into a [DeepLink].
  *
- * A setup App Link (`https://thescavengers.software/campfire/connect#…`) is always honored: it
- * only opens a confirmation, and nothing in it is saved until the user agrees. It is ignored when
+ * A setup link (the App Link `https://thescavengers.software/campfire/connect#…`, or its
+ * `campfireaudiobooks://connect?…` fallback) is always honored: it only opens a confirmation, and
+ * nothing in it is saved until the user agrees. It is ignored when
  * [isRedelivery] (the activity being recreated, or relaunched from Recents with its original
  * intent), so an old link doesn't ask again.
  *
@@ -30,11 +32,11 @@ internal fun Intent.toDeepLink(
   nonce: Long,
   isRedelivery: Boolean = false,
 ): DeepLink {
-  val connectFragment = connectLinkFragment()
-  if (connectFragment != null) {
+  val connectLink = connectLink()
+  if (connectLink != null) {
     val launchedFromHistory = flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0
     if (isRedelivery || launchedFromHistory) return DeepLink.None
-    return DeepLink.Connect(ConnectLink.parse(connectFragment), nonce)
+    return DeepLink.Connect(connectLink, nonce)
   }
 
   val extras = extras ?: return DeepLink.None
@@ -58,16 +60,13 @@ internal fun Intent.toDeepLink(
 }
 
 /**
- * The still-encoded fragment of a setup App Link, or `null` when this isn't one. The fragment is
- * read encoded so that escaped `&` and `=` inside values survive until the form is decoded.
+ * The setup link this intent carries, or `null` when it carries none. The URI is read still
+ * encoded, so that escaped `&` and `=` inside values survive until the form is decoded, and it
+ * goes through the same matching as a scanned QR code.
  */
-private fun Intent.connectLinkFragment(): String? {
+private fun Intent.connectLink(): ConnectLinkResult? {
   if (action != Intent.ACTION_VIEW) return null
-  val uri = data ?: return null
-  if (!uri.scheme.equals("https", ignoreCase = true)) return null
-  if (!uri.host.equals(ConnectLink.HOST, ignoreCase = true)) return null
-  if (uri.path?.trimEnd('/') != ConnectLink.PATH) return null
-  return uri.encodedFragment.orEmpty()
+  return ConnectLink.parseUrl(dataString ?: return null)
 }
 
 private fun parseAutomation(

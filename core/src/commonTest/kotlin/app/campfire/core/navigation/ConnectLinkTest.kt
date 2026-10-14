@@ -12,6 +12,7 @@ import assertk.assertions.doesNotContain
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
+import assertk.assertions.isNotNull
 import assertk.assertions.isNull
 import assertk.assertions.isTrue
 import kotlin.test.Test
@@ -187,6 +188,70 @@ class ConnectLinkTest {
     assertThat(text).doesNotContain(CLIENT_SECRET)
     assertThat(text).doesNotContain(CLIENT_ID)
     assertThat(ConnectLink.parse(validFragment()).toString()).doesNotContain(CLIENT_SECRET)
+  }
+
+  @Test
+  fun parse_url_reads_the_app_link_fragment() {
+    val result = ConnectLink.parseUrl("https://thescavengers.software/campfire/connect#${validFragment()}")
+
+    assertThat(result).isEqualTo(ConnectLink.parse(validFragment()))
+    assertThat(result).isNotNull().isInstanceOf<Valid>()
+  }
+
+  @Test
+  fun parse_url_reads_the_custom_scheme_query() {
+    val result = ConnectLink.parseUrl("campfireaudiobooks://connect?${validFragment()}")
+
+    assertThat(result).isEqualTo(ConnectLink.parse(validFragment()))
+    assertThat(result).isNotNull().isInstanceOf<Valid>()
+  }
+
+  @Test
+  fun parse_url_tolerates_case_a_trailing_slash_and_surrounding_whitespace() {
+    listOf(
+      "HTTPS://TheScavengers.Software/campfire/connect/#${validFragment()}",
+      "  https://thescavengers.software/campfire/connect#${validFragment()}\n",
+      "CampfireAudiobooks://Connect/?${validFragment()}",
+    ).forEach { url ->
+      assertThat(ConnectLink.parseUrl(url), name = url).isNotNull().isInstanceOf<Valid>()
+    }
+  }
+
+  @Test
+  fun parse_url_passes_the_fields_problems_through() {
+    assertThat(ConnectLink.parseUrl("https://thescavengers.software/campfire/connect"))
+      .isEqualTo(Invalid(Reason.Malformed))
+    assertThat(ConnectLink.parseUrl("campfireaudiobooks://connect"))
+      .isEqualTo(Invalid(Reason.Malformed))
+    assertThat(ConnectLink.parseUrl("campfireaudiobooks://connect?${validFragment(version = "2")}"))
+      .isEqualTo(UnsupportedVersion)
+  }
+
+  @Test
+  fun parse_url_ignores_anything_that_is_not_a_setup_link() {
+    val fields = validFragment()
+    listOf(
+      "",
+      "hello",
+      fields,
+      "http://thescavengers.software/campfire/connect#$fields",
+      "https://thescavengers.software.evil.example/campfire/connect#$fields",
+      "https://evil.example/campfire/connect#$fields",
+      "https://thescavengers.software:8443/campfire/connect#$fields",
+      "https://user@thescavengers.software/campfire/connect#$fields",
+      "https://thescavengers.software/campfire/connect/extra#$fields",
+      "https://thescavengers.software/campfire/connectx#$fields",
+      "https://thescavengers.software/campfire/connect?$fields",
+      "https://thescavengers.software/campfire/connect?ref=x#$fields",
+      "campfireaudiobooks://oauth?$fields",
+      "campfireaudiobooks://connect/extra?$fields",
+      "campfireaudiobooks://connect#$fields",
+      "campfireaudiobooks://connect?$fields#Intent;end",
+      "intent://connect?$fields#Intent;scheme=campfireaudiobooks;package=app.campfire.android;end",
+      "otherapp://connect?$fields",
+    ).forEach { url ->
+      assertThat(ConnectLink.parseUrl(url), name = url).isNull()
+    }
   }
 
   private fun parseValid(fragment: String): ConnectLink {
