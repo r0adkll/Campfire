@@ -29,6 +29,8 @@ data class LoginUiState(
    * into a restored account, whose other fields are already filled in.
    */
   val focusPassword: Boolean = false,
+  /** Whether this device can scan a setup link's QR code. */
+  val canScanSetupCode: Boolean = false,
 
   val eventSink: (LoginUiEvent) -> Unit,
 ) : CircuitUiState
@@ -55,6 +57,7 @@ sealed interface LoginUiEvent : CircuitUiEvent {
   data class ChangeNetworkSettings(val settings: NetworkSettings) : LoginUiEvent
   data object AddCampsite : LoginUiEvent
   data object StartOpenIdAuth : LoginUiEvent
+  data object ScanSetupCode : LoginUiEvent
   data class SelectRestorableAccount(val account: RestorableAccount) : LoginUiEvent
   data class DismissRestorableAccount(val account: RestorableAccount) : LoginUiEvent
 }

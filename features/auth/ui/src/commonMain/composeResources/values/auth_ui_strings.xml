@@ -60,8 +60,12 @@
   <string name="connect_updated_message">%1$s on %2$s now uses the service token from this link.</string>
   <string name="action_done">Done</string>
   <string name="connect_unsupported_title">Update Campfire</string>
-  <string name="connect_unsupported_message">This setup link needs a newer version of Campfire. Update Campfire, then open the link again.</string>
+  <string name="connect_unsupported_message">This setup link needs a newer version of Campfire. Update Campfire, then open or scan it again.</string>
   <string name="connect_invalid_title">This link doesn't work</string>
   <string name="connect_invalid_message">This setup link is incomplete or damaged. Ask for a new one, or add the server and its service token yourself from the sign-in screen.</string>
   <string name="action_close">Close</string>
+  <string name="action_scan_setup_code">Scan setup code</string>
+  <string name="scan_setup_code_title">Scan setup code</string>
+  <string name="scan_setup_code_instructions">Point your camera at the setup QR code from your server's member page.</string>
+  <string name="scan_setup_code_other_code">This isn't a Campfire setup code.</string>
 </resources>

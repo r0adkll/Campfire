@@ -6,6 +6,7 @@ package app.campfire.auth.ui.login
 import app.campfire.account.api.RestorableAccount
 import app.campfire.auth.api.model.AUTH_METHOD_LOCAL
 import app.campfire.auth.api.model.AUTH_METHOD_OPENID
+import app.campfire.auth.api.screen.ScanSetupCodeScreen
 import app.campfire.common.screens.LoginScreen
 import app.campfire.core.navigation.ConnectLink
 import app.campfire.core.navigation.ConnectLinkResult
@@ -33,6 +34,7 @@ class LoginPresenterTest {
   private val appThemeRepository = RecordingAppThemeRepository()
   private var authorizationFlow: AuthorizationFlow = UnusedAuthorizationFlow()
   private var connectLinkInbox = FakeConnectLinkInbox()
+  private var qrCodeScanner = FakeQrCodeScanner(isSupported = false)
 
   @Test
   fun `restored accounts are offered and prefill the form`() = runTest {
@@ -460,9 +462,38 @@ class LoginPresenterTest {
     assertThat(connectLinkInbox.links).isEmpty()
   }
 
-  private fun presenter(screen: LoginScreen) = LoginPresenter(
+  @Test
+  fun `scanning a setup code is offered only where the device can scan`() = runTest {
+    presenter(LoginScreen.Additional).test {
+      assertThat(awaitItem().canScanSetupCode).isFalse()
+      cancelAndIgnoreRemainingEvents()
+    }
+
+    qrCodeScanner = FakeQrCodeScanner(isSupported = true)
+    presenter(LoginScreen.Additional).test {
+      assertThat(awaitItem().canScanSetupCode).isTrue()
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  @Test
+  fun `scan setup code opens the scanner`() = runTest {
+    qrCodeScanner = FakeQrCodeScanner(isSupported = true)
+    val navigator = FakeNavigator(LoginScreen.Additional)
+
+    presenter(LoginScreen.Additional, navigator).test {
+      awaitItem().eventSink(LoginUiEvent.ScanSetupCode)
+      assertThat(navigator.awaitNextScreen()).isEqualTo(ScanSetupCodeScreen)
+      cancelAndIgnoreRemainingEvents()
+    }
+  }
+
+  private fun presenter(
+    screen: LoginScreen,
+    navigator: FakeNavigator = FakeNavigator(screen),
+  ) = LoginPresenter(
     screen = screen,
-    navigator = FakeNavigator(screen),
+    navigator = navigator,
     authRepository = authRepository,
     oauthAuthorizationFlow = authorizationFlow,
     localNetworkPermission = GrantedLocalNetworkPermission(),
@@ -470,6 +501,7 @@ class LoginPresenterTest {
     restorableAccountRepository = restorableAccounts,
     passwordCredentials = passwordCredentials,
     connectLinkInbox = connectLinkInbox,
+    qrCodeScanner = qrCodeScanner,
   ).apply {
     // Ignore any fakes configured for this machine's builds
     fakeRestorableAccountCount = 0

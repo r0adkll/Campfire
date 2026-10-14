@@ -81,6 +81,7 @@ import app.campfire.common.compose.icons.rounded.Disconnected
 import app.campfire.common.compose.icons.rounded.KeyboardArrowDown
 import app.campfire.common.compose.icons.rounded.Password
 import app.campfire.common.compose.icons.rounded.Person
+import app.campfire.common.compose.icons.rounded.QrCodeScanner
 import app.campfire.common.compose.icons.rounded.Settings
 import app.campfire.common.compose.icons.rounded.ShieldPerson
 import app.campfire.common.compose.icons.rounded.Visibility
@@ -97,6 +98,7 @@ import campfire.features.auth.ui.generated.resources.action_add_service_token
 import campfire.features.auth.ui.generated.resources.action_change_service_token
 import campfire.features.auth.ui.generated.resources.action_clear_server_url
 import campfire.features.auth.ui.generated.resources.action_hide_password
+import campfire.features.auth.ui.generated.resources.action_scan_setup_code
 import campfire.features.auth.ui.generated.resources.action_show_password
 import campfire.features.auth.ui.generated.resources.invalid_server_url
 import campfire.features.auth.ui.generated.resources.label_login_error_auth
@@ -144,6 +146,7 @@ internal fun ServerCard(
   modifier: Modifier = Modifier,
   autoFocus: Boolean = false,
   focusPassword: Boolean = false,
+  onScanSetupCodeClick: (() -> Unit)? = null,
 ) = SharedElementTransitionScope {
   val focusManager = LocalFocusManager.current
   val (serverNameFocus, serverUrlFocus, usernameFocus, passwordFocus) = remember { FocusRequester.createRefs() }
@@ -254,6 +257,8 @@ internal fun ServerCard(
             }
           }
         }
+      } else if (onScanSetupCodeClick != null) {
+        { ScanSetupCodeButton(enabled = !isAuthenticating, onClick = onScanSetupCodeClick) }
       } else {
         null
       },
@@ -300,6 +305,10 @@ internal fun ServerCard(
         // A server behind Cloudflare Access needs a service token before anything else works, so
         // that takes the place of the general network settings until it connects.
         val accessProtected = connectionState as? ConnectionState.AccessProtected
+        if (accessProtected != null && onScanSetupCodeClick != null) {
+          ScanSetupCodeButton(enabled = !isAuthenticating, onClick = onScanSetupCodeClick)
+        }
+
         Button(
           enabled = !isAuthenticating,
           onClick = if (accessProtected != null) onServiceTokenClick else onEditNetworkSettingsClick,
@@ -431,6 +440,21 @@ internal fun ServerCard(
     }
 
     Spacer(Modifier.size(16.dp))
+  }
+}
+
+/** Opens the camera to scan a setup link's QR code, which fills in the server and its token. */
+@Composable
+private fun ScanSetupCodeButton(
+  enabled: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier,
+) {
+  val label = stringResource(Res.string.action_scan_setup_code)
+  IconButtonTooltip(text = label, modifier = modifier) {
+    IconButton(enabled = enabled, onClick = onClick) {
+      Icon(CampfireIcons.Rounded.QrCodeScanner, contentDescription = label)
+    }
   }
 }
 

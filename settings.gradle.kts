@@ -116,6 +116,7 @@ include(
   ":infra:audioplayer:engine-vlc",
   ":infra:audioplayer:public-ui",
   ":infra:audioplayer:test",
+  ":infra:qrscanner",
   ":infra:shake",
   ":infra:updates:api",
   ":infra:updates:impl",

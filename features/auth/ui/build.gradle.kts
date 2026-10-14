@@ -31,6 +31,7 @@ kotlin {
       dependencies {
         api(projects.data.network.oidc)
         implementation(projects.features.auth.api)
+        implementation(projects.infra.qrscanner)
         implementation(projects.data.account.api)
         implementation(projects.ui.theming.api)
 
