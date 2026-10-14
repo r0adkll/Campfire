@@ -125,6 +125,7 @@ private fun CampfireRoot(
         -> LoggedOutWindow(
           userComponent = userComponent,
           onRootPop = onRootPop,
+          deepLink = deepLink,
           windowInsets = windowInsets,
           themeSettings = themeSettings,
           libraryViewSettings = userComponent.libraryViewSettings,

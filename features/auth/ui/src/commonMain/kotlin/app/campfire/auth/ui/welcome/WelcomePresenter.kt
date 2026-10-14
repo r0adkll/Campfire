@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import app.campfire.account.api.BackedUpAccountRestorer
 import app.campfire.account.api.RestorableAccountRepository
 import app.campfire.auth.api.AuthRepository
+import app.campfire.auth.api.ConnectLinkInbox
 import app.campfire.auth.api.PasswordCredentials
 import app.campfire.auth.ui.login.LoginPresenter
 import app.campfire.common.screens.LoginScreen
@@ -33,6 +34,7 @@ class WelcomePresenter(
   private val restorableAccountRepository: RestorableAccountRepository,
   private val passwordCredentials: PasswordCredentials,
   private val backedUpAccountRestorer: BackedUpAccountRestorer,
+  private val connectLinkInbox: ConnectLinkInbox,
   private val navigator: Navigator,
 ) : Presenter<WelcomeUiState> {
 
@@ -45,6 +47,7 @@ class WelcomePresenter(
     appThemeRepository = appThemeRepository,
     restorableAccountRepository = restorableAccountRepository,
     passwordCredentials = passwordCredentials,
+    connectLinkInbox = connectLinkInbox,
   )
 
   @Composable

@@ -74,8 +74,8 @@ class MainActivity : ComponentActivity() {
       component.localNetworkPermission.requestIfNeeded(serverUrl)
     }
 
-    // Parse Deeplink
-    intent?.let { updateDeepLink(it) }
+    // Parse Deeplink. When restoring, the intent is the one that first launched the activity.
+    intent?.let { updateDeepLink(it, isRedelivery = savedInstanceState != null) }
 
     // Configure toaster
     val toaster = AndroidToast(this)
@@ -114,10 +114,11 @@ class MainActivity : ComponentActivity() {
     updateDeepLink(intent)
   }
 
-  private fun updateDeepLink(intent: Intent) {
+  private fun updateDeepLink(intent: Intent, isRedelivery: Boolean = false) {
     val deepLink = intent.toDeepLink(
       allowAutomation = BuildConfig.DEBUG,
       nonce = System.nanoTime(),
+      isRedelivery = isRedelivery,
     )
     if (deepLink != DeepLink.None) {
       deepLinkFlow.value = deepLink

@@ -130,6 +130,8 @@ internal fun LoggedInWindow(
     eventListeners = userComponent.navigationEventListeners,
   )
 
+  ConnectLinkEffect(deepLink, userComponent.connectLinkInbox, navigator)
+
   // Debug-only automation deep links that need user-scoped dependencies
   LaunchedEffect(deepLink, userComponent) {
     val automation = userComponent.automationDeepLinks

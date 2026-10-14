@@ -17,6 +17,7 @@ import app.campfire.core.di.AppScope
 import app.campfire.core.model.NetworkSettings
 import app.campfire.core.model.User
 import app.campfire.core.model.UserId
+import app.campfire.core.model.isSameServerUrl
 import app.campfire.data.mapping.asDomainModel
 import app.campfire.network.ApiException
 import app.campfire.network.AuthAudioBookShelfApi
@@ -46,7 +47,7 @@ class DefaultAuthRepository(
   }
 
   override suspend fun checkServerAvailable(serverUrl: String): Result<Unit> {
-    val existing = serverRepository.getAllServers().firstOrNull { it.url.isSameServerAs(serverUrl) }
+    val existing = serverRepository.getAllServers().firstOrNull { isSameServerUrl(it.url, serverUrl) }
     return if (existing == null) {
       Result.success(Unit)
     } else {
@@ -183,11 +184,6 @@ class DefaultAuthRepository(
       activate = activate,
     )
     return user
-  }
-
-  // Server URLs are stored as typed or as the login probe resolved them
-  private fun String.isSameServerAs(other: String): Boolean {
-    return trim().trimEnd('/').equals(other.trim().trimEnd('/'), ignoreCase = true)
   }
 
   private fun Throwable.asAuthException(): AuthException = when {

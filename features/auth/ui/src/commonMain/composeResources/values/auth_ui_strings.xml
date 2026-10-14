@@ -46,4 +46,22 @@
   <string name="action_hide_password">Hide password</string>
   <string name="action_add_header">Add extra header</string>
   <string name="action_delete_header">Delete extra header</string>
+  <string name="connect_title_new">Add this campsite?</string>
+  <string name="connect_title_update">Update this campsite?</string>
+  <string name="connect_label_server">This link connects Campfire to</string>
+  <string name="connect_token_notice">Campfire will send the Cloudflare Access service token in this link to %1$s with every request. Only continue if you expected a link to this server from someone you trust.</string>
+  <string name="connect_update_notice">You're already signed in to this server as %1$s. Campfire will use the Cloudflare Access service token in this link for that account, sending it to %2$s with every request.</string>
+  <string name="connect_next_openid">Next, you'll sign in with OpenID.</string>
+  <string name="connect_next_sign_in">Next, you'll sign in to your account.</string>
+  <string name="action_connect_add">Continue</string>
+  <string name="action_connect_update">Update token</string>
+  <string name="action_cancel">Cancel</string>
+  <string name="connect_updated_title">Service token updated</string>
+  <string name="connect_updated_message">%1$s on %2$s now uses the service token from this link.</string>
+  <string name="action_done">Done</string>
+  <string name="connect_unsupported_title">Update Campfire</string>
+  <string name="connect_unsupported_message">This setup link needs a newer version of Campfire. Update Campfire, then open the link again.</string>
+  <string name="connect_invalid_title">This link doesn't work</string>
+  <string name="connect_invalid_message">This setup link is incomplete or damaged. Ask for a new one, or add the server and its service token yourself from the sign-in screen.</string>
+  <string name="action_close">Close</string>
 </resources>

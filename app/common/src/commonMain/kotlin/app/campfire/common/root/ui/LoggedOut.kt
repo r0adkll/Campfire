@@ -25,6 +25,7 @@ import app.campfire.common.compose.layout.LocalContentLayout
 import app.campfire.common.compose.theme.CampfireTheme
 import app.campfire.common.compose.widgets.LocalItemCardMarquee
 import app.campfire.common.di.UserComponent
+import app.campfire.core.navigation.DeepLink
 import app.campfire.settings.api.LibraryViewSettings
 import app.campfire.settings.api.ThemeSettings
 import app.campfire.ui.theming.api.AppTheme
@@ -46,6 +47,7 @@ import com.slack.circuitx.navigation.intercepting.rememberInterceptingNavigator
 internal fun LoggedOutWindow(
   userComponent: UserComponent,
   onRootPop: () -> Unit,
+  deepLink: DeepLink,
   windowInsets: WindowInsets,
   themeSettings: ThemeSettings,
   libraryViewSettings: LibraryViewSettings,
@@ -60,6 +62,8 @@ internal fun LoggedOutWindow(
     navigator = baseNavigator,
     eventListeners = userComponent.navigationEventListeners,
   )
+
+  ConnectLinkEffect(deepLink, userComponent.connectLinkInbox, navigator)
 
   CircuitCompositionLocals(userComponent.circuit) {
     CampfireTheme(

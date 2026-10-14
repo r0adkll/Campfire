@@ -59,6 +59,17 @@ sealed interface DeepLink {
   ) : DeepLink
 
   /**
+   * A setup link ([ConnectLink]) to confirm with the user: a server and a Cloudflare Access
+   * service token, or why the link can't be used. Release-safe, since nothing is saved until the
+   * user agrees. [nonce] identifies this delivery so the link is shown once, however many times
+   * the root recomposes with it.
+   */
+  data class Connect(
+    val result: ConnectLinkResult,
+    val nonce: Long,
+  ) : DeepLink
+
+  /**
    * Debug-only: sign in to [serverUrl] with the given credentials, mark first-run prompts as
    * seen, and optionally select a library by name and apply a theme. The app ends up on Home
    * in a fully configured state.

@@ -58,6 +58,16 @@ sealed class LoginScreen : BaseScreen(name = "Login") {
   ) : LoginScreen()
 
   /**
+   * Add the server from a setup link the user confirmed. The link's Cloudflare Access service
+   * token waits in memory under [linkId] (`ConnectLinkInbox`), out of saved navigation state.
+   */
+  data class Connect(
+    val serverUrl: String,
+    val serverName: String,
+    val linkId: Long,
+  ) : LoginScreen()
+
+  /**
    * Re-authenticate an existing account who's tokens have expired
    */
   data class ReAuthentication(
